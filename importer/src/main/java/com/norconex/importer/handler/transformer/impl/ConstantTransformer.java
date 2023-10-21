@@ -63,8 +63,8 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class ConstantTransformer
-        implements DocumentTransformer, Configurable<ConstantTransformerConfig> {
+public class ConstantTransformer implements
+        DocumentTransformer, Configurable<ConstantTransformerConfig> {
 
     private final ConstantTransformerConfig configuration =
             new ConstantTransformerConfig();

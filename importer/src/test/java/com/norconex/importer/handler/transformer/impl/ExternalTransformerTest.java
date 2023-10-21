@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2017-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,17 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.io.ByteArrayOutputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.ExternalHandler;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -45,39 +46,37 @@ class ExternalTransformerTest {
     @Test
     void testWriteRead() {
         var t = new ExternalTransformer();
-        t.setCommand("my command");
-        t.setTempDir(Paths.get("/some-path"));
-
-        t.setMetadataInputFormat("json");
-        t.setMetadataOutputFormat("xml");
-
-        t.setMetadataExtractionPatterns(
-            new RegexFieldValueExtractor("aaa.*", "111"),
-            new RegexFieldValueExtractor("bbb.*", "222")
-        );
-        t.addMetadataExtractionPattern("ccc.*", "333");
-        t.addMetadataExtractionPattern("ddd.*", "444", 2);
+        t.getConfiguration()
+            .setCommand("my command")
+            .setTempDir(Paths.get("/some-path"))
+            .setMetadataInputFormat("json")
+            .setMetadataOutputFormat("xml")
+            .setExtractionPatterns(List.of(
+                    new RegexFieldValueExtractor("aaa.*", "111"),
+                    new RegexFieldValueExtractor("bbb.*", "222"),
+                    new RegexFieldValueExtractor("ccc.*", "333"),
+                    new RegexFieldValueExtractor("ddd.*", "444", 2)
+            ));
 
         Map<String, String> setEnvs = new HashMap<>();
         setEnvs.put("env1", "value1");
         setEnvs.put("env2", "value2");
-        t.setEnvironmentVariables(setEnvs);
-        Map<String, String> addEnvs = new HashMap<>();
-        addEnvs.put("env3", "value3");
-        addEnvs.put("env4", "value4");
-        t.addEnvironmentVariables(addEnvs);
-        t.addEnvironmentVariable("env5", "value5");
+        setEnvs.put("env3", "value3");
+        setEnvs.put("env4", "value4");
+        setEnvs.put("env5", "value5");
+        t.getConfiguration().setEnvironmentVariables(setEnvs);
 
         assertThatNoException().isThrownBy(() ->
-            XML.assertWriteRead(t, "handler"));
+            BeanMapper.DEFAULT.assertWriteRead(t));
 
-        assertThat(t.getCommand()).isEqualTo("my command");
-        assertThat(t.getMetadataExtractionPatterns()).hasSize(4);
-        assertThat(t.getEnvironmentVariables()).hasSize(5);
-        assertThat(t.getMetadataOutputFormat()).isEqualTo("xml");
-        assertThat(t.getMetadataInputFormat()).isEqualTo("json");
-        assertThat(t.getOnSet()).isNull();
-        assertThat(t.getTempDir().toString()).contains("some-path");
+        var cfg = t.getConfiguration();
+        assertThat(cfg.getCommand()).isEqualTo("my command");
+        assertThat(cfg.getExtractionPatterns()).hasSize(4);
+        assertThat(cfg.getEnvironmentVariables()).hasSize(5);
+        assertThat(cfg.getMetadataOutputFormat()).isEqualTo("xml");
+        assertThat(cfg.getMetadataInputFormat()).isEqualTo("json");
+        assertThat(cfg.getOnSet()).isNull();
+        assertThat(cfg.getTempDir().toString()).contains("some-path");
     }
 
     @Test
@@ -128,14 +127,15 @@ class ExternalTransformerTest {
         }
 
         var t = new ExternalTransformer();
-        t.setCommand(ExternalApp.newCommandLine(command));
+        t.getConfiguration().setCommand(ExternalApp.newCommandLine(command));
         addPatternsAndEnvs(t);
-        t.setMetadataInputFormat(ExternalHandler.META_FORMAT_PROPERTIES);
-        t.setMetadataOutputFormat(ExternalHandler.META_FORMAT_PROPERTIES);
-        t.setOnSet(PropertySetter.REPLACE);
-        t.transformDocument(TestUtil.newHandlerDoc(
-                "c:\\ref with spaces\\doc.txt", input, metadata),
-                input, output, ParseState.PRE);
+        t.getConfiguration()
+            .setMetadataInputFormat(ExternalHandler.META_FORMAT_PROPERTIES)
+            .setMetadataOutputFormat(ExternalHandler.META_FORMAT_PROPERTIES)
+            .setOnSet(PropertySetter.REPLACE);
+        t.accept(TestUtil.newDocContext(
+                "c:\\ref with spaces\\doc.txt", input,
+                output, metadata, ParseState.PRE));
 
         var content = output.toString();
         // remove any stdout content that could be mixed with output to
@@ -179,15 +179,15 @@ class ExternalTransformerTest {
         envs.put(ExternalApp.ENV_STDOUT_AFTER, "<field2>StdoutAfter</field2>");
         envs.put(ExternalApp.ENV_STDERR_BEFORE, "field3 StdErrBefore");
         envs.put(ExternalApp.ENV_STDERR_AFTER, "StdErrAfter:field4");
-        t.setEnvironmentVariables(envs);
+        t.getConfiguration().setEnvironmentVariables(envs);
 
-        t.setMetadataExtractionPatterns(
+        t.getConfiguration().setExtractionPatterns(List.of(
             new RegexFieldValueExtractor("^(f.*):(.*)", 1, 2),
             new RegexFieldValueExtractor("^<field2>(.*)</field2>", "field2", 1),
             new RegexFieldValueExtractor("^f.*StdErr.*", "field3", 1),
             new RegexFieldValueExtractor("^(S.*?):(.*)", 2, 1),
             new RegexFieldValueExtractor("^(reference)\\=(.*)", 1, 2)
-        );
+        ));
     }
 
     private InputStream inputAsStream() {

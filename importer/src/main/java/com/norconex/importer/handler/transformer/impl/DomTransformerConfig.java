@@ -228,7 +228,7 @@ public class DomTransformerConfig {
      * The list of operations to perform.
      */
     @JsonXmlCollection(entryName = "op")
-    private List<DomOperation> operations = new ArrayList<>();
+    private final List<DomOperation> operations = new ArrayList<>();
 
     public DomTransformerConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);

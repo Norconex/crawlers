@@ -65,6 +65,7 @@ public class WriteAdapter {
         return text -> {
             try {
                 out.write(text.getBytes());
+                out.flush();
             } catch (IOException e) {
                 throw new UncheckedException(e);
             }

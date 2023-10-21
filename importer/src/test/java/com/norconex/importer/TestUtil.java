@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -31,8 +32,10 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.cxf.common.i18n.UncheckedException;
 
+import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -41,11 +44,10 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.handler.filter.DocumentFilter;
-import com.norconex.importer.handler.tagger.DocumentTagger;
+import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.parser.ParseState;
 
 public final class TestUtil {
@@ -113,43 +115,41 @@ public final class TestUtil {
         return new Importer(config);
     }
 
-    public static boolean filter(DocumentFilter filter, String ref,
-            Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
-        return filter(filter, ref, null, metadata, parseState);
-    }
-    public static boolean filter(DocumentFilter filter, String ref,
-            InputStream is, Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
-        var input = is == null ? new NullInputStream(0) : is;
-        return filter.acceptDocument(
-                newHandlerDoc(ref, input, metadata), input, parseState);
-    }
+//    public static boolean filter(DocumentFilter filter, String ref,
+//            Properties metadata, ParseState parseState)
+//                    throws ImporterHandlerException {
+//        return filter(filter, ref, null, metadata, parseState);
+//    }
+//    public static boolean filter(DocumentFilter filter, String ref,
+//            InputStream is, Properties metadata, ParseState parseState)
+//                    throws ImporterHandlerException {
+//        var input = is == null ? new NullInputStream(0) : is;
+//        return filter.acceptDocument(
+//                newDoc(ref, input, metadata), input, parseState);
+//    }
 
-    public static boolean condition(ImporterCondition cond, String ref,
+    public static boolean condition(Condition cond, String ref,
             Properties metadata, ParseState parseState)
                     throws ImporterHandlerException {
         return condition(cond, ref, null, metadata, parseState);
     }
-    public static boolean condition(ImporterCondition cond, String ref,
+    public static boolean condition(Condition cond, String ref,
             InputStream is, Properties metadata, ParseState parseState)
                     throws ImporterHandlerException {
         var input = is == null ? new NullInputStream(0) : is;
-        return cond.testDocument(
-                newHandlerDoc(ref, input, metadata), input, parseState);
+        return cond.test(newDocContext(ref, input, metadata));
     }
 
-    public static void tag(DocumentTagger tagger, String ref,
+    public static void transform(DocumentTransformer t, String ref,
             Properties metadata, ParseState parseState)
                     throws ImporterHandlerException {
-        tag(tagger, ref, null, metadata, parseState);
+        transform(t, ref, null, metadata, parseState);
     }
-    public static void tag(DocumentTagger tagger, String ref,
+    public static void transform(DocumentTransformer t, String ref,
             InputStream is, Properties metadata, ParseState parseState)
                     throws ImporterHandlerException {
         var input = is == null ? new NullInputStream(0) : is;
-        tagger.tagDocument(
-                newHandlerDoc(ref, input, metadata), input, parseState);
+        t.accept(newDocContext(ref, input, metadata, parseState));
     }
 
 
@@ -164,22 +164,22 @@ public final class TestUtil {
     }
 
 
-    public static HandlerDoc newHandlerDoc() {
-        return newHandlerDoc("N/A", null, new Properties());
+    public static Doc newDoc() {
+        return newDoc("N/A", null, new Properties());
     }
-    public static HandlerDoc newHandlerDoc(Properties meta) {
-        return newHandlerDoc("N/A", null, meta);
+    public static Doc newDoc(Properties meta) {
+        return newDoc("N/A", null, meta);
     }
-    public static HandlerDoc newHandlerDoc(String ref) {
-        return newHandlerDoc(ref, null, new Properties());
+    public static Doc newDoc(String ref) {
+        return newDoc(ref, null, new Properties());
     }
-    public static HandlerDoc newHandlerDoc(String ref, Properties meta) {
-        return newHandlerDoc(ref, null, meta);
+    public static Doc newDoc(String ref, Properties meta) {
+        return newDoc(ref, null, meta);
     }
-    public static HandlerDoc newHandlerDoc(String ref, InputStream in) {
-        return newHandlerDoc(ref, in, new Properties());
+    public static Doc newDoc(String ref, InputStream in) {
+        return newDoc(ref, in, new Properties());
     }
-    public static HandlerDoc newHandlerDoc(
+    public static Doc newDoc(
             String ref, InputStream in, Properties meta) {
         // Remove document.reference for tests that need the same count
         // as values they entered in metadata. Just keep it if explicitely
@@ -195,7 +195,41 @@ public final class TestUtil {
             doc.getDocRecord().setContentType(ContentType.valueOf(ct));
         }
 
-        return new HandlerDoc(doc);
+        return doc;
+    }
+    public static DocContext newDocContext() {
+        return newDocContext("N/A", null, new Properties());
+    }
+    public static DocContext newDocContext(
+            String ref, InputStream in) {
+        return newDocContext(ref, in, null, ParseState.PRE);
+    }
+    public static DocContext newDocContext(
+            String ref, InputStream in, Properties meta) {
+        return newDocContext(ref, in, meta, ParseState.PRE);
+    }
+    public static DocContext newDocContext(
+            String ref, InputStream in, Properties meta, ParseState state) {
+        return DocContext.builder()
+                .doc(newDoc(ref, in, meta))
+                .parseState(state)
+                .eventManager(new EventManager())
+                .out(NullOutputStream.INSTANCE)
+                .build();
+    }
+    public static DocContext newDocContext(
+            String ref, InputStream in, OutputStream out, Properties meta) {
+        return newDocContext(ref, in, out, meta, ParseState.PRE);
+    }
+    public static DocContext newDocContext(
+            String ref, InputStream in, OutputStream out,
+            Properties meta, ParseState state) {
+        return DocContext.builder()
+                .doc(newDoc(ref, in, meta))
+                .parseState(state)
+                .eventManager(new EventManager())
+                .out(out)
+                .build();
     }
 
     public static String contentAsString(Doc doc) {

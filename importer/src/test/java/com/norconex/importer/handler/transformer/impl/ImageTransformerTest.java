@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,12 @@ package com.norconex.importer.handler.transformer.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
 import java.io.ByteArrayOutputStream;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.parser.ParseState;
@@ -33,27 +32,38 @@ class ImageTransformerTest {
     @Test
     void testWriteRead() {
         var t = new ImageTransformer();
-        t.setCropRectangle(new Rectangle(10, 15, 400, 250));
-        t.setRotateDegrees(-90.0);
-        t.setScaleDimension(new Dimension(800,  600));
-        t.setScaleFactor(0.5);
-        t.setScaleStretch(true);
-        t.setTargetFormat("jpg");
+        t.getConfiguration()
+            .getCrop()
+                .setX(10)
+                .setY(15)
+                .setWidth(400)
+                .setHeight(250);
+        t.getConfiguration()
+            .getScale()
+                .setStretch(true)
+                .setWidth(800)
+                .setHeight(600)
+                .setFactor(0.5);
+        t.getConfiguration()
+            .setRotation(-90.0)
+            .setTargetFormat("jpg");
         assertThatNoException().isThrownBy(() ->
-            XML.assertWriteRead(t, "handler"));
+            BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
     void testImageTransformer() throws ImporterHandlerException {
         var t = new ImageTransformer();
-        t.setRotateDegrees(90d);
+        t.getConfiguration().setRotation(90d);
         var out = new ByteArrayOutputStream();
         assertThatNoException().isThrownBy(() ->
-            t.transformApplicableDocument(TestUtil.newHandlerDoc("img.png"),
+            t.accept(TestUtil.newDocContext(
+                    "img.png",
                     getClass().getResourceAsStream(
                             "/parser/image/importer.png"),
                     out,
-                    ParseState.PRE));
+                    new Properties(),
+                    ParseState.PRE)));
         assertThat(out.size()).isPositive();
     }
 }

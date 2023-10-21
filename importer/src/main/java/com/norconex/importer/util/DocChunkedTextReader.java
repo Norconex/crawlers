@@ -114,9 +114,21 @@ public class DocChunkedTextReader {
 
     @Data
     public static class TextChunk {
+        /**
+         * The field name where the text is coming from. <code>null</code>
+         * if the text comes from the document content instead.
+         */
         private final String field; // null if content
+        /**
+         * On multi-valued field, the index of the value currently processed.
+         */
         private final int fieldValueIndex;
+        /** Index of the text portion currently processed. */
         private final int chunkIndex;
+        /**
+         * Full or partial text depending whether the maximum read size was
+         * reached and it needed to be sent in text chunks.
+         */
         private final String text;
     }
 }
