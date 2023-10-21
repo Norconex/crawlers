@@ -105,6 +105,7 @@ public class CollapseRepeatingTransformerConfig {
     /**
      * Sets whether to ignore case sensitivity.
      * @param ignoreCase <code>true</code> if ignoring character case
+     * @return this instance
      */
     public CollapseRepeatingTransformerConfig setIgnoreCase(
             boolean ignoreCase) {
@@ -123,6 +124,7 @@ public class CollapseRepeatingTransformerConfig {
      * Sets source field matcher for fields on which to perform repeating
      * string collapsing.
      * @param fieldMatcher field matcher
+     * @return this instance
      */
     public CollapseRepeatingTransformerConfig setFieldMatcher(
             TextMatcher fieldMatcher) {
