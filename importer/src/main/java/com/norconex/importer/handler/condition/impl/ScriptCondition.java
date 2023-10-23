@@ -26,8 +26,8 @@ import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
 import com.norconex.importer.handler.condition.Condition;
-import com.norconex.importer.util.DocChunkedTextReader;
-import com.norconex.importer.util.DocChunkedTextReader.TextChunk;
+import com.norconex.importer.util.chunk.ChunkedTextReader;
+import com.norconex.importer.util.chunk.TextChunk;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -140,27 +140,22 @@ public class ScriptCondition
     public boolean test(DocContext docCtx) throws ImporterHandlerException {
 
         var matches = new MutableBoolean();
-        try {
-            DocChunkedTextReader.builder()
-                .charset(configuration.getSourceCharset())
-                .fieldMatcher(configuration.getFieldMatcher())
-                .maxChunkSize(configuration.getMaxReadSize())
-                .build()
-                .read(docCtx, chunk -> {
-                    // only check if no successful match yet.
-                    try {
-                        if (matches.isFalse() && executeScript(docCtx, chunk)) {
-                            matches.setTrue();
-                        }
-                    } catch (ImporterHandlerException e) {
-                        throw new IOException(e);
+        ChunkedTextReader.builder()
+            .charset(configuration.getSourceCharset())
+            .fieldMatcher(configuration.getFieldMatcher())
+            .maxChunkSize(configuration.getMaxReadSize())
+            .build()
+            .read(docCtx, chunk -> {
+                // only check if no successful match yet.
+                try {
+                    if (matches.isFalse() && executeScript(docCtx, chunk)) {
+                        matches.setTrue();
                     }
-                    return true;
-                });
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Cannot parse document into a DOM-tree.", e);
-        }
+                } catch (ImporterHandlerException e) {
+                    throw new IOException(e);
+                }
+                return true;
+            });
         return matches.booleanValue();
     }
 

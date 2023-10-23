@@ -14,15 +14,13 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import java.io.IOException;
 import java.util.regex.Pattern;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.util.DocChunkedTextReader;
-import com.norconex.importer.util.DocContextUtil;
+import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
 import lombok.Data;
 
@@ -84,36 +82,20 @@ public class CollapseRepeatingTransformer implements
 
     @Override
     public void accept(DocContext docCtx) throws ImporterHandlerException {
-        try {
-            DocChunkedTextReader.builder()
-                .fieldMatcher(configuration.getFieldMatcher())
-                .maxChunkSize(configuration.getMaxReadSize())
-                .charset(configuration.getSourceCharset())
-                .build()
-                .read(docCtx, chunk -> {
-                    var out = new StringBuilder();
-                    var in = chunk.getText();
-                    Pattern pattern;
-                    for (String str : configuration.getStrings()) {
-                        var regex = "("
-                                + escapeRegex(resolveControlChars(str)) + ")+";
-                        if (configuration.isIgnoreCase()) {
-                            pattern = Pattern.compile(
-                                    regex, Pattern.CASE_INSENSITIVE);
-                        } else {
-                            pattern = Pattern.compile(regex);
-                        }
-                        in = pattern.matcher(in).replaceAll("$1");
-                    }
-                    out.append(in);
-                    DocContextUtil.setTextChunk(docCtx, chunk, out.toString());
-                    out.setLength(0);
-                    return true;
-                });
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Cannot parse document into a DOM-tree.", e);
-        }
+        ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
+            var text = chunk.getText();
+            Pattern pattern;
+            for (String str : configuration.getStrings()) {
+                var regex = "(" + escapeRegex(resolveControlChars(str)) + ")+";
+                if (configuration.isIgnoreCase()) {
+                    pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+                } else {
+                    pattern = Pattern.compile(regex);
+                }
+                text = pattern.matcher(text).replaceAll("$1");
+            }
+            return text;
+        });
     }
 
     private String resolveControlChars(String text) {
@@ -128,36 +110,4 @@ public class CollapseRepeatingTransformer implements
         return text.replaceAll(
                 "([\\\\\\.\\[\\{\\(\\*\\+\\?\\^\\$\\|])", "\\\\$1");
     }
-//
-//    @Override
-//    protected void loadStringTransformerFromXML(final XML xml) {
-//        xml.checkDeprecated("@caseSensitive", "ignoreCase", true);
-//
-//        setIgnoreCase(xml.getBoolean("@ignoreCase", ignoreCase));
-//
-//        var nodes = xml.getXMLList("reduce");
-//        for (XML node : nodes) {
-//            var text = node.getString(".");
-//            text = text.replaceAll("\\\\s", " ");
-//            text = text.replaceAll("\\\\t", "\t");
-//            text = text.replaceAll("\\\\n", "\n");
-//            text = text.replaceAll("\\\\r", "\r");
-//            addReduction(text);
-//        }
-//    }
-//
-//    @Override
-//    protected void saveStringTransformerToXML(final XML xml) {
-//        xml.setAttribute("ignoreCase", ignoreCase);
-//        for (String reduction : reductions) {
-//            if (reduction != null) {
-//                var text = reduction;
-//                text = text.replaceAll(" ", "\\\\s");
-//                text = text.replaceAll("\t", "\\\\t");
-//                text = text.replaceAll("\n", "\\\\n");
-//                text = text.replaceAll("\r", "\\\\r");
-//                xml.addElement("reduce", text);
-//            }
-//        }
-//    }
 }

@@ -26,7 +26,16 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * <p>Rename metadata fields to different names.
+ * <p>Splits an existing metadata value into multiple values based on a given
+ * value separator (the separator gets discarded).  The "toField" argument
+ * is optional (the same field will be used to store the splits if no
+ * "toField" is specified"). Duplicates are removed.</p>
+ * <p>Can be used both as a pre-parse (metadata or text content) or
+ * post-parse handler.</p>
+ * <p>
+ * If no "fieldMatcher" expression is specified, the document content will be
+ * used.  If the "fieldMatcher" matches more than one field, they will all
+ * be split and stored in the same multi-value metadata field.
  * </p>
  * <h3>Storing values in an existing field</h3>
  * <p>
@@ -35,56 +44,54 @@ import lombok.experimental.Accessors;
  * It is possible to change this default behavior by supplying a
  * {@link PropertySetter}.
  * </p>
- * <p>
- * When using regular expressions, "toField" can also hold replacement patterns
- * (e.g. $1, $2, etc).
- * </p>
- *
- * <p>Can be used both as a pre-parse or post-parse handler.</p>
  *
  * {@nx.xml.usage
- * <handler class="com.norconex.importer.handler.tagger.impl.RenameTagger">
+ * <handler class="com.norconex.importer.handler.tagger.impl.SplitTagger"
+ *     {@nx.include com.norconex.importer.handler.tagger.AbstractCharStreamTagger#attributes}>
  *
  *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
  *
- *   <!-- multiple rename tags allowed -->
- *   <rename
- *       toField="(to field)"
+ *   <!-- multiple split tags allowed -->
+ *   <split
+ *       toField="targetFieldName"
  *       {@nx.include com.norconex.commons.lang.map.PropertySetter#attributes}>
- *     <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#attributes}>
- *       (one or more matching fields to rename)
+ *     <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
+ *       (one or more matching fields to split)
  *     </fieldMatcher>
- *   </rename>
+ *     <separator regex="[false|true]">(separator value)</separator>
+ *   </split>
  *
  * </handler>
  * }
  *
  * {@nx.xml.example
- * <handler class="RenameTagger">
- *   <rename toField="title" onSet="replace">
- *     <fieldMatcher>dc.title</fieldMatcher>
- *   </rename>
+ * <handler class="SplitTagger">
+ *   <split>
+ *     <fieldMatcher>myField</fieldMatcher>
+ *     <separator regex="true">\s*,\s*</separator>
+ *   </split>
  * </handler>
  * }
  * <p>
- * The above example renames a "dc.title" field to "title", overwriting
- * any existing values in "title".
+ * The above example splits a single value field holding a comma-separated
+ * list into multiple values.
  * </p>
+ *
  */
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class RenameTransformerConfig {
+public class SplitTransformerConfig {
 
     @JsonXmlCollection(entryName = "op")
-    private final List<RenameOperation> operations = new ArrayList<>();
+    private final List<SplitOperation> operations = new ArrayList<>();
 
-    public RenameTransformerConfig setOperations(
-            List<RenameOperation> operations) {
+    public SplitTransformerConfig setOperations(
+            List<SplitOperation> operations) {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }
-    public List<RenameOperation> getOperations() {
+    public List<SplitOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }
 }

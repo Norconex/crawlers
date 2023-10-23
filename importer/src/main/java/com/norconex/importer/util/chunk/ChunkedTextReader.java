@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.util;
+package com.norconex.importer.util.chunk;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,11 +25,12 @@ import org.apache.commons.lang3.function.FailableFunction;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.util.ReadAdapter;
 import com.norconex.importer.util.ReadAdapter.ChunkedReadOptions;
 
 import lombok.Builder;
 import lombok.Builder.Default;
-import lombok.Data;
 import lombok.NonNull;
 
 /**
@@ -42,13 +43,22 @@ import lombok.NonNull;
  * source is a document content, field, huge, or small.
  */
 @Builder
-public class DocChunkedTextReader {
+public class ChunkedTextReader {
 
     private final TextMatcher fieldMatcher;
     private final Charset charset;
     @Default
     private final int maxChunkSize = TextReader.DEFAULT_MAX_READ_SIZE;
     private final boolean skipEmpty;
+
+    public static ChunkedTextReader from(
+            ChunkedTextSupport chunkedTextSupport) {
+        return new ChunkedTextReaderBuilder()
+                .fieldMatcher(chunkedTextSupport.getFieldMatcher())
+                .maxChunkSize(chunkedTextSupport.getMaxReadSize())
+                .charset(chunkedTextSupport.getSourceCharset())
+                .build();
+    }
 
     /**
      * Handles the processing of document text, invoking the consumer
@@ -59,76 +69,69 @@ public class DocChunkedTextReader {
      * @param textConsumer text consumer
      * @return <code>true</code> if all chunks were read. <code>false</code>
      *     if the chunk consumer ever returned <code>false</code>.
-     * @throws IOException problem reading
+     * @throws ImporterHandlerException problem reading
      */
     public boolean read(
             @NonNull
             DocContext docCtx,
             @NonNull
             FailableFunction<TextChunk, Boolean, IOException> textConsumer)
-                    throws IOException {
+                    throws ImporterHandlerException {
 
-        var aborted = false;
-        if (fieldMatcher != null && fieldMatcher.isSet()) {
-            // handle matching fields
-            var fields = docCtx.metadata().matchKeys(fieldMatcher);
-            for (Entry<String, List<String>> en : fields.entrySet()) {
-                for (var i = 0; i < en.getValue().size(); i++) {
-                    var val = en.getValue().get(i);
-                    if (maxChunkSize > -1 && val.length() > maxChunkSize) {
-                        aborted |= !handleChunky(
-                                en.getKey(),
-                                i,
-                                new ReadAdapter(new ByteArrayInputStream(
-                                        val.getBytes())),
-                                textConsumer);
-                    } else {
-                        textConsumer.apply(
-                                new TextChunk(en.getKey(), i, 0, val));
-                    }
-
+        try {
+            var aborted = false;
+            if (fieldMatcher != null && fieldMatcher.isSet()) {
+                // handle matching fields
+                var fields = docCtx.metadata().matchKeys(fieldMatcher);
+                for (Entry<String, List<String>> en : fields.entrySet()) {
+                    aborted = readField(textConsumer, aborted, en);
                 }
+            } else {
+                // handle body
+                aborted |= handleChunk(
+                        null, 0, docCtx.readContent(), textConsumer);
             }
-        } else {
-            // handle body
-            aborted |= handleChunky(
-                    null, 0, docCtx.readContent(), textConsumer);
+            return !aborted;
+        } catch (IOException e) {
+            throw new ImporterHandlerException(
+                    "Could not consume chunk of text.", e);
         }
-        return !aborted;
     }
 
-    private boolean handleChunky(
+    private boolean readField(
+            FailableFunction<TextChunk, Boolean, IOException> textConsumer,
+            boolean aborted, Entry<String, List<String>> en)
+            throws IOException {
+        for (var i = 0; i < en.getValue().size(); i++) {
+            var val = en.getValue().get(i);
+            if (maxChunkSize > -1 && val.length() > maxChunkSize) {
+                aborted |= !handleChunk(
+                        en.getKey(),
+                        i,
+                        new ReadAdapter(new ByteArrayInputStream(
+                                val.getBytes())),
+                        textConsumer);
+            } else {
+                textConsumer.apply(
+                        new TextChunk(en.getKey(), i, 0, val));
+            }
+        }
+        return aborted;
+    }
+
+    private boolean handleChunk(
             String fieldName,
             int fieldValueIndex,
             ReadAdapter readAdapter,
             FailableFunction<TextChunk, Boolean, IOException> textConsumer)
                     throws IOException {
         return readAdapter.asChunkedText((idx, text) ->
-            textConsumer.apply(new TextChunk(
-                    fieldName, fieldValueIndex, idx, text)),
-            new ChunkedReadOptions()
-                .charset(charset)
-                .maxChunkSize(maxChunkSize)
-                .skipEmpty(skipEmpty));
-    }
+                textConsumer.apply(new TextChunk(
+                        fieldName, fieldValueIndex, idx, text)),
+                new ChunkedReadOptions()
+                    .charset(charset)
+                    .maxChunkSize(maxChunkSize)
+                    .skipEmpty(skipEmpty));
 
-    @Data
-    public static class TextChunk {
-        /**
-         * The field name where the text is coming from. <code>null</code>
-         * if the text comes from the document content instead.
-         */
-        private final String field; // null if content
-        /**
-         * On multi-valued field, the index of the value currently processed.
-         */
-        private final int fieldValueIndex;
-        /** Index of the text portion currently processed. */
-        private final int chunkIndex;
-        /**
-         * Full or partial text depending whether the maximum read size was
-         * reached and it needed to be sent in text chunks.
-         */
-        private final String text;
     }
 }

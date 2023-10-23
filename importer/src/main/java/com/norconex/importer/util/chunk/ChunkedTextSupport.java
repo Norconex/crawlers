@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,18 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.response;
+package com.norconex.importer.util.chunk;
 
-import lombok.Data;
+import java.nio.charset.Charset;
 
-// For testing, does nothing
-@Data
-public class DummyResponseProcessor implements ImporterResponseProcessor {
+import com.norconex.commons.lang.text.TextMatcher;
 
-    private String dummyProperty = "dummy";
-
-    @Override
-    public ImporterStatus processImporterResponse(ImporterResponse response) {
-        return response.getImporterStatus();
-    }
+public interface ChunkedTextSupport {
+    int getMaxReadSize();
+    Charset getSourceCharset();
+    TextMatcher getFieldMatcher();
 }

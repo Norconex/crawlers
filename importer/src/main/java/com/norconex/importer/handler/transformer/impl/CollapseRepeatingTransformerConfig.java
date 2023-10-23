@@ -22,6 +22,7 @@ import com.norconex.commons.lang.bean.module.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.importer.util.chunk.ChunkedTextSupport;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -77,7 +78,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class CollapseRepeatingTransformerConfig {
+public class CollapseRepeatingTransformerConfig implements ChunkedTextSupport {
 
     private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
     private Charset sourceCharset;
@@ -117,6 +118,7 @@ public class CollapseRepeatingTransformerConfig {
      * string collapsing.
      * @return field matcher
      */
+    @Override
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }

@@ -123,8 +123,8 @@ class ImporterParseHandler {
                         StringUtils.trimToNull(doc.getMetadata().getString(
                                 DocMetadata.CONTENT_TYPE))));
             }
-            if (StringUtils.isBlank(doc.getDocRecord().getContentEncoding())) {
-                doc.getDocRecord().setContentEncoding(
+            if (StringUtils.isBlank(doc.getDocRecord().getCharset())) {
+                doc.getDocRecord().setCharset(
                         doc.getMetadata().getString(
                                 DocMetadata.CONTENT_ENCODING));
             }

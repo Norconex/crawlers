@@ -214,7 +214,7 @@ public class DomTransformerConfig {
      * @param sourceCharset character set of the source to be transformed
      * @return character set of the source to be transformed
      */
-    private Charset sourceCharset = null;
+    private Charset sourceCharset;
 
     /**
      * The type of parser to use when creating the DOM-tree.

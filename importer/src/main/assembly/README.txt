@@ -1,5 +1,5 @@
 Norconex Importer
-Copyright 2010-2014 Norconex Inc.
+Copyright 2010-2023 Norconex Inc.
 
 General Information:
 ====================

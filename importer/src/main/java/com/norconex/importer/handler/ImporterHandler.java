@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,7 @@
  */
 package com.norconex.importer.handler;
 
-import com.norconex.importer.handler.filter.DocumentFilter;
 import com.norconex.importer.handler.splitter.DocumentSplitter;
-import com.norconex.importer.handler.tagger.DocumentTagger;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 /**
@@ -30,7 +28,15 @@ import com.norconex.importer.handler.transformer.DocumentTransformer;
  *   <li>{@link DocumentTransformer}: modifies a document content.</li>
  *   <li>{@link DocumentSplitter}: splits a document into multiple ones.</li>
  * </ul>
+ * @param <T> type of object passed to implementing handler
  */
+
+//TODO REMOVE? STILL NEEDED?
 public interface ImporterHandler {
-    // Act as a marker only for now.
+    // Act as marker
 }
+
+//MAYBE?
+//public interface ImporterHandler<T> {
+//    void handle(T t) throws ImporterHandlerException;
+//}

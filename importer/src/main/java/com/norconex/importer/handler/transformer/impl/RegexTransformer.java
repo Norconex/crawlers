@@ -14,15 +14,13 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import java.io.IOException;
-
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
 import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.util.DocChunkedTextReader;
+import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.Data;
 
@@ -104,23 +102,12 @@ public class RegexTransformer implements
 
     @Override
     public void accept(DocContext docCtx) throws ImporterHandlerException {
-
-        try {
-            DocChunkedTextReader.builder()
-                .fieldMatcher(configuration.getFieldMatcher())
-                .maxChunkSize(configuration.getMaxReadSize())
-                .charset(configuration.getSourceCharset())
-                .build()
-                .read(docCtx, chunk -> {
-                    RegexFieldValueExtractor.extractFieldValues(
-                            docCtx.metadata(),
-                            chunk.getText(),
-                            configuration.getPatterns());
-                    return true;
-                });
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Cannot parse document into a DOM-tree.", e);
-        }
+        ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
+            RegexFieldValueExtractor.extractFieldValues(
+                    docCtx.metadata(),
+                    chunk.getText(),
+                    configuration.getPatterns());
+            return true;
+        });
     }
 }

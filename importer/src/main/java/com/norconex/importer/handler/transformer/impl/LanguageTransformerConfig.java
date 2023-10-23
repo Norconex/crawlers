@@ -22,6 +22,7 @@ import java.util.List;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.importer.util.chunk.ChunkedTextSupport;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -176,7 +177,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class LanguageTransformerConfig {
+public class LanguageTransformerConfig implements ChunkedTextSupport {
 
     private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
     private Charset sourceCharset = null;
@@ -223,6 +224,7 @@ public class LanguageTransformerConfig {
      * specified (default), use the document content instead.
      * @return field matcher
      */
+    @Override
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }

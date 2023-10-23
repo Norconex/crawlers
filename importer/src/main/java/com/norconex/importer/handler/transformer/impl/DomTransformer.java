@@ -31,10 +31,10 @@ import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.util.DocChunkedTextReader;
-import com.norconex.importer.util.DocChunkedTextReader.TextChunk;
-import com.norconex.importer.util.DocContextUtil;
 import com.norconex.importer.util.DomUtil;
+import com.norconex.importer.util.chunk.ChunkedTextReader;
+import com.norconex.importer.util.chunk.ChunkedTextUtil;
+import com.norconex.importer.util.chunk.TextChunk;
 
 import lombok.Data;
 
@@ -211,20 +211,15 @@ public class DomTransformer
             return;
         }
 
-        try {
-            DocChunkedTextReader.builder()
-                .charset(configuration.getSourceCharset())
-                .fieldMatcher(configuration.getFieldMatcher())
-                .maxChunkSize(-1) // disable chunking to not break the DOM.
-                .build()
-                .read(docCtx, chunk -> {
-                    applyOperations(docCtx, chunk);
-                    return true;
-                });
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Cannot parse document into a DOM-tree.", e);
-        }
+        ChunkedTextReader.builder()
+            .charset(configuration.getSourceCharset())
+            .fieldMatcher(configuration.getFieldMatcher())
+            .maxChunkSize(-1) // disable chunking to not break the DOM.
+            .build()
+            .read(docCtx, chunk -> {
+                applyOperations(docCtx, chunk);
+                return true;
+            });
     }
 
     //NOTE: each operation are ran in isolation, the result being passed
@@ -260,7 +255,7 @@ public class DomTransformer
             newSourceContent = StringUtils.join(preserveOnly, "\n");
         }
 
-        DocContextUtil.setTextChunk(docCtx, chunk, newSourceContent);
+        ChunkedTextUtil.writeBack(docCtx, chunk, newSourceContent);
     }
 
     // return possibly modify original content and any extractions

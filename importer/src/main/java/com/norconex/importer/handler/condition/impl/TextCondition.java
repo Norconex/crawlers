@@ -14,8 +14,6 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import java.io.IOException;
-
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.commons.lang.config.Configurable;
@@ -24,7 +22,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.Condition;
-import com.norconex.importer.util.DocChunkedTextReader;
+import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.Data;
 
@@ -80,23 +78,18 @@ public class TextCondition
     @Override
     public boolean test(DocContext docCtx) throws ImporterHandlerException {
         var matches = new MutableBoolean();
-        try {
-            DocChunkedTextReader.builder()
-                .charset(configuration.getSourceCharset())
-                .fieldMatcher(configuration.getFieldMatcher())
-                .maxChunkSize(configuration.getMaxReadSize())
-                .build()
-                .read(docCtx, chunk -> {
-                    if (matches.isFalse()
-                            && textMatches(docCtx, chunk.getText())) {
-                        matches.setTrue();
-                    }
-                    return true;
-                });
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Cannot parse document into a DOM-tree.", e);
-        }
+        ChunkedTextReader.builder()
+            .charset(configuration.getSourceCharset())
+            .fieldMatcher(configuration.getFieldMatcher())
+            .maxChunkSize(configuration.getMaxReadSize())
+            .build()
+            .read(docCtx, chunk -> {
+                if (matches.isFalse()
+                        && textMatches(docCtx, chunk.getText())) {
+                    matches.setTrue();
+                }
+                return true;
+            });
         return matches.booleanValue();
     }
 

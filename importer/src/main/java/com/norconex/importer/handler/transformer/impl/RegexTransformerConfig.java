@@ -24,6 +24,7 @@ import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.importer.util.chunk.ChunkedTextSupport;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -99,7 +100,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class RegexTransformerConfig {
+public class RegexTransformerConfig implements ChunkedTextSupport {
 
     private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
     private Charset sourceCharset;
@@ -129,6 +130,7 @@ public class RegexTransformerConfig {
      * Gets source field matcher for fields on which to extract fields/values.
      * @return field matcher
      */
+    @Override
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }

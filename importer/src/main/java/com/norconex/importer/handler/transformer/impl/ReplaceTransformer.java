@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,23 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.transformer.AbstractStringTransformer;
-import com.norconex.importer.parser.ParseState;
+import org.apache.commons.lang3.StringUtils;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.commons.lang.map.PropertySetter;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.transformer.DocumentTransformer;
+import com.norconex.importer.util.chunk.ChunkedTextReader;
+import com.norconex.importer.util.chunk.TextChunk;
+
+import lombok.Data;
 
 /**
  * <p>Replaces every occurrences of the given replacements
@@ -66,86 +70,79 @@ import lombok.ToString;
  *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class ReplaceTransformer extends AbstractStringTransformer
-        implements XMLConfigurable {
+@Data
+public class ReplaceTransformer implements
+        DocumentTransformer, Configurable<ReplaceTransformerConfig> {
 
-    private List<Replacement> replacements = new ArrayList<>();
-
-    @Override
-    protected void transformStringContent(HandlerDoc doc,
-            final StringBuilder content, final ParseState parseState,
-            final int sectionIndex) {
-
-        var text = content.toString();
-        content.setLength(0);
-        for (Replacement repl : replacements) {
-            text = repl.valueMatcher.replace(text, repl.toValue);
-        }
-        content.append(text);
-    }
-
-    public List<Replacement> getReplacements() {
-        return replacements;
-    }
-    public void setReplacements(List<Replacement> replacements) {
-        CollectionUtil.setAll(this.replacements, replacements);
-    }
-    public void addReplacement(Replacement replacement) {
-        replacements.add(replacement);
-    }
+    private final ReplaceTransformerConfig configuration =
+            new ReplaceTransformerConfig();
 
     @Override
-    protected void loadStringTransformerFromXML(final XML xml) {
-        xml.checkDeprecated("@caseSensitive", true);
-        for (XML node : xml.getXMLList("replace")) {
-            var r = new Replacement();
-            r.getValueMatcher().loadFromXML(node.getXML("valueMatcher"));
-            r.setToValue(node.getString("toValue"));
-            replacements.add(r);
+    public void accept(DocContext docCtx) throws ImporterHandlerException {
+        for (ReplaceOperation op : configuration.getOperations()) {
+            ChunkedTextReader.builder()
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(op.getFieldMatcher())
+                .maxChunkSize(configuration.getMaxReadSize())
+                .build()
+                .read(docCtx, chunk -> {
+                    doReplaceOnChunk(op, docCtx, chunk);
+                    return true;
+                });
         }
     }
 
-    @Override
-    protected void saveStringTransformerToXML(final XML xml) {
-        for (Replacement replacement : replacements) {
-            var rxml = xml.addElement("replace");
-            rxml.addElement("toValue", replacement.getToValue());
-            replacement.valueMatcher.saveToXML(rxml.addElement("valueMatcher"));
-        }
-    }
+    private void doReplaceOnChunk(
+            ReplaceOperation op, DocContext docCtx, TextChunk chunk)
+                    throws IOException {
 
-    @EqualsAndHashCode
-    @ToString
-    public static class Replacement {
-        private final TextMatcher valueMatcher = new TextMatcher();
-        private String toValue;
-        public Replacement() {}
-        public Replacement(
-                TextMatcher valueMatcher, String toValue) {
-            this.valueMatcher.copyFrom(valueMatcher);
-            this.toValue = toValue;
+        // About fields:
+        // Because replace can result in removing a value from a list, we
+        // can't rely on the chunk field values index. So we perform the replace
+        // on all values of a field here and we ignore the value index beyond
+        // the first.
+        if (chunk.getFieldValueIndex() > 0) {
+            return;
         }
-        public String getToValue() {
-            return toValue;
+
+        List<String> sourceValues;
+        if (chunk.getField() == null) {
+            //body
+            sourceValues = List.of(chunk.getText());
+        } else {
+            //field
+            sourceValues = docCtx.metadata().getStrings(chunk.getField());
         }
-        public void setToValue(String toValue) {
-            this.toValue = toValue;
+
+        List<String> newValues = new ArrayList<>();
+        var toValue = Optional.ofNullable(op.getToValue()).orElse("");
+        for (String sourceValue : sourceValues) {
+            var newValue = op.getValueMatcher() .replace(sourceValue, toValue);
+            if (newValue != null && (!op.isDiscardUnchanged()
+                    || !Objects.equals(sourceValue, newValue))) {
+                newValues.add(newValue);
+            }
         }
-        /**
-         * Gets value matcher.
-         * @return value matcher
-         */
-        public TextMatcher getValueMatcher() {
-            return valueMatcher;
-        }
-        /**
-         * Sets value matcher.
-         * @param valueMatcher value matcher
-         */
-        public void setValueMatcher(TextMatcher valueMatcher) {
-            this.valueMatcher.copyFrom(valueMatcher);
+
+        if (chunk.getField() == null) {
+            //body
+            try (var out = docCtx.writeContent().toWriter(
+                    configuration.getSourceCharset())) {
+                if (newValues.isEmpty()) {
+                    out.write("");
+                } else {
+                    out.write(newValues.get(0));
+                }
+            }
+        } else //field
+        if (StringUtils.isNotBlank(op.getToField())) {
+            // set on target field
+            PropertySetter.orAppend(op.getOnSet()).apply(
+                    docCtx.metadata(), op.getToField(), newValues);
+        } else {
+            // overwrite source field
+            PropertySetter.REPLACE.apply(
+                    docCtx.metadata(), chunk.getField(), newValues);
         }
     }
 }

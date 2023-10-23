@@ -29,7 +29,7 @@ import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.util.DocChunkedTextReader;
+import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -219,48 +219,37 @@ public class LanguageTransformer implements
     public void accept(DocContext docCtx) throws ImporterHandlerException {
         ensureDetectorInitialization();
 
-        try {
-            DocChunkedTextReader.builder()
-                .fieldMatcher(configuration.getFieldMatcher())
-                .maxChunkSize(configuration.getMaxReadSize())
-                .charset(docCtx.resolveCharset(
-                        configuration.getSourceCharset()))
-                .build()
-                .read(docCtx, chunk -> {
-                    var results = detector.detectAll(chunk.getText());
-                    if (results.isEmpty()) {
-                        LOG.debug("No language found, using fallback language "
-                                + "for {}.", docCtx.reference());
-                        docCtx.metadata().set(
-                                DocMetadata.LANGUAGE,
-                                configuration.getFallbackLanguage());
-                    } else {
-                        Collections.sort(results, langResultComparator);
-                        docCtx.metadata().set(
-                                DocMetadata.LANGUAGE,
-                                results.get(0).getLanguage());
+        ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
+            var results = detector.detectAll(chunk.getText());
+            if (results.isEmpty()) {
+                LOG.debug("No language found, using fallback language "
+                        + "for {}.", docCtx.reference());
+                docCtx.metadata().set(
+                        DocMetadata.LANGUAGE,
+                        configuration.getFallbackLanguage());
+            } else {
+                Collections.sort(results, langResultComparator);
+                docCtx.metadata().set(
+                        DocMetadata.LANGUAGE,
+                        results.get(0).getLanguage());
 
-                        if (configuration.isKeepProbabilities()) {
-                            var count = 0;
-                            for (LanguageResult lang : results) {
-                                count++;
-                                var prefix = DocMetadata.LANGUAGE + "." + count;
-                                docCtx.metadata().set(
-                                        prefix + ".tag", lang.getLanguage());
-                                docCtx.metadata().set(
-                                        prefix + ".probability",
-                                        lang.getRawScore());
-                            }
-                        }
+                if (configuration.isKeepProbabilities()) {
+                    var count = 0;
+                    for (LanguageResult lang : results) {
+                        count++;
+                        var prefix = DocMetadata.LANGUAGE + "." + count;
+                        docCtx.metadata().set(
+                                prefix + ".tag", lang.getLanguage());
+                        docCtx.metadata().set(
+                                prefix + ".probability",
+                                lang.getRawScore());
                     }
+                }
+            }
 
-                    // we only do it on first chunk, so leave now.
-                    return false;
-                });
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Cannot parse document into a DOM-tree.", e);
-        }
+            // we only do it on first chunk, so leave now.
+            return false;
+        });
     }
 
     private synchronized void ensureDetectorInitialization()
