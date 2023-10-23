@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,25 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static com.norconex.commons.lang.text.TextMatcher.regex;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.transformer.impl.StripBetweenTransformer.StripBetweenDetails;
 import com.norconex.importer.parser.ParseState;
 
 class StripBetweenTransformerTest {
@@ -39,75 +41,97 @@ class StripBetweenTransformerTest {
     void testTransformTextDocument()
             throws ImporterHandlerException, IOException {
         var t = new StripBetweenTransformer();
-        addEndPoints(t, "<h2>", "</h2>");
-        addEndPoints(t, "<P>", "</P>");
-        addEndPoints(t, "<head>", "</hEad>");
-        addEndPoints(t, "<Pre>", "</prE>");
+        t.getConfiguration().setOperations(List.of(
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<h2>").setIgnoreCase(true))
+                .setEndMatcher(regex("</h2>").setIgnoreCase(true))
+                .setInclusive(true),
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<P>").setIgnoreCase(true))
+                .setEndMatcher(regex("</P>").setIgnoreCase(true))
+                .setInclusive(true),
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<head>").setIgnoreCase(true))
+                .setEndMatcher(regex("</hEad>").setIgnoreCase(true))
+                .setInclusive(true),
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<Pre>").setIgnoreCase(true))
+                .setEndMatcher(regex("</prE>").setIgnoreCase(true))
+                .setInclusive(true)
+        ));
 
         var htmlFile = TestUtil.getAliceHtmlFile();
-        InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
+        try (InputStream is =
+                new BufferedInputStream(new FileInputStream(htmlFile));
+                var os = new ByteArrayOutputStream();) {
+            var metadata = new Properties();
+            metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+            t.accept(TestUtil.newDocContext(
+                    htmlFile.getAbsolutePath(), is, os,
+                    metadata, ParseState.PRE));
 
-        var os = new ByteArrayOutputStream();
-        var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.transformDocument(
-                TestUtil.newHandlerDoc(htmlFile.getAbsolutePath(), is, metadata),
-                is, os, ParseState.PRE);
-
-        Assertions.assertEquals(443, TestUtil.toUtf8UnixLineString(os).length(),
-                "Length of doc content after transformation is incorrect.");
-
-        is.close();
-        os.close();
+            Assertions.assertEquals(
+                    443, TestUtil.toUtf8UnixLineString(os).length(),
+                    "Length of doc content after transformation is incorrect.");
+        }
     }
-
 
     @Test
     void testCollectorHttpIssue237()
             throws ImporterHandlerException, IOException {
         var t = new StripBetweenTransformer();
-        addEndPoints(t, "<body>", "<\\!-- START -->");
-        addEndPoints(t, "<\\!-- END -->", "<\\!-- START -->");
-        addEndPoints(t, "<\\!-- END -->", "</body>");
+        t.getConfiguration().setOperations(List.of(
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<body>").setIgnoreCase(true))
+                .setEndMatcher(regex("<\\!-- START -->").setIgnoreCase(true))
+                .setInclusive(true),
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<\\!-- END -->").setIgnoreCase(true))
+                .setEndMatcher(regex("<\\!-- START -->").setIgnoreCase(true))
+                .setInclusive(true),
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<\\!-- END -->").setIgnoreCase(true))
+                .setEndMatcher(regex("</body>").setIgnoreCase(true))
+                .setInclusive(true)
+        ));
 
         var html = """
-        	<html><body>\
-        	ignore this text\
-        	<!-- START -->extract me 1<!-- END -->\
-        	ignore this text\
-        	<!-- START -->extract me 2<!-- END -->\
-        	ignore this text\
-        	</body></html>""";
+            <html>
+              <body>
+                ignore this text
+                <!-- START -->extract me 1<!-- END -->
+                ignore this text
+                <!-- START -->extract me 2<!-- END -->
+                ignore this text
+              </body>
+            </html>""";
 
-        var is = new ByteArrayInputStream(html.getBytes());
-        var os = new ByteArrayOutputStream();
-        var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.transformDocument(TestUtil.newHandlerDoc("fake.html", is, metadata),
-                is, os, ParseState.PRE);
-        var output = TestUtil.toUtf8UnixLineString(os);
-        is.close();
-        os.close();
-        //System.out.println(output);
-        Assertions.assertEquals(
-                "<html>extract me 1extract me 2</html>", output);
+        try (var is = new ByteArrayInputStream(html.getBytes());
+                var os = new ByteArrayOutputStream();) {
+            var metadata = new Properties();
+            metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+            t.accept(TestUtil.newDocContext("fake.html",
+                    is, os, metadata, ParseState.PRE));
+            var output = TestUtil.toUtf8UnixLineString(os);
+            Assertions.assertEquals(
+                    "<html>extract me 1extract me 2</html>", output);
+        }
     }
-
 
     @Test
     void testWriteRead() {
         var t = new StripBetweenTransformer();
-        addEndPoints(t, "<!-- NO INDEX", "/NOINDEX -->");
-        addEndPoints(t, "<!-- HEADER START", "HEADER END -->");
-        XML.assertWriteRead(t, "handler");
-    }
-
-    private void addEndPoints(
-            StripBetweenTransformer t, String start, String end) {
-        var d = new StripBetweenDetails(
-                TextMatcher.regex(start).setIgnoreCase(true),
-                TextMatcher.regex(end).setIgnoreCase(true));
-        d.setInclusive(true);
-        t.addStripBetweenDetails(d);
+        t.getConfiguration().setOperations(List.of(
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<!-- NO INDEX").setIgnoreCase(true))
+                .setEndMatcher(regex("/NOINDEX -->").setIgnoreCase(true))
+                .setInclusive(true),
+            new StripBetweenOperation()
+                .setStartMatcher(regex("<!-- HEADER START").setIgnoreCase(true))
+                .setEndMatcher(regex("HEADER END -->").setIgnoreCase(true))
+                .setInclusive(true)
+        ));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

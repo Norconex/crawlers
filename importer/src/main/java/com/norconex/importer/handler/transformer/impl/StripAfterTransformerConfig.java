@@ -14,14 +14,14 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.util.chunk.ChunkedTextUtil;
+import java.nio.charset.Charset;
+
+import com.norconex.commons.lang.io.TextReader;
+import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.importer.util.chunk.ChunkedTextSupport;
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import lombok.experimental.Accessors;
 
 /**
  * <p>Strips any content found after first match found for given pattern.</p>
@@ -57,31 +57,53 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuppressWarnings("javadoc")
 @Data
-@Slf4j
-public class StripAfterTransformer implements
-        DocumentTransformer, Configurable<StripAfterTransformerConfig> {
+@Accessors(chain = true)
+public class StripAfterTransformerConfig implements ChunkedTextSupport {
 
-    private final StripAfterTransformerConfig configuration =
-            new StripAfterTransformerConfig();
+    private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
+    private Charset sourceCharset;
+    private final TextMatcher fieldMatcher = new TextMatcher();
 
+    /**
+     * Whether the match itself should be stripped or not.
+     * @param inclusive <code>true</code> to strip the matched characters
+     * @return <code>true</code> if stripping the matched characters
+     */
+    private boolean inclusive;
+    private final TextMatcher stripAfterMatcher = new TextMatcher();
+
+    /**
+     * Gets source field matcher for fields to transform.
+     * @return field matcher
+     */
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
-        if (!configuration.getStripAfterMatcher().isSet()) {
-            LOG.error("No matcher pattern provided.");
-            return;
-        }
+    public TextMatcher getFieldMatcher() {
+        return fieldMatcher;
+    }
+    /**
+     * Sets source field matcher for fields to transform.
+     * @param fieldMatcher field matcher
+     */
+    public StripAfterTransformerConfig setFieldMatcher(
+            TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
+    }
 
-        ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
-            var b = new StringBuilder(chunk.getText());
-            var m = configuration.getStripAfterMatcher().toRegexMatcher(b);
-            if (m.find()) {
-                if (configuration.isInclusive()) {
-                    b.delete(m.start(), b.length());
-                } else {
-                    b.delete(m.end(), b.length());
-                }
-            }
-            return b.toString();
-        });
+    /**
+     * Gets the matcher of text after which to strip.
+     * @return text matcher
+     */
+    public TextMatcher getStripAfterMatcher() {
+        return stripAfterMatcher;
+    }
+    /**
+     * Sets the matcher of text after which to strip.
+     * @param stripAfterMatcher text matcher
+     */
+    public StripAfterTransformerConfig setStripAfterMatcher(
+            TextMatcher stripAfterMatcher) {
+        this.stripAfterMatcher.copyFrom(stripAfterMatcher);
+        return this;
     }
 }

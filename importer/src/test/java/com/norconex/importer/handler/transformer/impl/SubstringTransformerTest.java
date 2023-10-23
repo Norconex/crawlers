@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2017-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -21,8 +23,8 @@ import java.io.InputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.ImporterException;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -53,20 +55,22 @@ class SubstringTransformerTest {
             throws ImporterHandlerException {
         InputStream input = new ByteArrayInputStream(content.getBytes());
         var t = new SubstringTransformer();
-        t.setBegin(begin);
-        t.setEnd(end);
+        t.getConfiguration()
+            .setBegin(begin)
+            .setEnd(end);
         var output = new ByteArrayOutputStream();
-        t.transformDocument(
-                TestUtil.newHandlerDoc("N/A", input, new Properties()),
-                input, output, ParseState.PRE);
+        t.accept(TestUtil.newDocContext(
+                "N/A", input, output, new Properties(), ParseState.PRE));
         return new String(output.toByteArray());
     }
 
     @Test
     void testWriteRead() {
         var t = new SubstringTransformer();
-        t.setBegin(1000);
-        t.setEnd(5000);
-        XML.assertWriteRead(t, "handler");
+        t.getConfiguration()
+            .setBegin(1000)
+            .setEnd(5000);
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

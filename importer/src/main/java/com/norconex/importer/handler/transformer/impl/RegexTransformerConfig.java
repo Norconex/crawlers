@@ -104,7 +104,6 @@ public class RegexTransformerConfig implements ChunkedTextSupport {
 
     private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
     private Charset sourceCharset;
-
     private final TextMatcher fieldMatcher = new TextMatcher();
     private final List<RegexFieldValueExtractor> patterns = new ArrayList<>();
 

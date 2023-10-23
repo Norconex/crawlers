@@ -14,13 +14,19 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.util.chunk.ChunkedTextUtil;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.norconex.commons.lang.bean.module.JsonXmlCollection;
+import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.io.TextReader;
+import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.importer.util.chunk.ChunkedTextSupport;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>Strips any content found between a matching start and end strings.  The
@@ -67,32 +73,40 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class StripBetweenTransformer implements
-        DocumentTransformer, Configurable<StripBetweenTransformerConfig> {
+@Accessors(chain = true)
+public class StripBetweenTransformerConfig implements ChunkedTextSupport {
 
-    private final StripBetweenTransformerConfig configuration =
-            new StripBetweenTransformerConfig();
+    private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
+    private Charset sourceCharset;
+    private final TextMatcher fieldMatcher = new TextMatcher();
 
+    @JsonXmlCollection(entryName = "op")
+    private final List<StripBetweenOperation> operations = new ArrayList<>();
+
+    /**
+     * Gets source field matcher for fields to transform.
+     * @return field matcher
+     */
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
-        ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
-            var b = new StringBuilder(chunk.getText());
-            for (StripBetweenOperation op : configuration.getOperations()) {
-                var leftMatch = op.getStartMatcher().toRegexMatcher(b);
-                while (leftMatch.find()) {
-                    var rightMatch = op.getEndMatcher().toRegexMatcher(b);
-                    if (!rightMatch.find(leftMatch.end())) {
-                        break;
-                    }
-                    if (op.isInclusive()) {
-                        b.delete(leftMatch.start(), rightMatch.end());
-                    } else {
-                        b.delete(leftMatch.end(), rightMatch.start());
-                    }
-                    leftMatch = op.getStartMatcher().toRegexMatcher(b);
-                }
-            }
-            return b.toString();
-        });
+    public TextMatcher getFieldMatcher() {
+        return fieldMatcher;
+    }
+    /**
+     * Sets source field matcher for fields to transform.
+     * @param fieldMatcher field matcher
+     */
+    public StripBetweenTransformerConfig setFieldMatcher(
+            TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
+    }
+
+    public List<StripBetweenOperation> getOperations() {
+        return Collections.unmodifiableList(operations);
+    }
+    public StripBetweenTransformerConfig setOperations(
+            List<StripBetweenOperation> operations) {
+        CollectionUtil.setAll(this.operations, operations);
+        return this;
     }
 }

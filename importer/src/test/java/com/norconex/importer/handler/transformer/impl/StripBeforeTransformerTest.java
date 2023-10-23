@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -23,9 +25,9 @@ import java.io.InputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -37,18 +39,19 @@ class StripBeforeTransformerTest {
     void testTransformTextDocument()
             throws ImporterHandlerException, IOException {
         var t = new StripBeforeTransformer();
-        t.setStripBeforeMatcher(
-                TextMatcher.regex("So she set to work").setIgnoreCase(true));
-        t.setInclusive(false);
+        t.getConfiguration()
+            .setStripBeforeMatcher(
+                    TextMatcher.regex("So she set to work").setIgnoreCase(true))
+            .setInclusive(false);
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
         var os = new ByteArrayOutputStream();
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.transformDocument(
-                TestUtil.newHandlerDoc(htmlFile.getAbsolutePath(), is),
-                is, os, ParseState.PRE);
+        t.accept(
+                TestUtil.newDocContext(htmlFile.getAbsolutePath(),
+                        is, os, new Properties(), ParseState.PRE));
 
         Assertions.assertEquals(360, TestUtil.toUtf8UnixLineString(os).length(),
                 "Length of doc content after transformation is incorrect.");
@@ -61,9 +64,11 @@ class StripBeforeTransformerTest {
     @Test
     void testWriteRead() {
         var t = new StripBeforeTransformer();
-        t.setInclusive(false);
-        t.setStripBeforeMatcher(
-                TextMatcher.regex("So she set to work").setIgnoreCase(true));
-        XML.assertWriteRead(t, "handler");
+        t.getConfiguration()
+            .setInclusive(false)
+            .setStripBeforeMatcher(TextMatcher.regex(
+                    "So she set to work").setIgnoreCase(true));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

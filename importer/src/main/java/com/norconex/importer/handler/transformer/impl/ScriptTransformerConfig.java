@@ -14,22 +14,16 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import java.io.IOException;
-import java.util.Objects;
+import java.nio.charset.Charset;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.commons.lang.config.Configurable;
+import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.chunk.ChunkedTextUtil;
+import com.norconex.importer.util.chunk.ChunkedTextSupport;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -116,42 +110,31 @@ import lombok.ToString;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class ScriptTransformer implements
-        DocumentTransformer, Configurable<ScriptTransformerConfig> {
+@Accessors(chain = true)
+public class ScriptTransformerConfig implements ChunkedTextSupport {
 
-    private final ScriptTransformerConfig configuration =
-            new ScriptTransformerConfig();
+    private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
+    private Charset sourceCharset;
+    private final TextMatcher fieldMatcher = new TextMatcher();
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @JsonIgnore
-    private ScriptRunner<Object> scriptRunner;
+    private String engineName;
+    private String script;
 
+    /**
+     * Gets source field matcher for fields on which to execute a script.
+     * @return field matcher
+     */
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
-        ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
-            var originalContent = chunk.getText();
-            try {
-                return Objects.toString(scriptRunner().eval(b -> {
-                    b.put("reference", docCtx.reference());
-                    b.put("content", originalContent);
-                    b.put("metadata", docCtx.metadata());
-                    b.put("parsed", ParseState.isPre(docCtx.parseState()));
-                    b.put("chunkIndex", chunk.getChunkIndex());
-                    b.put("fieldValueIndex", chunk.getFieldValueIndex());
-                }), null);
-            } catch (ImporterHandlerException e) {
-                throw new IOException(e);
-            }
-        });
+    public TextMatcher getFieldMatcher() {
+        return fieldMatcher;
     }
-
-    private synchronized ScriptRunner<Object> scriptRunner() {
-        if (scriptRunner == null) {
-            scriptRunner = new ScriptRunner<>(
-                    configuration.getEngineName(),
-                    configuration.getScript());
-        }
-        return scriptRunner;
+    /**
+     * Sets source field matcher for fields on which to execute a script.
+     * @param fieldMatcher field matcher
+     */
+    public ScriptTransformerConfig setFieldMatcher(
+            TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
     }
 }

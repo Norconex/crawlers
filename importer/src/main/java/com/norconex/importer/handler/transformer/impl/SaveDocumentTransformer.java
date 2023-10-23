@@ -32,10 +32,8 @@ import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -94,8 +92,6 @@ public class SaveDocumentTransformer implements
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     private static boolean warned = false;
 
     @Override
@@ -195,6 +191,7 @@ public class SaveDocumentTransformer implements
                 LOG.warn("The save directory path is too long to apply file "
                         + "path truncation on saved files. Save directory: {}",
                         configuration.getSaveDir());
+                warned = true;
             }
             return file;
         }

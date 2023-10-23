@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2017-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,21 @@ package com.norconex.importer.handler.transformer.impl;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.transformer.AbstractCharStreamTransformer;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.transformer.DocumentTransformer;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * <p>Keep a substring of the content matching a begin and end character
@@ -65,68 +67,62 @@ import lombok.ToString;
  *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class SubstringTransformer extends AbstractCharStreamTransformer
-        implements XMLConfigurable {
+@Data
+public class SubstringTransformer implements
+        DocumentTransformer, Configurable<SubstringTransformerConfig> {
 
-    private long begin = 0;
-    private long end = -1;
-
-    public long getBegin() {
-        return begin;
-    }
-    /**
-     * Sets the beginning index (inclusive).
-     * A negative value is treated the same as zero.
-     * @param beginIndex beginning index
-     */
-    public void setBegin(final long beginIndex) {
-        begin = beginIndex;
-    }
-    public long getEnd() {
-        return end;
-    }
-    /**
-     * Sets the end index (exclusive).
-     * A negative value is treated as the content end.
-     * @param endIndex end index
-     */
-    public void setEnd(final long endIndex) {
-        end = endIndex;
-    }
+    private final SubstringTransformerConfig configuration =
+            new SubstringTransformerConfig();
 
     @Override
-    protected void transformTextDocument(HandlerDoc doc, Reader input,
-            Writer output, ParseState parseState)
-                    throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws ImporterHandlerException {
+
+        if (configuration.getFieldMatcher().isSet()) {
+            // Fields
+            for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                    configuration.getFieldMatcher()).entrySet()) {
+                var fld = en.getKey();
+                var values = en.getValue();
+                List<String> newVals = new ArrayList<>();
+                for (String val : values) {
+                    try (var input = new StringReader(val);
+                            var output = new StringWriter()) {
+                        doSubstring(input, output);
+                        newVals.add(output.toString());
+                    } catch (IOException e) {
+                        throw new ImporterHandlerException(e);
+                    }
+                }
+                docCtx.metadata().replace(fld, newVals);
+            }
+        } else {
+            // Body
+            try (var input = docCtx.readContent().asReader(
+                    configuration.getSourceCharset());
+                var output = docCtx.writeContent().toWriter(
+                        configuration.getSourceCharset())) {
+                doSubstring(input, output);
+            } catch (IOException e) {
+                throw new ImporterHandlerException(
+                        "Could not read document content for: "
+                                + docCtx.reference(), e);
+            }
+        }
+    }
+
+    private void doSubstring(Reader input, Writer output)
+            throws IOException, ImporterHandlerException {
         long length = -1;
-        if (end > -1) {
-            if (end < begin) {
+        if (configuration.getEnd() > -1) {
+            if (configuration.getEnd() < configuration.getBegin()) {
                 throw new ImporterHandlerException(
                         "\"end\" cannot be smaller than \"begin\" "
-                      + "(begin:" + begin + "; end:" + end);
+                      + "(begin:" + configuration.getBegin()
+                      + "; end:" + configuration.getEnd());
             }
-            length = end - Math.max(begin, 0);
+            length = configuration.getEnd()
+                    - Math.max(configuration.getBegin(), 0);
         }
-        try {
-            IOUtils.copyLarge(input, output, begin, length);
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Could not get a subtring of content for "
-                            + doc.getReference(), e);
-        }
-    }
-
-    @Override
-    protected void saveCharStreamTransformerToXML(final XML xml) {
-        xml.setAttribute("begin", begin);
-        xml.setAttribute("end", end);
-    }
-
-    @Override
-    protected void loadCharStreamTransformerFromXML(final XML xml) {
-        setBegin(xml.getLong("@begin", begin));
-        setEnd(xml.getLong("@end", end));
+        IOUtils.copyLarge(input, output, configuration.getBegin(), length);
     }
 }

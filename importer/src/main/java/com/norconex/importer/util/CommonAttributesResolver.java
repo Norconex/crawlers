@@ -20,6 +20,7 @@ import static com.norconex.importer.doc.DocMetadata.CONTENT_TYPE;
 
 import java.io.IOException;
 
+import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
@@ -104,17 +105,17 @@ public final class CommonAttributesResolver {
         var meta = doc.getMetadata();
 
         // Doc Record character encoding
-        if (overwrite || docRecord.getContentEncoding() == null) {
+        if (overwrite || docRecord.getCharset() == null) {
             try {
-                docRecord.setContentEncoding(
-                        CharsetUtil.detectCharset(doc.getInputStream()));
+                docRecord.setCharset(CharsetDetector.builder().build().detect(
+                        doc.getInputStream()));
             } catch (IOException e) {
                 LOG.warn("Could not perform character encoding detection.", e);
             }
         }
 
         // Metadata character encoding
-        var enc = docRecord.getContentEncoding();
+        var enc = docRecord.getCharset();
         if (overwrite
                 || (meta.getString(CONTENT_ENCODING) == null && enc != null)) {
             meta.set(CONTENT_ENCODING, enc);

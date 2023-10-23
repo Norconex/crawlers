@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -23,9 +25,9 @@ import java.io.InputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -37,8 +39,9 @@ class StripAfterTransformerTest {
     void testTransformTextDocument()
             throws ImporterHandlerException, IOException {
         var t = new StripAfterTransformer();
-        t.setStripAfterMatcher(TextMatcher.regex("<p>").setIgnoreCase(true));
-        t.setInclusive(true);
+        t.getConfiguration()
+            .setStripAfterMatcher(TextMatcher.regex("<p>").setIgnoreCase(true))
+            .setInclusive(true);
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
@@ -46,9 +49,8 @@ class StripAfterTransformerTest {
         var metadata = new Properties();
 
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.transformDocument(
-                TestUtil.newHandlerDoc(htmlFile.getAbsolutePath(), is, metadata),
-                is, os, ParseState.PRE);
+        t.accept(TestUtil.newDocContext(htmlFile.getAbsolutePath(),
+                is, os, metadata, ParseState.PRE));
 
         Assertions.assertEquals(
                 539, TestUtil.toUtf8UnixLineString(os).length(),
@@ -62,8 +64,11 @@ class StripAfterTransformerTest {
     @Test
     void testWriteRead() {
         var t = new StripAfterTransformer();
-        t.setInclusive(true);
-        t.setStripAfterMatcher(TextMatcher.regex("<p>").setIgnoreCase(true));
-        XML.assertWriteRead(t, "handler");
+        t.getConfiguration()
+            .setInclusive(true)
+            .setStripAfterMatcher(TextMatcher.regex("<p>").setIgnoreCase(true));
+
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }
