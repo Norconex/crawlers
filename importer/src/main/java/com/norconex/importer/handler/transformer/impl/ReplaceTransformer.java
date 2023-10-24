@@ -126,7 +126,7 @@ public class ReplaceTransformer implements
 
         if (chunk.getField() == null) {
             //body
-            try (var out = docCtx.writeContent().toWriter(
+            try (var out = docCtx.output().writer(
                     configuration.getSourceCharset())) {
                 if (newValues.isEmpty()) {
                     out.write("");

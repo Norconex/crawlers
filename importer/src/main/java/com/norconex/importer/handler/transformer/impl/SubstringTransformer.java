@@ -97,9 +97,9 @@ public class SubstringTransformer implements
             }
         } else {
             // Body
-            try (var input = docCtx.readContent().asReader(
+            try (var input = docCtx.input().reader(
                     configuration.getSourceCharset());
-                var output = docCtx.writeContent().toWriter(
+                var output = docCtx.output().writer(
                         configuration.getSourceCharset())) {
                 doSubstring(input, output);
             } catch (IOException e) {

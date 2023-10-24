@@ -130,7 +130,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
                         configuration.getSourceCharset(),
                         docCtx.docRecord().getCharset());
                 var soupDoc = Jsoup.parse(
-                        docCtx.readContent().asInputStream(),
+                        docCtx.input().inputStream(),
                         inputCharset.toString(),
                         docCtx.reference(),
                         DomUtil.toJSoupParser(configuration.getParser()));

@@ -88,7 +88,7 @@ public class BlankCondition
         // do content
         if (configuration.getFieldMatcher().getPattern() == null) {
             try {
-                return IOUtil.isEmpty(docCtx.readContent().asInputStream());
+                return IOUtil.isEmpty(docCtx.input().inputStream());
             } catch (IOException e) {
                 throw new ImporterHandlerException(
                         "Cannot check if document content is blank.", e);

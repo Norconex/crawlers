@@ -276,7 +276,7 @@ public class TranslatorSplitter
             // Body
             var translatedDocs = docCtx.childDocs();
 
-            var input = docCtx.readContent().asInputStream();
+            var input = docCtx.input().inputStream();
             try (var cachedInput = input instanceof CachedInputStream cis
                     ? cis : docCtx.streamFactory().newInputStream(input)) {
                 for (String lang : configuration.getTargetLanguages()) {

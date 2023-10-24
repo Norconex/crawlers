@@ -92,7 +92,7 @@ public class DocContext {
                 StandardCharsets.UTF_8);
     }
 
-    public ReadAdapter readContent() {
+    public ReadAdapter input() {
         return new ReadAdapter(
                 doc::getInputStream,
                 CharsetUtil.firstNonNullOrUTF8(
@@ -102,7 +102,7 @@ public class DocContext {
      * Make sure to close the stream when done or explictely flush the stream.
      * @return writer adapter
      */
-    public WriteAdapter writeContent() {
+    public WriteAdapter output() {
         return new WriteAdapter(out);
     }
 }

@@ -84,7 +84,7 @@ public final class ChunkedTextUtil {
             docCtx.metadata().setList(originalChunk.getField(), values);
         } else {
             // set on body
-            try (var writer = docCtx.writeContent().toWriter()) {
+            try (var writer = docCtx.output().writer()) {
                 writer.write(newText);
             }
         }

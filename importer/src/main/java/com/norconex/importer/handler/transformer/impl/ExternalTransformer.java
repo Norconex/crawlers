@@ -271,8 +271,8 @@ public class ExternalTransformer implements
     public void accept(DocContext docCtx) throws ImporterHandlerException {
         //TODO eliminate output an set it back on doc???
 
-        var input = docCtx.readContent().asInputStream();
-        var output = docCtx.writeContent().toOutputStream();
+        var input = docCtx.input().inputStream();
+        var output = docCtx.output().outputStream();
 
         validate();
         var cmd = configuration.getCommand();

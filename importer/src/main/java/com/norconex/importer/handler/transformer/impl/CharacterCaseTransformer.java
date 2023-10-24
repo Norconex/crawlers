@@ -152,8 +152,8 @@ public class CharacterCaseTransformer implements
 
     private void doBody(DocContext docCtx) throws ImporterHandlerException {
 
-        try (var out = docCtx.writeContent().toWriter()) {
-            docCtx.readContent().asChunkedText((idx, text) -> {
+        try (var out = docCtx.output().writer()) {
+            docCtx.input().chunkedText((idx, text) -> {
                out.write(changeCase(text));
                return true;
             });

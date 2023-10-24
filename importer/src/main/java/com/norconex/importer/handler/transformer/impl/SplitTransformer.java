@@ -111,7 +111,7 @@ public class SplitTransformer implements
             delim = Pattern.quote(delim);
         }
         List<String> targetValues = new ArrayList<>();
-        try (var input = docCtx.readContent().asInputStream();
+        try (var input = docCtx.input().inputStream();
                 var scanner = new Scanner(input).useDelimiter(delim);) {
             while (scanner.hasNext()) {
                 targetValues.add(scanner.next());

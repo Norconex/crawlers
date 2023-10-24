@@ -89,7 +89,7 @@ public class CopyTransformer
                 // From body
                 try {
                     sourceValues = List.of(
-                            IOUtils.toString(docCtx.readContent().asReader()));
+                            IOUtils.toString(docCtx.input().reader()));
                 } catch (IOException e) {
                     throw new ImporterHandlerException(
                             "Could not copy document content to field: "

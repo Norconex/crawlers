@@ -123,7 +123,7 @@ public class URLExtractorTransformer implements
         if (configuration.getFieldMatcher().isSet()) {
             extractMetadataURLs(urls, docCtx.metadata());
         } else {
-            extractContentURLs(urls, docCtx.readContent().asReader(
+            extractContentURLs(urls, docCtx.input().reader(
                     configuration.getSourceCharset()));
         }
 

@@ -135,7 +135,7 @@ public class SaveDocumentTransformer implements
         LOG.debug("Saving {} to {}", docCtx.reference(), file);
         // rename dirs to file if need be, but we make sure not to rename
         // dirs of saveDir.
-        try (var input = docCtx.readContent().asInputStream()) {
+        try (var input = docCtx.input().inputStream()) {
             var segFromLast = file.getNameCount() -
                     configuration.getSaveDir().getNameCount();
             Path parent = null;

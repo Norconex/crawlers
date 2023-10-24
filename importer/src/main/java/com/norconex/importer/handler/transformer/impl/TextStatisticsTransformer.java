@@ -148,7 +148,7 @@ public class TextStatisticsTransformer implements
                         en.getKey());
             }
         } else {
-            try (var input = docCtx.readContent().asReader(
+            try (var input = docCtx.input().reader(
                     configuration.getSourceCharset())) {
                 analyze(input, docCtx.metadata(), null);
             } catch (IOException e) {

@@ -89,7 +89,7 @@ public class ChunkedTextReader {
             } else {
                 // handle body
                 aborted |= handleChunk(
-                        null, 0, docCtx.readContent(), textConsumer);
+                        null, 0, docCtx.input(), textConsumer);
             }
             return !aborted;
         } catch (IOException e) {
@@ -125,7 +125,7 @@ public class ChunkedTextReader {
             ReadAdapter readAdapter,
             FailableFunction<TextChunk, Boolean, IOException> textConsumer)
                     throws IOException {
-        return readAdapter.asChunkedText((idx, text) ->
+        return readAdapter.chunkedText((idx, text) ->
                 textConsumer.apply(new TextChunk(
                         fieldName, fieldValueIndex, idx, text)),
                 new ChunkedReadOptions()

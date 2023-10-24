@@ -104,7 +104,7 @@ public class DebugTransformer
                         StringUtils.trimToEmpty(configuration.getPrefix())
                             + "CONTENT={}",
                         IOUtils.toString(
-                                docCtx.readContent().asInputStream(), UTF_8));
+                                docCtx.input().inputStream(), UTF_8));
             } catch (IOException e) {
                 throw new ImporterHandlerException(
                         "Count not stream content.", e);

@@ -73,7 +73,7 @@ public class DeleteTransformer
             }
         } else {
             // Body
-            try (var out = docCtx.writeContent().toOutputStream()) {
+            try (var out = docCtx.output().outputStream()) {
                 out.write(new byte[] {});
             } catch (IOException e) {
                 throw new ImporterHandlerException(

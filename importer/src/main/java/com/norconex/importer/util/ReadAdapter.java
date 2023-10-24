@@ -50,14 +50,14 @@ public class ReadAdapter {
         defaultCharset = null;
     }
 
-    public InputStream asInputStream() {
+    public InputStream inputStream() {
         return inputSupplier.get();
     }
 
-    public Reader asReader() {
-        return asReader(null);
+    public Reader reader() {
+        return reader(null);
     }
-    public Reader asReader(Charset charset) {
+    public Reader reader(Charset charset) {
         return new InputStreamReader(IOUtil.toNonNullInputStream(
                 inputSupplier.get()),
                 ObjectUtils.firstNonNull(
@@ -72,13 +72,13 @@ public class ReadAdapter {
      *     it was all read or not.
      * @throws IOException
      */
-    public boolean asChunkedText(
+    public boolean chunkedText(
             @NonNull
             FailableBiFunction<Integer, String, Boolean, IOException>
                     textConsumer) throws IOException {
-        return asChunkedText(textConsumer, null);
+        return chunkedText(textConsumer, null);
     }
-    public boolean asChunkedText(
+    public boolean chunkedText(
             @NonNull
             FailableBiFunction<Integer, String, Boolean, IOException>
                     textConsumer,
@@ -90,7 +90,7 @@ public class ReadAdapter {
         String text = null;
         var keepReading = false;
         try (var reader = new TextReader(
-                asReader(options.charset), options.maxChunkSize)) {
+                reader(options.charset), options.maxChunkSize)) {
             while ((text = reader.readText()) != null) {
                 keepReading = textConsumer.apply(chunkIndex, text);
                 chunkIndex++;

@@ -84,7 +84,7 @@ public class DocumentLengthTransformer implements
         }
 
         var length = -1;
-        var docIs = docCtx.readContent().asInputStream();
+        var docIs = docCtx.input().inputStream();
         if (docIs instanceof CachedInputStream cis) {
             length = cis.length();
         } else {

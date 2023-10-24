@@ -141,7 +141,7 @@ public class XmlStreamSplitter
             }
         } else {
             // Body
-            doSplit(docCtx, docCtx.readContent().asInputStream());
+            doSplit(docCtx, docCtx.input().inputStream());
         }
     }
 

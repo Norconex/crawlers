@@ -111,8 +111,8 @@ public class ImageTransformer implements
             return;
         }
 
-        var input = docCtx.readContent().asInputStream();
-        var output = docCtx.writeContent().toOutputStream();
+        var input = docCtx.input().inputStream();
+        var output = docCtx.output().outputStream();
 
         try {
             var img = new MutableImage(input);

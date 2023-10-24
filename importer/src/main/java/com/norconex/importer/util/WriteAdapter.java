@@ -46,21 +46,21 @@ public class WriteAdapter {
         defaultCharset = null;
     }
 
-    public OutputStream toOutputStream() {
+    public OutputStream outputStream() {
         return outputSupplier.get();
     }
 
-    public Writer toWriter() {
-        return toWriter(null);
+    public Writer writer() {
+        return writer(null);
     }
-    public Writer toWriter(Charset charset) {
+    public Writer writer(Charset charset) {
         return new OutputStreamWriter(IOUtil.toNonNullOutputStream(
                 outputSupplier.get()),
                 ObjectUtils.firstNonNull(
                         charset, defaultCharset, StandardCharsets.UTF_8));
     }
 
-    public Consumer<String> toChunkedText() {
+    public Consumer<String> chunkedText() {
         var out = outputSupplier.get();
         return text -> {
             try {

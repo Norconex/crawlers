@@ -100,7 +100,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
             // Body
             if (!configuration.getFieldMatcher().isSet()) {
                  docCtx.childDocs().addAll(doSplitDocument(
-                        docCtx, docCtx.readContent().asInputStream(), count));
+                        docCtx, docCtx.input().inputStream(), count));
                  return;
             }
             // Fields
