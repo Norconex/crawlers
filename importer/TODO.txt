@@ -1,6 +1,24 @@
 TODO:
 ==============
 
+YES: Have all handlers return IOException and have only top level return
+wrapping import handler exception or equiv?
+
+Remove the handler folder and have only two types:
+
+1. conditions
+2. transformers (which may act as tagger, splitter, transformers, etc. -- anything)
+
+Do SpliterContext, and ConditionContext
+
+Rename DocumentSplitter, DocumentTransformer, ImporterCondition to just
+  Splitter, Transformer, Condition
+
+OnMatch still needed?
+
+    //TODO create Config classes for each handlers
+    //TODO merge conditions and filters, or delete filters and restrictTo?
+
 - Allow more Tika config flexibility. Either:
   - Better document the system properties and env variable as a way to do it
   - Add an option to specifi a tika config file.
