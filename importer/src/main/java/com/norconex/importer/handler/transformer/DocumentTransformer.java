@@ -29,9 +29,9 @@ public interface DocumentTransformer extends
 
     /**
      * Transforms document content and metadata.
-     * @param context transformer context
+     * @param docCtx document transformer context
      * @throws ImporterHandlerException could not transform the document
      */
     @Override
-    void accept(DocContext context) throws ImporterHandlerException;
+    void accept(DocContext docCtx) throws ImporterHandlerException;
 }
