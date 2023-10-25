@@ -9,18 +9,20 @@ WORKDIR /nxer
 
 RUN ls -l
 
-RUN if [ "$committer_type" = "crawler-es" ]; then \
+RUN replace-this-with-committer-files-in-dockerfile
+
+#RUN if [ "$committer_type" = "crawler-es" ]; then \
       #COPY $committer_type /nxer && \
-	  mkdir /nxer/es_folder && \
-          echo "es copy"; \
-	elif [ "$committer_type" = "crawler-solr" ]; then \
-          echo "solr copy" && \
+	  #mkdir /nxer/es_folder && \
+          #echo "es copy"; \
+	#elif [ "$committer_type" = "crawler-solr" ]; then \
+          #echo "solr copy" && \
          # COPY fakefile . && \
-	  mkdir /nxer/solr-folder; \
-	else \
-      echo "other committers to copy" && \
-	  mkdir /nxer/other-copy; \
-	fi
+	  #mkdir /nxer/solr-folder; \
+	#else \
+      #echo "other committers to copy" && \
+	#  mkdir /nxer/other-copy; \
+	#fi
 
 
 RUN ls -l
