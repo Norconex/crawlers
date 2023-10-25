@@ -27,7 +27,7 @@ import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -122,7 +122,7 @@ import lombok.experimental.FieldNameConstants;
 @SuppressWarnings("javadoc")
 @Data
 @FieldNameConstants
-public class OCRConfig implements XMLConfigurable {
+public class OCRConfig {
 
     private boolean disabled;
 

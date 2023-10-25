@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
@@ -150,7 +150,7 @@ public class TitleGeneratorTransformer implements
             "^([^\\n\\r]+)[\\n\\r]", Pattern.DOTALL);
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
 
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
             // The first chunk already did the title generation.

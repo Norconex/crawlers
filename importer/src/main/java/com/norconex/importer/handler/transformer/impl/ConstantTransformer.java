@@ -19,7 +19,6 @@ import static java.util.Optional.ofNullable;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -70,7 +69,7 @@ public class ConstantTransformer implements
             new ConstantTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) {
         configuration.getConstants().forEach(c -> {
             if (c != null) {
                 var setter = ofNullable(

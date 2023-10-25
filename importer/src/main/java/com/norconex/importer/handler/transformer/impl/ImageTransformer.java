@@ -27,8 +27,6 @@ import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ExternalHandler;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.parser.ParseConfig;
 import com.norconex.importer.util.MatchUtil;
@@ -103,7 +101,7 @@ public class ImageTransformer implements
             new ImageTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!MatchUtil.matchesContentType(
@@ -111,16 +109,11 @@ public class ImageTransformer implements
             return;
         }
 
-        var input = docCtx.input().inputStream();
-        var output = docCtx.output().outputStream();
-
-        try {
+        try (var input = docCtx.input().inputStream();
+                var output = docCtx.output().outputStream();) {
             var img = new MutableImage(input);
             transformImage(img);
             img.write(output, configuration.getTargetFormat());
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Could not transform image: " + docCtx.reference(), e);
         }
     }
 

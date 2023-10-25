@@ -25,11 +25,13 @@ import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentFamily;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
@@ -41,8 +43,10 @@ import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterResponseProcessor;
 import com.norconex.importer.response.ImporterStatus;
 import com.norconex.importer.response.ImporterStatus.Status;
-import com.norconex.importer.util.CharsetUtil;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -51,12 +55,15 @@ import lombok.extern.slf4j.Slf4j;
  * @see ImporterConfig
  */
 @Slf4j
-public class Importer {
+@ToString
+@EqualsAndHashCode
+public class Importer implements Configurable<ImporterConfig> {
 
     private static final ImporterStatus PASSING_FILTER_STATUS =
             new ImporterStatus();
 
-    private final ImporterConfig importerConfig;
+    @Getter
+    private final ImporterConfig configuration;
 
     // Only used when using command-line or invoking
     // importDocument(ImporterRequest). The "doc" version has its own.
@@ -88,9 +95,9 @@ public class Importer {
      */
     public Importer(ImporterConfig importerConfig, EventManager eventManager) {
         if (importerConfig != null) {
-            this.importerConfig = importerConfig;
+            configuration = importerConfig;
         } else {
-            this.importerConfig = new ImporterConfig();
+            configuration = new ImporterConfig();
         }
         this.eventManager = new EventManager(eventManager);
         parseHandler = new ImporterParseHandler(this);
@@ -108,14 +115,6 @@ public class Importer {
      */
     public static void main(String[] args) {
         ImporterLauncher.launch(args);
-    }
-
-    /**
-     * Gets the importer configuration.
-     * @return importer configuration
-         */
-    public ImporterConfig getImporterConfig() {
-        return importerConfig;
     }
 
     /**
@@ -152,7 +151,7 @@ public class Importer {
         //--- Document Handling ---
         try {
             parseHandler.init(
-                    importerConfig.getParseConfig().getParseOptions());
+                    configuration.getParseConfig().getParseOptions());
 
             prepareDocumentForImporting(document);
 
@@ -174,7 +173,7 @@ public class Importer {
 
             //--- Response Processor ---
             if (response.getParentResponse() == null
-                    && !importerConfig.getResponseProcessors().isEmpty()) {
+                    && !configuration.getResponseProcessors().isEmpty()) {
                 processResponse(response);
             }
             return response;
@@ -204,11 +203,11 @@ public class Importer {
         }
 
         //--- Try to detect content encoding if not already set ---
-        var encoding = docInfo.getContentEncoding();
+        var encoding = docInfo.getCharset();
         try {
             encoding = CharsetUtil.detectCharsetIfBlank(
                     encoding, document.getInputStream());
-            docInfo.setContentEncoding(encoding);
+            docInfo.setCharset(encoding);
         } catch (IOException e) {
             LOG.debug("Problem detecting encoding for: {}",
                     docInfo.getReference(), e);
@@ -260,7 +259,7 @@ public class Importer {
         }
 
         var info = new DocRecord(ref);
-        info.setContentEncoding(req.getContentEncoding());
+        info.setCharset(req.getContentEncoding());
         info.setContentType(req.getContentType());
 
         return new Doc(info, is, req.getMetadata());
@@ -271,7 +270,7 @@ public class Importer {
             return;
         }
 
-        var tempDir = importerConfig.getTempDir();
+        var tempDir = configuration.getTempDir();
         if (tempDir == null) {
             tempDir = Paths.get(ImporterConfig.DEFAULT_TEMP_DIR_PATH);
         }
@@ -285,9 +284,9 @@ public class Importer {
             }
         }
         requestStreamFactory = new CachedStreamFactory(
-                (int) importerConfig.getMaxMemoryPool(),
-                (int) importerConfig.getMaxMemoryInstance(),
-                importerConfig.getTempDir());
+                (int) configuration.getMaxMemoryPool(),
+                (int) configuration.getMaxMemoryInstance(),
+                configuration.getTempDir());
     }
 
     private ImporterStatus doImportDocument(
@@ -298,7 +297,7 @@ public class Importer {
         var filterStatus = executeHandlers(
                 document,
                 nestedDocs,
-                importerConfig.getPreParseConsumer(),
+                configuration.getPreParseConsumer(),
                 ParseState.PRE);
 
         if (!filterStatus.isSuccess()) {
@@ -313,7 +312,7 @@ public class Importer {
         filterStatus = executeHandlers(
                 document,
                 nestedDocs,
-                importerConfig.getPostParseConsumer(),
+                configuration.getPostParseConsumer(),
                 ParseState.POST);
         if (!filterStatus.isSuccess()) {
             return filterStatus;
@@ -324,7 +323,7 @@ public class Importer {
 
     private void processResponse(ImporterResponse response) {
         for (ImporterResponseProcessor proc
-                : importerConfig.getResponseProcessors()) {
+                : configuration.getResponseProcessors()) {
             //MAYBE: do something with return response?
             proc.processImporterResponse(response);
         }

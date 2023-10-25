@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.io.IOException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -26,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.time.ZonedDateTimeParser;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.Condition;
 
 import lombok.Data;
@@ -222,7 +222,7 @@ public class DateCondition
             new DateConditionConfig();
 
     @Override
-    public boolean test(DocContext docCtx) throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().getPattern() == null) {
             throw new IllegalArgumentException(
                     "\"fieldMatcher\" pattern cannot be empty.");

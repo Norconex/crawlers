@@ -14,9 +14,10 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
+
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
@@ -64,7 +65,7 @@ public class StripBeforeTransformer implements
             new StripBeforeTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         if (!configuration.getStripBeforeMatcher().isSet()) {
             LOG.error("No matcher pattern provided.");
             return;

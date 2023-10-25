@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Norconex Inc.
+/* Copyright 2016-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;
@@ -89,12 +88,13 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class EmbeddedConfig implements XMLConfigurable {
+public class EmbeddedConfig { //{
 
     private final List<TextMatcher> splitEmbeddedOf = new ArrayList<>();
     private final List<TextMatcher> skipEmmbbededOf = new ArrayList<>();
     private final List<TextMatcher> skipEmmbbeded = new ArrayList<>();
 
+    @JsonIgnore
     public boolean isEmpty() {
         return splitEmbeddedOf.isEmpty()
                 && skipEmmbbededOf.isEmpty()
@@ -152,30 +152,30 @@ public class EmbeddedConfig implements XMLConfigurable {
         CollectionUtil.setAll(skipEmmbbeded, matchers);
     }
 
-    @Override
-    public void loadFromXML(XML xml) {
-        setSplitEmbeddedOf(
-                toMatchers(xml.getXMLList("splitEmbeddedOf/matcher")));
-        setSkipEmmbbededOf(
-                toMatchers(xml.getXMLList("skipEmmbbededOf/matcher")));
-        setSkipEmmbbeded(toMatchers(xml.getXMLList("skipEmmbbeded/matcher")));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        var matcherEl = "matcher";
-        xml.addElementList("splitEmbeddedOf", matcherEl, splitEmbeddedOf);
-        xml.addElementList("skipEmmbbededOf", matcherEl, skipEmmbbededOf);
-        xml.addElementList("skipEmmbbeded", matcherEl, skipEmmbbeded);
-    }
-
-    private List<TextMatcher> toMatchers(List<XML> xmls) {
-        return xmls.stream()
-            .map(x -> {
-                var tm = new TextMatcher();
-                tm.loadFromXML(x);
-                return tm;
-            })
-            .toList();
-    }
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        setSplitEmbeddedOf(
+//                toMatchers(xml.getXMLList("splitEmbeddedOf/matcher")));
+//        setSkipEmmbbededOf(
+//                toMatchers(xml.getXMLList("skipEmmbbededOf/matcher")));
+//        setSkipEmmbbeded(toMatchers(xml.getXMLList("skipEmmbbeded/matcher")));
+//    }
+//
+//    @Override
+//    public void saveToXML(XML xml) {
+//        var matcherEl = "matcher";
+//        xml.addElementList("splitEmbeddedOf", matcherEl, splitEmbeddedOf);
+//        xml.addElementList("skipEmmbbededOf", matcherEl, skipEmmbbededOf);
+//        xml.addElementList("skipEmmbbeded", matcherEl, skipEmmbbeded);
+//    }
+//
+//    private List<TextMatcher> toMatchers(List<XML> xmls) {
+//        return xmls.stream()
+//            .map(x -> {
+//                var tm = new TextMatcher();
+//                tm.loadFromXML(x);
+//                return tm;
+//            })
+//            .toList();
+//    }
 }

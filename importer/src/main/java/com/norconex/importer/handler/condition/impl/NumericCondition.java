@@ -14,11 +14,12 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.io.IOException;
+
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.Condition;
 
 import lombok.Data;
@@ -93,7 +94,7 @@ public class NumericCondition
             new NumericConditionConfig();
 
     @Override
-    public boolean test(DocContext docCtx) throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws IOException {
         for (String valueStr : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).valueList()) {
             if (!NumberUtils.isCreatable(valueStr)) {

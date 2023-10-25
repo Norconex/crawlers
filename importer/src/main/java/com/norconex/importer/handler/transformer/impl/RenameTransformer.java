@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -21,7 +22,6 @@ import java.util.Objects;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -81,7 +81,7 @@ public class RenameTransformer implements
             new RenameTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         for (RenameOperation op : configuration.getOperations()) {
             for (Entry<String, List<String>> en :
                     docCtx.metadata().matchKeys(

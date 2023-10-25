@@ -22,22 +22,20 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.function.FailableConsumer;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.function.FunctionUtil;
+import com.norconex.commons.lang.flow.JsonFlow;
+import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.commons.lang.xml.flow.XMLFlow;
-import com.norconex.importer.handler.HandlerConsumer;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.HandlerPredicate;
-import com.norconex.importer.handler.ImporterHandler;
+import com.norconex.importer.handler.BaseDocumentHandler;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.parser.ParseConfig;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
 import lombok.Data;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 
 /**
  * Importer configuration. Refer to {@link ParseConfig} for parse-specific
@@ -76,7 +74,8 @@ import lombok.NonNull;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class ImporterConfig implements XMLConfigurable {
+@Accessors(chain = true)
+public class ImporterConfig {
 
     public static final String DEFAULT_TEMP_DIR_PATH =
             FileUtils.getTempDirectoryPath();
@@ -87,114 +86,57 @@ public class ImporterConfig implements XMLConfigurable {
     public static final long DEFAULT_MAX_STREAM_CACHE_SIZE =
             DataUnit.GB.toBytes(1).intValue();
 
+    /**
+     * <p>
+     * The {@link Consumer} to be executed on documents before
+     * their parsing has occurred. While not mandatory, it is strongly
+     * recommended you consumer implements {@link BaseDocumentHandler}
+     * or is decorated with either
+     * {@link BaseDocumentHandler#decorate(Consumer)} or
+     * {@link BaseDocumentHandler#decorate(FailableConsumer)}
+     * </p>
+     * <p>
+     * Be careful that your pre-par consumers can deal with the expected
+     * document types. To consume a document once its plain text has been
+     * extracted, use {@link #postParseConsumer} instead.
+     * </p>
+     * <p>
+     * To programmatically set multiple consumers or take advantage of the
+     * handlers defined by the Importer, you can use {@link Consumers}
+     * to wrap them.
+     * </p>
+     * @param consumer the pre-parse document consumer
+     * @return pre-parse document consumer
+     */
+    @JsonFlow
+    private Consumer<DocContext> preParseConsumer;
 
+    /**
+     * <p>
+     * The {@link Consumer} to be executed on documents after
+     * their parsing has occurred.
+     * </p>
+     * <p>
+     * <p>
+     * To programmatically set multiple consumers or take advantage of the
+     * handlers defined by the Importer, you can use {@link Consumers}
+     * to wrap them.
+     * </p>
+     * @param consumer the document consumer
+     */
+    @JsonFlow
+    private Consumer<DocContext> postParseConsumer;
 
-    private XMLFlow<HandlerContext> xmlFlow = new XMLFlow<>(
-            HandlerConsumer.class, HandlerPredicate.class);
-
-    private Consumer<HandlerContext> preParseConsumer;
-    private Consumer<HandlerContext> postParseConsumer;
-
+    /**
+     * Processors of importer response. Invoked when a document has
+     * been fully imported.
+     */
     private final List<ImporterResponseProcessor> responseProcessors =
             new ArrayList<>();
 
-    private Path tempDir = Paths.get(DEFAULT_TEMP_DIR_PATH);
-    private long maxMemoryInstance = DEFAULT_MAX_STREAM_CACHE_POOL_SIZE;
-    private long maxMemoryPool = DEFAULT_MAX_STREAM_CACHE_SIZE;
-
-    @NonNull
-    private ParseConfig parseConfig = new ParseConfig();
-
-    /**
-     * Gets the {@link Consumer} to be executed on documents before
-     * their parsing has occurred.
-     * @return the document consumer
-         */
-    public Consumer<HandlerContext> getPreParseConsumer() {
-        return preParseConsumer;
-    }
     /**
      * <p>
-     * Sets the {@link Consumer} to be executed on documents before
-     * their parsing has occurred.  The consumer will automatically be
-     * created when relying on XML configuration of handlers
-     * ({@link ImporterHandler}). XML
-     * configuration also offers extra XML tags to create basic "flow"
-     * for handler execution.
-     * </p>
-     * <p>
-     * To programmatically set multiple consumers or take advantage of the
-     * many configurable {@link ImporterHandler} instances instead,
-     * you can use {@link FunctionUtil#allConsumers(Consumer...)} or
-     * {@link HandlerConsumer#fromHandlers(ImporterHandler...)}
-     * respectively to create a consumer.
-     * </p>
-     * @param consumer the document consumer
-         */
-    public void setPreParseConsumer(Consumer<HandlerContext> consumer) {
-        preParseConsumer = consumer;
-    }
-    /**
-     * Gets the {@link Consumer} to be executed on documents after
-     * their parsing has occurred.
-     * @return the document consumer
-         */
-    public Consumer<HandlerContext> getPostParseConsumer() {
-        return postParseConsumer;
-    }
-    /**
-     * <p>
-     * Sets the {@link Consumer} to be executed on documents after
-     * their parsing has occurred.  The consumer will automatically be
-     * created when relying on XML configuration of handlers
-     * ({@link ImporterHandler}). XML
-     * configuration also offers extra XML tags to create basic "flow"
-     * for handler execution.
-     * </p>
-     * <p>
-     * To programmatically set multiple consumers or take advantage of the
-     * many configurable {@link ImporterHandler} instances instead,
-     * you can use {@link FunctionUtil#allConsumers(Consumer...)} or
-     * {@link HandlerConsumer#fromHandlers(ImporterHandler...)}
-     * respectively to create a consumer.
-     * </p>
-     * @param consumer the document consumer
-         */
-    public void setPostParseConsumer(Consumer<HandlerContext> consumer) {
-        postParseConsumer = consumer;
-    }
-
-    public List<ImporterResponseProcessor> getResponseProcessors() {
-        return Collections.unmodifiableList(responseProcessors);
-    }
-    public void setResponseProcessors(
-            List<ImporterResponseProcessor> responseProcessors) {
-        CollectionUtil.setAll(this.responseProcessors, responseProcessors);
-        CollectionUtil.removeNulls(this.responseProcessors);
-    }
-
-    /**
-     * <p>
-     * Gets the temporary directory where files can be deleted safely by the OS
-     * or any other processes when the Importer is not running.
-     * When not set, the importer will use the system temporary directory.
-     * </p>
-     * <p>
-     * This only get used when the Importer launched directly from the
-     * command-line or when importing documents via
-     * {@link Importer#importDocument(ImporterRequest)}.  Documents
-     * imported via
-     * {@link Importer#importDocument(com.norconex.importer.doc.Doc)} already
-     * have their temp/cache directory built-in.
-     * </p>
-     * @return path to temporary directory
-     */
-    public Path getTempDir() {
-        return tempDir;
-    }
-    /**
-     * <p>
-     * Sets the temporary directory where files can be deleted safely by the OS
+     * The temporary directory where files can be deleted safely by the OS
      * or any other processes when the Importer is not running.
      * When not set, the importer will use the system temporary directory.
      * </p>
@@ -207,14 +149,13 @@ public class ImporterConfig implements XMLConfigurable {
      * have their temp/cache directory built-in.
      * </p>
      * @param tempDir path to temporary directory
+     * @return path to temporary directory
      */
-    public void setTempDir(Path tempDir) {
-        this.tempDir = tempDir;
-    }
+    private Path tempDir = Paths.get(DEFAULT_TEMP_DIR_PATH);
 
     /**
      * <p>
-     * Gets the maximum number of bytes used for memory caching of a single
+     * The maximum number of bytes used for memory caching of a single
      * documents being processed. Default
      * is {@link #DEFAULT_MAX_STREAM_CACHE_POOL_SIZE}.
      * </p>
@@ -226,33 +167,14 @@ public class ImporterConfig implements XMLConfigurable {
      * {@link Importer#importDocument(com.norconex.importer.doc.Doc)} already
      * have their temp/cache directory built-in.
      * </p>
+     * @param maxMemoryInstance max document memory cache size
      * @return max document memory cache size
      */
-    public long getMaxMemoryInstance() {
-        return maxMemoryInstance;
-    }
-    /**
-     * <p>
-     * Sets the maximum number of bytes used for memory caching of a single
-     * documents being processed.
-     * </p>
-     * <p>
-     * This only get used when the Importer launched directly from the
-     * command-line or when importing documents via
-     * {@link Importer#importDocument(ImporterRequest)}.  Documents
-     * imported via
-     * {@link Importer#importDocument(com.norconex.importer.doc.Doc)} already
-     * have their temp/cache directory built-in.
-     * </p>
-     * @param maxMemoryInstance max document memory cache size
-     */
-    public void setMaxMemoryInstance(long maxMemoryInstance) {
-        this.maxMemoryInstance = maxMemoryInstance;
-    }
+    private long maxMemoryInstance = DEFAULT_MAX_STREAM_CACHE_POOL_SIZE;
 
     /**
      * <p>
-     * Gets the maximum number of bytes used for memory caching of data for all
+     * The maximum number of bytes used for memory caching of data for all
      * documents concurrently being processed. Default
      * is {@link #DEFAULT_MAX_STREAM_CACHE_SIZE}.
      * </p>
@@ -264,55 +186,21 @@ public class ImporterConfig implements XMLConfigurable {
      * {@link Importer#importDocument(com.norconex.importer.doc.Doc)} already
      * have their temp/cache directory built-in.
      * </p>
+     * @param maxMemoryPool max documents memory pool cache size
      * @return max documents memory pool cache size
      */
-    public long getMaxMemoryPool() {
-        return maxMemoryPool;
-    }
-    /**
-     * <p>
-     * Sets the maximum number of bytes used for memory caching of data for all
-     * documents concurrently being processed.
-     * </p>
-     * <p>
-     * This only get used when the Importer launched directly from the
-     * command-line or when importing documents via
-     * {@link Importer#importDocument(ImporterRequest)}.  Documents
-     * imported via
-     * {@link Importer#importDocument(com.norconex.importer.doc.Doc)} already
-     * have their temp/cache directory built-in.
-     * </p>
-     * @param maxMemoryPool max documents memory pool cache size
-     */
-    public void setMaxMemoryPool(long maxMemoryPool) {
-        this.maxMemoryPool = maxMemoryPool;
-    }
+    private long maxMemoryPool = DEFAULT_MAX_STREAM_CACHE_SIZE;
 
-    @Override
-    public void loadFromXML(XML xml) {
-        setTempDir(xml.getPath("tempDir", getTempDir()));
-        setMaxMemoryInstance(
-                xml.getDataSize("maxMemoryInstance", getMaxMemoryInstance()));
-        setMaxMemoryPool(xml.getDataSize("maxMemoryPool", getMaxMemoryPool()));
-        setPreParseConsumer(xmlFlow.parse(xml.getXML("preParseHandlers")));
-        xml.ifXML("parse", parseConfig::loadFromXML);
-        setPostParseConsumer(xmlFlow.parse(xml.getXML("postParseHandlers")));
-        setResponseProcessors(xml.getObjectListImpl(
-                ImporterResponseProcessor.class,
-                "responseProcessors/responseProcessor",
-                getResponseProcessors()));
+    @NonNull
+    private ParseConfig parseConfig = new ParseConfig();
+
+    public List<ImporterResponseProcessor> getResponseProcessors() {
+        return Collections.unmodifiableList(responseProcessors);
     }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("tempDir", tempDir);
-        xml.addElement("maxMemoryInstance", maxMemoryInstance);
-        xml.addElement("maxMemoryPool", maxMemoryPool);
-
-        xmlFlow.write(xml.addElement("preParseHandlers"), preParseConsumer);
-        parseConfig.saveToXML(xml.addElement("parse"));
-        xmlFlow.write(xml.addElement("postParseHandlers"), postParseConsumer);
-        xml.addElementList(
-                "responseProcessors", "responseProcessor", responseProcessors);
+    public ImporterConfig setResponseProcessors(
+            List<ImporterResponseProcessor> responseProcessors) {
+        CollectionUtil.setAll(this.responseProcessors, responseProcessors);
+        CollectionUtil.removeNulls(this.responseProcessors);
+        return this;
     }
 }

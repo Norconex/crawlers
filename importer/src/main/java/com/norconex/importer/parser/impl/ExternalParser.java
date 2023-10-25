@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,25 @@ package com.norconex.importer.parser.impl;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.io.output.WriterOutputStream;
 
-import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.commons.lang.text.RegexFieldValueExtractor;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.ExternalHandler;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformer;
+import com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig;
 import com.norconex.importer.parser.DocumentParser;
 import com.norconex.importer.parser.DocumentParserException;
 import com.norconex.importer.parser.ParseOptions;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * <p>
@@ -109,201 +107,35 @@ import lombok.NonNull;
  * @see ExternalHandler
  */
 @SuppressWarnings("javadoc")
-public class ExternalParser implements DocumentParser, XMLConfigurable {
+@ToString
+@EqualsAndHashCode
+public class ExternalParser implements
+        DocumentParser, Configurable<ExternalTransformerConfig> {
 
-    private final ExternalHandler h = new ExternalHandler();
+    //TODO what about conditionally disabling some parsers? already covered?
 
-    /**
-     * Gets the command to execute.
-     * @return the command
-     */
-    public String getCommand() {
-        return h.getCommand();
-    }
-    /**
-     * Sets the command to execute. Make sure to escape spaces in
-     * executable path and its arguments as well as other special command
-     * line characters.
-     * @param command the command
-     */
-    public void setCommand(String command) {
-        h.setCommand(command);
-    }
+    private final ExternalTransformer t = new ExternalTransformer();
 
-    /**
-     * Gets directory where to store temporary files used for transformation.
-     * @return temporary directory
-         */
-    public Path getTempDir() {
-        return h.getTempDir();
-    }
-    /**
-     * Sets directory where to store temporary files used for transformation.
-     * @param tempDir temporary directory
-         */
-    public void setTempDir(Path tempDir) {
-        h.setTempDir(tempDir);
-    }
-
-    /**
-     * Gets metadata extraction patterns. See class documentation.
-     * @return map of patterns and field names
-     */
-    public List<RegexFieldValueExtractor> getMetadataExtractionPatterns() {
-        return h.getMetadataExtractionPatterns();
-    }
-
-    /**
-     * Adds a metadata extraction pattern that will extract the whole text
-     * matched into the given field.
-     * @param field target field to store the matching pattern.
-     * @param pattern the pattern
-         */
-    public void addMetadataExtractionPattern(String field, String pattern) {
-        h.addMetadataExtractionPattern(field, pattern);
-    }
-    /**
-     * Adds a metadata extraction pattern, which will extract the value from
-     * the specified group index upon matching.
-     * @param field target field to store the matching pattern.
-     * @param pattern the pattern
-     * @param valueGroup which pattern group to return.
-         */
-    public void addMetadataExtractionPattern(
-            String field, String pattern, int valueGroup) {
-        h.addMetadataExtractionPattern(field, pattern, valueGroup);
-    }
-    /**
-     * Adds a metadata extraction pattern that will extract matching field
-     * names/values.
-     * @param patterns extraction pattern
-         */
-    public void addMetadataExtractionPatterns(RegexFieldValueExtractor... patterns) {
-        h.addMetadataExtractionPatterns(patterns);
-    }
-    /**
-     * Sets metadata extraction patterns. Clears any previously assigned
-     * patterns.
-     * @param patterns extraction pattern
-         */
-    public void setMetadataExtractionPatterns(RegexFieldValueExtractor... patterns) {
-        h.setMetadataExtractionPatterns(patterns);
-    }
-
-    /**
-     * Gets the property setter to use when a metadata value is set.
-     * @return property setter
-         */
-    public PropertySetter getOnSet() {
-        return h.getOnSet();
-    }
-    /**
-     * Sets the property setter to use when a metadata value is set.
-     * @param onSet property setter
-         */
-    public void setOnSet(PropertySetter onSet) {
-        h.setOnSet(onSet);
-    }
-
-    /**
-     * Gets environment variables.
-     * @return environment variables or <code>null</code> if using the current
-     *         process environment variables
-     */
-    public Map<String, String> getEnvironmentVariables() {
-        return h.getEnvironmentVariables();
-    }
-    /**
-     * Sets the environment variables. Clearing any prevously assigned
-     * environment variables. Set <code>null</code> to use
-     * the current process environment variables (default).
-     * @param environmentVariables environment variables
-     */
-    public void setEnvironmentVariables(
-            Map<String, String> environmentVariables) {
-        h.setEnvironmentVariables(environmentVariables);
-    }
-    /**
-     * Adds the environment variables, keeping environment variables previously
-     * assigned. Existing variables of the same name
-     * will be overwritten. To clear all previously assigned variables and use
-     * the current process environment variables, pass
-     * <code>null</code> to
-     * {@link ExternalParser#setEnvironmentVariables(Map)}.
-     * @param environmentVariables environment variables
-     */
-    public void addEnvironmentVariables(
-            Map<String, String> environmentVariables) {
-        h.addEnvironmentVariables(environmentVariables);
-    }
-    /**
-     * Adds an environment variables to the list of previously
-     * assigned variables (if any). Existing variables of the same name
-     * will be overwritten. Setting a variable with a
-     * <code>null</code> name has no effect while <code>null</code>
-     * values are converted to empty strings.
-     * @param name environment variable name
-     * @param value environment variable value
-     */
-    public void addEnvironmentVariable(String name, String value) {
-        h.addEnvironmentVariable(name, value);
-    }
-
-    /**
-     * Gets the format of the metadata input file sent to the external
-     * application. One of "json" (default), "xml", or "properties" is expected.
-     * Only applicable when the <code>${INPUT}</code> token
-     * is part of the command.
-     * @return metadata input format
-         */
-    public String getMetadataInputFormat() {
-        return h.getMetadataInputFormat();
-    }
-    /**
-     * Sets the format of the metadata input file sent to the external
-     * application. One of "json" (default), "xml", or "properties" is expected.
-     * Only applicable when the <code>${INPUT}</code> token
-     * is part of the command.
-     * @param metadataInputFormat format of the metadata input file
-         */
-    public void setMetadataInputFormat(String metadataInputFormat) {
-        h.setMetadataInputFormat(metadataInputFormat);
-    }
-    /**
-     * Gets the format of the metadata output file from the external
-     * application. By default no format is set, and metadata extraction
-     * patterns are used to extract metadata information.
-     * One of "json", "xml", or "properties" is expected.
-     * Only applicable when the <code>${OUTPUT}</code> token
-     * is part of the command.
-     * @return metadata output format
-         */
-    public String getMetadataOutputFormat() {
-        return h.getMetadataOutputFormat();
-    }
-    /**
-     * Sets the format of the metadata output file from the external
-     * application. One of "json" (default), "xml", or "properties" is expected.
-     * Set to <code>null</code> for relying metadata extraction
-     * patterns instead.
-     * Only applicable when the <code>${OUTPUT}</code> token
-     * is part of the command.
-     * @param metadataOutputFormat format of the metadata output file
-         */
-    public void setMetadataOutputFormat(String metadataOutputFormat) {
-        h.setMetadataOutputFormat(metadataOutputFormat);
-    }
-
+    //TODO change all configuration so they can be set, but never null
     @Override
-    public void init(@NonNull ParseOptions parseOptions)
-            throws DocumentParserException {
-        //NOOP
+    public ExternalTransformerConfig getConfiguration() {
+        return t.getConfiguration();
     }
 
+    //TODO pass DocContext isntead? and throw IOException?
+    //TODO should parser just be another handler?  Then drop ParseState,
+    // or let handlers set it on the DocContext for those that are interested
+    // to know (like Parser)?  Yeah... I like that! That would allow us to use conditions
+    // around parsing as well, on top of being able to use parsing more
+    // than once.
     @Override
     public List<Doc> parseDocument(Doc doc,
             Writer output) throws DocumentParserException {
         try {
+//            t.accept(DocContext.builder()
+//                    .doc(doc)
+//                    .eventManager(null)
+//                    .build());
             h.handleDocument(new HandlerDoc(doc), doc.getInputStream(),
                     WriterOutputStream.builder()
                         .setCharset(StandardCharsets.UTF_8)
@@ -317,31 +149,8 @@ public class ExternalParser implements DocumentParser, XMLConfigurable {
     }
 
     @Override
-    public void loadFromXML(XML xml) {
-        h.loadHandlerFromXML(xml);
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        h.saveHandlerToXML(xml);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        if (!(other instanceof ExternalParser castOther)) {
-            return false;
-        }
-        return h.equals(castOther.h);
-    }
-    @Override
-    public int hashCode() {
-        return h.hashCode();
-    }
-    @Override
-    public String toString() {
-        var toString = h.toString();
-        return toString.replaceFirst(
-            "ExternalTransformer\\[restrictions=\\[.*?\\],",
-            ExternalParser.class.getSimpleName() + "[");
+    public void init(@NonNull ParseOptions parseOptions)
+            throws DocumentParserException {
+        //NOOP
     }
 }

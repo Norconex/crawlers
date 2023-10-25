@@ -21,84 +21,84 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringExclude;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.importer.ImporterException;
 import com.norconex.importer.doc.Doc;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode
+@Builder
+@Data
 public class ImporterResponse {
 
-    public static final ImporterResponse[] EMPTY_RESPONSES =
-            {};
+
+    public enum Status { SUCCESS, REJECTED, ERROR }
+
+    public static final ImporterResponse[] EMPTY_RESPONSES = {};
+
+
+    private final Status status;
+//    private final DocumentFilter filter;
+    private final Object rejectCause; // e.g., Condition, or handler.
+    private final ImporterException exception;
+    private final String description;
 
     private final String reference;
-    private ImporterStatus status;
     private final Doc doc;
     private final List<ImporterResponse> nestedResponses = new ArrayList<>();
     @EqualsAndHashCode.Exclude
     @ToStringExclude
-    private ImporterResponse parentResponse;
+    private final ImporterResponse parentResponse;
 
-    public ImporterResponse(String reference, ImporterStatus status) {
-        this.reference = reference;
-        this.status = status;
-        doc = null;
-    }
-    public ImporterResponse(Doc doc) {
-        reference = doc.getReference();
-        this.doc = doc;
-        status = new ImporterStatus();
-    }
-
-    public Doc getDocument() {
-        return doc;
-    }
-
-    public ImporterStatus getImporterStatus() {
-        return status;
-    }
-    public void setImporterStatus(ImporterStatus status) {
-        this.status = status;
-    }
+//    public ImporterResponse(String reference, ImporterStatus status) {
+//        this.reference = reference;
+//        this.status = status;
+//        doc = null;
+//    }
+//    public ImporterResponse(Doc doc) {
+//        reference = doc.getReference();
+//        this.doc = doc;
+//        status = new ImporterStatus();
+//    }
+//
+//    public Doc getDocument() {
+//        return doc;
+//    }
 
     public boolean isSuccess() {
-        return status != null && status.isSuccess();
+        return status != null && status == Status.SUCCESS;
     }
+//
+//    public ImporterResponse getParentResponse() {
+//        return parentResponse;
+//    }
+//
+//    public void addNestedResponse(ImporterResponse response) {
+//        response.setParentResponse(this);
+//        nestedResponses.add(response);
+//    }
+//    public void removeNestedResponse(String reference) {
+//        ImporterResponse response = null;
+//        for (ImporterResponse nestedResponse : nestedResponses) {
+//            if (nestedResponse.getReference().equals(reference)) {
+//                response = nestedResponse;
+//            }
+//        }
+//        if (response == null) {
+//            return;
+//        }
+//        nestedResponses.remove(response);
+//        response.setParentResponse(null);
+//    }
+//
+//    public ImporterResponse[] getNestedResponses() {
+//        return nestedResponses.toArray(EMPTY_RESPONSES);
+//    }
 
-    public String getReference() {
-        return reference;
-    }
-
-    public ImporterResponse getParentResponse() {
-        return parentResponse;
-    }
-
-
-    public void addNestedResponse(ImporterResponse response) {
-        response.setParentResponse(this);
-        nestedResponses.add(response);
-    }
-    public void removeNestedResponse(String reference) {
-        ImporterResponse response = null;
-        for (ImporterResponse nestedResponse : nestedResponses) {
-            if (nestedResponse.getReference().equals(reference)) {
-                response = nestedResponse;
-            }
-        }
-        if (response == null) {
-            return;
-        }
-        nestedResponses.remove(response);
-        response.setParentResponse(null);
-    }
-
-    public ImporterResponse[] getNestedResponses() {
-        return nestedResponses.toArray(EMPTY_RESPONSES);
-    }
-
-    private void setParentResponse(ImporterResponse parentResponse) {
-        this.parentResponse = parentResponse;
-    }
+//    private void setParentResponse(ImporterResponse parentResponse) {
+//        this.parentResponse = parentResponse;
+//    }
 
     @Override
     public String toString() {

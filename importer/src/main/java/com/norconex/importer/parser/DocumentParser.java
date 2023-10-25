@@ -21,6 +21,11 @@ import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
 
+//REMOVE to make it a regular handler, but how to we keep the init around?
+// and how about shut down?  We should probably add that to all handlers
+// maybe to an interface as default methods? Or shall we use existing
+// mechanism that scans and initiate classes? Yeah, probably best.
+
 /**
  * Implementations are responsible for parsing a document to
  * extract its text and metadata, as well as any embedded documents

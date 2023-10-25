@@ -31,7 +31,6 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -109,7 +108,7 @@ public class TruncateTransformer implements
             new TruncateTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             doFields(docCtx);
         } else {
@@ -117,7 +116,7 @@ public class TruncateTransformer implements
         }
     }
 
-    public void doBody(DocContext docCtx) throws ImporterHandlerException {
+    public void doBody(DocContext docCtx) throws IOException {
         var maxToRead = configuration.getMaxLength() + BODY_CHUNK_SIZE;
         var leftToWrite = configuration.getMaxLength();
         String lastChunk = null;
@@ -156,8 +155,6 @@ public class TruncateTransformer implements
             } else {
                 writer.write(txt);
             }
-        } catch (IOException e) {
-            throw new ImporterHandlerException(e);
         }
     }
 
@@ -173,7 +170,7 @@ public class TruncateTransformer implements
         return result;
     }
 
-    public void doFields(DocContext docCtx) throws ImporterHandlerException {
+    public void doFields(DocContext docCtx) {
         List<String> allTargetValues = new ArrayList<>();
         for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).entrySet()) {

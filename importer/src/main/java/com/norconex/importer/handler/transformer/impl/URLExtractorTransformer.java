@@ -28,7 +28,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.Regex;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -112,7 +111,7 @@ public class URLExtractorTransformer implements
             new URLExtractorTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
 
         if (StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException("\"toField\" cannot be blank.");
@@ -140,14 +139,12 @@ public class URLExtractorTransformer implements
         }
     }
     private void extractContentURLs(Set<String> urls, Reader reader)
-            throws ImporterHandlerException {
+            throws IOException {
         String text = null;
         try (var tr = new TextReader(reader, configuration.getMaxReadSize())) {
             while ((text = tr.readText()) != null) {
                 extractURLs(urls, text);
             }
-        } catch (IOException e) {
-            throw new ImporterHandlerException("Cannot tag text document.", e);
         }
     }
 

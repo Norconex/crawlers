@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -93,7 +92,7 @@ public class SplitTransformer implements
             new SplitTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         for (SplitOperation op : configuration.getOperations()) {
             if (op.getFieldMatcher().isSet()) {
                 splitMetadata(op, docCtx);
@@ -104,7 +103,7 @@ public class SplitTransformer implements
     }
 
     private void splitContent(SplitOperation op, DocContext docCtx)
-            throws ImporterHandlerException {
+            throws IOException {
 
         var delim = op.getSeparator();
         if (!op.isSeparatorRegex()) {
@@ -116,8 +115,6 @@ public class SplitTransformer implements
             while (scanner.hasNext()) {
                 targetValues.add(scanner.next());
             }
-        } catch (IOException e) {
-            throw new ImporterHandlerException("Could not split content.", e);
         }
         PropertySetter.orAppend(op.getOnSet()).apply(
                 docCtx.metadata(), op.getToField(), targetValues);

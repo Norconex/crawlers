@@ -18,7 +18,6 @@ import java.io.IOException;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -62,7 +61,7 @@ public class DeleteTransformer
             new DeleteTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
 
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
@@ -75,10 +74,6 @@ public class DeleteTransformer
             // Body
             try (var out = docCtx.output().outputStream()) {
                 out.write(new byte[] {});
-            } catch (IOException e) {
-                throw new ImporterHandlerException(
-                        "Could not remove content for: "
-                                + docCtx.reference(), e);
             }
         }
     }

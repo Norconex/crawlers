@@ -14,10 +14,11 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.io.IOException;
+
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.Condition;
 
 import lombok.EqualsAndHashCode;
@@ -64,7 +65,7 @@ public class ReferenceCondition
     }
 
     @Override
-    public boolean test(DocContext docCtx) throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws IOException {
         return configuration.getValueMatcher().matches(docCtx.reference());
     }
 }

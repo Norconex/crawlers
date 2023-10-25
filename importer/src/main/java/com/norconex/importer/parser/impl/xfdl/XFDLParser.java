@@ -14,6 +14,8 @@
  */
 package com.norconex.importer.parser.impl.xfdl;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -38,11 +41,11 @@ import org.xml.sax.SAXException;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.parser.DocumentParser;
 import com.norconex.importer.parser.DocumentParserException;
 import com.norconex.importer.parser.ParseOptions;
-import com.norconex.importer.util.CharsetUtil;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -68,11 +71,18 @@ public class XFDLParser implements DocumentParser {
     @Override
     public List<Doc> parseDocument(Doc doc,
             Writer output) throws DocumentParserException {
+        Charset charset;
         try {
-            var charset = CharsetUtil.detectCharset(doc);
-            var is = new BufferedInputStream(doc.getInputStream());
-            var reader = new BufferedReader(
-                    new InputStreamReader(is, charset));
+            charset = CharsetDetector.builder()
+                    .priorityCharset(() -> doc.getDocRecord().getCharset())
+                    .build()
+                    .detect(doc);
+        } catch (IOException e) {
+            charset = UTF_8;
+        }
+        try (var is = new BufferedInputStream(doc.getInputStream());
+                var reader = new BufferedReader(
+                        new InputStreamReader(is, charset));) {
             parse(reader, output, doc.getMetadata());
         } catch (IOException | ParserConfigurationException | SAXException e) {
             throw new DocumentParserException(

@@ -55,7 +55,7 @@ class ImporterParseHandler {
 
     public ImporterParseHandler(Importer importer) {
         eventManager = importer.getEventManager();
-        parseConfig = importer.getImporterConfig().getParseConfig();
+        parseConfig = importer.getConfiguration().getParseConfig();
     }
 
     // We make sure we are initializing only once, in case an Importer

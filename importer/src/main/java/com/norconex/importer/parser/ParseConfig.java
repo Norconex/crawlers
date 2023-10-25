@@ -31,7 +31,7 @@ import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+
 import com.norconex.importer.parser.impl.DefaultParser;
 import com.norconex.importer.parser.impl.xfdl.XFDLParser;
 
@@ -133,7 +133,7 @@ import lombok.experimental.FieldNameConstants;
 @SuppressWarnings("javadoc")
 @Data
 @FieldNameConstants
-public class ParseConfig implements XMLConfigurable {
+public class ParseConfig {
 
     private final List<TextMatcher> contentTypeIncludes = new ArrayList<>();
     private final List<TextMatcher> contentTypeExcludes = new ArrayList<>();
@@ -212,7 +212,7 @@ public class ParseConfig implements XMLConfigurable {
             }
             parsers.put(ContentType.valueOf(contentType), parser);
         }
-        parseOptions.loadFromXML(xml.getXML("parseOptions"));
+//        parseOptions.loadFromXML(xml.getXML("parseOptions"));
     }
     @Override
     public void saveToXML(XML xml) {
@@ -231,6 +231,6 @@ public class ParseConfig implements XMLConfigurable {
                         .setAttribute("contentType", entry.getKey().toString());
             }
         }
-        parseOptions.saveToXML(xml.addElement("parseOptions"));
+//        parseOptions.saveToXML(xml.addElement("parseOptions"));
     }
 }

@@ -25,7 +25,6 @@ import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -93,9 +92,7 @@ public class CountMatchesTransformer implements
             new CountMatchesTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
-
-
+    public void accept(DocContext docCtx) throws IOException {
         // "toField" and value must be present.
         if (StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException("'toField' cannot be blank.");
@@ -128,8 +125,7 @@ public class CountMatchesTransformer implements
         }
         return count;
     }
-    private int countContentMatches(Reader reader)
-            throws ImporterHandlerException {
+    private int countContentMatches(Reader reader) throws IOException {
         var count = 0;
         String text = null;
         try (var tr = new TextReader(reader, configuration.getMaxReadSize())) {
@@ -139,8 +135,6 @@ public class CountMatchesTransformer implements
                     count++;
                 }
             }
-        } catch (IOException e) {
-            throw new ImporterHandlerException("Cannot tag text document.", e);
         }
         return count;
     }

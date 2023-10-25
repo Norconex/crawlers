@@ -34,6 +34,6 @@ class ImporterConfigTest {
         config.setResponseProcessors(List.of(new DummyResponseProcessor()));
         config.setTempDir(tempDir.resolve("temp"));
 
-        assertDoesNotThrow(() -> XML.assertWriteRead(config, "importer"));
+        assertDoesNotThrow(() -> BeanMapper.DEFAULT.assertWriteRead(config);
     }
 }

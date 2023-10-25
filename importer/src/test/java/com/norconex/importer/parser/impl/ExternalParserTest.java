@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -37,10 +38,10 @@ class ExternalParserTest {
         t.setMetadataInputFormat("json");
         t.setMetadataOutputFormat("xml");
 
-        t.setMetadataExtractionPatterns(
+        t.setMetadataExtractionPatterns(List.of(
             new RegexFieldValueExtractor("aaa.*", "111"),
             new RegexFieldValueExtractor("bbb.*", "222")
-        );
+        ));
         t.addMetadataExtractionPattern("ccc.*", "333");
         t.addMetadataExtractionPattern("ddd.*", "444", 2);
 
@@ -55,7 +56,7 @@ class ExternalParserTest {
         t.addEnvironmentVariable("env5", "value5");
 
         assertThatNoException().isThrownBy(() ->
-            XML.assertWriteRead(t, "parser"));
+            BeanMapper.DEFAULT.assertWriteRead(t);
 
         assertThat(t.getCommand()).isEqualTo("my command");
         assertThat(t.getMetadataExtractionPatterns()).hasSize(4);

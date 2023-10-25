@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
@@ -216,7 +215,7 @@ public class LanguageTransformer implements
             Comparator.comparing(LanguageResult::getRawScore).reversed();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         ensureDetectorInitialization();
 
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
@@ -253,18 +252,13 @@ public class LanguageTransformer implements
     }
 
     private synchronized void ensureDetectorInitialization()
-            throws ImporterHandlerException {
+            throws IOException {
         if (detector == null) {
             var d = new OptimaizeLangDetector();
-            try {
-                if (configuration.getLanguages().isEmpty()) {
-                    d.loadModels();
-                } else {
-                    d.loadModels(new HashSet<>(configuration.getLanguages()));
-                }
-            } catch (IOException e) {
-                throw new ImporterHandlerException(
-                        "Cannot initialize language detector.", e);
+            if (configuration.getLanguages().isEmpty()) {
+                d.loadModels();
+            } else {
+                d.loadModels(new HashSet<>(configuration.getLanguages()));
             }
             detector = d;
         }

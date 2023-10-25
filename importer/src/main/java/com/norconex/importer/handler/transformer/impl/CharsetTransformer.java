@@ -31,7 +31,6 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -99,7 +98,7 @@ public class CharsetTransformer
             new CharsetTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
@@ -111,8 +110,6 @@ public class CharsetTransformer
                             var os = new ByteArrayOutputStream()) {
                         var charset = doTransform(docCtx, is, os);
                         newVals.add(new String(os.toByteArray(), charset));
-                    } catch (IOException e) {
-                        throw new ImporterHandlerException(e);
                     }
                 }
                 docCtx.metadata().replace(key, newVals);
@@ -122,8 +119,6 @@ public class CharsetTransformer
             try (var is  = docCtx.input().inputStream();
                     var os = docCtx.output().outputStream()) {
                 doTransform(docCtx, is, os);
-            } catch (IOException e) {
-                throw new ImporterHandlerException(e);
             }
         }
     }
@@ -131,7 +126,7 @@ public class CharsetTransformer
     // returns final charset
     private Charset doTransform(
             DocContext docCtx, InputStream in, OutputStream out)
-                    throws ImporterHandlerException {
+                    throws IOException {
 
         var inputCharset = detectCharsetIfNull(in);
 
@@ -145,11 +140,7 @@ public class CharsetTransformer
         if (inputCharset.equals(outputCharset)) {
             LOG.debug("Source and target encodings are the same for {}",
                     docCtx.reference());
-            try {
-                IOUtils.copyLarge(in, out);
-            } catch (IOException e) {
-                throw new ImporterHandlerException(e);
-            }
+            IOUtils.copyLarge(in, out);
             return outputCharset;
         }
 
@@ -167,15 +158,10 @@ public class CharsetTransformer
     }
 
     private Charset detectCharsetIfNull(InputStream input)
-            throws ImporterHandlerException {
-        try {
-            return CharsetDetector.builder()
-                .priorityCharset(configuration::getSourceCharset)
-                .build()
-                .detect(input);
-        } catch (IOException e) {
-            throw new ImporterHandlerException("Could not detect content "
-                    + "character encoding.", e);
-        }
+            throws IOException {
+        return CharsetDetector.builder()
+            .priorityCharset(configuration::getSourceCharset)
+            .build()
+            .detect(input);
     }
 }

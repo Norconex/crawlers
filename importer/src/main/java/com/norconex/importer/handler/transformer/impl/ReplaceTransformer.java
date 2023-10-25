@@ -78,7 +78,7 @@ public class ReplaceTransformer implements
             new ReplaceTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         for (ReplaceOperation op : configuration.getOperations()) {
             ChunkedTextReader.builder()
                 .charset(configuration.getSourceCharset())

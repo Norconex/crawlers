@@ -29,7 +29,6 @@ import org.slf4j.event.Level;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -82,7 +81,7 @@ public class DebugTransformer
             new DebugTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
 
         var level = Level.valueOf(ObjectUtils.defaultIfNull(
                 configuration.getLogLevel(), "debug").toUpperCase());
@@ -99,16 +98,10 @@ public class DebugTransformer
         }
 
         if (configuration.isLogContent()) {
-            try {
-                SLF4JUtil.log(LOG, level,
-                        StringUtils.trimToEmpty(configuration.getPrefix())
-                            + "CONTENT={}",
-                        IOUtils.toString(
-                                docCtx.input().inputStream(), UTF_8));
-            } catch (IOException e) {
-                throw new ImporterHandlerException(
-                        "Count not stream content.", e);
-            }
+            SLF4JUtil.log(LOG, level,
+                    StringUtils.trimToEmpty(configuration.getPrefix())
+                        + "CONTENT={}",
+                    IOUtils.toString(docCtx.input().inputStream(), UTF_8));
         }
     }
 

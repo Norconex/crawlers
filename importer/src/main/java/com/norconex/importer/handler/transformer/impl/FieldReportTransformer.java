@@ -102,7 +102,7 @@ public class FieldReportTransformer implements
             new TreeMap<>(), FieldData::new);
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         reportFields(docCtx.metadata());
     }
 

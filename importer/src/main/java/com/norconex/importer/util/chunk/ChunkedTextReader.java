@@ -25,7 +25,6 @@ import org.apache.commons.lang3.function.FailableFunction;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.util.ReadAdapter;
 import com.norconex.importer.util.ReadAdapter.ChunkedReadOptions;
 
@@ -69,33 +68,28 @@ public class ChunkedTextReader {
      * @param textConsumer text consumer
      * @return <code>true</code> if all chunks were read. <code>false</code>
      *     if the chunk consumer ever returned <code>false</code>.
-     * @throws ImporterHandlerException problem reading
+     * @throws IOException problem reading
      */
     public boolean read(
             @NonNull
             DocContext docCtx,
             @NonNull
             FailableFunction<TextChunk, Boolean, IOException> textConsumer)
-                    throws ImporterHandlerException {
+                    throws IOException {
 
-        try {
-            var aborted = false;
-            if (fieldMatcher != null && fieldMatcher.isSet()) {
-                // handle matching fields
-                var fields = docCtx.metadata().matchKeys(fieldMatcher);
-                for (Entry<String, List<String>> en : fields.entrySet()) {
-                    aborted = readField(textConsumer, aborted, en);
-                }
-            } else {
-                // handle body
-                aborted |= handleChunk(
-                        null, 0, docCtx.input(), textConsumer);
+        var aborted = false;
+        if (fieldMatcher != null && fieldMatcher.isSet()) {
+            // handle matching fields
+            var fields = docCtx.metadata().matchKeys(fieldMatcher);
+            for (Entry<String, List<String>> en : fields.entrySet()) {
+                aborted = readField(textConsumer, aborted, en);
             }
-            return !aborted;
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Could not consume chunk of text.", e);
+        } else {
+            // handle body
+            aborted |= handleChunk(
+                    null, 0, docCtx.input(), textConsumer);
         }
+        return !aborted;
     }
 
     private boolean readField(

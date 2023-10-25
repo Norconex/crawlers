@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2017-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
@@ -40,20 +41,20 @@ public class ExternalParserTest {
 
     @Test
     public void testWriteRead() {
-        ExternalParser p = new ExternalParser();
+        var p = new ExternalParser();
         p.setCommand("my command");
 
-        p.setMetadataExtractionPatterns(
+        p.setMetadataExtractionPatterns(List.of(
             new RegexFieldValueExtractor("asdf.*", "blah"),
             new RegexFieldValueExtractor("qwer.*", "halb")
-        );
+        ));
 
         Map<String, String> envs = new HashMap<>();
         envs.put("env1", "value1");
         envs.put("env2", "value2");
         p.setEnvironmentVariables(envs);
 
-        XML.assertWriteRead(p, "parser");
+        BeanMapper.DEFAULT.assertWriteRead(p);
     }
 
     @Test
@@ -75,9 +76,10 @@ public class ExternalParserTest {
 
     @Test
     public void testMetaInputOutputFiles() throws DocumentParserException {
-        testWithExternalApp("-ic ${INPUT} -oc ${OUTPUT} "
-                + "-im ${INPUT_META} -om ${OUTPUT_META} "
-                + "-ref ${REFERENCE}", true);
+        testWithExternalApp("""
+        	-ic ${INPUT} -oc ${OUTPUT}\s\
+        	-im ${INPUT_META} -om ${OUTPUT_META}\s\
+        	-ref ${REFERENCE}""", true);
     }
 
     private void testWithExternalApp(String command)
@@ -86,15 +88,15 @@ public class ExternalParserTest {
     }
     private void testWithExternalApp(String command, boolean metaFiles)
             throws DocumentParserException {
-        InputStream input = inputAsStream();
-        StringWriter output = new StringWriter();
-        Doc doc = new Doc(
+        var input = inputAsStream();
+        var output = new StringWriter();
+        var doc = new Doc(
                 "c:\\ref with spaces\\doc.txt",
                 new CachedStreamFactory(
                         DataUnit.KB.toBytes(10).intValue(),
                         DataUnit.KB.toBytes(5).intValue())
                                 .newInputStream(input));
-        Properties metadata = doc.getMetadata();
+        var metadata = doc.getMetadata();
         if (metaFiles) {
             metadata.set(
                     "metaFileField1", "this is a first test");
@@ -103,7 +105,7 @@ public class ExternalParserTest {
                     "this is a second test value2");
         }
 
-        ExternalParser p = new ExternalParser();
+        var p = new ExternalParser();
         p.setCommand(ExternalApp.newCommandLine(command));
         addPatternsAndEnvs(p);
         p.setMetadataInputFormat("properties");
@@ -111,7 +113,7 @@ public class ExternalParserTest {
         p.setOnSet(PropertySetter.REPLACE);
         p.parseDocument(doc, output);
 
-        String content = output.toString();
+        var content = output.toString();
         // remove any stdout content that could be mixed with output to
         // properly validate
         content = content.replace("field1:StdoutBefore", "");
@@ -156,13 +158,13 @@ public class ExternalParserTest {
         envs.put(ExternalApp.ENV_STDERR_AFTER, "StdErrAfter:field4");
         p.setEnvironmentVariables(envs);
 
-        p.setMetadataExtractionPatterns(
+        p.setMetadataExtractionPatterns(List.of(
             new RegexFieldValueExtractor("^(f.*):(.*)", 1, 2),
             new RegexFieldValueExtractor("^<field2>(.*)</field2>", "field2", 1),
             new RegexFieldValueExtractor("^f.*StdErr.*", "field3", 1),
             new RegexFieldValueExtractor("^(S.*?):(.*)", 2, 1),
             new RegexFieldValueExtractor("^(reference)\\=(.*)", 1, 2)
-        );
+        ));
     }
 
     private InputStream inputAsStream() {

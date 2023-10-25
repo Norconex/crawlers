@@ -128,7 +128,7 @@ public class ScriptTransformer implements
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
             var originalContent = chunk.getText();
             try {

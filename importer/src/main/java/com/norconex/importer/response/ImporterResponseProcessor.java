@@ -25,5 +25,6 @@ public interface ImporterResponseProcessor {
      * @param response the importer response
      * @return new response status
      */
-    ImporterStatus processImporterResponse(ImporterResponse response);
+//    ImporterStatus processImporterResponse(ImporterResponse response);
+    ImporterResponse processImporterResponse(ImporterResponse response);
 }

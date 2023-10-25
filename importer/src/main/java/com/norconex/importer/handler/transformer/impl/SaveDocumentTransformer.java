@@ -27,7 +27,6 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.AccessLevel;
@@ -95,7 +94,7 @@ public class SaveDocumentTransformer implements
     private static boolean warned = false;
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
 
         // create relative path by splitting into directories and maybe escaping
         var rawRelativePath = StringUtils.strip(String.join("/",
@@ -122,8 +121,7 @@ public class SaveDocumentTransformer implements
     // dealing with default file names vs directory.  A file could be
     // renamed/written while saving occurs in another thread.
     private synchronized void saveFile(
-            DocContext docCtx, Path file)
-            throws ImporterHandlerException {
+            DocContext docCtx, Path file) throws IOException {
         // if file already exists as a directory, give it a default file name,
         // within that directory
         if (Files.isDirectory(file)) {
@@ -147,9 +145,6 @@ public class SaveDocumentTransformer implements
             }
             Files.createDirectories(file.getParent());
             Files.copy(input, file, REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Cannot save document: " + docCtx.reference(), e);
         }
     }
 

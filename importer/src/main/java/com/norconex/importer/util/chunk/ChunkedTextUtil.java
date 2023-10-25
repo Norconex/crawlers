@@ -23,7 +23,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.function.FailableFunction;
 
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 import lombok.NonNull;
 
@@ -41,7 +40,7 @@ public final class ChunkedTextUtil {
             DocContext docCtx,
             @NonNull
             FailableFunction<TextChunk, String, IOException> textConsumer)
-                    throws ImporterHandlerException {
+                    throws IOException {
         transform(cfg, docCtx, textConsumer, null);
     }
     public static void transform(
@@ -52,7 +51,7 @@ public final class ChunkedTextUtil {
             @NonNull
             FailableFunction<TextChunk, String, IOException> textConsumer,
             Predicate<TextChunk> keepReading)
-                    throws ImporterHandlerException {
+                    throws IOException {
         ChunkedTextReader.from(cfg).read(docCtx, chunk -> {
             var newValue = textConsumer.apply(chunk);
             writeBack(docCtx, chunk, newValue);

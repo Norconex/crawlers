@@ -14,10 +14,11 @@
  */
 package com.norconex.importer.handler.condition;
 
+import java.io.IOException;
+
 import org.apache.commons.lang3.function.FailablePredicate;
 
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 /**
  * A condition usually used in flow creation when configuring
@@ -25,7 +26,7 @@ import com.norconex.importer.handler.ImporterHandlerException;
  */
 @FunctionalInterface
 public interface Condition
-        extends FailablePredicate<DocContext, ImporterHandlerException> {
+        extends FailablePredicate<DocContext, IOException> {
 
     //TODO needed?
     //TODO extend Predicate and replace method or have a default one?

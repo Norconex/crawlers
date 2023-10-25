@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -21,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -74,7 +74,7 @@ public class ForceSingleValueTransformer implements
             new ForceSingleValueTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         var action = configuration.getAction();
         for (Entry<String, List<String>> en :
             docCtx.metadata().matchKeys(

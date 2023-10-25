@@ -14,11 +14,11 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
 import java.util.regex.Pattern;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
@@ -81,7 +81,7 @@ public class CollapseRepeatingTransformer implements
             new CollapseRepeatingTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
             var text = chunk.getText();
             Pattern pattern;

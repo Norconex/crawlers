@@ -46,7 +46,7 @@ public class DocContext {
     private final List<Doc> childDocs = new ArrayList<>();
     //@Getter(value = AccessLevel.NONE)
     public final OutputStream out;
-    @Getter(value = AccessLevel.NONE)
+    @Getter(value = AccessLevel.PACKAGE)
     @NonNull
     private final Doc doc;
     @NonNull

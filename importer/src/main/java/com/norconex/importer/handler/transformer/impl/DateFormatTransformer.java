@@ -16,6 +16,7 @@ package com.norconex.importer.handler.transformer.impl;
 
 import static java.util.Optional.ofNullable;
 
+import java.io.IOException;
 import java.time.DateTimeException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,7 +30,6 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.time.ZonedDateTimeParser;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -112,7 +112,7 @@ public class DateFormatTransformer implements
             new DateFormatTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         validateArguments();
 
         var fromDates = docCtx.metadata().getStrings(

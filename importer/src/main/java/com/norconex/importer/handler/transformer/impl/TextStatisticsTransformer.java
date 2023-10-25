@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -137,7 +136,7 @@ public class TextStatisticsTransformer implements
             "\\w+\\-?\\w*", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             for (Entry<String, List<String>> en :
                     docCtx.metadata().matchKeys(
@@ -151,9 +150,6 @@ public class TextStatisticsTransformer implements
             try (var input = docCtx.input().reader(
                     configuration.getSourceCharset())) {
                 analyze(input, docCtx.metadata(), null);
-            } catch (IOException e) {
-                throw new ImporterHandlerException(
-                        "Could not read document: " + docCtx.reference(), e);
             }
         }
     }

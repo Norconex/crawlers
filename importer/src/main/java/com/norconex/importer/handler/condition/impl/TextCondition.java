@@ -14,13 +14,14 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.io.IOException;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
@@ -76,7 +77,7 @@ public class TextCondition
     }
 
     @Override
-    public boolean test(DocContext docCtx) throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws IOException {
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()
             .charset(configuration.getSourceCharset())

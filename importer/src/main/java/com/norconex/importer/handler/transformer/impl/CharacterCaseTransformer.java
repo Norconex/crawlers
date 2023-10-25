@@ -40,7 +40,6 @@ import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -114,7 +113,7 @@ public class CharacterCaseTransformer implements
             new CharacterCaseTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             doFields(docCtx);
         } else {
@@ -150,15 +149,12 @@ public class CharacterCaseTransformer implements
         }
     }
 
-    private void doBody(DocContext docCtx) throws ImporterHandlerException {
-
+    private void doBody(DocContext docCtx) throws IOException {
         try (var out = docCtx.output().writer()) {
             docCtx.input().chunkedText((idx, text) -> {
                out.write(changeCase(text));
                return true;
             });
-        } catch (IOException e) {
-            throw new ImporterHandlerException(e);
         }
     }
 

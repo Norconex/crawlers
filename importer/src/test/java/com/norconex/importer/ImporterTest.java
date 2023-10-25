@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.ErrorHandlerCapturer;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.HandlerConsumer;
+import com.norconex.importer.handler.HandlerConsumerAdapter;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.impl.TextFilter;
@@ -74,7 +74,7 @@ class ImporterTest {
             .getEmbeddedConfig().setSkipEmmbbeded(
                     List.of(TextMatcher.wildcard("*jpeg"),
                             TextMatcher.wildcard("*wmf")));
-        config.setPostParseConsumer(HandlerConsumer.fromHandlers(
+        config.setPostParseConsumer(HandlerConsumerAdapter.fromHandlers(
                 (DocumentTransformer) (
                 doc, input, output, parseState) -> {
             try {
@@ -88,7 +88,7 @@ class ImporterTest {
                txt = StringUtils.replace(txt, "httppdfreebooksorg", "");
                txt = StringUtils.replace(txt, "filejpg", "");
                txt = StringUtils.replace(txt, "filewmf", "");
-               IOUtils.write(txt, output, StandardCharsets.UTF_8);
+               IOUtils.writeBack(txt, output, StandardCharsets.UTF_8);
             } catch (IOException e) {
                throw new ImporterHandlerException(e);
             }
@@ -127,7 +127,7 @@ class ImporterTest {
     void testGetters() {
         Assertions.assertSame(importer, Importer.get());
         Assertions.assertNotNull(
-                importer.getImporterConfig().getPostParseConsumer());
+                importer.getConfiguration().getPostParseConsumer());
         Assertions.assertNotNull(importer.getEventManager());
     }
 
@@ -194,7 +194,7 @@ class ImporterTest {
     void testImportRejected() {
         var config = new ImporterConfig();
         config.setPostParseConsumer(
-                HandlerConsumer.fromHandlers(new TextFilter(
+                HandlerConsumerAdapter.fromHandlers(new TextFilter(
                 TextMatcher.basic("Content-Type").setPartial(true),
                 TextMatcher.basic("application/pdf").setPartial(true),
                 OnMatch.EXCLUDE)));

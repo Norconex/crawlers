@@ -24,7 +24,6 @@ import org.apache.commons.io.IOUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -78,7 +77,7 @@ public class CopyTransformer
             new CopyTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         for (CopyOperation op : configuration.getOperations()) {
             List<String> sourceValues;
             if (op.getFieldMatcher().isSet()) {
@@ -87,14 +86,8 @@ public class CopyTransformer
                         op.getFieldMatcher()).valueList();
             } else {
                 // From body
-                try {
-                    sourceValues = List.of(
-                            IOUtils.toString(docCtx.input().reader()));
-                } catch (IOException e) {
-                    throw new ImporterHandlerException(
-                            "Could not copy document content to field: "
-                                    + op.getToField(), e);
-                }
+                sourceValues = List.of(
+                        IOUtils.toString(docCtx.input().reader()));
             }
             // Copy field
             var setter = ofNullable(

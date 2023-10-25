@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Norconex Inc.
+/* Copyright 2016-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,11 @@
  */
 package com.norconex.importer.parser;
 
-import static com.norconex.commons.lang.xml.XPathUtil.attr;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -34,7 +30,7 @@ import lombok.NonNull;
  * or else).
  */
 @Data
-public class ParseOptions implements XMLConfigurable {
+public class ParseOptions { //{
 
     @NonNull
     private OCRConfig ocrConfig = new OCRConfig();
@@ -49,17 +45,17 @@ public class ParseOptions implements XMLConfigurable {
         return Collections.unmodifiableMap(options);
     }
 
-    @Override
-    public void loadFromXML(XML xml) {
-        ocrConfig.loadFromXML(xml.getXML("ocr"));
-        embeddedConfig.loadFromXML(xml.getXML("embedded"));
-        setOptions(
-                xml.getStringMap("options/option", attr("name"), ".", options));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("ocr", ocrConfig);
-        xml.addElement("embedded", embeddedConfig);
-        xml.addElementMap("options", "option", "name", options);
-    }
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        ocrConfig.loadFromXML(xml.getXML("ocr"));
+//        embeddedConfig.loadFromXML(xml.getXML("embedded"));
+//        setOptions(
+//                xml.getStringMap("options/option", attr("name"), ".", options));
+//    }
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.addElement("ocr", ocrConfig);
+//        xml.addElement("embedded", embeddedConfig);
+//        xml.addElementMap("options", "option", "name", options);
+//    }
 }

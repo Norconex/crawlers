@@ -46,7 +46,6 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -268,7 +267,7 @@ public class ExternalTransformer implements
 
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         //TODO eliminate output an set it back on doc???
 
         var input = docCtx.input().inputStream();
@@ -292,30 +291,24 @@ public class ExternalTransformer implements
 
             //--- Execute Command ---
             executeCommand(cmd, files, externalMeta, input, output);
-            try {
-                if (files.hasOutputFile() && output != null) {
-                    FileUtils.copyFile(files.outputFile.toFile(), output);
-                    output.flush();
-                }
-                if (files.hasOutputMetaFile()) {
-                    try (Reader outputMetaReader = Files.newBufferedReader(
-                            files.outputMetaFile)) {
-                        var format = configuration.getMetadataOutputFormat();
-                        if (META_FORMAT_PROPERTIES.equalsIgnoreCase(format)) {
-                            externalMeta.loadFromProperties(outputMetaReader);
-                        } else if (META_FORMAT_XML.equals(format)) {
-                            externalMeta.loadFromXML(outputMetaReader);
-                        } else if (META_FORMAT_JSON.equals(format)) {
-                            externalMeta.loadFromJSON(outputMetaReader);
-                        } else {
-                            extractMetaFromFile(outputMetaReader, externalMeta);
-                        }
+            if (files.hasOutputFile() && output != null) {
+                FileUtils.copyFile(files.outputFile.toFile(), output);
+                output.flush();
+            }
+            if (files.hasOutputMetaFile()) {
+                try (Reader outputMetaReader = Files.newBufferedReader(
+                        files.outputMetaFile)) {
+                    var format = configuration.getMetadataOutputFormat();
+                    if (META_FORMAT_PROPERTIES.equalsIgnoreCase(format)) {
+                        externalMeta.loadFromProperties(outputMetaReader);
+                    } else if (META_FORMAT_XML.equals(format)) {
+                        externalMeta.loadFromXML(outputMetaReader);
+                    } else if (META_FORMAT_JSON.equals(format)) {
+                        externalMeta.loadFromJSON(outputMetaReader);
+                    } else {
+                        extractMetaFromFile(outputMetaReader, externalMeta);
                     }
                 }
-            } catch (IOException e) {
-                throw new ImporterHandlerException(
-                        "Could not read command output file. Command: "
-                                + configuration.getCommand(), e);
             }
             // Set extracted metadata on actual metadata
             externalMeta.forEach((k, v) ->  PropertySetter
@@ -331,7 +324,7 @@ public class ExternalTransformer implements
             final ArgFiles files,
             final Properties metadata,
             final InputStream input,
-            final OutputStream output) throws ImporterHandlerException {
+            final OutputStream output) throws IOException {
         var systemCommand = new SystemCommand(cmd);
         systemCommand.setEnvironmentVariables(
                 configuration.getEnvironmentVariables());
@@ -367,7 +360,7 @@ public class ExternalTransformer implements
             }
             return exitValue;
         } catch (SystemCommandException e) {
-            throw new ImporterHandlerException(
+            throw new IOException(
                     "External transformer failed. Command: "
                             + configuration.getCommand(), e);
         }
@@ -400,8 +393,7 @@ public class ExternalTransformer implements
     }
 
     private Path createTempFile(
-            Object stream, String name, String suffix)
-                    throws ImporterHandlerException {
+            Object stream, String name, String suffix) throws IOException {
         Path tempDirectory;
         if (configuration.getTempDir() != null) {
             tempDirectory = configuration.getTempDir();
@@ -418,13 +410,12 @@ public class ExternalTransformer implements
             return Files.createTempFile(tempDirectory, name, suffix);
         } catch (IOException e) {
             ArgFiles.delete(file);
-            throw new ImporterHandlerException(
-                    "Could not create temporary input file.", e);
+            throw e;
         }
     }
 
-    private String resolveInputToken(String cmd, ArgFiles files, InputStream is)
-            throws ImporterHandlerException {
+    private String resolveInputToken(
+            String cmd, ArgFiles files, InputStream is) throws IOException {
         if (!cmd.contains(TOKEN_INPUT) || is == null) {
             return cmd;
         }
@@ -437,13 +428,12 @@ public class ExternalTransformer implements
             return newCmd;
         } catch (IOException e) {
             ArgFiles.delete(files.inputFile);
-            throw new ImporterHandlerException(
-                    "Could not create temporary input file.", e);
+            throw e;
         }
     }
     private String resolveInputMetaToken(
             String cmd, ArgFiles files, InputStream is, Properties meta)
-                    throws ImporterHandlerException {
+                    throws IOException {
         if (!cmd.contains(TOKEN_INPUT_META)) {
             return cmd;
         }
@@ -467,14 +457,12 @@ public class ExternalTransformer implements
             return newCmd;
         } catch (IOException e) {
             ArgFiles.delete(files.inputMetaFile);
-            throw new ImporterHandlerException(
-                    "Could not create temporary input metadata file.", e);
+            throw e;
         }
     }
 
     private String resolveOutputToken(
-            String cmd, ArgFiles files, OutputStream os)
-            throws ImporterHandlerException {
+            String cmd, ArgFiles files, OutputStream os) throws IOException {
         if (!cmd.contains(TOKEN_OUTPUT) || os == null) {
             return cmd;
         }
@@ -485,8 +473,7 @@ public class ExternalTransformer implements
     }
 
     private String resolveOutputMetaToken(
-            String cmd, ArgFiles files, OutputStream os)
-                    throws ImporterHandlerException {
+            String cmd, ArgFiles files, OutputStream os) throws IOException {
         if (!cmd.contains(TOKEN_OUTPUT_META)) {
             return cmd;
         }
@@ -505,9 +492,9 @@ public class ExternalTransformer implements
         return StringUtils.replace(cmd, TOKEN_REFERENCE, reference);
     }
 
-    private void validate() throws ImporterHandlerException {
+    private void validate() throws IOException {
         if (StringUtils.isBlank(configuration.getCommand())) {
-            throw new ImporterHandlerException("External command missing.");
+            throw new IOException("External command missing.");
         }
     }
 

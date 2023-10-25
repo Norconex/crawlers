@@ -14,11 +14,12 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
+
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
@@ -101,7 +102,7 @@ public class RegexTransformer implements
             new RegexTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
             RegexFieldValueExtractor.extractFieldValues(
                     docCtx.metadata(),

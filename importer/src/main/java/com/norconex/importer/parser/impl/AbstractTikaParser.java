@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@ package com.norconex.importer.parser.impl;
 
 import static com.norconex.importer.doc.DocMetadata.EMBEDDED_REFERENCE;
 import static com.norconex.importer.doc.DocMetadata.EMBEDDED_TYPE;
+import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,7 +123,6 @@ public class AbstractTikaParser implements DocumentParser {
     @Override
     public final List<Doc> parseDocument(Doc doc, Writer output)
             throws DocumentParserException {
-
         var tikaMetadata = new Metadata();
         if (doc.getDocRecord().getContentType() == null) {
             throw new DocumentParserException(
@@ -137,7 +138,9 @@ public class AbstractTikaParser implements DocumentParser {
         tikaMetadata.set(TikaCoreProperties.RESOURCE_NAME_KEY,
                 doc.getReference());
         tikaMetadata.set(HttpHeaders.CONTENT_ENCODING,
-                doc.getDocRecord().getContentEncoding());
+                ofNullable(doc.getDocRecord().getCharset())
+                    .map(Charset::toString)
+                    .orElse(null));
         tikaMetadata.set(HttpHeaders.CONTENT_LENGTH,
                 Long.toString(content.length()));
 

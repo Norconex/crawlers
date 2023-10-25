@@ -137,7 +137,7 @@ public class ScriptCondition
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    public boolean test(DocContext docCtx) throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws IOException {
 
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()

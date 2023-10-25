@@ -27,7 +27,6 @@ import org.apache.commons.io.IOUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -75,7 +74,7 @@ public class SubstringTransformer implements
             new SubstringTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
 
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
@@ -89,8 +88,6 @@ public class SubstringTransformer implements
                             var output = new StringWriter()) {
                         doSubstring(input, output);
                         newVals.add(output.toString());
-                    } catch (IOException e) {
-                        throw new ImporterHandlerException(e);
                     }
                 }
                 docCtx.metadata().replace(fld, newVals);
@@ -102,20 +99,16 @@ public class SubstringTransformer implements
                 var output = docCtx.output().writer(
                         configuration.getSourceCharset())) {
                 doSubstring(input, output);
-            } catch (IOException e) {
-                throw new ImporterHandlerException(
-                        "Could not read document content for: "
-                                + docCtx.reference(), e);
             }
         }
     }
 
     private void doSubstring(Reader input, Writer output)
-            throws IOException, ImporterHandlerException {
+            throws IOException {
         long length = -1;
         if (configuration.getEnd() > -1) {
             if (configuration.getEnd() < configuration.getBegin()) {
-                throw new ImporterHandlerException(
+                throw new IOException(
                         "\"end\" cannot be smaller than \"begin\" "
                       + "(begin:" + configuration.getBegin()
                       + "; end:" + configuration.getEnd());

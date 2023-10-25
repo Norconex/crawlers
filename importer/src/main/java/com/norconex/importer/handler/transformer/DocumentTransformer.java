@@ -14,24 +14,25 @@
  */
 package com.norconex.importer.handler.transformer;
 
+import java.io.IOException;
+
 import org.apache.commons.lang3.function.FailableConsumer;
 
 import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandler;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 /**
  * Transformers allow to manipulate and modify a document metadata or content.
  */
 public interface DocumentTransformer extends
         ImporterHandler,
-        FailableConsumer<DocContext, ImporterHandlerException> {
+        FailableConsumer<DocContext, IOException> {
 
     /**
      * Transforms document content and metadata.
      * @param docCtx document transformer context
-     * @throws ImporterHandlerException could not transform the document
+     * @throws IOException could not transform the document
      */
     @Override
-    void accept(DocContext docCtx) throws ImporterHandlerException;
+    void accept(DocContext docCtx) throws IOException;
 }

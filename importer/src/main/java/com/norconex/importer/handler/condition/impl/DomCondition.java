@@ -16,6 +16,8 @@ package com.norconex.importer.handler.condition.impl;
 
 import static com.norconex.importer.util.DomUtil.toJSoupParser;
 
+import java.io.IOException;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -24,7 +26,6 @@ import org.jsoup.nodes.Element;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.CommonMatchers;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.util.DomUtil;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
@@ -150,7 +151,7 @@ public class DomCondition
             new DomConditionConfig();
 
     @Override
-    public boolean test(DocContext docCtx) throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(

@@ -19,7 +19,6 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.handler.CommonMatchers;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.ExternalHandler;
 import com.norconex.importer.parser.ParseConfig;
 
 import lombok.Data;

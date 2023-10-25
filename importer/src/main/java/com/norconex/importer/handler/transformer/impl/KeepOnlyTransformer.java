@@ -14,12 +14,12 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
@@ -72,7 +72,7 @@ public class KeepOnlyTransformer implements
             new KeepOnlyTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws IOException {
         for (String field : new HashSet<>(docCtx.metadata().keySet())) {
             if (!configuration.getFieldMatcher().matches(field)) {
                 docCtx.metadata().remove(field);
