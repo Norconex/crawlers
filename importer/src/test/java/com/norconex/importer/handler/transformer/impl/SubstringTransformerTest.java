@@ -27,14 +27,14 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ImporterException;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class SubstringTransformerTest {
 
     @Test
     void testTransformTextDocument()
-            throws ImporterHandlerException {
+            throws IOException {
         var content = "1234567890";
 
         Assertions.assertEquals("", substring(0, 0, content));
@@ -52,7 +52,7 @@ class SubstringTransformerTest {
     }
 
     private String substring(long begin, long end, String content)
-            throws ImporterHandlerException {
+            throws IOException {
         InputStream input = new ByteArrayInputStream(content.getBytes());
         var t = new SubstringTransformer();
         t.getConfiguration()

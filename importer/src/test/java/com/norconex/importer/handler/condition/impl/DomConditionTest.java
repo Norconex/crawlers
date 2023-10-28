@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
@@ -25,8 +26,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 class DomConditionTest {
 
@@ -40,7 +40,7 @@ class DomConditionTest {
 
     @Test
     void testConditionHTML()
-            throws ImporterHandlerException {
+            throws IOException {
         var cond = new DomCondition();
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
@@ -65,7 +65,7 @@ class DomConditionTest {
 
     @Test
     void testConditionXML()
-            throws ImporterHandlerException {
+            throws IOException {
         var cond = new DomCondition();
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
@@ -92,7 +92,7 @@ class DomConditionTest {
 
     @Test
     void testConditionXMLFromField()
-            throws ImporterHandlerException {
+            throws IOException {
         var cond = new DomCondition();
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
@@ -121,7 +121,7 @@ class DomConditionTest {
 
     private boolean eval(DomCondition cond,
             String content, Properties metadata)
-                    throws ImporterHandlerException {
+                    throws IOException {
         return TestUtil.condition(cond, "n/a", IOUtils.toInputStream(
                 content, StandardCharsets.UTF_8), metadata, ParseState.PRE);
     }

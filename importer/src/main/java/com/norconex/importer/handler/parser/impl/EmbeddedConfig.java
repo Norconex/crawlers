@@ -12,14 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.parser;
+package com.norconex.importer.handler.parser.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.response.ImporterResponse;
 
@@ -90,68 +84,86 @@ import lombok.Data;
 @Data
 public class EmbeddedConfig { //{
 
-    private final List<TextMatcher> splitEmbeddedOf = new ArrayList<>();
-    private final List<TextMatcher> skipEmmbbededOf = new ArrayList<>();
-    private final List<TextMatcher> skipEmmbbeded = new ArrayList<>();
 
-    @JsonIgnore
-    public boolean isEmpty() {
-        return splitEmbeddedOf.isEmpty()
-                && skipEmmbbededOf.isEmpty()
-                && skipEmmbbeded.isEmpty();
-    }
+    //TODO change to:
 
-    /**
-     * Content type matchers of files to split, having their
-     * embedded documents extracted and treated as individual
-     * documents instead.
-     * @return content type matchers
-     */
-    public List<TextMatcher> getSplitEmbeddedOf() {
-        return Collections.unmodifiableList(splitEmbeddedOf);
-    }
-    /**
-     * Content type matchers of files to split, having their
-     * embedded documents extracted and treated as individual
-     * documents instead.
-     * @param matchers content type matchers
-     */
-    public void setSplitEmbeddedOf(List<TextMatcher> matchers) {
-        CollectionUtil.setAll(splitEmbeddedOf, matchers);
-    }
+    // Parent files to split
+    private final TextMatcher containerTypeMatcher = new TextMatcher();
+    // Child files to parse... unparsed ones are skipped (not read, not split).
+    private final TextMatcher embeddedTypeMatcher = new TextMatcher();
 
-    /**
-     * Content type matchers of files you do not want to have their
-     * embedded files parsed.
-     * @return content type matchers
-     */
-    public List<TextMatcher> getSkipEmmbbededOf() {
-        return Collections.unmodifiableList(skipEmmbbededOf);
-    }
-    /**
-     * Content type matchers of files you do not want to have their
-     * embedded files parsed.
-     * @param matchers content type matchers
-     */
-    public void setSkipEmmbbededOf(List<TextMatcher> matchers) {
-        CollectionUtil.setAll(skipEmmbbededOf, matchers);
-    }
+    // above are white list items. They can use negate to reverse.
 
-    /**
-     * Content type matchers of embedded files you do not want parsed.
-     * @return content type matchers
-     */
-    public List<TextMatcher> getSkipEmmbbeded() {
-        return Collections.unmodifiableList(skipEmmbbeded);
-    }
-    /**
-     * Content type matchers of embedded files you do not want parsed.
-     * @param matchers content type matchers
-     */
-    public void setSkipEmmbbeded(List<TextMatcher> matchers) {
-        CollectionUtil.setAll(skipEmmbbeded, matchers);
-    }
+    //
+//    private final TextMatcher parentToSplitTypeMatcher = new TextMatcher();
+//    private final TextMatcher childToSkipTypeMatcher = new TextMatcher();
 
+
+    // parentToSplit
+    // childToSkip
+
+//    private final List<TextMatcher> splitEmbeddedOf = new ArrayList<>();
+//    private final List<TextMatcher> skipEmmbbededOf = new ArrayList<>();
+//    private final List<TextMatcher> skipEmmbbeded = new ArrayList<>();
+
+//    @JsonIgnore
+//    public boolean isEmpty() {
+//        return splitEmbeddedOf.isEmpty()
+//                && skipEmmbbededOf.isEmpty()
+//                && skipEmmbbeded.isEmpty();
+//    }
+//
+//    /**
+//     * Content type matchers of files to split, having their
+//     * embedded documents extracted and treated as individual
+//     * documents instead.
+//     * @return content type matchers
+//     */
+//    public List<TextMatcher> getSplitEmbeddedOf() {
+//        return Collections.unmodifiableList(splitEmbeddedOf);
+//    }
+//    /**
+//     * Content type matchers of files to split, having their
+//     * embedded documents extracted and treated as individual
+//     * documents instead.
+//     * @param matchers content type matchers
+//     */
+//    public void setSplitEmbeddedOf(List<TextMatcher> matchers) {
+//        CollectionUtil.setAll(splitEmbeddedOf, matchers);
+//    }
+//
+//    /**
+//     * Content type matchers of files you do not want to have their
+//     * embedded files parsed.
+//     * @return content type matchers
+//     */
+//    public List<TextMatcher> getSkipEmmbbededOf() {
+//        return Collections.unmodifiableList(skipEmmbbededOf);
+//    }
+//    /**
+//     * Content type matchers of files you do not want to have their
+//     * embedded files parsed.
+//     * @param matchers content type matchers
+//     */
+//    public void setSkipEmmbbededOf(List<TextMatcher> matchers) {
+//        CollectionUtil.setAll(skipEmmbbededOf, matchers);
+//    }
+//
+//    /**
+//     * Content type matchers of embedded files you do not want parsed.
+//     * @return content type matchers
+//     */
+//    public List<TextMatcher> getSkipEmmbbeded() {
+//        return Collections.unmodifiableList(skipEmmbbeded);
+//    }
+//    /**
+//     * Content type matchers of embedded files you do not want parsed.
+//     * @param matchers content type matchers
+//     */
+//    public void setSkipEmmbbeded(List<TextMatcher> matchers) {
+//        CollectionUtil.setAll(skipEmmbbeded, matchers);
+//    }
+//
 //    @Override
 //    public void loadFromXML(XML xml) {
 //        setSplitEmbeddedOf(

@@ -14,8 +14,10 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import static com.norconex.importer.parser.ParseState.PRE;
+import static com.norconex.importer.handler.parser.ParseState.PRE;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,12 +27,11 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 class NumericConditionTest {
 
     @Test
-    void testAcceptDocument() throws ImporterHandlerException {
+    void testAcceptDocument() throws IOException {
 
         var meta = new Properties();
         meta.add("lowerthan", "-4.25");

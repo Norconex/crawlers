@@ -203,7 +203,7 @@ public class ScriptRunner<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public T eval(Consumer<Bindings> binder) throws ImporterHandlerException {
+    public T eval(Consumer<Bindings> binder) throws DocumentHandlerException {
         var bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         if (binder != null) {
             binder.accept(bindings);
@@ -228,7 +228,7 @@ public class ScriptRunner<T> {
 
             return (T) returnValue;
         } catch (ScriptException e) {
-            throw new ImporterHandlerException("Script execution error.", e);
+            throw new DocumentHandlerException("Script execution error.", e);
         }
     }
 

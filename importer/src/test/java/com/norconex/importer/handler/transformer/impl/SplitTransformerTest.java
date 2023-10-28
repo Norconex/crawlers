@@ -29,8 +29,8 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class SplitTransformerTest {
 
@@ -73,7 +73,7 @@ class SplitTransformerTest {
     }
 
     @Test
-    void testMetadataRegularSplit() throws ImporterHandlerException {
+    void testMetadataRegularSplit() throws IOException {
         var meta = new Properties();
         meta.add("metaToSplitSameField", "Joe, Jack, William, Avrel");
         meta.add("metaNoSplitSameField", "Joe Jack William Avrel");
@@ -146,7 +146,7 @@ class SplitTransformerTest {
     }
 
     @Test
-    void testMetadataRegexSplit() throws ImporterHandlerException {
+    void testMetadataRegexSplit() throws IOException {
         var meta = new Properties();
         meta.add("path1", "/a/path/file.doc");
         meta.add("path2", "a, b,c d;e, f");
@@ -176,7 +176,7 @@ class SplitTransformerTest {
     }
 
     @Test
-    void testContentRegularSplit() throws ImporterHandlerException {
+    void testContentRegularSplit() throws IOException {
         var meta = new Properties();
 
         var t = new SplitTransformer();
@@ -196,7 +196,7 @@ class SplitTransformerTest {
     }
 
     @Test
-    void testContentRegexSplit() throws ImporterHandlerException {
+    void testContentRegexSplit() throws IOException {
         var meta = new Properties();
         var t = new SplitTransformer();
         t.getConfiguration().setOperations(List.of(

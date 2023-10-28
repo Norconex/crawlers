@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,18 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.parser.impl;
+package com.norconex.importer.handler;
 
-import org.apache.tika.parser.AutoDetectParser;
+import com.norconex.importer.ImporterException;
 
+import lombok.experimental.StandardException;
 
 /**
- * Parser using auto-detection of document content-type to figure out
- * which specific parser to invoke to best parse a document.
+ * Exception thrown by several handler classes upon encountering
+ * issues.
  */
-public class DefaultParser extends AbstractTikaParser {
-
-    public DefaultParser() {
-        super(AutoDetectParser::new);
-    }
+@StandardException
+public class DocumentHandlerException extends ImporterException {
+    private static final long serialVersionUID = 6845549545987836093L;
 }

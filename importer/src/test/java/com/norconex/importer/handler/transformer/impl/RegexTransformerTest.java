@@ -31,14 +31,14 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class RegexTransformerTest {
 
     @Test
     void testTagTextDocument()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new RegexTransformer();
         t.getConfiguration().setPatterns(List.of(
             new RegexFieldValueExtractor("<h2>(.*?)</h2>", "headings", 1),
@@ -70,7 +70,7 @@ class RegexTransformerTest {
 
     @Test
     void testExtractFirst100ContentChars()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new RegexTransformer();
         t.getConfiguration().setPatterns(List.of(
                 new RegexFieldValueExtractor("^.{0,100}", "mytitle")

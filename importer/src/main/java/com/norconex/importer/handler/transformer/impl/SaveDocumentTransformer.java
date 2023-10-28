@@ -26,8 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.text.StringUtil;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -83,8 +83,9 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @Data
 @Slf4j
-public class SaveDocumentTransformer implements
-        DocumentTransformer, Configurable<SaveDocumentTransformerConfig> {
+public class SaveDocumentTransformer
+        extends BaseDocumentHandler
+        implements Configurable<SaveDocumentTransformerConfig> {
 
     private final SaveDocumentTransformerConfig configuration =
             new SaveDocumentTransformerConfig();
@@ -94,7 +95,7 @@ public class SaveDocumentTransformer implements
     private static boolean warned = false;
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
 
         // create relative path by splitting into directories and maybe escaping
         var rawRelativePath = StringUtils.strip(String.join("/",

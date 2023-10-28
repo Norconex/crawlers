@@ -20,11 +20,11 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
 import lombok.Data;
@@ -116,8 +116,9 @@ import lombok.ToString;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class ScriptTransformer implements
-        DocumentTransformer, Configurable<ScriptTransformerConfig> {
+public class ScriptTransformer
+        extends BaseDocumentHandler
+        implements Configurable<ScriptTransformerConfig> {
 
     private final ScriptTransformerConfig configuration =
             new ScriptTransformerConfig();
@@ -128,7 +129,7 @@ public class ScriptTransformer implements
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
             var originalContent = chunk.getText();
             try {
@@ -140,7 +141,7 @@ public class ScriptTransformer implements
                     b.put("chunkIndex", chunk.getChunkIndex());
                     b.put("fieldValueIndex", chunk.getFieldValueIndex());
                 }), null);
-            } catch (ImporterHandlerException e) {
+            } catch (DocumentHandlerException e) {
                 throw new IOException(e);
             }
         });

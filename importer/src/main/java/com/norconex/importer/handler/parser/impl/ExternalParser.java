@@ -12,29 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.parser.impl;
+package com.norconex.importer.handler.parser.impl;
 
 import java.io.IOException;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.io.output.WriterOutputStream;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.ExternalHandler;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.BaseDocumentHandler;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformer;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig;
-import com.norconex.importer.parser.DocumentParser;
-import com.norconex.importer.parser.DocumentParserException;
-import com.norconex.importer.parser.ParseOptions;
 
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
 import lombok.ToString;
 
 /**
@@ -109,8 +97,9 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
-public class ExternalParser implements
-        DocumentParser, Configurable<ExternalTransformerConfig> {
+public class ExternalParser
+        extends BaseDocumentHandler
+            implements Configurable<ExternalTransformerConfig> {
 
     //TODO what about conditionally disabling some parsers? already covered?
 
@@ -122,35 +111,9 @@ public class ExternalParser implements
         return t.getConfiguration();
     }
 
-    //TODO pass DocContext isntead? and throw IOException?
-    //TODO should parser just be another handler?  Then drop ParseState,
-    // or let handlers set it on the DocContext for those that are interested
-    // to know (like Parser)?  Yeah... I like that! That would allow us to use conditions
-    // around parsing as well, on top of being able to use parsing more
-    // than once.
     @Override
-    public List<Doc> parseDocument(Doc doc,
-            Writer output) throws DocumentParserException {
-        try {
-//            t.accept(DocContext.builder()
-//                    .doc(doc)
-//                    .eventManager(null)
-//                    .build());
-            h.handleDocument(new HandlerDoc(doc), doc.getInputStream(),
-                    WriterOutputStream.builder()
-                        .setCharset(StandardCharsets.UTF_8)
-                        .setWriter(output)
-                        .get());
-        } catch (ImporterHandlerException | IOException e) {
-            throw new DocumentParserException(
-                    "Could not parse document: " + doc.getReference(), e);
-        }
-        return Collections.emptyList();
+    public void handle(DocContext ctx) throws IOException {
+        t.accept(ctx);
     }
 
-    @Override
-    public void init(@NonNull ParseOptions parseOptions)
-            throws DocumentParserException {
-        //NOOP
-    }
 }

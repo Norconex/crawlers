@@ -30,8 +30,8 @@ import org.apache.commons.io.IOUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.charset.CharsetUtil;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -92,13 +92,14 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class CharsetTransformer
-        implements DocumentTransformer, Configurable<CharsetTransformerConfig> {
+        extends BaseDocumentHandler
+        implements Configurable<CharsetTransformerConfig> {
 
     private final CharsetTransformerConfig configuration =
             new CharsetTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(

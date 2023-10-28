@@ -46,7 +46,7 @@ import com.norconex.commons.lang.xml.ErrorHandlerCapturer;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.HandlerConsumerAdapter;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.impl.TextFilter;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
@@ -90,7 +90,7 @@ class ImporterTest {
                txt = StringUtils.replace(txt, "filewmf", "");
                IOUtils.writeBack(txt, output, StandardCharsets.UTF_8);
             } catch (IOException e) {
-               throw new ImporterHandlerException(e);
+               throw new DocumentHandlerException(e);
             }
         }));
         importer = new Importer(config);

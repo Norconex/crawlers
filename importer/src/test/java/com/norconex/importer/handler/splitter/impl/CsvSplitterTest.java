@@ -30,7 +30,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 
 class CsvSplitterTest {
 
@@ -48,7 +48,7 @@ class CsvSplitterTest {
     }
 
     @Test
-    void testReferenceColumnByName() throws ImporterHandlerException {
+    void testReferenceColumnByName() throws IOException {
         var splitter = new CsvSplitter();
         splitter.getConfiguration()
             .setUseFirstRowAsFields(true)
@@ -61,7 +61,7 @@ class CsvSplitterTest {
     }
 
     @Test
-    void testReferenceColumnByPosition() throws ImporterHandlerException {
+    void testReferenceColumnByPosition() throws IOException {
         var splitter = new CsvSplitter();
         splitter.getConfiguration()
             .setUseFirstRowAsFields(false)
@@ -75,7 +75,7 @@ class CsvSplitterTest {
 
 
     @Test
-    void testContentColumn() throws ImporterHandlerException, IOException {
+    void testContentColumn() throws IOException, IOException {
         var splitter = new CsvSplitter();
         splitter.getConfiguration()
             .setUseFirstRowAsFields(true)
@@ -89,7 +89,7 @@ class CsvSplitterTest {
 
 
     @Test
-    void testFirstRowHeader() throws ImporterHandlerException {
+    void testFirstRowHeader() throws IOException {
         var splitter = new CsvSplitter();
         splitter.getConfiguration().setUseFirstRowAsFields(true);
         var docs = split(splitter);
@@ -103,7 +103,7 @@ class CsvSplitterTest {
     }
 
     private List<Doc> split(CsvSplitter splitter)
-            throws ImporterHandlerException {
+            throws IOException {
         var metadata = new Properties();
         var ctx = TestUtil.newDocContext("n/a", input, metadata);
         splitter.accept(ctx);

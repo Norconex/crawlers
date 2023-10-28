@@ -36,8 +36,8 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class ReplaceTransformerTest {
 
@@ -61,7 +61,7 @@ class ReplaceTransformerTest {
 
     @Test
     void testReplaceEolWithWhiteSpace()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var input = "line1\r\nline2\rline3\nline4";
         var expectedOutput = "line1 line2 line3 line4";
 
@@ -84,7 +84,7 @@ class ReplaceTransformerTest {
 
     private String transformTextDocument(
             String config, String reference, String content)
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         var t = new ReplaceTransformer();
 
@@ -121,7 +121,7 @@ class ReplaceTransformerTest {
     // Test for: https://github.com/Norconex/collector-http/issues/416
     @Test
     void testNoValue()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("test", "a b c");
 
@@ -188,7 +188,7 @@ class ReplaceTransformerTest {
     //still store it (was a bug).
     @Test
     void testMatchReturnSameValue()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("EXP_NAME+COUNTRY1", "LAZARUS ANDREW");
         meta.add("EXP_NAME+COUNTRY2", "LAZARUS ANDREW [US]");
@@ -277,7 +277,7 @@ class ReplaceTransformerTest {
 
 
     @Test
-    void testRegularReplace() throws ImporterHandlerException {
+    void testRegularReplace() throws IOException {
         var meta = new Properties();
         meta.add("fullMatchField", "full value match");
         meta.add("partialNoMatchField", "partial value nomatch");
@@ -335,7 +335,7 @@ class ReplaceTransformerTest {
     }
 
     @Test
-    void testRegexReplace() throws ImporterHandlerException {
+    void testRegexReplace() throws IOException {
         var meta = new Properties();
         meta.add("path1", "/this/is/a/path/file.doc");
         meta.add("path2", "/that/is/a/path/file.doc");
@@ -378,7 +378,7 @@ class ReplaceTransformerTest {
 
     @Test
     void testWholeAndPartialMatches()
-             throws ImporterHandlerException {
+             throws IOException {
         var originalValue = "One dog, two dogs, three dogs";
 
 
@@ -551,7 +551,7 @@ class ReplaceTransformerTest {
 
     @Test
     void testReplaceAll()
-             throws ImporterHandlerException {
+             throws IOException {
 
 
         var originalValue = "One dog, two dogs, three dogs";
@@ -615,7 +615,7 @@ class ReplaceTransformerTest {
 
     @Test
     void testDiscardUnchanged()
-             throws ImporterHandlerException {
+             throws IOException {
         var meta = new Properties();
         meta.add("test1", "keep me");
         meta.add("test2", "throw me");
@@ -644,7 +644,7 @@ class ReplaceTransformerTest {
 
     @Test
     void testOnSet()
-             throws ImporterHandlerException {
+             throws IOException {
 
         // Test what happens when target field already has a value
 

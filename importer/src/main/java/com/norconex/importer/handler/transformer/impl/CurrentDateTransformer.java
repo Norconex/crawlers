@@ -25,8 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 
@@ -83,14 +83,15 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class CurrentDateTransformer implements
-        DocumentTransformer, Configurable<CurrentDateTransformerConfig> {
+public class CurrentDateTransformer
+        extends BaseDocumentHandler
+        implements Configurable<CurrentDateTransformerConfig> {
 
     private final CurrentDateTransformerConfig configuration =
             new CurrentDateTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
 
         var dateStr = nowAsString();
         var finalField = configuration.getToField();

@@ -29,6 +29,7 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -45,10 +46,9 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 import com.norconex.importer.handler.condition.Condition;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 public final class TestUtil {
 
@@ -129,29 +129,27 @@ public final class TestUtil {
 //    }
 
     public static boolean condition(Condition cond, String ref,
-            Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
+            Properties metadata, ParseState parseState) throws IOException {
         return condition(cond, ref, null, metadata, parseState);
     }
     public static boolean condition(Condition cond, String ref,
             InputStream is, Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
+                    throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
         return cond.test(newDocContext(ref, input, metadata));
     }
 
-    public static void transform(DocumentTransformer t, String ref,
+    public static void transform(Consumer<DocContext> t, String ref,
             Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
+                    throws IOException {
         transform(t, ref, null, metadata, parseState);
     }
-    public static void transform(DocumentTransformer t, String ref,
+    public static void transform(Consumer<DocContext> t, String ref,
             InputStream is, Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
+                    throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
         t.accept(newDocContext(ref, input, metadata, parseState));
     }
-
 
     public static Doc newDoc(File file) {
         try {
@@ -162,7 +160,6 @@ public final class TestUtil {
             throw new UncheckedException(e);
         }
     }
-
 
     public static Doc newDoc() {
         return newDoc("N/A", null, new Properties());

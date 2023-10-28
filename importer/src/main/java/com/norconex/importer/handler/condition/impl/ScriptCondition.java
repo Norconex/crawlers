@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
 import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
@@ -151,7 +151,7 @@ public class ScriptCondition
                     if (matches.isFalse() && executeScript(docCtx, chunk)) {
                         matches.setTrue();
                     }
-                } catch (ImporterHandlerException e) {
+                } catch (DocumentHandlerException e) {
                     throw new IOException(e);
                 }
                 return true;
@@ -160,7 +160,7 @@ public class ScriptCondition
     }
 
     private boolean executeScript(DocContext docCtx, TextChunk chunk)
-            throws ImporterHandlerException {
+            throws DocumentHandlerException {
         var returnValue = scriptRunner().eval(b -> {
             b.put("reference", docCtx.reference());
             b.put("content", chunk.getText());
@@ -179,11 +179,11 @@ public class ScriptCondition
     }
 
     private synchronized ScriptRunner<Object> scriptRunner()
-            throws ImporterHandlerException {
+            throws DocumentHandlerException {
         if (scriptRunner ==  null) {
             var engineName = configuration.getEngineName();
             if (StringUtils.isBlank(configuration.getScript())) {
-                throw new ImporterHandlerException("No script provided.");
+                throw new DocumentHandlerException("No script provided.");
             }
             if (StringUtils.isBlank(engineName)) {
                 LOG.info("Script engine name not specified, defaulting to "

@@ -36,7 +36,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReaderBuilder;
@@ -94,7 +94,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     private final CsvSplitterConfig configuration = new CsvSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws ImporterHandlerException {
+    public void split(DocContext docCtx) throws IOException {
         try {
             var count = new MutableInt();
             // Body
@@ -113,7 +113,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
                         count)))
             );
         } catch (Exception e) {
-            throw new ImporterHandlerException(
+            throw new DocumentHandlerException(
                     "Could not split document: " + docCtx.reference(), e);
         }
     }

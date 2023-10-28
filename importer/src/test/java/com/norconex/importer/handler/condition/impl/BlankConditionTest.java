@@ -18,6 +18,8 @@ import static com.norconex.importer.TestUtil.toCachedInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,8 +29,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 class BlankConditionTest {
 
@@ -43,7 +44,7 @@ class BlankConditionTest {
     }
 
     @Test
-    void testBlankContentCondition() throws ImporterHandlerException {
+    void testBlankContentCondition() throws IOException {
         // Test content
 
         assertThat(c.test(newDocContext("blah"))).isFalse();
@@ -52,7 +53,7 @@ class BlankConditionTest {
     }
 
     @Test
-    void testAllBlankFieldsCondition() throws ImporterHandlerException {
+    void testAllBlankFieldsCondition() throws IOException {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         assertThat(c.test(docCtx)).isFalse();
 
@@ -68,7 +69,7 @@ class BlankConditionTest {
     }
 
     @Test
-    void testAnyBlankFieldsCondition() throws ImporterHandlerException {
+    void testAnyBlankFieldsCondition() throws IOException {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         c.getConfiguration().setMatchAnyBlank(true);
         assertThat(c.test(docCtx)).isTrue();
@@ -85,7 +86,7 @@ class BlankConditionTest {
     }
 
     @Test
-    void testMisc() throws ImporterHandlerException {
+    void testMisc() throws IOException {
         // Test non-existant
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("doNotExist"));
         assertThat(c.test(docCtx)).isTrue();

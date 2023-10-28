@@ -17,32 +17,33 @@ package com.norconex.importer;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentFamily;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.importer.charset.CharsetUtil;
+import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.doc.DocRecord;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.DocumentHandler;
+import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.response.ImporterResponse;
+import com.norconex.importer.response.ImporterResponse.Status;
 import com.norconex.importer.response.ImporterResponseProcessor;
-import com.norconex.importer.response.ImporterStatus;
-import com.norconex.importer.response.ImporterStatus.Status;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -52,15 +53,13 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Principal class responsible for importing documents.
  * Refer to {@link ImporterConfig} for configuration options.
+ * Thread-safe, and reusing the same instance is highly recommended.
  * @see ImporterConfig
  */
 @Slf4j
 @ToString
 @EqualsAndHashCode
 public class Importer implements Configurable<ImporterConfig> {
-
-    private static final ImporterStatus PASSING_FILTER_STATUS =
-            new ImporterStatus();
 
     @Getter
     private final ImporterConfig configuration;
@@ -73,7 +72,7 @@ public class Importer implements Configurable<ImporterConfig> {
     private static final InheritableThreadLocal<Importer> INSTANCE =
             new InheritableThreadLocal<>();
 
-    private final ImporterParseHandler parseHandler;
+//    private final ImporterParseHandler parseHandler;
 
     /**
      * Creates a new importer with default configuration.
@@ -100,7 +99,7 @@ public class Importer implements Configurable<ImporterConfig> {
             configuration = new ImporterConfig();
         }
         this.eventManager = new EventManager(eventManager);
-        parseHandler = new ImporterParseHandler(this);
+//        parseHandler = new ImporterParseHandler(this);
         INSTANCE.set(this);
     }
 
@@ -135,9 +134,13 @@ public class Importer implements Configurable<ImporterConfig> {
             return importDocument(toDocument(req));
         } catch (ImporterException e) {
             LOG.warn("Importer request failed: {}", req, e);
-            return new ImporterResponse(req.getReference(),
-                    new ImporterStatus(new ImporterException(
-                            "Importer request failed: " + req, e)));
+            return ImporterResponse.builder()
+                    .reference(req.getReference())
+                    .status(ImporterResponse.Status.ERROR)
+                    .exception(new ImporterException(
+                            "Failed to import document for request: " + req, e))
+                    .description(e.getLocalizedMessage())
+                    .build();
         }
     }
     /**
@@ -146,28 +149,31 @@ public class Importer implements Configurable<ImporterConfig> {
      * @return importer response
      */
     public ImporterResponse importDocument(Doc document) {
+        initializeHandlersOnce();
         // Note: Doc reference, InputStream and metadata are all null-safe.
 
         //--- Document Handling ---
         try {
-            parseHandler.init(
-                    configuration.getParseConfig().getParseOptions());
+//            parseHandler.init(
+//                    configuration.getParseConfig().getParseOptions());
 
             prepareDocumentForImporting(document);
 
             List<Doc> nestedDocs = new ArrayList<>();
-            var filterStatus = doImportDocument(document, nestedDocs);
-            ImporterResponse response = null;
-            if (filterStatus.isRejected()) {
-                response = new ImporterResponse(
-                        document.getReference(), filterStatus);
-            } else {
-                response = new ImporterResponse(document);
-            }
+
+            var response = executeHandlers(document, nestedDocs);
+//            var filterStatus = doImportDocument(document, nestedDocs);
+//            ImporterResponse response = null;
+//            if (response.isRejected()) {
+//                response = new ImporterResponse(
+//                        document.getReference(), response);
+//            } else {
+//                response = new ImporterResponse(document);
+//            }
             for (Doc childDoc : nestedDocs) {
                 var nestedResponse = importDocument(childDoc);
                 if (nestedResponse != null) {
-                    response.addNestedResponse(nestedResponse);
+                    response.getNestedResponses().add(nestedResponse);
                 }
             }
 
@@ -177,19 +183,52 @@ public class Importer implements Configurable<ImporterConfig> {
                 processResponse(response);
             }
             return response;
-        } catch (IOException | ImporterException e) {
+        } catch (IOException | ImporterRuntimeException e) {
             LOG.warn("Could not import document: {}", document, e);
-            return new ImporterResponse(document.getReference(),
-                    new ImporterStatus(new ImporterException(
-                            "Could not import document: " + document, e)));
+            return ImporterResponse.builder()
+                    .status(Status.ERROR)
+                    .doc(document)
+                    .reference(document.getReference())
+                    .exception(new ImporterException(
+                            "Could not import document: " + document, e))
+                    .build();
+        } finally {
+            closeHandlersOnce();
         }
     }
 
+    private synchronized void initializeHandlersOnce() {
+        BeanUtil.visitAll(
+                configuration.getHandler(),
+                t -> {
+                    try {
+                        t.init();
+                    } catch (IOException e) {
+                        throw new ImporterRuntimeException(
+                                "Coult not initialize handler: " + t, e);
+                    }
+                },
+                DocumentHandler.class);
+    }
+    private synchronized void closeHandlersOnce() {
+        BeanUtil.visitAll(
+                configuration.getHandler(),
+                t -> {
+                    try {
+                        t.close();
+                    } catch (IOException e) {
+                        throw new ImporterRuntimeException(
+                                "Coult not initialize handler: " + t, e);
+                    }
+                },
+                DocumentHandler.class);
+    }
+
     private void prepareDocumentForImporting(Doc document) {
-        var docInfo = document.getDocRecord();
+        var docRecord = document.getDocRecord();
 
         //--- Ensure non-null content Type on Doc ---
-        var ct = docInfo.getContentType();
+        var ct = docRecord.getContentType();
         if (ct == null || StringUtils.isBlank(ct.toString())) {
             try {
                 ct = ContentTypeDetector.detect(
@@ -199,18 +238,21 @@ public class Importer implements Configurable<ImporterConfig> {
                         + "\"application/octet-stream\".", e);
                 ct = ContentType.valueOf("application/octet-stream");
             }
-            docInfo.setContentType(ct);
+            docRecord.setContentType(ct);
         }
 
         //--- Try to detect content encoding if not already set ---
-        var encoding = docInfo.getCharset();
+
         try {
-            encoding = CharsetUtil.detectCharsetIfBlank(
-                    encoding, document.getInputStream());
-            docInfo.setCharset(encoding);
+            var encoding = CharsetDetector.builder()
+                    .priorityCharset(() -> docRecord.getCharset())
+                    .fallbackCharset((Charset) null)
+                    .build()
+                    .detect(document);
+            docRecord.setCharset(encoding);
         } catch (IOException e) {
             LOG.debug("Problem detecting encoding for: {}",
-                    docInfo.getReference(), e);
+                    docRecord.getReference(), e);
         }
 
         //--- Add basic metadata for what we know so far ---
@@ -221,8 +263,9 @@ public class Importer implements Configurable<ImporterConfig> {
         if (contentFamily != null) {
             meta.set(DocMetadata.CONTENT_FAMILY, contentFamily.toString());
         }
-        if (StringUtils.isNotBlank(encoding)) {
-            meta.set(DocMetadata.CONTENT_ENCODING, encoding);
+        if (docRecord.getCharset() != null) {
+            meta.set(DocMetadata.CONTENT_ENCODING,
+                    docRecord.getCharset().toString());
         }
     }
 
@@ -259,7 +302,7 @@ public class Importer implements Configurable<ImporterConfig> {
         }
 
         var info = new DocRecord(ref);
-        info.setCharset(req.getContentEncoding());
+        info.setCharset(req.getCharset());
         info.setContentType(req.getContentType());
 
         return new Doc(info, is, req.getMetadata());
@@ -289,36 +332,36 @@ public class Importer implements Configurable<ImporterConfig> {
                 configuration.getTempDir());
     }
 
-    private ImporterStatus doImportDocument(
-            Doc document, List<Doc> nestedDocs)
-                    throws ImporterException, IOException {
-
-        //--- Pre-handlers ---
-        var filterStatus = executeHandlers(
-                document,
-                nestedDocs,
-                configuration.getPreParseConsumer(),
-                ParseState.PRE);
-
-        if (!filterStatus.isSuccess()) {
-            return filterStatus;
-        }
-        //--- Parse ---
-        //MAYBE: make parse just another handler in the chain?  Eliminating
-        //the need for pre and post handlers?
-        parseHandler.parseDocument(document, nestedDocs);
-
-        //--- Post-handlers ---
-        filterStatus = executeHandlers(
-                document,
-                nestedDocs,
-                configuration.getPostParseConsumer(),
-                ParseState.POST);
-        if (!filterStatus.isSuccess()) {
-            return filterStatus;
-        }
-        return PASSING_FILTER_STATUS;
-    }
+//    private ImporterResponse doImportDocument(
+//            Doc document, List<Doc> nestedDocs) throws IOException {
+//
+//        return executeHandlers(
+//                document,
+//                nestedDocs,
+//                configuration.getHandler());
+////                ,
+//////                configuration.getPreParseConsumer(),
+////                ParseState.PRE);
+////
+////        if (!filterStatus.isSuccess()) {
+////            return filterStatus;
+////        }
+////        //--- Parse ---
+////        //MAYBE: make parse just another handler in the chain?  Eliminating
+////        //the need for pre and post handlers?
+////        parseHandler.parseDocument(document, nestedDocs);
+////
+////        //--- Post-handlers ---
+////        filterStatus = executeHandlers(
+////                document,
+////                nestedDocs,
+////                configuration.getPostParseConsumer(),
+////                ParseState.POST);
+////        if (!filterStatus.isSuccess()) {
+////            return filterStatus;
+////        }
+////        return PASSING_FILTER_STATUS;
+//    }
 
 
     private void processResponse(ImporterResponse response) {
@@ -329,31 +372,46 @@ public class Importer implements Configurable<ImporterConfig> {
         }
     }
 
-    private ImporterStatus executeHandlers(
-            Doc doc,
-            List<Doc> childDocsHolder,
-            Consumer<HandlerContext> consumer,
-            ParseState parseState) throws ImporterException {
 
-        if (consumer == null) {
-            return PASSING_FILTER_STATUS;
+
+    private ImporterResponse executeHandlers(
+            Doc doc, List<Doc> childDocsHolder) throws ImporterException {
+
+        var respBuilder = ImporterResponse.builder()
+                .doc(doc)
+                .reference(doc.getReference());
+
+        if (configuration.getHandler() == null) {
+            return respBuilder
+                    .status(Status.SUCCESS)
+                    .build();
         }
-        var ctx = new HandlerContext(doc, eventManager, parseState);
+        var ctx = DocContext.builder()
+            .doc(doc)
+            .eventManager(eventManager)
+            .build();
         try {
-            consumer.accept(ctx);
+            configuration.getHandler().accept(ctx);
         } catch (UndeclaredThrowableException e) {
-            throw (ImporterHandlerException) e.getCause();
+            throw (DocumentHandlerException) e.getCause();
         }
-        childDocsHolder.addAll(ctx.getChildDocs());
+        childDocsHolder.addAll(ctx.childDocs());
 
         if (ctx.isRejected()) {
-            return new ImporterStatus(ctx.getRejectedBy());
+            return respBuilder
+                    .status(Status.REJECTED)
+                    .rejectCause(ctx.rejectedBy())
+                    .description(Objects.toString(ctx.rejectedBy(), null))
+                    .build();
         }
-        if (!ctx.getIncludeResolver().passes()) {
-            return new ImporterStatus(Status.REJECTED,
-                    "None of the filters with onMatch being INCLUDE got "
-                  + "matched.");
-        }
-        return PASSING_FILTER_STATUS;
+//        if (!ctx.getIncludeResolver().passes()) {
+//            return new ImporterStatus(Status.REJECTED,
+//                    "None of the filters with onMatch being INCLUDE got "
+//                  + "matched.");
+//        }
+//        return PASSING_FILTER_STATUS;
+        return respBuilder
+                .status(Status.SUCCESS)
+                .build();
     }
 }

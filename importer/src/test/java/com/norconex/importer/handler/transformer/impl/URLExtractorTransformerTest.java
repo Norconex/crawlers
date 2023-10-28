@@ -25,8 +25,8 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class URLExtractorTransformerTest {
 
@@ -45,7 +45,7 @@ class URLExtractorTransformerTest {
     }
 
     @Test
-    void testURLExtractorTagger() throws ImporterHandlerException {
+    void testURLExtractorTagger() throws IOException {
         var t = new URLExtractorTransformer();
         t.getConfiguration()
             .setToField("result");

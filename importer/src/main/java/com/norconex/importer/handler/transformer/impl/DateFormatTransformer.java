@@ -29,8 +29,8 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.time.ZonedDateTimeParser;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -105,14 +105,15 @@ import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
-public class DateFormatTransformer implements
-        DocumentTransformer, Configurable<DateFormatTransformerConfig> {
+public class DateFormatTransformer
+        extends BaseDocumentHandler
+        implements Configurable<DateFormatTransformerConfig> {
 
     private final DateFormatTransformerConfig configuration =
             new DateFormatTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         validateArguments();
 
         var fromDates = docCtx.metadata().getStrings(

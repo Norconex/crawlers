@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,10 +37,8 @@ import org.apache.commons.lang3.function.FailableBiConsumer;
 
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XMLValidationException;
-import com.norconex.importer.doc.Doc;
 import com.norconex.importer.response.ImporterResponse;
 
 /**
@@ -63,11 +62,10 @@ public final class ImporterLauncher {
      * Constructor.
      */
     private ImporterLauncher() {
-        super();
     }
 
     public static void launch(String[] args) {
-        CommandLine cmd = parseCommandLineArguments(args);
+        var cmd = parseCommandLineArguments(args);
 
         Path varFile = null;
         Path configFile = null;
@@ -98,23 +96,23 @@ public final class ImporterLauncher {
 
 
         // Proceed
-        ContentType contentType =
+        var contentType =
                 ContentType.valueOf(cmd.getOptionValue(ARG_CONTENTTYPE));
-        String contentEncoding = cmd.getOptionValue(ARG_CONTENTENCODING);
-        String output = cmd.getOptionValue(ARG_OUTPUTFILE);
+        var contentEncoding = cmd.getOptionValue(ARG_CONTENTENCODING);
+        var output = cmd.getOptionValue(ARG_OUTPUTFILE);
         if (StringUtils.isBlank(output)) {
             output = cmd.getOptionValue(ARG_INPUTFILE) + "-imported.txt";
         }
-        String reference = cmd.getOptionValue(ARG_REFERENCE);
-        Properties metadata = new Properties();
-        ImporterConfig config =
+        var reference = cmd.getOptionValue(ARG_REFERENCE);
+        var metadata = new Properties();
+        var config =
                 loadCommandLineConfig(cmd, configFile, varFile);
-        Path inputFile = Paths.get(cmd.getOptionValue(ARG_INPUTFILE));
+        var inputFile = Paths.get(cmd.getOptionValue(ARG_INPUTFILE));
         try {
-            ImporterResponse response = new Importer(config).importDocument(
+            var response = new Importer(config).importDocument(
                     new ImporterRequest(inputFile)
                         .setContentType(contentType)
-                        .setContentEncoding(contentEncoding)
+                        .setCharset(Charset.forName(contentEncoding))
                         .setMetadata(metadata)
                         .setReference(reference));
             writeResponse(response, output,
@@ -133,7 +131,7 @@ public final class ImporterLauncher {
             return null;
         }
 
-        ImporterConfig config = new ImporterConfig();
+        var config = new ImporterConfig();
         try {
             new ConfigurationLoader()
                 .setVariablesFile(varFile)
@@ -162,28 +160,28 @@ public final class ImporterLauncher {
     private static void writeResponse(ImporterResponse response,
             String outputPath, String outputFormat, int depth, int index) {
         if (!response.isSuccess()) {
-            String statusLabel = "REJECTED: ";
-            if (response.getImporterStatus().isError()) {
+            var statusLabel = "REJECTED: ";
+            if (response.isError()) {
                 statusLabel = "   ERROR: ";
             }
             System.out.println(statusLabel + response.getReference() + " ("
-                    + response.getImporterStatus().getDescription() + ")");
+                    + response.getDescription() + ")");
         } else {
-            Doc doc = response.getDocument();
-            StringBuilder path = new StringBuilder(outputPath);
+            var doc = response.getDoc();
+            var path = new StringBuilder(outputPath);
             if (depth > 0) {
-                int pathLength = outputPath.length();
-                int extLength = FilenameUtils.getExtension(outputPath).length();
+                var pathLength = outputPath.length();
+                var extLength = FilenameUtils.getExtension(outputPath).length();
                 if (extLength > 0) {
                     extLength++;
                 }
-                String nameSuffix = "_" + depth + "-" + index;
+                var nameSuffix = "_" + depth + "-" + index;
                 path.insert(pathLength - extLength, nameSuffix);
             }
-            File docfile = new File(path.toString());
+            var docfile = new File(path.toString());
 
-            try (FileOutputStream docOutStream = new FileOutputStream(docfile);
-                 CachedInputStream docInStream = doc.getInputStream()) {
+            try (var docOutStream = new FileOutputStream(docfile);
+                 var docInStream = doc.getInputStream()) {
                 // Write document file
                 IOUtils.copy(docInStream, docOutStream);
                 // Write metadata file
@@ -199,16 +197,16 @@ public final class ImporterLauncher {
             }
         }
 
-        ImporterResponse[] nextedResponses = response.getNestedResponses();
-        for (int i = 0; i < nextedResponses.length; i++) {
-            ImporterResponse nextedResponse = nextedResponses[i];
+        var nextedResponses = response.getNestedResponses();
+        for (var i = 0; i < nextedResponses.size(); i++) {
+            var nextedResponse = nextedResponses.get(i);
             writeResponse(nextedResponse, outputPath,
                     outputFormat, depth + 1, i + 1);
         }
     }
 
     private static CommandLine parseCommandLineArguments(String[] args) {
-        Options options = new Options();
+        var options = new Options();
         options.addOption("i", ARG_INPUTFILE, true,
                 "File to be imported (required unless \"checkcfg\" is used).");
         options.addOption("o", ARG_OUTPUTFILE, true,
@@ -238,16 +236,15 @@ public final class ImporterLauncher {
         try {
             cmd = parser.parse(options, args);
             if(!cmd.hasOption(ARG_INPUTFILE)
-                    && !(cmd.hasOption(ARG_CHECKCFG)
-                            && cmd.hasOption(ARG_CONFIG))) {
-                HelpFormatter formatter = new HelpFormatter();
+                    && (!cmd.hasOption(ARG_CHECKCFG) || !cmd.hasOption(ARG_CONFIG))) {
+                var formatter = new HelpFormatter();
                 formatter.printHelp( "importer[.bat|.sh]", options );
                 System.exit(-1);
             }
         } catch (ParseException e) {
             System.err.println("A problem occured while parsing arguments.");
             e.printStackTrace(System.err);
-            HelpFormatter formatter = new HelpFormatter();
+            var formatter = new HelpFormatter();
             formatter.printHelp( "importer[.bat|.sh]", options );
             System.exit(-1);
         }
@@ -255,9 +252,9 @@ public final class ImporterLauncher {
     }
 
     private enum MetaFileWriter {
-        JSON((meta, out) -> meta.storeToJSON(out)),
-        XML((meta, out) -> meta.storeToXML(out)),
-        PROPERTIES((meta, out) -> meta.storeToProperties(out));
+        JSON(Properties::storeToJSON),
+        XML(Properties::storeToXML),
+        PROPERTIES(Properties::storeToProperties);
         private FailableBiConsumer<Properties, OutputStream, IOException> c;
         MetaFileWriter(
                 FailableBiConsumer<Properties, OutputStream, IOException> c) {
@@ -265,8 +262,8 @@ public final class ImporterLauncher {
         }
         private void writeMeta(Properties meta, File file)
                 throws IOException {
-            try (FileOutputStream metaOut = new FileOutputStream(
-                    file.getAbsolutePath() + "." + this.name().toLowerCase())) {
+            try (var metaOut = new FileOutputStream(
+                    file.getAbsolutePath() + "." + name().toLowerCase())) {
                 c.accept(meta, metaOut);
             }
         }

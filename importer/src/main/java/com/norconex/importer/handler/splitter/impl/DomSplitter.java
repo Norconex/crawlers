@@ -27,7 +27,7 @@ import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.DomUtil;
 import com.norconex.importer.util.MatchUtil;
@@ -106,7 +106,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
     private final DomSplitterConfig configuration = new DomSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws ImporterHandlerException {
+    public void split(DocContext docCtx) throws DocumentHandlerException {
 
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docRecord())) {
@@ -136,7 +136,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
                         DomUtil.toJSoupParser(configuration.getParser()));
                 parse(docCtx, soupDoc);
             } catch (IOException e) {
-                throw new ImporterHandlerException(
+                throw new DocumentHandlerException(
                         "Cannot parse document into a DOM-tree.", e);
             }
         }

@@ -30,8 +30,8 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class TruncateTransformerTest {
 
@@ -51,7 +51,7 @@ class TruncateTransformerTest {
     }
 
     @Test
-    void testFieldWithSuffixAndHash() throws ImporterHandlerException {
+    void testFieldWithSuffixAndHash() throws IOException {
         var metadata = new Properties();
         metadata.add("from",
                 "Please truncate me before you start thinking I am too long.",
@@ -115,7 +115,7 @@ class TruncateTransformerTest {
 
     @Test
     void testBodyWithSuffixAndHash()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         DocContext docCtx;
         var t = new TruncateTransformer();
 

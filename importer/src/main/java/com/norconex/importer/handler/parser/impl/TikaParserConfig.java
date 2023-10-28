@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,17 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.handler;
+package com.norconex.importer.handler.parser.impl;
 
-import com.norconex.importer.ImporterException;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-import lombok.experimental.StandardException;
 
-/**
- * Exception thrown by several handler classes upon encountering
- * issues.
- */
-@StandardException
-public class ImporterHandlerException extends ImporterException {
-    private static final long serialVersionUID = 6845549545987836093L;
+@Data
+@Accessors(chain = true)
+public class TikaParserConfig {
+
+    /**
+     * The path to a Tika configuration file.
+     */
+    String tikaConfigFile;
 }

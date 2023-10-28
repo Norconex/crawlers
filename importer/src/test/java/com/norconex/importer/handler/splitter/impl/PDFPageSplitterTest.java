@@ -27,7 +27,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 
 class PDFPageSplitterTest {
 
@@ -44,7 +44,7 @@ class PDFPageSplitterTest {
     }
 
     @Test
-    void testSplit() throws ImporterHandlerException {
+    void testSplit() throws IOException {
         var s = new PDFPageSplitter();
         var pages = split(s);
 
@@ -66,7 +66,7 @@ class PDFPageSplitterTest {
     }
 
     private List<Doc> split(PDFPageSplitter splitter)
-            throws ImporterHandlerException {
+            throws IOException {
         var metadata = new Properties();
         var docCtx = TestUtil.newDocContext("n/a", input, metadata);
         splitter.accept(docCtx);

@@ -26,13 +26,13 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class CurrentDateTransformerTest {
 
     @Test
-    void testCurrentDatet() throws ImporterHandlerException {
+    void testCurrentDatet() throws IOException {
         var now = System.currentTimeMillis();
         Sleeper.sleepMillis(10);// to make sure time has passed
 

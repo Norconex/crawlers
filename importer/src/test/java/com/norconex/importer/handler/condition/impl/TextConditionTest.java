@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
@@ -25,14 +26,13 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.text.TextMatcher.Method;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 class TextConditionTest {
 
     @Test
     void testRegexContentMatches()
-            throws ImporterHandlerException {
+            throws IOException {
         var cond = newRegexTextCondition();
         cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
         Assertions.assertTrue(TestUtil.condition(cond, "n/a",
@@ -43,7 +43,7 @@ class TextConditionTest {
 
     @Test
     void testRegexContentNoMatches()
-            throws ImporterHandlerException {
+            throws IOException {
         var cond = newRegexTextCondition();
         cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
         Assertions.assertFalse(
@@ -56,7 +56,7 @@ class TextConditionTest {
 
     @Test
     void testRegexFieldDocument()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("field1", "a string to match");
         meta.add("field2", "something we want");

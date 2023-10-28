@@ -34,9 +34,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -92,8 +91,9 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @Data
 @Slf4j
-public class FieldReportTransformer implements
-        DocumentTransformer, Configurable<FieldReportTransformerConfig> {
+public class FieldReportTransformer
+        extends BaseDocumentHandler
+        implements Configurable<FieldReportTransformerConfig> {
 
     private final FieldReportTransformerConfig configuration =
             new FieldReportTransformerConfig();
@@ -102,7 +102,7 @@ public class FieldReportTransformer implements
             new TreeMap<>(), FieldData::new);
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         reportFields(docCtx.metadata());
     }
 

@@ -24,9 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 import com.norconex.importer.util.chunk.TextChunk;
 
@@ -71,14 +70,15 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class ReplaceTransformer implements
-        DocumentTransformer, Configurable<ReplaceTransformerConfig> {
+public class ReplaceTransformer
+        extends BaseDocumentHandler
+        implements Configurable<ReplaceTransformerConfig> {
 
     private final ReplaceTransformerConfig configuration =
             new ReplaceTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         for (ReplaceOperation op : configuration.getOperations()) {
             ChunkedTextReader.builder()
                 .charset(configuration.getSourceCharset())

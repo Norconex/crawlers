@@ -17,8 +17,8 @@ package com.norconex.importer.handler.transformer.impl;
 import java.io.IOException;
 
 import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
 import lombok.Data;
@@ -59,14 +59,15 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @Data
 @Slf4j
-public class StripAfterTransformer implements
-        DocumentTransformer, Configurable<StripAfterTransformerConfig> {
+public class StripAfterTransformer
+        extends BaseDocumentHandler
+        implements Configurable<StripAfterTransformerConfig> {
 
     private final StripAfterTransformerConfig configuration =
             new StripAfterTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         if (!configuration.getStripAfterMatcher().isSet()) {
             LOG.error("No matcher pattern provided.");
             return;

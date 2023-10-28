@@ -14,10 +14,12 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig.META_FORMAT_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -33,9 +35,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ExternalHandler;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.util.ExternalApp;
 
 class ExternalTransformerTest {
@@ -81,28 +81,28 @@ class ExternalTransformerTest {
 
     @Test
     void testInFileOutFile()
-            throws ImporterHandlerException {
+            throws IOException {
         testWithExternalApp("-ic ${INPUT} -oc ${OUTPUT} -ref ${REFERENCE}");
     }
     @Test
     void testInFileStdout()
-            throws ImporterHandlerException {
+            throws IOException {
         testWithExternalApp("-ic ${INPUT}");
     }
     @Test
     void testStdinOutFile()
-            throws ImporterHandlerException {
+            throws IOException {
         testWithExternalApp("-oc ${OUTPUT} -ref ${REFERENCE}");
     }
     @Test
     void testStdinStdout()
-            throws ImporterHandlerException {
+            throws IOException {
         testWithExternalApp("");
     }
 
     @Test
     void testMetaInputOutputFiles()
-            throws ImporterHandlerException {
+            throws IOException {
         testWithExternalApp("""
         	-ic ${INPUT} -oc ${OUTPUT}\s\
         	-im ${INPUT_META} -om ${OUTPUT_META}\s\
@@ -110,11 +110,11 @@ class ExternalTransformerTest {
     }
 
     private void testWithExternalApp(String command)
-            throws ImporterHandlerException {
+            throws IOException {
         testWithExternalApp(command, false);
     }
     private void testWithExternalApp(String command, boolean metaFiles)
-            throws ImporterHandlerException {
+            throws IOException {
         var input = inputAsStream();
         var output = outputAsStream();
         var metadata = new Properties();
@@ -130,8 +130,8 @@ class ExternalTransformerTest {
         t.getConfiguration().setCommand(ExternalApp.newCommandLine(command));
         addPatternsAndEnvs(t);
         t.getConfiguration()
-            .setMetadataInputFormat(ExternalHandler.META_FORMAT_PROPERTIES)
-            .setMetadataOutputFormat(ExternalHandler.META_FORMAT_PROPERTIES)
+            .setMetadataInputFormat(META_FORMAT_PROPERTIES)
+            .setMetadataOutputFormat(META_FORMAT_PROPERTIES)
             .setOnSet(PropertySetter.REPLACE);
         t.accept(TestUtil.newDocContext(
                 "c:\\ref with spaces\\doc.txt", input,

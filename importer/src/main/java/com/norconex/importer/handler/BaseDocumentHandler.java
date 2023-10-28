@@ -32,7 +32,10 @@ import lombok.NonNull;
  * While not mandatory, it is recommended to extend this class or wrap your
  * existing consumer instance with it.
  */
-public abstract class BaseDocumentHandler implements Consumer<DocContext> {
+public abstract class BaseDocumentHandler implements DocumentHandler {
+
+    //Maybe provide a base doc handler config which allows
+    // filtering on content type or reference. Humm... that looks like restrictTo
 
     @Override
     public final void accept(DocContext ctx) {
@@ -54,7 +57,7 @@ public abstract class BaseDocumentHandler implements Consumer<DocContext> {
             handle(ctx);
         } catch (Exception e) {
             fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
-            ExceptionUtils.wrapAndThrow(new ImporterHandlerException(
+            ExceptionUtils.wrapAndThrow(new DocumentHandlerException(
                     "Importer failure for handler: " + this, e));
         }
         fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);

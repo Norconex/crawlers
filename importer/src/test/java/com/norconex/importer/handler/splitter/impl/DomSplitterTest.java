@@ -28,13 +28,13 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 
 class DomSplitterTest {
 
     @Test
     void testHtmlDOMSplit()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var html = ResourceLoader.getHtmlString(getClass());
         var splitter = new DomSplitter();
         splitter.getConfiguration().setSelector("div.person");
@@ -48,7 +48,7 @@ class DomSplitterTest {
 
     @Test
     void testXmlDOMSplit()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         var xml = ResourceLoader.getXmlString(getClass());
 
@@ -63,7 +63,7 @@ class DomSplitterTest {
     }
 
     private List<Doc> split(String text, DomSplitter splitter)
-            throws ImporterHandlerException {
+            throws IOException {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
         var docCtx = TestUtil.newDocContext("n/a", is, metadata);

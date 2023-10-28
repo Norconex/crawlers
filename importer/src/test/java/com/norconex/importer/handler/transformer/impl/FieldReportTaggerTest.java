@@ -14,7 +14,7 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import static com.norconex.importer.parser.ParseState.PRE;
+import static com.norconex.importer.handler.parser.ParseState.PRE;
 import static java.io.InputStream.nullInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -29,7 +29,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 class FieldReportTaggerTest {
 
@@ -37,7 +36,7 @@ class FieldReportTaggerTest {
     private Path tempDir;
 
     @Test
-    void testFieldReportTagger() throws ImporterHandlerException, IOException {
+    void testFieldReportTagger() throws IOException, IOException {
         var t = new FieldReportTransformer();
 
         var reportFile = tempDir.resolve("report.csv");

@@ -39,7 +39,7 @@ import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
 
@@ -125,7 +125,7 @@ public class XmlStreamSplitter
             new XmlStreamSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws ImporterHandlerException {
+    public void split(DocContext docCtx) throws DocumentHandlerException {
 
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docRecord())) {
@@ -146,13 +146,13 @@ public class XmlStreamSplitter
     }
 
     private void doSplit(DocContext docCtx, InputStream is)
-            throws ImporterHandlerException {
+            throws DocumentHandlerException {
         try (is) {
             var h = new XmlHandler(docCtx, Arrays.asList(StringUtils.split(
                     configuration.getPath(), '/')), docCtx.childDocs());
             XMLUtil.createSaxParserFactory().newSAXParser().parse(is, h);
         } catch (SAXException | IOException | ParserConfigurationException e) {
-            throw new ImporterHandlerException(
+            throw new DocumentHandlerException(
                     "Could not split XML document: " + docCtx.reference(), e);
         }
     }

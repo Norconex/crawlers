@@ -29,8 +29,8 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class CopyTransformerTest {
 
@@ -45,7 +45,7 @@ class CopyTransformerTest {
     }
 
     @Test
-    void testCopyTagger() throws ImporterHandlerException {
+    void testCopyTagger() throws IOException {
         var t = new CopyTransformer();
         t.getConfiguration().setOperations(List.of(
             CopyOperation.of(new TextMatcher("src1"), "trgt1"),
@@ -77,7 +77,7 @@ class CopyTransformerTest {
     }
 
     @Test
-    void testOnBody() throws ImporterHandlerException {
+    void testOnBody() throws IOException {
 
         var t = new CopyTransformer();
         t.getConfiguration().setOperations(

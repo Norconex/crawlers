@@ -27,10 +27,9 @@ import org.jsoup.nodes.Element;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.DomUtil;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
@@ -197,13 +196,14 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class DomTransformer
-        implements DocumentTransformer, Configurable<DomTransformerConfig> {
+        extends BaseDocumentHandler
+        implements Configurable<DomTransformerConfig> {
 
     private final DomTransformerConfig configuration =
             new DomTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(

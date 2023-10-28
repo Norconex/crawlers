@@ -26,8 +26,8 @@ import org.apache.tika.language.detect.LanguageResult;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.AccessLevel;
@@ -188,8 +188,9 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @Data
 @Slf4j
-public class LanguageTransformer implements
-        DocumentTransformer, Configurable<LanguageTransformerConfig> {
+public class LanguageTransformer
+        extends BaseDocumentHandler
+        implements Configurable<LanguageTransformerConfig> {
 
     private final LanguageTransformerConfig configuration =
             new LanguageTransformerConfig();
@@ -215,7 +216,7 @@ public class LanguageTransformer implements
             Comparator.comparing(LanguageResult::getRawScore).reversed();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         ensureDetectorInitialization();
 
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {

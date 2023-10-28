@@ -30,8 +30,8 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class LanguageTransformerTest {
 
@@ -53,7 +53,7 @@ class LanguageTransformerTest {
     }
 
     @Test
-    void testNonMatchingDocLanguage() throws ImporterHandlerException {
+    void testNonMatchingDocLanguage() throws IOException {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration().setLanguages(Arrays.asList("fr", "it"));
@@ -68,7 +68,7 @@ class LanguageTransformerTest {
     }
 
     @Test
-    void testDefaultLanguageDetection() throws ImporterHandlerException {
+    void testDefaultLanguageDetection() throws IOException {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration().setLanguages(
@@ -101,7 +101,7 @@ class LanguageTransformerTest {
     }
 
     @Test
-    void testSortOrder() throws ImporterHandlerException {
+    void testSortOrder() throws IOException {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration()

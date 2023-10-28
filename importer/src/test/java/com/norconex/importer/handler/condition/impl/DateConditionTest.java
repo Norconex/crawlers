@@ -14,9 +14,10 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import static com.norconex.importer.parser.ParseState.PRE;
+import static com.norconex.importer.handler.parser.ParseState.PRE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -36,7 +37,6 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.impl.DateCondition.TimeUnit;
 import com.norconex.importer.handler.condition.impl.DateProviderFactory.DynamicFixedDateTimeProvider;
 import com.norconex.importer.handler.condition.impl.DateProviderFactory.DynamicFloatingDateTimeProvider;
@@ -45,7 +45,7 @@ class DateConditionTest {
 
     @Test
     void testAcceptDocument()
-            throws ImporterHandlerException, ParseException {
+            throws IOException, ParseException {
 
         var meta = new Properties();
 
@@ -186,7 +186,7 @@ class DateConditionTest {
     }
 
     @Test
-    void testAroundNow() throws ImporterHandlerException {
+    void testAroundNow() throws IOException {
         var now = LocalDateTime.now(ZoneOffset.UTC);
         var then55min = now.minusMinutes(55);
         var then65min = now.minusMinutes(65);
@@ -238,7 +238,7 @@ class DateConditionTest {
     }
 
     @Test
-    void testTimeZones() throws ImporterHandlerException {
+    void testTimeZones() throws IOException {
         /*
          * About this test (24h):
          *   - Paris is 9 hours ahead of LA (Paris = LA + 9).

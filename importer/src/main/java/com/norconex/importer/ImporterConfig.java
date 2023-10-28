@@ -22,19 +22,15 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.function.FailableConsumer;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.flow.JsonFlow;
-import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.parser.ParseConfig;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
 import lombok.Data;
-import lombok.NonNull;
 import lombok.experimental.Accessors;
 
 /**
@@ -86,46 +82,52 @@ public class ImporterConfig {
     public static final long DEFAULT_MAX_STREAM_CACHE_SIZE =
             DataUnit.GB.toBytes(1).intValue();
 
-    /**
-     * <p>
-     * The {@link Consumer} to be executed on documents before
-     * their parsing has occurred. While not mandatory, it is strongly
-     * recommended you consumer implements {@link BaseDocumentHandler}
-     * or is decorated with either
-     * {@link BaseDocumentHandler#decorate(Consumer)} or
-     * {@link BaseDocumentHandler#decorate(FailableConsumer)}
-     * </p>
-     * <p>
-     * Be careful that your pre-par consumers can deal with the expected
-     * document types. To consume a document once its plain text has been
-     * extracted, use {@link #postParseConsumer} instead.
-     * </p>
-     * <p>
-     * To programmatically set multiple consumers or take advantage of the
-     * handlers defined by the Importer, you can use {@link Consumers}
-     * to wrap them.
-     * </p>
-     * @param consumer the pre-parse document consumer
-     * @return pre-parse document consumer
-     */
-    @JsonFlow
-    private Consumer<DocContext> preParseConsumer;
 
-    /**
-     * <p>
-     * The {@link Consumer} to be executed on documents after
-     * their parsing has occurred.
-     * </p>
-     * <p>
-     * <p>
-     * To programmatically set multiple consumers or take advantage of the
-     * handlers defined by the Importer, you can use {@link Consumers}
-     * to wrap them.
-     * </p>
-     * @param consumer the document consumer
-     */
     @JsonFlow
-    private Consumer<DocContext> postParseConsumer;
+    @JsonProperty("handlers")
+    private Consumer<DocContext> handler;
+
+
+//    /**
+//     * <p>
+//     * The {@link Consumer} to be executed on documents before
+//     * their parsing has occurred. While not mandatory, it is strongly
+//     * recommended you consumer implements {@link BaseDocumentHandler}
+//     * or is decorated with either
+//     * {@link BaseDocumentHandler#decorate(Consumer)} or
+//     * {@link BaseDocumentHandler#decorate(FailableConsumer)}
+//     * </p>
+//     * <p>
+//     * Be careful that your pre-par consumers can deal with the expected
+//     * document types. To consume a document once its plain text has been
+//     * extracted, use {@link #postParseConsumer} instead.
+//     * </p>
+//     * <p>
+//     * To programmatically set multiple consumers or take advantage of the
+//     * handlers defined by the Importer, you can use {@link Consumers}
+//     * to wrap them.
+//     * </p>
+//     * @param consumer the pre-parse document consumer
+//     * @return pre-parse document consumer
+//     */
+//    @JsonFlow
+//    private Consumer<DocContext> preParseConsumer;
+//
+//    /**
+//     * <p>
+//     * The {@link Consumer} to be executed on documents after
+//     * their parsing has occurred.
+//     * </p>
+//     * <p>
+//     * <p>
+//     * To programmatically set multiple consumers or take advantage of the
+//     * handlers defined by the Importer, you can use {@link Consumers}
+//     * to wrap them.
+//     * </p>
+//     * @param consumer the document consumer
+//     */
+//    @JsonFlow
+//    private Consumer<DocContext> postParseConsumer;
 
     /**
      * Processors of importer response. Invoked when a document has
@@ -191,8 +193,8 @@ public class ImporterConfig {
      */
     private long maxMemoryPool = DEFAULT_MAX_STREAM_CACHE_SIZE;
 
-    @NonNull
-    private ParseConfig parseConfig = new ParseConfig();
+//    @NonNull
+//    private ParseConfig parseConfig = new ParseConfig();
 
     public List<ImporterResponseProcessor> getResponseProcessors() {
         return Collections.unmodifiableList(responseProcessors);

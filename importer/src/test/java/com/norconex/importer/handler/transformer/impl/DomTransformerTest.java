@@ -45,7 +45,6 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.util.DomUtil;
 
 class DomTransformerTest {
@@ -53,7 +52,7 @@ class DomTransformerTest {
     //--- Field tests ----------------------------------------------------------
 
     @Test
-    void testFieldDelete() throws ImporterHandlerException {
+    void testFieldDelete() throws IOException {
 
         final var child1 = """
                 <div id="childOneId" class="childClass">\
@@ -99,7 +98,7 @@ class DomTransformerTest {
     }
 
     @Test
-    void testFieldNestedDelete() throws ImporterHandlerException {
+    void testFieldNestedDelete() throws IOException {
 
         var child1 = """
             <div id="childOneId" class="childClass">\
@@ -134,7 +133,7 @@ class DomTransformerTest {
 
     // This is a test for: https://github.com/Norconex/collector-http/issues/381
     @Test
-    void testFieldXMLParser() throws ImporterHandlerException, IOException {
+    void testFieldXMLParser() throws IOException, IOException {
 
         var t = new DomTransformer();
         t.getConfiguration()
@@ -185,7 +184,7 @@ class DomTransformerTest {
 
     // This is a test for: https://github.com/Norconex/importer/issues/39
     @Test
-    void testFieldMatchBlanks() throws ImporterHandlerException, IOException {
+    void testFieldMatchBlanks() throws IOException, IOException {
 
         var t = new DomTransformer();
         t.getConfiguration().setOperations(List.of(
@@ -244,7 +243,7 @@ class DomTransformerTest {
     // where default value should not be trimmed.
     @Test
     void testFieldDefaultValue()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         var cfg = """
             <handler class="\
@@ -278,7 +277,7 @@ class DomTransformerTest {
     // This is a test for "fromField" and "defaultValue" feature request:
     // https://github.com/Norconex/importer/issues/28
     @Test
-    void testFieldFromField() throws ImporterHandlerException, IOException {
+    void testFieldFromField() throws IOException, IOException {
 
         var html = """
             <html><body>\
@@ -342,7 +341,7 @@ class DomTransformerTest {
     // This is a test for: https://github.com/Norconex/importer/issues/21
     @Test
     void testFieldNotAllSelectorsMatching()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         var t = new DomTransformer();
         t.getConfiguration().setOperations(List.of(
@@ -381,7 +380,7 @@ class DomTransformerTest {
 
     @Test
     void testFieldExtractFromDOM()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new DomTransformer();
         t.getConfiguration().setOperations(List.of(
                 new DomOperation()
@@ -416,7 +415,7 @@ class DomTransformerTest {
 
     @Test
     void testFieldExtractionTypes()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new DomTransformer();
         t.getConfiguration().setOperations(List.of(
                 new DomOperation()
@@ -460,7 +459,7 @@ class DomTransformerTest {
 
     @Test
     void testFieldAllExtractionTypes()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         var t = new DomTransformer();
         t.getConfiguration().setOperations(List.of(
@@ -563,7 +562,7 @@ class DomTransformerTest {
 
     @Test
     void testPreserveTransform()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new DomTransformer();
 
         // Test batch #1
@@ -639,7 +638,7 @@ class DomTransformerTest {
     //--- Body delete tests ----------------------------------------------------
 
     @Test
-    void testBodyDelete() throws ImporterHandlerException, IOException {
+    void testBodyDelete() throws IOException, IOException {
 
         var child1 = """
             <div id="childOneId" class="childClass">\
@@ -679,7 +678,7 @@ class DomTransformerTest {
 
     @Test
     void testBodyNestedDelete()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         var child1 = """
             <div id="childOneId" class="childClass">\
@@ -730,7 +729,7 @@ class DomTransformerTest {
     //--- Private methods ------------------------------------------------------
 
     private static String transformPreserve(DomTransformer t)
-            throws IOException, ImporterHandlerException {
+            throws IOException {
         try (var content =
                 ResourceLoader.getXmlStream(DomTransformerTest.class);
                 var os = new ByteArrayOutputStream()) {
@@ -761,7 +760,7 @@ class DomTransformerTest {
 
     private void performTransform(
             Properties metadata, DomTransformer t, String html)
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         try (InputStream is = new ByteArrayInputStream(html.getBytes())) {
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
             t.accept(TestUtil.newDocContext("n/a", is, metadata));

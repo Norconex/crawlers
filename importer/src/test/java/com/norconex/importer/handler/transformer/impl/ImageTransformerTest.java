@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class ImageTransformerTest {
 
@@ -52,7 +52,7 @@ class ImageTransformerTest {
     }
 
     @Test
-    void testImageTransformer() throws ImporterHandlerException {
+    void testImageTransformer() throws IOException {
         var t = new ImageTransformer();
         t.getConfiguration().setRotation(90d);
         var out = new ByteArrayOutputStream();

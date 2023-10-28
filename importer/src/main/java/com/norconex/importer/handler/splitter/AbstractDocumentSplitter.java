@@ -14,17 +14,19 @@
  */
 package com.norconex.importer.handler.splitter;
 
+import java.io.IOException;
+
 import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 public abstract class AbstractDocumentSplitter
         <T extends BaseDocumentSplitterConfig>
-                implements DocumentSplitter, Configurable<T> {
+                extends BaseDocumentHandler
+                implements Configurable<T> {
 
     @Override
-    public final void accept(DocContext docCtx)
-            throws ImporterHandlerException {
+    public final void handle(DocContext docCtx) throws IOException {
         split(docCtx);
         if (!docCtx.childDocs().isEmpty()
                 && getConfiguration().isDiscardOriginal()) {
@@ -32,5 +34,5 @@ public abstract class AbstractDocumentSplitter
         }
     }
     public abstract void split(DocContext docCtx)
-            throws ImporterHandlerException;
+            throws IOException;
 }

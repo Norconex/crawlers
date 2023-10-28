@@ -25,7 +25,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 
 class ConstantTransformerTest {
 
@@ -43,7 +43,7 @@ class ConstantTransformerTest {
     }
 
     @Test
-    void testOnSet() throws ImporterHandlerException {
+    void testOnSet() throws IOException {
         var m = new Properties();
         m.add("test1", "1");
         m.add("test1", "2");

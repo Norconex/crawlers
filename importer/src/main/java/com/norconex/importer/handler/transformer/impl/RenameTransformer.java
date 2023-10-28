@@ -21,8 +21,8 @@ import java.util.Objects;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 
@@ -74,14 +74,15 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class RenameTransformer implements
-        DocumentTransformer, Configurable<RenameTransformerConfig> {
+public class RenameTransformer
+        extends BaseDocumentHandler
+        implements Configurable<RenameTransformerConfig> {
 
     private final RenameTransformerConfig configuration =
             new RenameTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         for (RenameOperation op : configuration.getOperations()) {
             for (Entry<String, List<String>> en :
                     docCtx.metadata().matchKeys(

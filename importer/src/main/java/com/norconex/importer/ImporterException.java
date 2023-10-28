@@ -14,12 +14,14 @@
  */
 package com.norconex.importer;
 
+import java.io.IOException;
+
 import lombok.experimental.StandardException;
 
 /**
  * Exception thrown when an issue prevented the proper importation of a file.
  */
 @StandardException
-public class ImporterException extends Exception {
+public class ImporterException extends IOException {
     private static final long serialVersionUID = 1L;
 }

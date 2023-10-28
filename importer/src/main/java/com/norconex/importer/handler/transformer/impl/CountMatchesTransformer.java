@@ -24,8 +24,8 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 
@@ -85,14 +85,15 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class CountMatchesTransformer implements
-        DocumentTransformer, Configurable<CountMatchesTransformerConfig> {
+public class CountMatchesTransformer
+        extends BaseDocumentHandler
+        implements Configurable<CountMatchesTransformerConfig> {
 
     private final CountMatchesTransformerConfig configuration =
             new CountMatchesTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         // "toField" and value must be present.
         if (StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException("'toField' cannot be blank.");

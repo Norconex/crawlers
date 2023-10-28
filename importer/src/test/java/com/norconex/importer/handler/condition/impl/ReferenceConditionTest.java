@@ -16,20 +16,21 @@ package com.norconex.importer.handler.condition.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 class ReferenceConditionTest {
 
     @Test
     void testAcceptDocument()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         var cond = new ReferenceCondition();
 

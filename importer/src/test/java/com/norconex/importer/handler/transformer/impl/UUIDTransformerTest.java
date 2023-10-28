@@ -24,8 +24,8 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class UUIDTransformerTest {
 
@@ -40,7 +40,7 @@ class UUIDTransformerTest {
     }
 
     @Test
-    void testUUIDTagger() throws ImporterHandlerException {
+    void testUUIDTagger() throws IOException {
         var t = new UUIDTransformer();
         t.getConfiguration()
             .setToField("result");

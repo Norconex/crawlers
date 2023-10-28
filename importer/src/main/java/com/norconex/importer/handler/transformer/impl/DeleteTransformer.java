@@ -17,8 +17,8 @@ package com.norconex.importer.handler.transformer.impl;
 import java.io.IOException;
 
 import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -55,13 +55,14 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class DeleteTransformer
-        implements DocumentTransformer, Configurable<DeleteTransformerConfig> {
+        extends BaseDocumentHandler
+        implements Configurable<DeleteTransformerConfig> {
 
     private final DeleteTransformerConfig configuration =
             new DeleteTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
 
         if (configuration.getFieldMatcher().isSet()) {
             // Fields

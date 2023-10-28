@@ -30,7 +30,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 class XmlStreamSplitterTest {
 
@@ -51,7 +50,7 @@ class XmlStreamSplitterTest {
     	 </animals>""";
 
     @Test
-    void testStreamSplit() throws ImporterHandlerException, IOException {
+    void testStreamSplit() throws IOException, IOException {
 
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
@@ -65,14 +64,14 @@ class XmlStreamSplitterTest {
     }
 
     @Test
-    void testErrorsAndEmpty() throws ImporterHandlerException, IOException {
+    void testErrorsAndEmpty() throws IOException, IOException {
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
             .setPath("/a/b/c")
             .setContentTypeMatcher(TextMatcher.regex(".*"));
 
         // test failing stream
-        assertThatExceptionOfType(ImporterHandlerException.class).isThrownBy(
+        assertThatExceptionOfType(IOException.class).isThrownBy(
                 () -> splitter.accept(TestUtil.newDocContext()));
 
         // Test non applicable
@@ -86,7 +85,7 @@ class XmlStreamSplitterTest {
     }
 
     private List<Doc> split(String text, XmlStreamSplitter splitter)
-            throws ImporterHandlerException {
+            throws IOException {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
 

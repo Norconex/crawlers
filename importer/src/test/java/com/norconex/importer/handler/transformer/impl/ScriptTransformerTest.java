@@ -39,9 +39,9 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 class ScriptTransformerTest {
 
@@ -50,7 +50,7 @@ class ScriptTransformerTest {
     @ParameterizedTest
     @ArgumentsSource(SimpleScriptProvider.class)
     void testSimpleTransform(String engineName, String script)
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new ScriptTransformer();
         t.getConfiguration()
             .setEngineName(engineName)
@@ -124,7 +124,7 @@ class ScriptTransformerTest {
     @ParameterizedTest
     @ArgumentsSource(ContentModifyScriptProvider.class)
     void testContentModify(String engineName, String script)
-            throws ImporterHandlerException, UnsupportedEncodingException {
+            throws IOException, UnsupportedEncodingException {
 
         var t = new ScriptTransformer();
         t.setScriptRunner(new ScriptRunner<>(engineName, script));

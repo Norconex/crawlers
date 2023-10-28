@@ -14,7 +14,7 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import static com.norconex.importer.parser.ParseState.PRE;
+import static com.norconex.importer.handler.parser.ParseState.PRE;
 import static java.io.InputStream.nullInputStream;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -41,7 +41,6 @@ class DebugTransformerTest {
         assertThatNoException().isThrownBy(() -> {
             BeanMapper.DEFAULT.assertWriteRead(t);
         });
-
 
         var props = new Properties();
         props.set("field1", "value1");

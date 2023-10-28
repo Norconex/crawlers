@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.io.input.NullInputStream;
@@ -42,13 +43,11 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 class CharacterCaseTransformerTest {
 
     @Test
-    void testUpperLowerValues()
-            throws ImporterHandlerException {
+    void testUpperLowerValues() throws IOException {
         var meta = new Properties();
         meta.add("field1", "Doit être upper");
         meta.add("field1", "Must be upper");
@@ -79,7 +78,7 @@ class CharacterCaseTransformerTest {
 
     @Test
     void testUpperLowerField()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("fieldMustBeUpper", "value 1");
         meta.add("fieldMustBeLower", "value 2");
@@ -117,7 +116,7 @@ class CharacterCaseTransformerTest {
 
     @Test
     void testSwapCase()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("fieldMustBeSwapped", "ValUe Swap. \n  OK.");
 
@@ -137,7 +136,7 @@ class CharacterCaseTransformerTest {
 
     @Test
     void testCapitalizeString()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("string1", "normal String. another One.");
         meta.add("string2", " string starting with a Space.");
@@ -175,7 +174,7 @@ class CharacterCaseTransformerTest {
 
     @Test
     void testCapitalizeStringFully()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("string1", "normal String. another One.");
         meta.add("string2", " string starting with a Space.");
@@ -214,7 +213,7 @@ class CharacterCaseTransformerTest {
 
     @Test
     void testCapitalizeWords()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("string1", "normal String. another One.");
         meta.add("string2", " string starTing with a Space.");
@@ -253,7 +252,7 @@ class CharacterCaseTransformerTest {
 
     @Test
     void testCapitalizeWordsFully()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("string1", "normal String. another One.");
         meta.add("string2", " string starTing with a Space.");
@@ -292,7 +291,7 @@ class CharacterCaseTransformerTest {
 
     @Test
     void testCapitalizeSentences()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("string1", "normal String. another One.");
         meta.add("string2", " string starTing with a Space.");
@@ -339,7 +338,7 @@ class CharacterCaseTransformerTest {
 
     @Test
     void testCapitalizeSentencesFully()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("string1", "normal String. another One.");
         meta.add("string2", " string starTing with a Space.");
@@ -377,7 +376,7 @@ class CharacterCaseTransformerTest {
     }
 
     @Test
-    void testOnBody() throws ImporterHandlerException {
+    void testOnBody() throws IOException {
 
         var t = new CharacterCaseTransformer();
         var cfg = t.getConfiguration();

@@ -27,8 +27,8 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class RenameTransformerTest {
 
@@ -50,7 +50,7 @@ class RenameTransformerTest {
     }
 
     @Test
-    void testRename() throws ImporterHandlerException {
+    void testRename() throws IOException {
         var meta = new Properties();
         meta.add("regularFrom1", "value1");
         meta.add("regexFrom2", "value2");

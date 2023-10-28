@@ -28,7 +28,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 
 class SaveDocumentTransformerTest {
 
@@ -39,7 +39,7 @@ class SaveDocumentTransformerTest {
 
     @Test
     void testSaveDocumentTransformer()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
             .setEscape(true)
@@ -56,7 +56,7 @@ class SaveDocumentTransformerTest {
     }
     @Test
     void testParentIsFileConflict()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
             .setDefaultFileName("index.html")
@@ -78,7 +78,7 @@ class SaveDocumentTransformerTest {
 
     @Test
     void testTargetIsDirConflict()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
             .setDefaultFileName("index.html")
@@ -100,7 +100,7 @@ class SaveDocumentTransformerTest {
 
     @Test
     void testMaxPathLength()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
             .setDefaultFileName("index.html")
@@ -143,7 +143,7 @@ class SaveDocumentTransformerTest {
         return Path.of(doc.metadata().getString(FLD_PATH));
     }
     private DocContext transform(SaveDocumentTransformer t, String ref)
-            throws ImporterHandlerException {
+            throws IOException {
         var is = TestUtil.toInputStream("blah");
         var docCtx = TestUtil.newDocContext(ref, is);
         t.accept(docCtx);

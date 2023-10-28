@@ -28,8 +28,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 class HierarchyTransformerTest {
 
@@ -210,14 +209,10 @@ class HierarchyTransformerTest {
         Assertions.assertArrayEquals(expected, tag(t, meta));
     }
     private String[] tag(HierarchyTransformer t, Properties meta) {
-        try {
-            InputStream is = new NullInputStream(0);
-            t.accept(TestUtil.newDocContext(
-                    "blah", is, meta, ParseState.PRE));
-            return meta.getStrings("targetField").toArray(new String[] {});
-        } catch (ImporterHandlerException e) {
-            throw new RuntimeException(e);
-        }
+        InputStream is = new NullInputStream(0);
+        t.accept(TestUtil.newDocContext(
+                "blah", is, meta, ParseState.PRE));
+        return meta.getStrings("targetField").toArray(new String[] {});
     }
     private HierarchyTransformer createDefaultTagger(
             String fromSep, String toSep) {

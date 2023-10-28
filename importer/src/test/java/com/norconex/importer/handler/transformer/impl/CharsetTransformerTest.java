@@ -34,13 +34,12 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
 
 class CharsetTransformerTest {
 
     @Test
     void testCharsetBodyTransformer()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         testCharsetBodyTransformer("ISO-8859-1",   "ISO-8859-1", true);
         testCharsetBodyTransformer("ISO-8859-2",   "ISO-8859-1", false);
@@ -71,7 +70,7 @@ class CharsetTransformerTest {
 
     @Test
     void testCharsetWithGoodSourceBodyTransformer()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var startWith = "En télécommunications".getBytes("UTF-8");
 
         var t = new CharsetTransformer();
@@ -97,7 +96,7 @@ class CharsetTransformerTest {
 
     @Test
     void testCharsetWithBadSourceBodyTransformer()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var startWith = "En télécommunications".getBytes("UTF-8");
 
         var t = new CharsetTransformer();
@@ -124,13 +123,12 @@ class CharsetTransformerTest {
     }
 
     @Test
-    void testBodyError()
-            throws ImporterHandlerException, IOException {
+    void testBodyError() throws IOException, IOException {
         var t = new CharsetTransformer();
         t.getConfiguration()
             .setSourceCharset(null)
             .setTargetCharset(null);
-        assertThatExceptionOfType(ImporterHandlerException.class).isThrownBy(
+        assertThatExceptionOfType(IOException.class).isThrownBy(
                 () -> t.accept(TestUtil.newDocContext(
                         "N/A", TestUtil.failingCachedInputStream(),
                         nullOutputStream(), new Properties())));
@@ -138,7 +136,7 @@ class CharsetTransformerTest {
 
     @Test
     void testCharsetFieldTransformer()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         testCharsetFieldTransformer("ISO-8859-1",   "ISO-8859-1");
         testCharsetFieldTransformer("ISO-8859-2",   "ISO-8859-1");
@@ -169,7 +167,7 @@ class CharsetTransformerTest {
 
     private void testCharsetFieldTransformer(
             String inCharset, String outCharset)
-            throws ImporterHandlerException, UnsupportedEncodingException {
+            throws IOException, UnsupportedEncodingException {
 
         var fromCharset = Charset.forName(inCharset);
         var toCharset = Charset.forName(outCharset);
@@ -209,7 +207,7 @@ class CharsetTransformerTest {
 
     private void testCharsetBodyTransformer(
             String inCharset, String outCharset, boolean detect)
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
 
         var fromCharset = Charset.forName(inCharset);
         var toCharset = Charset.forName(outCharset);

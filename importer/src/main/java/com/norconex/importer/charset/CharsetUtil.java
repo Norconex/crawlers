@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.io.ByteArrayOutputStream;
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.NonNull;
 

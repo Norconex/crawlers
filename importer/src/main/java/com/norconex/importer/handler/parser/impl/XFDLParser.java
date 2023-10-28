@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.parser.impl.xfdl;
+package com.norconex.importer.handler.parser.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.IOUtils.buffer;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,8 +25,6 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -42,13 +40,10 @@ import org.xml.sax.SAXException;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.importer.charset.CharsetDetector;
-import com.norconex.importer.doc.Doc;
-import com.norconex.importer.parser.DocumentParser;
-import com.norconex.importer.parser.DocumentParserException;
-import com.norconex.importer.parser.ParseOptions;
+import com.norconex.importer.handler.BaseDocumentHandler;
+import com.norconex.importer.handler.DocContext;
 
 import lombok.Data;
-import lombok.NonNull;
 
 
 /**
@@ -57,38 +52,29 @@ import lombok.NonNull;
  * is Base64 encoded or just plain XML (two possible format for XFDL).
  */
 @Data
-public class XFDLParser implements DocumentParser {
+public class XFDLParser extends BaseDocumentHandler {
 
     private static final char[] MAGIC_BASE64 =
           "application/vnd.xfdl;content-encoding=\"base64-gzip\"".toCharArray();
 
     @Override
-    public void init(@NonNull ParseOptions parseOptions)
-            throws DocumentParserException {
-        //NOOP
-    }
-
-    @Override
-    public List<Doc> parseDocument(Doc doc,
-            Writer output) throws DocumentParserException {
+    public void handle(DocContext ctx) throws IOException {
         Charset charset;
         try {
             charset = CharsetDetector.builder()
-                    .priorityCharset(() -> doc.getDocRecord().getCharset())
+                    .priorityCharset(() -> ctx.docRecord().getCharset())
                     .build()
-                    .detect(doc);
+                    .detect(ctx.input().inputStream());
         } catch (IOException e) {
             charset = UTF_8;
         }
-        try (var is = new BufferedInputStream(doc.getInputStream());
-                var reader = new BufferedReader(
-                        new InputStreamReader(is, charset));) {
-            parse(reader, output, doc.getMetadata());
+        try (var reader = buffer(
+                new InputStreamReader(ctx.input().inputStream(), charset));
+                var writer = ctx.output().writer()) {
+            parse(reader, writer, ctx.metadata());
         } catch (IOException | ParserConfigurationException | SAXException e) {
-            throw new DocumentParserException(
-                    "Could not parse " + doc.getReference(), e);
+            throw new IOException("Could not parse " + ctx.reference(), e);
         }
-        return Collections.emptyList();
     }
 
     private void parse(

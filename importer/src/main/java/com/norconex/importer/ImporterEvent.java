@@ -16,7 +16,7 @@ package com.norconex.importer;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.AccessLevel;
 import lombok.Data;

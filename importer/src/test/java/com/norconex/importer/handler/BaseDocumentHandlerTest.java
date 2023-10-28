@@ -14,30 +14,23 @@
  */
 package com.norconex.importer.handler;
 
-import static com.norconex.commons.lang.config.Configurable.configure;
-
-import org.junit.jupiter.api.Test;
-
-import com.norconex.importer.Importer;
-import com.norconex.importer.handler.transformer.impl.TruncateTransformer;
-
 class BaseDocumentHandlerTest {
 
-    @Test
-    void test() {
-        var importer = configure(new Importer(), cfg -> cfg
-            .setPreParseConsumer(
-                BaseDocumentHandler.decorate(configure(
-                    new TruncateTransformer(), t -> t
-                        .setMaxLength(10)))));
-
-        System.err.println("IMPORTER: " + importer);
-
-
-//        var cfg = Configurable.configure(new TruncateTransformer(), t -> {
-//            new ImporterConfig()
+//    @Test
+//    void test() {
+//        var importer = configure(new Importer(), cfg -> cfg
 //            .setPreParseConsumer(
-//        });
-    }
+//                BaseDocumentHandler.decorate(configure(
+//                    new TruncateTransformer(), t -> t
+//                        .setMaxLength(10)))));
+//
+//        System.err.println("IMPORTER: " + importer);
+//
+//
+////        var cfg = Configurable.configure(new TruncateTransformer(), t -> {
+////            new ImporterConfig()
+////            .setPreParseConsumer(
+////        });
+//    }
 
 }

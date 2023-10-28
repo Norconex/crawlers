@@ -25,13 +25,13 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class DateFormatTransformerTest {
 
     @Test
-    void testMultiFromFormatt() throws ImporterHandlerException {
+    void testMultiFromFormatt() throws IOException {
         var dateISOFormat = "yyyy-MM-dd'T'HH:mm:ss";
         var dateEPOCHFormat = "EPOCH";
         var dateHTTPFormat = "EEE, dd MMM yyyy HH:mm:ss";
@@ -90,7 +90,7 @@ class DateFormatTransformerTest {
     }
 
     @Test
-    void testDateFormat() throws ImporterHandlerException {
+    void testDateFormat() throws IOException {
         var meta = new Properties();
         meta.add("datefield1", "2001-10-10T11:32:21");
         meta.add("datefield2", "1002713541000");
@@ -128,7 +128,7 @@ class DateFormatTransformerTest {
     }
 
     @Test
-    void testLocalizedDateFormatting() throws ImporterHandlerException {
+    void testLocalizedDateFormatting() throws IOException {
         Properties meta;
         DateFormatTransformer t;
 
@@ -161,7 +161,7 @@ class DateFormatTransformerTest {
     }
 
     @Test
-    void testLocalizedDateParsing() throws ImporterHandlerException {
+    void testLocalizedDateParsing() throws IOException {
         Properties meta;
         DateFormatTransformer t;
 

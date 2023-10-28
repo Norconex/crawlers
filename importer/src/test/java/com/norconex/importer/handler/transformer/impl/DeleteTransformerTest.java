@@ -30,8 +30,8 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher.Method;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class DeleteTransformerTest {
 
@@ -46,7 +46,7 @@ class DeleteTransformerTest {
     }
 
     @Test
-    void testDeleteField() throws ImporterHandlerException {
+    void testDeleteField() throws IOException {
         var meta = new Properties();
         meta.add("field1", "delete me");
         meta.add("field1", "delete me too");
@@ -72,7 +72,7 @@ class DeleteTransformerTest {
 
     @Test
     void testDeleteFieldsViaXMLConfig()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("content-type", "blah");
         meta.add("x-access-level", "blah");
@@ -93,7 +93,7 @@ class DeleteTransformerTest {
     }
 
     private void deleteBasic(Properties meta, String field)
-            throws ImporterHandlerException {
+            throws IOException {
         var t = new DeleteTransformer();
         BeanMapper.DEFAULT.read(t, new StringReader("""
                 <handler>
@@ -110,7 +110,7 @@ class DeleteTransformerTest {
 
     @Test
     void testDeleteFieldsRegexViaXMLConfig()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("content-type", "blah");
         meta.add("x-access-level", "blah");
@@ -139,7 +139,7 @@ class DeleteTransformerTest {
     }
 
     @Test
-    void testOnBody() throws ImporterHandlerException {
+    void testOnBody() throws IOException {
 
         var t = new DeleteTransformer();
         var body = "Delete this.".getBytes();

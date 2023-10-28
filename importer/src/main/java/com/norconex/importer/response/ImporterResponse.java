@@ -69,6 +69,12 @@ public class ImporterResponse {
     public boolean isSuccess() {
         return status != null && status == Status.SUCCESS;
     }
+    public boolean isRejected() {
+        return status == Status.REJECTED;
+    }
+    public boolean isError() {
+        return status == Status.ERROR;
+    }
 //
 //    public ImporterResponse getParentResponse() {
 //        return parentResponse;

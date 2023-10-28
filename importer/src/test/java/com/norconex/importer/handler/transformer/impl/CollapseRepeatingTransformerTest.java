@@ -30,8 +30,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 class CollapseRepeatingTransformerTest {
 
@@ -48,8 +47,7 @@ class CollapseRepeatingTransformerTest {
         </handler>""";
 
     @Test
-    void testTransformTextDocument()
-            throws ImporterHandlerException, IOException {
+    void testTransformTextDocument() throws IOException {
         var text = "\t\tThis is the text TeXt I want to modify...\n\r\n\r"
                 + "     Too much space.";
 

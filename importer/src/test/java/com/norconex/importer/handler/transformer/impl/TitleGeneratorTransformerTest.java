@@ -30,8 +30,8 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +40,7 @@ class TitleGeneratorTransformerTest {
 
     // Test for: https://github.com/Norconex/importer/issues/74
     @Test
-    void testNullFromField() throws ImporterHandlerException {
+    void testNullFromField() throws IOException {
 
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
@@ -57,7 +57,7 @@ class TitleGeneratorTransformerTest {
     }
 
     @Test
-    void testSummarizeTitle() throws ImporterHandlerException, IOException {
+    void testSummarizeTitle() throws IOException, IOException {
 
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
@@ -83,7 +83,7 @@ class TitleGeneratorTransformerTest {
 
     @Test
     void testHeadingTitle()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
             .setDetectHeading(true)
@@ -106,7 +106,7 @@ class TitleGeneratorTransformerTest {
 
     @Test
     void testFallbackTitle()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new TitleGeneratorTransformer();
 
         InputStream is = new ByteArrayInputStream(

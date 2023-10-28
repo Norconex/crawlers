@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
 import lombok.Data;
@@ -74,14 +74,15 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class CollapseRepeatingTransformer implements
-        DocumentTransformer, Configurable<CollapseRepeatingTransformerConfig> {
+public class CollapseRepeatingTransformer
+        extends BaseDocumentHandler
+        implements Configurable<CollapseRepeatingTransformerConfig> {
 
     private final CollapseRepeatingTransformerConfig configuration =
             new CollapseRepeatingTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
             var text = chunk.getText();
             Pattern pattern;

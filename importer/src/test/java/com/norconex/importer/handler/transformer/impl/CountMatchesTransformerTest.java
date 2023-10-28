@@ -27,8 +27,8 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher.Method;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class CountMatchesTransformerTest {
 
@@ -45,7 +45,7 @@ class CountMatchesTransformerTest {
 
     @Test
     void testMatchesCount()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("url", "http://domain/url/test");
         meta.add("fruits", "grapefruit, apple, orange, APPLE");
@@ -162,7 +162,7 @@ class CountMatchesTransformerTest {
 
     @Test
     void testLargeContent()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("fruits", "orange orange");
         var content = "potato whatever whatever whatever whatever"
@@ -195,7 +195,7 @@ class CountMatchesTransformerTest {
 
     @Test
     void testAddToSameFieldAndNoMatch()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         meta.add("orange", "orange orange");
         meta.add("apple", "apple apple apple");

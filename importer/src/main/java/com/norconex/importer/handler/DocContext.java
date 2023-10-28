@@ -26,12 +26,13 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocRecord;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.util.ReadAdapter;
 import com.norconex.importer.util.WriteAdapter;
 
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
@@ -44,13 +45,14 @@ import lombok.experimental.Accessors;
 public class DocContext {
 
     private final List<Doc> childDocs = new ArrayList<>();
-    //@Getter(value = AccessLevel.NONE)
+    @Getter(value = AccessLevel.NONE)
     public final OutputStream out;
     @Getter(value = AccessLevel.PACKAGE)
     @NonNull
     private final Doc doc;
     @NonNull
-    private final ParseState parseState;
+    @Default
+    private ParseState parseState = ParseState.PRE;
     @NonNull
     private final EventManager eventManager;
     private Object rejectedBy;

@@ -14,7 +14,7 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import static com.norconex.importer.parser.ParseState.PRE;
+import static com.norconex.importer.handler.parser.ParseState.PRE;
 import static java.io.InputStream.nullInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -25,7 +25,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 
 class ForceSingleValueTransformerTest {
 
@@ -40,7 +40,7 @@ class ForceSingleValueTransformerTest {
     }
 
     @Test
-    void testForceSingleValueTagger() throws ImporterHandlerException {
+    void testForceSingleValueTagger() throws IOException {
 
         var t = new ForceSingleValueTransformer();
         t.getConfiguration().setFieldMatcher(TextMatcher.basic("a"));

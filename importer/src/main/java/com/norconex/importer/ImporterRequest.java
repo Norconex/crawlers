@@ -15,13 +15,14 @@
 package com.norconex.importer;
 
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * An Importer request, unique for each document to be imported.
@@ -33,14 +34,14 @@ import lombok.ToString;
  * to pass a reference that represents your document when possible (at least
  * just the filename, including appropriate extension).
  */
-@EqualsAndHashCode
-@ToString
+@Data
+@Accessors(chain = true)
 public class ImporterRequest {
 
     private final InputStream inputStream;
     private final Path file;
     private ContentType contentType;
-    private String contentEncoding;
+    private Charset charset;
     private Properties metadata;
     private String reference;
 
@@ -51,40 +52,5 @@ public class ImporterRequest {
     public ImporterRequest(Path file) {
         inputStream = null;
         this.file = file;
-    }
-
-    public ContentType getContentType() {
-        return contentType;
-    }
-    public ImporterRequest setContentType(ContentType contentType) {
-        this.contentType = contentType;
-        return this;
-    }
-    public String getContentEncoding() {
-        return contentEncoding;
-    }
-    public ImporterRequest setContentEncoding(String contentEncoding) {
-        this.contentEncoding = contentEncoding;
-        return this;
-    }
-    public Properties getMetadata() {
-        return metadata;
-    }
-    public ImporterRequest setMetadata(Properties metadata) {
-        this.metadata = metadata;
-        return this;
-    }
-    public String getReference() {
-        return reference;
-    }
-    public ImporterRequest setReference(String reference) {
-        this.reference = reference;
-        return this;
-    }
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-    public Path getFile() {
-        return file;
     }
 }

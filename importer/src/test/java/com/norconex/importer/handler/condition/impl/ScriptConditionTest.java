@@ -33,7 +33,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
+import java.io.IOException;
 import com.norconex.importer.handler.ScriptRunner;
 
 class ScriptConditionTest {
@@ -41,7 +41,7 @@ class ScriptConditionTest {
     @ParameterizedTest
     @ArgumentsSource(SimpleProvider.class)
     void testScriptCondition(String engineName, String script)
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var cond = Configurable.configure(new ScriptCondition(), c -> c
                 .setEngineName(engineName)
                 .setScript(script));

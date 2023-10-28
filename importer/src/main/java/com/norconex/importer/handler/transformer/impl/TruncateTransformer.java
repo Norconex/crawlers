@@ -30,8 +30,8 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.commons.lang.unit.DataUnit;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -98,8 +98,9 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @Data
 @Slf4j
-public class TruncateTransformer implements
-        DocumentTransformer, Configurable<TruncateTransformerConfig> {
+public class TruncateTransformer
+        extends BaseDocumentHandler
+        implements Configurable<TruncateTransformerConfig> {
 
     private static final int BODY_CHUNK_SIZE =
             DataUnit.KB.toBytes(1).intValue();
@@ -108,7 +109,7 @@ public class TruncateTransformer implements
             new TruncateTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             doFields(docCtx);
         } else {

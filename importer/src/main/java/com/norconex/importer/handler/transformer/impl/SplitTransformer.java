@@ -26,8 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 
@@ -85,14 +85,15 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class SplitTransformer implements
-        DocumentTransformer, Configurable<SplitTransformerConfig> {
+public class SplitTransformer
+        extends BaseDocumentHandler
+        implements Configurable<SplitTransformerConfig> {
 
     private final SplitTransformerConfig configuration =
             new SplitTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         for (SplitOperation op : configuration.getOperations()) {
             if (op.getFieldMatcher().isSet()) {
                 splitMetadata(op, docCtx);

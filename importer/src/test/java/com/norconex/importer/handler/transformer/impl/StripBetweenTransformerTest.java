@@ -32,14 +32,14 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class StripBetweenTransformerTest {
 
     @Test
     void testTransformTextDocument()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new StripBetweenTransformer();
         t.getConfiguration().setOperations(List.of(
             new StripBetweenOperation()
@@ -78,7 +78,7 @@ class StripBetweenTransformerTest {
 
     @Test
     void testCollectorHttpIssue237()
-            throws ImporterHandlerException, IOException {
+            throws IOException, IOException {
         var t = new StripBetweenTransformer();
         t.getConfiguration().setOperations(List.of(
             new StripBetweenOperation()

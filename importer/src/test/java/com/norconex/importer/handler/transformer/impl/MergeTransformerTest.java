@@ -28,8 +28,8 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
+import com.norconex.importer.handler.parser.ParseState;
 
 class MergeTransformerTest {
 
@@ -55,7 +55,7 @@ class MergeTransformerTest {
     }
 
     @Test
-    void testMultiFieldsMerge() throws ImporterHandlerException {
+    void testMultiFieldsMerge() throws IOException {
         var meta = new Properties();
         meta.add("field1", "1.1", "1.2");
         meta.add("field2", "2");
@@ -92,7 +92,7 @@ class MergeTransformerTest {
     }
 
     @Test
-    void testSingleFieldMerge() throws ImporterHandlerException {
+    void testSingleFieldMerge() throws IOException {
         var meta = new Properties();
         meta.add("field", "1", "2");
 

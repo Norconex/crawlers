@@ -39,8 +39,8 @@ import org.apache.commons.text.WordUtils;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.transformer.DocumentTransformer;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -106,14 +106,15 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @Slf4j
 @Data
-public class CharacterCaseTransformer implements
-        DocumentTransformer, Configurable<CharacterCaseTransformerConfig> {
+public class CharacterCaseTransformer
+        extends BaseDocumentHandler
+        implements Configurable<CharacterCaseTransformerConfig> {
 
     private final CharacterCaseTransformerConfig configuration =
             new CharacterCaseTransformerConfig();
 
     @Override
-    public void accept(DocContext docCtx) throws IOException {
+    public void handle(DocContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             doFields(docCtx);
         } else {

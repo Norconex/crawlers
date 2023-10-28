@@ -27,7 +27,7 @@ import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
 
@@ -97,7 +97,7 @@ public class PDFPageSplitter
             new PDFPageSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws ImporterHandlerException {
+    public void split(DocContext docCtx) throws DocumentHandlerException {
 
         // Make sure we are not splitting a page that was already split
         if (!MatchUtil.matchesContentType(
@@ -155,7 +155,7 @@ public class PDFPageSplitter
                 pageDocs.add(pageDoc);
             }
         } catch (IOException e) {
-            throw new ImporterHandlerException(
+            throw new DocumentHandlerException(
                     "Could not split PDF: " + docCtx.reference(), e);
         }
     }
