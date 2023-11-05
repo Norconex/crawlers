@@ -30,7 +30,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import java.io.IOException;
 
 class CsvSplitterTest {
 

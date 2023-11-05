@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.function.FailableBiFunction;
 
@@ -50,18 +51,48 @@ public class ReadAdapter {
         defaultCharset = null;
     }
 
-    public InputStream inputStream() {
+    public InputStream asInputStream() {
         return inputSupplier.get();
     }
 
-    public Reader reader() {
-        return reader(null);
+    public Reader asReader() {
+        return asReader(null);
     }
-    public Reader reader(Charset charset) {
+    public Reader asReader(Charset charset) {
         return new InputStreamReader(IOUtil.toNonNullInputStream(
                 inputSupplier.get()),
                 ObjectUtils.firstNonNull(
                         charset, defaultCharset, StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Consumes the input as a string. <b>Caution:</b> Use only when you know
+     * the content to be of acceptable size. Content too large can generate
+     * memory exceptions when read as a string. An alternative is
+     * using {@link #asChunkedText(FailableBiFunction)} instead.
+     * The input {@link Charset} is presumed to be the one passed in the
+     * constructor or if not set, then UTF-8.
+     * in the constructor or, default to UTF-8.
+     * @return input as string
+     * @throws IOException could not read input
+     */
+    public String asString() throws IOException {
+        return asString(null);
+    }
+    /**
+     * Consumes the input as a string. <b>Caution:</b> Use only when you know
+     * the content to be of acceptable size. Content too large can generate
+     * memory exceptions when read as a string. An alternative is
+     * using {@link #asChunkedText(FailableBiFunction)} instead.
+     * The supplied {@link Charset} will be used as the input character set
+     * if not <code>null</code>. Else, it is presumed to be the one passed in
+     * the constructor or if not set there either, then UTF-8.
+     * @param charset the character set of the input or <code>null</code>
+     * @return input as string
+     * @throws IOException could not read input
+     */
+    public String asString(Charset charset) throws IOException {
+        return IOUtils.toString(asReader(charset));
     }
 
     /**
@@ -72,13 +103,13 @@ public class ReadAdapter {
      *     it was all read or not.
      * @throws IOException
      */
-    public boolean chunkedText(
+    public boolean asChunkedText(
             @NonNull
             FailableBiFunction<Integer, String, Boolean, IOException>
                     textConsumer) throws IOException {
-        return chunkedText(textConsumer, null);
+        return asChunkedText(textConsumer, null);
     }
-    public boolean chunkedText(
+    public boolean asChunkedText(
             @NonNull
             FailableBiFunction<Integer, String, Boolean, IOException>
                     textConsumer,
@@ -90,7 +121,7 @@ public class ReadAdapter {
         String text = null;
         var keepReading = false;
         try (var reader = new TextReader(
-                reader(options.charset), options.maxChunkSize)) {
+                asReader(options.charset), options.maxChunkSize)) {
             while ((text = reader.readText()) != null) {
                 keepReading = textConsumer.apply(chunkIndex, text);
                 chunkIndex++;
@@ -103,8 +134,6 @@ public class ReadAdapter {
                 textConsumer.apply(chunkIndex, "");
             }
             return keepReading;
-        } catch (IOException e) {
-            throw new IOException("Cannot read chunked text.", e);
         }
     }
 

@@ -36,7 +36,6 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 class ReplaceTransformerTest {
@@ -97,9 +96,10 @@ class ReplaceTransformerTest {
                 var os = new ByteArrayOutputStream();) {
             var metadata = new Properties();
             metadata.set("document.reference", reference);
-            t.accept(TestUtil.newDocContext(
-                    reference, is, os, metadata, ParseState.POST));
-            return os.toString();
+            var doc = TestUtil.newDocContext(
+                    reference, is, metadata, ParseState.POST);
+            t.accept(doc);
+            return doc.input().asString();
         }
     }
 

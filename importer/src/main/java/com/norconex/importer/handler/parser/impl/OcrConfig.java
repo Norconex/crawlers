@@ -110,7 +110,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class OCRConfig {
+public class OcrConfig {
 
     //TODO extend Tika TesseractOCRConfig instead?
     // Nahh... it does not have all fields, plus not chaining setters.
@@ -146,7 +146,7 @@ public class OCRConfig {
      * @param contentTypeMatcher content type matcher
      * @return this
      */
-    public OCRConfig setContentTypeMatcher(TextMatcher matcher) {
+    public OcrConfig setContentTypeMatcher(TextMatcher matcher) {
         contentTypeMatcher.copyFrom(matcher);
         return this;
     }

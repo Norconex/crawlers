@@ -19,9 +19,11 @@ import java.io.IOException;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformer;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -94,26 +96,26 @@ import lombok.ToString;
  *
  * @see ExternalHandler
  */
+
+//TODO document it is the same as ExternalTransformer, but sets parse state
+// to POST.
 @SuppressWarnings("javadoc")
-@ToString
-@EqualsAndHashCode
+@Data
 public class ExternalParser
         extends BaseDocumentHandler
-            implements Configurable<ExternalTransformerConfig> {
+        implements Configurable<ExternalTransformerConfig> {
 
     //TODO what about conditionally disabling some parsers? already covered?
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private final ExternalTransformer t = new ExternalTransformer();
-
-    //TODO change all configuration so they can be set, but never null
-    @Override
-    public ExternalTransformerConfig getConfiguration() {
-        return t.getConfiguration();
-    }
-
+    private final ExternalTransformerConfig configuration =
+            t.getConfiguration();
     @Override
     public void handle(DocContext ctx) throws IOException {
         t.accept(ctx);
+        ctx.parseState(ParseState.POST);
     }
 
 }

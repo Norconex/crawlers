@@ -16,6 +16,8 @@ package com.norconex.importer.handler.parser.impl;
 
 import java.nio.file.Path;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -31,22 +33,12 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class DefaultParserConfig {
-    //TODO make this an importer config option instead?
     private Path errorsSaveDir;
-    // overwrite or add custom parsers.  Needed?? Can add as regular
-    // consumer
-//    private final Map<ContentType, Consumer<DocContext>>
-//            parsers = new HashMap<>();
 
-    //TODO add XFDLParser to list of configs?
-    //Maybe keep parsers here, but rename parent class something like
-    // TextExtractor, TextConverter, etc..
+    @JsonProperty("ocr")
+    private final OcrConfig ocrConfig = new OcrConfig();
 
-    private final OCRConfig ocr = new OCRConfig();
     @NonNull
-    private final EmbeddedConfig embedded = new EmbeddedConfig();
-
-
-
-
+    @JsonProperty("embedded")
+    private final EmbeddedConfig embeddedConfig = new EmbeddedConfig();
 }

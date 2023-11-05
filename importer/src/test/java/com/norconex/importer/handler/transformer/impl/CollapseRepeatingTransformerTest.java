@@ -16,7 +16,6 @@ package com.norconex.importer.handler.transformer.impl;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -59,11 +58,11 @@ class CollapseRepeatingTransformerTest {
         }
 
         try (var is = IOUtils.toInputStream(
-                text, StandardCharsets.UTF_8);
-                var os = new ByteArrayOutputStream()) {
-            t.accept(TestUtil.newDocContext(
-                    "dummyRef", is, os, new Properties(), ParseState.POST));
-            var response = os.toString();
+                text, StandardCharsets.UTF_8)) {
+            var doc = TestUtil.newDocContext(
+                    "dummyRef", is, new Properties(), ParseState.POST);
+            t.accept(doc);
+            var response = IOUtils.toString(doc.input().asReader());
             Assertions.assertEquals(
                     "\tthis is the text i want to modify.\n\r too much space.",
                     response.toLowerCase());

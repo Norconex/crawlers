@@ -107,7 +107,7 @@ public class PDFPageSplitter
         }
 
         try (var document = PDDocument.load(
-                docCtx.input().inputStream())) {
+                docCtx.input().asInputStream())) {
 
             // Make sure we are not splitting single pages.
             if (document.getNumberOfPages() <= 1) {

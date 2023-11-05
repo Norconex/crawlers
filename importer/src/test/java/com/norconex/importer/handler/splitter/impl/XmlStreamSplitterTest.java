@@ -16,8 +16,10 @@ package com.norconex.importer.handler.splitter.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -71,8 +73,9 @@ class XmlStreamSplitterTest {
             .setContentTypeMatcher(TextMatcher.regex(".*"));
 
         // test failing stream
-        assertThatExceptionOfType(IOException.class).isThrownBy(
-                () -> splitter.accept(TestUtil.newDocContext()));
+        assertThatExceptionOfType(UncheckedIOException.class)
+            .isThrownBy(//NOSONAR
+                    () -> splitter.accept(TestUtil.newDocContext()));
 
         // Test non applicable
         splitter.getConfiguration().setContentTypeMatcher(
@@ -101,6 +104,7 @@ class XmlStreamSplitterTest {
             .setPath("blah")
             .setContentTypeMatcher(
                     TextMatcher.basic("value").partial().ignoreCase());
-        BeanMapper.DEFAULT.assertWriteRead(splitter);
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(splitter));
     }
 }

@@ -271,8 +271,8 @@ public class ExternalTransformer
     public void handle(DocContext docCtx) throws IOException {
         //TODO eliminate output an set it back on doc???
 
-        var input = docCtx.input().inputStream();
-        var output = docCtx.output().outputStream();
+        var input = docCtx.input().asInputStream();
+        var output = docCtx.output().asOutputStream();
 
         validate();
         var cmd = configuration.getCommand();

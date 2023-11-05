@@ -83,9 +83,10 @@ public final class ChunkedTextUtil {
             docCtx.metadata().setList(originalChunk.getField(), values);
         } else {
             // set on body
-            try (var writer = docCtx.output().writer()) {
-                writer.write(newText);
-            }
+            // we don't close the stream here as we might be setting
+            // one of many chunks of text, so we let the caller do it.
+            var writer = docCtx.output().asWriter();
+            writer.write(newText);
         }
     }
 }

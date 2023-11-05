@@ -17,7 +17,6 @@ package com.norconex.importer.handler.transformer.impl;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +29,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 class StripAfterTransformerTest {
@@ -45,19 +43,16 @@ class StripAfterTransformerTest {
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
-        var os = new ByteArrayOutputStream();
         var metadata = new Properties();
-
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(TestUtil.newDocContext(htmlFile.getAbsolutePath(),
-                is, os, metadata, ParseState.PRE));
-
+        var doc = TestUtil.newDocContext(htmlFile.getAbsolutePath(),
+                is, metadata, ParseState.PRE);
+        t.accept(doc);
         Assertions.assertEquals(
-                539, TestUtil.toUtf8UnixLineString(os).length(),
+                539, doc.input().asString().replace("\r", "").length(),
                 "Length of doc content after transformation is incorrect.");
 
         is.close();
-        os.close();
     }
 
 

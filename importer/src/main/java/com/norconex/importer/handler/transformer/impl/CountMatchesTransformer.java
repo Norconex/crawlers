@@ -105,7 +105,7 @@ public class CountMatchesTransformer
 
         var count = 0;
         if (configuration.getFieldMatcher().getPattern() == null) {
-            count = countContentMatches(docCtx.input().reader(
+            count = countContentMatches(docCtx.input().asReader(
                     configuration.getSourceCharset()));
         } else {
             count = countFieldMatches(docCtx.metadata());

@@ -24,16 +24,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.i18n.UncheckedException;
 
 import com.norconex.commons.lang.event.EventManager;
@@ -46,7 +48,6 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.DocContext;
-import java.io.IOException;
 import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.handler.parser.ParseState;
 
@@ -71,6 +72,10 @@ public final class TestUtil {
     public static String getContentAsString(Doc doc)
             throws IOException {
         return IOUtils.toString(doc.getInputStream(), StandardCharsets.UTF_8);
+    }
+    public static String getContentAsString(DocContext docCtx)
+            throws IOException {
+        return IOUtils.toString(docCtx.input().asReader(UTF_8));
     }
 
     public static File getAlicePdfFile() {
@@ -195,7 +200,7 @@ public final class TestUtil {
         return doc;
     }
     public static DocContext newDocContext() {
-        return newDocContext("N/A", null, new Properties());
+        return newDocContext("dummy-ref", null, new Properties());
     }
     public static DocContext newDocContext(
             String ref, InputStream in) {
@@ -206,28 +211,23 @@ public final class TestUtil {
         return newDocContext(ref, in, meta, ParseState.PRE);
     }
     public static DocContext newDocContext(
-            String ref, InputStream in, Properties meta, ParseState state) {
-        return DocContext.builder()
-                .doc(newDoc(ref, in, meta))
-                .parseState(state)
-                .eventManager(new EventManager())
-                .out(NullOutputStream.INSTANCE)
-                .build();
-    }
-    public static DocContext newDocContext(
-            String ref, InputStream in, OutputStream out, Properties meta) {
-        return newDocContext(ref, in, out, meta, ParseState.PRE);
-    }
-    public static DocContext newDocContext(
-            String ref, InputStream in, OutputStream out,
+            String ref, InputStream in,
             Properties meta, ParseState state) {
         return DocContext.builder()
                 .doc(newDoc(ref, in, meta))
                 .parseState(state)
                 .eventManager(new EventManager())
-                .out(out)
                 .build();
     }
+
+    public static DocContext newDocContext(String ref, String body) {
+        return newDocContext(ref, new ByteArrayInputStream(body.getBytes()));
+    }
+    public static DocContext newDocContext(String body) {
+        return newDocContext(
+                "dummy-ref", new ByteArrayInputStream(body.getBytes()));
+    }
+
 
     public static String contentAsString(Doc doc) {
         try {
@@ -265,5 +265,14 @@ public final class TestUtil {
 
     public static String toUtf8UnixLineString(ByteArrayOutputStream os) {
         return os.toString(UTF_8).replace("\r", "");
+    }
+
+    public static Path resourceAsFile(
+            Path folder, String resourcePath) throws IOException {
+        var file = Files.createTempFile(folder, null,
+                StringUtils.substringAfterLast(resourcePath, "/"));
+        Files.copy(TestUtil.class.getResourceAsStream(resourcePath), file,
+                StandardCopyOption.REPLACE_EXISTING);
+        return file;
     }
 }

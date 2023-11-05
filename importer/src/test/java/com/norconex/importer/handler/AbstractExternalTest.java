@@ -12,70 +12,95 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.parser;
+package com.norconex.importer.handler;
+
+import static com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig.META_FORMAT_PROPERTIES;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
-import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.doc.Doc;
-import com.norconex.importer.parser.impl.ExternalParser;
+import com.norconex.importer.TestUtil;
+import com.norconex.importer.handler.parser.ParseState;
+import com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig;
 import com.norconex.importer.util.ExternalApp;
 
-public class ExternalParserTest {
+public abstract class AbstractExternalTest {
 
-    public static final String INPUT = "1 2 3\n4 5 6\n7 8 9";
-    public static final String EXPECTED_OUTPUT = "3 2 1\n6 5 4\n9 8 7";
+    static final String INPUT = "1 2 3\n4 5 6\n7 8 9";
+    static final String EXPECTED_OUTPUT = "3 2 1\n6 5 4\n9 8 7";
+
+    private final Supplier<Configurable<ExternalTransformerConfig>> supplier;
+    protected AbstractExternalTest(
+            Supplier<Configurable<ExternalTransformerConfig>> supplier) {
+        this.supplier = supplier;
+    }
 
     @Test
     public void testWriteRead() {
-        var p = new ExternalParser();
-        p.setCommand("my command");
+        Map<String, String> setEnvs = new HashMap<>();
+        setEnvs.put("env1", "value1");
+        setEnvs.put("env2", "value2");
+        setEnvs.put("env3", "value3");
+        setEnvs.put("env4", "value4");
+        setEnvs.put("env5", "value5");
 
-        p.setMetadataExtractionPatterns(List.of(
-            new RegexFieldValueExtractor("asdf.*", "blah"),
-            new RegexFieldValueExtractor("qwer.*", "halb")
-        ));
+        var t = supplier.get();
+        t.getConfiguration()
+            .setCommand("my command")
+            .setTempDir(Paths.get("/some-path"))
+            .setMetadataInputFormat("json")
+            .setMetadataOutputFormat("xml")
+            .setExtractionPatterns(List.of(
+                    new RegexFieldValueExtractor("aaa.*", "111"),
+                    new RegexFieldValueExtractor("bbb.*", "222"),
+                    new RegexFieldValueExtractor("ccc.*", "333"),
+                    new RegexFieldValueExtractor("ddd.*", "444", 2)
+            ))
+            .setEnvironmentVariables(setEnvs);
 
-        Map<String, String> envs = new HashMap<>();
-        envs.put("env1", "value1");
-        envs.put("env2", "value2");
-        p.setEnvironmentVariables(envs);
-
-        BeanMapper.DEFAULT.assertWriteRead(p);
+        assertThatNoException().isThrownBy(() ->
+            BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
-    public void testInFileOutFile() throws DocumentParserException {
+    public void testInFileOutFile()
+            throws IOException {
         testWithExternalApp("-ic ${INPUT} -oc ${OUTPUT} -ref ${REFERENCE}");
     }
     @Test
-    public void testInFileStdout() throws DocumentParserException {
+    public void testInFileStdout()
+            throws IOException {
         testWithExternalApp("-ic ${INPUT}");
     }
     @Test
-    public void testStdinOutFile() throws DocumentParserException {
+    public void testStdinOutFile()
+            throws IOException {
         testWithExternalApp("-oc ${OUTPUT} -ref ${REFERENCE}");
     }
     @Test
-    public void testStdinStdout() throws DocumentParserException {
+    public void testStdinStdout()
+            throws IOException {
         testWithExternalApp("");
     }
 
     @Test
-    public void testMetaInputOutputFiles() throws DocumentParserException {
+    public void testMetaInputOutputFiles()
+            throws IOException {
         testWithExternalApp("""
         	-ic ${INPUT} -oc ${OUTPUT}\s\
         	-im ${INPUT_META} -om ${OUTPUT_META}\s\
@@ -83,20 +108,13 @@ public class ExternalParserTest {
     }
 
     private void testWithExternalApp(String command)
-            throws DocumentParserException {
+            throws IOException {
         testWithExternalApp(command, false);
     }
     private void testWithExternalApp(String command, boolean metaFiles)
-            throws DocumentParserException {
+            throws IOException {
         var input = inputAsStream();
-        var output = new StringWriter();
-        var doc = new Doc(
-                "c:\\ref with spaces\\doc.txt",
-                new CachedStreamFactory(
-                        DataUnit.KB.toBytes(10).intValue(),
-                        DataUnit.KB.toBytes(5).intValue())
-                                .newInputStream(input));
-        var metadata = doc.getMetadata();
+        var metadata = new Properties();
         if (metaFiles) {
             metadata.set(
                     "metaFileField1", "this is a first test");
@@ -105,15 +123,20 @@ public class ExternalParserTest {
                     "this is a second test value2");
         }
 
-        var p = new ExternalParser();
-        p.setCommand(ExternalApp.newCommandLine(command));
-        addPatternsAndEnvs(p);
-        p.setMetadataInputFormat("properties");
-        p.setMetadataOutputFormat("properties");
-        p.setOnSet(PropertySetter.REPLACE);
-        p.parseDocument(doc, output);
+        var t = supplier.get();
+        var cfg = t.getConfiguration();
+        cfg.setCommand(ExternalApp.newCommandLine(command));
+        addPatternsAndEnvs(cfg);
+        cfg
+            .setMetadataInputFormat(META_FORMAT_PROPERTIES)
+            .setMetadataOutputFormat(META_FORMAT_PROPERTIES)
+            .setOnSet(PropertySetter.REPLACE);
+        var doc = TestUtil.newDocContext(
+                "c:\\ref with spaces\\doc.txt", input,
+                metadata, ParseState.PRE);
+        ((BaseDocumentHandler) t).accept(doc);
 
-        var content = output.toString();
+        var content = doc.input().asString();
         // remove any stdout content that could be mixed with output to
         // properly validate
         content = content.replace("field1:StdoutBefore", "");
@@ -138,7 +161,6 @@ public class ExternalParserTest {
                 "value2 test second a is this",
                 meta.getStrings("metaFileField2").get(1));
     }
-
     private void assertMetadata(Properties meta, boolean testReference) {
         Assertions.assertEquals("StdoutBefore", meta.getString("field1"));
         Assertions.assertEquals("StdoutAfter", meta.getString("field2"));
@@ -150,15 +172,15 @@ public class ExternalParserTest {
         }
     }
 
-    private void addPatternsAndEnvs(ExternalParser p) {
+    private void addPatternsAndEnvs(ExternalTransformerConfig cfg) {
         Map<String, String> envs = new HashMap<>();
         envs.put(ExternalApp.ENV_STDOUT_BEFORE, "field1:StdoutBefore");
         envs.put(ExternalApp.ENV_STDOUT_AFTER, "<field2>StdoutAfter</field2>");
         envs.put(ExternalApp.ENV_STDERR_BEFORE, "field3 StdErrBefore");
         envs.put(ExternalApp.ENV_STDERR_AFTER, "StdErrAfter:field4");
-        p.setEnvironmentVariables(envs);
+        cfg.setEnvironmentVariables(envs);
 
-        p.setMetadataExtractionPatterns(List.of(
+        cfg.setExtractionPatterns(List.of(
             new RegexFieldValueExtractor("^(f.*):(.*)", 1, 2),
             new RegexFieldValueExtractor("^<field2>(.*)</field2>", "field2", 1),
             new RegexFieldValueExtractor("^f.*StdErr.*", "field3", 1),

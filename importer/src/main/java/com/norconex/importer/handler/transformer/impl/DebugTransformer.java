@@ -102,7 +102,7 @@ public class DebugTransformer
             SLF4JUtil.log(LOG, level,
                     StringUtils.trimToEmpty(configuration.getPrefix())
                         + "CONTENT={}",
-                    IOUtils.toString(docCtx.input().inputStream(), UTF_8));
+                    IOUtils.toString(docCtx.input().asInputStream(), UTF_8));
         }
     }
 

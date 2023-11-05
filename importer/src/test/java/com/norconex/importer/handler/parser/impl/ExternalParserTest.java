@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.handler.transformer.impl;
+package com.norconex.importer.handler.parser.impl;
 
 import com.norconex.importer.handler.AbstractExternalTest;
 
-class ExternalTransformerTest extends AbstractExternalTest {
+class ExternalParserTest extends AbstractExternalTest {
 
-    public ExternalTransformerTest() {
-        super(ExternalTransformer::new);
+    public ExternalParserTest() {
+        super(ExternalParser::new);
     }
 }

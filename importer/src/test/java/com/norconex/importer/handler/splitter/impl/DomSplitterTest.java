@@ -28,7 +28,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
-import java.io.IOException;
 
 class DomSplitterTest {
 

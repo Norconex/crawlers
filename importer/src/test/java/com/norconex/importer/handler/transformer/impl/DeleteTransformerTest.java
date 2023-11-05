@@ -16,8 +16,7 @@ package com.norconex.importer.handler.transformer.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 
@@ -30,7 +29,6 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher.Method;
 import com.norconex.importer.TestUtil;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 class DeleteTransformerTest {
@@ -140,12 +138,9 @@ class DeleteTransformerTest {
 
     @Test
     void testOnBody() throws IOException {
-
         var t = new DeleteTransformer();
-        var body = "Delete this.".getBytes();
-        var out = new ByteArrayOutputStream();
-        t.accept(TestUtil.newDocContext(
-                "blah", new ByteArrayInputStream(body), out, new Properties()));
-        assertThat(out.toString()).isEmpty();
+        var doc = TestUtil.newDocContext("blah", "Delete this.");
+        t.accept(doc);
+        assertThat(doc.input().asInputStream()).isEmpty();
     }
 }

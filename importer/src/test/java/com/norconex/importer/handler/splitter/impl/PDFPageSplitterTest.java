@@ -14,6 +14,8 @@
  */
 package com.norconex.importer.handler.splitter.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -27,7 +29,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
-import java.io.IOException;
 
 class PDFPageSplitterTest {
 
@@ -62,7 +63,8 @@ class PDFPageSplitterTest {
     void testWriteRead() {
         var splitter = new PDFPageSplitter();
         splitter.getConfiguration().setReferencePagePrefix("#page");
-        BeanMapper.DEFAULT.assertWriteRead(splitter);
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(splitter));
     }
 
     private List<Doc> split(PDFPageSplitter splitter)

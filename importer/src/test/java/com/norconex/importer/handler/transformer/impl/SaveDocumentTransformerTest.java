@@ -28,7 +28,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.DocContext;
-import java.io.IOException;
 
 class SaveDocumentTransformerTest {
 

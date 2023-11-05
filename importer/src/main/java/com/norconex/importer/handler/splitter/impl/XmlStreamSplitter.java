@@ -125,7 +125,7 @@ public class XmlStreamSplitter
             new XmlStreamSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws DocumentHandlerException {
+    public void split(DocContext docCtx) throws IOException {
 
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docRecord())) {
@@ -141,12 +141,11 @@ public class XmlStreamSplitter
             }
         } else {
             // Body
-            doSplit(docCtx, docCtx.input().inputStream());
+            doSplit(docCtx, docCtx.input().asInputStream());
         }
     }
 
-    private void doSplit(DocContext docCtx, InputStream is)
-            throws DocumentHandlerException {
+    private void doSplit(DocContext docCtx, InputStream is) throws IOException {
         try (is) {
             var h = new XmlHandler(docCtx, Arrays.asList(StringUtils.split(
                     configuration.getPath(), '/')), docCtx.childDocs());
@@ -157,7 +156,7 @@ public class XmlStreamSplitter
         }
     }
 
-    class XmlHandler extends DefaultHandler {
+    static class XmlHandler extends DefaultHandler {
 
         private final List<String> splitPath;
         private final List<Doc> splitDocs;

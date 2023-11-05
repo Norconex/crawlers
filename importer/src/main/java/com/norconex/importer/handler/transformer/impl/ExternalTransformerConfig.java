@@ -316,9 +316,11 @@ public class ExternalTransformerConfig {
     /**
      * Sets metadata extraction patterns. See class documentation.
      * @param patterns extraction pattern
+     * @return this instance
      */
-    public void setExtractionPatterns(
+    public ExternalTransformerConfig setExtractionPatterns(
             List<RegexFieldValueExtractor> extractionPatterns) {
         CollectionUtil.setAll(this.extractionPatterns, extractionPatterns);
+        return this;
     }
 }

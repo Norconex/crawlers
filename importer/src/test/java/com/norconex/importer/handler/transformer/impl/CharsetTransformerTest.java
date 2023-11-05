@@ -14,17 +14,17 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import static java.io.OutputStream.nullOutputStream;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -78,18 +78,14 @@ class CharsetTransformerTest {
             .setSourceCharset(Charset.forName("ISO-8859-1"))
             .setTargetCharset(StandardCharsets.UTF_8);
 
-        var os = new ByteArrayOutputStream();
-        var metadata = new Properties();
         var is = getFileStream("/charset/ISO-8859-1.txt");
-
-        t.accept(TestUtil.newDocContext("ISO-8859-1.txt", is, os, metadata));
-
-        var output = os.toByteArray();
-
+        var doc = TestUtil.newDocContext("ISO-8859-1.txt", is);
+        t.accept(doc);
         is.close();
-        os.close();
 
-        var targetStartWith = Arrays.copyOf(output, startWith.length);
+        var targetStartWith = Arrays.copyOf(
+                IOUtils.toByteArray(doc.input().asInputStream()),
+                startWith.length);
         Assertions.assertArrayEquals(
                 startWith, targetStartWith, "ISO-8859-1 > UTF-8");
     }
@@ -104,16 +100,11 @@ class CharsetTransformerTest {
             .setSourceCharset(Charset.forName("KOI8-R"))
             .setTargetCharset(null);  // using default: UTF-8
 
-        var os = new ByteArrayOutputStream();
-        var metadata = new Properties();
         var is = getFileStream("/charset/ISO-8859-1.txt");
-
-        t.accept(TestUtil.newDocContext("ISO-8859-1.txt", is, os, metadata));
-
-        var output = os.toByteArray();
-
+        var doc = TestUtil.newDocContext("ISO-8859-1.txt", is);
+        t.accept(doc);
+        var output = IOUtils.toByteArray(doc.input().asInputStream());
         is.close();
-        os.close();
 
         var targetStartWith = Arrays.copyOf(output, startWith.length);
         if (Arrays.equals(startWith, targetStartWith)) {
@@ -128,10 +119,11 @@ class CharsetTransformerTest {
         t.getConfiguration()
             .setSourceCharset(null)
             .setTargetCharset(null);
-        assertThatExceptionOfType(IOException.class).isThrownBy(
-                () -> t.accept(TestUtil.newDocContext(
-                        "N/A", TestUtil.failingCachedInputStream(),
-                        nullOutputStream(), new Properties())));
+        assertThatExceptionOfType(
+                UncheckedIOException.class).isThrownBy( //NOSONAR
+                    () -> t.accept(TestUtil.newDocContext(
+                            "N/A", TestUtil.failingCachedInputStream(),
+                            new Properties())));
     }
 
     @Test
@@ -220,17 +212,13 @@ class CharsetTransformerTest {
         }
         t.getConfiguration().setTargetCharset(toCharset);
 
-        var os = new ByteArrayOutputStream();
-        var metadata = new Properties();
         var is = getFileStream("/charset/" + fromCharset + ".txt");
+        var doc = TestUtil.newDocContext(fromCharset + ".txt", is);
+        t.accept(doc);
 
-        t.accept(
-                TestUtil.newDocContext(fromCharset + ".txt", is, os, metadata));
-
-        var output = os.toByteArray();
+        var output = IOUtils.toByteArray(doc.input().asInputStream());
 
         is.close();
-        os.close();
 
         var targetStartWith = Arrays.copyOf(output, startWith.length);
 

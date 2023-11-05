@@ -14,21 +14,17 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.ImporterException;
 import com.norconex.importer.TestUtil;
-import java.io.IOException;
-import com.norconex.importer.handler.parser.ParseState;
 
 class SubstringTransformerTest {
 
@@ -44,24 +40,19 @@ class SubstringTransformerTest {
         Assertions.assertEquals("890", substring(7, 42, content));
         Assertions.assertEquals("1234", substring(-1, 4, content));
         Assertions.assertEquals("7890", substring(6, -1, content));
-        try {
-            substring(4, 1, content);
-            Assertions.fail("Should have triggered an exception.");
-        } catch (ImporterException e) {
-        }
+        assertThatExceptionOfType(UncheckedIOException.class)
+                .isThrownBy(() -> substring(4, 1, content));
     }
 
     private String substring(long begin, long end, String content)
             throws IOException {
-        InputStream input = new ByteArrayInputStream(content.getBytes());
         var t = new SubstringTransformer();
         t.getConfiguration()
             .setBegin(begin)
             .setEnd(end);
-        var output = new ByteArrayOutputStream();
-        t.accept(TestUtil.newDocContext(
-                "N/A", input, output, new Properties(), ParseState.PRE));
-        return new String(output.toByteArray());
+        var doc = TestUtil.newDocContext(content);
+        t.accept(doc);
+        return doc.input().asString();
     }
 
     @Test

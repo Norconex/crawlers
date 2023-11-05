@@ -14,23 +14,19 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.io.ByteArrayOutputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.DocContext;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 class TruncateTransformerTest {
@@ -120,7 +116,7 @@ class TruncateTransformerTest {
         var t = new TruncateTransformer();
 
         // hash + suffix
-        docCtx = docCtx(
+        docCtx = TestUtil.newDocContext(
                 "Please truncate me before you start thinking I am too long.");
         t.getConfiguration()
             .setToField("to")
@@ -134,7 +130,7 @@ class TruncateTransformerTest {
                 docCtx.metadata().getString("to"));
 
         // no hash + suffix
-        docCtx = docCtx(
+        docCtx = TestUtil.newDocContext(
                 "Another long string to test similar with suffix and no hash");
         t.getConfiguration()
             .setAppendHash(false)
@@ -145,7 +141,7 @@ class TruncateTransformerTest {
                 docCtx.metadata().getString("to"));
 
         // hash + no suffix
-        docCtx = docCtx(
+        docCtx = TestUtil.newDocContext(
                 "Another long string to test similar without suffix, a hash");
         t.getConfiguration()
             .setAppendHash(true)
@@ -156,7 +152,7 @@ class TruncateTransformerTest {
                 docCtx.metadata().getString("to"));
 
         // no hash + no suffix
-        docCtx = docCtx(
+        docCtx = TestUtil.newDocContext(
                 "Another long string to test similar without suffix, no hash");
         t.getConfiguration()
             .setAppendHash(false)
@@ -167,7 +163,7 @@ class TruncateTransformerTest {
                 docCtx.metadata().getString("to"));
 
         // too small for truncate
-        docCtx = docCtx("A small one");
+        docCtx = TestUtil.newDocContext("A small one");
         t.getConfiguration()
             .setAppendHash(false)
             .setSuffix(null);
@@ -177,10 +173,8 @@ class TruncateTransformerTest {
 
 
         // hash + suffix, replacing body
-        var out = new ByteArrayOutputStream();
-        docCtx = docCtx(
-                "Please truncate me before you start thinking I am too long.",
-                out);
+        docCtx = TestUtil.newDocContext(
+                "Please truncate me before you start thinking I am too long.");
         t = new TruncateTransformer();
         t.getConfiguration()
             .setToField(null)
@@ -191,17 +185,6 @@ class TruncateTransformerTest {
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
-                out.toString(UTF_8));
-    }
-
-    private DocContext docCtx(String content) {
-        return docCtx(content, null);
-    }
-    private DocContext docCtx(String content, ByteArrayOutputStream out) {
-        return TestUtil.newDocContext(
-                "n/a",
-                new ByteArrayInputStream(content.getBytes(UTF_8)),
-                out,
-                new Properties());
+                docCtx.input().asString());
     }
 }

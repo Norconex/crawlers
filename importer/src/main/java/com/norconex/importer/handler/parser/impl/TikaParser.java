@@ -35,6 +35,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -42,7 +43,8 @@ import lombok.ToString;
 
 
 /**
- * Parser configured by passing a tika configuration file.
+ * Raw Tika parser that needs to be configured by passing a tika
+ * configuration file.
  */
 @EqualsAndHashCode
 @ToString
@@ -67,8 +69,8 @@ public class TikaParser
 
     @Override
     public void handle(DocContext ctx) throws IOException {
-        try (var input = ctx.input().inputStream();
-                var output = ctx.output().writer(UTF_8)) {
+        try (var input = ctx.input().asInputStream();
+                var output = ctx.output().asWriter(UTF_8)) {
             var tikaMetadata = new Metadata();
             tikaMetadata.set(TikaCoreProperties.RESOURCE_NAME_KEY,
                     ctx.reference());
@@ -86,6 +88,7 @@ public class TikaParser
             }
             addTikaToImporterMetadata(tikaMetadata, ctx.metadata());
         }
+        ctx.parseState(ParseState.POST);
     }
 
     private void addTikaToImporterMetadata(

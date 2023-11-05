@@ -148,7 +148,7 @@ public class TextStatisticsTransformer
                         en.getKey());
             }
         } else {
-            try (var input = docCtx.input().reader(
+            try (var input = docCtx.input().asReader(
                     configuration.getSourceCharset())) {
                 analyze(input, docCtx.metadata(), null);
             }

@@ -14,7 +14,6 @@
  */
 package com.norconex.importer.handler;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -29,7 +28,7 @@ import java.util.function.Consumer;
  * Implementations are responsible for interacting with a document to
  * either parse it, transform it, decorate it, filter it, etc.
  */
-public interface DocumentHandler extends Consumer<DocContext>, Closeable {
+public interface DocumentHandler extends Consumer<DocContext> {
 
     // THIS SHOULD BE DETECTABLE and be the base of doc consumers for
     // the importer.
@@ -38,8 +37,7 @@ public interface DocumentHandler extends Consumer<DocContext>, Closeable {
 
     //TODO maybe pass Importer to method?
     default void init() throws IOException {}
-    @Override
-    default void close() throws IOException {}
+    default void destroy() throws IOException {}
     //default void destroy(Importer importer) {}
 
 //    /**

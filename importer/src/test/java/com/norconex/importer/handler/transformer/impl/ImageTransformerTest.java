@@ -17,15 +17,13 @@ package com.norconex.importer.handler.transformer.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.TestUtil;
-import java.io.IOException;
-import com.norconex.importer.handler.parser.ParseState;
 
 class ImageTransformerTest {
 
@@ -55,15 +53,13 @@ class ImageTransformerTest {
     void testImageTransformer() throws IOException {
         var t = new ImageTransformer();
         t.getConfiguration().setRotation(90d);
-        var out = new ByteArrayOutputStream();
-        assertThatNoException().isThrownBy(() ->
-            t.accept(TestUtil.newDocContext(
-                    "img.png",
-                    getClass().getResourceAsStream(
-                            "/parser/image/importer.png"),
-                    out,
-                    new Properties(),
-                    ParseState.PRE)));
-        assertThat(out.size()).isPositive();
+        var doc = TestUtil.newDocContext(
+                "img.png",
+                getClass().getResourceAsStream(
+                        "/parser/image/importer.png"));
+        assertThatNoException().isThrownBy(() -> t.accept(doc));
+        assertThat(
+                ((CachedInputStream) doc.input().asInputStream()).length())
+                .isPositive();
     }
 }

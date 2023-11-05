@@ -17,7 +17,6 @@ package com.norconex.importer.handler.transformer.impl;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +38,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import java.io.IOException;
 import com.norconex.importer.handler.ScriptRunner;
 import com.norconex.importer.handler.parser.ParseState;
 
@@ -58,17 +56,19 @@ class ScriptTransformerTest {
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
-        var out = new ByteArrayOutputStream();
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(TestUtil.newDocContext(
-                htmlFile.getAbsolutePath(), is, out, metadata, ParseState.PRE));
+        var doc = TestUtil.newDocContext(
+                htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
+        t.accept(doc);
         is.close();
 
         var successField = metadata.getString("test");
         Assertions.assertEquals("success", successField);
 
-        var content = new String(out.toString());
+        var content = doc.input().asString();
+        System.err.println("CONTENT: " + content);
+
         Assertions.assertEquals(0, StringUtils.countMatches(content, "Alice"));
         Assertions.assertEquals(34, StringUtils.countMatches(content, "Roger"));
     }
@@ -130,12 +130,12 @@ class ScriptTransformerTest {
         t.setScriptRunner(new ScriptRunner<>(engineName, script));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        var out = new ByteArrayOutputStream();
         var is = IOUtils.toInputStream(
                 "World!", StandardCharsets.UTF_8);
-        t.accept(TestUtil.newDocContext(
-                "N/A", is, out, metadata, ParseState.POST));
-        var content = out.toString(StandardCharsets.UTF_8.toString());
+        var doc = TestUtil.newDocContext(
+                "N/A", is, metadata, ParseState.POST);
+        t.accept(doc);
+        var content = doc.input().asString();
         Assertions.assertEquals("Hello World!", content);
     }
 

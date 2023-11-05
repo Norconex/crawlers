@@ -28,6 +28,7 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.flow.JsonFlow;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
 import lombok.Data;
@@ -85,7 +86,7 @@ public class ImporterConfig {
 
     @JsonFlow
     @JsonProperty("handlers")
-    private Consumer<DocContext> handler;
+    private Consumer<DocContext> handler = new DefaultParser();
 
 
 //    /**

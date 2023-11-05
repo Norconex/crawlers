@@ -124,8 +124,8 @@ public class TruncateTransformer
         String secondToLastChunk = null;
         var charRead = 0;
 
-        try (var reader = IOUtils.buffer(docCtx.input().reader());
-                var writer = docCtx.output().writer()) {
+        try (var reader = IOUtils.buffer(docCtx.input().asReader());
+                var writer = docCtx.output().asWriter()) {
             for (var text = readString(reader);
                     text != null; text = readString(reader)) {
                 charRead += text.length();

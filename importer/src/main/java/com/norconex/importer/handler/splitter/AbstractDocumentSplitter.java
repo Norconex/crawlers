@@ -20,6 +20,11 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@ToString
+@EqualsAndHashCode
 public abstract class AbstractDocumentSplitter
         <T extends BaseDocumentSplitterConfig>
                 extends BaseDocumentHandler

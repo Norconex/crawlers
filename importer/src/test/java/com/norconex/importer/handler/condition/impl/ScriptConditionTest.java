@@ -33,7 +33,6 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import java.io.IOException;
 import com.norconex.importer.handler.ScriptRunner;
 
 class ScriptConditionTest {

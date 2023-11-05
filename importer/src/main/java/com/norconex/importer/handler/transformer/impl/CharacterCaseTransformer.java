@@ -151,8 +151,8 @@ public class CharacterCaseTransformer
     }
 
     private void doBody(DocContext docCtx) throws IOException {
-        try (var out = docCtx.output().writer()) {
-            docCtx.input().chunkedText((idx, text) -> {
+        try (var out = docCtx.output().asWriter()) {
+            docCtx.input().asChunkedText((idx, text) -> {
                out.write(changeCase(text));
                return true;
             });

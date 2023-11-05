@@ -109,8 +109,8 @@ public class ImageTransformer
             return;
         }
 
-        try (var input = docCtx.input().inputStream();
-                var output = docCtx.output().outputStream();) {
+        try (var input = docCtx.input().asInputStream();
+                var output = docCtx.output().asOutputStream();) {
             var img = new MutableImage(input);
             transformImage(img);
             img.write(output, configuration.getTargetFormat());

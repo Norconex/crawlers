@@ -26,10 +26,9 @@ import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransf
 import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_UPPER;
 import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS;
 import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS_FULLY;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -380,19 +379,15 @@ class CharacterCaseTransformerTest {
 
         var t = new CharacterCaseTransformer();
         var cfg = t.getConfiguration();
-
-        var body = """
+        cfg.setCaseType(CASE_SENTENCES);
+        var doc = TestUtil.newDocContext("""
                 normal String. another One.
                  string starTing with a Space.
                 1 string starTing with a Number. pLUS this
-                """.getBytes();
-
-        cfg.setCaseType(CASE_SENTENCES);
-        var out = new ByteArrayOutputStream();
-        t.accept(TestUtil.newDocContext(
-                "blah", new ByteArrayInputStream(body), out, new Properties()));
-
-        assertThat(out.toString()).isEqualToIgnoringNewLines("""
+                """);
+        t.accept(doc);
+        assertThat(doc.input().asInputStream())
+            .asString(UTF_8).isEqualToIgnoringNewLines("""
                 Normal String. Another One.
                  String starTing with a Space.
                 1 string starTing with a Number. PLUS this

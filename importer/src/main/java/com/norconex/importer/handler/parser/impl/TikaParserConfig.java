@@ -25,5 +25,5 @@ public class TikaParserConfig {
     /**
      * The path to a Tika configuration file.
      */
-    String tikaConfigFile;
+    private String tikaConfigFile;
 }

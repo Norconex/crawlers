@@ -15,15 +15,17 @@
 package com.norconex.importer.handler;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.function.FailableConsumer;
 
 import com.norconex.importer.ImporterEvent;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * Base class or wrapper class that makes pre/post parse consumers integrate
@@ -32,6 +34,8 @@ import lombok.NonNull;
  * While not mandatory, it is recommended to extend this class or wrap your
  * existing consumer instance with it.
  */
+@ToString
+@EqualsAndHashCode
 public abstract class BaseDocumentHandler implements DocumentHandler {
 
     //Maybe provide a base doc handler config which allows
@@ -55,10 +59,12 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
 //                LOG.error("Unsupported Import Handler: {}", handler);
 //            }
             handle(ctx);
-        } catch (Exception e) {
+            // be safe, and flush any written content
+            ctx.flush();
+        } catch (IOException e) {
             fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
-            ExceptionUtils.wrapAndThrow(new DocumentHandlerException(
-                    "Importer failure for handler: " + this, e));
+            throw new UncheckedIOException(
+                    "Importer failure for handler: " + this, e);
         }
         fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
     }

@@ -35,14 +35,12 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 class TextBetweenTransformerTest {
 
     @Test
-    void testExtractFromMetadata()
-            throws IOException {
+    void testExtractFromMetadata() throws IOException {
         // use it in a way that one of the end point is all we want to match
         var t = new TextBetweenTransformer();
         t.getConfiguration().setOperations(List.of(
@@ -69,8 +67,7 @@ class TextBetweenTransformerTest {
     }
 
     @Test
-    void testExtractMatchingRegex()
-            throws IOException, IOException {
+    void testExtractMatchingRegex() throws IOException {
         // use it in a way that one of the end point is all we want to match
         var t = new TextBetweenTransformer();
         addDetails(t, "field", "http://www\\..*?02a\\.gif", "\\b",
@@ -94,8 +91,7 @@ class TextBetweenTransformerTest {
     }
 
     @Test
-    void testTagTextDocument()
-            throws IOException, IOException {
+    void testTagTextDocument() throws IOException {
         var t = new TextBetweenTransformer();
 
         addDetails(t, "headings", "<h1>", "</H1>", true, true, null);
@@ -123,8 +119,7 @@ class TextBetweenTransformerTest {
     }
 
     @Test
-    void testExtractFirst100ContentChars()
-            throws IOException, IOException {
+    void testExtractFirst100ContentChars() throws IOException {
         var t = new TextBetweenTransformer();
 
         addDetails(t, "mytitle", "^", ".{0,100}", true, false, null);

@@ -14,10 +14,17 @@
  */
 package com.norconex.importer.handler.parser.impl;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * {@nx.block #doc
@@ -82,112 +89,94 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class EmbeddedConfig { //{
+@Accessors(chain = true)
+public class EmbeddedConfig implements Serializable { //{
 
+    //TODO add a "discardRootContainer" property (when split)?
 
-    //TODO change to:
+    private static final long serialVersionUID = 1L;
 
-    // Parent files to split
-    private final TextMatcher containerTypeMatcher = new TextMatcher();
-    // Child files to parse... unparsed ones are skipped (not read, not split).
-    private final TextMatcher embeddedTypeMatcher = new TextMatcher();
+    private final List<TextMatcher> splitContentTypes = new ArrayList<>();
+    private final List<TextMatcher>
+            skipEmbeddedOfContentTypes = new ArrayList<>();
+    private final List<TextMatcher> skipEmbeddedContentTypes =
+            new ArrayList<>();
 
-    // above are white list items. They can use negate to reverse.
+    /**
+     * Maximum detph of embeded documents to extract. Zero is the
+     * root document (original container).
+     * @param maxEmbeddedDepth max depth or -1 (default) for unlimited.
+     * @return maximum depth of embedded docs to extract
+     */
+    private int maxEmbeddedDepth = -1;
 
-    //
-//    private final TextMatcher parentToSplitTypeMatcher = new TextMatcher();
-//    private final TextMatcher childToSkipTypeMatcher = new TextMatcher();
+    /**
+     * Gets the content types of container files to split and treat their
+     * embedded files as separate documents. Default does not split
+     * any type (all embedded documents are merged).
+     * @return list of content type matcher
+     */
+    public List<TextMatcher> getSplitContentTypes() {
+        return Collections.unmodifiableList(splitContentTypes);
+    }
+    /**
+     * Gets the content types of container files to split and treat their
+     * embedded files as separate documents. Default does not split
+     * any type (all embedded documents are merged).
+     * @param splitContentTypes list of content type matcher
+     * @return this instance
+     */
+    public EmbeddedConfig setSplitContentTypes(
+            List<TextMatcher> splitContentTypes) {
+        CollectionUtil.setAll(this.splitContentTypes, splitContentTypes);
+        return this;
+    }
 
+    /**
+     * Gets the content type matchers of container files you do not want to
+     * have their embedded files parsed. Embedded files of matching containers
+     * will effectively be skipped/ignored.
+     * Default parses embedded files of all container file content types.
+     * @return list of content type matcher
+     */
+    public List<TextMatcher> getSkipEmbeddedOfContentTypes() {
+        return Collections.unmodifiableList(skipEmbeddedOfContentTypes);
+    }
+    /**
+     * Gets the content type matchers of container files you do not want to
+     * have their embedded files parsed. Embedded files of matching containers
+     * will effectively be skipped/ignored.
+     * Default parses embedded files of all container file content types.
+     * @param skipEmbeddedOfContentTypes list of content type matcher
+     * @return this instance
+     */
+    public EmbeddedConfig setSkipEmbeddedOfContentTypes(
+            List<TextMatcher> skipEmbeddedOfContentTypes) {
+        CollectionUtil.setAll(
+                this.skipEmbeddedOfContentTypes, skipEmbeddedOfContentTypes);
+        return this;
+    }
 
-    // parentToSplit
-    // childToSkip
-
-//    private final List<TextMatcher> splitEmbeddedOf = new ArrayList<>();
-//    private final List<TextMatcher> skipEmmbbededOf = new ArrayList<>();
-//    private final List<TextMatcher> skipEmmbbeded = new ArrayList<>();
-
-//    @JsonIgnore
-//    public boolean isEmpty() {
-//        return splitEmbeddedOf.isEmpty()
-//                && skipEmmbbededOf.isEmpty()
-//                && skipEmmbbeded.isEmpty();
-//    }
-//
-//    /**
-//     * Content type matchers of files to split, having their
-//     * embedded documents extracted and treated as individual
-//     * documents instead.
-//     * @return content type matchers
-//     */
-//    public List<TextMatcher> getSplitEmbeddedOf() {
-//        return Collections.unmodifiableList(splitEmbeddedOf);
-//    }
-//    /**
-//     * Content type matchers of files to split, having their
-//     * embedded documents extracted and treated as individual
-//     * documents instead.
-//     * @param matchers content type matchers
-//     */
-//    public void setSplitEmbeddedOf(List<TextMatcher> matchers) {
-//        CollectionUtil.setAll(splitEmbeddedOf, matchers);
-//    }
-//
-//    /**
-//     * Content type matchers of files you do not want to have their
-//     * embedded files parsed.
-//     * @return content type matchers
-//     */
-//    public List<TextMatcher> getSkipEmmbbededOf() {
-//        return Collections.unmodifiableList(skipEmmbbededOf);
-//    }
-//    /**
-//     * Content type matchers of files you do not want to have their
-//     * embedded files parsed.
-//     * @param matchers content type matchers
-//     */
-//    public void setSkipEmmbbededOf(List<TextMatcher> matchers) {
-//        CollectionUtil.setAll(skipEmmbbededOf, matchers);
-//    }
-//
-//    /**
-//     * Content type matchers of embedded files you do not want parsed.
-//     * @return content type matchers
-//     */
-//    public List<TextMatcher> getSkipEmmbbeded() {
-//        return Collections.unmodifiableList(skipEmmbbeded);
-//    }
-//    /**
-//     * Content type matchers of embedded files you do not want parsed.
-//     * @param matchers content type matchers
-//     */
-//    public void setSkipEmmbbeded(List<TextMatcher> matchers) {
-//        CollectionUtil.setAll(skipEmmbbeded, matchers);
-//    }
-//
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        setSplitEmbeddedOf(
-//                toMatchers(xml.getXMLList("splitEmbeddedOf/matcher")));
-//        setSkipEmmbbededOf(
-//                toMatchers(xml.getXMLList("skipEmmbbededOf/matcher")));
-//        setSkipEmmbbeded(toMatchers(xml.getXMLList("skipEmmbbeded/matcher")));
-//    }
-//
-//    @Override
-//    public void saveToXML(XML xml) {
-//        var matcherEl = "matcher";
-//        xml.addElementList("splitEmbeddedOf", matcherEl, splitEmbeddedOf);
-//        xml.addElementList("skipEmmbbededOf", matcherEl, skipEmmbbededOf);
-//        xml.addElementList("skipEmmbbeded", matcherEl, skipEmmbbeded);
-//    }
-//
-//    private List<TextMatcher> toMatchers(List<XML> xmls) {
-//        return xmls.stream()
-//            .map(x -> {
-//                var tm = new TextMatcher();
-//                tm.loadFromXML(x);
-//                return tm;
-//            })
-//            .toList();
-//    }
+    /**
+     * Gets the content types of container files to split and treat their
+     * embedded files as separate documents. Default does not split
+     * any type (all embedded documents are merged).
+     * @return list of content type matcher
+     */
+    public List<TextMatcher> getSkipEmbeddedContentTypes() {
+        return Collections.unmodifiableList(skipEmbeddedContentTypes);
+    }
+    /**
+     * Gets the content types of container files to split and treat their
+     * embedded files as separate documents. Default does not split
+     * any type (all embedded documents are merged).
+     * @param skipEmbeddedContentTypes list of content type matcher
+     * @return this instance
+     */
+    public EmbeddedConfig setSkipEmbeddedContentTypes(
+            List<TextMatcher> skipEmbeddedContentTypes) {
+        CollectionUtil.setAll(
+                this.skipEmbeddedContentTypes, skipEmbeddedContentTypes);
+        return this;
+    }
 }

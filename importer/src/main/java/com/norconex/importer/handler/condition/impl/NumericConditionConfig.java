@@ -98,6 +98,7 @@ public class NumericConditionConfig {
     /**
      * Sets the text matcher of field names. Copies it.
      * @param fieldMatcher text matcher
+     * @return this instance
      */
     public NumericConditionConfig setFieldMatcher(
             TextMatcher fieldMatcher) {

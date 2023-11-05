@@ -95,9 +95,9 @@ public class SubstringTransformer
             }
         } else {
             // Body
-            try (var input = docCtx.input().reader(
+            try (var input = docCtx.input().asReader(
                     configuration.getSourceCharset());
-                var output = docCtx.output().writer(
+                var output = docCtx.output().asWriter(
                         configuration.getSourceCharset())) {
                 doSubstring(input, output);
             }
@@ -117,6 +117,10 @@ public class SubstringTransformer
             length = configuration.getEnd()
                     - Math.max(configuration.getBegin(), 0);
         }
-        IOUtils.copyLarge(input, output, configuration.getBegin(), length);
+        if (length == 0) {
+            output.write("");
+        } else {
+            IOUtils.copyLarge(input, output, configuration.getBegin(), length);
+        }
     }
 }

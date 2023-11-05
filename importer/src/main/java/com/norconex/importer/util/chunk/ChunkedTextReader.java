@@ -119,7 +119,7 @@ public class ChunkedTextReader {
             ReadAdapter readAdapter,
             FailableFunction<TextChunk, Boolean, IOException> textConsumer)
                     throws IOException {
-        return readAdapter.chunkedText((idx, text) ->
+        return readAdapter.asChunkedText((idx, text) ->
                 textConsumer.apply(new TextChunk(
                         fieldName, fieldValueIndex, idx, text)),
                 new ChunkedReadOptions()

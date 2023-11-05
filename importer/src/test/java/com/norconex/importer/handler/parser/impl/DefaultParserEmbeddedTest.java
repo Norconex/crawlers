@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.parser;
+package com.norconex.importer.handler.parser.impl;
 
-import java.io.File;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -22,22 +23,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.Importer;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.ImporterRequest;
+import com.norconex.importer.TestUtil;
 import com.norconex.importer.response.ImporterResponse;
 
-class EmbeddedTest {
+class DefaultParserEmbeddedTest {
 
     private static final String ZIP = "application/zip";
     private static final String PPT = "application/vnd"
@@ -48,41 +47,26 @@ class EmbeddedTest {
     private static final String TXT = "text/plain";
     private static final String EMF = "image/emf";
 
-
-    // temp folder is for embedded tests only. move embedded tests in own file?
     @TempDir
     static Path folder;
 
-
     @Test
     void testEmbeddedDefaultMerged() throws IOException {
-
         // Make sure merge works (extracting all embedded)
-
         var response = importFileZipFile(c -> {});
 
         // no split == no child responses
-        Assertions.assertEquals(
-                0, response.getNestedResponses().length,
-                "Non-split parsing cannot have child responses.");
+        assertThat(response.getNestedResponses()).isEmpty();
 
         // must have detected 5 content types:
         // 1 zip, which holds:
         //      1 PowerPoint file, which holds 1 excel and 1 picture (png)
         //      1 Plain text file
-        String[] expectedTypes = { ZIP, PPT, EMF, XLS, PNG, TXT };
-        var responseTypes = getTikaContentTypes(response);
-        for (String type : expectedTypes) {
-            Assertions.assertTrue(
-                    responseTypes.contains(type), "Expected to find " + type);
-        }
+        assertThat(getTikaContentTypes(response)).contains(
+                ZIP, PPT, EMF, XLS, PNG, TXT);
 
         // make sure spreadsheet is extracted
-        var content = IOUtils.toString(
-                response.getDocument().getInputStream(),
-                StandardCharsets.UTF_8);
-        Assertions.assertTrue(
-                content.contains("column 1"), "Spreadsheet not extracted.");
+        ParseAssertions.assertThat(response).contains("column 1");
     }
 
     @Test
@@ -90,38 +74,26 @@ class EmbeddedTest {
 
         // Make sure split works (extracting all embedded)
         var zipResponse = importFileZipFile(
-                ec -> ec.setSplitEmbeddedOf(List.of(TextMatcher.regex(".*"))));
+                cfg -> cfg.setSplitContentTypes(
+                        List.of(TextMatcher.regex(".*"))));
 
         // split == 2 child responses, one of which has two or more more
-        Assertions.assertEquals(
-                2, zipResponse.getNestedResponses().length,
-                "Zip must have two embedded docs.");
+        assertThat(zipResponse.getNestedResponses()).hasSize(2);
 
         var pptResponse = findResponse(zipResponse, PPT);
-        Assertions.assertTrue(
-                pptResponse.getNestedResponses().length >= 2,
-                "PowerPoint must have at least two embedded docs.");
+        assertThat(pptResponse.getNestedResponses())
+                .hasSizeGreaterThanOrEqualTo(2);
 
         // must have detected 5 content types:
         // 1 zip, which holds:
         //      1 PowerPoint file, which holds 1 excel and 1 picture (png)
         //      1 Plain text file
-        String[] expectedTypes = { ZIP, PPT, EMF, XLS, PNG, TXT };
-        var responseTypes = getTikaContentTypes(zipResponse);
-        for (String type : expectedTypes) {
-            Assertions.assertTrue(
-                    responseTypes.contains(type),
-                    "Expected to find " + type);
-        }
+        assertThat(getTikaContentTypes(zipResponse)).contains(
+                ZIP, PPT, EMF, XLS, PNG, TXT);
 
-        var xlsResponse = findResponse(pptResponse, XLS);
-        var xlsContent = IOUtils.toString(
-                xlsResponse.getDocument().getInputStream(),
-                StandardCharsets.UTF_8);
         // make sure spreadsheet is extracted
-        Assertions.assertTrue(
-                xlsContent.contains("column 1"),
-                "Spreadsheet not extracted.");
+        ParseAssertions.assertThat(
+                findResponse(pptResponse, XLS)).contains("column 1");
     }
 
     @Test
@@ -131,17 +103,14 @@ class EmbeddedTest {
         // must not be split).
 
         var zipResponse = importFileZipFile(
-                ec -> ec.setSplitEmbeddedOf(List.of(TextMatcher.basic(ZIP))));
+                cfg -> cfg.setSplitContentTypes(
+                        List.of(TextMatcher.basic(ZIP))));
 
         // split == 2 child responses, with PowerPoint being merged (no child).
-        Assertions.assertEquals(
-                2, zipResponse.getNestedResponses().length,
-                "Zip must have two embedded docs.");
+        assertThat(zipResponse.getNestedResponses()).hasSize(2);
 
         var pptResponse = findResponse(zipResponse, PPT);
-        Assertions.assertEquals(
-                0, pptResponse.getNestedResponses().length,
-                "PowerPoint must not have any embedded docs.");
+        assertThat(pptResponse.getNestedResponses()).isEmpty();
 
         // must NOT have detected PowerPoint embedded (XLS and PNG)
         Assertions.assertNull(
@@ -151,13 +120,58 @@ class EmbeddedTest {
                 findResponse(pptResponse, PNG),
                 "Must not find PNG inage response.");
 
-        var pptContent = IOUtils.toString(
-                pptResponse.getDocument().getInputStream(),
-                StandardCharsets.UTF_8);
         // make sure spreadsheet is extracted as part of PowerPoint
-        Assertions.assertTrue(
-                pptContent.contains("column 1"),
-                "Spreadsheet not extracted.");
+        ParseAssertions.assertThat(pptResponse).contains("column 1");
+    }
+
+    @Test
+    void testMergeEmbeddedMaxDepth() throws IOException {
+
+        // Extract zip content, and only one level deep, so not the
+        // power point embeded files.
+        var zipResponse = importFileZipFile(cfg -> cfg.setMaxEmbeddedDepth(1));
+
+        // must have detected 3 content types:
+        // 1 zip, which holds:
+        //      1 PowerPoint file, without any of its embedded
+        //      1 Plain text file
+        assertThat(getTikaContentTypes(zipResponse)).hasSize(3);
+        assertThat(getTikaContentTypes(zipResponse)).contains(ZIP, PPT, TXT);
+
+
+        ParseAssertions.assertThat(zipResponse)
+            // make sure spreadsheet content is NOT extracted
+            .doesNotContain("column 1")
+
+            // make sure content contains file names
+            .contains("embedded.pptx")
+            .contains("embedded.txt");
+    }
+
+    @Test
+    void testSplitEmbeddedMaxDepth() throws IOException {
+
+        // Extract zip content, and only one level deep, so not the
+        // power point embeded files.
+        var zipResponse = importFileZipFile(cfg -> cfg
+                .setMaxEmbeddedDepth(1)
+                .setSplitContentTypes(List.of(TextMatcher.regex(".*"))));
+
+        // must have detected 3 content types:
+        // 1 zip, which holds:
+        //      1 PowerPoint file, without any of its embedded
+        //      1 Plain text file
+        assertThat(getTikaContentTypes(zipResponse)).hasSize(3);
+        assertThat(getTikaContentTypes(zipResponse)).contains(ZIP, PPT, TXT);
+
+
+        ParseAssertions.assertThat(zipResponse)
+            // make sure spreadsheet content is NOT extracted
+            .doesNotContain("column 1")
+
+            // make sure content contains file names
+            .contains("embedded.pptx")
+            .contains("embedded.txt");
     }
 
     @Test
@@ -165,34 +179,25 @@ class EmbeddedTest {
 
         // Extract zip content, but not its embedded files.  So should just
         // get file names as zip content.
-        var zipResponse = importFileZipFile(
-                ec -> ec.setSkipEmmbbededOf(List.of(TextMatcher.basic(ZIP))));
+        var zipResponse = importFileZipFile(cfg ->
+                cfg.setSkipEmbeddedOfContentTypes(
+                        List.of(TextMatcher.basic(ZIP))));
 
         // must NOT have other content types, just zip.
-        var responseTypes = getTikaContentTypes(zipResponse);
-        Assertions.assertEquals(
-                1, responseTypes.size(),
-                "Should only have 1 content type.");
+        assertThat(getTikaContentTypes(zipResponse)).hasSize(1);
 
         // the only content type must be zip
-        Assertions.assertEquals(ZIP, zipResponse.getDocument()
+        Assertions.assertEquals(ZIP, zipResponse.getDoc()
                 .getDocRecord().getContentType().toString(),
                         "Must be zip content type.");
 
-        var content = IOUtils.toString(
-                zipResponse.getDocument().getInputStream(),
-                StandardCharsets.UTF_8);
+        ParseAssertions.assertThat(zipResponse)
+            // make sure spreadsheet content is NOT extracted
+            .doesNotContain("column 1")
 
-        // make sure spreadsheet content is NOT extracted
-        Assertions.assertFalse(
-                content.contains("column 1"),
-                "Spreadsheet must not be extracted.");
-
-        // make sure content contains file names
-        Assertions.assertTrue(
-                content.contains("embedded.pptx")
-                && content.contains("embedded.txt"),
-                "File names must be extracted.");
+            // make sure content contains file names
+            .contains("embedded.pptx")
+            .contains("embedded.txt");
     }
 
     @Test
@@ -200,15 +205,13 @@ class EmbeddedTest {
 
         // Extract zip content, but not its embedded files.  So should just
         // get file names as zip content.
-        var zipResponse = importFileZipFile(ec -> {
-            ec.setSkipEmmbbededOf(List.of(TextMatcher.basic(ZIP)));
-            ec.setSplitEmbeddedOf(List.of(TextMatcher.regex(".*")));
-        });
+        var zipResponse = importFileZipFile(cfg -> cfg
+                .setSplitContentTypes(List.of(TextMatcher.basic(ZIP)))
+                .setSkipEmbeddedOfContentTypes(
+                        List.of(TextMatcher.basic(ZIP))));
 
         // must NOT have other content types, just zip.
-        Assertions.assertTrue(
-                ArrayUtils.isEmpty(zipResponse.getNestedResponses()),
-                "Should not have nested responses.");
+        assertThat(zipResponse.getNestedResponses()).isEmpty();
 
         var responseTypes = getTikaContentTypes(zipResponse);
         Assertions.assertEquals(
@@ -224,12 +227,12 @@ class EmbeddedTest {
 
         // the only content type must be zip
         Assertions.assertEquals(
-                ZIP, zipResponse.getDocument()
+                ZIP, zipResponse.getDoc()
                         .getDocRecord().getContentType().toString(),
                                 "Must be zip content type.");
 
         var content = IOUtils.toString(
-                zipResponse.getDocument().getInputStream(),
+                zipResponse.getDoc().getInputStream(),
                 StandardCharsets.UTF_8);
 
         // make sure spreadsheet content is NOT extracted
@@ -244,39 +247,25 @@ class EmbeddedTest {
                 "File names must be extracted.");
     }
 
-
     @Test
     void testNoExtractContainerPowerPointMerged() throws IOException {
 
         // Extract zip content and its embedded files, except for its
         // PowerPoint, which should not see its embedded files extracted.
-        var zipResponse = importFileZipFile(
-                ec -> ec.setSkipEmmbbededOf(List.of(TextMatcher.basic(PPT))));
+        var zipResponse = importFileZipFile(cfg -> cfg
+                .setSkipEmbeddedOfContentTypes(
+                        List.of(TextMatcher.basic(PPT))));
 
-        // must have only zip, ppt, and txt.
-        var responseTypes = getTikaContentTypes(zipResponse);
-        Assertions.assertEquals(
-                3, responseTypes.size(),
-                "Should only have 3 content typs.");
-
-        // must have detected 3 content types:
+        // must have detected exactly 3 content types:
         // 1 zip, which holds:
         //      1 PowerPoint file, which holds no embedded
         //      1 Plain text file
-        String[] expectedTypes = { ZIP, PPT, TXT };
-        for (String type : expectedTypes) {
-            Assertions.assertTrue(responseTypes.contains(type),
-                "Expected to find " + type);
-        }
+        assertThat(getTikaContentTypes(zipResponse))
+            .containsExactlyInAnyOrder(ZIP, PPT, TXT);
 
-        // Must not contain XLS and PNG
-        Assertions.assertFalse(
-                responseTypes.contains(XLS), "Must not contain XLS.");
-        Assertions.assertFalse(
-                responseTypes.contains(PNG), "Must not contain PNG.");
 
         var content = IOUtils.toString(
-                zipResponse.getDocument().getInputStream(),
+                zipResponse.getDoc().getInputStream(),
                 StandardCharsets.UTF_8);
 
         // make sure spreadsheet content is NOT extracted
@@ -290,22 +279,21 @@ class EmbeddedTest {
                 "PowerPoint must be extracted.");
     }
 
-
     @Test
     void testNoExtractContainerPowerPointSplit() throws IOException {
 
         // Extract zip content and its embedded files, except for its
         // PowerPoint, which should not see its embedded files extracted.
-        var zipResponse = importFileZipFile(ec -> {
-            ec.setSkipEmmbbededOf(List.of(TextMatcher.basic(PPT)));
-            ec.setSplitEmbeddedOf(List.of(TextMatcher.regex(".*")));
-        });
+        var zipResponse = importFileZipFile(cfg -> cfg
+                .setSplitContentTypes(List.of(TextMatcher.basic(ZIP)))
+                .setSkipEmbeddedOfContentTypes(
+                        List.of(TextMatcher.basic(PPT))));
 
         // must have only zip, ppt, and txt.
         var responseTypes = getTikaContentTypes(zipResponse);
         Assertions.assertEquals(
                 3, responseTypes.size(),
-                "Should only have 3 content typs.");
+                "Should only have 3 content types.");
 
         // must have detected 3 content types:
         // 1 zip, which holds:
@@ -344,7 +332,7 @@ class EmbeddedTest {
 
 
         var content = IOUtils.toString(
-                zipResponse.getDocument().getInputStream(),
+                zipResponse.getDoc().getInputStream(),
                 StandardCharsets.UTF_8);
 
         // make sure spreadsheet content is NOT extracted
@@ -355,19 +343,19 @@ class EmbeddedTest {
         // make sure PowerPoint was otherwise extracted
         var pptResponse = findResponse(zipResponse, PPT);
         Assertions.assertTrue(
-                IOUtils.toString(pptResponse.getDocument().getInputStream(),
+                IOUtils.toString(pptResponse.getDoc().getInputStream(),
                         StandardCharsets.UTF_8).contains(
                                 "Slide 1: Embedded Test"),
                 "PowerPoint must be extracted.");
     }
 
-
     @Test
     void testNoExtractEmbeddedExcelMerged() throws IOException {
 
         // Extract zip content and all its embedded except for its excel file.
-        var zipResponse = importFileZipFile(ec -> ec.setSkipEmmbbeded(
-                List.of(TextMatcher.regex("(" + EMF + "|" + XLS + ")"))));
+        var zipResponse = importFileZipFile(cfg -> cfg
+                .setSkipEmbeddedContentTypes(List.of(
+                        TextMatcher.regex("(" + EMF + "|" + XLS + ")"))));
 
         // must have all content types except for Excel.
         // 1 zip, which holds:
@@ -388,7 +376,7 @@ class EmbeddedTest {
                 "Must not contain XLS.");
 
         var content = IOUtils.toString(
-                zipResponse.getDocument().getInputStream(),
+                zipResponse.getDoc().getInputStream(),
                 StandardCharsets.UTF_8);
 
         // make sure spreadsheet content is NOT extracted
@@ -401,10 +389,9 @@ class EmbeddedTest {
     void testNoExtractEmbeddedExcelSplit() throws IOException {
 
         // Extract zip content and all its embedded except for its excel file.
-        var zipResponse = importFileZipFile(ec -> {
-            ec.setSkipEmmbbeded(List.of(TextMatcher.basic(XLS)));
-            ec.setSplitEmbeddedOf(List.of(TextMatcher.regex(".*")));
-        });
+        var zipResponse = importFileZipFile(cfg -> cfg
+                .setSplitContentTypes(List.of(TextMatcher.regex(".*")))
+                .setSkipEmbeddedContentTypes(List.of(TextMatcher.basic(XLS))));
 
         // must have all content types except for Excel.
         // 1 zip, which holds:
@@ -442,7 +429,7 @@ class EmbeddedTest {
 
 
         var content = IOUtils.toString(
-                zipResponse.getDocument().getInputStream(),
+                zipResponse.getDoc().getInputStream(),
                 StandardCharsets.UTF_8);
 
         // make sure spreadsheet content is NOT extracted
@@ -451,11 +438,9 @@ class EmbeddedTest {
                 "Spreadsheet must not be extracted.");
     }
 
-
-
     private ImporterResponse findResponse(
             ImporterResponse response, String contentType) {
-        if (response.getDocument().getDocRecord()
+        if (response.getDoc().getDocRecord()
                 .getContentType().toString().equals(contentType)) {
             return response;
         }
@@ -475,7 +460,7 @@ class EmbeddedTest {
 
     private List<String> getTikaContentTypes(ImporterResponse response) {
         List<String> types = new ArrayList<>();
-        var meta = response.getDocument().getMetadata();
+        var meta = response.getDoc().getMetadata();
         var rawTypes = meta.getStrings("Content-Type");
         for (String t : rawTypes) {
             types.add(StringUtils.substringBefore(t, ";"));
@@ -487,25 +472,14 @@ class EmbeddedTest {
         return types;
     }
 
-    private ImporterResponse importFileZipFile(Consumer<EmbeddedConfig> embdCfg)
+    private ImporterResponse importFileZipFile(Consumer<EmbeddedConfig> c)
             throws IOException {
-
-        var metadata = new Properties();
         var config = new ImporterConfig();
-        embdCfg.accept(
-                config.getParseConfig().getParseOptions().getEmbeddedConfig());
+        var parser = (DefaultParser) config.getHandler();
+        c.accept(parser.getConfiguration().getEmbeddedConfig());
         var importer = new Importer(config);
         return importer.importDocument(
-                new ImporterRequest(getZipFile().toPath())
-                        .setMetadata(metadata));
-    }
-
-    private File getZipFile() throws IOException {
-        var is = getClass().getResourceAsStream(
-                "/parser/embedded/embedded.zip");
-        var file = folder.resolve("test-embedded.zip").toFile();
-        FileUtils.copyInputStreamToFile(is, file);
-        is.close();
-        return file;
+                new ImporterRequest(TestUtil.resourceAsFile(
+                        folder, "/parser/embedded/embedded.zip")));
     }
 }

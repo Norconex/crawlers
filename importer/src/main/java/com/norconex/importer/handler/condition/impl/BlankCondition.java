@@ -86,7 +86,7 @@ public class BlankCondition
     public boolean test(DocContext docCtx) throws IOException {
         // do content
         if (configuration.getFieldMatcher().getPattern() == null) {
-            return IOUtil.isEmpty(docCtx.input().inputStream());
+            return IOUtil.isEmpty(docCtx.input().asInputStream());
         }
 
         // If no values returned, call it blank

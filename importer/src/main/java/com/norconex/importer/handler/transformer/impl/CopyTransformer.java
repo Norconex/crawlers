@@ -88,7 +88,7 @@ public class CopyTransformer
             } else {
                 // From body
                 sourceValues = List.of(
-                        IOUtils.toString(docCtx.input().reader()));
+                        IOUtils.toString(docCtx.input().asReader()));
             }
             // Copy field
             var setter = ofNullable(

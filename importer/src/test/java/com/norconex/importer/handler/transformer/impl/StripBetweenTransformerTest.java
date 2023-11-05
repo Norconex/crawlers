@@ -15,11 +15,11 @@
 package com.norconex.importer.handler.transformer.impl;
 
 import static com.norconex.commons.lang.text.TextMatcher.regex;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +32,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 class StripBetweenTransformerTest {
@@ -62,16 +61,15 @@ class StripBetweenTransformerTest {
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         try (InputStream is =
-                new BufferedInputStream(new FileInputStream(htmlFile));
-                var os = new ByteArrayOutputStream();) {
+                new BufferedInputStream(new FileInputStream(htmlFile))) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            t.accept(TestUtil.newDocContext(
-                    htmlFile.getAbsolutePath(), is, os,
-                    metadata, ParseState.PRE));
+            var doc = TestUtil.newDocContext(
+                    htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
+            t.accept(doc);
 
             Assertions.assertEquals(
-                    443, TestUtil.toUtf8UnixLineString(os).length(),
+                    443, doc.input().asString().replace("\r", "").length(),
                     "Length of doc content after transformation is incorrect.");
         }
     }
@@ -106,15 +104,15 @@ class StripBetweenTransformerTest {
               </body>
             </html>""";
 
-        try (var is = new ByteArrayInputStream(html.getBytes());
-                var os = new ByteArrayOutputStream();) {
+        try (var is = new ByteArrayInputStream(html.getBytes())) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            t.accept(TestUtil.newDocContext("fake.html",
-                    is, os, metadata, ParseState.PRE));
-            var output = TestUtil.toUtf8UnixLineString(os);
-            Assertions.assertEquals(
-                    "<html>extract me 1extract me 2</html>", output);
+            var doc = TestUtil.newDocContext("fake.html",
+                    is, metadata, ParseState.PRE);
+            t.accept(doc);
+            assertThat(doc.input().asString().replace("\r", ""))
+                .isEqualToIgnoringWhitespace(
+                        "<html>extract me 1extract me 2</html>");
         }
     }
 

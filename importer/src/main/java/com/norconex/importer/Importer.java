@@ -16,7 +16,6 @@ package com.norconex.importer;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -193,7 +192,7 @@ public class Importer implements Configurable<ImporterConfig> {
                             "Could not import document: " + document, e))
                     .build();
         } finally {
-            closeHandlersOnce();
+            destroyHandlersOnce();
         }
     }
 
@@ -210,12 +209,12 @@ public class Importer implements Configurable<ImporterConfig> {
                 },
                 DocumentHandler.class);
     }
-    private synchronized void closeHandlersOnce() {
+    private synchronized void destroyHandlersOnce() {
         BeanUtil.visitAll(
                 configuration.getHandler(),
                 t -> {
                     try {
-                        t.close();
+                        t.destroy();
                     } catch (IOException e) {
                         throw new ImporterRuntimeException(
                                 "Coult not initialize handler: " + t, e);
@@ -392,8 +391,15 @@ public class Importer implements Configurable<ImporterConfig> {
             .build();
         try {
             configuration.getHandler().accept(ctx);
-        } catch (UndeclaredThrowableException e) {
-            throw (DocumentHandlerException) e.getCause();
+        } catch (Exception e) {
+            throw new DocumentHandlerException(e.getCause());
+        } finally {
+            try {
+                ctx.flush();
+            } catch (IOException e) {
+                LOG.error("Could not flush document stream for {}",
+                        ctx.reference(), e);
+            }
         }
         childDocsHolder.addAll(ctx.childDocs());
 

@@ -12,11 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.parser;
+package com.norconex.importer.handler.parser.impl;
+
+import static com.norconex.importer.TestUtil.resourceAsFile;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+import java.nio.file.Path;
 
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
@@ -29,43 +30,56 @@ import org.apache.tika.sax.BasicContentHandlerFactory;
 import org.apache.tika.sax.RecursiveParserWrapperHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.xml.sax.SAXException;
 
-public class PDFParserTest extends AbstractParserTest {
+class PDFParserTest {
 
     private static final String PDF_FAMILY = "Portable Document Format (PDF)";
 
+    @TempDir
+    static Path folder;
+
     @Test
-    public void test_PDF_plain() throws IOException {
-        testParsing("/parser/pdf/plain.pdf", "application/pdf",
-                DEFAULT_CONTENT_REGEX, "pdf", PDF_FAMILY);
+    void test_PDF_plain() throws IOException {
+        ParseAssertions.assertThat(
+                resourceAsFile(folder, "/parser/pdf/plain.pdf"))
+            .hasContentType("application/pdf")
+            .hasContentFamily(PDF_FAMILY)
+            .hasExtension("pdf")
+            .contains("Hey Norconex, this is a test.");
     }
 
     @Test
-    public void test_PDF_jpeg() throws IOException {
-        testParsing("/parser/pdf/jpeg.pdf", "application/pdf",
-                ".*PDF with a JPEG image.*", "pdf", PDF_FAMILY, true);
+    void test_PDF_jpeg() throws IOException {
+        ParseAssertions.assertThatSplitted(
+                resourceAsFile(folder, "/parser/pdf/jpeg.pdf"))
+            .hasContentType("application/pdf")
+            .hasContentFamily(PDF_FAMILY)
+            .hasExtension("pdf")
+            .contains("PDF with a JPEG image");
     }
 
     @Test
-    public void test_PDF_jbig2()
+    void test_PDF_jbig2()
             throws IOException, SAXException, TikaException {
-        RecursiveParserWrapperHandler h = new RecursiveParserWrapperHandler(
+        var h = new RecursiveParserWrapperHandler(
                 new BasicContentHandlerFactory(BasicContentHandlerFactory
                         .HANDLER_TYPE.IGNORE, -1));
 
-        RecursiveParserWrapper p = new RecursiveParserWrapper(new AutoDetectParser());
-        ParseContext context = new ParseContext();
-        PDFParserConfig config = new PDFParserConfig();
+        var p = new RecursiveParserWrapper(new AutoDetectParser());
+        var context = new ParseContext();
+        var config = new PDFParserConfig();
         config.setExtractInlineImages(true);
         config.setExtractUniqueInlineImagesOnly(false);
         context.set(PDFParserConfig.class, config);
         context.set(Parser.class, p);
 
-        try (InputStream stream = getInputStream("/parser/pdf/jbig2.pdf")) {
+        try (var stream =
+                getClass().getResourceAsStream("/parser/pdf/jbig2.pdf")) {
             p.parse(stream, h, new Metadata(), context);
         }
-        List<Metadata> metadatas = h.getMetadataList();
+        var metadatas = h.getMetadataList();
 
         Assertions.assertNull(metadatas.get(0).get("X-TIKA:EXCEPTION:warn"),
                 "Exception found: " + metadatas.get(0).get(

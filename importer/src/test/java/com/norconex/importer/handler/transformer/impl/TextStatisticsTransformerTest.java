@@ -28,14 +28,12 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 class TextStatisticsTransformerTest {
 
     @Test
-    void testTagTextDocument()
-            throws IOException, IOException {
+    void testTagTextDocument() throws IOException {
 
         var txt = """
         	White Rabbit checking watch\

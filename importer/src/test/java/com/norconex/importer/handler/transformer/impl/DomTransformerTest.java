@@ -667,12 +667,11 @@ class DomTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
 
         var content = IOUtils.toInputStream(full, UTF_8);
-        var os = new ByteArrayOutputStream();
-        t.accept(TestUtil.newDocContext("n/a", content, os, metadata));
+        var doc = TestUtil.newDocContext("n/a", content, metadata);
+        t.accept(doc);
 
-        var output = os.toString(UTF_8.toString());
+        var output = doc.input().asString();
         content.close();
-        os.close();
         Assertions.assertEquals(fullMinusChild1, cleanHTML(output));
     }
 
@@ -701,14 +700,11 @@ class DomTransformerTest {
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-
         var content = IOUtils.toInputStream(full, UTF_8);
-        var os = new ByteArrayOutputStream();
-        t.accept(TestUtil.newDocContext("n/a", content, os, metadata));
-
-        var output = os.toString(UTF_8.toString());
+        var doc = TestUtil.newDocContext("n/a", content, metadata);
+        t.accept(doc);
+        var output = doc.input().asString();
         content.close();
-        os.close();
         Assertions.assertEquals("", cleanHTML(output));
     }
 
@@ -735,8 +731,10 @@ class DomTransformerTest {
                 var os = new ByteArrayOutputStream()) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
-            t.accept(TestUtil.newDocContext("n/a", content, os, metadata));
-            return os.toString(UTF_8);
+
+            var doc = TestUtil.newDocContext("n/a", content, metadata);
+            t.accept(doc);
+            return doc.input().asString();
         }
     }
 

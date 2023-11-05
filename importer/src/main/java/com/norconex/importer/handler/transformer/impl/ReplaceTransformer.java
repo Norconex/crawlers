@@ -126,7 +126,7 @@ public class ReplaceTransformer
 
         if (chunk.getField() == null) {
             //body
-            try (var out = docCtx.output().writer(
+            try (var out = docCtx.output().asWriter(
                     configuration.getSourceCharset())) {
                 if (newValues.isEmpty()) {
                     out.write("");

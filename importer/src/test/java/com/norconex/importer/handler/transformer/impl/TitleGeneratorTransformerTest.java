@@ -30,7 +30,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +56,7 @@ class TitleGeneratorTransformerTest {
     }
 
     @Test
-    void testSummarizeTitle() throws IOException, IOException {
+    void testSummarizeTitle() throws IOException {
 
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
@@ -82,8 +81,7 @@ class TitleGeneratorTransformerTest {
     }
 
     @Test
-    void testHeadingTitle()
-            throws IOException, IOException {
+    void testHeadingTitle() throws IOException {
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
             .setDetectHeading(true)
@@ -105,8 +103,7 @@ class TitleGeneratorTransformerTest {
     }
 
     @Test
-    void testFallbackTitle()
-            throws IOException, IOException {
+    void testFallbackTitle() throws IOException {
         var t = new TitleGeneratorTransformer();
 
         InputStream is = new ByteArrayInputStream(
@@ -125,7 +122,6 @@ class TitleGeneratorTransformerTest {
         Assertions.assertEquals(
                 "This is the first line.",  title, "Wrong title.");
     }
-
 
     @Test
     void testWriteRead() {

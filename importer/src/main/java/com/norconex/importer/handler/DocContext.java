@@ -14,13 +14,14 @@
  */
 package com.norconex.importer.handler;
 
-import java.io.OutputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.norconex.commons.lang.event.EventManager;
+import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.charset.CharsetUtil;
@@ -36,6 +37,7 @@ import lombok.Builder.Default;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Builder
@@ -45,16 +47,22 @@ import lombok.experimental.Accessors;
 public class DocContext {
 
     private final List<Doc> childDocs = new ArrayList<>();
+
     @Getter(value = AccessLevel.NONE)
-    public final OutputStream out;
+    @Setter(value = AccessLevel.NONE)
+    private CachedOutputStream out;
+
     @Getter(value = AccessLevel.PACKAGE)
     @NonNull
     private final Doc doc;
+
     @NonNull
     @Default
     private ParseState parseState = ParseState.PRE;
+
     @NonNull
     private final EventManager eventManager;
+
     private Object rejectedBy;
 
     public DocRecord docRecord() {
@@ -94,7 +102,39 @@ public class DocContext {
                 StandardCharsets.UTF_8);
     }
 
-    public ReadAdapter input() {
+    /**
+     * Flush and dispose any output that has been written to with
+     * {@link #output()} and apply it as the input source of the underlying
+     * document.
+     * @throws IOException
+     */
+    public synchronized void flush() throws IOException {
+
+
+
+
+        // PROBLEM: when Cached output stream is wrapped in a writer,
+        // the writer won't call the write method on it if we are
+        // writing an empty string.  That way we can't rely on
+        // "isCacheEmpty" to find out if the content was intentionally
+        // blanked out.
+
+
+
+        if (out != null && !out.isCacheEmpty()) {
+            doc.setInputStream(out.getInputStream());
+            out.dispose();
+            out = null;
+        }
+    }
+
+    /**
+     * Flushes any output and returns an adapter for  the document input..
+     * @return document input adapter
+     * @throws IOException
+     */
+    public synchronized ReadAdapter input() throws IOException {
+        flush();
         return new ReadAdapter(
                 doc::getInputStream,
                 CharsetUtil.firstNonNullOrUTF8(
@@ -102,9 +142,10 @@ public class DocContext {
     }
     /**
      * Make sure to close the stream when done or explictely flush the stream.
-     * @return writer adapter
+     * @return output adapter
      */
-    public WriteAdapter output() {
+    public synchronized WriteAdapter output() {
+        out = streamFactory().newOuputStream();
         return new WriteAdapter(out);
     }
 }

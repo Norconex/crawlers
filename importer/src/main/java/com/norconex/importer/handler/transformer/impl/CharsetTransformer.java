@@ -117,8 +117,8 @@ public class CharsetTransformer
             }
         } else {
             // Body
-            try (var is  = docCtx.input().inputStream();
-                    var os = docCtx.output().outputStream()) {
+            try (var is  = docCtx.input().asInputStream();
+                    var os = docCtx.output().asOutputStream()) {
                 doTransform(docCtx, is, os);
             }
         }
