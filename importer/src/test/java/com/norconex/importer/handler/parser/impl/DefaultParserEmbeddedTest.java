@@ -475,7 +475,8 @@ class DefaultParserEmbeddedTest {
     private ImporterResponse importFileZipFile(Consumer<EmbeddedConfig> c)
             throws IOException {
         var config = new ImporterConfig();
-        var parser = (DefaultParser) config.getHandler();
+        var parser = new DefaultParser();
+        config.setHandler(parser);
         c.accept(parser.getConfiguration().getEmbeddedConfig());
         var importer = new Importer(config);
         return importer.importDocument(

@@ -21,6 +21,7 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.importer.handler.DocumentHandler;
+import com.norconex.importer.handler.condition.Condition;
 
 /**
  * <p>
@@ -36,7 +37,9 @@ public class ImporterPtProvider implements PolymorphicTypeProvider {
         map.putAll(DocumentHandler.class,
                 ClassFinder.findSubTypes(DocumentHandler.class,
                         nm -> nm.startsWith("com.norconex.importer.handler")));
-//        map.put(Consumer.class, Consumers.class);
+        map.putAll(Condition.class,
+                ClassFinder.findSubTypes(Condition.class, nm -> nm.startsWith(
+                        "com.norconex.importer.handler.condition")));
         return map;
     }
 }

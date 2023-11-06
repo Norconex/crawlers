@@ -65,13 +65,16 @@ public class Importer implements Configurable<ImporterConfig> {
 
     // Only used when using command-line or invoking
     // importDocument(ImporterRequest). The "doc" version has its own.
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private CachedStreamFactory requestStreamFactory;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private final EventManager eventManager;
+
     private static final InheritableThreadLocal<Importer> INSTANCE =
             new InheritableThreadLocal<>();
-
-//    private final ImporterParseHandler parseHandler;
 
     /**
      * Creates a new importer with default configuration.

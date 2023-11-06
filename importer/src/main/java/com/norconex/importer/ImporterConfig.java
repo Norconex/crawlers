@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.flow.JsonFlow;
+import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
@@ -84,11 +85,10 @@ public class ImporterConfig {
             DataUnit.GB.toBytes(1).intValue();
 
 
+    //TODO make a list, even if one or more entries can be Consumers
     @JsonFlow(builder = ImporterFlowConfigBuilder.class)
     @JsonProperty("handlers")
-
-//TODO make a list, even if one entry can be Consumers
-    private Consumer<DocContext> handler = new DefaultParser();
+    private Consumer<DocContext> handler = Consumers.of(new DefaultParser());
 
 
 //    /**

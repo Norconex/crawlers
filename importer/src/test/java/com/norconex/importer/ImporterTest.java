@@ -252,6 +252,16 @@ class ImporterTest {
 //        }
 //    }
 //
+
+
+
+
+    //TODO Finish migrating old config
+
+
+
+
+
     @Test
     void testFullConfiguration() throws IOException {
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(

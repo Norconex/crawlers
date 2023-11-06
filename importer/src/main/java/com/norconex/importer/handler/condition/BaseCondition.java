@@ -19,10 +19,15 @@ import java.io.UncheckedIOException;
 
 import com.norconex.importer.handler.DocContext;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 /**
  * An abstract base class for a condition, wrapping {@link IOException}
  * into {@link UncheckedIOException}.
  */
+@ToString
+@EqualsAndHashCode
 public abstract class BaseCondition implements Condition {
 
     @Override
@@ -30,6 +35,7 @@ public abstract class BaseCondition implements Condition {
         // Fire events?
 //        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_BEGIN);
         try {
+            ctx.condition(this);
             return evaluate(ctx);
         } catch (IOException e) {
 //            fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);

@@ -17,16 +17,36 @@
 # to test validation.
 
 ---
-importer:
-  tempDir: /some/path/
-
+tempDir: /some/path/
+maxMemoryInstance: 99
+maxMemoryPool: 99
+handlers:
+  - if:
+      condition:
+        class: DateCondition
+        fieldMatcher:
+          pattern: date_created
+        valueMatcherStart:
+          operator: ">="
+          date: NOW-10Y
+        valueMatcherEnd:
+          operator: "<"
+          date: NOW-1Y
+      then:
+        - handler:
+            class: CsvSplitter
+            separatorCharacter: A
+            quoteCharacter: B
+            escapeCharacter: C
+            useFirstRowAsFields: false
+            linesToSkip: 0
+            referenceColumn: columnA
+            contentColumns: [columnB, columnC, columnD]    
+      else:
+        - handler:
+            class: Reject
 ...
 
-#<importer>
-#  <tempDir>/some/path/</tempDir>
-#  <maxMemoryInstance>99</maxMemoryInstance>
-#  <maxMemoryPool>99</maxMemoryPool>
-#
 #
 #  <preParseHandlers>
 #    <handler class="com.norconex.importer.handler.filter.impl.DateMetadataFilter"

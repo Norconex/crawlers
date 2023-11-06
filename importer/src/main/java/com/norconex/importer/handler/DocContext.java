@@ -27,6 +27,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocRecord;
+import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.util.ReadAdapter;
 import com.norconex.importer.util.WriteAdapter;
@@ -35,9 +36,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 @Builder
@@ -59,6 +62,16 @@ public class DocContext {
     @NonNull
     @Default
     private ParseState parseState = ParseState.PRE;
+
+    /**
+     * Closest wrapping {@link Condition}, if applicable.
+     * @param condition a condition
+     * @return condition
+     */
+    @SuppressWarnings("javadoc")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Condition condition;
 
     @NonNull
     private final EventManager eventManager;
