@@ -148,6 +148,14 @@ public class Importer implements Configurable<ImporterConfig> {
      * @return importer response
      */
     public ImporterResponse importDocument(Doc document) {
+
+
+
+        //TODO ensure inited/destroyed only once when reusing importer
+
+
+
+
         initializeHandlersOnce();
         // Note: Doc reference, InputStream and metadata are all null-safe.
 
@@ -201,7 +209,9 @@ public class Importer implements Configurable<ImporterConfig> {
                 configuration.getHandler(),
                 t -> {
                     try {
-                        t.init();
+                        if (t instanceof DocumentHandler dh) {
+                            dh.init();
+                        }
                     } catch (IOException e) {
                         throw new ImporterRuntimeException(
                                 "Coult not initialize handler: " + t, e);

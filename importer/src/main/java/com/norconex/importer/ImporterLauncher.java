@@ -112,7 +112,9 @@ public final class ImporterLauncher {
             var response = new Importer(config).importDocument(
                     new ImporterRequest(inputFile)
                         .setContentType(contentType)
-                        .setCharset(Charset.forName(contentEncoding))
+                        .setCharset(contentEncoding != null
+                                ? Charset.forName(contentEncoding)
+                                : null)
                         .setMetadata(metadata)
                         .setReference(reference));
             writeResponse(response, output,

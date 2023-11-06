@@ -49,7 +49,7 @@ class ScriptConditionTest {
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        var returnValue = cond.test(TestUtil.newDocContext(
+        var returnValue = cond.evaluate(TestUtil.newDocContext(
                 htmlFile.getAbsolutePath(), is, metadata));
         is.close();
         Assertions.assertTrue(returnValue);

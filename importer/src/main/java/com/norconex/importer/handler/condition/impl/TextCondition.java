@@ -22,7 +22,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.condition.BaseCondition;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.Data;
@@ -61,7 +61,8 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class TextCondition
-        implements Condition, Configurable<TextConditionConfig> {
+        extends BaseCondition
+        implements Configurable<TextConditionConfig> {
 
     private final TextConditionConfig configuration =
             new TextConditionConfig();
@@ -77,7 +78,7 @@ public class TextCondition
     }
 
     @Override
-    public boolean test(DocContext docCtx) throws IOException {
+    public boolean evaluate(DocContext docCtx) throws IOException {
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()
             .charset(configuration.getSourceCharset())

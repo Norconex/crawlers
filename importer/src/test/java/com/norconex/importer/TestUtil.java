@@ -38,17 +38,18 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.i18n.UncheckedException;
 
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.condition.BaseCondition;
 import com.norconex.importer.handler.parser.ParseState;
 
 public final class TestUtil {
@@ -111,33 +112,17 @@ public final class TestUtil {
     }
 
     public static Importer getTestConfigImporter() throws IOException {
-        var config = new ImporterConfig();
-        try (var is =
-                TestUtil.class.getResourceAsStream("test-config.xml");
-                Reader r = new InputStreamReader(is)) {
-            new XML(r).populate(config);
+        try (Reader r = new InputStreamReader(
+                TestUtil.class.getResourceAsStream("test-config.xml"))) {
+            return BeanMapper.DEFAULT.read(Importer.class, r, Format.XML);
         }
-        return new Importer(config);
     }
 
-//    public static boolean filter(DocumentFilter filter, String ref,
-//            Properties metadata, ParseState parseState)
-//                    throws ImporterHandlerException {
-//        return filter(filter, ref, null, metadata, parseState);
-//    }
-//    public static boolean filter(DocumentFilter filter, String ref,
-//            InputStream is, Properties metadata, ParseState parseState)
-//                    throws ImporterHandlerException {
-//        var input = is == null ? new NullInputStream(0) : is;
-//        return filter.acceptDocument(
-//                newDoc(ref, input, metadata), input, parseState);
-//    }
-
-    public static boolean condition(Condition cond, String ref,
+    public static boolean condition(BaseCondition cond, String ref,
             Properties metadata, ParseState parseState) throws IOException {
         return condition(cond, ref, null, metadata, parseState);
     }
-    public static boolean condition(Condition cond, String ref,
+    public static boolean condition(BaseCondition cond, String ref,
             InputStream is, Properties metadata, ParseState parseState)
                     throws IOException {
         var input = is == null ? new NullInputStream(0) : is;

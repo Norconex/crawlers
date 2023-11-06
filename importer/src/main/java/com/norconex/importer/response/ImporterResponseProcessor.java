@@ -23,8 +23,7 @@ public interface ImporterResponseProcessor {
     /**
      * Processes the importer response.
      * @param response the importer response
-     * @return new response status
+     * @return new response
      */
-//    ImporterStatus processImporterResponse(ImporterResponse response);
     ImporterResponse processImporterResponse(ImporterResponse response);
 }

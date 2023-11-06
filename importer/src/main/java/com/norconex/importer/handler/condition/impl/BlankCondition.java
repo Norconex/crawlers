@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.IOUtil;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.Data;
 import lombok.Getter;
@@ -76,14 +76,15 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 @Data
 public class BlankCondition
-        implements Condition, Configurable<BlankConditionConfig> {
+        extends BaseCondition
+        implements Configurable<BlankConditionConfig> {
 
     @Getter
     private final BlankConditionConfig configuration =
             new BlankConditionConfig();
 
     @Override
-    public boolean test(DocContext docCtx) throws IOException {
+    public boolean evaluate(DocContext docCtx) throws IOException {
         // do content
         if (configuration.getFieldMatcher().getPattern() == null) {
             return IOUtil.isEmpty(docCtx.input().asInputStream());

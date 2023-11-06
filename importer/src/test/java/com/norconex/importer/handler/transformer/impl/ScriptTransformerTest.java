@@ -67,7 +67,6 @@ class ScriptTransformerTest {
         Assertions.assertEquals("success", successField);
 
         var content = doc.input().asString();
-        System.err.println("CONTENT: " + content);
 
         Assertions.assertEquals(0, StringUtils.countMatches(content, "Alice"));
         Assertions.assertEquals(34, StringUtils.countMatches(content, "Roger"));

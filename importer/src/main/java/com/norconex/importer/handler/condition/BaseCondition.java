@@ -14,16 +14,34 @@
  */
 package com.norconex.importer.handler.condition;
 
-import java.util.function.Predicate;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import com.norconex.importer.handler.DocContext;
 
 /**
- * A condition usually used in flow creation when configuring
- * importer handlers.
+ * An abstract base class for a condition, wrapping {@link IOException}
+ * into {@link UncheckedIOException}.
  */
-@FunctionalInterface
-public interface Condition extends Predicate<DocContext> {
+public abstract class BaseCondition implements Condition {
+
+    @Override
+    public final boolean test(DocContext ctx) {
+        // Fire events?
+//        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_BEGIN);
+        try {
+            return evaluate(ctx);
+        } catch (IOException e) {
+//            fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
+            throw new UncheckedIOException(
+                    "Importer failure for handler: " + this, e);
+        }
+//        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
+    }
+
+    protected abstract boolean evaluate(DocContext docCtx) throws IOException;
+
+
 
     //TODO needed?
     //TODO extend Predicate and replace method or have a default one?

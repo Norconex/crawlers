@@ -16,15 +16,10 @@ package com.norconex.importer.handler;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.function.Consumer;
-
-import org.apache.commons.lang3.function.FailableConsumer;
 
 import com.norconex.importer.ImporterEvent;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
 import lombok.ToString;
 
 /**
@@ -69,7 +64,7 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
         fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
     }
 
-    public abstract void handle(DocContext ctx) throws IOException;
+    protected abstract void handle(DocContext ctx) throws IOException;
 
 
     private void fireEvent(DocContext ctx, String eventName) {
@@ -85,33 +80,5 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
                     .parseState(ctx.parseState())
                     .exception(e)
                     .build());
-    }
-
-    //--- Decorators -----------------------------------------------------------
-
-    public static BaseDocumentHandler decorate(
-            @NonNull FailableConsumer<DocContext, IOException> consumer) {
-        return new FailableConsumerWrapper(consumer);
-    }
-    public static BaseDocumentHandler decorate(
-            @NonNull Consumer<DocContext> consumer) {
-        return new ConsumerWrapper(consumer);
-    }
-
-    @Data
-    static class FailableConsumerWrapper extends BaseDocumentHandler {
-        private final FailableConsumer<DocContext, IOException> original;
-        @Override
-        public void handle(DocContext d) throws IOException {
-            original.accept(d);
-        }
-    }
-    @Data
-    static class ConsumerWrapper extends BaseDocumentHandler {
-        private final Consumer<DocContext> original;
-        @Override
-        public void handle(DocContext d) throws IOException {
-            original.accept(d);
-        }
     }
 }

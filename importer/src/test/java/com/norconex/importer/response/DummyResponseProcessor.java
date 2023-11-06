@@ -14,16 +14,26 @@
  */
 package com.norconex.importer.response;
 
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.response.DummyResponseProcessor.DummyConfig;
+
 import lombok.Data;
 
 // For testing, does nothing
 @Data
-public class DummyResponseProcessor implements ImporterResponseProcessor {
+public class DummyResponseProcessor
+        implements ImporterResponseProcessor, Configurable<DummyConfig> {
 
-    private String dummyProperty = "dummy";
+    private final DummyConfig configuration = new DummyConfig();
 
     @Override
-    public ImporterStatus processImporterResponse(ImporterResponse response) {
-        return response.getImporterStatus();
+    public ImporterResponse
+            processImporterResponse(ImporterResponse response) {
+        return response;
+    }
+
+    @Data
+    public static class DummyConfig {
+        private String dummyProperty = "dummy";
     }
 }

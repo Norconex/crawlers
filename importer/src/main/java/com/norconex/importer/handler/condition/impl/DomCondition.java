@@ -26,7 +26,7 @@ import org.jsoup.nodes.Element;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.CommonMatchers;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.condition.BaseCondition;
 import com.norconex.importer.util.DomUtil;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 import com.optimaize.langdetect.text.TextFilter;
@@ -145,13 +145,14 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class DomCondition
-        implements Condition, Configurable<DomConditionConfig> {
+        extends BaseCondition
+        implements Configurable<DomConditionConfig> {
 
     private final DomConditionConfig configuration =
             new DomConditionConfig();
 
     @Override
-    public boolean test(DocContext docCtx) throws IOException {
+    public boolean evaluate(DocContext docCtx) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(

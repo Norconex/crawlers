@@ -29,7 +29,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
@@ -45,7 +44,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Java;
-import org.apache.tools.ant.types.Commandline.Argument;
 import org.apache.tools.ant.types.Path;
 
 import com.norconex.commons.lang.exec.SystemCommand;
@@ -73,7 +71,7 @@ public class ExternalApp {
     // if meta files are provided, reverse each values too
     public static void main(String[] args) throws IOException {
 
-        CommandLine cmd = parseCommandLineArguments(args);
+        var cmd = parseCommandLineArguments(args);
 
         File inFileContent = null;
         File outFileContent = null;
@@ -99,9 +97,9 @@ public class ExternalApp {
 
         printEnvToStdout(ENV_STDOUT_BEFORE);
         printEnvToStderr(ENV_STDERR_BEFORE);
-        OutputStream output = getOutputStream(outFileContent);
-        try (InputStream input = getInputStream(inFileContent)) {
-            List<String> lines =
+        var output = getOutputStream(outFileContent);
+        try (var input = getInputStream(inFileContent)) {
+            var lines =
                    IOUtils.readLines(input, StandardCharsets.UTF_8);
             for (String line : lines) {
                 output.write(reverseWords(line).getBytes());
@@ -118,14 +116,14 @@ public class ExternalApp {
 
         // handle meta files
         if (inFileMeta != null && outFileMeta != null) {
-            Properties p = new Properties();
+            var p = new Properties();
             try (Reader r = new FileReader(inFileMeta);
                  Writer w = new FileWriter(outFileMeta)) {
                 p.loadFromProperties(r);
                 for (Entry<String, List<String>> entry : p.entrySet()) {
-                    String[] values = entry.getValue().toArray(
+                    var values = entry.getValue().toArray(
                             ArrayUtils.EMPTY_STRING_ARRAY);
-                    for (int i = 0; i < values.length; i++) {
+                    for (var i = 0; i < values.length; i++) {
                         values[i] = reverseWords(values[i]);
                     }
                     p.set(entry.getKey(), values);
@@ -136,19 +134,19 @@ public class ExternalApp {
     }
 
     private static String reverseWords(String str) {
-        String[] words =  str.split(" ");
+        var words =  str.split(" ");
         ArrayUtils.reverse(words);
         return StringUtils.join(words, " ");
     }
 
     private static void printEnvToStdout(String varName) {
-        String var = System.getenv(varName);
+        var var = System.getenv(varName);
         if (StringUtils.isNotBlank(var)) {
             System.out.println(var);
         }
     }
     private static void printEnvToStderr(String varName) {
-        String var = System.getenv(varName);
+        var var = System.getenv(varName);
         if (StringUtils.isNotBlank(var)) {
             System.err.println(var);
         }
@@ -174,10 +172,10 @@ public class ExternalApp {
     }
 
     public static String newCommandLine(String args) {
-        Project project = new Project();
+        var project = new Project();
         project.init();
         try {
-            Java javaTask = new Java();
+            var javaTask = new Java();
             javaTask.setTaskName("runjava");
             javaTask.setProject(project);
             javaTask.setFork(true);
@@ -185,55 +183,20 @@ public class ExternalApp {
             javaTask.setClassname(ExternalApp.class.getName());
             javaTask.setClasspath(
                     new Path(project, SystemUtils.JAVA_CLASS_PATH));
-            Argument arg = javaTask.getCommandLine().createArgument();
+            var arg = javaTask.getCommandLine().createArgument();
             arg.setPrefix("\"");
             arg.setLine(args);
             arg.setSuffix("\"");
 
-            String[] cmdArray = javaTask.getCommandLine().getCommandline();
+            var cmdArray = javaTask.getCommandLine().getCommandline();
             cmdArray = SystemCommand.escape(cmdArray);
 
-            String cmd = StringUtils.join(cmdArray, " ");
-            cmd = fixCommand(cmd);
-            return cmd;
+            var cmd = StringUtils.join(cmdArray, " ");
+            return fixCommand(cmd);
         } catch (BuildException e) {
             throw e;
         }
     }
-
-//    public static SystemCommand newSystemCommand(String type, File... files) {
-//        return new SystemCommand(newCommandLine(type, files));
-//    }
-//    public static String newCommandLine(String type, File... files) {
-//        Project project = new Project();
-//        project.init();
-//        try {
-//            Java javaTask = new Java();
-//            javaTask.setTaskName("runjava");
-//            javaTask.setProject(project);
-//            javaTask.setFork(true);
-//            javaTask.setFailonerror(true);
-//            javaTask.setClassname(ExternalApp.class.getName());
-//            javaTask.setClasspath(
-//                    new Path(project, SystemUtils.JAVA_CLASS_PATH));
-//            String args = type;
-//            if (files != null) {
-//                for (File file : files) {
-//                    args += " \"" + file.getAbsolutePath() + "\"";
-//                }
-//            }
-//            javaTask.getCommandLine().createArgument().setLine(args);
-//
-//            String[] cmdArray = javaTask.getCommandLine().getCommandline();
-//            cmdArray = SystemCommand.escape(cmdArray);
-//
-//            String cmd = StringUtils.join(cmdArray, " ");
-//            cmd = fixCommand(cmd);
-//            return cmd;
-//        } catch (BuildException e) {
-//            throw e;
-//        }
-//    }
 
     // Fix the command as necessary.
     // Shorten the command by eliminating items we do not need
@@ -241,20 +204,20 @@ public class ExternalApp {
     // to prevent command line length limitation
     // on windows ("The command line is too long.").
     private static String fixCommand(String command) {
-        String cmd = command;
+        var cmd = command;
         cmd = cmd.replaceFirst(" -classpath ", " -cp ");
 
-        String cp = cmd.replaceFirst(".*\\s+-cp\\s+(.*)\\s+"
+        var cp = cmd.replaceFirst(".*\\s+-cp\\s+(.*)\\s+"
                 + ExternalApp.class.getName() + ".*", "$1");
-        boolean isQuoted = false;
+        var isQuoted = false;
         if (cp.matches("^\".*\"$")) {
             isQuoted = true;
             cp = StringUtils.strip(cp, "\"");
         }
-        StringBuilder b = new StringBuilder();
-        Matcher m = Pattern.compile(".*?([;:]|$)").matcher(cp);
+        var b = new StringBuilder();
+        var m = Pattern.compile(".*?([;:]|$)").matcher(cp);
         while (m.find()) {
-            String path = m.group();
+            var path = m.group();
             if (keepPath(path)) {
                 b.append(path);
             }
@@ -269,9 +232,8 @@ public class ExternalApp {
         if (isQuoted) {
             cp = "\"" + cp + "\"";
         }
-        cmd = cmd.replaceFirst("(.*\\s+-cp\\s+)(.*)(\\s+"
+        return cmd.replaceFirst("(.*\\s+-cp\\s+)(.*)(\\s+"
                 + ExternalApp.class.getName() + ".*)", "$1" + cp + "$3");
-        return cmd;
     }
 
     private static String getTestClassPath() {
@@ -285,7 +247,7 @@ public class ExternalApp {
         }
     }
 
-    private static final String[] KEEPERS = new String[] {
+    private static final String[] KEEPERS = {
             "norconex-importer",
             "norconex-commons-lang",
             "junit",
@@ -314,7 +276,7 @@ public class ExternalApp {
     }
 
     private static CommandLine parseCommandLineArguments(String[] args) {
-        Options options = new Options();
+        var options = new Options();
         options.addOption(ARG_INFILE_CONTENT, true,
                 "Input file (default uses STDIN).");
         options.addOption(ARG_OUTFILE_CONTENT, true,
@@ -333,7 +295,7 @@ public class ExternalApp {
         } catch (ParseException e) {
             System.err.println("A problem occured while parsing arguments.");
             e.printStackTrace(System.err);
-            HelpFormatter formatter = new HelpFormatter();
+            var formatter = new HelpFormatter();
             formatter.printHelp("Optional arguments:", options);
             System.exit(-1);
         }

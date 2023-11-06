@@ -19,7 +19,7 @@ import java.io.IOException;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -53,7 +53,8 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class ReferenceCondition
-        implements Condition, Configurable<ReferenceConditionConfig> {
+        extends BaseCondition
+        implements Configurable<ReferenceConditionConfig> {
 
     @Getter
     private final ReferenceConditionConfig configuration =
@@ -65,7 +66,7 @@ public class ReferenceCondition
     }
 
     @Override
-    public boolean test(DocContext docCtx) throws IOException {
+    public boolean evaluate(DocContext docCtx) throws IOException {
         return configuration.getValueMatcher().matches(docCtx.reference());
     }
 }

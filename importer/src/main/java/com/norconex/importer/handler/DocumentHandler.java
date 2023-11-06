@@ -17,6 +17,11 @@ package com.norconex.importer.handler;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.function.FailableConsumer;
+
+import lombok.Data;
+import lombok.NonNull;
+
 //REMOVE to make it a regular handler, but how to we keep the init around?
 // and how about shut down?  We should probably add that to all handlers
 // maybe to an interface as default methods? Or shall we use existing
@@ -39,6 +44,35 @@ public interface DocumentHandler extends Consumer<DocContext> {
     default void init() throws IOException {}
     default void destroy() throws IOException {}
     //default void destroy(Importer importer) {}
+
+    //--- Decorators -----------------------------------------------------------
+
+    static DocumentHandler decorate(
+            @NonNull FailableConsumer<DocContext, IOException> consumer) {
+        return new FailableConsumerWrapper(consumer);
+    }
+    static BaseDocumentHandler decorate(
+            @NonNull Consumer<DocContext> consumer) {
+        return new ConsumerWrapper(consumer);
+    }
+
+    @Data
+    static class FailableConsumerWrapper extends BaseDocumentHandler {
+        private final FailableConsumer<DocContext, IOException> original;
+        @Override
+        public void handle(DocContext d) throws IOException {
+            original.accept(d);
+        }
+    }
+    @Data
+    static class ConsumerWrapper extends BaseDocumentHandler {
+        private final Consumer<DocContext> original;
+        @Override
+        public void handle(DocContext d) throws IOException {
+            original.accept(d);
+        }
+    }
+
 
 //    /**
 //     * Initializes this parser, allowing caching of elements to improve re-use.

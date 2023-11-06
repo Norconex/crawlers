@@ -84,8 +84,10 @@ public class ImporterConfig {
             DataUnit.GB.toBytes(1).intValue();
 
 
-    @JsonFlow
+    @JsonFlow(builder = ImporterFlowConfigBuilder.class)
     @JsonProperty("handlers")
+
+//TODO make a list, even if one entry can be Consumers
     private Consumer<DocContext> handler = new DefaultParser();
 
 
@@ -193,9 +195,6 @@ public class ImporterConfig {
      * @return max documents memory pool cache size
      */
     private long maxMemoryPool = DEFAULT_MAX_STREAM_CACHE_SIZE;
-
-//    @NonNull
-//    private ParseConfig parseConfig = new ParseConfig();
 
     public List<ImporterResponseProcessor> getResponseProcessors() {
         return Collections.unmodifiableList(responseProcessors);

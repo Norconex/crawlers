@@ -47,49 +47,49 @@ class BlankConditionTest {
     void testBlankContentCondition() throws IOException {
         // Test content
 
-        assertThat(c.test(newDocContext("blah"))).isFalse();
+        assertThat(c.evaluate(newDocContext("blah"))).isFalse();
 
-        assertThat(c.test(docCtx)).isTrue();
+        assertThat(c.evaluate(docCtx)).isTrue();
     }
 
     @Test
     void testAllBlankFieldsCondition() throws IOException {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
-        assertThat(c.test(docCtx)).isFalse();
+        assertThat(c.evaluate(docCtx)).isFalse();
 
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field3"));
-        assertThat(c.test(docCtx)).isFalse();
+        assertThat(c.evaluate(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
-        assertThat(c.test(docCtx)).isFalse();
+        assertThat(c.evaluate(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(
                 TextMatcher.regex("field4\\.[123]"));
-        assertThat(c.test(docCtx)).isTrue();
+        assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
-        assertThat(c.test(docCtx)).isFalse();
+        assertThat(c.evaluate(docCtx)).isFalse();
     }
 
     @Test
     void testAnyBlankFieldsCondition() throws IOException {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         c.getConfiguration().setMatchAnyBlank(true);
-        assertThat(c.test(docCtx)).isTrue();
+        assertThat(c.evaluate(docCtx)).isTrue();
 
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field3"));
-        assertThat(c.test(docCtx)).isFalse();
+        assertThat(c.evaluate(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
-        assertThat(c.test(docCtx)).isTrue();
+        assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(
                 TextMatcher.regex("field4\\.[123]"));
-        assertThat(c.test(docCtx)).isTrue();
+        assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
-        assertThat(c.test(docCtx)).isTrue();
+        assertThat(c.evaluate(docCtx)).isTrue();
     }
 
     @Test
     void testMisc() throws IOException {
         // Test non-existant
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("doNotExist"));
-        assertThat(c.test(docCtx)).isTrue();
+        assertThat(c.evaluate(docCtx)).isTrue();
 
         // Test write read
         assertThatNoException().isThrownBy(

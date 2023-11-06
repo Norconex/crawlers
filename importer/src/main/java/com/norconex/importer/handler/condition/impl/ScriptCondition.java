@@ -25,7 +25,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.condition.BaseCondition;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 import com.norconex.importer.util.chunk.TextChunk;
 
@@ -120,7 +120,8 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @Slf4j
 public class ScriptCondition
-        implements Condition, Configurable<ScriptConditionConfig> {
+        extends BaseCondition
+        implements Configurable<ScriptConditionConfig> {
 
     //TODO consider using composition so most of the logic
     // can be shared with other ScriptXXX classes.
@@ -137,7 +138,7 @@ public class ScriptCondition
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    public boolean test(DocContext docCtx) throws IOException {
+    public boolean evaluate(DocContext docCtx) throws IOException {
 
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()

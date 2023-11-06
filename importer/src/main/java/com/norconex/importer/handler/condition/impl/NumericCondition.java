@@ -20,7 +20,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.Data;
 import lombok.Getter;
@@ -87,14 +87,15 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 @Data
 public class NumericCondition
-        implements Condition, Configurable<NumericConditionConfig> {
+        extends BaseCondition
+        implements Configurable<NumericConditionConfig> {
 
     @Getter
     private final NumericConditionConfig configuration =
             new NumericConditionConfig();
 
     @Override
-    public boolean test(DocContext docCtx) throws IOException {
+    public boolean evaluate(DocContext docCtx) throws IOException {
         for (String valueStr : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).valueList()) {
             if (!NumberUtils.isCreatable(valueStr)) {
