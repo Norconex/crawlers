@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,11 @@ package com.norconex.crawler.core.crawler.event.impl;
 import org.apache.commons.io.input.NullInputStream;
 
 import com.norconex.committer.core.service.CommitterServiceEvent;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDoc;
@@ -30,6 +29,7 @@ import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.store.DataStore;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -96,34 +96,20 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @Slf4j
-public class DeleteRejectedEventListener
-        implements EventListener<Event>, XMLConfigurable {
+public class DeleteRejectedEventListener implements
+        EventListener<Event>, Configurable<DeleteRejectedEventListenerConfig> {
 
-    public static final String DEFAULT_FILENAME_PREFIX = "urlstatuses-";
-
-    private final TextMatcher eventMatcher = TextMatcher.regex("REJECTED_.*");
+    @Getter
+    private final DeleteRejectedEventListenerConfig configuration =
+            new DeleteRejectedEventListenerConfig();
 
     // key=reference; value=whether deletion request was already sent
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private DataStore<Boolean> refStore;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private boolean doneCrawling;
-
-    /**
-     * Gets the event matcher used to identify which events can trigger
-     * a deletion request. Default is regular expression
-     * <code>REJECTED_.*</code>.
-     * @return text matcher, never <code>null</code>
-     */
-    public TextMatcher getEventMatcher() {
-        return eventMatcher;
-    }
-    /**
-     * Sets the event matcher used to identify which events can trigger
-     * a deletion request.
-     * @param eventMatcher event matcher
-     */
-    public void setEventMatcher(TextMatcher eventMatcher) {
-        this.eventMatcher.copyFrom(eventMatcher);
-    }
 
     @Override
     public void accept(Event event) {
@@ -142,7 +128,8 @@ public class DeleteRejectedEventListener
 
         } else if (event.is(CommitterServiceEvent.COMMITTER_SERVICE_DELETE_END)
                 && !doneCrawling) {
-            storeRejection(crawlerEvent.getCrawlDocRecord().getReference(), true);
+            storeRejection(
+                    crawlerEvent.getCrawlDocRecord().getReference(), true);
         } else {
             storeRejection(crawlerEvent);
         }
@@ -164,7 +151,7 @@ public class DeleteRejectedEventListener
 
     private void storeRejection(CrawlerEvent event) {
         // does it match?
-        if (!eventMatcher.matches(event.getName())) {
+        if (!configuration.getEventMatcher().matches(event.getName())) {
             LOG.trace("Event not matching event matcher: {}", event.getName());
             return;
         }
@@ -204,14 +191,5 @@ public class DeleteRejectedEventListener
             return true;
         });
         LOG.info("Done committing rejected references.");
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        eventMatcher.loadFromXML(xml.getXML("eventMatcher"));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        eventMatcher.saveToXML(xml.addElement("eventMatcher"));
     }
 }

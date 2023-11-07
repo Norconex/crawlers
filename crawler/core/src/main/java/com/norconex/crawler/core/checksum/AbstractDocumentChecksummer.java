@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.crawler.core.checksum.impl.BaseChecksummerConfig;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.importer.doc.Doc;
 

@@ -15,9 +15,7 @@
 package com.norconex.crawler.core.session;
 
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
-import com.norconex.commons.lang.bean.BeanMapper.BeanMapperBuilder;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
@@ -35,13 +33,20 @@ import lombok.experimental.Accessors;
 public class CrawlSessionBuilder {
 
     BiFunction<CrawlSession, CrawlerConfig, Crawler> crawlerFactory;
+
     CrawlSessionConfig crawlSessionConfig;
+
     EventManager eventManager;
+
     //TODO consider making this part of session config?
     CrawlSessionStopper crawlSessionStopper;
+
     @NonNull
-    Class<?> crawlerConfigClass = CrawlerConfig.class;
-    Consumer<BeanMapperBuilder> beanMapperCustomizer;
+    Class<? extends CrawlerConfig> crawlerConfigClass = CrawlerConfig.class;
+
+//    @NonNull
+//    Function<Class<? extends CrawlerConfig>, BeanMapper.BeanMapperBuilder>
+//            mapperBuilderFactory = new CoreBeanMapperBuilderFactory();
 
     public CrawlSession build() {
         return new CrawlSession(this);

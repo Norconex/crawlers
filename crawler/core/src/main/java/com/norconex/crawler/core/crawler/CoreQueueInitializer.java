@@ -48,7 +48,7 @@ public class CoreQueueInitializer
         implements Function<QueueInitContext, MutableBoolean> {
 
     public static final ToIntFunction<QueueInitContext> fromList = ctx -> {
-        var cfg = ctx.getCrawler().getCrawlerConfig();
+        var cfg = ctx.getCrawler().getConfiguration();
         var cnt = 0;
         for (String ref : cfg.getStartReferences()) {
             if (StringUtils.isNotBlank(ref)) {
@@ -63,7 +63,7 @@ public class CoreQueueInitializer
     };
 
     public static final ToIntFunction<QueueInitContext> fromFiles = ctx -> {
-        var cfg = ctx.getCrawler().getCrawlerConfig();
+        var cfg = ctx.getCrawler().getConfiguration();
         var refsFiles = cfg.getStartReferencesFiles();
         var cnt = 0;
         for (Path refsFile : refsFiles) {
@@ -89,7 +89,7 @@ public class CoreQueueInitializer
     };
 
     public static final ToIntFunction<QueueInitContext> fromProviders = ctx -> {
-        var cfg = ctx.getCrawler().getCrawlerConfig();
+        var cfg = ctx.getCrawler().getConfiguration();
         var providers = cfg.getStartReferencesProviders();
         var cnt = 0;
         for (ReferencesProvider provider : providers) {
@@ -127,7 +127,7 @@ public class CoreQueueInitializer
 
     @Override
     public MutableBoolean apply(QueueInitContext ctx) {
-        var cfg = ctx.getCrawler().getCrawlerConfig();
+        var cfg = ctx.getCrawler().getConfiguration();
         if (cfg.isStartReferencesAsync()) {
             var doneStatus = new MutableBoolean(false);
             var executor = Executors.newSingleThreadExecutor();

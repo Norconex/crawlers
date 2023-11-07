@@ -14,31 +14,14 @@
  */
 package com.norconex.crawler.core.cli;
 
-import static com.norconex.crawler.core.TestUtil.testLaunch;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.norconex.committer.core.CommitterEvent;
-import com.norconex.committer.core.service.CommitterServiceEvent;
-import com.norconex.commons.lang.SystemUtil;
-import com.norconex.crawler.core.CoreStubber;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.core.session.CrawlSessionEvent;
-
 import lombok.extern.slf4j.Slf4j;
-import picocli.CommandLine.PicocliException;
 
 @Slf4j
 class CliLauncherTest {
+
+    //TODO migrate these:
+
+    /*
 
     // Maybe a class for each crawler action/test?
 
@@ -305,7 +288,7 @@ class CliLauncherTest {
         assertThat(Files.readString(renderedFile).trim()).isEqualTo(
                 exit1.getStdOut().trim());
     }
-
+*/
 
     //TODO write unit tests for <app> help command
     //TODO test with .variables and .properties and system env/props

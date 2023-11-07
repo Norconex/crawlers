@@ -16,8 +16,10 @@ package com.norconex.crawler.core.cli;
 
 import java.util.concurrent.Callable;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionBuilder;
+import com.norconex.crawler.core.session.CrawlSessionConfigMapperFactory;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -68,7 +70,13 @@ import picocli.CommandLine.Spec;
 public class MainCommand
         implements Callable<Integer>, IExecutionExceptionHandler {
 
-    @NonNull private final CrawlSessionBuilder crawlSessionBuilder;
+    @NonNull
+    private final CrawlSessionBuilder crawlSessionBuilder;
+
+    @NonNull
+    private final BeanMapper beanMapper;
+
+    // CrawlSessionMapperProvider<BeanMapper>  // or part of session builder?
 
     @Option(
         names = {"-h", "-help"},
@@ -87,10 +95,18 @@ public class MainCommand
 
     public MainCommand(@NonNull CrawlSessionBuilder crawlSessionBuilder) {
         this.crawlSessionBuilder = crawlSessionBuilder;
+//        beanMapper = crawlSessionBuilder.mapperBuilderFactory().apply(
+//                crawlSessionBuilder.crawlerConfigClass()).build();
+        beanMapper = CrawlSessionConfigMapperFactory.create(
+                crawlSessionBuilder.crawlerConfigClass());
+
     }
 
     CrawlSessionBuilder getCrawlSessionBuilder() {
         return crawlSessionBuilder;
+    }
+    BeanMapper getBeanMapper() {
+        return beanMapper;
     }
 
     @Override

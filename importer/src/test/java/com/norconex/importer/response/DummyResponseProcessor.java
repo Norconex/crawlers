@@ -27,9 +27,8 @@ public class DummyResponseProcessor
     private final DummyConfig configuration = new DummyConfig();
 
     @Override
-    public ImporterResponse
-            processImporterResponse(ImporterResponse response) {
-        return response;
+    public void processImporterResponse(ImporterResponse response) {
+        //NOOP
     }
 
     @Data

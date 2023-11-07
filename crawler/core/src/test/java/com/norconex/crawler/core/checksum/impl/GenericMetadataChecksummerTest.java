@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
@@ -38,7 +37,8 @@ class GenericMetadataChecksummerTest {
             .setKeep(true)
             .setToField("myToField")
             .setOnSet(PropertySetter.OPTIONAL);
-        BeanMapper.DEFAULT.assertWriteRead(c);
+        assertThatNoException().isThrownBy(
+                () -> TestUtil.beanMapper().assertWriteRead(c));
     }
 
 

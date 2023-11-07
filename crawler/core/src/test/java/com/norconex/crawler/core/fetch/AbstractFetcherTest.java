@@ -24,6 +24,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.TestUtil;
@@ -42,12 +43,11 @@ class AbstractFetcherTest {
     void testAbstractFetcher() {
         var f = new MockFetcher();
         f.setReferenceFilters(List.of(
-                new GenericReferenceFilter(TextMatcher.basic("ref"))));
+                Configurable.configure(new GenericReferenceFilter(),
+                        cfg -> cfg.setValueMatcher(TextMatcher.basic("ref")))));
         assertThat(f.accept(new MockFetchRequest("ref"))).isTrue();
         assertThat(f.accept(new MockFetchRequest("potato"))).isFalse();
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();
-
-
     }
     @Test
     void testEvents() {

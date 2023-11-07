@@ -14,20 +14,11 @@
  */
 package com.norconex.crawler.core.filter.impl;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.crawler.core.filter.DocumentFilter;
-import com.norconex.crawler.core.filter.MetadataFilter;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.filter.OnMatch;
-import com.norconex.crawler.core.filter.OnMatchFilter;
-import com.norconex.importer.doc.Doc;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
 /**
  * <p>
  * Accepts or rejects a reference based on whether one or more
@@ -59,41 +50,47 @@ import lombok.ToString;
  *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class GenericMetadataFilter implements
-        OnMatchFilter,
-        MetadataFilter,
-        DocumentFilter,
-        Configurable<GenericMetadataFilterConfig> {
+@Data
+@Accessors(chain = true)
+public class GenericMetadataFilterConfig {
 
-    @Getter
-    private final GenericMetadataFilterConfig configuration =
-            new GenericMetadataFilterConfig();
+    private OnMatch onMatch;
+    private final TextMatcher fieldMatcher = new TextMatcher();
+    private final TextMatcher valueMatcher = new TextMatcher();
 
-    @Override
-    public OnMatch getOnMatch() {
-        return OnMatch.includeIfNull(configuration.getOnMatch());
+    /**
+     * Gets the field matcher.
+     * @return field matcher
+     */
+    public TextMatcher getFieldMatcher() {
+        return fieldMatcher;
     }
-
-    @Override
-    public boolean acceptMetadata(String reference, Properties metadata) {
-        if (isBlank(configuration.getFieldMatcher().getPattern())
-                || isBlank(configuration.getValueMatcher().getPattern())
-                || new PropertyMatcher(
-                        configuration.getFieldMatcher(),
-                        configuration.getValueMatcher()).matches(metadata)) {
-            return getOnMatch() == OnMatch.INCLUDE;
-        }
-        return getOnMatch() == OnMatch.EXCLUDE;
+    /**
+     * Sets the field matcher.
+     * @param fieldMatcher field matcher
+     * @return this instance
+     */
+    public GenericMetadataFilterConfig setFieldMatcher(
+            TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
     }
-
-    @Override
-    public boolean acceptDocument(Doc document) {
-        if (document == null) {
-            return getOnMatch() == OnMatch.INCLUDE;
-        }
-        return acceptMetadata(document.getReference(), document.getMetadata());
+    /**
+     * Gets the value matcher.
+     * @return value matcher
+     */
+    public TextMatcher getValueMatcher() {
+        return valueMatcher;
+    }
+    /**
+     * Sets the value matcher.
+     * @param valueMatcher value matcher
+     * @return this instance
+     */
+    public GenericMetadataFilterConfig setValueMatcher(
+            TextMatcher valueMatcher) {
+        this.valueMatcher.copyFrom(valueMatcher);
+        return this;
     }
 }
 

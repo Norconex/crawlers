@@ -72,7 +72,8 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- The following is to test write/read to/from XML/JSON/Yaml -->    
+    <!-- The following is to test write/read to/from XML/JSON/Yaml -->
+    <!--    
     <dependency>
       <groupId>jakarta.el</groupId>
       <artifactId>jakarta.el-api</artifactId>
@@ -83,6 +84,7 @@
       <artifactId>tomcat-embed-el</artifactId>
       <scope>test</scope>
     </dependency>
+    -->
   </dependencies>
  
   <build>

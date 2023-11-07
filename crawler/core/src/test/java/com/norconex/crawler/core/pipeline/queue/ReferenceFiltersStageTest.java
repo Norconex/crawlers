@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.pipeline.queue;
 
+import static com.norconex.commons.lang.config.Configurable.configure;
 import static com.norconex.commons.lang.text.TextMatcher.basic;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,9 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CoreStubber;
+import com.norconex.crawler.core.filter.OnMatch;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.importer.handler.filter.OnMatch;
 
 class ReferenceFiltersStageTest {
 
@@ -40,21 +41,27 @@ class ReferenceFiltersStageTest {
         var stage = new ReferenceFiltersStage();
 
         // match - include
-        crawler.getCrawlerConfig().setReferenceFilters(List.of(
-                new GenericReferenceFilter(basic("ref"), OnMatch.INCLUDE)));
+        crawler.getConfiguration().setReferenceFilters(List.of(
+                configure(new GenericReferenceFilter(), cfg -> cfg
+                        .setValueMatcher(basic("ref"))
+                        .setOnMatch(OnMatch.INCLUDE))));
         var ctx1 = new DocRecordPipelineContext(crawler, docRecord);
         assertThat(stage.test(ctx1)).isTrue();
 
         // match - exclude
-        crawler.getCrawlerConfig().setReferenceFilters(List.of(
-                new GenericReferenceFilter(basic("ref"), OnMatch.EXCLUDE)));
+        crawler.getConfiguration().setReferenceFilters(List.of(
+                configure(new GenericReferenceFilter(), cfg -> cfg
+                        .setValueMatcher(basic("ref"))
+                        .setOnMatch(OnMatch.EXCLUDE))));
         var ctx2 = new DocRecordPipelineContext(crawler, docRecord);
         assertThat(stage.test(ctx2)).isFalse();
 
         // no match - include
         stage = new ReferenceFiltersStage("blah");
-        crawler.getCrawlerConfig().setReferenceFilters(List.of(
-                new GenericReferenceFilter(basic("noref"), OnMatch.INCLUDE)));
+        crawler.getConfiguration().setReferenceFilters(List.of(
+                configure(new GenericReferenceFilter(), cfg -> cfg
+                        .setValueMatcher(basic("noref"))
+                        .setOnMatch(OnMatch.INCLUDE))));
         var ctx3 = new DocRecordPipelineContext(crawler, docRecord);
         assertThat(stage.test(ctx3)).isFalse();
     }

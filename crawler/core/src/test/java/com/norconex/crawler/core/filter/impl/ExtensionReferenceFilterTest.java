@@ -17,19 +17,21 @@ package com.norconex.crawler.core.filter.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.CoreStubber;
-import com.norconex.importer.handler.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatch;
 
 class ExtensionReferenceFilterTest {
 
     @Test
     void testOnlyDetectExtensionsInLastPathSegment() {
-        var filter = initFilter("com", "xml");
+        var filter = initFilter(List.of("com", "xml"));
 
         Assertions.assertFalse(
                 filter.acceptReference("http://example.com"));
@@ -83,39 +85,45 @@ class ExtensionReferenceFilterTest {
 
     @Test
     void testEmpty() {
-        var f = new ExtensionReferenceFilter(null);
+        var f = new ExtensionReferenceFilter();
         assertThat(f.acceptReference("ref")).isTrue();
         assertThat(f.getOnMatch()).isSameAs(OnMatch.INCLUDE);
-        assertThat(f.getExtensions()).isEmpty();
+        assertThat(f.getConfiguration().getExtensions()).isEmpty();
 
         // here we exclude if it matches. since it does not match, it returns
         // true (record is accepted)
-        f = new ExtensionReferenceFilter("blah", OnMatch.EXCLUDE);
+        f = new ExtensionReferenceFilter();
+        f.getConfiguration()
+            .setExtensions(List.of("blah"))
+            .setOnMatch(OnMatch.EXCLUDE);
         assertThat(f.acceptReference("")).isTrue();
     }
 
     @Test
     void testDocumentAndMetadata() {
-        var f = new ExtensionReferenceFilter("pdf");
+        var f = new ExtensionReferenceFilter();
+        f.getConfiguration()
+            .setExtensions(List.of("pdf"));
         assertThat(f.acceptDocument(
                 CoreStubber.crawlDoc("http://example.com/test.pdf"))).isTrue();
         assertThat(f.acceptMetadata(
                 "http://example.com/test.pdf", new Properties())).isTrue();
     }
 
-    private ExtensionReferenceFilter initFilter(String... extensions) {
+    private ExtensionReferenceFilter initFilter(List<String> extensions) {
         var filter = new ExtensionReferenceFilter();
-        filter.setExtensions(extensions);
+        filter.getConfiguration().setExtensions(extensions);
         return filter;
     }
 
     @Test
     void testWriteRead() {
         var f = new ExtensionReferenceFilter();
-        f.setIgnoreCase(true);
-        f.setExtensions("com","pdf");
-        f.setOnMatch(OnMatch.EXCLUDE);
+        f.getConfiguration()
+            .setIgnoreCase(true)
+            .setExtensions(List.of("com","pdf"))
+            .setOnMatch(OnMatch.EXCLUDE);
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(f, "filter"));
+                () -> BeanMapper.DEFAULT.assertWriteRead(f));
     }
 }

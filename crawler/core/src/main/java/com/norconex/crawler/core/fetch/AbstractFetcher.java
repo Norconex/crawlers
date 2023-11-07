@@ -26,11 +26,11 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.filter.FilterGroupResolver;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionEvent;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.FilterGroupResolver;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -97,13 +97,6 @@ public abstract class AbstractFetcher
     public List<ReferenceFilter> getReferenceFilters() {
         return Collections.unmodifiableList(referenceFilters);
     }
-//    /**
-//     * Sets reference filters.
-//     * @param referenceFilters reference filters to set
-//     */
-//    public void setReferenceFilters(ReferenceFilter... referenceFilters) {
-//        setReferenceFilters(Arrays.asList(referenceFilters));
-//    }
     /**
      * Sets reference filters.
      * @param referenceFilters the referenceFilters to set

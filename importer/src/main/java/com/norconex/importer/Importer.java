@@ -136,13 +136,12 @@ public class Importer implements Configurable<ImporterConfig> {
             return importDocument(toDocument(req));
         } catch (ImporterException e) {
             LOG.warn("Importer request failed: {}", req, e);
-            return ImporterResponse.builder()
-                    .reference(req.getReference())
-                    .status(ImporterResponse.Status.ERROR)
-                    .exception(new ImporterException(
+            return new ImporterResponse()
+                    .setReference(req.getReference())
+                    .setStatus(ImporterResponse.Status.ERROR)
+                    .setException(new ImporterException(
                             "Failed to import document for request: " + req, e))
-                    .description(e.getLocalizedMessage())
-                    .build();
+                    .setDescription(e.getLocalizedMessage());
         }
     }
     /**
@@ -188,6 +187,8 @@ public class Importer implements Configurable<ImporterConfig> {
             }
 
             //--- Response Processor ---
+
+
             if (response.getParentResponse() == null
                     && !configuration.getResponseProcessors().isEmpty()) {
                 processResponse(response);
@@ -195,13 +196,12 @@ public class Importer implements Configurable<ImporterConfig> {
             return response;
         } catch (IOException | ImporterRuntimeException e) {
             LOG.warn("Could not import document: {}", document, e);
-            return ImporterResponse.builder()
-                    .status(Status.ERROR)
-                    .doc(document)
-                    .reference(document.getReference())
-                    .exception(new ImporterException(
-                            "Could not import document: " + document, e))
-                    .build();
+            return new ImporterResponse()
+                    .setStatus(Status.ERROR)
+                    .setDoc(document)
+                    .setReference(document.getReference())
+                    .setException(new ImporterException(
+                            "Could not import document: " + document, e));
         } finally {
             destroyHandlersOnce();
         }
@@ -389,14 +389,12 @@ public class Importer implements Configurable<ImporterConfig> {
     private ImporterResponse executeHandlers(
             Doc doc, List<Doc> childDocsHolder) throws ImporterException {
 
-        var respBuilder = ImporterResponse.builder()
-                .doc(doc)
-                .reference(doc.getReference());
+        var resp = new ImporterResponse()
+                .setDoc(doc)
+                .setReference(doc.getReference());
 
         if (configuration.getHandler() == null) {
-            return respBuilder
-                    .status(Status.SUCCESS)
-                    .build();
+            return resp.setStatus(Status.SUCCESS);
         }
         var ctx = DocContext.builder()
             .doc(doc)
@@ -417,11 +415,10 @@ public class Importer implements Configurable<ImporterConfig> {
         childDocsHolder.addAll(ctx.childDocs());
 
         if (ctx.isRejected()) {
-            return respBuilder
-                    .status(Status.REJECTED)
-                    .rejectCause(ctx.rejectedBy())
-                    .description(Objects.toString(ctx.rejectedBy(), null))
-                    .build();
+            return resp
+                    .setStatus(Status.REJECTED)
+                    .setRejectCause(ctx.rejectedBy())
+                    .setDescription(Objects.toString(ctx.rejectedBy(), null));
         }
 //        if (!ctx.getIncludeResolver().passes()) {
 //            return new ImporterStatus(Status.REJECTED,
@@ -429,8 +426,6 @@ public class Importer implements Configurable<ImporterConfig> {
 //                  + "matched.");
 //        }
 //        return PASSING_FILTER_STATUS;
-        return respBuilder
-                .status(Status.SUCCESS)
-                .build();
+        return resp.setStatus(Status.SUCCESS);
     }
 }

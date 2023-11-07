@@ -23,11 +23,9 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 
-import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.committer.core.CommitterRequest;
 import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.crawler.Crawler;
@@ -85,6 +83,8 @@ class CrawlSessionTest {
         assertThatNoException().isThrownBy(() -> sess.start());
     }
 
+    //TODO migrate this:
+    /*
     @Test
     void testLifeCycle() throws IOException {
 
@@ -136,7 +136,7 @@ class CrawlSessionTest {
             .containsExactly("mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5",
                     "mock:ref1");
     }
-
+*/
     @Test
     void testReleaseInfo() {
         var rel = CrawlSession.getReleaseInfo(

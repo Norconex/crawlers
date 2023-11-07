@@ -19,18 +19,20 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.CoreStubber;
-import com.norconex.importer.handler.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatch;
 
 class GenericMetadataFilterTest {
 
     @Test
     void testGenericMetadataFilter() {
-        var f = new GenericMetadataFilter(
-                TextMatcher.basic("field1"), TextMatcher.basic("value1"));
-        f.setOnMatch(OnMatch.INCLUDE);
+        var f = new GenericMetadataFilter();
+        f.getConfiguration()
+            .setFieldMatcher(TextMatcher.basic("field1"))
+            .setValueMatcher(TextMatcher.basic("value1"))
+            .setOnMatch(OnMatch.INCLUDE);
 
         var doc1 = CoreStubber.crawlDoc("ref", "blah", "field1", "value1");
         assertThat(f.acceptDocument(doc1)).isTrue();
@@ -49,10 +51,11 @@ class GenericMetadataFilterTest {
     @Test
     void testWriteRead() {
         var f = new GenericMetadataFilter();
-        f.setOnMatch(OnMatch.EXCLUDE);
-        f.setFieldMatcher(TextMatcher.basic("title"));
-        f.setValueMatcher(TextMatcher.regex(".*blah.*"));
+        f.getConfiguration()
+            .setOnMatch(OnMatch.EXCLUDE)
+            .setFieldMatcher(TextMatcher.basic("title"))
+            .setValueMatcher(TextMatcher.regex(".*blah.*"));
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(f, "filter"));
+                () -> BeanMapper.DEFAULT.assertWriteRead(f));
     }
 }

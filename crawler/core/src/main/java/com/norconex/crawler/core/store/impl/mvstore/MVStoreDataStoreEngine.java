@@ -175,7 +175,7 @@ public class MVStoreDataStoreEngine
     public synchronized <T> DataStore<T> openStore(
             String name, Class<? extends T> type) {
         storeTypes.put(name, type);
-        return new MVStoreDataStore<>(mvstore,  name);
+        return new MVStoreDataStore<>(mvstore, name, type);
     }
     @Override
     public synchronized boolean dropStore(String name) {

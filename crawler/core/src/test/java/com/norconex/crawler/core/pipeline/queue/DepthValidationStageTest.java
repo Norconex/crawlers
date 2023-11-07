@@ -36,19 +36,19 @@ class DepthValidationStageTest {
         var ctx = new DocRecordPipelineContext(crawler, docRec);
 
         // Unlimited depth
-        crawler.getCrawlerConfig().setMaxDepth(-1);
+        crawler.getConfiguration().setMaxDepth(-1);
         docRec.setState(CrawlDocState.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(CrawlDocState.NEW);
 
         // Max depth
-        crawler.getCrawlerConfig().setMaxDepth(3);
+        crawler.getConfiguration().setMaxDepth(3);
         docRec.setState(CrawlDocState.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(CrawlDocState.NEW);
 
         // Over max depth
-        crawler.getCrawlerConfig().setMaxDepth(2);
+        crawler.getConfiguration().setMaxDepth(2);
         docRec.setState(CrawlDocState.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(

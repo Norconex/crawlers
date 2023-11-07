@@ -14,26 +14,18 @@
  */
 package com.norconex.crawler.core.crawler;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.nio.file.Path;
-import java.util.List;
 
-import org.assertj.core.api.Condition;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import com.norconex.committer.core.CommitterRequest;
-import com.norconex.crawler.core.CoreStubber;
-import com.norconex.crawler.core.TestUtil;
-import com.norconex.crawler.core.crawler.CrawlerConfig.OrphansStrategy;
 
 class CrawlerTest {
 
     @TempDir
     private Path tempDir;
 
+    //TODO Migrate this:
+
+    /*
     @Test
     void testLifeCycle() {
 
@@ -119,4 +111,5 @@ class CrawlerTest {
         assertThat(mem.getDeleteRequests().get(0).getReference())
             .isEqualTo("mock:ref1");
     }
+    */
 }

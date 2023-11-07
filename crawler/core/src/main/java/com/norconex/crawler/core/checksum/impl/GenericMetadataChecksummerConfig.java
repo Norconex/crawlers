@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.checksum.impl;
 
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.checksum.BaseChecksummerConfig;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 

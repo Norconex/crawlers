@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,21 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.response;
+package com.norconex.crawler.core.filter;
 
 /**
- * Processes an importer response to modify it or perform other actions
- * as required before it is returned.
+ * Constants indicating the action to perform upon matching a condition.
+ * Typically used with filtering conditions.
  */
-@FunctionalInterface
-public interface ImporterResponseProcessor {
+public enum OnMatch {
+    INCLUDE, EXCLUDE;
 
-    /**
-     * Processes the importer response.
-     * @param response the importer response
-     * @return new response
-     */
-    //TODO make this a consumer instead?
-    void processImporterResponse(ImporterResponse response);
-//    ImporterResponse processImporterResponse(ImporterResponse response);
+    public static OnMatch includeIfNull(OnMatch onMatch) {
+        return onMatch != null ? onMatch : INCLUDE;
+    }
+    public static OnMatch excludeIfNull(OnMatch onMatch) {
+        return onMatch != null ? onMatch : EXCLUDE;
+    }
 }

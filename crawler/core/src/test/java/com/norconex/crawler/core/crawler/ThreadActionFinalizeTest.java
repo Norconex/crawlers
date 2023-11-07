@@ -44,7 +44,7 @@ class ThreadActionFinalizeTest {
         SpoiledReferenceStrategizer spoiledHandler =
                 (ref, state) -> strategy.getValue();
 
-        crawler.getCrawlerConfig().setSpoiledReferenceStrategizer(
+        crawler.getConfiguration().setSpoiledReferenceStrategizer(
                 spoiledHandler);
         crawler.initCrawler(null);
         var ctx = new ThreadActionContext();

@@ -23,11 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.TestUtil;
 import com.norconex.importer.doc.Doc;
 
 class MD5DocumentChecksummerTest {
@@ -154,6 +154,6 @@ class MD5DocumentChecksummerTest {
             .setOnSet(PropertySetter.PREPEND)
             ;
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c));
+                () -> TestUtil.beanMapper().assertWriteRead(c));
     }
 }

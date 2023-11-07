@@ -89,7 +89,7 @@ final class ThreadActionUpsert {
             // properties for crawling.
             //TODO refactor Doc vs CrawlDoc to have only one instance
             // so we do not have to create such copy?
-            var childResponseDoc = childResponse.getDocument();
+            var childResponseDoc = childResponse.getDoc();
             var childCrawlDoc = new CrawlDoc(
                     childDocRec, childCachedDocRec,
                     childResponseDoc == null
@@ -117,9 +117,9 @@ final class ThreadActionUpsert {
         var response = ctx.importerResponse();
 
         // ok, there's a resonse, but is it good?
-        var msg = response.getImporterStatus().toString();
-        if (response.getNestedResponses().length > 0) {
-            msg += "(" + response.getNestedResponses().length
+        var msg = response.toString();
+        if (!response.getNestedResponses().isEmpty()) {
+            msg += "(" + response.getNestedResponses().size()
                     + " nested responses.)";
         }
 
@@ -145,9 +145,7 @@ final class ThreadActionUpsert {
                 .build());
         LOG.debug("Importing unsuccessful for \"{}\": {}",
                 docRecord.getReference(),
-                response.getImporterStatus().getDescription());
-
-
+                response.getDescription());
 
         return false;
 

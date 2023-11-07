@@ -24,9 +24,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.filter.DocumentFilter;
+import com.norconex.crawler.core.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatchFilter;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.OnMatch;
-import com.norconex.importer.handler.filter.OnMatchFilter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,17 +47,17 @@ class DocumentFiltersStageTest {
         assertThat(stage.test(ctx)).isTrue();
 
         // test match
-        crawler.getCrawlerConfig().setDocumentFilters(
+        crawler.getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.INCLUDE, true)));
         assertThat(stage.test(ctx)).isTrue();
 
         // test no match
-        crawler.getCrawlerConfig().setDocumentFilters(
+        crawler.getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.INCLUDE, false)));
         assertThat(stage.test(ctx)).isFalse();
 
         // exclude
-        crawler.getCrawlerConfig().setDocumentFilters(
+        crawler.getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.EXCLUDE, false)));
         assertThat(stage.test(ctx)).isFalse();
 

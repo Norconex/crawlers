@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.time.DurationParser;
@@ -30,7 +32,6 @@ import com.norconex.importer.ImporterConfig;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -99,7 +100,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Data
 @FieldNameConstants
-@Slf4j
+@SuppressWarnings("javadoc")
 public class CrawlSessionConfig { // implements XMLConfigurable {
 
     /** Default relative directory where generated files are written. */
@@ -113,7 +114,6 @@ public class CrawlSessionConfig { // implements XMLConfigurable {
      * @param id unique identifier
      * @return unique identifier
      */
-    @SuppressWarnings("javadoc")
     private String id;
 
     /**
@@ -123,7 +123,6 @@ public class CrawlSessionConfig { // implements XMLConfigurable {
      * @param workDir working directory path
      * @return working directory path
      */
-    @SuppressWarnings("javadoc")
     private Path workDir = DEFAULT_WORK_DIR;
 
     /**
@@ -134,7 +133,6 @@ public class CrawlSessionConfig { // implements XMLConfigurable {
      *     maximum number of bytes for all reusable streams combined
      * @return maximum number of bytes for all reusable streams combined
      */
-    @SuppressWarnings("javadoc")
     private long maxStreamCachePoolSize =
             ImporterConfig.DEFAULT_MAX_STREAM_CACHE_POOL_SIZE;
 
@@ -147,7 +145,6 @@ public class CrawlSessionConfig { // implements XMLConfigurable {
      *     maximum number of bytes for a single reusable streams
      * @return maximum number of bytes for a single reusable stream
      */
-    @SuppressWarnings("javadoc")
     private long maxStreamCacheSize =
             ImporterConfig.DEFAULT_MAX_STREAM_CACHE_SIZE;
 
@@ -158,7 +155,6 @@ public class CrawlSessionConfig { // implements XMLConfigurable {
      *     maximum number of crawlers to be executed concurrently
      * @return maximum number of crawlers to be executed concurrently
      */
-    @SuppressWarnings("javadoc")
     private int maxConcurrentCrawlers = -1;
 
     /**
@@ -168,11 +164,12 @@ public class CrawlSessionConfig { // implements XMLConfigurable {
      * @param crawlersStartInterval amount of time
      * @return amount of time or <code>null</code>
      */
-    @SuppressWarnings("javadoc")
     private Duration crawlersStartInterval;
 
     // see methods for javadoc
     @JsonProperty("crawlers")
+    @JacksonXmlElementWrapper(localName = "crawlers")
+    @JacksonXmlProperty(localName = "crawler")
     private final List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
     private final List<EventListener<?>> eventListeners = new ArrayList<>();
 
@@ -185,7 +182,6 @@ public class CrawlSessionConfig { // implements XMLConfigurable {
      * @param deferredShutdownDuration duration
      * @return duration
      */
-    @SuppressWarnings("javadoc")
     private Duration deferredShutdownDuration = Duration.ZERO;
 
     /**

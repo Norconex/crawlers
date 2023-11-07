@@ -14,23 +14,11 @@
  */
 package com.norconex.crawler.core.crawler.event.impl;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.event.Event;
-import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -101,56 +89,47 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @SuppressWarnings("javadoc")
-@Slf4j
-@EqualsAndHashCode
-@ToString
-public class StopCrawlerOnMaxEventListener implements
-        EventListener<Event>,
-        Configurable<StopCrawlerOnMaxEventListenerConfig> {
+@Data
+@Accessors(chain = true)
+public class StopCrawlerOnMaxEventListenerConfig {
 
-    @Getter
-    private final StopCrawlerOnMaxEventListenerConfig configuration =
-            new StopCrawlerOnMaxEventListenerConfig();
-
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Map<String, AtomicLong> eventCounts = new ConcurrentHashMap<>();
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Crawler crawler;
-
-    @Override
-    public void accept(Event event) {
-        if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
-            eventCounts.clear();
-            crawler = ((CrawlerEvent) event).getSource();
-        }
-
-        if (!configuration.getEventMatcher().matches(event.getName())) {
-            return;
-        }
-
-        eventCounts.computeIfAbsent(
-                event.getName(), k -> new AtomicLong()).incrementAndGet();
-
-        if (isMaxReached()) {
-            LOG.info("Maximum number of events reached for crawler: {}",
-                    crawler.getId());
-            crawler.stop();
-        }
+    public enum OnMultiple {
+        /**
+         * Stop the crawler when any of the matching event count
+         * reaches the specified maximum.
+         */
+        ANY,
+        /**
+         * Stop the crawler when all of the matching event counts
+         * have reached the maximum.
+         */
+        ALL,
+        /**
+         * Stop the crawler when the sum of all matching event counts
+         * have reached the maximum.
+         */
+        SUM
     }
 
-    private boolean isMaxReached() {
-        var maximum = configuration.getMaximum();
-        if (OnMultiple.ALL == configuration.getOnMultiple()) {
-            return eventCounts.values().stream()
-                    .allMatch(v -> v.get() >= maximum);
-        }
-        if (OnMultiple.SUM == configuration.getOnMultiple()) {
-            return eventCounts.values().stream().collect(
-                    Collectors.summingLong(AtomicLong::get)) >= maximum;
-        }
-        return eventCounts.values().stream()
-                .anyMatch(v -> v.get() >= maximum);
+    private final TextMatcher eventMatcher = new TextMatcher();
+    private OnMultiple onMultiple = OnMultiple.ANY;
+    private long maximum;
+
+    /**
+     * Gets the event matcher used to identify which events will be counted.
+     * @return text matcher, never <code>null</code>
+     */
+    public TextMatcher getEventMatcher() {
+        return eventMatcher;
+    }
+    /**
+     * Sets the event matcher used to identify which events will be counted.
+     * @param eventMatcher event matcher
+     * @return this instance
+     */
+    public StopCrawlerOnMaxEventListenerConfig setEventMatcher(
+            TextMatcher eventMatcher) {
+        this.eventMatcher.copyFrom(eventMatcher);
+        return this;
     }
 }

@@ -15,22 +15,28 @@
 package com.norconex.importer.response;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.importer.ImporterException;
 import com.norconex.importer.doc.Doc;
 
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
-@Builder
+//@Builder
 @Data
+@Accessors(chain = true)
 public class ImporterResponse {
+
+    //TODO have part of it immutable... response could be modified to
+    // add children.. so maybe there are no risk to be able to change it all?
 
 
     public enum Status { SUCCESS, REJECTED, ERROR }
@@ -38,18 +44,21 @@ public class ImporterResponse {
     public static final ImporterResponse[] EMPTY_RESPONSES = {};
 
 
-    private final Status status;
+    private Status status;
 //    private final DocumentFilter filter;
-    private final Object rejectCause; // e.g., Condition, or handler.
-    private final ImporterException exception;
-    private final String description;
+    private Object rejectCause; // e.g., Condition, or handler.
+    private ImporterException exception;
+    private String description;
 
-    private final String reference;
-    private final Doc doc;
+    private String reference;
+    private Doc doc;
+    @NonNull
+//    @Singular
     private final List<ImporterResponse> nestedResponses = new ArrayList<>();
     @EqualsAndHashCode.Exclude
-    @ToStringExclude
-    private final ImporterResponse parentResponse;
+    @ToString.Exclude
+    @Setter(value = AccessLevel.NONE)
+    private ImporterResponse parentResponse;
 
 //    public ImporterResponse(String reference, ImporterStatus status) {
 //        this.reference = reference;
@@ -106,11 +115,28 @@ public class ImporterResponse {
 //        this.parentResponse = parentResponse;
 //    }
 
-    @Override
-    public String toString() {
-        var b = new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE);
-        b.setExcludeNullValues(true);
-        return b.toString();
+    public List<ImporterResponse> getNestedResponses() {
+        return Collections.unmodifiableList(nestedResponses);
+    }
+
+//    public static ImporterResponseBuilder builderFrom(
+//            ImporterResponse from) {
+//        return new ImporterResponseBuilder()
+//                .description(from.getDescription())
+//                .exception(from.getException())
+//                .nestedResponses(from.getNestedResponses())
+//                .doc(from.getDoc())
+//                .reference(from.getReference())
+//                .rejectCause(from.getRejectCause())
+//                .parentResponse(from.getParentResponse())
+//                .status(from.status)
+//                ;
+//    }
+
+    public ImporterResponse setNestedResponses(
+            List<ImporterResponse> nestedResponses) {
+        CollectionUtil.setAll(this.nestedResponses, nestedResponses);
+        this.nestedResponses.forEach(nr -> nr.parentResponse = ImporterResponse.this);
+        return this;
     }
 }

@@ -36,7 +36,7 @@ class ImporterPipelineContextTest {
         var ctx = new ImporterPipelineContext(crawler, doc);
 
         // metadata: disabled; document: enabled
-        crawler.getCrawlerConfig().setMetadataFetchSupport(
+        crawler.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.DISABLED);
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isFalse();
@@ -44,7 +44,7 @@ class ImporterPipelineContextTest {
         assertThat(ctx.isFetchDirectiveEnabled(DOCUMENT)).isTrue();
 
         // metadata: enabled; document: enabled
-        crawler.getCrawlerConfig().setMetadataFetchSupport(
+        crawler.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isTrue();

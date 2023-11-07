@@ -12,21 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.response;
+package com.norconex.crawler.core.filter;
+
 
 /**
- * Processes an importer response to modify it or perform other actions
- * as required before it is returned.
+ * Tells the collector that a filter is of "OnMatch" type.  This means
+ * if one or more filters of type "include" exist in a set of filters,
+ * at least one of them must be matched for a document (or other)
+ * to be "included".  Only one filter of type "exclude" needs to be
+ * matched or the document (or other) to be excluded.
+ * Filters of type "exclude" have precedence over includes.
  */
-@FunctionalInterface
-public interface ImporterResponseProcessor {
+public interface OnMatchFilter {
 
     /**
-     * Processes the importer response.
-     * @param response the importer response
-     * @return new response
+     * Gets the the on match action (exclude or include).
+     * @return on match (exclude or include)
      */
-    //TODO make this a consumer instead?
-    void processImporterResponse(ImporterResponse response);
-//    ImporterResponse processImporterResponse(ImporterResponse response);
+    OnMatch getOnMatch();
 }
