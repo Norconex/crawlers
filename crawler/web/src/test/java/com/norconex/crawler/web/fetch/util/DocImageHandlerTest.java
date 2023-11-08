@@ -15,6 +15,7 @@
 package com.norconex.crawler.web.fetch.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,9 +30,9 @@ import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.fetch.util.DocImageHandler.DirStructure;
@@ -49,7 +50,8 @@ class DocImageHandlerTest {
         h.setTargetMetaField("docMeta");
         h.setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
-        XML.assertWriteRead(h, "docImageHandler");
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(h));
     }
 
     @Test

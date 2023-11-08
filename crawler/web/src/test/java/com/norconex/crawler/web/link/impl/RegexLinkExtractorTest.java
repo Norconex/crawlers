@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.link.impl;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,6 +27,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.xml.XML;
@@ -46,10 +48,11 @@ class RegexLinkExtractorTest {
         var docURL = baseDir + "RegexLinkExtractorTest.html";
 
         var extractor = new RegexLinkExtractor();
-        extractor.addPattern("\\[\\s*(.*?)\\s*\\]", "$1");
-        extractor.addPattern("<link>\\s*(.*?)\\s*</link>", "$1");
-        extractor.addPattern("<a href=\"javascript:;\"[^>]*?id=\"p_(\\d+)\">",
-                "/page?id=$1");
+        extractor.getConfiguration()
+            .addPattern("\\[\\s*(.*?)\\s*\\]", "$1")
+            .addPattern("<link>\\s*(.*?)\\s*</link>", "$1")
+            .addPattern("<a href=\"javascript:;\"[^>]*?id=\"p_(\\d+)\">",
+                    "/page?id=$1");
 
         // All these must be found
         String[] expectedURLs = {
@@ -117,12 +120,13 @@ class RegexLinkExtractorTest {
     @Test
     void testGenericWriteRead() {
         var extractor = new RegexLinkExtractor();
-        extractor.addPattern("\\[(.*?)\\]", "$1");
-        extractor.addPattern("<link>.*?</link>", "$1");
-        extractor.setCharset("charset");
-        extractor.setMaxURLLength(12345);
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(extractor, "extractor"));
+        extractor.getConfiguration()
+            .addPattern("\\[(.*?)\\]", "$1")
+            .addPattern("<link>.*?</link>", "$1")
+            .setCharset(UTF_8)
+            .setMaxURLLength(12345);
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(extractor));
     }
 
     private boolean contains(Set<Link> links, String url) {

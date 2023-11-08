@@ -37,8 +37,6 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.event.impl.DeleteRejectedEventListener;
 import com.norconex.crawler.web.TestWebCrawlSession;
-import com.norconex.importer.handler.HandlerConsumerAdapter;
-import com.norconex.importer.handler.filter.DocumentFilter;
 
 /**
  * Test the deletion of rejected references with
@@ -60,16 +58,15 @@ class RejectedRefsDeletionTest {
             .forStartReferences(startRef)
             .crawlerSetup(cfg -> {
                 var drel = new DeleteRejectedEventListener();
-                drel.setEventMatcher(TextMatcher.csv(
+                drel.getConfiguration().setEventMatcher(TextMatcher.csv(
                         CrawlerEvent.REJECTED_NOTFOUND
                         + ", " + CrawlerEvent.REJECTED_BAD_STATUS));
                 cfg.addEventListeners(List.of(drel));
-                cfg.getImporterConfig().setPreParseConsumer(
-                        HandlerConsumerAdapter.fromHandlers(
-                                (DocumentFilter) (doc, input, parseState) ->
-                                        !doc.getReference().endsWith(
-                                                "page=6-REJECTED_IMPORT"))
-                );
+                cfg.getImporterConfig().setHandler(docCtx -> {
+                    if (docCtx.reference().endsWith("page=6-REJECTED_IMPORT")) {
+                        docCtx.rejectedBy("Rejected by ME");
+                    }
+                });
             })
             .crawl();
 

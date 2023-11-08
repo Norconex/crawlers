@@ -48,8 +48,9 @@ import org.testcontainers.containers.BrowserWebDriverContainer;
 import org.testcontainers.containers.BrowserWebDriverContainer.VncRecordingMode;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.TestWebCrawlSession;
@@ -197,7 +198,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 Testcontainers.exposeHostPorts(
                         client.getPort(), snifCfg.getPort());
                 var f = createWebDriverHttpFetcher();
-                f.getConfig().setHttpSnifferConfig(snifCfg);
+                f.getConfiguration().setHttpSnifferConfig(snifCfg);
                 cfg.setFetchers(List.of(f));
                 cfg.setMaxDepth(0);
             })
@@ -234,8 +235,9 @@ public abstract class AbstractWebDriverHttpFetcherTest
             .forStartReferences(hostUrl(client, path))
             .crawlerSetup(cfg -> {
                 var f = createWebDriverHttpFetcher();
-                f.getConfig().setEarlyPageScript("document.title='Awesome!';");
-                f.getConfig().setLatePageScript("""
+                f.getConfiguration().setEarlyPageScript(
+                        "document.title='Awesome!';");
+                f.getConfiguration().setLatePageScript("""
                     document.getElementsByTagName('h1')[0].innerHTML='Melon';
                     """);
                 cfg.setFetchers(List.of(f));
@@ -270,13 +272,13 @@ public abstract class AbstractWebDriverHttpFetcherTest
                     cfg.setFetchers(List.of(fetcher));
                     cfg.setMaxDepth(0);
                     // test setting a bunch of other params
-                    var fetchCfg = fetcher.getConfig();
-                    fetchCfg.setWindowSize(new Dimension(640, 480));
-                    fetchCfg.setPageLoadTimeout(10_1000);
-                    fetchCfg.setImplicitlyWait(1000);
-                    fetchCfg.setScriptTimeout(10_000);
-                    fetchCfg.setWaitForElementSelector("p");
-                    fetchCfg.setWaitForElementTimeout(10_000);
+                    fetcher.getConfiguration()
+                        .setWindowSize(new Dimension(640, 480))
+                        .setPageLoadTimeout(10_1000)
+                        .setImplicitlyWait(1000)
+                        .setScriptTimeout(10_000)
+                        .setWaitForElementSelector("p")
+                        .setWaitForElementTimeout(10_000);
                 })
                 .crawl();
 
@@ -297,18 +299,16 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @Test
     void testWriteRead() {
-        assertThatNoException().isThrownBy(() -> {
-            XML.assertWriteRead(new WebDriverHttpFetcher(), "fetcher");
-        });
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(new WebDriverHttpFetcher()));
     }
 
     //--- Private/Protected ----------------------------------------------------
 
     private WebDriverHttpFetcher createWebDriverHttpFetcher() {
-        var wdCfg = new WebDriverHttpFetcherConfig();
-        wdCfg.setBrowser(browserType);
-        wdCfg.setRemoteURL(browser.getSeleniumAddress());
-        return new WebDriverHttpFetcher(wdCfg);
+        return Configurable.configure(new WebDriverHttpFetcher(), cfg -> cfg
+                .setBrowser(browserType)
+                .setRemoteURL(browser.getSeleniumAddress()));
     }
     private String hostUrl(ClientAndServer client, String path) {
         return "http://host.testcontainers.internal:%s%s".formatted(

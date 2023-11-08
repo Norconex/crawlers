@@ -31,8 +31,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
@@ -50,7 +50,7 @@ class HtmlDomTikaLinkExtractorTest {
     @interface LinkExtractorsTest {}
     static Stream<LinkExtractor> linkExtractorProvider() {
         var hle = new HtmlLinkExtractor();
-        hle.addLinkTag("link", null);
+        hle.getConfiguration().addLinkTag("link", null);
         return Stream.of(
             hle,
             new DomLinkExtractor(),
@@ -227,9 +227,8 @@ class HtmlDomTikaLinkExtractorTest {
     @LinkExtractorsTest
     void testWriteRead(LinkExtractor extractor) {
         LinkExtractor randomEx = WebStubber.randomize(extractor.getClass());
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(
-                        randomEx, "extractor"));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(randomEx));
     }
 
     private Link linkWithReferrer(

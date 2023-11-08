@@ -57,6 +57,7 @@ import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -543,6 +544,7 @@ import lombok.experimental.FieldNameConstants;
  */
 @SuppressWarnings("javadoc")
 @Data
+@Accessors(chain = true)
 @FieldNameConstants
 
 //TODO Given we don't need @schema here to pick up javadoc
@@ -704,11 +706,12 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param startReferencesSitemaps sitemap URLs
      * @since 3.0.0
      */
-    public void setStartReferencesSitemaps(
+    public WebCrawlerConfig setStartReferencesSitemaps(
             List<String> startReferencesSitemaps) {
         CollectionUtil.setAll(
                 this.startReferencesSitemaps, startReferencesSitemaps);
         CollectionUtil.removeBlanks(this.startReferencesSitemaps);
+        return this;
     }
 
     /**
@@ -728,9 +731,10 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param keepReferencedLinks option for keeping links
      * @since 3.0.0
      */
-    public void setKeepReferencedLinks(
+    public WebCrawlerConfig setKeepReferencedLinks(
             Set<ReferencedLinkType> keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
+        return this;
     }
     /**
      * Sets whether to keep referenced links and what to keep.
@@ -740,9 +744,10 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     @JsonIgnore
-    public void setKeepReferencedLinks(
+    public WebCrawlerConfig setKeepReferencedLinks(
             ReferencedLinkType... keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
+        return this;
     }
 
     /**
@@ -757,8 +762,9 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param linkExtractors link extractors
      * @since 3.0.0
      */
-    public void setLinkExtractors(List<LinkExtractor> linkExtractors) {
+    public WebCrawlerConfig setLinkExtractors(List<LinkExtractor> linkExtractors) {
         CollectionUtil.setAll(this.linkExtractors, linkExtractors);
+        return this;
     }
 
     /**
@@ -776,8 +782,9 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param fieldMatcher field matcher
      * @since 3.0.0
      */
-    public void setPostImportLinks(TextMatcher fieldMatcher) {
+    public WebCrawlerConfig setPostImportLinks(TextMatcher fieldMatcher) {
         postImportLinks.copyFrom(fieldMatcher);
+        return this;
     }
 
 //    @Override

@@ -23,6 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.delay.impl.ReferenceDelayResolver.DelayReferencePattern;
 
@@ -39,8 +40,8 @@ class ReferenceDelayResolverTest {
                 "http://example\\.com/.*", 1000));
         r.setDelayReferencePatterns(delayPatterns);
 
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(r, "delay"));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(r));
     }
 
     @Test

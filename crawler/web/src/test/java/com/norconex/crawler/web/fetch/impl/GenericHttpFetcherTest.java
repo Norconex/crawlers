@@ -24,7 +24,8 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.http.conn.UnsupportedSchemeException;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.web.WebStubber;
 
 class GenericHttpFetcherTest {
@@ -32,9 +33,11 @@ class GenericHttpFetcherTest {
     @Test
     void testWriteRead() {
         var cfg = WebStubber.randomize(GenericHttpFetcherConfig.class);
-        var f = new GenericHttpFetcher(cfg);
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(f, "fetcher"));
+        var f = new GenericHttpFetcher();
+        BeanUtil.copyProperties(f.getConfiguration(), cfg);
+
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(f));
     }
 
     @Test

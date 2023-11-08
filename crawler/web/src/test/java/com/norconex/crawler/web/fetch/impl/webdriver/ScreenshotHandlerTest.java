@@ -14,12 +14,14 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.fetch.util.DocImageHandler.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandler.Target;
 
@@ -36,6 +38,7 @@ class ScreenshotHandlerTest {
         h.setTargetMetaField("docMeta");
         h.setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
-        XML.assertWriteRead(h, "screenshot");
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(h));
     }
 }

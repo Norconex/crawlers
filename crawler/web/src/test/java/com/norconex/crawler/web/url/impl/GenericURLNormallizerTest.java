@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.url.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer.Normalization;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer.Replace;
@@ -151,7 +153,8 @@ class GenericURLNormallizerTest {
                 new Replace("\\.htm", ".html"),
                 new Replace("&debug=true")));
         LOG.debug("Writing/Reading this: {}", n);
-        XML.assertWriteRead(n, "urlNormalizer");
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(n));
     }
 
     @Test

@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
+import static com.norconex.commons.lang.config.Configurable.configure;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.awt.Dimension;
@@ -24,8 +25,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcherConfig.WaitElementType;
 import com.norconex.crawler.web.fetch.util.DocImageHandler.DirStructure;
@@ -36,7 +37,9 @@ class WebDriverHttpFetcherConfigTest  {
     @Test
     void testWriteReadFetcher() throws MalformedURLException {
 
-        var c = new WebDriverHttpFetcherConfig();
+        var f = new WebDriverHttpFetcher();
+
+        var c = f.getConfiguration();
         c.setBrowser(Browser.CHROME);
         c.setBrowserPath(Paths.get("/some/browser/path"));
         c.setDriverPath(Paths.get("/some/driver/path"));
@@ -60,9 +63,9 @@ class WebDriverHttpFetcherConfigTest  {
         sc.getRequestHeaders().put("rh2", "hrval2");
         c.setHttpSnifferConfig(sc);
 
-        var f = new WebDriverHttpFetcher(c);
-        f.setReferenceFilters(List.of(new GenericReferenceFilter(
-                TextMatcher.regex("test.*"))));
+        c.setReferenceFilters(List.of(
+                configure(new GenericReferenceFilter(), cfg -> cfg
+                        .setValueMatcher(TextMatcher.regex("test.*")))));
 
         var sh = new ScreenshotHandler();
         sh.setCssSelector("selector");
@@ -74,7 +77,7 @@ class WebDriverHttpFetcherConfigTest  {
         sh.setTargets(List.of(Target.DIRECTORY, Target.METADATA));
         f.setScreenshotHandler(sh);
 
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(f, "fetcher"));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(f));
     }
 }

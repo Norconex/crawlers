@@ -84,7 +84,7 @@ class IfNoneMatchTest {
         // Fourth run got same Etag, but we disable E-Tag support, so modified
         whenETag(client, "etag-B");
         WebTestUtil.getFirstHttpFetcher(crawlSession)
-                .getConfig().setETagDisabled(true);
+                .getConfiguration().setETagDisabled(true);
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();

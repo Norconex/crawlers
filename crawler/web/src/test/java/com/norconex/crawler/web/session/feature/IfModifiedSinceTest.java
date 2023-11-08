@@ -72,6 +72,7 @@ class IfModifiedSinceTest {
             .respond(HttpClassCallback.callback(Callback.class));
 
 
+
         var crawlSession = TestWebCrawlSession
                 .forStartReferences(serverUrl(client, path))
                 .crawlerSetup(cfg -> {
@@ -80,7 +81,7 @@ class IfModifiedSinceTest {
                     cfg.setDocumentChecksummer(null);
                     cfg.setMetadataChecksummer(null);
                     ((GenericHttpFetcher) cfg.getFetchers().get(0))
-                        .getConfig().setETagDisabled(true);
+                            .getConfiguration().setETagDisabled(true);
                 })
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
@@ -104,7 +105,7 @@ class IfModifiedSinceTest {
         // Fourth run got same date, but we disable If-Modified-Since support,
         // so modified
         WebTestUtil.getFirstHttpFetcher(crawlSession)
-                .getConfig().setIfModifiedSinceDisabled(true);
+                .getConfiguration().setIfModifiedSinceDisabled(true);
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();

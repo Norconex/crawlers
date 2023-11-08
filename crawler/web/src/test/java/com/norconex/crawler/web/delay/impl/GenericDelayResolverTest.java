@@ -23,7 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.delay.impl.GenericDelayResolver.DelaySchedule;
 
 class GenericDelayResolverTest {
@@ -41,8 +41,9 @@ class GenericDelayResolverTest {
                 "from 1:00 to 2:00",
                 1000));
         r.setSchedules(schedules);
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(r, "delay"));
+
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(r));
     }
 
     @Test

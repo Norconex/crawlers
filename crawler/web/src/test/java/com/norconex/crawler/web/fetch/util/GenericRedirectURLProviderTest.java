@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
 
 class GenericRedirectURLProviderTest {
 
@@ -28,8 +28,7 @@ class GenericRedirectURLProviderTest {
     void testWriteRead() {
         var p = new GenericRedirectURLProvider();
         p.setFallbackCharset(StandardCharsets.UTF_8.toString());
-        assertThatNoException().isThrownBy(() -> {
-            XML.assertWriteRead(p, "redirectURLProvider");
-        });
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(p));
     }
 }

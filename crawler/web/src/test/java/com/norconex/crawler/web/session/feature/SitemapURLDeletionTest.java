@@ -20,6 +20,8 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
@@ -79,11 +81,13 @@ class SitemapURLDeletionTest {
 
         var crawlSession = TestWebCrawlSession
             .forStartReferences()
-            .crawlerSetup(cfg -> {
-                cfg.setStartReferencesSitemaps(serverUrl(client, sitemapPath));
-                cfg.setOrphansStrategy(OrphansStrategy.PROCESS);
-                cfg.setSitemapResolver(new GenericSitemapResolver());
-            })
+            .crawlerSetup(cfg -> cfg
+                .setSitemapResolver(new GenericSitemapResolver())
+                .setStartReferencesSitemaps(
+                        List.of(serverUrl(client, sitemapPath)))
+                .setOrphansStrategy(OrphansStrategy.PROCESS)
+
+            )
             .crawlSession();
 
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);

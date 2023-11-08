@@ -39,18 +39,17 @@ import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
-import com.norconex.crawler.web.mapper.WebBeanMapperBuilderFactory;
 import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
 
 public final class WebTestUtil {
 
-
-    private static final BeanMapper beanMapper =
-            new WebBeanMapperBuilderFactory()
-                .apply(WebCrawlerConfig.class)
-                .build();
+    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
+//    private static final BeanMapper beanMapper =
+//            new WebBeanMapperBuilderFactory()
+//                .apply(WebCrawlerConfig.class)
+//                .build();
 
     public static BeanMapper beanMapper() {
         return beanMapper;
@@ -97,7 +96,7 @@ public final class WebTestUtil {
     public static GenericHttpFetcherConfig getFirstHttpFetcherConfig(
             @NonNull CrawlerConfig crawlerConfig) {
         return ((GenericHttpFetcher) ((WebCrawlerConfig) crawlerConfig)
-                .getFetchers().get(0)).getConfig();
+                .getFetchers().get(0)).getConfiguration();
     }
     public static GenericHttpFetcherConfig getFirstHttpFetcherConfig(
             @NonNull CrawlSessionConfig crawlSessionConfig) {

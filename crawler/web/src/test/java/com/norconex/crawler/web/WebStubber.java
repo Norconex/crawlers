@@ -146,12 +146,12 @@ public final class WebStubber {
         })
         .randomize(DomLinkExtractor.class, () -> {
             var extractor = new DomLinkExtractor();
-            extractor.addLinkSelector("text");
+            extractor.getConfiguration().addLinkSelector("text");
             return extractor;
         })
         .randomize(LinkExtractor.class, () -> {
             var extractor = new DomLinkExtractor();
-            extractor.addLinkSelector("text");
+            extractor.getConfiguration().addLinkSelector("text");
             return extractor;
         })
         .randomize(f -> "cookieSpec".equals(f.getName()), () -> "strict")
@@ -223,8 +223,8 @@ public final class WebStubber {
             Path workDir, String... startRefs) {
         var sessionConfig = crawlSessionConfig(workDir);
         if (ArrayUtils.isNotEmpty(startRefs)) {
-            WebTestUtil.getFirstCrawlerConfig(
-                    sessionConfig).setStartReferences(startRefs);
+            WebTestUtil.getFirstCrawlerConfig(sessionConfig)
+                    .setStartReferences(List.of(startRefs));
         }
         return WebCrawlSession.createSession(sessionConfig);
     }

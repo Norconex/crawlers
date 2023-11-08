@@ -23,7 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.crawler.impl.WebCrawlerImplFactory;
@@ -40,7 +40,7 @@ class GenericSitemapLocatorTest {
 
         locator.setPaths(List.of("abc.xml", "def.xml"));
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(locator, "sitemapLocator"));
+                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
 
         var session = WebStubber.crawlSession(
                 tempDir, "http://example.com/index.html");
@@ -60,6 +60,6 @@ class GenericSitemapLocatorTest {
         // try with empty paths
         locator.setPaths(null);
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(locator, "sitemapLocator"));
+                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
     }
 }

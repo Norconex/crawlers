@@ -30,11 +30,11 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
 
 /**
  * Tests that a page is only fetched by the fetcher we are interested in.
@@ -103,13 +103,15 @@ class HttpFetcherAcceptTest {
                 cfg.setMetadataFetchSupport(headSupport);
                 var headFetcher = createFetcher(HttpMethod.HEAD);
                 if (metaRejectedByFilter) {
-                    headFetcher.setReferenceFilters(List.of(ref -> false));
+                    headFetcher.getConfiguration()
+                        .setReferenceFilters(List.of(ref -> false));
                 }
 
                 cfg.setDocumentFetchSupport(getSupport);
                 var getFetcher = createFetcher(HttpMethod.GET);
                 if (docRejectedByFilter) {
-                    getFetcher.setReferenceFilters(List.of(ref -> false));
+                    getFetcher.getConfiguration()
+                        .setReferenceFilters(List.of(ref -> false));
                 }
 
                 cfg.setFetchers(List.of(headFetcher, getFetcher));
@@ -150,8 +152,7 @@ class HttpFetcherAcceptTest {
             );
     }
     private GenericHttpFetcher createFetcher(HttpMethod method) {
-        var getConfig = new GenericHttpFetcherConfig();
-        getConfig.setHttpMethods(List.of(method));
-        return new GenericHttpFetcher(getConfig);
+        return Configurable.configure(new GenericHttpFetcher(),
+                cfg -> cfg.setHttpMethods(List.of(method)));
     }
 }
