@@ -21,13 +21,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -92,7 +89,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode
 @ToString
 @FieldNameConstants
-public class HttpAuthConfig implements XMLConfigurable {
+public class HttpAuthConfig {
 
     //TODO consider using factory for auth configs and mechanisms.
 
@@ -393,46 +390,46 @@ public class HttpAuthConfig implements XMLConfigurable {
         this.domain = domain;
     }
 
-
-    @Override
-    public void loadFromXML(XML xml) {
-        method = xml.getString("method", method);
-        formUsernameField =
-                xml.getString("formUsernameField", formUsernameField);
-        formPasswordField =
-                xml.getString("formPasswordField", formPasswordField);
-        xml.ifXML("credentials", x -> x.populate(credentials));
-        url = xml.getString("url", url);
-        host = Host.loadFromXML(xml.getXML("host"), host);
-        realm = xml.getString("realm", realm);
-        formCharset = xml.getCharset("formCharset", formCharset);
-        workstation = xml.getString("workstation", workstation);
-        domain = xml.getString("domain", domain);
-        preemptive = xml.getBoolean("preemptive", preemptive);
-        formSelector = xml.getString("formSelector", formSelector);
-        setFormParams(xml.getStringMap(
-                "formParams/param", "@name", ".", formParams));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("method", method);
-        credentials.saveToXML(xml.addElement("credentials"));
-        xml.addElement("formUsernameField", formUsernameField);
-        xml.addElement("formPasswordField", formPasswordField);
-        xml.addElement("url", url);
-        Host.saveToXML(xml.addElement("host"), host);
-        xml.addElement("formCharset", formCharset);
-        xml.addElement("workstation", workstation);
-        xml.addElement("domain", domain);
-        xml.addElement("realm", realm);
-        xml.addElement("preemptive", preemptive);
-        xml.addElement("formSelector", formSelector);
-
-        var xmlAuthFormParams = xml.addXML("formParams");
-        for (Entry<String, String> entry : formParams.entrySet()) {
-            xmlAuthFormParams.addXML("param").setAttribute(
-                    "name", entry.getKey()).setTextContent(entry.getValue());
-        }
-    }
+//
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        method = xml.getString("method", method);
+//        formUsernameField =
+//                xml.getString("formUsernameField", formUsernameField);
+//        formPasswordField =
+//                xml.getString("formPasswordField", formPasswordField);
+//        xml.ifXML("credentials", x -> x.populate(credentials));
+//        url = xml.getString("url", url);
+//        host = Host.loadFromXML(xml.getXML("host"), host);
+//        realm = xml.getString("realm", realm);
+//        formCharset = xml.getCharset("formCharset", formCharset);
+//        workstation = xml.getString("workstation", workstation);
+//        domain = xml.getString("domain", domain);
+//        preemptive = xml.getBoolean("preemptive", preemptive);
+//        formSelector = xml.getString("formSelector", formSelector);
+//        setFormParams(xml.getStringMap(
+//                "formParams/param", "@name", ".", formParams));
+//    }
+//
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.addElement("method", method);
+//        credentials.saveToXML(xml.addElement("credentials"));
+//        xml.addElement("formUsernameField", formUsernameField);
+//        xml.addElement("formPasswordField", formPasswordField);
+//        xml.addElement("url", url);
+//        Host.saveToXML(xml.addElement("host"), host);
+//        xml.addElement("formCharset", formCharset);
+//        xml.addElement("workstation", workstation);
+//        xml.addElement("domain", domain);
+//        xml.addElement("realm", realm);
+//        xml.addElement("preemptive", preemptive);
+//        xml.addElement("formSelector", formSelector);
+//
+//        var xmlAuthFormParams = xml.addXML("formParams");
+//        for (Entry<String, String> entry : formParams.entrySet()) {
+//            xmlAuthFormParams.addXML("param").setAttribute(
+//                    "name", entry.getKey()).setTextContent(entry.getValue());
+//        }
+//    }
 }

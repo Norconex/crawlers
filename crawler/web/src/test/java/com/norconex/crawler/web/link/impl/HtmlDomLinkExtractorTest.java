@@ -71,7 +71,7 @@ class HtmlDomLinkExtractorTest {
         var htmlExtractor = new HtmlLinkExtractor();
         htmlExtractor.addExtractSelectors(List.of("include1", "include2"));
         htmlExtractor.addNoExtractSelectors(List.of("exclude1", "exclude2"));
-        var domExtractor = new DOMLinkExtractor();
+        var domExtractor = new DomLinkExtractor();
         domExtractor.addExtractSelectors(List.of("include1", "include2"));
         domExtractor.addNoExtractSelectors(List.of("exclude1", "exclude2"));
         return Stream.of(
@@ -136,7 +136,7 @@ class HtmlDomLinkExtractorTest {
     static Stream<LinkExtractor> testExtractAttributesProvider() {
         var htmlExtractor = new HtmlLinkExtractor();
         htmlExtractor.addLinkTag("link", "href");
-        var domExtractor = new DOMLinkExtractor();
+        var domExtractor = new DomLinkExtractor();
         return Stream.of(
                 htmlExtractor,
                 domExtractor

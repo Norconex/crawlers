@@ -37,7 +37,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.event.impl.DeleteRejectedEventListener;
 import com.norconex.crawler.web.TestWebCrawlSession;
-import com.norconex.importer.handler.HandlerConsumer;
+import com.norconex.importer.handler.HandlerConsumerAdapter;
 import com.norconex.importer.handler.filter.DocumentFilter;
 
 /**
@@ -65,7 +65,7 @@ class RejectedRefsDeletionTest {
                         + ", " + CrawlerEvent.REJECTED_BAD_STATUS));
                 cfg.addEventListeners(List.of(drel));
                 cfg.getImporterConfig().setPreParseConsumer(
-                        HandlerConsumer.fromHandlers(
+                        HandlerConsumerAdapter.fromHandlers(
                                 (DocumentFilter) (doc, input, parseState) ->
                                         !doc.getReference().endsWith(
                                                 "page=6-REJECTED_IMPORT"))

@@ -88,7 +88,7 @@ class GenericSitemapResolverTest {
 
 
         var resolver = ((WebCrawlerConfig)
-                crawler.getCrawlerConfig()).getSitemapResolver();
+                crawler.getConfiguration()).getSitemapResolver();
         resolver.resolve(SitemapContext
                 .builder()
                 .fetcher((HttpFetcher) crawler.getFetcher())

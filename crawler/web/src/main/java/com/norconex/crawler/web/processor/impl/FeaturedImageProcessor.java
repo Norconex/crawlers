@@ -49,8 +49,6 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
@@ -214,7 +212,8 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class FeaturedImageProcessor extends CrawlerLifeCycleListener
-        implements DocumentProcessor, XMLConfigurable {
+        implements DocumentProcessor {
+    //, XMLConfigurable {
 
     //TODO add ability to extract from popular HTML <meta> for
     // featured image
@@ -368,8 +367,10 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
 
         try {
             // Obtain the image
-            var dom = Jsoup.parse(doc.getInputStream(),
-                    doc.getDocRecord().getContentEncoding(), doc.getReference());
+            var dom = Jsoup.parse(
+                    doc.getInputStream(),
+                    doc.getDocRecord().getCharset().toString(),
+                    doc.getReference());
             var img = findFeaturedImage(dom, fetcher, largest);
 
             // Save the image
@@ -579,50 +580,50 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
         return null;
     }
 
-    @Override
-    public void loadFromXML(XML xml) {
-        setPageContentTypePattern(xml.getString(
-                "pageContentTypePattern", pageContentTypePattern));
-        setDomSelector(xml.getString("domSelector", domSelector));
-        setMinDimensions(xml.getDimension("minDimensions", minDimensions));
-        setScaleDimensions(xml.getDimension(
-                "scaleDimensions", scaleDimensions));
-        setScaleStretch(xml.getBoolean("scaleStretch", scaleStretch));
-        setImageFormat(xml.getString("imageFormat", imageFormat));
-        setImageCacheSize(xml.getInteger("imageCacheSize", imageCacheSize));
-        setImageCacheDir(xml.getPath("imageCacheDir", imageCacheDir));
-        setLargest(xml.getBoolean("largest", largest));
-        setScaleQuality(xml.getEnum(
-                "scaleQuality", Quality.class, scaleQuality));
-        setStorage(xml.getDelimitedEnumList("storage", Storage.class, storage));
-        setStorageDiskDir(xml.getPath("storageDiskDir", storageDiskDir));
-        setStorageDiskStructure(
-                xml.getEnum("storageDiskDir/@structure",
-                        StorageDiskStructure.class, storageDiskStructure));
-        setStorageDiskField(xml.getString(
-                "storageDiskField", storageDiskField));
-        setStorageInlineField(xml.getString(
-                "storageInlineField", getStorageInlineField()));
-        setStorageUrlField(xml.getString(
-                "storageUrlField", getStorageUrlField()));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("pageContentTypePattern", pageContentTypePattern);
-        xml.addElement("domSelector", domSelector);
-        xml.addElement("minDimensions", minDimensions);
-        xml.addElement("scaleDimensions", scaleDimensions);
-        xml.addElement("scaleStretch", isScaleStretch());
-        xml.addElement("imageFormat", imageFormat);
-        xml.addElement("imageCacheSize", imageCacheSize);
-        xml.addElement("imageCacheDir", imageCacheDir);
-        xml.addElement("largest", largest);
-        xml.addElement("scaleQuality", scaleQuality);
-        xml.addDelimitedElementList("storage", storage);
-        xml.addElement("storageDiskDir", storageDiskDir)
-                .setAttribute("structure", storageDiskStructure);
-        xml.addElement("storageDiskField", storageDiskField);
-        xml.addElement("storageInlineField", storageInlineField);
-        xml.addElement("storageUrlField", storageUrlField);
-    }
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        setPageContentTypePattern(xml.getString(
+//                "pageContentTypePattern", pageContentTypePattern));
+//        setDomSelector(xml.getString("domSelector", domSelector));
+//        setMinDimensions(xml.getDimension("minDimensions", minDimensions));
+//        setScaleDimensions(xml.getDimension(
+//                "scaleDimensions", scaleDimensions));
+//        setScaleStretch(xml.getBoolean("scaleStretch", scaleStretch));
+//        setImageFormat(xml.getString("imageFormat", imageFormat));
+//        setImageCacheSize(xml.getInteger("imageCacheSize", imageCacheSize));
+//        setImageCacheDir(xml.getPath("imageCacheDir", imageCacheDir));
+//        setLargest(xml.getBoolean("largest", largest));
+//        setScaleQuality(xml.getEnum(
+//                "scaleQuality", Quality.class, scaleQuality));
+//        setStorage(xml.getDelimitedEnumList("storage", Storage.class, storage));
+//        setStorageDiskDir(xml.getPath("storageDiskDir", storageDiskDir));
+//        setStorageDiskStructure(
+//                xml.getEnum("storageDiskDir/@structure",
+//                        StorageDiskStructure.class, storageDiskStructure));
+//        setStorageDiskField(xml.getString(
+//                "storageDiskField", storageDiskField));
+//        setStorageInlineField(xml.getString(
+//                "storageInlineField", getStorageInlineField()));
+//        setStorageUrlField(xml.getString(
+//                "storageUrlField", getStorageUrlField()));
+//    }
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.addElement("pageContentTypePattern", pageContentTypePattern);
+//        xml.addElement("domSelector", domSelector);
+//        xml.addElement("minDimensions", minDimensions);
+//        xml.addElement("scaleDimensions", scaleDimensions);
+//        xml.addElement("scaleStretch", isScaleStretch());
+//        xml.addElement("imageFormat", imageFormat);
+//        xml.addElement("imageCacheSize", imageCacheSize);
+//        xml.addElement("imageCacheDir", imageCacheDir);
+//        xml.addElement("largest", largest);
+//        xml.addElement("scaleQuality", scaleQuality);
+//        xml.addDelimitedElementList("storage", storage);
+//        xml.addElement("storageDiskDir", storageDiskDir)
+//                .setAttribute("structure", storageDiskStructure);
+//        xml.addElement("storageDiskField", storageDiskField);
+//        xml.addElement("storageInlineField", storageInlineField);
+//        xml.addElement("storageUrlField", storageUrlField);
+//    }
 }

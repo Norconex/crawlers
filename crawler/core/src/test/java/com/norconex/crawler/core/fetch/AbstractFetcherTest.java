@@ -42,7 +42,7 @@ class AbstractFetcherTest {
     @Test
     void testAbstractFetcher() {
         var f = new MockFetcher();
-        f.setReferenceFilters(List.of(
+        f.getConfiguration().setReferenceFilters(List.of(
                 Configurable.configure(new GenericReferenceFilter(),
                         cfg -> cfg.setValueMatcher(TextMatcher.basic("ref")))));
         assertThat(f.accept(new MockFetchRequest("ref"))).isTrue();

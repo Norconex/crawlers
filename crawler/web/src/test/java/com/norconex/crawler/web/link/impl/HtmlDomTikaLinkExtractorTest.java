@@ -53,7 +53,7 @@ class HtmlDomTikaLinkExtractorTest {
         hle.addLinkTag("link", null);
         return Stream.of(
             hle,
-            new DOMLinkExtractor(),
+            new DomLinkExtractor(),
             new TikaLinkExtractor()
         );
     }

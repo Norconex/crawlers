@@ -75,7 +75,7 @@ import lombok.experimental.FieldNameConstants;
  *   <li><b>ref:</b> Any regular URL
  *       (see {@link #setStartReferences(List)}).</li>
  *   <li><b>refsFile:</b> A path to a file containing a list of start URLs
- *       (see {@link #setStartReferencesFiles(java.nio.file.Path...)}).
+ *       (see {@link #setStartReferencesFiles(List)}).
  *       One per line.</li>
  *   <li><b>sitemap:</b> A URL pointing to a sitemap XML file that contains
  *       the URLs to crawl (see {@link #setStartReferencesSitemaps(List)}).</li>
@@ -702,15 +702,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
     /**
      * Sets the sitemap URLs used as starting points for crawling.
      * @param startReferencesSitemaps sitemap URLs
-     * @since 2.3.0
-     */
-    @JsonIgnore
-    public void setStartReferencesSitemaps(String... startReferencesSitemaps) {
-        setStartReferencesSitemaps(Arrays.asList(startReferencesSitemaps));
-    }
-    /**
-     * Sets the sitemap URLs used as starting points for crawling.
-     * @param startReferencesSitemaps sitemap URLs
      * @since 3.0.0
      */
     public void setStartReferencesSitemaps(
@@ -760,14 +751,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      */
     public List<LinkExtractor> getLinkExtractors() {
         return Collections.unmodifiableList(linkExtractors);
-    }
-    /**
-     * Sets link extractors.
-     * @param linkExtractors link extractors
-     */
-    @JsonIgnore
-    public void setLinkExtractors(LinkExtractor... linkExtractors) {
-        setLinkExtractors(Arrays.asList(linkExtractors));
     }
     /**
      * Sets link extractors.

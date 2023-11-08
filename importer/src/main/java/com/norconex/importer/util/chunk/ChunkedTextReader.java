@@ -86,8 +86,7 @@ public class ChunkedTextReader {
             }
         } else {
             // handle body
-            aborted |= handleChunk(
-                    null, 0, docCtx.input(), textConsumer);
+            aborted |= handleChunk(null, 0, docCtx.input(), textConsumer);
         }
         return !aborted;
     }
@@ -102,8 +101,8 @@ public class ChunkedTextReader {
                 aborted |= !handleChunk(
                         en.getKey(),
                         i,
-                        new ReadAdapter(new ByteArrayInputStream(
-                                val.getBytes())),
+                        new ReadAdapter(
+                                new ByteArrayInputStream(val.getBytes())),
                         textConsumer);
             } else {
                 textConsumer.apply(

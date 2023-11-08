@@ -19,8 +19,8 @@ import org.apache.hc.core5.http.HttpHeaders;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.checksum.AbstractMetadataChecksummer;
+import com.norconex.crawler.core.checksum.BaseChecksummerConfig;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.checksum.impl.BaseChecksummerConfig;
 import com.norconex.crawler.core.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 

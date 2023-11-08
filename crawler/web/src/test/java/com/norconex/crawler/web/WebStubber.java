@@ -69,7 +69,7 @@ import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 import com.norconex.crawler.web.link.LinkExtractor;
-import com.norconex.crawler.web.link.impl.DOMLinkExtractor;
+import com.norconex.crawler.web.link.impl.DomLinkExtractor;
 import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
@@ -144,13 +144,13 @@ public final class WebStubber {
             resolv.setScope("crawler");
             return resolv;
         })
-        .randomize(DOMLinkExtractor.class, () -> {
-            var extractor = new DOMLinkExtractor();
+        .randomize(DomLinkExtractor.class, () -> {
+            var extractor = new DomLinkExtractor();
             extractor.addLinkSelector("text");
             return extractor;
         })
         .randomize(LinkExtractor.class, () -> {
-            var extractor = new DOMLinkExtractor();
+            var extractor = new DomLinkExtractor();
             extractor.addLinkSelector("text");
             return extractor;
         })

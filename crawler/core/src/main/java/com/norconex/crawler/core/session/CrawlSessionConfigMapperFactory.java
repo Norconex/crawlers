@@ -17,6 +17,7 @@ package com.norconex.crawler.core.session;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.EventListener;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -59,9 +60,14 @@ public final class CrawlSessionConfigMapperFactory {
 
     private CrawlSessionConfigMapperFactory() {}
 
-
     public static BeanMapper create(
             Class<? extends CrawlerConfig> crawlerConfigClass) {
+        return create(crawlerConfigClass, null);
+    }
+
+    public static BeanMapper create(
+            Class<? extends CrawlerConfig> crawlerConfigClass,
+            Consumer<BeanMapper.BeanMapperBuilder> builderModifier) {
         var beanMapperBuilder = BeanMapper.builder()
             .ignoredProperty("crawlerDefaults")
             .unboundPropertyMapping("crawler", crawlerConfigClass)
@@ -71,6 +77,10 @@ public final class CrawlSessionConfigMapperFactory {
 
 
         registerPolymorpicTypes(beanMapperBuilder);
+
+        if (builderModifier != null) {
+            builderModifier.accept(beanMapperBuilder);
+        }
 //        handleCrawlerDefaults(beanMapperBuilder, crawlerConfigClass);
 
         return beanMapperBuilder.build();

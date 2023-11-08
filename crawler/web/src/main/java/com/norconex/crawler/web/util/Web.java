@@ -53,7 +53,7 @@ public final class Web {
         return (WebCrawlerConfig) ctx.getConfig();
     }
     public static WebCrawlerConfig config(Crawler crawler) {
-        return (WebCrawlerConfig) crawler.getCrawlerConfig();
+        return (WebCrawlerConfig) crawler.getConfiguration();
     }
 
     public static WebCrawlerContext crawlerContext(Crawler crawler) {

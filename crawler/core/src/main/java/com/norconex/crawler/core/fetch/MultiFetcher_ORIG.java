@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 // the concept of many vs single.... there is only 1 many in core to rule them all.
 
 @Slf4j
-public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
+public class MultiFetcher_ORIG <T extends FetchRequest, R extends FetchResponse>
         implements Fetcher<T, R> {
 
     private final List<? extends Fetcher<T, R>> fetchers;
@@ -81,7 +81,7 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
 
 
     @Builder
-    public MultiFetcher(
+    public MultiFetcher_ORIG(
             @NonNull List<? extends Fetcher<T, R>> fetchers,
             @NonNull ResponseListAdapter<R> responseListAdapter,
             @NonNull UnsuccessfulResponseFactory<R> unsuccessfulResponseAdaptor,

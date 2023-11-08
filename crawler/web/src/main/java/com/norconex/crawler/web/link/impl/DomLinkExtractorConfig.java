@@ -16,40 +16,23 @@ package com.norconex.crawler.web.link.impl;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.trim;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
 
-import java.io.IOException;
-import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.nodes.Attribute;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
-import com.google.common.base.Objects;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.web.link.AbstractTextLinkExtractor;
-import com.norconex.crawler.web.link.Link;
-import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.util.DOMUtil;
+import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.importer.handler.CommonMatchers;
+import com.norconex.importer.util.DomUtil;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -103,7 +86,7 @@ import lombok.Setter;
  * with every selector.  Possible values are:
  * </p>
  *
- * {@nx.include com.norconex.importer.util.DOMUtil#extract}
+ * {@nx.include com.norconex.importer.util.DomUtil#extract}
  *
  * <p>
  * When not specified, the default is "text".
@@ -174,7 +157,7 @@ import lombok.Setter;
  *
  *   <!-- Repeat as needed: -->
  *   <linkSelector
- *       {@nx.include com.norconex.importer.util.DOMUtil#attributes}>
+ *       {@nx.include com.norconex.importer.util.DomUtil#attributes}>
  *      (selector syntax)
  *   </linkSelector>
  *
@@ -208,13 +191,29 @@ import lombok.Setter;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class DOMLinkExtractor extends AbstractTextLinkExtractor {
+@Accessors(chain = true)
+public class DomLinkExtractorConfig {
 
-    private static final List<String> DEFAULT_SCHEMES =
+    public static final List<String> DEFAULT_SCHEMES =
             Collections.unmodifiableList(Arrays.asList("http", "https", "ftp"));
+    /**
+     * The matcher of content types to apply link extraction on. No attempt to
+     * extract links from any other content types will be made. Default is
+     * {@link CommonMatchers#DOM_CONTENT_TYPES}.
+     * @param contentTypeMatcher content type matcher
+     * @return content type matcher
+     */
+    private final TextMatcher contentTypeMatcher =
+            CommonMatchers.domContentTypes();
 
-    @Setter(value = AccessLevel.NONE)
-    @Getter(value = AccessLevel.NONE)
+    /**
+     * Matcher of one or more fields to use as the source of content to
+     * extract links from, instead of the document content.
+     * @param fieldMatcher field matcher
+     * @return field matcher
+     */
+    private final TextMatcher fieldMatcher = new TextMatcher();
+
     private final Map<String, String> linkSelectors = new ListOrderedMap<>();
     private final List<String> extractSelectors = new ArrayList<>();
     private final List<String> noExtractSelectors = new ArrayList<>();
@@ -224,13 +223,13 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
      * @param charset character encoding of the source content
      * @return character encoding of the source content
      */
-    private String charset = null;
+    private Charset charset;
     /**
      * The parser to use when creating the DOM-tree.
      * @param parser <code>html</code> or <code>xml</code>.
      * @return <code>html</code> (default) or <code>xml</code>.
      */
-    private String parser = DOMUtil.PARSER_HTML;
+    private String parser = DomUtil.PARSER_HTML;
     private boolean ignoreNofollow;
     /**
      * Whether to ignore extra data associated with a link.
@@ -240,51 +239,74 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
     private boolean ignoreLinkData;
     private final List<String> schemes = new ArrayList<>(DEFAULT_SCHEMES);
 
-    public DOMLinkExtractor() {
-        setRestrictions(CommonRestrictions.domContentTypes(
-                DocMetadata.CONTENT_TYPE));
+    public DomLinkExtractorConfig() {
         addLinkSelector("a[href]", "attr(href)");
         addLinkSelector("[src]", "attr(src)");
         addLinkSelector("link[href]", "attr(href)");
         addLinkSelector("meta[http-equiv='refresh']", "attr(content)");
     }
 
+    public DomLinkExtractorConfig setFieldMatcher(TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
+    }
+
+    /**
+     * The matcher of content types to apply link extraction on. No attempt to
+     * extract links from any other content types will be made. Default is
+     * {@link CommonMatchers#HTML_CONTENT_TYPES}.
+     * @param contentTypeMatcher content type matcher
+     * @return this
+     */
+    public DomLinkExtractorConfig setContentTypeMatcher(TextMatcher matcher) {
+        contentTypeMatcher.copyFrom(matcher);
+        return this;
+    }
+
     /**
      * Adds a new link selector extracting the "text" from matches.
      * @param selector JSoup selector
      */
-    public void addLinkSelector(String selector) {
+    public DomLinkExtractorConfig addLinkSelector(String selector) {
         addLinkSelector(selector, null);
+        return this;
     }
-    public void addLinkSelector(String selector, String extract) {
+    public DomLinkExtractorConfig addLinkSelector(String selector, String extract) {
         linkSelectors.put(
                 trim(selector), isBlank(extract) ? "text" : trim(extract));
+        return this;
     }
-    public void removeLinkSelector(String selector) {
+    public DomLinkExtractorConfig removeLinkSelector(String selector) {
         linkSelectors.remove(trim(selector));
+        return this;
     }
-    public void clearLinkSelectors() {
+    public DomLinkExtractorConfig clearLinkSelectors() {
         linkSelectors.clear();
+        return this;
     }
 
     public List<String> getExtractSelectors() {
         return Collections.unmodifiableList(extractSelectors);
     }
-    public void setExtractSelectors(List<String> selectors) {
+    public DomLinkExtractorConfig setExtractSelectors(List<String> selectors) {
         CollectionUtil.setAll(extractSelectors, selectors);
+        return this;
     }
-    public void addExtractSelectors(List<String> selectors) {
+    public DomLinkExtractorConfig addExtractSelectors(List<String> selectors) {
         extractSelectors.addAll(selectors);
+        return this;
     }
 
     public List<String> getNoExtractSelectors() {
         return Collections.unmodifiableList(noExtractSelectors);
     }
-    public void setNoExtractSelectors(List<String> selectors) {
+    public DomLinkExtractorConfig setNoExtractSelectors(List<String> selectors) {
         CollectionUtil.setAll(noExtractSelectors, selectors);
+        return this;
     }
-    public void addNoExtractSelectors(List<String> selectors) {
+    public DomLinkExtractorConfig addNoExtractSelectors(List<String> selectors) {
         noExtractSelectors.addAll(selectors);
+        return this;
     }
 
     /**
@@ -298,168 +320,71 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
      * Sets the schemes to be extracted.
      * @param schemes schemes to be extracted
      */
-    public void setSchemes(List<String> schemes) {
+    public DomLinkExtractorConfig setSchemes(List<String> schemes) {
         CollectionUtil.setAll(this.schemes, schemes);
+        return this;
     }
 
-    @Override
-    public void extractTextLinks(
-            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
-        var jparser = DOMUtil.toJSoupParser(parser);
-        var jdoc = jparser.parseInput(reader, doc.getReference());
-        jdoc = excludeUnwantedContent(jdoc);
-
-        for (Entry<String, String> sel : linkSelectors.entrySet()) {
-            for (Element elm : jdoc.select(sel.getKey())) {
-                var link = extractLink(elm, sel.getValue());
-                if (link != null) {
-                    links.add(link);
-                }
-            }
-        }
-    }
-
-    private Link extractLink(Element elm, String extract) {
-        var url = trimToNull(DOMUtil.getElementValue(elm, extract));
-        if (url == null
-                || (!isIgnoreNofollow() && elm.is("[rel='nofollow']"))) {
-            return null;
-        }
-
-        // Do a bit of clean-up
-        if (elm.is("meta[http-equiv='refresh']") && elm.hasAttr("content")) {
-            url = url.replaceAll("\\s+", " ");
-            url = url.replaceFirst(
-                    "(?i)^.*\\burl\\s?=\\s?([\"']?)\\s?([^\\s]+)\\s?\\1", "$2");
-            url = StringUtils.strip(url, "\"'");
-        }
-
-        // Make absolute (can't rely on JSoup "abs:" since URL can be defined
-        // in XML elements as well, not just attributes).
-        url = HttpURL.toAbsolute(elm.baseUri(), url);
-
-
-        // Make sure URL scheme is supported
-        var supportedSchemes =
-                schemes.isEmpty() ? DEFAULT_SCHEMES : schemes;
-        if (!supportedSchemes.contains(StringUtils.substringBefore(url, ":"))) {
-            return null;
-        }
-
-        // Build and return link
-        var link = new Link(url);
-        link.setReferrer(elm.baseUri());
-        var linkMeta = link.getMetadata();
-
-        // Link data
-        if (!ignoreLinkData) {
-            var m = Pattern.compile(
-                    "(?i)^attr\\((.*?)\\)$").matcher(extract);
-            String urlAttr = null;
-            if (m.matches()) {
-                urlAttr = m.group(1);
-                linkMeta.set("attr", urlAttr);
-            }
-            linkMeta.set("tag", elm.tagName());
-            if (StringUtils.isNotBlank(elm.text())) {
-                linkMeta.set("text", elm.text());
-            }
-            if (StringUtils.isNotBlank(elm.html())
-                    && !elm.html().equals(elm.text())) {
-                linkMeta.set("markup", elm.html());
-            }
-
-            for (Attribute attr : elm.attributes()) {
-                var key = attr.getKey();
-                var value = attr.getValue();
-                if (!Objects.equal(urlAttr, attr.getKey())
-                        && StringUtils.isNotBlank(value)) {
-                    linkMeta.set("attr." + key, value);
-                }
-            }
-        }
-        return link;
-    }
-
-    private Document excludeUnwantedContent(Document doc) {
-        var newDoc = doc;
-
-        // we join multiple selectors into one so matches are read in order.
-        var extractSelector = StringUtils.join(extractSelectors, ", ");
-        if (StringUtils.isNotBlank(extractSelector)) {
-            var copyDoc = new Document(newDoc.baseUri());
-            for (Element el : newDoc.select(extractSelector)) {
-                copyDoc.appendChild(el);
-            }
-            newDoc = copyDoc;
-        }
-
-        for (String selector : noExtractSelectors) {
-            newDoc.select(selector).forEach(Element::remove);
-        }
-        return newDoc;
-    }
-
-    @Override
-    protected void loadTextLinkExtractorFromXML(XML xml) {
-        setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
-        setIgnoreLinkData(xml.getBoolean("@ignoreLinkData", ignoreLinkData));
-        setCharset(xml.getString("@charset", charset));
-        setParser(xml.getString("@parser", parser));
-        setSchemes(xml.getDelimitedStringList("schemes", schemes));
-
-        // load link selectors the deprecated way
-        xml.checkDeprecated("dom", "linkSelector", false);
-        var nodes = xml.getXMLList("dom");
-        if (!nodes.isEmpty()) {
-            linkSelectors.clear();
-            for (XML node : nodes) {
-                addLinkSelector(
-                        node.getString("@selector", null),
-                        node.getString("@extract", null));
-            }
-        }
-        // Overwrite the link selectors with the new way if present
-        var linkSelectXMLs = xml.getXMLList("linkSelector");
-        if (!linkSelectXMLs.isEmpty()) {
-            linkSelectors.clear();
-            for (XML linkSelectXML : linkSelectXMLs) {
-                addLinkSelector(
-                        linkSelectXML.getString(".", null),
-                        linkSelectXML.getString("@extract", null));
-            }
-        }
-
-        // extract selector
-        var extractSelList = xml.getStringList("extractSelector");
-        if (!extractSelList.isEmpty()) {
-            CollectionUtil.setAll(extractSelectors, extractSelList);
-        }
-
-        // no extract selector
-        var noExtractSelList = xml.getStringList("noExtractSelector");
-        if (!noExtractSelList.isEmpty()) {
-            CollectionUtil.setAll(noExtractSelectors, noExtractSelList);
-        }
-    }
-
-    @Override
-    protected void saveTextLinkExtractorToXML(XML xml) {
-        xml.setAttribute("ignoreNofollow", ignoreNofollow);
-        xml.setAttribute("ignoreLinkData", ignoreLinkData);
-        xml.setAttribute("charset", charset);
-        xml.setAttribute("parser", parser);
-        xml.addDelimitedElementList("schemes", schemes);
-        for (Entry<String, String> en : linkSelectors.entrySet()) {
-            xml.addElement("linkSelector")
-                    .setAttribute("extract", en.getValue())
-                    .setTextContent(en.getKey());
-        }
-
-        // extract selector
-        xml.addElementList("extractSelector", extractSelectors);
-
-        // no extract selector
-        xml.addElementList("noExtractSelector", noExtractSelectors);
-    }
+//    @Override
+//    protected void loadTextLinkExtractorFromXML(XML xml) {
+//        setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
+//        setIgnoreLinkData(xml.getBoolean("@ignoreLinkData", ignoreLinkData));
+//        setCharset(xml.getString("@charset", charset));
+//        setParser(xml.getString("@parser", parser));
+//        setSchemes(xml.getDelimitedStringList("schemes", schemes));
+//
+//        // load link selectors the deprecated way
+//        xml.checkDeprecated("dom", "linkSelector", false);
+//        var nodes = xml.getXMLList("dom");
+//        if (!nodes.isEmpty()) {
+//            linkSelectors.clear();
+//            for (XML node : nodes) {
+//                addLinkSelector(
+//                        node.getString("@selector", null),
+//                        node.getString("@extract", null));
+//            }
+//        }
+//        // Overwrite the link selectors with the new way if present
+//        var linkSelectXMLs = xml.getXMLList("linkSelector");
+//        if (!linkSelectXMLs.isEmpty()) {
+//            linkSelectors.clear();
+//            for (XML linkSelectXML : linkSelectXMLs) {
+//                addLinkSelector(
+//                        linkSelectXML.getString(".", null),
+//                        linkSelectXML.getString("@extract", null));
+//            }
+//        }
+//
+//        // extract selector
+//        var extractSelList = xml.getStringList("extractSelector");
+//        if (!extractSelList.isEmpty()) {
+//            CollectionUtil.setAll(extractSelectors, extractSelList);
+//        }
+//
+//        // no extract selector
+//        var noExtractSelList = xml.getStringList("noExtractSelector");
+//        if (!noExtractSelList.isEmpty()) {
+//            CollectionUtil.setAll(noExtractSelectors, noExtractSelList);
+//        }
+//    }
+//
+//    @Override
+//    protected void saveTextLinkExtractorToXML(XML xml) {
+//        xml.setAttribute("ignoreNofollow", ignoreNofollow);
+//        xml.setAttribute("ignoreLinkData", ignoreLinkData);
+//        xml.setAttribute("charset", charset);
+//        xml.setAttribute("parser", parser);
+//        xml.addDelimitedElementList("schemes", schemes);
+//        for (Entry<String, String> en : linkSelectors.entrySet()) {
+//            xml.addElement("linkSelector")
+//                    .setAttribute("extract", en.getValue())
+//                    .setTextContent(en.getKey());
+//        }
+//
+//        // extract selector
+//        xml.addElementList("extractSelector", extractSelectors);
+//
+//        // no extract selector
+//        xml.addElementList("noExtractSelector", noExtractSelectors);
+//    }
 }

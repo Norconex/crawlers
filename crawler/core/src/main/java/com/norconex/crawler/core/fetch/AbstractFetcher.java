@@ -14,15 +14,11 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
@@ -79,32 +75,20 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @param <T> fetcher request type
  * @param <R> fetcher response type
+ * @param <C> configuration type
  */
 @Slf4j
 @EqualsAndHashCode
 @ToString
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractFetcher
-        <T extends FetchRequest, R extends FetchResponse> implements
-                Fetcher<T, R>, XMLConfigurable, EventListener<Event> {
-
-    private final List<ReferenceFilter> referenceFilters = new ArrayList<>();
-
-    /**
-     * Gets reference filters
-     * @return reference filters
-     */
-    public List<ReferenceFilter> getReferenceFilters() {
-        return Collections.unmodifiableList(referenceFilters);
-    }
-    /**
-     * Sets reference filters.
-     * @param referenceFilters the referenceFilters to set
-     */
-    public void setReferenceFilters(List<ReferenceFilter> referenceFilters) {
-        CollectionUtil.setAll(this.referenceFilters, referenceFilters);
-        CollectionUtil.removeNulls(this.referenceFilters);
-    }
+public abstract class AbstractFetcher <
+        T extends FetchRequest,
+        R extends FetchResponse,
+        C extends BaseFetcherConfig>
+            implements
+                Fetcher<T, R>,
+                EventListener<Event>,
+                Configurable<C> {
 
     @Override
     public final boolean accept(@NonNull T fetchRequest) {
@@ -191,7 +175,6 @@ public abstract class AbstractFetcher
         //NOOP
     }
 
-
     private boolean isAcceptedByReferenceFilters(@NonNull T fetchRequest) {
         var ref = Optional.ofNullable(fetchRequest.getDoc())
                 .map(Doc::getReference)
@@ -209,21 +192,6 @@ public abstract class AbstractFetcher
                     + "No 'include' filters matched.",
                     getClass().getSimpleName(), ref))
             .build()
-            .accepts(referenceFilters);
+            .accepts(getConfiguration().getReferenceFilters());
     }
-
-    @Override
-    public final void loadFromXML(XML xml) {
-        loadFetcherFromXML(xml);
-        setReferenceFilters(xml.getObjectListImpl(ReferenceFilter.class,
-                "referenceFilters/filter", referenceFilters));
-    }
-    @Override
-    public final void saveToXML(XML xml) {
-        saveFetcherToXML(xml);
-        xml.addElementList("referenceFilters", "filter", referenceFilters);
-    }
-
-    protected abstract void loadFetcherFromXML(XML xml);
-    protected abstract void saveFetcherToXML(XML xml);
 }

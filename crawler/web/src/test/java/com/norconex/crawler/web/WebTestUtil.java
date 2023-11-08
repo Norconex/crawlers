@@ -31,6 +31,7 @@ import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -38,13 +39,22 @@ import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
+import com.norconex.crawler.web.mapper.WebBeanMapperBuilderFactory;
 import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
 
 public final class WebTestUtil {
 
-    private WebTestUtil() {}
+
+    private static final BeanMapper beanMapper =
+            new WebBeanMapperBuilderFactory()
+                .apply(WebCrawlerConfig.class)
+                .build();
+
+    public static BeanMapper beanMapper() {
+        return beanMapper;
+    }
 
     /**
      * Gets the {@link MemoryCommitter} from first committer of the first
@@ -62,7 +72,7 @@ public final class WebTestUtil {
     public static MemoryCommitter getFirstMemoryCommitter(
             @NonNull Crawler crawler) {
         return (MemoryCommitter)
-                crawler.getCrawlerConfig().getCommitters().get(0);
+                crawler.getConfiguration().getCommitters().get(0);
     }
     public static Crawler getFirstCrawler(
             @NonNull CrawlSession crawlSession) {

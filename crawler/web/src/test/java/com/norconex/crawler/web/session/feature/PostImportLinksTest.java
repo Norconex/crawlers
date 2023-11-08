@@ -29,7 +29,7 @@ import com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.importer.handler.HandlerConsumer;
+import com.norconex.importer.handler.HandlerConsumerAdapter;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.tagger.impl.URLExtractorTagger;
 
@@ -66,7 +66,7 @@ class PostImportLinksTest {
                     var tagger = new URLExtractorTagger();
                     tagger.setToField("myPostImportURLs");
                     cfg.getImporterConfig().setPostParseConsumer(
-                            HandlerConsumer.fromHandlers(tagger));
+                            HandlerConsumerAdapter.fromHandlers(tagger));
                 })
                 .crawl();
 

@@ -173,7 +173,7 @@ public final class ApacheHttpUtil {
      * on the supplied document info.  It does so by extracting both
      * the content type and charset from the value, and sets them by invoking
      * {@link DocRecord#setContentType(ContentType)} and
-     * {@link DocRecord#setContentEncoding(String)}.
+     * {@link DocRecord#setCharset(String)}.
      * This method is automatically invoked by
      * {@link #applyResponseHeaders(HttpResponse, String, CrawlDoc)}
      * when encountering a content type header.
@@ -196,7 +196,7 @@ public final class ApacheHttpUtil {
         }
         var charset = apacheCT.getCharset();
         if (charset != null) {
-            docRecord.setContentEncoding(charset.toString());
+            docRecord.setCharset(charset);
         }
     }
 

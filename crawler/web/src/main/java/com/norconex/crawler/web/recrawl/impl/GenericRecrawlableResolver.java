@@ -30,8 +30,6 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.sitemap.SitemapChangeFrequency;
@@ -118,7 +116,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 public class GenericRecrawlableResolver
-        implements RecrawlableResolver, XMLConfigurable{
+        implements RecrawlableResolver {
+        //, XMLConfigurable{
 
     public enum SitemapSupport {
         FIRST, LAST, NEVER;
@@ -409,36 +408,36 @@ public class GenericRecrawlableResolver
         }
     }
 
-    @Override
-    public void loadFromXML(XML xml) {
-        var smsXml = xml.getString("@sitemapSupport");
-        if (StringUtils.isNotBlank(smsXml)) {
-            var sms = SitemapSupport.getSitemapSupport(smsXml);
-            if (sms == null) {
-                LOG.warn("Unsupported sitemap support value: \"{}\". "
-                        + "Will use default.", smsXml);
-            }
-            setSitemapSupport(sms);
-        }
-
-        List<MinFrequency> frequencies = new ArrayList<>();
-        for (XML minFreqXml : xml.getXMLList("minFrequency")) {
-            var f = new MinFrequency();
-            f.setApplyTo(minFreqXml.getString("@applyTo"));
-            f.setValue(minFreqXml.getString("@value"));
-            f.matcher.loadFromXML(minFreqXml.getXML("matcher"));
-            frequencies.add(f);
-        }
-        setMinFrequencies(frequencies);
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("sitemapSupport", sitemapSupport);
-        for (MinFrequency mf : minFrequencies) {
-            var minFreqXml = xml.addElement("minFrequency")
-                    .setAttribute("applyTo", mf.applyTo)
-                    .setAttribute("value", mf.value);
-            mf.matcher.saveToXML(minFreqXml.addElement("matcher"));
-        }
-    }
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        var smsXml = xml.getString("@sitemapSupport");
+//        if (StringUtils.isNotBlank(smsXml)) {
+//            var sms = SitemapSupport.getSitemapSupport(smsXml);
+//            if (sms == null) {
+//                LOG.warn("Unsupported sitemap support value: \"{}\". "
+//                        + "Will use default.", smsXml);
+//            }
+//            setSitemapSupport(sms);
+//        }
+//
+//        List<MinFrequency> frequencies = new ArrayList<>();
+//        for (XML minFreqXml : xml.getXMLList("minFrequency")) {
+//            var f = new MinFrequency();
+//            f.setApplyTo(minFreqXml.getString("@applyTo"));
+//            f.setValue(minFreqXml.getString("@value"));
+//            f.matcher.loadFromXML(minFreqXml.getXML("matcher"));
+//            frequencies.add(f);
+//        }
+//        setMinFrequencies(frequencies);
+//    }
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.setAttribute("sitemapSupport", sitemapSupport);
+//        for (MinFrequency mf : minFrequencies) {
+//            var minFreqXml = xml.addElement("minFrequency")
+//                    .setAttribute("applyTo", mf.applyTo)
+//                    .setAttribute("value", mf.value);
+//            mf.matcher.saveToXML(minFreqXml.addElement("matcher"));
+//        }
+//    }
 }
