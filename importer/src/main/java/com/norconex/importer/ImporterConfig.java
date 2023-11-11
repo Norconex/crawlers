@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.flow.JsonFlow;
@@ -88,8 +89,29 @@ public class ImporterConfig {
     //TODO make a list, even if one or more entries can be Consumers
     @JsonFlow(builder = ImporterFlowConfigBuilder.class)
     @JsonProperty("handlers")
-    private Consumer<DocContext> handler = Consumers.of(new DefaultParser());
+    private Consumer<DocContext> handler = new DefaultParser();
 
+    public ImporterConfig setHandler(Consumer<DocContext> handler) {
+        this.handler = handler;
+        return this;
+    }
+    public Consumer<DocContext> getHandler() {
+        return handler;
+    }
+    @JsonIgnore
+    public ImporterConfig setHandlers(List<Consumer<DocContext>> handlers) {
+        handler = handlers == null
+                ? Consumers.of() : new Consumers<>(handlers);
+        return this;
+    }
+    @SuppressWarnings("unchecked")
+    @JsonIgnore
+    public List<Consumer<DocContext>> getHandlers() {
+        if (handler instanceof List) {
+            return (List<Consumer<DocContext>>) handler;
+        }
+        return Consumers.of(handler);
+    }
 
 //    /**
 //     * <p>

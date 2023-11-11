@@ -179,12 +179,15 @@ public class Importer implements Configurable<ImporterConfig> {
 //            } else {
 //                response = new ImporterResponse(document);
 //            }
+
+            List<ImporterResponse> nestedResponses = new ArrayList<>();
             for (Doc childDoc : nestedDocs) {
                 var nestedResponse = importDocument(childDoc);
                 if (nestedResponse != null) {
-                    response.getNestedResponses().add(nestedResponse);
+                    nestedResponses.add(nestedResponse);
                 }
             }
+            response.setNestedResponses(nestedResponses);
 
             //--- Response Processor ---
 
