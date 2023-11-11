@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.store.impl.mvstore;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -37,8 +38,9 @@ import lombok.experimental.FieldNameConstants;
 * @author Pascal Essiembre
 */
 @Data
+@Accessors(chain = true)
 @FieldNameConstants
-public class MVStoreDataStoreConfig {
+public class MVStoreDataStoreEngineConfig {
 
     /**
      * The max memory page size in bytes before splitting it.

@@ -18,6 +18,7 @@ import java.io.Closeable;
 import java.util.Optional;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.crawler.core.crawler.Crawler;
 
 public interface DataStoreEngine extends Closeable {
@@ -33,6 +34,8 @@ public interface DataStoreEngine extends Closeable {
     // returns true if target was deleted
     boolean renameStore(DataStore<?> dataStore, String newName);
 
+    @JsonIgnore
     Set<String> getStoreNames();
+    @JsonIgnore
     Optional<Class<?>> getStoreType(String name);
 }

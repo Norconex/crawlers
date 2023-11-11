@@ -17,8 +17,6 @@ package com.norconex.crawler.core.checksum.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.map.Properties;
@@ -39,13 +37,6 @@ class GenericMetadataChecksummerTest {
             .setOnSet(PropertySetter.OPTIONAL);
         assertThatNoException().isThrownBy(
                 () -> TestUtil.beanMapper().assertWriteRead(c));
-    }
-
-
-    @Test
-    void testValidation() throws IOException {
-        assertThatNoException().isThrownBy(
-                () -> TestUtil.validate(getClass()));
     }
 
     @Test

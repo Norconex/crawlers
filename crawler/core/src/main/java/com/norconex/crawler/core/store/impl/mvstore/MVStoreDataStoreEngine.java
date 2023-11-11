@@ -23,41 +23,40 @@ import org.apache.commons.io.FileUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
-import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreConfig.Fields;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode
 @ToString
+@Slf4j
 public class MVStoreDataStoreEngine
-        implements DataStoreEngine, XMLConfigurable {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(MVStoreDataStoreEngine.class);
+        implements DataStoreEngine, Configurable<MVStoreDataStoreEngineConfig> {
 
     private static final String STORE_TYPES_KEY =
             MVStoreDataStoreEngine.class.getSimpleName() + "--storetypes";
 
-    private final MVStoreDataStoreConfig cfg = new MVStoreDataStoreConfig();
+    @JsonProperty(Configurable.PROPERTY)
+    private final MVStoreDataStoreEngineConfig cfg =
+            new MVStoreDataStoreEngineConfig();
 
     private MVStore mvstore;
     private Path engineDir;
-
     private MVMap<String, Class<?>> storeTypes;
 
-    public MVStoreDataStoreConfig getConfiguration() {
+    @Override
+    public MVStoreDataStoreEngineConfig getConfiguration() {
         return cfg;
     }
 
@@ -203,43 +202,46 @@ public class MVStoreDataStoreEngine
     }
 
     @Override
+    @JsonIgnore
     public Set<String> getStoreNames() {
         // a fresh map instance is returned, so safe to remove entry.
         var names = mvstore.getMapNames();
         names.remove(STORE_TYPES_KEY);
         return names;
     }
+
     @Override
+    @JsonIgnore
     public Optional<Class<?>> getStoreType(String name) {
         return Optional.ofNullable(storeTypes.get(name));
     }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        cfg.setPageSplitSize(
-                xml.getDataSize(Fields.pageSplitSize, cfg.getPageSplitSize()));
-        cfg.setCompress(xml.getInteger(Fields.compress, cfg.getCompress()));
-        cfg.setCacheConcurrency(xml.getInteger(
-                Fields.cacheConcurrency, cfg.getCacheConcurrency()));
-        cfg.setCacheSize(xml.getDataSize(Fields.cacheSize, cfg.getCacheSize()));
-        cfg.setAutoCompactFillRate(xml.getInteger(
-                Fields.autoCompactFillRate, cfg.getAutoCompactFillRate()));
-        cfg.setAutoCommitBufferSize(xml.getDataSize(
-                Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize()));
-        cfg.setAutoCommitDelay(xml.getDurationMillis(
-                Fields.autoCommitDelay, cfg.getAutoCommitDelay()));
-        cfg.setEphemeral(xml.getBoolean(Fields.ephemeral, cfg.isEphemeral()));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement(Fields.pageSplitSize, cfg.getPageSplitSize());
-        xml.addElement(Fields.compress, cfg.getCompress());
-        xml.addElement(Fields.cacheConcurrency, cfg.getCacheConcurrency());
-        xml.addElement(Fields.cacheSize, cfg.getCacheSize());
-        xml.addElement(Fields.autoCompactFillRate, cfg.getAutoCompactFillRate());
-        xml.addElement(Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize());
-        xml.addElement(Fields.autoCommitDelay, cfg.getAutoCommitDelay());
-        xml.addElement(Fields.ephemeral, cfg.isEphemeral());
-    }
+//
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        cfg.setPageSplitSize(
+//                xml.getDataSize(Fields.pageSplitSize, cfg.getPageSplitSize()));
+//        cfg.setCompress(xml.getInteger(Fields.compress, cfg.getCompress()));
+//        cfg.setCacheConcurrency(xml.getInteger(
+//                Fields.cacheConcurrency, cfg.getCacheConcurrency()));
+//        cfg.setCacheSize(xml.getDataSize(Fields.cacheSize, cfg.getCacheSize()));
+//        cfg.setAutoCompactFillRate(xml.getInteger(
+//                Fields.autoCompactFillRate, cfg.getAutoCompactFillRate()));
+//        cfg.setAutoCommitBufferSize(xml.getDataSize(
+//                Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize()));
+//        cfg.setAutoCommitDelay(xml.getDurationMillis(
+//                Fields.autoCommitDelay, cfg.getAutoCommitDelay()));
+//        cfg.setEphemeral(xml.getBoolean(Fields.ephemeral, cfg.isEphemeral()));
+//    }
+//
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.addElement(Fields.pageSplitSize, cfg.getPageSplitSize());
+//        xml.addElement(Fields.compress, cfg.getCompress());
+//        xml.addElement(Fields.cacheConcurrency, cfg.getCacheConcurrency());
+//        xml.addElement(Fields.cacheSize, cfg.getCacheSize());
+//        xml.addElement(Fields.autoCompactFillRate, cfg.getAutoCompactFillRate());
+//        xml.addElement(Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize());
+//        xml.addElement(Fields.autoCommitDelay, cfg.getAutoCommitDelay());
+//        xml.addElement(Fields.ephemeral, cfg.isEphemeral());
+//    }
 }

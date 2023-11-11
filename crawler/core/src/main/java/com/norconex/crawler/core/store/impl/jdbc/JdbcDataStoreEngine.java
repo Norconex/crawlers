@@ -21,17 +21,14 @@ import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
@@ -40,6 +37,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -115,7 +113,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 public class JdbcDataStoreEngine
-        implements DataStoreEngine, XMLConfigurable {
+        implements DataStoreEngine, Configurable<JdbcDataStoreEngineConfig> {
 
     private static final String STORE_TYPES_NAME = "_storetypes";
 
@@ -127,42 +125,9 @@ public class JdbcDataStoreEngine
     private TableAdapter tableAdapter;
     private String resolvedSafeTablePrefix;
 
-    // Configurable:
-    private Properties configProperties = new Properties();
-    private String varcharType;
-    private String timestapType;
-    private String textType;
-
-    public Properties getConfigProperties() {
-        return configProperties;
-    }
-    public void setConfigProperties(Properties configProperties) {
-        this.configProperties = configProperties;
-    }
-    public String getTablePrefix() {
-        return tablePrefix;
-    }
-    public void setTablePrefix(String tablePrefix) {
-        this.tablePrefix = tablePrefix;
-    }
-    public String getVarcharType() {
-        return varcharType;
-    }
-    public void setVarcharType(String varcharType) {
-        this.varcharType = varcharType;
-    }
-    public String getTimestapType() {
-        return timestapType;
-    }
-    public void setTimestapType(String timestapType) {
-        this.timestapType = timestapType;
-    }
-    public String getTextType() {
-        return textType;
-    }
-    public void setTextType(String textType) {
-        this.textType = textType;
-    }
+    @Getter
+    private JdbcDataStoreEngineConfig configuration =
+            new JdbcDataStoreEngineConfig();
 
     @Override
     public void init(Crawler crawler) {
@@ -172,7 +137,7 @@ public class JdbcDataStoreEngine
 
         // create data source
         datasource = new HikariDataSource(
-                new HikariConfig(configProperties.toProperties()));
+                new HikariConfig(configuration.getProperties().toProperties()));
 
         tableAdapter = resolveTableAdapter();
 
@@ -183,9 +148,9 @@ public class JdbcDataStoreEngine
     private TableAdapter resolveTableAdapter() {
         return TableAdapter.detect(StringUtils.firstNonBlank(
                 datasource.getJdbcUrl(), datasource.getDriverClassName()))
-            .withIdType(varcharType)
-            .withModifiedType(timestapType)
-            .withJsonType(textType);
+            .withIdType(configuration.getVarcharType())
+            .withModifiedType(configuration.getTimestapType())
+            .withJsonType(configuration.getTextType());
     }
 
     @Override
@@ -256,6 +221,7 @@ public class JdbcDataStoreEngine
         return existed;
     }
 
+    @JsonIgnore
     @Override
     public Set<String> getStoreNames() {
         Set<String> names = new HashSet<>();
@@ -281,6 +247,7 @@ public class JdbcDataStoreEngine
         }
     }
 
+    @JsonIgnore
     @Override
     public Optional<Class<?>> getStoreType(String storeName) {
         if (storeName == null) {
@@ -298,45 +265,12 @@ public class JdbcDataStoreEngine
         return Optional.empty();
     }
 
-    @Override
-    public void loadFromXML(XML xml) {
-        var nodes = xml.getXMLList("datasource/property");
-        for (XML node : nodes) {
-            var name = node.getString("@name");
-            var value = node.getString(".");
-            configProperties.add(name, value);
-        }
-        setTablePrefix(xml.getString("tablePrefix", getTablePrefix()));
-        setVarcharType(
-                xml.getString("dataTypes/varchar/@use", getVarcharType()));
-        setTimestapType(
-                xml.getString("dataTypes/timestamp/@use", getTimestapType()));
-        setTextType(xml.getString("dataTypes/text/@use", getTextType()));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        var xmlDatasource = xml.addElement("datasource");
-        for (Entry<String, List<String>> entry : configProperties.entrySet()) {
-            var values = entry.getValue();
-            for (String value : values) {
-                if (value != null) {
-                    xmlDatasource.addElement("property", value)
-                            .setAttribute("name", entry.getKey());
-                }
-            }
-        }
-        xml.addElement("tablePrefix", getTablePrefix());
-        var dtXML = xml.addElement("dataTypes");
-        dtXML.addElement("varchar").setAttribute("use", getVarcharType());
-        dtXML.addElement("timestamp").setAttribute("use", getTimestapType());
-        dtXML.addElement("text").setAttribute("use", getTextType());
-    }
-
+    @JsonIgnore
     TableAdapter getTableAdapter() {
         return tableAdapter;
     }
 
+    @JsonIgnore
     Connection getConnection() {
         try {
             return datasource.getConnection();
