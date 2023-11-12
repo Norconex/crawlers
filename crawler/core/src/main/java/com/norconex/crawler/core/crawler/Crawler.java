@@ -36,6 +36,7 @@ import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.service.CommitterService;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileUtil;
@@ -88,7 +89,7 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @Slf4j
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Crawler {
+public class Crawler implements Configurable<CrawlerConfig> {
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
 

@@ -17,6 +17,7 @@ package com.norconex.committer.core.spi;
 import org.apache.commons.collections4.MultiMapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 
+import com.norconex.committer.core.Committer;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
 import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -35,6 +36,9 @@ public class CommitterCorePtProvider implements PolymorphicTypeProvider {
                 MultiMapUtils.newListValuedHashMap();
         map.putAll(CommitterQueue.class,
                 ClassFinder.findSubTypes(CommitterQueue.class,
+                        nm -> nm.startsWith("com.norconex.committer.")));
+        map.putAll(Committer.class,
+                ClassFinder.findSubTypes(Committer.class,
                         nm -> nm.startsWith("com.norconex.committer.")));
         return map;
     }
