@@ -18,26 +18,17 @@ import static com.norconex.commons.lang.encrypt.EncryptionUtil.decrypt;
 import static com.norconex.commons.lang.encrypt.EncryptionUtil.decryptPassword;
 import static com.norconex.crawler.fs.fetch.impl.FileFetchUtil.referenceStartsWith;
 
-import java.time.Duration;
-
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
 import org.apache.commons.vfs2.provider.http5.Http5FileSystemConfigBuilder;
 
-import com.norconex.commons.lang.encrypt.EncryptionKey;
-import com.norconex.commons.lang.net.ProxySettings;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import jakarta.xml.bind.annotation.XmlTransient;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
-import lombok.experimental.FieldNameConstants;
 
 
 /**
@@ -81,35 +72,12 @@ import lombok.experimental.FieldNameConstants;
  * }
  */
 @SuppressWarnings("javadoc")
-@Data
-@FieldNameConstants
-@XmlRootElement(name = "fetcher")
-@XmlAccessorType(XmlAccessType.FIELD)
-public class WebDavFetcher extends AbstractAuthVfsFetcher {
+@ToString
+@EqualsAndHashCode
+public class WebDavFetcher extends AbstractAuthVfsFetcher<WebDavFetcherConfig> {
 
-    //MAYBE ACL?
-
-    private Duration connectionTimeout;
-    private boolean followRedirect;
-    private boolean hostnameVerificationEnabled;
-    private boolean keepAlive;
-    private String keyStoreFile;
-    @ToString.Exclude
-    private String keyStorePass;
-    @XmlTransient
-    private EncryptionKey keyStorePassKey;
-    private String keyStoreType;
-    private int maxConnectionsPerHost = 5;
-    private int maxTotalConnections = 50;
-    private boolean preemptiveAuth;
-    @XmlTransient
-    private final ProxySettings proxySettings = new ProxySettings();
-    @XmlTransient
-    private String proxyDomain;
-    private Duration soTimeout;
-    private String tlsVersions;
-    private String urlCharset;
-    private String userAgent;
+    @Getter
+    private final WebDavFetcherConfig configuration = new WebDavFetcherConfig();
 
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
@@ -124,50 +92,33 @@ public class WebDavFetcher extends AbstractAuthVfsFetcher {
 
     @Override
     protected void applyFileSystemOptions(FileSystemOptions opts) {
-        var cfg = Http5FileSystemConfigBuilder.getInstance();
+        var fs = Http5FileSystemConfigBuilder.getInstance();
+        var cfg = configuration;
 
-        cfg.setConnectionTimeout(opts, connectionTimeout);
-        cfg.setFollowRedirect(opts, followRedirect);
-        cfg.setHostnameVerificationEnabled(opts, hostnameVerificationEnabled);
-        cfg.setKeepAlive(opts, keepAlive);
-        cfg.setKeyStoreFile(opts, keyStoreFile);
-        cfg.setKeyStorePass(opts, decrypt(keyStorePass, keyStorePassKey));
-        cfg.setKeyStoreType(opts, keyStoreType);
-        cfg.setMaxConnectionsPerHost(opts, maxConnectionsPerHost);
-        cfg.setMaxTotalConnections(opts, maxTotalConnections);
-        cfg.setPreemptiveAuth(opts, preemptiveAuth);
-        if (proxySettings.isSet()) {
-            cfg.setProxyAuthenticator(opts, new StaticUserAuthenticator(
-                    proxySettings.getCredentials().getUsername(),
-                    decryptPassword(proxySettings.getCredentials()),
-                    proxyDomain));
-            cfg.setProxyHost(opts, proxySettings.getHost().getName());
-            cfg.setProxyPort(opts, proxySettings.getHost().getPort());
-            cfg.setProxyScheme(opts, proxySettings.getScheme());
+        fs.setConnectionTimeout(opts, cfg.getConnectionTimeout());
+        fs.setFollowRedirect(opts, cfg.isFollowRedirect());
+        fs.setHostnameVerificationEnabled(
+                opts, cfg.isHostnameVerificationEnabled());
+        fs.setKeepAlive(opts, cfg.isKeepAlive());
+        fs.setKeyStoreFile(opts, cfg.getKeyStoreFile());
+        fs.setKeyStorePass(
+                opts, decrypt(cfg.getKeyStorePass(), cfg.getKeyStorePassKey()));
+        fs.setKeyStoreType(opts, cfg.getKeyStoreType());
+        fs.setMaxConnectionsPerHost(opts, cfg.getMaxConnectionsPerHost());
+        fs.setMaxTotalConnections(opts, cfg.getMaxTotalConnections());
+        fs.setPreemptiveAuth(opts, cfg.isPreemptiveAuth());
+        if (cfg.getProxySettings().isSet()) {
+            fs.setProxyAuthenticator(opts, new StaticUserAuthenticator(
+                    cfg.getProxySettings().getCredentials().getUsername(),
+                    decryptPassword(cfg.getProxySettings().getCredentials()),
+                    cfg.getProxyDomain()));
+            fs.setProxyHost(opts, cfg.getProxySettings().getHost().getName());
+            fs.setProxyPort(opts, cfg.getProxySettings().getHost().getPort());
+            fs.setProxyScheme(opts, cfg.getProxySettings().getScheme());
         }
-        cfg.setSoTimeout(opts, soTimeout);
-        cfg.setTlsVersions(opts, tlsVersions);
-        cfg.setUrlCharset(opts, urlCharset);
-        cfg.setUserAgent(opts, userAgent);
-    }
-
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        super.loadFetcherFromXML(xml);
-        xml.ifXML(Fields.proxySettings, proxyXML -> {
-            proxySettings.loadFromXML(proxyXML);
-            setProxyDomain(proxyXML.getString(Fields.proxyDomain, proxyDomain));
-        });
-        setKeyStorePassKey(EncryptionKey.loadFromXML(
-                xml.getXML(Fields.keyStorePassKey), keyStorePassKey));
-    }
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        super.saveFetcherToXML(xml);
-        var proxyXML = xml.addElement(Fields.proxySettings);
-        proxySettings.saveToXML(proxyXML);
-        proxyXML.addElement(Fields.proxyDomain, proxyDomain);
-        EncryptionKey.saveToXML(
-                xml.addElement(Fields.keyStorePassKey), keyStorePassKey);
+        fs.setSoTimeout(opts, cfg.getSoTimeout());
+        fs.setTlsVersions(opts, cfg.getTlsVersions());
+        fs.setUrlCharset(opts, cfg.getUrlCharset());
+        fs.setUserAgent(opts, cfg.getUserAgent());
     }
 }

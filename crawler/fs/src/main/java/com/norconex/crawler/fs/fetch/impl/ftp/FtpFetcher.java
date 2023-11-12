@@ -17,32 +17,19 @@ package com.norconex.crawler.fs.fetch.impl.ftp;
 import static com.norconex.crawler.fs.fetch.impl.FileFetchUtil.referenceStartsWith;
 import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.provider.ftp.FtpFileType;
-import org.apache.commons.vfs2.provider.ftps.FtpsDataChannelProtectionLevel;
 import org.apache.commons.vfs2.provider.ftps.FtpsFileSystemConfigBuilder;
-import org.apache.commons.vfs2.provider.ftps.FtpsMode;
 
-import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import jakarta.xml.bind.annotation.XmlTransient;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.FieldNameConstants;
+import lombok.ToString;
 
 /**
  * <p>
@@ -109,58 +96,12 @@ import lombok.experimental.FieldNameConstants;
  * </p>
  */
 @SuppressWarnings("javadoc")
-@Data
-@FieldNameConstants
-@XmlRootElement(name = "fetcher")
-@XmlAccessorType(XmlAccessType.FIELD)
-public class FtpFetcher extends AbstractAuthVfsFetcher {
+@ToString
+@EqualsAndHashCode
+public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
 
-    //TODO once we have all fetchers defined, have them all as default
-    // fetchers in config
-
-    //MAYBE: abstract FS enums and create equivalent?
-
-    private boolean autodetectUtf8;
-    private Duration connectTimeout;
-    private String controlEncoding;
-    private Duration dataTimeout;
-    private String defaultDateFormat;
-    private FtpFileType fileType;
-    private boolean mdtmLastModifiedTime;
-    private boolean passiveMode;
-    @XmlTransient
-    private final ProxySettings proxySettings = new ProxySettings();
-    private String recentDateFormat;
-    private boolean remoteVerification;
-    private String serverLanguageCode;
-    private String serverTimeZoneId;
-    @XmlTransient
-    private final List<String> shortMonthNames = new ArrayList<>();
-    private Duration socketTimeout;
-    private Duration controlKeepAliveTimeout;
-    private Duration controlKeepAliveReplyTimeout;
-    private boolean userDirIsRoot;
-    @XmlTransient
-    private final List<Integer> transferAbortedOkReplyCodes = new ArrayList<>();
-
-    // Only apply to FTPS
-    private FtpsMode connectionMode;
-    private FtpsDataChannelProtectionLevel dataChannelProtectionLevel;
-
-    public List<Integer> getTransferAbortedOkReplyCodes() {
-        return Collections.unmodifiableList(transferAbortedOkReplyCodes);
-    }
-    public final void setTransferAbortedOkReplyCodes(
-            List<Integer> transferAbortedOkReplyCodes) {
-        CollectionUtil.setAll(
-                this.transferAbortedOkReplyCodes, transferAbortedOkReplyCodes);
-    }
-    public List<String> getShortMonthNames() {
-        return Collections.unmodifiableList(shortMonthNames);
-    }
-    public final void setShortMonthNames(List<String> shortMonthNames) {
-        CollectionUtil.setAll(this.shortMonthNames, shortMonthNames);
-    }
+    @Getter
+    private final FtpFetcherConfig configuration = new FtpFetcherConfig();
 
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
@@ -169,52 +110,36 @@ public class FtpFetcher extends AbstractAuthVfsFetcher {
 
     @Override
     protected void applyFileSystemOptions(FileSystemOptions opts) {
+        var cfg = configuration;
         var ftp = FtpsFileSystemConfigBuilder.getInstance();
-        ftp.setFtpsMode(opts, connectionMode);
-        ftp.setDataChannelProtectionLevel(opts, dataChannelProtectionLevel);
-        ftp.setAutodetectUtf8(opts, autodetectUtf8);
-        ftp.setConnectTimeout(opts, connectTimeout);
-        ftp.setControlEncoding(opts, controlEncoding);
-        ftp.setDataTimeout(opts, dataTimeout);
-        ftp.setDefaultDateFormat(opts, defaultDateFormat);
-        ftp.setFileType(opts, fileType);
-        ftp.setPassiveMode(opts, passiveMode);
-        Optional.ofNullable(proxySettings.toProxy()).ifPresent(
+        ftp.setFtpsMode(opts, cfg.getConnectionMode());
+        ftp.setDataChannelProtectionLevel(
+                opts, cfg.getDataChannelProtectionLevel());
+        ftp.setAutodetectUtf8(opts, cfg.isAutodetectUtf8());
+        ftp.setConnectTimeout(opts, cfg.getConnectTimeout());
+        ftp.setControlEncoding(opts, cfg.getControlEncoding());
+        ftp.setDataTimeout(opts, cfg.getDataTimeout());
+        ftp.setDefaultDateFormat(opts, cfg.getDefaultDateFormat());
+        ftp.setFileType(opts, cfg.getFileType());
+        ftp.setPassiveMode(opts, cfg.isPassiveMode());
+        Optional.ofNullable(cfg.getProxySettings().toProxy()).ifPresent(
                 p -> ftp.setProxy(opts, p));
-        ftp.setRecentDateFormat(opts, recentDateFormat);
-        ftp.setRemoteVerification(opts, remoteVerification);
-        ftp.setServerLanguageCode(opts, serverLanguageCode);
-        ftp.setServerTimeZoneId(opts, serverTimeZoneId);
+        ftp.setRecentDateFormat(opts, cfg.getRecentDateFormat());
+        ftp.setRemoteVerification(opts, cfg.isRemoteVerification());
+        ftp.setServerLanguageCode(opts, cfg.getServerLanguageCode());
+        ftp.setServerTimeZoneId(opts, cfg.getServerTimeZoneId());
         ftp.setShortMonthNames(opts,
-                shortMonthNames.toArray(EMPTY_STRING_ARRAY));
-        ftp.setSoTimeout(opts, socketTimeout);
-        ftp.setControlKeepAliveTimeout(opts, controlKeepAliveTimeout);
-        ftp.setControlKeepAliveReplyTimeout(opts, controlKeepAliveReplyTimeout);
-        ftp.setUserDirIsRoot(opts, userDirIsRoot);
-        ftp.setTransferAbortedOkReplyCodes(opts, transferAbortedOkReplyCodes);
-        ftp.setMdtmLastModifiedTime(opts, mdtmLastModifiedTime);
+                cfg.getShortMonthNames().toArray(EMPTY_STRING_ARRAY));
+        ftp.setSoTimeout(opts, cfg.getSocketTimeout());
+        ftp.setControlKeepAliveTimeout(opts, cfg.getControlKeepAliveTimeout());
+        ftp.setControlKeepAliveReplyTimeout(
+                opts, cfg.getControlKeepAliveReplyTimeout());
+        ftp.setUserDirIsRoot(opts, cfg.isUserDirIsRoot());
+        ftp.setTransferAbortedOkReplyCodes(
+                opts, cfg.getTransferAbortedOkReplyCodes());
+        ftp.setMdtmLastModifiedTime(opts, cfg.isMdtmLastModifiedTime());
 
         //NOTE: Override this method if there is a need to set additional
         //options, such as entryParserFactory, keyManager, or trustManager.
-    }
-
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        super.loadFetcherFromXML(xml);
-        xml.ifXML(Fields.proxySettings, proxySettings::loadFromXML);
-        setShortMonthNames(xml.getDelimitedList(
-                Fields.shortMonthNames, String.class, shortMonthNames));
-        setTransferAbortedOkReplyCodes(xml.getDelimitedList(
-                Fields.transferAbortedOkReplyCodes,
-                Integer.class,
-                transferAbortedOkReplyCodes));
-    }
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        super.saveFetcherToXML(xml);
-        proxySettings.saveToXML(xml.addElement(Fields.proxySettings));
-        xml.addDelimitedElementList(Fields.shortMonthNames, shortMonthNames);
-        xml.addDelimitedElementList(Fields.transferAbortedOkReplyCodes,
-                transferAbortedOkReplyCodes);
     }
 }

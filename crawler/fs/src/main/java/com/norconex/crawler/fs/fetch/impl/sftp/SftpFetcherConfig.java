@@ -14,21 +14,14 @@
  */
 package com.norconex.crawler.fs.fetch.impl.sftp;
 
-import static com.norconex.crawler.fs.fetch.impl.FileFetchUtil.referenceStartsWith;
-
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
+import java.io.File;
+import java.time.Duration;
 
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.crawler.core.crawler.CrawlerException;
-import com.norconex.crawler.fs.fetch.FileFetchRequest;
-import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
+import com.norconex.crawler.fs.fetch.impl.BaseAuthVfsFetcherConfig;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -71,32 +64,15 @@ import lombok.ToString;
  * </p>
  */
 @SuppressWarnings("javadoc")
-@ToString
-@EqualsAndHashCode
-public class SftpFetcher extends AbstractAuthVfsFetcher<SftpFetcherConfig> {
+@Data
+@Accessors(chain = true)
+public class SftpFetcherConfig extends BaseAuthVfsFetcherConfig {
 
-    @Getter
-    private final SftpFetcherConfig configuration = new SftpFetcherConfig();
-
-    @Override
-    protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
-        return referenceStartsWith(fetchRequest, "sftp://");
-    }
-
-    @Override
-    protected void applyFileSystemOptions(FileSystemOptions opts) {
-        var sftp = SftpFileSystemConfigBuilder.getInstance();
-        sftp.setCompression(opts, configuration.getCompression());
-        sftp.setConnectTimeout(opts, configuration.getConnectTimeout());
-        sftp.setKnownHosts(opts, configuration.getKnownHosts());
-        sftp.setPreferredAuthentications(
-                opts, configuration.getPreferredAuthentications());
-        try {
-            sftp.setStrictHostKeyChecking(
-                    opts, configuration.getStrictHostKeyChecking());
-        } catch (FileSystemException e) {
-            throw new CrawlerException(e);
-        }
-        sftp.setUserDirIsRoot(opts, configuration.isUserDirIsRoot());
-    }
+    private String compression;
+    private String fileNameEncoding;
+    private File knownHosts;
+    private String preferredAuthentications;
+    private String strictHostKeyChecking = "no";
+    private Duration connectTimeout;
+    private boolean userDirIsRoot;
 }

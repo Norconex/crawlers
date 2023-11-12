@@ -32,15 +32,15 @@ import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.local.LocalFileName;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.FieldNameConstants;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -92,12 +92,13 @@ import lombok.extern.slf4j.Slf4j;
  * }
  */
 @SuppressWarnings("javadoc")
-@Data
-@FieldNameConstants
+@ToString
+@EqualsAndHashCode
 @Slf4j
-public class LocalFetcher extends AbstractVfsFetcher {
+public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
 
-    private boolean aclDisabled;
+    @Getter
+    private final LocalFetcherConfig configuration = new LocalFetcherConfig();
 
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
@@ -114,7 +115,8 @@ public class LocalFetcher extends AbstractVfsFetcher {
             throws FileSystemException {
         super.fetchMetadata(doc, fileObject);
 
-        if (!aclDisabled && fileObject instanceof LocalFile localFile) {
+        if (!configuration.isAclDisabled()
+                && fileObject instanceof LocalFile localFile) {
             fetchAcl(localFile, doc.getMetadata());
         }
     }
@@ -159,14 +161,5 @@ public class LocalFetcher extends AbstractVfsFetcher {
     @Override
     protected void applyFileSystemOptions(FileSystemOptions opts) {
         //NOOP
-    }
-
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        setAclDisabled(xml.getBoolean(Fields.aclDisabled));
-    }
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        xml.addElement(Fields.aclDisabled, aclDisabled);
     }
 }

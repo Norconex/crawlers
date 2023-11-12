@@ -31,18 +31,18 @@ import org.apache.commons.vfs2.provider.smb.SmbFileProvider;
 import org.apache.commons.vfs2.util.UserAuthenticatorUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
-import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher.Fields;
 
 import jcifs.smb.ACE;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -81,9 +81,13 @@ import lombok.extern.slf4j.Slf4j;
  * }
  */
 @SuppressWarnings("javadoc")
-@Data
+@ToString
+@EqualsAndHashCode
 @Slf4j
-public class SmbFetcher extends AbstractAuthVfsFetcher {
+public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
+
+    @Getter
+    private final SmbFetcherConfig configuration = new SmbFetcherConfig();
 
     private static final String ACL_PREFIX =
             FsDocMetadata.ACL + ".smb";
@@ -96,15 +100,14 @@ public class SmbFetcher extends AbstractAuthVfsFetcher {
     private static final String DOMAIN_NAME = ".domainName";
     private static final String ACCOUNT_NAME = ".accountName";
 
-    private boolean aclDisabled;
-
     @Override
     protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
             throws FileSystemException {
         super.fetchMetadata(doc, fileObject);
 
         // Fetch ACL
-        if (!aclDisabled && fileObject instanceof SmbFileObject smbFileObject) {
+        if (!configuration.isAclDisabled()
+                && fileObject instanceof SmbFileObject smbFileObject) {
             try {
                 var f = createSmbFile(smbFileObject);
                 var acl = f.getSecurity();
@@ -196,16 +199,5 @@ public class SmbFetcher extends AbstractAuthVfsFetcher {
             UserAuthenticationData authData, Type type, String part) {
         return UserAuthenticatorUtils.toString(UserAuthenticatorUtils.getData(
                 authData, type, UserAuthenticatorUtils.toChar(part)));
-    }
-
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        super.loadFetcherFromXML(xml);
-        setAclDisabled(xml.getBoolean(Fields.aclDisabled));
-    }
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        super.saveFetcherToXML(xml);
-        xml.addElement(Fields.aclDisabled, aclDisabled);
     }
 }

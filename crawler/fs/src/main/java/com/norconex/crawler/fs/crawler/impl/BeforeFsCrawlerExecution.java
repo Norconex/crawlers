@@ -32,7 +32,7 @@ class BeforeFsCrawlerExecution implements BiConsumer<Crawler, Boolean> {
     }
 
     private static void logCrawlerInformation(Crawler crawler) {
-        var cfg = crawler.getCrawlerConfig();
+        var cfg = crawler.getConfiguration();
         LOG.info("""
             Enabled features:
 

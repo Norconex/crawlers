@@ -33,12 +33,10 @@ import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.FieldNameConstants;
+import lombok.ToString;
 
 /**
  * <p>
@@ -86,30 +84,14 @@ import lombok.experimental.FieldNameConstants;
  * </p>
  */
 @SuppressWarnings("javadoc")
-@Data
-@FieldNameConstants
-@XmlRootElement(name = "fetcher")
-@XmlAccessorType(XmlAccessType.FIELD)
-public class CmisFetcher extends AbstractAuthVfsFetcher {
+@ToString
+@EqualsAndHashCode
+public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
 
     private static final String CMIS_PREFIX = CrawlDocMetadata.PREFIX + "cmis.";
 
-    /**
-     * The CMIS repository ID. Defaults to first one found.
-     * @param repositoryId repository ID
-     * @return repository id
-     */
-    private String repositoryId;
-    /**
-     * The name of the field where the raw XML obtained from
-     * the CMIS REST API will be stored. Defaults to <code>null</code>
-     * (does not store the raw XML in a field).
-     * @param cmisXmlTargetField target field
-     * @return field name
-     */
-    private String xmlTargetField;
-
-    private boolean aclDisabled;
+    @Getter
+    private final CmisFetcherConfig configuration = new CmisFetcherConfig();
 
     @Override
     protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
@@ -122,7 +104,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher {
             if (ctx.document != null) {
                 fetchCoreMeta(ctx);
                 fetchProperties(ctx);
-                if (!aclDisabled) {
+                if (!configuration.isAclDisabled()) {
                     fetchAcl(ctx);
                 }
             }
@@ -137,8 +119,8 @@ public class CmisFetcher extends AbstractAuthVfsFetcher {
     @Override
     protected void applyFileSystemOptions(FileSystemOptions opts) {
         var cfg = CmisAtomFileSystemConfigBuilder.getInstance();
-        cfg.setRepositoryId(opts, repositoryId);
-        cfg.setXmlTargetField(opts, xmlTargetField);
+        cfg.setRepositoryId(opts, configuration.getRepositoryId());
+        cfg.setXmlTargetField(opts, configuration.getXmlTargetField());
     }
 
 

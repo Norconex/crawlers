@@ -56,10 +56,11 @@ class SmbFetcherTest extends AbstractFileFetcherTest {
     @Override
     protected FileFetcher fetcher() {
         var fetcher = new SmbFetcher();
-        fetcher.getCredentials()
-            .setUsername("joe")
-            .setPassword("joepwd");
-        fetcher.setDomain("WORKGROUP");
+        fetcher.getConfiguration()
+            .setDomain("WORKGROUP")
+            .getCredentials()
+                .setUsername("joe")
+                .setPassword("joepwd");
         return fetcher;
     }
     @Override

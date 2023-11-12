@@ -41,6 +41,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.ReferencesProvider;
+import com.norconex.crawler.core.filter.OnMatch;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
@@ -50,7 +51,6 @@ import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.fs.crawler.impl.FsCrawlerImplFactory;
 import com.norconex.importer.ImporterConfig;
-import com.norconex.importer.handler.filter.OnMatch;
 
 public final class FsStubber {
 

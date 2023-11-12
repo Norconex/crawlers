@@ -65,7 +65,7 @@ public final class FsTestUtil {
     public static MemoryCommitter getFirstMemoryCommitter(
             @NonNull Crawler crawler) {
         return (MemoryCommitter)
-                crawler.getCrawlerConfig().getCommitters().get(0);
+                crawler.getConfiguration().getCommitters().get(0);
     }
     public static Crawler getFirstCrawler(
             @NonNull CrawlSession crawlSession) {

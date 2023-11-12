@@ -51,7 +51,7 @@ public class FsImporterPipelineContext extends ImporterPipelineContext {
 
     @Override
     public CrawlerConfig getConfig() {
-        return getCrawler().getCrawlerConfig();
+        return getCrawler().getConfiguration();
     }
 
 //    public FileObject getFileObject() {
