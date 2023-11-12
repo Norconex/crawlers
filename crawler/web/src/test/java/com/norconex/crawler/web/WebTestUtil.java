@@ -45,11 +45,15 @@ import lombok.NonNull;
 
 public final class WebTestUtil {
 
-    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
-//    private static final BeanMapper beanMapper =
+//    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
+    private static final BeanMapper beanMapper = BeanMapper.builder()
+            .unboundPropertyMapping("", null)
+            .build();
 //            new WebBeanMapperBuilderFactory()
 //                .apply(WebCrawlerConfig.class)
 //                .build();
+
+
 
     public static BeanMapper beanMapper() {
         return beanMapper;

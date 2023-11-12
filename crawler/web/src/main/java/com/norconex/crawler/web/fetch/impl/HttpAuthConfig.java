@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
@@ -328,6 +329,7 @@ public class HttpAuthConfig {
      * are set, it returns an empty array.
      * @return HTTP request header names
      */
+    @JsonIgnore
     public List<String> getFormParamNames() {
         return Collections.unmodifiableList(
                 new ArrayList<>(formParams.keySet()));

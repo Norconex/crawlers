@@ -26,6 +26,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.core5.http.HttpStatus;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
@@ -349,6 +350,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * are set, it returns an empty array.
      * @return HTTP request header names
      */
+    @JsonIgnore
     public List<String> getRequestHeaderNames() {
         return Collections.unmodifiableList(
                 new ArrayList<>(requestHeaders.keySet()));

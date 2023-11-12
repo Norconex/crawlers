@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
@@ -39,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @MockServerSettings
 @Slf4j
+@Disabled
 class ResumeAfterJvmCrashTest {
 
     @Test

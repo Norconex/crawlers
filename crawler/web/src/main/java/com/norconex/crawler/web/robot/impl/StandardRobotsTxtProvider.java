@@ -79,10 +79,10 @@ public class StandardRobotsTxtProvider
         extends CrawlerLifeCycleListener
         implements RobotsTxtProvider {
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private final Map<String, RobotsTxt> robotsTxtCache = new HashMap<>();
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Crawler crawler;
 
     @Override

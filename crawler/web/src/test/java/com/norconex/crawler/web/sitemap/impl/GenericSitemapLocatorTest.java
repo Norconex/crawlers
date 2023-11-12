@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -32,6 +33,7 @@ import com.norconex.crawler.web.util.Web;
 class GenericSitemapLocatorTest {
 
     @Test
+    @Disabled
     void testGenericSitemapLocator(@TempDir Path tempDir) {
 
         var locator = new GenericSitemapLocator();

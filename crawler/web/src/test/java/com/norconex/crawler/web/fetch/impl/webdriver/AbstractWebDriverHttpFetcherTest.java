@@ -59,7 +59,7 @@ import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
-import com.norconex.crawler.web.fetch.util.DocImageHandler.Target;
+import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -143,9 +143,10 @@ public abstract class AbstractWebDriverHttpFetcherTest
             .forStartReferences(hostUrl(client, "/apple.html"))
             .crawlerSetup(cfg -> {
                 var h = new ScreenshotHandler();
-                h.setTargets(List.of(Target.METADATA));
-                h.setTargetMetaField("myimage");
-                h.setCssSelector("#applePicture");
+                h.getConfiguration()
+                    .setCssSelector("#applePicture")
+                    .setTargets(List.of(Target.METADATA))
+                    .setTargetMetaField("myimage");
 
                 var f = createWebDriverHttpFetcher();
                 f.setScreenshotHandler(h);

@@ -18,6 +18,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
 
 /**
@@ -29,6 +30,9 @@ import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
  * Implementors are free to handle/fix these conditions as they see fit.
  * @since 2.4.0
  */
+@JsonDeserialize(
+    as = GenericRedirectURLProvider.class
+)
 public interface RedirectURLProvider {
 
     /**

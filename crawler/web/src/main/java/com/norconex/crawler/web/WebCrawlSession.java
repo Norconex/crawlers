@@ -73,7 +73,8 @@ public class WebCrawlSession {
                     .crawlerImpl(WebCrawlerImplFactory.create())
                     .build()
             )
-            .crawlSessionConfig(sessionConfig);
+            .crawlSessionConfig(sessionConfig)
+            ;
 //            .mapperBuilderFactory(new WebBeanMapperBuilderFactory());
         return builder;
     }

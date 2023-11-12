@@ -16,24 +16,23 @@ package com.norconex.crawler.web.fetch.util;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
+import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.transformer.impl.ImageTransformer;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -62,43 +61,51 @@ import lombok.extern.slf4j.Slf4j;
  * @since 3.0.0
  */
 @Slf4j
-@Data
-public class DocImageHandler implements XMLConfigurable {
+@ToString
+@EqualsAndHashCode
+public class DocImageHandler implements Configurable<DocImageHandlerConfig> {
 
-    public enum Target { METADATA, DIRECTORY }
-    public enum DirStructure { URL2PATH, DATE, DATETIME }
-    public static final String DEFAULT_IMAGE_FORMAT = "png";
+    @Getter
+    @Setter
+    @NonNull
+    private DocImageHandlerConfig configuration = new DocImageHandlerConfig();
 
-    protected static final List<Target> DEFAULT_TYPES =
-            Arrays.asList(Target.DIRECTORY) ;
-
-    private final List<Target> targets = new ArrayList<>(DEFAULT_TYPES);
-    private Path targetDir;
-    private String targetDirField;
-    private DirStructure targetDirStructure = DirStructure.DATETIME;
-    private String targetMetaField;
-    private String imageFormat = DEFAULT_IMAGE_FORMAT;
+//    public enum Target { METADATA, DIRECTORY }
+//    public enum DirStructure { URL2PATH, DATE, DATETIME }
+//    public static final String DEFAULT_IMAGE_FORMAT = "png";
+//
+//    protected static final List<Target> DEFAULT_TYPES =
+//            List.of(Target.DIRECTORY) ;
+//
+////    @EqualsAndHashCode.Exclude
+////    @ToString.Exclude
+//    private final List<Target> targets = new ArrayList<>(DEFAULT_TYPES);
+//    private Path targetDir;
+//    private String targetDirField;
+//    private DirStructure targetDirStructure = DirStructure.DATETIME;
+//    private String targetMetaField;
+//    private String imageFormat = DEFAULT_IMAGE_FORMAT;
 
 
     private final ImageTransformer imgTransformer = new ImageTransformer();
 
-    public DocImageHandler(
-            Path defaultDir,
-            String defaultDirField,
-            String defaultMetaField) {
-        targetDir = defaultDir;
-        targetDirField = defaultDirField;
-        targetMetaField = defaultMetaField;
-    }
-
-    public DocImageHandler() {}
-
-    public List<Target> getTargets() {
-        return Collections.unmodifiableList(targets);
-    }
-    public void setTargets(List<Target> targets) {
-        CollectionUtil.setAll(this.targets, targets);
-    }
+//    public DocImageHandler(
+//            Path defaultDir,
+//            String defaultDirField,
+//            String defaultMetaField) {
+//        targetDir = defaultDir;
+//        targetDirField = defaultDirField;
+//        targetMetaField = defaultMetaField;
+//    }
+//
+//    public DocImageHandler() {}
+//
+//    public List<Target> getTargets() {
+//        return Collections.unmodifiableList(targets);
+//    }
+//    public void setTargets(List<Target> targets) {
+//        CollectionUtil.setAll(this.targets, targets);
+//    }
 
     public void handleImage(InputStream imageStream, Doc doc) {
 
@@ -107,29 +114,36 @@ public class DocImageHandler implements XMLConfigurable {
 
         try {
             var format = Optional.ofNullable(
-                    imageFormat).orElse(DEFAULT_IMAGE_FORMAT);
+                    configuration.getImageFormat()).orElse(
+                            DocImageHandlerConfig.DEFAULT_IMAGE_FORMAT);
             var img = new MutableImage(imageStream);
             imgTransformer.transformImage(img);
 
-            if (targets.contains(Target.METADATA)) {
+            if (configuration.getTargets().contains(Target.METADATA)) {
                 Objects.requireNonNull(
-                        targetMetaField, "'targetMetaField'' must not be null");
+                        configuration.getTargetMetaField(),
+                        "'targetMetaField'' must not be null");
                 doc.getMetadata().add(
-                        targetMetaField, img.toBase64String(format));
+                        configuration.getTargetMetaField(),
+                        img.toBase64String(format));
             }
-            if (targets.contains(Target.DIRECTORY)) {
+            if (configuration.getTargets().contains(Target.DIRECTORY)) {
                 Objects.requireNonNull(
-                        targetDirField, "'targetDirField'' must not be null");
+                        configuration.getTargetDirField(),
+                        "'targetDirField'' must not be null");
                 Objects.requireNonNull(
-                        targetDir, "'targetDir'' must not be null");
-                var dir = targetDir.toFile();
+                        configuration.getTargetDir(),
+                        "'targetDir'' must not be null");
+                var dir = configuration.getTargetDir().toFile();
                 var ref = doc.getReference();
                 var ext = "." + format;
                 File imageFile = null;
-                if (targetDirStructure == DirStructure.URL2PATH) {
+                if (configuration.getTargetDirStructure()
+                        == DirStructure.URL2PATH) {
                     imageFile = new File(FileUtil.createURLDirs(
                             dir, ref, true).getAbsolutePath() + ext);
-                } else if (targetDirStructure == DirStructure.DATE) {
+                } else if (configuration.getTargetDirStructure()
+                        == DirStructure.DATE) {
                     imageFile = new File(FileUtil.createDateDirs(dir),
                             TimeIdGenerator.next() + ext);
                 } else { // DATETIME (Default)
@@ -138,32 +152,12 @@ public class DocImageHandler implements XMLConfigurable {
                 }
                 img.write(imageFile.toPath(), format);
                 doc.getMetadata().add(
-                        targetDirField, imageFile.getCanonicalPath());
+                        configuration.getTargetDirField(),
+                        imageFile.getCanonicalPath());
             }
         } catch (Exception e) {
             LOG.error("Could not take screenshot of: {}",
                     doc.getReference(), e);
         }
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setTargets(xml.getDelimitedEnumList("targets", Target.class, targets));
-        setTargetDir(xml.getPath("targetDir", targetDir));
-        setTargetDirStructure(xml.getEnum("targetDir/@structure",
-                DirStructure.class, targetDirStructure));
-        setTargetDirField(xml.getString("targetDir/@field", targetDirField));
-        setTargetMetaField(xml.getString("targetMetaField", targetMetaField));
-        setImageFormat(xml.getString("imageFormat", imageFormat));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addDelimitedElementList("targets", targets);
-        xml.addElement("targetDir", targetDir)
-                .setAttribute("structure", targetDirStructure)
-                .setAttribute("field", targetDirField);
-        xml.addElement("targetMetaField", targetMetaField);
-        xml.addElement("imageFormat", imageFormat);
     }
 }

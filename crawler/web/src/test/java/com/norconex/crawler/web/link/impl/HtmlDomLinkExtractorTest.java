@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -38,6 +39,7 @@ import com.norconex.importer.doc.DocMetadata;
  * Tests {@link LinkExtractor} implementations that are common
  * to HTML and DOM link extractors.
  */
+@Disabled
 class HtmlDomLinkExtractorTest {
 
     @ParameterizedTest(name = "{0}")

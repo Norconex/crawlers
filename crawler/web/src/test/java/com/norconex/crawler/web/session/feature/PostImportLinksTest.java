@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.web.session.feature;
 
-import static com.norconex.commons.lang.config.Configurable.configure;
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,12 +24,14 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.filter.OnMatch;
 import com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.WebsiteMock;
+import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.handler.transformer.impl.URLExtractorTransformer;
 
 /**
@@ -61,14 +62,16 @@ class PostImportLinksTest {
                     cfg.setPostImportLinksKeep(true);
                     // Keep only the test PDF.
                     cfg.setDocumentFilters(List.of(
-                            configure(new ExtensionReferenceFilter(), c -> c
+                            Configurable.configure(new ExtensionReferenceFilter(), c -> c
                                 .setExtensions(List.of("pdf"))
                                 .setOnMatch(OnMatch.INCLUDE)
                             )));
                     // Create a field with post-import PDF URLs.
                     var tagger = new URLExtractorTransformer();
                     tagger.getConfiguration().setToField("myPostImportURLs");
-                    cfg.getImporterConfig().setHandler(tagger);
+                    cfg.getImporterConfig().setHandlers(List.of(
+                            new DefaultParser(),
+                            tagger));
                 })
                 .crawl();
 

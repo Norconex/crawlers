@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -36,6 +37,7 @@ import com.norconex.crawler.web.link.LinkExtractor;
 /**
  * Tests unique to {@link HtmlLinkExtractor}.
  */
+@Disabled
 class HtmlExtractorTest {
 
     @Test

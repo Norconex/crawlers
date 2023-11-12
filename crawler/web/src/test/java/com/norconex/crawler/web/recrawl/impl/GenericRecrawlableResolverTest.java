@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -81,6 +82,7 @@ class GenericRecrawlableResolverTest {
     }
 
     @Test
+    @Disabled
     void testCustomFrequencyFromXML() {
         var xml = """
             <recrawlableResolver

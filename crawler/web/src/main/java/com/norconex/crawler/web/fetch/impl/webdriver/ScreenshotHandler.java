@@ -14,36 +14,29 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
+import static java.util.Optional.ofNullable;
+
 import java.awt.Rectangle;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
-import org.openqa.selenium.Point;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.web.fetch.util.DocImageHandler;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.web.fetch.util.DocImageHandler;
 import com.norconex.importer.doc.Doc;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -68,61 +61,54 @@ import com.norconex.importer.doc.Doc;
  * @since 3.0.0
  */
 @SuppressWarnings("javadoc")
-public class ScreenshotHandler extends DocImageHandler {
+@ToString
+@EqualsAndHashCode
+@Slf4j
+public class ScreenshotHandler
+        implements Configurable<ScreenshotHandlerConfig> {
 
-    public static final Path DEFAULT_SCREENSHOT_DIR =
-            Paths.get("./screenshots");
-    public static final String DEFAULT_SCREENSHOT_DIR_FIELD =
-            CrawlDocMetadata.PREFIX + "screenshot-path";
-    public static final String DEFAULT_SCREENSHOT_META_FIELD =
-            CrawlDocMetadata.PREFIX + "screenshot";
+    @Getter
+    private final ScreenshotHandlerConfig configuration =
+            new ScreenshotHandlerConfig();
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            ScreenshotHandler.class);
+//    private final DocImageHandler imageHandler;
 
-    private String cssSelector;
-    @ToStringExclude
-    @HashCodeExclude
-    @EqualsExclude
+//    @ToString.Exclude
+//    @EqualsAndHashCode.Exclude
     private final CachedStreamFactory streamFactory;
 
     public ScreenshotHandler() {
         this(null);
     }
     public ScreenshotHandler(CachedStreamFactory streamFactory) {
-        super(DEFAULT_SCREENSHOT_DIR,
-             DEFAULT_SCREENSHOT_DIR_FIELD,
-             DEFAULT_SCREENSHOT_META_FIELD);
         this.streamFactory = Optional.ofNullable(
                 streamFactory).orElseGet(CachedStreamFactory::new);
     }
-    public String getCssSelector() {
-        return cssSelector;
-    }
-    public void setCssSelector(String cssSelector) {
-        this.cssSelector = cssSelector;
-    }
 
     public void takeScreenshot(WebDriver driver, Doc doc) {
+        var imageHandler = new DocImageHandler();
+        imageHandler.setConfiguration(configuration);
+
         try (InputStream in = streamFactory.newInputStream(
                 new ByteArrayInputStream(((TakesScreenshot) driver)
                         .getScreenshotAs(OutputType.BYTES)))) {
 
             // If wanting a specific web element:
-            if (StringUtils.isNotBlank(cssSelector)) {
-                WebElement element = driver.findElement(
-                        By.cssSelector(cssSelector));
+            if (StringUtils.isNotBlank(configuration.getCssSelector())) {
+                var element = driver.findElement(
+                        By.cssSelector(configuration.getCssSelector()));
 
-                Point location = element.getLocation();
-                org.openqa.selenium.Dimension size = element.getSize();
-                Rectangle rectangle = new Rectangle(
+                var location = element.getLocation();
+                var size = element.getSize();
+                var rectangle = new Rectangle(
                         location.x, location.y, size.width, size.height);
-                MutableImage img = new MutableImage(in);
+                var img = new MutableImage(in);
                 img.crop(rectangle);
-                handleImage(img.toInputStream(Optional.ofNullable(
-                        getImageFormat()).orElse("png")), doc);
+                imageHandler.handleImage(img.toInputStream(
+                        ofNullable(getConfiguration()
+                                .getImageFormat()).orElse("png")), doc);
             } else {
-                handleImage(in, doc);
+                imageHandler.handleImage(in, doc);
             }
         } catch (Exception e) {
             LOG.error("Could not take screenshot of: {}",
@@ -130,28 +116,28 @@ public class ScreenshotHandler extends DocImageHandler {
         }
     }
 
-    @Override
-    public void loadFromXML(XML xml) {
-        super.loadFromXML(xml);
-        setCssSelector(xml.getString("cssSelector", cssSelector));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        super.saveToXML(xml);
-        xml.addElement("cssSelector", cssSelector);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
-    }
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        super.loadFromXML(xml);
+//        setCssSelector(xml.getString("cssSelector", cssSelector));
+//    }
+//    @Override
+//    public void saveToXML(XML xml) {
+//        super.saveToXML(xml);
+//        xml.addElement("cssSelector", cssSelector);
+//    }
+//
+//    @Override
+//    public boolean equals(final Object other) {
+//        return EqualsBuilder.reflectionEquals(this, other);
+//    }
+//    @Override
+//    public int hashCode() {
+//        return HashCodeBuilder.reflectionHashCode(this);
+//    }
+//    @Override
+//    public String toString() {
+//        return new ReflectionToStringBuilder(
+//                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+//    }
 }

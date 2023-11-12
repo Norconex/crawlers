@@ -24,6 +24,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
@@ -45,6 +47,18 @@ import lombok.NonNull;
 public final class Web {
 
     private Web() {}
+
+    private static final BeanMapper BEAN_MAPPER = BeanMapper.builder()
+            .unboundPropertyMapping("crawler", WebCrawlerMixIn.class)
+            .build();
+    private static class WebCrawlerMixIn {
+        @JsonDeserialize(as = WebCrawlerConfig.class)
+        private CrawlerConfig configuration;
+    }
+
+    public static BeanMapper beanMapper() {
+        return BEAN_MAPPER;
+    }
 
     public static WebCrawlerConfig config(CrawlerConfig cfg) {
         return (WebCrawlerConfig) cfg;

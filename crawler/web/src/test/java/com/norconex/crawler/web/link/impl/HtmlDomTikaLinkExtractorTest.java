@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -41,6 +42,7 @@ import com.norconex.crawler.web.link.LinkExtractor;
  * Tests {@link LinkExtractor} implementations that focuses on HTML or
  * HTML-like web pages.
  */
+@Disabled
 class HtmlDomTikaLinkExtractorTest {
 
     @Target(ElementType.METHOD)

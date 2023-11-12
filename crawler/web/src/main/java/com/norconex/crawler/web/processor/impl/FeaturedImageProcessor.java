@@ -22,6 +22,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,6 +44,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -291,6 +293,7 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private ImageCache cache;
 
     //TODO add option to process embedded images (base 64)
@@ -369,7 +372,9 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
             // Obtain the image
             var dom = Jsoup.parse(
                     doc.getInputStream(),
-                    doc.getDocRecord().getCharset().toString(),
+                    ofNullable(doc.getDocRecord().getCharset())
+                        .map(Charset::toString)
+                        .orElse(null),
                     doc.getReference());
             var img = findFeaturedImage(dom, fetcher, largest);
 
