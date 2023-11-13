@@ -67,8 +67,6 @@
     <log4j.version>2.20.0</log4j.version>
     <picocli.version>4.7.3</picocli.version>
     <slf4j.version>2.0.7</slf4j.version>
-    <springdoc.version>2.1.0</springdoc.version>
-    <therapi.version>0.15.0</therapi.version>
     <tomcat-embed-el.version>10.1.12</tomcat-embed-el.version>
     <velocity-engine.version>2.3</velocity-engine.version>
     <xerces.version>2.12.2</xerces.version>

@@ -25,6 +25,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.EventManager;
@@ -67,10 +68,12 @@ public class Importer implements Configurable<ImporterConfig> {
     // importDocument(ImporterRequest). The "doc" version has its own.
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private CachedStreamFactory requestStreamFactory;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private final EventManager eventManager;
 
     private static final InheritableThreadLocal<Importer> INSTANCE =
@@ -105,6 +108,7 @@ public class Importer implements Configurable<ImporterConfig> {
         INSTANCE.set(this);
     }
 
+    @JsonIgnore
     public static Importer get() {
         return INSTANCE.get();
     }
@@ -121,7 +125,7 @@ public class Importer implements Configurable<ImporterConfig> {
     /**
      * Gets the event manager.
      * @return event manager
-         */
+     */
     public EventManager getEventManager() {
         return eventManager;
     }
