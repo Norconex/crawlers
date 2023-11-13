@@ -219,9 +219,7 @@ public class Importer implements Configurable<ImporterConfig> {
                 configuration.getHandler(),
                 t -> {
                     try {
-                        if (t instanceof DocumentHandler dh) {
-                            dh.init();
-                        }
+                        t.init();
                     } catch (IOException e) {
                         throw new ImporterRuntimeException(
                                 "Coult not initialize handler: " + t, e);
@@ -264,7 +262,7 @@ public class Importer implements Configurable<ImporterConfig> {
 
         try {
             var encoding = CharsetDetector.builder()
-                    .priorityCharset(() -> docRecord.getCharset())
+                    .priorityCharset(docRecord::getCharset)
                     .fallbackCharset((Charset) null)
                     .build()
                     .detect(document);
