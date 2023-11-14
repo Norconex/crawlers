@@ -1114,6 +1114,7 @@
     <module>crawler/core</module>
     <module>crawler/web</module>
     <module>crawler/fs</module>
+    <module>tools/config-converter</module>
 <!--     <module>javadoc-resources</module>
  -->
   </modules>
