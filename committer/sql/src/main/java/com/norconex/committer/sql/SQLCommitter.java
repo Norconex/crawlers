@@ -15,21 +15,19 @@
 package com.norconex.committer.sql;
 
 import java.util.Iterator;
-import java.util.Objects;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -200,26 +198,21 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  */
 @SuppressWarnings("javadoc")
-public class SQLCommitter extends AbstractBatchCommitter {
+@EqualsAndHashCode
+@ToString
+public class SQLCommitter extends AbstractBatchCommitter<SQLCommitterConfig> {
 
-    private final SQLCommitterConfig config;
+    @Getter
+    private final SQLCommitterConfig configuration = new SQLCommitterConfig();
 
     @ToStringExclude
     @HashCodeExclude
     @EqualsExclude
     private SQLClient client;
 
-    public SQLCommitter() {
-        this(new SQLCommitterConfig());
-    }
-    public SQLCommitter(SQLCommitterConfig config) {
-        this.config = Objects.requireNonNull(
-                config, "'config' must not be null.");
-    }
-
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        client = new SQLClient(config);
+        client = new SQLClient(configuration);
     }
 
     @Override
@@ -234,32 +227,5 @@ public class SQLCommitter extends AbstractBatchCommitter {
             client.close();
         }
         client = null;
-    }
-
-    public SQLCommitterConfig getConfig() {
-        return config;
-    }
-
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        config.loadFromXML(xml);
-    }
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        config.saveToXML(xml);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

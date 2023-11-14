@@ -135,13 +135,13 @@ import lombok.ToString;
 public class Neo4jCommitter
         extends AbstractBatchCommitter<Neo4jCommitterConfig> {
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private Neo4jClient client;
-
     @Getter
     private final Neo4jCommitterConfig configuration =
             new Neo4jCommitterConfig();
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Neo4jClient client;
 
     @Override
     protected void initBatchCommitter() throws CommitterException {

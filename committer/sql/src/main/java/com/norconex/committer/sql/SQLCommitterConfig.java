@@ -16,22 +16,23 @@ package com.norconex.committer.sql;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
+import com.norconex.committer.core.batch.BaseBatchCommitterConfig;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.security.Credentials;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
  * SQL Committer configuration.
  * </p>
  */
-public class SQLCommitterConfig implements Serializable {
+@Data
+@Accessors(chain = true)
+public class SQLCommitterConfig
+        extends BaseBatchCommitterConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -57,147 +58,19 @@ public class SQLCommitterConfig implements Serializable {
 
     private String targetContentField = DEFAULT_SQL_CONTENT_FIELD;
 
-    public String getDriverPath() {
-        return driverPath;
-    }
-    public void setDriverPath(String driverPath) {
-        this.driverPath = driverPath;
-    }
-
-    public String getDriverClass() {
-        return driverClass;
-    }
-    public void setDriverClass(String driverClass) {
-        this.driverClass = driverClass;
-    }
-
-    public String getConnectionUrl() {
-        return connectionUrl;
-    }
-    public void setConnectionUrl(String connectionUrl) {
-        this.connectionUrl = connectionUrl;
-    }
-
     public Credentials getCredentials() {
         return credentials;
     }
-    public void setCredentials(Credentials credentials) {
+    public SQLCommitterConfig setCredentials(Credentials credentials) {
         this.credentials.copyFrom(credentials);
+        return this;
     }
 
     public Properties getProperties() {
         return properties;
     }
-    public void setProperties(Properties properties) {
+    public SQLCommitterConfig setProperties(Properties properties) {
         CollectionUtil.setAll(this.properties, properties);
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public String getCreateTableSQL() {
-        return createTableSQL;
-    }
-    public void setCreateTableSQL(String createTableSQL) {
-        this.createTableSQL = createTableSQL;
-    }
-
-    public String getCreateFieldSQL() {
-        return createFieldSQL;
-    }
-    public void setCreateFieldSQL(String createFieldSQL) {
-        this.createFieldSQL = createFieldSQL;
-    }
-
-    public String getMultiValuesJoiner() {
-        return multiValuesJoiner;
-    }
-    public void setMultiValuesJoiner(String multiValuesJoiner) {
-        this.multiValuesJoiner = multiValuesJoiner;
-    }
-
-    public boolean isFixFieldNames() {
-        return fixFieldNames;
-    }
-    public void setFixFieldNames(boolean fixFieldNames) {
-        this.fixFieldNames = fixFieldNames;
-    }
-
-    public boolean isFixFieldValues() {
-        return fixFieldValues;
-    }
-    public void setFixFieldValues(boolean fixFieldValues) {
-        this.fixFieldValues = fixFieldValues;
-    }
-
-    public String getTargetContentField() {
-        return targetContentField;
-    }
-    public void setTargetContentField(String targetContentField) {
-        this.targetContentField = targetContentField;
-    }
-
-    public String getPrimaryKey() {
-        return primaryKey;
-    }
-    public void setPrimaryKey(String primaryKey) {
-        this.primaryKey = primaryKey;
-    }
-
-    void saveToXML(XML xml) {
-        xml.addElement("driverPath", getDriverPath());
-        xml.addElement("driverClass", getDriverClass());
-        xml.addElement("connectionUrl", getConnectionUrl());
-        credentials.saveToXML(xml.addElement("credentials"));
-        xml.addElementMap("properties", "property", "name", properties);
-        xml.addElement("tableName", getTableName());
-        xml.addElement("primaryKey", getPrimaryKey());
-        xml.addElement("createTableSQL", getCreateTableSQL());
-        xml.addElement("createFieldSQL", getCreateFieldSQL());
-        xml.addElement("fixFieldNames", isFixFieldNames());
-        xml.addElement("fixFieldValues", isFixFieldValues());
-        xml.addElement("multiValuesJoiner", getMultiValuesJoiner());
-        xml.addElement("targetContentField", getTargetContentField());
-    }
-
-    void loadFromXML(XML xml) {
-        setDriverPath(xml.getString("driverPath", getDriverPath()));
-        setDriverClass(xml.getString("driverClass", getDriverClass()));
-        setConnectionUrl(xml.getString("connectionUrl", getConnectionUrl()));
-        xml.ifXML("credentials", x -> x.populate(credentials));
-        xml.ifXML("properties", xmlProps -> {
-            properties.clear();
-            xmlProps.getXMLList("property").forEach(xp -> 
-                properties.add(xp.getString("@name"), xp.getString("."))
-            );
-        });
-        setTableName(xml.getString("tableName", getTableName()));
-        setPrimaryKey(xml.getString("primaryKey", getPrimaryKey()));
-        setCreateTableSQL(xml.getString("createTableSQL", getCreateTableSQL()));
-        setCreateFieldSQL(xml.getString("createFieldSQL", getCreateFieldSQL()));
-        setFixFieldNames(xml.getBoolean("fixFieldNames", isFixFieldNames()));
-        setFixFieldValues(xml.getBoolean("fixFieldValues", isFixFieldValues()));
-        setMultiValuesJoiner(xml.getString(
-                "multiValuesJoiner", getMultiValuesJoiner()));
-        setTargetContentField(
-                xml.getString("targetContentField", getTargetContentField()));
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+        return this;
     }
 }

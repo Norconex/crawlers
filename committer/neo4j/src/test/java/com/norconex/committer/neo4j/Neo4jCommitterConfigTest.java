@@ -14,6 +14,8 @@
  */
 package com.norconex.committer.neo4j;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.IOException;
 
 import org.junit.jupiter.api.Assertions;
@@ -58,7 +60,8 @@ class Neo4jCommitterConfigTest {
         cfg.setUpsertCypher("my upsert cypher");
         cfg.setDeleteCypher("my delete cypher");
 
-        BeanMapper.DEFAULT.assertWriteRead(c);
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test

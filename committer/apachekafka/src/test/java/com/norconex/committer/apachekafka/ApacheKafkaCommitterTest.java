@@ -11,8 +11,6 @@ import java.util.concurrent.ExecutionException;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -40,14 +38,14 @@ class ApacheKafkaCommitterTest {
     private static final String TEST_CONTENT = "Homer says DOH!";
     private Consumer<String, String> consumer;
     private static TestHelper testHelper;
-    
+
     @TempDir
     static File tempDir;
-    
+
     @Container
     static KafkaContainer kafka = new KafkaContainer(
             DockerImageName.parse("confluentinc/cp-kafka:7.4.0"));
-            
+
     @BeforeAll
     static void setUpBeforeClass() throws Exception {
         testHelper = new TestHelper(kafka.getBootstrapServers());
@@ -61,7 +59,7 @@ class ApacheKafkaCommitterTest {
     void setUp() throws Exception {
         TOPIC_NAME = String.valueOf(TimeIdGenerator.next());
         consumer = testHelper.createConsumerAndSubscribeToTopic(
-                "nx-test-consumer-" + TOPIC_NAME, 
+                "nx-test-consumer-" + TOPIC_NAME,
                 TOPIC_NAME);
     }
 
@@ -74,10 +72,10 @@ class ApacheKafkaCommitterTest {
     void testAddOneDocumentWithMetadata_isAdded() throws CommitterException {
         //setup
         ConsumerRecord<String, String> expectedRecord = null;
-        String expectedRecordValue = """
+        var expectedRecordValue = """
                 {"id":"http:\\/\\/www.simpsons.com","category":"TV Show","sub-category":"Cartoon","content":"Homer says DOH!"}
                 """;
-        Properties metadata = new Properties();
+        var metadata = new Properties();
         metadata.add("category", "TV Show");
         metadata.add("sub-category", "Cartoon");
 
@@ -85,85 +83,85 @@ class ApacheKafkaCommitterTest {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest(TEST_ID, TEST_CONTENT, metadata));
         });
-        
+
         //verify
-        ConsumerRecords<String, String> records = consumer
+        var records = consumer
                 .poll(Duration.ofMillis(5000));
 
         for (ConsumerRecord<String, String> item : records) {
             expectedRecord = item;
         }
-        
+
         assertThat(expectedRecord).isNotNull();
         assertThat(expectedRecord.key()).isEqualTo(TEST_ID);
         assertThat(expectedRecord.value()).isEqualTo(expectedRecordValue);
     }
-    
+
     @Test
-    void testDeleteOneExistingDocument_isDeleted() 
+    void testDeleteOneExistingDocument_isDeleted()
             throws CommitterException, ExecutionException, InterruptedException {
         //setup
         ConsumerRecord<String, String> insertedRecord = null;
-        String id = "http://www.thesimpsons.com";
-        ProducerRecord<String, String> record = 
-                new ProducerRecord<String, String>(
+        var id = "http://www.thesimpsons.com";
+        var record =
+                new ProducerRecord<>(
                         TOPIC_NAME,
                         id,
                         "Homer says DOH!");
-        
-        KafkaProducer<String, String> producer = 
+
+        var producer =
                 testHelper.createProducer();
         producer.send(record).get();
         producer.close();
-        
+
         // //ensure record exists in Kafka
-        ConsumerRecords<String, String> records = consumer
+        var records = consumer
                 .poll(Duration.ofMillis(5000));
 
         assertThat(records)
             .isNotNull()
             .hasSize(1);
-        
+
         for (ConsumerRecord<String, String> item : records) {
             insertedRecord = item;
         }
-        
+
         assertThat(insertedRecord).isNotNull();
         assertThat(insertedRecord.key()).isEqualTo(id);
-        
+
         //execute
         withinCommitterSession(c -> {
-           c.delete(new DeleteRequest(id, new Properties())); 
+           c.delete(new DeleteRequest(id, new Properties()));
         });
-        
+
         //verify
         ConsumerRecord<String, String> receivedRecord = null;
-        Consumer<String, String> localConsumer = 
+        var localConsumer =
                 testHelper.createConsumerAndSubscribeToTopic(
-                        "nx-test-localconsumer" + TOPIC_NAME, 
+                        "nx-test-localconsumer" + TOPIC_NAME,
                         TOPIC_NAME);
-        
-        ConsumerRecords<String, String> receivedRecords = localConsumer
+
+        var receivedRecords = localConsumer
                 .poll(Duration.ofMillis(5000));
         localConsumer.close();
-        
+
         for (ConsumerRecord<String, String> item : receivedRecords) {
             receivedRecord = item;
         }
-        
+
         assertThat(receivedRecord).isNotNull();
         assertThat(receivedRecord.key()).isEqualTo(id);
-        assertThat(receivedRecord.value()).isNull();        
+        assertThat(receivedRecord.value()).isNull();
     }
-        
+
     @Test
     void testAddMultiValueFields_isAdded() throws Exception {
         //setup
         ConsumerRecord<String, String> expectedRecord = null;
-        String expectedRecordValue = """
+        var expectedRecordValue = """
                 {"id":"http:\\/\\/www.simpsons.com","content":"","multi":["1","2","3"]}
                 """;
-        Properties metadata = new Properties();
+        var metadata = new Properties();
         metadata.set("multi", "1", "2", "3");
 
         //execute
@@ -172,23 +170,23 @@ class ApacheKafkaCommitterTest {
         });
 
         //verify
-        ConsumerRecords<String, String> records = consumer
+        var records = consumer
                 .poll(Duration.ofMillis(5000));
 
         for (ConsumerRecord<String, String> item : records) {
             expectedRecord = item;
         }
-        
+
         assertThat(expectedRecord).isNotNull();
         assertThat(expectedRecord.key()).isEqualTo(TEST_ID);
         assertThat(expectedRecord.value()).isEqualTo(expectedRecordValue);
     }
-    
+
     @Test
     void createTopicSetWithoutPartitionOrReplication_throwsException() {
         //setup
         Exception expectedException = null;
-        
+
         //execute
         try {
             withinCommitterSessionCreateTopicOnly(c -> {
@@ -197,24 +195,24 @@ class ApacheKafkaCommitterTest {
         } catch(CommitterException e) {
             expectedException = e;
         }
-        
+
         //verify
         assertThat(expectedException)
             .isNotNull()
             .hasMessage("createTopic=true requires these settings be also set. "
                     + "numOfPartitions, replicationFactor");
     }
-    
+
     @Test
     void testCreateTopicIsFalseAndTopicDoesNotAlreadyExist_throwsException() {
         //setup
         Exception expectedException = null;
-        String expectedExceptionMsg = String.format( 
+        var expectedExceptionMsg = String.format(
                 "Topic `%s` does not exist in Kafka. Either "
                 + "create the topic manually or set `createTopic` to true.",
                 TOPIC_NAME
                 );
-        
+
         //execute
         try {
             withinCommitterSessionTopicDoesNotExist(c -> {
@@ -223,7 +221,7 @@ class ApacheKafkaCommitterTest {
         } catch(CommitterException e) {
             expectedException = e;
         }
-        
+
         //verify
         assertThat(expectedException)
             .isNotNull()
@@ -232,32 +230,33 @@ class ApacheKafkaCommitterTest {
 
     private UpsertRequest upsertRequest(
             String id, String content, Properties metadata) {
-        Properties p = metadata == null ? new Properties() : metadata;
+        var p = metadata == null ? new Properties() : metadata;
         return new UpsertRequest(id, p, content == null
                 ? new NullInputStream(0) : toInputStream(content, UTF_8));
     }
-    
+
     protected ApacheKafkaCommitter createApacheKafkaCommitter()
             throws CommitterException {
 
-        CommitterContext ctx = CommitterContext.builder()
+        var ctx = CommitterContext.builder()
                 .setWorkDir(new File(tempDir,
                         "" + TimeIdGenerator.next()).toPath())
                 .build();
-        ApacheKafkaCommitter committer = new ApacheKafkaCommitter();
-        committer.setBootstrapServers(kafka.getBootstrapServers());
-        committer.setTopicName(TOPIC_NAME);
-        committer.setCreateTopic(true);
-        committer.setNumOfPartitions(1);
-        committer.setReplicationFactor((short) 1);
-        
+        var committer = new ApacheKafkaCommitter();
+        committer.getConfiguration()
+            .setBootstrapServers(kafka.getBootstrapServers())
+            .setTopicName(TOPIC_NAME)
+            .setCreateTopic(true)
+            .setPartitions(1)
+            .setReplicationFactor((short) 1);
+
         committer.init(ctx);
         return committer;
     }
-    
+
     protected ApacheKafkaCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        ApacheKafkaCommitter committer = createApacheKafkaCommitter();
+        var committer = createApacheKafkaCommitter();
         try {
             c.accept(committer);
         } catch (CommitterException e) {
@@ -272,23 +271,24 @@ class ApacheKafkaCommitterTest {
     protected ApacheKafkaCommitter createApacheKafkaCommitterCreateTopicOnly()
             throws CommitterException {
 
-        CommitterContext ctx = CommitterContext.builder()
+        var ctx = CommitterContext.builder()
                 .setWorkDir(new File(tempDir,
                         "" + TimeIdGenerator.next()).toPath())
                 .build();
-        ApacheKafkaCommitter committer = new ApacheKafkaCommitter();
-        committer.setBootstrapServers(kafka.getBootstrapServers());
-        committer.setTopicName(TOPIC_NAME);
-        committer.setCreateTopic(true);
-        
+        var committer = new ApacheKafkaCommitter();
+        committer.getConfiguration()
+            .setBootstrapServers(kafka.getBootstrapServers())
+            .setTopicName(TOPIC_NAME)
+            .setCreateTopic(true);
+
         committer.init(ctx);
         return committer;
     }
-    
+
     protected ApacheKafkaCommitter withinCommitterSessionCreateTopicOnly(
             CommitterConsumer c)
             throws CommitterException {
-        ApacheKafkaCommitter committer = 
+        var committer =
                 createApacheKafkaCommitterCreateTopicOnly();
         try {
             c.accept(committer);
@@ -300,27 +300,28 @@ class ApacheKafkaCommitterTest {
         committer.close();
         return committer;
     }
-    
+
     protected ApacheKafkaCommitter createApacheKafkaCommitterTopicDoesNotExist()
             throws CommitterException {
 
-        CommitterContext ctx = CommitterContext.builder()
+        var ctx = CommitterContext.builder()
                 .setWorkDir(new File(tempDir,
                         "" + TimeIdGenerator.next()).toPath())
                 .build();
-        ApacheKafkaCommitter committer = new ApacheKafkaCommitter();
-        committer.setBootstrapServers(kafka.getBootstrapServers());
-        committer.setTopicName(TOPIC_NAME);
-        committer.setCreateTopic(false);
-        
+        var committer = new ApacheKafkaCommitter();
+        committer.getConfiguration()
+            .setBootstrapServers(kafka.getBootstrapServers())
+            .setTopicName(TOPIC_NAME)
+            .setCreateTopic(false);
+
         committer.init(ctx);
         return committer;
     }
-    
+
     protected ApacheKafkaCommitter withinCommitterSessionTopicDoesNotExist(
             CommitterConsumer c)
             throws CommitterException {
-        ApacheKafkaCommitter committer = 
+        var committer =
                 createApacheKafkaCommitterTopicDoesNotExist();
         try {
             c.accept(committer);
@@ -332,7 +333,7 @@ class ApacheKafkaCommitterTest {
         committer.close();
         return committer;
     }
-    
+
     @FunctionalInterface
     protected interface CommitterConsumer {
         void accept(ApacheKafkaCommitter c) throws Exception;

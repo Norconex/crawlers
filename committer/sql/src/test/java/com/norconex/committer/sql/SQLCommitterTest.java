@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.sql.Clob;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +68,8 @@ class SQLCommitterTest {
         LOG.debug("Creating new database.");
         connectionURL = "jdbc:h2:"
               + tempDir.getAbsolutePath()
-              + ";WRITE_DELAY=0;AUTOCOMMIT=ON;AUTO_SERVER=TRUE;USER=sa;PASSWORD=123";
+              + ";WRITE_DELAY=0;AUTOCOMMIT=ON;"
+              + "AUTO_SERVER=TRUE;USER=sa;PASSWORD=123";
         try {
             withinDbSession(qr -> qr.update("DROP TABLE " + TEST_TABLE));
         } catch (SQLException e) {
@@ -83,7 +83,7 @@ class SQLCommitterTest {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
         });
-        List<Map<String, Object>> docs = getAllDocs();
+        var docs = getAllDocs();
         assertThat(docs).hasSize(1);
         assertTestDoc(docs.get(0));
     }
@@ -92,7 +92,7 @@ class SQLCommitterTest {
     void testCommitAdd_emptyConnUrl_throwsException() {
         // Setup
         Exception expectedException = null;
-        
+
         // Execute
         try {
             withinCommitterSessionEmptyConnUrl(c -> {
@@ -101,19 +101,19 @@ class SQLCommitterTest {
         } catch (Exception e) {
             expectedException = e;
         }
-        
+
         // Verify
         assertThat(expectedException)
             .isNotNull()
             .isInstanceOf(CommitterException.class)
             .hasMessage("No connection URL specified.");
     }
-    
+
     @Test
     void testCommitAdd_emptyTableName_throwsException() {
         // Setup
         Exception expectedException = null;
-        
+
         // Execute
         try {
             withinCommitterSessionEmptyTableName(c -> {
@@ -122,7 +122,7 @@ class SQLCommitterTest {
         } catch (Exception e) {
             expectedException = e;
         }
-        
+
         // Verify
         assertThat(expectedException)
             .isNotNull()
@@ -134,7 +134,7 @@ class SQLCommitterTest {
     void testCommitAdd_emptyPrimaryKey_throwsException() {
         // Setup
         Exception expectedException = null;
-        
+
         // Execute
         try {
             withinCommitterSessionEmptyPrimaryKey(c -> {
@@ -143,14 +143,14 @@ class SQLCommitterTest {
         } catch (Exception e) {
             expectedException = e;
         }
-        
+
         // Verify
         assertThat(expectedException)
             .isNotNull()
             .isInstanceOf(CommitterException.class)
             .hasMessage("No primary key specified.");
     }
-    
+
     @Test
     void testAddWithQueueContaining2documents() throws Exception{
         withinCommitterSession(c -> {
@@ -211,19 +211,19 @@ class SQLCommitterTest {
 
     @Test
     void testMultiValueFields() throws Exception {
-        Properties metadata = new Properties();
-        String fieldname = "MULTI";
+        var metadata = new Properties();
+        var fieldname = "MULTI";
         metadata.set(fieldname, "1", "2", "3");
 
         withinCommitterSession(c -> {
-            c.getConfig().setMultiValuesJoiner("_");
+            c.getConfiguration().setMultiValuesJoiner("_");
             c.upsert(upsertRequest(TEST_ID, null, metadata));
         });
 
         // Check that it's in SQL table
-        List<Map<String, Object>> docs = getAllDocs();
+        var docs = getAllDocs();
         assertThat(getAllDocs()).hasSize(1);
-        Map<String, Object> doc = docs.get(0);
+        var doc = docs.get(0);
 
         // Check multi values are still there
         assertThat(doc.get(fieldname).toString().split("_")).hasSize(3);
@@ -232,7 +232,7 @@ class SQLCommitterTest {
     @Test
     void testFixFieldValues() throws Exception {
         withinCommitterSession(c -> {
-            Properties metadata = new Properties();
+            var metadata = new Properties();
             metadata.set("LONGSINGLE", StringUtils.repeat("a", 50));
             metadata.set("LONGMULTI",
                     StringUtils.repeat("a", 10),
@@ -240,17 +240,17 @@ class SQLCommitterTest {
                     StringUtils.repeat("c", 10),
                     StringUtils.repeat("d", 10));
 
-            SQLCommitterConfig config = c.getConfig();
+            var config = c.getConfiguration();
             config.setFixFieldValues(true);
             config.setMultiValuesJoiner("-");
             c.upsert(upsertRequest(TEST_ID, null, metadata));
         });
 
 
-        List<Map<String, Object>> docs = getAllDocs();
+        var docs = getAllDocs();
         assertThat(docs).hasSize(1);
 
-        Map<String, Object> doc = docs.get(0);
+        var doc = docs.get(0);
         assertThat(doc.get(TEST_FLD_PK))
             .isInstanceOf(String.class)
             .isEqualTo(TEST_ID);
@@ -268,20 +268,20 @@ class SQLCommitterTest {
     @Test
     void testFixFieldNames() throws Exception {
         withinCommitterSession(c -> {
-            Properties metadata = new Properties();
+            var metadata = new Properties();
             metadata.set("A$B&C %E_F", "test1");
             metadata.set("99FIELD2", "test2");
             metadata.set("*FIELD3", "test3");
 
-            SQLCommitterConfig config = c.getConfig();
+            var config = c.getConfiguration();
             config.setFixFieldNames(true);
             c.upsert(upsertRequest(TEST_ID, null, metadata));
         });
 
-        List<Map<String, Object>> docs = getAllDocs();
+        var docs = getAllDocs();
         assertThat(docs).hasSize(1);
 
-        Map<String, Object> doc = docs.get(0);
+        var doc = docs.get(0);
         assertThat(doc.get(TEST_FLD_PK))
             .isInstanceOf(String.class)
             .isEqualTo(TEST_ID);
@@ -304,7 +304,7 @@ class SQLCommitterTest {
     }
     private UpsertRequest upsertRequest(
             String id, String content, Properties metadata) {
-        Properties p = metadata == null ? new Properties() : metadata;
+        var p = metadata == null ? new Properties() : metadata;
         return new UpsertRequest(id, p, content == null
                 ? new NullInputStream(0) : toInputStream(content, UTF_8));
     }
@@ -323,36 +323,37 @@ class SQLCommitterTest {
                 .setWorkDir(new File(tempDir,
                         "work-" + TimeIdGenerator.next()).toPath()).build();
     }
-    
+
     private SQLCommitter createSQLCommitterNoInit()
             throws CommitterException {
-        SQLCommitter committer = new SQLCommitter();
-        SQLCommitterConfig config = committer.getConfig();
+        var committer = new SQLCommitter();
+        var config = committer.getConfiguration();
         config.setConnectionUrl(connectionURL);
         config.setDriverClass(DRIVER_CLASS);
         config.setTableName(TEST_TABLE);
         config.setPrimaryKey(TEST_FLD_PK);
         config.setCredentials(new Credentials("sa", "123"));
-        
-        Properties props = new Properties();
+
+        var props = new Properties();
         props.add("key1", "value1");
         config.setProperties(props);
-        
+
         config.setCreateTableSQL(
-                "CREATE TABLE {tableName} ("
-              + "  {primaryKey} VARCHAR(32672) NOT NULL, "
-              + "  content CLOB, "
-              + "  PRIMARY KEY ({primaryKey}) "
-              + ")");
+                """
+                	CREATE TABLE {tableName} (\
+                	  {primaryKey} VARCHAR(32672) NOT NULL,\s\
+                	  content CLOB,\s\
+                	  PRIMARY KEY ({primaryKey})\s\
+                	)""");
         config.setCreateFieldSQL(
                 "ALTER TABLE {tableName} ADD {fieldName} VARCHAR(30)");
-        
+
         return committer;
     }
 
     private SQLCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        SQLCommitter committer = createSQLCommitterNoInit();
+        var committer = createSQLCommitterNoInit();
         committer.init(createCommitterContext());
         try {
             c.accept(committer);
@@ -364,11 +365,11 @@ class SQLCommitterTest {
         committer.close();
         return committer;
     }
-    
+
     private SQLCommitter withinCommitterSessionEmptyConnUrl(
             CommitterConsumer c) throws CommitterException {
-        
-        SQLCommitter committer = createSQLCommitterEmptyConnUrl();
+
+        var committer = createSQLCommitterEmptyConnUrl();
         committer.init(createCommitterContext());
         try {
             c.accept(committer);
@@ -379,21 +380,21 @@ class SQLCommitterTest {
         }
         committer.close();
         return committer;
-    }    
+    }
 
     private SQLCommitter createSQLCommitterEmptyConnUrl() {
-        SQLCommitter committer = new SQLCommitter();
-        SQLCommitterConfig config = committer.getConfig();
+        var committer = new SQLCommitter();
+        var config = committer.getConfiguration();
         config.setConnectionUrl("");
         config.setDriverClass(DRIVER_CLASS);
-        
+
         return committer;
     }
-    
-    private SQLCommitter withinCommitterSessionEmptyTableName( 
+
+    private SQLCommitter withinCommitterSessionEmptyTableName(
             CommitterConsumer c) throws CommitterException {
-                
-        SQLCommitter committer = createSQLCommitterEmptyTableName();
+
+        var committer = createSQLCommitterEmptyTableName();
         committer.init(createCommitterContext());
         try {
             c.accept(committer);
@@ -403,24 +404,24 @@ class SQLCommitterTest {
             throw new CommitterException(e);
         }
         committer.close();
-        return committer;   
+        return committer;
     }
-    
+
     private SQLCommitter createSQLCommitterEmptyTableName() {
-        SQLCommitter committer = new SQLCommitter();
-        SQLCommitterConfig config = committer.getConfig();
+        var committer = new SQLCommitter();
+        var config = committer.getConfiguration();
         config.setConnectionUrl(connectionURL);
         config.setDriverClass(DRIVER_CLASS);
         config.setTableName("");
-        
+
         return committer;
     }
-    
-    
-    private SQLCommitter withinCommitterSessionEmptyPrimaryKey( 
+
+
+    private SQLCommitter withinCommitterSessionEmptyPrimaryKey(
             CommitterConsumer c) throws CommitterException {
-                
-        SQLCommitter committer = createSQLCommitterEmptyPrimaryKey();
+
+        var committer = createSQLCommitterEmptyPrimaryKey();
         committer.init(createCommitterContext());
         try {
             c.accept(committer);
@@ -430,27 +431,27 @@ class SQLCommitterTest {
             throw new CommitterException(e);
         }
         committer.close();
-        return committer;   
+        return committer;
     }
-    
+
     private SQLCommitter createSQLCommitterEmptyPrimaryKey() {
-        SQLCommitter committer = new SQLCommitter();
-        SQLCommitterConfig config = committer.getConfig();
+        var committer = new SQLCommitter();
+        var config = committer.getConfiguration();
         config.setConnectionUrl(connectionURL);
         config.setDriverClass(DRIVER_CLASS);
         config.setTableName(TEST_TABLE);
         config.setPrimaryKey("");
-        
+
         return committer;
     }
-    
+
 
     private <T> T withinDbSession(DbFunction<T> c) throws SQLException {
-        BasicDataSource datasource = new BasicDataSource();
+        var datasource = new BasicDataSource();
         datasource.setDriverClassName(DRIVER_CLASS);
         datasource.setUrl(connectionURL);
         datasource.setDefaultAutoCommit(true);
-        T t = c.apply(new QueryRunner(datasource));
+        var t = c.apply(new QueryRunner(datasource));
         datasource.close();
         return t;
     }
@@ -465,22 +466,20 @@ class SQLCommitterTest {
     }
 
     private List<Map<String, Object>> getAllDocs() throws SQLException {
-        return withinDbSession(qr -> {
-            return qr.query("SELECT * FROM " + TEST_TABLE,
-                    new MapListHandler(new ClobAwareRowProcessor()));
-        });
+        return withinDbSession(qr -> qr.query("SELECT * FROM " + TEST_TABLE,
+                new MapListHandler(new ClobAwareRowProcessor())));
     }
 
     class ClobAwareRowProcessor extends BasicRowProcessor {
         @Override
         public Map<String, Object> toMap(ResultSet resultSet)
                 throws SQLException {
-            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-            int columnCount = resultSetMetaData.getColumnCount();
+            var resultSetMetaData = resultSet.getMetaData();
+            var columnCount = resultSetMetaData.getColumnCount();
             Map<String, Object> map = new HashMap<>();
-            for (int index = 1; index <= columnCount; ++index) {
-                String columnName = resultSetMetaData.getColumnName(index);
-                Object object = resultSet.getObject(index);
+            for (var index = 1; index <= columnCount; ++index) {
+                var columnName = resultSetMetaData.getColumnName(index);
+                var object = resultSet.getObject(index);
                 if (object instanceof Clob) {
                     object = resultSet.getString(index);
                 }
