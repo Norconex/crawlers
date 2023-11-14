@@ -27,16 +27,10 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
@@ -47,18 +41,21 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.cloudsearchdomain.AmazonCloudSearchDomain;
 import com.amazonaws.services.cloudsearchdomain.AmazonCloudSearchDomainClientBuilder;
 import com.amazonaws.services.cloudsearchdomain.model.UploadDocumentsRequest;
-import com.amazonaws.services.cloudsearchdomain.model.UploadDocumentsResult;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.CommitterException;
+import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.CommitterUtil;
 import com.norconex.committer.core.DeleteRequest;
-import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -151,10 +148,11 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  */
 @SuppressWarnings("javadoc")
-public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AmazonCloudSearchCommitter.class);
+@EqualsAndHashCode
+@ToString
+@Slf4j
+public class AmazonCloudSearchCommitter
+        extends AbstractBatchCommitter<AmazonCloudSearchCommitterConfig> {
 
     /**
      * CouldSearch mandatory field pattern. Characters not matching
@@ -165,199 +163,66 @@ public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
 
     /** CloudSearch mandatory ID field */
     public static final String COULDSEARCH_ID_FIELD = "id";
-    /** Default CloudSearch content field */
-    public static final String DEFAULT_COULDSEARCH_CONTENT_FIELD = "content";
+
+    @Getter
+    private final AmazonCloudSearchCommitterConfig configuration =
+            new AmazonCloudSearchCommitterConfig();
 
     @ToStringExclude
     @HashCodeExclude
     @EqualsExclude
+    @JsonIgnore
     private AmazonCloudSearchDomain awsClient;
 
-    private String serviceEndpoint;
-    private String signingRegion;
-    private String accessKey;
-    private String secretKey;
-    private boolean fixBadIds;
-    private final ProxySettings proxySettings = new ProxySettings();
-    private String sourceIdField;
-    private String targetContentField = DEFAULT_COULDSEARCH_CONTENT_FIELD;
-
-    public AmazonCloudSearchCommitter() {
-        this(null);
-    }
-    public AmazonCloudSearchCommitter(String serviceEndpoint) {
-        this(serviceEndpoint, null);
-    }
-
-    public AmazonCloudSearchCommitter(String serviceEndpoint, String signingRegion) {
-        super();
-        this.serviceEndpoint = serviceEndpoint;
-        this.signingRegion = signingRegion;
-        setTargetContentField(DEFAULT_COULDSEARCH_CONTENT_FIELD);
-    }
-
-    /**
-     * Gets AWS service endpoint.
-     * @return AWS service endpoint
-     */
-    public String getServiceEndpoint() {
-        return serviceEndpoint;
-    }
-    /**
-     * Sets AWS service endpoint.
-     * @param serviceEndpoint AWS service endpoint
-     */
-    public void setServiceEndpoint(String serviceEndpoint) {
-        this.serviceEndpoint = serviceEndpoint;
-    }
-    /**
-     * Gets the AWS signing region.
-     * @return the AWS signing region
-     */
-    public String getSigningRegion() {
-        return signingRegion;
-    }
-    /**
-     * Gets the AWS signing region.
-     * @param signingRegion the AWS signing region
-     */
-    public void setSigningRegion(String signingRegion) {
-        this.signingRegion = signingRegion;
-    }
-
-    /**
-     * Gets the CloudSearch access key. If <code>null</code>, the access key
-     * will be obtained from the environment, as detailed in
-     * {@link DefaultAWSCredentialsProviderChain}.
-     * @return the access key
-     */
-    public String getAccessKey() {
-        return accessKey;
-    }
-    /**
-     * Sets the CloudSearch access key.  If <code>null</code>, the access key
-     * will be obtained from the environment, as detailed in
-     * {@link DefaultAWSCredentialsProviderChain}.
-     * @param accessKey the access key
-     */
-    public void setAccessKey(String accessKey) {
-        this.accessKey = accessKey;
-    }
-
-    /**
-     * Gets the CloudSearch secret key. If <code>null</code>, the secret key
-     * will be obtained from the environment, as detailed in
-     * {@link DefaultAWSCredentialsProviderChain}.
-     * @return the secret key
-     */
-    public String getSecretKey() {
-        return secretKey;
-    }
-    /**
-     * Sets the CloudSearch secret key.  If <code>null</code>, the secret key
-     * will be obtained from the environment, as detailed in
-     * {@link DefaultAWSCredentialsProviderChain}.
-     * @param secretKey the secret key
-     */
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
-    }
-
-    /**
-     * Gets the name of the CloudSearch field where content will be stored.
-     * Default is "content".
-     * @return field name
-     */
-    public String getTargetContentField() {
-        return targetContentField;
-    }
-    /**
-     * Sets the name of the CloudSearch field where content will be stored.
-     * Specifying a <code>null</code> value will disable storing the content.
-     * @param targetContentField field name
-     */
-    public void setTargetContentField(String targetContentField) {
-        this.targetContentField = targetContentField;
-    }
-
-    /**
-     * Gets the document field name containing the value to be stored
-     * in CloudSearch "id" field. Default is not a field, but rather
-     * the document reference.
-     * @return name of field containing id value
-     */
-    public String getSourceIdField() {
-        return sourceIdField;
-    }
-    /**
-     * Sets the document field name containing the value to be stored
-     * in CloudSearch "id" field. Set <code>null</code> to use the
-     * document reference instead of a field (default).
-     * @param sourceIdField name of field containing id value,
-     *        or <code>null</code>
-     */
-    public void setSourceIdField(String sourceIdField) {
-        this.sourceIdField = sourceIdField;
-    }
-
-    /**
-     * Gets whether to fix IDs that are too long for CloudSearch
-     * ID limitation (128 characters max). If <code>true</code>,
-     * long IDs will be truncated and a hash code representing the
-     * truncated part will be appended.
-     * @return <code>true</code> to fix IDs that are too long
-     */
-    public boolean isFixBadIds() {
-        return fixBadIds;
-    }
-    /**
-     * Sets whether to fix IDs that are too long for CloudSearch
-     * ID limitation (128 characters max). If <code>true</code>,
-     * long IDs will be truncated and a hash code representing the
-     * truncated part will be appended.
-     * @param fixBadIds <code>true</code> to fix IDs that are too long
-     */
-    public void setFixBadIds(boolean fixBadIds) {
-        this.fixBadIds = fixBadIds;
-    }
-
-    public ProxySettings getProxySettings() {
-        return proxySettings;
-    }
-    public void setProxySettings(ProxySettings proxy) {
-        this.proxySettings.copyFrom(proxy);
-    }
+//    public AmazonCloudSearchCommitter() {
+//        this(null);
+//    }
+//    public AmazonCloudSearchCommitter(String serviceEndpoint) {
+//        this(serviceEndpoint, null);
+//    }
+//
+//    public AmazonCloudSearchCommitter(String serviceEndpoint, String signingRegion) {
+//        this.serviceEndpoint = serviceEndpoint;
+//        this.signingRegion = signingRegion;
+//        setTargetContentField(DEFAULT_COULDSEARCH_CONTENT_FIELD);
+//    }
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
         // Build AWS Client
 
-        if (StringUtils.isBlank(getServiceEndpoint())) {
+        if (StringUtils.isBlank(configuration.getServiceEndpoint())) {
             throw new CommitterException("Service endpoint is undefined.");
         }
-        AmazonCloudSearchDomainClientBuilder b =
+        var b =
                 AmazonCloudSearchDomainClientBuilder.standard();
-        ClientConfiguration clientConfig= new ClientConfiguration();
-        if (proxySettings.isSet()) {
-            clientConfig.setProxyHost(proxySettings.getHost().getName());
-            clientConfig.setProxyPort(proxySettings.getHost().getPort());
-            if (proxySettings.getCredentials().isSet()) {
+        var clientConfig= new ClientConfiguration();
+        if (configuration.getProxySettings().isSet()) {
+            var proxy = configuration.getProxySettings();
+            clientConfig.setProxyHost(proxy.getHost().getName());
+            clientConfig.setProxyPort(proxy.getHost().getPort());
+            if (proxy.getCredentials().isSet()) {
                 clientConfig.setProxyUsername(
-                        proxySettings.getCredentials().getUsername());
+                        proxy.getCredentials().getUsername());
                 clientConfig.setProxyPassword(EncryptionUtil.decrypt(
-                            proxySettings.getCredentials().getPassword(),
-                            proxySettings.getCredentials().getPasswordKey()));
+                        proxy.getCredentials().getPassword(),
+                        proxy.getCredentials().getPasswordKey()));
             }
         }
         b.setClientConfiguration(clientConfig);
-        if (StringUtils.isAnyBlank(accessKey, secretKey)) {
+        if (StringUtils.isAnyBlank(
+                configuration.getAccessKey(),
+                configuration.getSecretKey())) {
             b.withCredentials(new DefaultAWSCredentialsProviderChain());
         } else {
             b.withCredentials(new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(accessKey, secretKey)));
+                    new BasicAWSCredentials(
+                            configuration.getAccessKey(),
+                            configuration.getSecretKey())));
         }
-        b.withEndpointConfiguration(
-                new EndpointConfiguration(serviceEndpoint, signingRegion));
+        b.withEndpointConfiguration(new EndpointConfiguration(
+                configuration.getServiceEndpoint(),
+                configuration.getSigningRegion()));
         awsClient = b.build();
     }
 
@@ -368,7 +233,7 @@ public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
         List<JSONObject> jsonBatch = new ArrayList<>();
         try {
             while (it.hasNext()) {
-                CommitterRequest req = it.next();
+                var req = it.next();
                 if (req instanceof UpsertRequest upsert) {
                     jsonBatch.add(toJsonDocUpsert(upsert));
                 } else if (req instanceof DeleteRequest delete) {
@@ -402,14 +267,14 @@ public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
         // CloudSearch UploadRequest. If memory becomes a concern, consider
         // streaming to file.
         // ArrayList.toString() joins the elements in a JSON-compliant way.
-        byte[] bytes =
+        var bytes =
                 documentBatch.toString().getBytes(StandardCharsets.UTF_8);
-        try (ByteArrayInputStream is = new ByteArrayInputStream(bytes)) {
-            UploadDocumentsRequest uploadRequest = new UploadDocumentsRequest();
+        try (var is = new ByteArrayInputStream(bytes)) {
+            var uploadRequest = new UploadDocumentsRequest();
             uploadRequest.setContentType("application/json");
             uploadRequest.setDocuments(is);
             uploadRequest.setContentLength((long) bytes.length);
-            UploadDocumentsResult result =
+            var result =
                     awsClient.uploadDocuments(uploadRequest);
             LOG.info("{} upserts and {} deletes sent to the AWS CloudSearch "
                     + "domain.", result.getAdds(), result.getDeletes());
@@ -422,21 +287,22 @@ public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
     private JSONObject toJsonDocUpsert(UpsertRequest req)
             throws CommitterException {
 
-        CommitterUtil.applyTargetContent(req, targetContentField);
+        CommitterUtil.applyTargetContent(
+                req, configuration.getTargetContentField());
 
         Map<String, Object> documentMap = new HashMap<>();
         documentMap.put("type", "add");
         documentMap.put(COULDSEARCH_ID_FIELD, extractId(req));
         Map<String, Object> fieldMap = new HashMap<>();
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
-            String key = en.getKey();
-            List<String> values = en.getValue();
+            var key = en.getKey();
+            var values = en.getValue();
             if (!COULDSEARCH_ID_FIELD.equals(key)) {
                 /*size = 1 : non-empty single-valued field
                   size > 1 : non-empty multi-valued field
                   size = 0 : empty field
                 */
-                String fixedKey = fixKey(key);
+                var fixedKey = fixKey(key);
                 if (values.size() == 1) {
                     fieldMap.put(fixedKey, values.get(0));
                 } else if (values.size() > 1){
@@ -459,8 +325,8 @@ public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
     }
 
     private String extractId(CommitterRequest req) throws CommitterException {
-        return fixBadIdValue(
-                CommitterUtil.extractSourceIdValue(req, sourceIdField));
+        return fixBadIdValue(CommitterUtil.extractSourceIdValue(
+                req, configuration.getSourceIdField()));
     }
 
     private String fixBadIdValue(String value) throws CommitterException {
@@ -468,8 +334,8 @@ public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
             throw new CommitterException("Document id cannot be empty.");
         }
 
-        if (fixBadIds) {
-            String v = value.replaceAll(
+        if (configuration.isFixBadIds()) {
+            var v = value.replaceAll(
                     "[^a-zA-Z0-9\\-\\_\\/\\#\\:\\.\\;\\&\\=\\?"
                   + "\\@\\$\\+\\!\\*'\\(\\)\\,\\%]", "_");
             v = StringUtil.truncateWithHash(v, 128, "!");
@@ -480,12 +346,12 @@ public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
         }
         return value;
     }
-    
+
     private String fixKey(String key) {
         if (FIELD_PATTERN.matcher(key).matches()) {
             return key;
         }
-        String fix = key;
+        var fix = key;
         fix = fix.replaceFirst("^[^a-zA-Z0-9]", "");
         fix = StringUtils.truncate(fix, 63);
         fix = fix.replaceAll("[^a-zA-Z0-9_]", "_");
@@ -493,45 +359,5 @@ public class AmazonCloudSearchCommitter extends AbstractBatchCommitter {
         LOG.warn("\"{}\" field renamed to \"{}\" as it does not match "
                 + "CloudSearch required pattern: {}", key, fix, FIELD_PATTERN);
         return fix;
-    }
-
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        xml.addElement("serviceEndpoint", getServiceEndpoint());
-        xml.addElement("signingRegion", getSigningRegion());
-        xml.addElement("accessKey", getAccessKey());
-        xml.addElement("secretKey", getSecretKey());
-        xml.addElement("fixBadIds", isFixBadIds());
-        xml.addElement("sourceIdField", getSourceIdField());
-        xml.addElement("targetContentField", getTargetContentField());
-        proxySettings.saveToXML(xml.addElement("proxySettings"));
-    }
-
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        setServiceEndpoint(xml.getString(
-                "serviceEndpoint", getServiceEndpoint()));
-        setSigningRegion(xml.getString("signingRegion", getSigningRegion()));
-        setAccessKey(xml.getString("accessKey", getAccessKey()));
-        setSecretKey(xml.getString("secretKey", getSecretKey()));
-        setFixBadIds(xml.getBoolean("fixBadIds", isFixBadIds()));
-        setSourceIdField(xml.getString("sourceIdField", getSourceIdField()));
-        setTargetContentField(xml.getString(
-                "targetContentField", getTargetContentField()));
-        xml.ifXML("proxySettings", x -> x.populate(proxySettings));
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

@@ -40,6 +40,11 @@
             <version>2.20.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+          <groupId>org.assertj</groupId>
+          <artifactId>assertj-core</artifactId>
+          <scope>test</scope>
+        </dependency>        
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -110,6 +115,7 @@
                 <artifactId>nexus-staging-maven-plugin</artifactId>
             </plugin>
 
+<!-- TODO ADD BACK WHEN READY: 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -130,7 +136,7 @@
                     </execution>
                 </executions>
             </plugin>
-
+-->
         </plugins>
     </build>
 

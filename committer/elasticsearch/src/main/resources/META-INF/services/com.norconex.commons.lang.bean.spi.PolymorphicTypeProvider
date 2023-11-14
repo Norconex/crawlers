@@ -1,1 +1,1 @@
-com.norconex.committer.elasticsearch.spi.ElasticsearchCommitterCorePtProvider
+com.norconex.committer.elasticsearch.spi.ElasticsearchCommitterPtProvider
