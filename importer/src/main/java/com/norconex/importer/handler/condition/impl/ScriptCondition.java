@@ -14,18 +14,24 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.handler.condition.AbstractStringCondition;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.DocumentHandlerException;
+import com.norconex.importer.handler.ScriptRunner;
+import com.norconex.importer.handler.condition.BaseCondition;
+import com.norconex.importer.util.chunk.ChunkedTextReader;
+import com.norconex.importer.util.chunk.TextChunk;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -110,37 +116,58 @@ import lombok.extern.slf4j.Slf4j;
  * @see ScriptRunner
  */
 @SuppressWarnings("javadoc")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 @Slf4j
-public class ScriptCondition extends AbstractStringCondition {
+public class ScriptCondition
+        extends BaseCondition
+        implements Configurable<ScriptConditionConfig> {
 
     //TODO consider using composition so most of the logic
     // can be shared with other ScriptXXX classes.
-    // MAYBE: Use chaining like servlet filters... so you can wrap
-    // logic over logic in any way you want (layers of execution)
 
     //TODO add testing XML config in various unit tests
 
-    @NonNull
+    @Getter
+    private final ScriptConditionConfig configuration =
+            new ScriptConditionConfig();
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    protected boolean testDocument(HandlerDoc doc, String input,
-            ParseState parseState, int sectionIndex)
-            throws ImporterHandlerException {
+    public boolean evaluate(DocContext docCtx) throws IOException {
 
-        if (scriptRunner == null) {
-            throw new ImporterHandlerException("No ScriptRunner defined.");
-        }
+        var matches = new MutableBoolean();
+        ChunkedTextReader.builder()
+            .charset(configuration.getSourceCharset())
+            .fieldMatcher(configuration.getFieldMatcher())
+            .maxChunkSize(configuration.getMaxReadSize())
+            .build()
+            .read(docCtx, chunk -> {
+                // only check if no successful match yet.
+                try {
+                    if (matches.isFalse() && executeScript(docCtx, chunk)) {
+                        matches.setTrue();
+                    }
+                } catch (DocumentHandlerException e) {
+                    throw new IOException(e);
+                }
+                return true;
+            });
+        return matches.booleanValue();
+    }
 
-        var returnValue = scriptRunner.eval(b -> {
-            b.put("reference", doc.getReference());
-            b.put("content", input);
-            b.put("metadata", doc.getMetadata());
-            b.put("parsed", parseState);
-            b.put("sectionIndex", sectionIndex);
+    private boolean executeScript(DocContext docCtx, TextChunk chunk)
+            throws DocumentHandlerException {
+        var returnValue = scriptRunner().eval(b -> {
+            b.put("reference", docCtx.reference());
+            b.put("content", chunk.getText());
+            b.put("metadata", docCtx.metadata());
+            b.put("parsed", docCtx.parseState());
+            b.put("sectionIndex", chunk.getChunkIndex());
         });
         LOG.debug("Returned value from ScriptCondition: {}", returnValue);
         if (returnValue == null) {
@@ -151,16 +178,22 @@ public class ScriptCondition extends AbstractStringCondition {
         }
         return Boolean.parseBoolean(returnValue.toString());
     }
-    @Override
-    protected void saveStringConditionToXML(final XML xml) {
-        if (scriptRunner != null) {
-            xml.setAttribute("engineName", scriptRunner.getEngineName());
-            xml.addElement("script", scriptRunner.getScript());
+
+    private synchronized ScriptRunner<Object> scriptRunner()
+            throws DocumentHandlerException {
+        if (scriptRunner ==  null) {
+            var engineName = configuration.getEngineName();
+            if (StringUtils.isBlank(configuration.getScript())) {
+                throw new DocumentHandlerException("No script provided.");
+            }
+            if (StringUtils.isBlank(engineName)) {
+                LOG.info("Script engine name not specified, defaulting to "
+                        + ScriptRunner.JAVASCRIPT_ENGINE);
+                engineName = ScriptRunner.JAVASCRIPT_ENGINE;
+            }
+            scriptRunner =
+                    new ScriptRunner<>(engineName, configuration.getScript());
         }
-    }
-    @Override
-    protected void loadStringConditionFromXML(final XML xml) {
-        scriptRunner = new ScriptRunner<>(
-                xml.getString("@engineName"), xml.getString("script"));
+        return scriptRunner;
     }
 }

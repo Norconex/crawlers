@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDocState;
 
 import lombok.Data;
@@ -23,8 +22,12 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class MockFetcher
-    extends AbstractFetcher<MockFetchRequest, MockFetchResponse> {
+public class MockFetcher extends AbstractFetcher<
+        MockFetchRequest,
+        MockFetchResponse,
+        BaseFetcherConfig> {
+
+    private BaseFetcherConfig configuration = new BaseFetcherConfig();
 
     private Boolean denyRequest;
     private boolean returnBadStatus;
@@ -44,15 +47,5 @@ public class MockFetcher
             return super.acceptRequest(fetchRequest);
         }
         return !denyRequest;
-    }
-
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        // NOOP
-    }
-
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        // NOOP
     }
 }

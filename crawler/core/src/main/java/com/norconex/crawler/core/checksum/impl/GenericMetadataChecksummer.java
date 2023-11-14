@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 package com.norconex.crawler.core.checksum.impl;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.checksum.AbstractMetadataChecksummer;
 import com.norconex.crawler.core.checksum.ChecksumUtil;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
@@ -72,31 +70,15 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class GenericMetadataChecksummer extends AbstractMetadataChecksummer {
+public class GenericMetadataChecksummer
+        extends AbstractMetadataChecksummer<GenericMetadataChecksummerConfig> {
 
-    /**
-     * A field matcher.
-     * @param fieldMatcher field matcher
-     * @return field matcher
-     */
-    private final TextMatcher fieldMatcher = new TextMatcher();
-
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
-    }
+    private final GenericMetadataChecksummerConfig configuration =
+            new GenericMetadataChecksummerConfig();
 
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
-        return ChecksumUtil.metadataChecksumPlain(metadata, fieldMatcher);
-    }
-
-    @Override
-    protected void loadChecksummerFromXML(XML xml) {
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-    }
-
-    @Override
-    protected void saveChecksummerToXML(XML xml) {
-        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
+        return ChecksumUtil.metadataChecksumPlain(
+                metadata, getConfiguration().getFieldMatcher());
     }
 }

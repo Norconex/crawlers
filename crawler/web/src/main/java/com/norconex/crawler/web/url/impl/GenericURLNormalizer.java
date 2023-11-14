@@ -21,6 +21,8 @@ import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.commons.lang.xml.XML;
@@ -272,9 +274,14 @@ public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
         private final String replacement;
         public Replace(String match) {
             this.match = match;
-            replacement = "";
+            replacement = null;
         }
-        public Replace(String match, String replacement) {
+        @JsonCreator
+        public Replace(
+                @JsonProperty("match")
+                String match,
+                @JsonProperty("replacement")
+                String replacement) {
             this.match = match;
             this.replacement = replacement;
         }

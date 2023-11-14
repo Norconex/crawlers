@@ -17,14 +17,11 @@ package com.norconex.crawler.core.checksum.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.TestUtil;
 
 
@@ -33,16 +30,13 @@ class GenericMetadataChecksummerTest {
     @Test
     void testWriteRead() {
         var c = new GenericMetadataChecksummer();
-        c.setKeep(true);
-        c.setToField("myToField");
-        c.setOnSet(PropertySetter.OPTIONAL);
-        c.setFieldMatcher(TextMatcher.basic("blah"));
-        XML.assertWriteRead(c, "metadataChecksummer");
-    }
-    @Test
-    void testValidation() throws IOException {
+        c.getConfiguration()
+            .setFieldMatcher(TextMatcher.basic("blah"))
+            .setKeep(true)
+            .setToField("myToField")
+            .setOnSet(PropertySetter.OPTIONAL);
         assertThatNoException().isThrownBy(
-                () -> TestUtil.validate(getClass()));
+                () -> TestUtil.beanMapper().assertWriteRead(c));
     }
 
     @Test
@@ -53,9 +47,10 @@ class GenericMetadataChecksummerTest {
         props.set("field3", "value3");
 
         var c = new GenericMetadataChecksummer();
-        c.setKeep(true);
-        c.setToField("myfield");
-        c.setFieldMatcher(TextMatcher.regex("field.*"));
+        c.getConfiguration()
+            .setFieldMatcher(TextMatcher.regex("field.*"))
+            .setKeep(true)
+            .setToField("myfield");
 
         c.createMetadataChecksum(props);
 

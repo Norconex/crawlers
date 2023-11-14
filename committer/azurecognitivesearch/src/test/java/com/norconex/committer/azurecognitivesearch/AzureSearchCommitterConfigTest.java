@@ -14,67 +14,67 @@
  */
 package com.norconex.committer.azurecognitivesearch;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.IOException;
-import java.io.Reader;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.azurecognitivesearch.AzureSearchCommitter;
-import com.norconex.committer.azurecognitivesearch.AzureSearchCommitterConfig;
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 class AzureSearchCommitterConfigTest {
 
     @Test
     void testWriteRead() throws Exception {
-        AzureSearchCommitter c = new AzureSearchCommitter();
+        var q = new FSQueue();
+        q.getConfiguration()
+            .setBatchSize(10)
+            .setMaxPerFolder(5);
 
-        FSQueue q = new FSQueue();
-        q.setBatchSize(10);
-        q.setMaxPerFolder(5);
-        c.setCommitterQueue(q);
+        var c = new AzureSearchCommitter();
+        c.getConfiguration()
+            .setSourceKeyField("sourceKeyField")
+            .setTargetKeyField("targetKeyField")
+            .setTargetContentField("targetContentField")
+            .setEndpoint("endpoint")
+            .setApiVersion("apiVersion")
+            .setApiKey("apiKey")
+            .setIndexName("indexName")
+            .setDisableDocKeyEncoding(true)
+            .setIgnoreValidationErrors(true)
+            .setIgnoreResponseErrors(true)
+            .setArrayFields(".*")
+            .setArrayFieldsRegex(true)
+            .setQueue(q)
+            .setFieldMapping("subject", "title")
+            .setFieldMapping("body", "content")
+            .addRestriction(new PropertyMatcher(
+                    TextMatcher.basic("document.reference"),
+                    TextMatcher.wildcard("*.pdf")))
+            .addRestriction(new PropertyMatcher(
+                    TextMatcher.basic("title"),
+                    TextMatcher.wildcard("Nah!")));
 
-        c.setFieldMapping("subject", "title");
-        c.setFieldMapping("body", "content");
+        c.getConfiguration().getProxySettings()
+            .setHost(new Host("example.com", 1234));
 
-        c.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")));
-        c.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
-
-        AzureSearchCommitterConfig cfg = c.getConfig();
-
-        cfg.setSourceKeyField("sourceKeyField");
-        cfg.setTargetKeyField("targetKeyField");
-        cfg.setTargetContentField("targetContentField");
-        cfg.setEndpoint("endpoint");
-        cfg.setApiVersion("apiVersion");
-        cfg.setApiKey("apiKey");
-        cfg.setIndexName("indexName");
-        cfg.setDisableDocKeyEncoding(true);
-        cfg.setIgnoreValidationErrors(true);
-        cfg.setIgnoreResponseErrors(true);
-        cfg.setArrayFields(".*");
-        cfg.setArrayFieldsRegex(true);
-        cfg.getProxySettings().setHost(new Host("example.com", 1234));
-
-        XML.assertWriteRead(c, "committer");
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test
     void testValidation() throws IOException {
         Assertions.assertDoesNotThrow(() -> {
-            try (Reader r = ResourceLoader.getXmlReader(this.getClass())) {
-                XML xml = XML.of(r).create();
-                xml.toObjectImpl(AzureSearchCommitter.class);
+            try (var r = ResourceLoader.getXmlReader(this.getClass())) {
+                BeanMapper.DEFAULT.read(
+                        AzureSearchCommitter.class, r, Format.XML);
             }
         });
     }

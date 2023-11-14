@@ -47,7 +47,7 @@ public abstract class AbstractPipelineContext {
     }
 
     public CrawlerConfig getConfig() {
-        return crawler.getCrawlerConfig();
+        return crawler.getConfiguration();
     }
 
     public CrawlDocRecordService getDocRecordService() {

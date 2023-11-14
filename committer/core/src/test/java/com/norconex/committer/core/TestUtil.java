@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.junit.jupiter.params.provider.Arguments;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.Properties;
 
@@ -35,7 +36,12 @@ import com.norconex.commons.lang.map.Properties;
  */
 public final class TestUtil {
 
-    private TestUtil() {
+    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
+
+    private TestUtil() {}
+
+    public static BeanMapper beanMapper() {
+        return beanMapper;
     }
 
     // Create Arguments instance with the object as the first argument

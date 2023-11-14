@@ -14,41 +14,42 @@
  */
 package com.norconex.committer.neo4j;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
-import java.io.Reader;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 class Neo4jCommitterConfigTest {
     @Test
     void testWriteRead() throws Exception {
-        Neo4jCommitter c = new Neo4jCommitter();
+        var c = new Neo4jCommitter();
 
-        FSQueue q = new FSQueue();
-        q.setBatchSize(10);
-        q.setMaxPerFolder(5);
-        c.setCommitterQueue(q);
+        var q = new FSQueue();
+        q.getConfiguration().setBatchSize(10);
+        q.getConfiguration().setMaxPerFolder(5);
+        c.getConfiguration().setQueue(q);
 
-        c.setFieldMapping("subject", "title");
-        c.setFieldMapping("body", "content");
+        c.getConfiguration().setFieldMapping("subject", "title");
+        c.getConfiguration().setFieldMapping("body", "content");
 
-        c.getRestrictions().add(new PropertyMatcher(
+        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("document.reference"),
                 TextMatcher.wildcard("*.pdf")));
-        c.getRestrictions().add(new PropertyMatcher(
+        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("title"),
                 TextMatcher.wildcard("Nah!")));
 
-        Neo4jCommitterConfig cfg = c.getConfig();
+        var cfg = c.getConfiguration();
 
         cfg.setUri("someURL");
         cfg.setCredentials(
@@ -59,16 +60,16 @@ class Neo4jCommitterConfigTest {
         cfg.setUpsertCypher("my upsert cypher");
         cfg.setDeleteCypher("my delete cypher");
 
-        XML.assertWriteRead(c, "committer");
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test
     void testValidation() throws IOException {
-        assertThatCode(() -> { 
-            try (Reader r = ResourceLoader.getXmlReader(this.getClass())) {
-                XML xml = XML.of(r).create();
-                xml.toObjectImpl(Neo4jCommitter.class);
+        Assertions.assertDoesNotThrow(() -> {
+            try (var r = ResourceLoader.getXmlReader(this.getClass())) {
+                BeanMapper.DEFAULT.read(Neo4jCommitter.class, r, Format.XML);
             }
-        }).doesNotThrowAnyException();
+        });
     }
 }

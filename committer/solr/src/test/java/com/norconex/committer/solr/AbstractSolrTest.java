@@ -1,5 +1,18 @@
+/* Copyright 2023 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.norconex.committer.solr;
-
 
 import java.io.File;
 import java.io.IOException;
@@ -7,8 +20,8 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.embedded.JettySolrRunner;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
+import org.apache.solr.embedded.JettySolrRunner;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +57,6 @@ public abstract class AbstractSolrTest {
 
     @BeforeAll
     private void beforeAll() throws Exception {
-
         solrHome = new File(tempDir, "solr-home");
 
         // Solr Server:
@@ -64,11 +76,11 @@ public abstract class AbstractSolrTest {
                 new File("./src/test/resources/solr-server"),
                 solrHome);
 
-        this.solrServer = new JettySolrRunner(
+        solrServer = new JettySolrRunner(
                 solrHome.getAbsolutePath(), "/solr", 0);
         solrServer.start();
 
-        int seconds = 0;
+        var seconds = 0;
         for (; seconds < 30; seconds++) {
             if (solrServer.isRunning()) {
                 break;
@@ -133,20 +145,20 @@ public abstract class AbstractSolrTest {
     }
 
     protected SolrCommitter createSolrCommitter() throws CommitterException {
-        CommitterContext ctx = CommitterContext.builder()
+        var ctx = CommitterContext.builder()
                 .setWorkDir(new File(getSolrHome(),
                         "" + TimeIdGenerator.next()).toPath())
                 .build();
-        SolrCommitter committer = new SolrCommitter();
-        committer.setSolrURL(getSolrTestURL());
-        committer.setUpdateUrlParam("commitWithin", "1");
+        var committer = new SolrCommitter();
+        committer.getConfiguration().setSolrURL(getSolrTestURL());
+        committer.getConfiguration().setUpdateUrlParam("commitWithin", "1");
         committer.init(ctx);
         return committer;
     }
 
     protected void withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        SolrCommitter committer = createSolrCommitter();
+        var committer = createSolrCommitter();
         try {
             c.accept(committer);
         } catch (CommitterException e) {

@@ -90,6 +90,11 @@ Misc. Changes
 * <splitContentTypes>, <noExtractContainerContentTypes>, and
   <noExtractEmbeddedContentTypes> are now <splitEmbeddedOf>, <skipEmmbbededOf>,
   and <skipEmmbbeded>, respectively.
+* Handlers now passed DocContext.
+* Taggers have been merged into Transformers.
+* Filters removed in favor of conditions.
+* Most handlers can now target either content or fields.
+* New "discardOriginal" flag for splitters.
 
 ### Crawler Core
 

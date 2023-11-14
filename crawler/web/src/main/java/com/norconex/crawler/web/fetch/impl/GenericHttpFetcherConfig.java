@@ -21,21 +21,21 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.core5.http.HttpStatus;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.GenericRedirectURLProvider;
 import com.norconex.crawler.web.fetch.util.RedirectURLProvider;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * Generic HTTP Fetcher configuration.
@@ -44,7 +44,8 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class GenericHttpFetcherConfig implements XMLConfigurable {
+@Accessors(chain = true)
+public class GenericHttpFetcherConfig extends BaseFetcherConfig {
 
     public static final int DEFAULT_TIMEOUT = 30 * 1000;
     public static final int DEFAULT_MAX_REDIRECT = 50;
@@ -303,9 +304,10 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * Sets HTTP status codes to be considered as "Not found" state.
      * @param notFoundStatusCodes "Not found" codes
      */
-    public final void setNotFoundStatusCodes(
+    public final GenericHttpFetcherConfig setNotFoundStatusCodes(
             List<Integer> notFoundStatusCodes) {
         CollectionUtil.setAll(this.notFoundStatusCodes, notFoundStatusCodes);
+        return this;
     }
 
     /**
@@ -315,8 +317,10 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * @param name HTTP request header name
      * @param value HTTP request header value
      */
-    public void setRequestHeader(String name, String value) {
+    public GenericHttpFetcherConfig setRequestHeader(
+            String name, String value) {
         requestHeaders.put(name, value);
+        return this;
     }
     /**
      * Sets a default HTTP request headers every HTTP connection should have.
@@ -324,8 +328,10 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * may already provide.
      * @param headers map of header names and values
      */
-    public void setRequestHeaders(Map<String, String> headers) {
+    public GenericHttpFetcherConfig setRequestHeaders(
+            Map<String, String> headers) {
         CollectionUtil.setAll(requestHeaders, headers);
+        return this;
     }
     /**
      * Gets the HTTP request header value matching the given name, previously
@@ -344,6 +350,7 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * are set, it returns an empty array.
      * @return HTTP request header names
      */
+    @JsonIgnore
     public List<String> getRequestHeaderNames() {
         return Collections.unmodifiableList(
                 new ArrayList<>(requestHeaders.keySet()));
@@ -361,8 +368,9 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
-    public void setProxySettings(ProxySettings proxy) {
+    public GenericHttpFetcherConfig setProxySettings(ProxySettings proxy) {
         proxySettings.copyFrom(proxy);
+        return this;
     }
 
     /**
@@ -380,8 +388,10 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * your underlying Java platform will not work.
      * @param sslProtocols SSL/TLS protocols supported
      */
-    public void setSSLProtocols(List<String> sslProtocols) {
+    public GenericHttpFetcherConfig setSSLProtocols(
+            List<String> sslProtocols) {
         CollectionUtil.setAll(this.sslProtocols, sslProtocols);
+        return this;
     }
 
     /**
@@ -397,111 +407,113 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * Defaults are {@link HttpMethod#GET} and {@link HttpMethod#HEAD}.
      * @param httpMethods HTTP methods
      */
-    public void setHttpMethods(List<HttpMethod> httpMethods) {
+    public GenericHttpFetcherConfig setHttpMethods(
+            List<HttpMethod> httpMethods) {
         CollectionUtil.setAll(this.httpMethods, httpMethods);
+        return this;
     }
 
-    @Override
-    public void loadFromXML(XML xml) {
-        setValidStatusCodes(xml.getDelimitedList(
-                "validStatusCodes", Integer.class, validStatusCodes));
-        setNotFoundStatusCodes(xml.getDelimitedList(
-                "notFoundStatusCodes", Integer.class, notFoundStatusCodes));
-        setHeadersPrefix(xml.getString("headersPrefix"));
-        setForceContentTypeDetection(
-                xml.getBoolean("forceContentTypeDetection", forceContentTypeDetection));
-        setForceCharsetDetection(xml.getBoolean("forceCharsetDetection", forceCharsetDetection));
-
-        userAgent = xml.getString("userAgent", userAgent);
-        cookieSpec = xml.getString("cookieSpec", cookieSpec);
-
-        xml.ifXML("authentication", x -> {
-            var acfg = new HttpAuthConfig();
-            acfg.loadFromXML(x);
-            setAuthConfig(acfg);
-        });
-        xml.ifXML("proxySettings", x -> x.populate(proxySettings));
-        connectionTimeout = xml.getDurationMillis(
-                "connectionTimeout", (long) connectionTimeout).intValue();
-        socketTimeout = xml.getDurationMillis(
-                "socketTimeout", (long) socketTimeout).intValue();
-        connectionRequestTimeout = xml.getDurationMillis(
-                "connectionRequestTimeout",
-                (long) connectionRequestTimeout).intValue();
-        connectionCharset = xml.getCharset(
-                "connectionCharset", connectionCharset);
-        expectContinueEnabled = xml.getBoolean(
-                "expectContinueEnabled", expectContinueEnabled);
-        maxRedirects = xml.getInteger("maxRedirects", maxRedirects);
-        maxConnections = xml.getInteger("maxConnections", maxConnections);
-        localAddress = xml.getString("localAddress", localAddress);
-        maxConnectionsPerRoute = xml.getInteger(
-                "maxConnectionsPerRoute", maxConnectionsPerRoute);
-        maxConnectionIdleTime = xml.getDurationMillis(
-                "maxConnectionIdleTime",
-                (long) maxConnectionIdleTime).intValue();
-        maxConnectionInactiveTime = xml.getDurationMillis(
-                "maxConnectionInactiveTime",
-                (long) maxConnectionInactiveTime).intValue();
-        setRequestHeaders(xml.getStringMap(
-                "headers/header", "@name", ".", requestHeaders));
-        setIfModifiedSinceDisabled(xml.getBoolean(
-                "ifModifiedSinceDisabled", ifModifiedSinceDisabled));
-        setETagDisabled(xml.getBoolean("eTagDisabled", eTagDisabled));
-        setRedirectURLProvider(xml.getObjectImpl(RedirectURLProvider.class,
-                "redirectURLProvider", redirectURLProvider));
-
-        trustAllSSLCertificates = xml.getBoolean(
-                "trustAllSSLCertificates", trustAllSSLCertificates);
-        sniDisabled = xml.getBoolean("sniDisabled", sniDisabled);
-        setHstsDisabled(xml.getBoolean("hstsDisabled", hstsDisabled));
-        setSSLProtocols(
-                xml.getDelimitedStringList("sslProtocols", sslProtocols));
-        setHttpMethods(xml.getDelimitedEnumList(
-                "httpMethods", HttpMethod.class, httpMethods));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("forceContentTypeDetection", forceContentTypeDetection);
-        xml.addElement("forceCharsetDetection", forceCharsetDetection);
-        xml.addDelimitedElementList("validStatusCodes", validStatusCodes);
-        xml.addDelimitedElementList("notFoundStatusCodes", notFoundStatusCodes);
-        xml.addElement("headersPrefix", headersPrefix);
-
-        xml.addElement("userAgent", userAgent);
-        xml.addElement("cookieSpec", cookieSpec);
-        if (authConfig != null) {
-            authConfig.saveToXML(xml.addElement("authentication"));
-        }
-
-        proxySettings.saveToXML(xml.addElement("proxySettings"));
-        xml.addElement("connectionTimeout", connectionTimeout);
-        xml.addElement("socketTimeout", socketTimeout);
-        xml.addElement("connectionRequestTimeout", connectionRequestTimeout);
-        xml.addElement("connectionCharset", connectionCharset);
-        xml.addElement("expectContinueEnabled", expectContinueEnabled);
-        xml.addElement("maxRedirects", maxRedirects);
-        xml.addElement("localAddress", localAddress);
-        xml.addElement("maxConnections", maxConnections);
-        xml.addElement("maxConnectionsPerRoute", maxConnectionsPerRoute);
-        xml.addElement("maxConnectionIdleTime", maxConnectionIdleTime);
-        xml.addElement("maxConnectionInactiveTime", maxConnectionInactiveTime);
-
-        var xmlHeaders = xml.addXML("headers");
-        for (Entry<String, String> entry : requestHeaders.entrySet()) {
-            xmlHeaders.addXML("header").setAttribute(
-                    "name", entry.getKey()).setTextContent(entry.getValue());
-        }
-        xml.addElement("ifModifiedSinceDisabled", ifModifiedSinceDisabled);
-        xml.addElement("eTagDisabled", eTagDisabled);
-
-        xml.addElement("redirectURLProvider", redirectURLProvider);
-
-        xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
-        xml.addElement("sniDisabled", sniDisabled);
-        xml.addElement("hstsDisabled", hstsDisabled);
-        xml.addDelimitedElementList("sslProtocols", sslProtocols);
-        xml.addDelimitedElementList("httpMethods", httpMethods);
-    }
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        setValidStatusCodes(xml.getDelimitedList(
+//                "validStatusCodes", Integer.class, validStatusCodes));
+//        setNotFoundStatusCodes(xml.getDelimitedList(
+//                "notFoundStatusCodes", Integer.class, notFoundStatusCodes));
+//        setHeadersPrefix(xml.getString("headersPrefix"));
+//        setForceContentTypeDetection(
+//                xml.getBoolean("forceContentTypeDetection", forceContentTypeDetection));
+//        setForceCharsetDetection(xml.getBoolean("forceCharsetDetection", forceCharsetDetection));
+//
+//        userAgent = xml.getString("userAgent", userAgent);
+//        cookieSpec = xml.getString("cookieSpec", cookieSpec);
+//
+//        xml.ifXML("authentication", x -> {
+//            var acfg = new HttpAuthConfig();
+//            acfg.loadFromXML(x);
+//            setAuthConfig(acfg);
+//        });
+//        xml.ifXML("proxySettings", x -> x.populate(proxySettings));
+//        connectionTimeout = xml.getDurationMillis(
+//                "connectionTimeout", (long) connectionTimeout).intValue();
+//        socketTimeout = xml.getDurationMillis(
+//                "socketTimeout", (long) socketTimeout).intValue();
+//        connectionRequestTimeout = xml.getDurationMillis(
+//                "connectionRequestTimeout",
+//                (long) connectionRequestTimeout).intValue();
+//        connectionCharset = xml.getCharset(
+//                "connectionCharset", connectionCharset);
+//        expectContinueEnabled = xml.getBoolean(
+//                "expectContinueEnabled", expectContinueEnabled);
+//        maxRedirects = xml.getInteger("maxRedirects", maxRedirects);
+//        maxConnections = xml.getInteger("maxConnections", maxConnections);
+//        localAddress = xml.getString("localAddress", localAddress);
+//        maxConnectionsPerRoute = xml.getInteger(
+//                "maxConnectionsPerRoute", maxConnectionsPerRoute);
+//        maxConnectionIdleTime = xml.getDurationMillis(
+//                "maxConnectionIdleTime",
+//                (long) maxConnectionIdleTime).intValue();
+//        maxConnectionInactiveTime = xml.getDurationMillis(
+//                "maxConnectionInactiveTime",
+//                (long) maxConnectionInactiveTime).intValue();
+//        setRequestHeaders(xml.getStringMap(
+//                "headers/header", "@name", ".", requestHeaders));
+//        setIfModifiedSinceDisabled(xml.getBoolean(
+//                "ifModifiedSinceDisabled", ifModifiedSinceDisabled));
+//        setETagDisabled(xml.getBoolean("eTagDisabled", eTagDisabled));
+//        setRedirectURLProvider(xml.getObjectImpl(RedirectURLProvider.class,
+//                "redirectURLProvider", redirectURLProvider));
+//
+//        trustAllSSLCertificates = xml.getBoolean(
+//                "trustAllSSLCertificates", trustAllSSLCertificates);
+//        sniDisabled = xml.getBoolean("sniDisabled", sniDisabled);
+//        setHstsDisabled(xml.getBoolean("hstsDisabled", hstsDisabled));
+//        setSSLProtocols(
+//                xml.getDelimitedStringList("sslProtocols", sslProtocols));
+//        setHttpMethods(xml.getDelimitedEnumList(
+//                "httpMethods", HttpMethod.class, httpMethods));
+//    }
+//
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.addElement("forceContentTypeDetection", forceContentTypeDetection);
+//        xml.addElement("forceCharsetDetection", forceCharsetDetection);
+//        xml.addDelimitedElementList("validStatusCodes", validStatusCodes);
+//        xml.addDelimitedElementList("notFoundStatusCodes", notFoundStatusCodes);
+//        xml.addElement("headersPrefix", headersPrefix);
+//
+//        xml.addElement("userAgent", userAgent);
+//        xml.addElement("cookieSpec", cookieSpec);
+//        if (authConfig != null) {
+//            authConfig.saveToXML(xml.addElement("authentication"));
+//        }
+//
+//        proxySettings.saveToXML(xml.addElement("proxySettings"));
+//        xml.addElement("connectionTimeout", connectionTimeout);
+//        xml.addElement("socketTimeout", socketTimeout);
+//        xml.addElement("connectionRequestTimeout", connectionRequestTimeout);
+//        xml.addElement("connectionCharset", connectionCharset);
+//        xml.addElement("expectContinueEnabled", expectContinueEnabled);
+//        xml.addElement("maxRedirects", maxRedirects);
+//        xml.addElement("localAddress", localAddress);
+//        xml.addElement("maxConnections", maxConnections);
+//        xml.addElement("maxConnectionsPerRoute", maxConnectionsPerRoute);
+//        xml.addElement("maxConnectionIdleTime", maxConnectionIdleTime);
+//        xml.addElement("maxConnectionInactiveTime", maxConnectionInactiveTime);
+//
+//        var xmlHeaders = xml.addXML("headers");
+//        for (Entry<String, String> entry : requestHeaders.entrySet()) {
+//            xmlHeaders.addXML("header").setAttribute(
+//                    "name", entry.getKey()).setTextContent(entry.getValue());
+//        }
+//        xml.addElement("ifModifiedSinceDisabled", ifModifiedSinceDisabled);
+//        xml.addElement("eTagDisabled", eTagDisabled);
+//
+//        xml.addElement("redirectURLProvider", redirectURLProvider);
+//
+//        xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
+//        xml.addElement("sniDisabled", sniDisabled);
+//        xml.addElement("hstsDisabled", hstsDisabled);
+//        xml.addDelimitedElementList("sslProtocols", sslProtocols);
+//        xml.addDelimitedElementList("httpMethods", httpMethods);
+//    }
 }

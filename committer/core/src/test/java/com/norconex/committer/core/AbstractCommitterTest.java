@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,28 +31,29 @@ class AbstractCommitterTest {
     @Test
     void testRestrictions() throws CommitterException {
         try (var c = new MemoryCommitter()) {
-            c.addRestriction(new PropertyMatcher(TextMatcher.basic("blah1")));
-            c.addRestrictions(Arrays.asList(
-                    new PropertyMatcher(TextMatcher.basic("blah2")),
-                    new PropertyMatcher(TextMatcher.basic("blah3")),
-                    new PropertyMatcher(TextMatcher.basic("yo1")),
-                    new PropertyMatcher(TextMatcher.basic("yo2"))
-            ));
+            var cfg = c.getConfiguration()
+                .addRestriction(new PropertyMatcher(TextMatcher.basic("blah1")))
+                .addRestrictions(Arrays.asList(
+                        new PropertyMatcher(TextMatcher.basic("blah2")),
+                        new PropertyMatcher(TextMatcher.basic("blah3")),
+                        new PropertyMatcher(TextMatcher.basic("yo1")),
+                        new PropertyMatcher(TextMatcher.basic("yo2"))
+                ));
 
-            assertThat((List<?>) c.getRestrictions()).hasSize(5);
+            assertThat((List<?>) cfg.getRestrictions()).hasSize(5);
 
-            c.removeRestriction("blah2");
-            assertThat((List<?>) c.getRestrictions()).hasSize(4);
+            cfg.removeRestriction("blah2");
+            assertThat((List<?>) cfg.getRestrictions()).hasSize(4);
 
-            c.removeRestriction(
+            cfg.removeRestriction(
                     new PropertyMatcher(TextMatcher.basic("blah3")));
-            assertThat((List<?>) c.getRestrictions()).hasSize(3);
+            assertThat((List<?>) cfg.getRestrictions()).hasSize(3);
 
-            c.clearRestrictions();
-            assertThat((List<?>) c.getRestrictions()).isEmpty();
+            cfg.clearRestrictions();
+            assertThat((List<?>) cfg.getRestrictions()).isEmpty();
 
             // test accept
-            c.addRestriction(new PropertyMatcher(
+            cfg.addRestriction(new PropertyMatcher(
                     TextMatcher.basic("field"), TextMatcher.basic("yes")));
             c.init(CommitterContext.builder().build());
 
@@ -66,23 +67,24 @@ class AbstractCommitterTest {
     @Test
     void testFieldMappings() throws CommitterException {
         try (var c = new MemoryCommitter()) {
-            c.setFieldMapping("fromField1", "toField1");
-            c.setFieldMappings(MapUtil.toMap(
-                    "fromField2", "toField2",
-                    "fromField3", "toField3",
-                    "fromField4", "toField4"
-            ));
-            assertThat(c.getFieldMappings()).hasSize(4);
+            var cfg = c.getConfiguration()
+                .setFieldMapping("fromField1", "toField1")
+                .setFieldMappings(MapUtil.toMap(
+                        "fromField2", "toField2",
+                        "fromField3", "toField3",
+                        "fromField4", "toField4"
+                ));
+            assertThat(cfg.getFieldMappings()).hasSize(4);
 
-            c.removeFieldMapping("fromField2");
-            assertThat(c.getFieldMappings()).hasSize(3);
+            cfg.removeFieldMapping("fromField2");
+            assertThat(cfg.getFieldMappings()).hasSize(3);
 
-            c.clearFieldMappings();
-            assertThat(c.getFieldMappings()).isEmpty();
+            cfg.clearFieldMappings();
+            assertThat(cfg.getFieldMappings()).isEmpty();
 
             // test apply field mappings
-            c.setFieldMapping("fromFieldA", "toFieldA");
-            c.setFieldMapping("fromFieldB", "toFieldB");
+            cfg.setFieldMapping("fromFieldA", "toFieldA");
+            cfg.setFieldMapping("fromFieldB", "toFieldB");
             c.init(CommitterContext.builder().build());
 
             c.upsert(TestUtil.upsertRequest(

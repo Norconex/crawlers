@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,22 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.IOException;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.BaseDocumentHandler;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.handler.transformer.AbstractStringTransformer;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
+import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * <p>
@@ -114,47 +116,43 @@ import lombok.NonNull;
  */
 @SuppressWarnings("javadoc")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ScriptTransformer extends AbstractStringTransformer {
+public class ScriptTransformer
+        extends BaseDocumentHandler
+        implements Configurable<ScriptTransformerConfig> {
 
-    @NonNull
-    private ScriptRunner<String> scriptRunner;
+    private final ScriptTransformerConfig configuration =
+            new ScriptTransformerConfig();
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
+    private ScriptRunner<Object> scriptRunner;
 
     @Override
-    protected void transformStringContent(HandlerDoc doc,
-            final StringBuilder content, final ParseState parseState,
-            final int sectionIndex) throws ImporterHandlerException {
-
-        if (scriptRunner == null) {
-            throw new ImporterHandlerException("No ScriptRunner defined.");
-        }
-
-        var originalContent = content.toString();
-        var modifiedContent = scriptRunner.eval(b -> {
-            b.put("reference", doc.getReference());
-            b.put("content", originalContent);
-            b.put("metadata", doc.getMetadata());
-            b.put("parsed", parseState);
-            b.put("sectionIndex", sectionIndex);
+    public void handle(DocContext docCtx) throws IOException {
+        ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
+            var originalContent = chunk.getText();
+            try {
+                return Objects.toString(scriptRunner().eval(b -> {
+                    b.put("reference", docCtx.reference());
+                    b.put("content", originalContent);
+                    b.put("metadata", docCtx.metadata());
+                    b.put("parsed", ParseState.isPre(docCtx.parseState()));
+                    b.put("chunkIndex", chunk.getChunkIndex());
+                    b.put("fieldValueIndex", chunk.getFieldValueIndex());
+                }), null);
+            } catch (DocumentHandlerException e) {
+                throw new IOException(e);
+            }
         });
-
-        if (!Objects.equals(originalContent, modifiedContent)) {
-            content.setLength(0);
-            content.append(modifiedContent);
-        }
     }
 
-    @Override
-    protected void saveStringTransformerToXML(final XML xml) {
-        if (scriptRunner != null) {
-            xml.setAttribute("engineName", scriptRunner.getEngineName());
-            xml.addElement("script", scriptRunner.getScript());
+    private synchronized ScriptRunner<Object> scriptRunner() {
+        if (scriptRunner == null) {
+            scriptRunner = new ScriptRunner<>(
+                    configuration.getEngineName(),
+                    configuration.getScript());
         }
-    }
-    @Override
-    protected void loadStringTransformerFromXML(final XML xml) {
-        scriptRunner = new ScriptRunner<>(
-                xml.getString("@engineName"), xml.getString("script"));
+        return scriptRunner;
     }
 }

@@ -20,15 +20,9 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.util.EncryptUtil;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.security.Credentials;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.session.CrawlSession;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -64,15 +58,8 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-@XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractAuthVfsFetcher extends AbstractVfsFetcher {
-
-    // Configurable:
-    @Getter
-    private final Credentials credentials = new Credentials();
-    @Getter
-    @Setter
-    private String domain;
+public abstract class AbstractAuthVfsFetcher<C extends BaseAuthVfsFetcherConfig>
+        extends AbstractVfsFetcher<C> {
 
     @Override
     protected void fetcherStartup(CrawlSession crawlSession) {
@@ -86,25 +73,12 @@ public abstract class AbstractAuthVfsFetcher extends AbstractVfsFetcher {
      */
     protected void applyAuthenticationOptions(FileSystemOptions opts) {
         var defBuilder = DefaultFileSystemConfigBuilder.getInstance();
-        if (credentials.isSet()) {
+        if (getConfiguration().getCredentials().isSet()) {
             defBuilder.setUserAuthenticator(opts, new StaticUserAuthenticator(
-                    domain,
-                    credentials.getUsername(),
-                    EncryptionUtil.decryptPassword(credentials)));
+                    getConfiguration().getDomain(),
+                    getConfiguration().getCredentials().getUsername(),
+                    EncryptionUtil.decryptPassword(
+                            getConfiguration().getCredentials())));
         }
-    }
-
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        xml.ifXML("authentication", authXml -> {
-            authXml.ifXML("credentials", credentials::loadFromXML);
-            setDomain(authXml.getString("domain", domain));
-        });
-    }
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        var authXml = xml.addElement("authentication");
-        credentials.saveToXML(authXml.addElement("credentials"));
-        authXml.addElement("domain", domain);
     }
 }

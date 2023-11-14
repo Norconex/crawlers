@@ -17,6 +17,8 @@ package com.norconex.crawler.web.session.feature;
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
@@ -60,8 +62,8 @@ class ScriptTagsTest {
             .forStartReferences(serverUrl(client, homePath))
             .crawlerSetup(cfg -> {
                 var le = new HtmlLinkExtractor();
-                le.addLinkTag("script", "src");
-                cfg.setLinkExtractors(le);
+                le.getConfiguration().addLinkTag("script", "src");
+                cfg.setLinkExtractors(List.of(le));
             })
             .crawl();
 

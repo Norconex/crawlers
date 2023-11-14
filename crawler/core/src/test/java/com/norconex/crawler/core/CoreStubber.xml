@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<!-- 
+<!--
    Copyright 2022 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,14 @@
 
     <crawler id="test-crawler">
       <numThreads>1</numThreads>
+      <referenceFilters>
+        <!-- Short name -->
+<!--        <filter class="ExtensionReferenceFilter">
+          html,htm,php,asp
+        </filter>-->        
+      </referenceFilters>
       <committers>
+        <!-- Fully qualified name -->
         <committer class="com.norconex.committer.core.impl.MemoryCommitter"/>
       </committers>
     </crawler>

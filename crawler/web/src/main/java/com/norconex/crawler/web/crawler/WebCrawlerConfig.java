@@ -24,7 +24,6 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
@@ -58,6 +57,7 @@ import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -76,7 +76,7 @@ import lombok.experimental.FieldNameConstants;
  *   <li><b>ref:</b> Any regular URL
  *       (see {@link #setStartReferences(List)}).</li>
  *   <li><b>refsFile:</b> A path to a file containing a list of start URLs
- *       (see {@link #setStartReferencesFiles(java.nio.file.Path...)}).
+ *       (see {@link #setStartReferencesFiles(List)}).
  *       One per line.</li>
  *   <li><b>sitemap:</b> A URL pointing to a sitemap XML file that contains
  *       the URLs to crawl (see {@link #setStartReferencesSitemaps(List)}).</li>
@@ -544,6 +544,7 @@ import lombok.experimental.FieldNameConstants;
  */
 @SuppressWarnings("javadoc")
 @Data
+@Accessors(chain = true)
 @FieldNameConstants
 
 //TODO Given we don't need @schema here to pick up javadoc
@@ -703,22 +704,14 @@ public class WebCrawlerConfig extends CrawlerConfig {
     /**
      * Sets the sitemap URLs used as starting points for crawling.
      * @param startReferencesSitemaps sitemap URLs
-     * @since 2.3.0
-     */
-    @JsonIgnore
-    public void setStartReferencesSitemaps(String... startReferencesSitemaps) {
-        setStartReferencesSitemaps(Arrays.asList(startReferencesSitemaps));
-    }
-    /**
-     * Sets the sitemap URLs used as starting points for crawling.
-     * @param startReferencesSitemaps sitemap URLs
      * @since 3.0.0
      */
-    public void setStartReferencesSitemaps(
+    public WebCrawlerConfig setStartReferencesSitemaps(
             List<String> startReferencesSitemaps) {
         CollectionUtil.setAll(
                 this.startReferencesSitemaps, startReferencesSitemaps);
         CollectionUtil.removeBlanks(this.startReferencesSitemaps);
+        return this;
     }
 
     /**
@@ -738,9 +731,10 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param keepReferencedLinks option for keeping links
      * @since 3.0.0
      */
-    public void setKeepReferencedLinks(
+    public WebCrawlerConfig setKeepReferencedLinks(
             Set<ReferencedLinkType> keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
+        return this;
     }
     /**
      * Sets whether to keep referenced links and what to keep.
@@ -750,9 +744,10 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     @JsonIgnore
-    public void setKeepReferencedLinks(
+    public WebCrawlerConfig setKeepReferencedLinks(
             ReferencedLinkType... keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
+        return this;
     }
 
     /**
@@ -765,18 +760,11 @@ public class WebCrawlerConfig extends CrawlerConfig {
     /**
      * Sets link extractors.
      * @param linkExtractors link extractors
-     */
-    @JsonIgnore
-    public void setLinkExtractors(LinkExtractor... linkExtractors) {
-        setLinkExtractors(Arrays.asList(linkExtractors));
-    }
-    /**
-     * Sets link extractors.
-     * @param linkExtractors link extractors
      * @since 3.0.0
      */
-    public void setLinkExtractors(List<LinkExtractor> linkExtractors) {
+    public WebCrawlerConfig setLinkExtractors(List<LinkExtractor> linkExtractors) {
         CollectionUtil.setAll(this.linkExtractors, linkExtractors);
+        return this;
     }
 
     /**
@@ -794,129 +782,130 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param fieldMatcher field matcher
      * @since 3.0.0
      */
-    public void setPostImportLinks(TextMatcher fieldMatcher) {
+    public WebCrawlerConfig setPostImportLinks(TextMatcher fieldMatcher) {
         postImportLinks.copyFrom(fieldMatcher);
+        return this;
     }
 
-    @Override
-    public void saveToXML(XML xml) {
-        super.saveToXML(xml);
-        xml.addDelimitedElementList("keepReferencedLinks",
-                new ArrayList<>(keepReferencedLinks));
-
-        var startXML = xml.computeElementIfAbsent("start", null)
-                .setAttribute("stayOnProtocol",
-                        urlCrawlScopeStrategy.isStayOnProtocol())
-                .setAttribute("stayOnDomain",
-                        urlCrawlScopeStrategy.isStayOnDomain())
-                .setAttribute("includeSubdomains",
-                        urlCrawlScopeStrategy.isIncludeSubdomains())
-                .setAttribute("stayOnPort",
-                        urlCrawlScopeStrategy.isStayOnPort())
-                .setAttribute("stayOnSitemap",
-                        stayOnSitemap);
-
-        startXML.addElementList("sitemap", startReferencesSitemaps);
-
-        xml.addElement("urlNormalizer", urlNormalizer);
-        xml.addElement("delay", delayResolver);
-        xml.addElement("robotsTxt", robotsTxtProvider);
-        xml.addElement("sitemapResolver", sitemapResolver);
-        xml.addElement(Fields.sitemapLocator, sitemapLocator);
-        xml.addElement("canonicalLinkDetector", canonicalLinkDetector);
-        xml.addElement("recrawlableResolver", recrawlableResolver);
-
-        xml.addElement("robotsMeta", robotsMetaProvider);
-        xml.addElementList("linkExtractors", "extractor", linkExtractors);
-
-        postImportLinks.saveToXML(
-                xml.addElement("postImportLinks")
-                        .setAttribute("keep", postImportLinksKeep)
-                        .addElement("fieldMatcher"));
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        super.loadFromXML(xml);
-
-        // Simple Settings
-        loadSimpleSettings(xml);
-
-        // RobotsTxt provider
-        setRobotsTxtProvider(xml.getObjectImpl(
-                RobotsTxtProvider.class, "robotsTxt", robotsTxtProvider));
-
-        // Sitemap Resolver
-        setSitemapResolver(xml.getObjectImpl(
-                SitemapResolver.class,
-                Fields.sitemapResolver, sitemapResolver));
-        setSitemapLocator(xml.getObjectImpl(
-                SitemapLocator.class, Fields.sitemapLocator, sitemapLocator));
-
-        // Canonical Link Detector
-        setCanonicalLinkDetector(xml.getObjectImpl(CanonicalLinkDetector.class,
-                "canonicalLinkDetector", canonicalLinkDetector));
-
-        // Recrawlable resolver
-        setRecrawlableResolver(xml.getObjectImpl(RecrawlableResolver.class,
-                "recrawlableResolver", recrawlableResolver));
-
-        // RobotsMeta provider
-        setRobotsMetaProvider(xml.getObjectImpl(
-                RobotsMetaProvider.class, "robotsMeta", robotsMetaProvider));
-
-        // Link Extractors
-        setLinkExtractors(xml.getObjectListImpl(LinkExtractor.class,
-                "linkExtractors/extractor", linkExtractors));
-
-        postImportLinks.loadFromXML(xml.getXML("postImportLinks/fieldMatcher"));
-        postImportLinksKeep =
-                xml.getBoolean("postImportLinks/@keep", postImportLinksKeep);
-
-        // Removed/replaced version 2.x configuration options:
-        xml.checkDeprecated("httpClientFactory", "httpFetchers/fetcher", true);
-        xml.checkDeprecated("metadataFetcher", "httpFetchers/fetcher", true);
-        xml.checkDeprecated("documentFetcher", "httpFetchers/fetcher", true);
-        xml.checkDeprecated("redirectURLProvider",
-                """
-                    'redirectURLProvider' under 'httpFetchers/fetcher' for\s\
-                    com.norconex.crawler.web.fetch.impl\
-                    .GenericHttpFetcher""", true);
-        xml.checkDeprecated("userAgent",
-                """
-                    'userAgent' under 'httpFetchers/fetcher' for\s\
-                    com.norconex.crawler.web.fetch.impl\
-                    .GenericHttpFetcher and possibly other fetchers""",
-                        true);
-    }
-
-    private void loadSimpleSettings(XML xml) {
-        xml.checkDeprecated("keepOutOfScopeLinks", "keepReferencedLinks", true);
-
-        setUrlNormalizer(xml.getObjectImpl(
-                WebURLNormalizer.class, "urlNormalizer", urlNormalizer));
-        setDelayResolver(xml.getObjectImpl(
-                DelayResolver.class, "delay", delayResolver));
-
-        setKeepReferencedLinks(new HashSet<>(xml.getDelimitedEnumList(
-                "keepReferencedLinks", ReferencedLinkType.class,
-                        new ArrayList<>(keepReferencedLinks))));
-        urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
-                "start/@stayOnProtocol",
-                urlCrawlScopeStrategy.isStayOnProtocol()));
-        urlCrawlScopeStrategy.setStayOnDomain(xml.getBoolean(
-                "start/@stayOnDomain",
-                urlCrawlScopeStrategy.isStayOnDomain()));
-        urlCrawlScopeStrategy.setIncludeSubdomains(xml.getBoolean(
-                "start/@includeSubdomains",
-                urlCrawlScopeStrategy.isIncludeSubdomains()));
-        urlCrawlScopeStrategy.setStayOnPort(xml.getBoolean(
-                "start/@stayOnPort",
-                urlCrawlScopeStrategy.isStayOnPort()));
-        setStartReferencesSitemaps(
-                xml.getStringList("start/sitemap", startReferencesSitemaps));
-        setStayOnSitemap(xml.getBoolean(
-                "start/@stayOnSitemap",
-                isStayOnSitemap()));
-    }
+//    @Override
+//    public void saveToXML(XML xml) {
+//        super.saveToXML(xml);
+//        xml.addDelimitedElementList("keepReferencedLinks",
+//                new ArrayList<>(keepReferencedLinks));
+//
+//        var startXML = xml.computeElementIfAbsent("start", null)
+//                .setAttribute("stayOnProtocol",
+//                        urlCrawlScopeStrategy.isStayOnProtocol())
+//                .setAttribute("stayOnDomain",
+//                        urlCrawlScopeStrategy.isStayOnDomain())
+//                .setAttribute("includeSubdomains",
+//                        urlCrawlScopeStrategy.isIncludeSubdomains())
+//                .setAttribute("stayOnPort",
+//                        urlCrawlScopeStrategy.isStayOnPort())
+//                .setAttribute("stayOnSitemap",
+//                        stayOnSitemap);
+//
+//        startXML.addElementList("sitemap", startReferencesSitemaps);
+//
+//        xml.addElement("urlNormalizer", urlNormalizer);
+//        xml.addElement("delay", delayResolver);
+//        xml.addElement("robotsTxt", robotsTxtProvider);
+//        xml.addElement("sitemapResolver", sitemapResolver);
+//        xml.addElement(Fields.sitemapLocator, sitemapLocator);
+//        xml.addElement("canonicalLinkDetector", canonicalLinkDetector);
+//        xml.addElement("recrawlableResolver", recrawlableResolver);
+//
+//        xml.addElement("robotsMeta", robotsMetaProvider);
+//        xml.addElementList("linkExtractors", "extractor", linkExtractors);
+//
+//        postImportLinks.saveToXML(
+//                xml.addElement("postImportLinks")
+//                        .setAttribute("keep", postImportLinksKeep)
+//                        .addElement("fieldMatcher"));
+//    }
+//
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        super.loadFromXML(xml);
+//
+//        // Simple Settings
+//        loadSimpleSettings(xml);
+//
+//        // RobotsTxt provider
+//        setRobotsTxtProvider(xml.getObjectImpl(
+//                RobotsTxtProvider.class, "robotsTxt", robotsTxtProvider));
+//
+//        // Sitemap Resolver
+//        setSitemapResolver(xml.getObjectImpl(
+//                SitemapResolver.class,
+//                Fields.sitemapResolver, sitemapResolver));
+//        setSitemapLocator(xml.getObjectImpl(
+//                SitemapLocator.class, Fields.sitemapLocator, sitemapLocator));
+//
+//        // Canonical Link Detector
+//        setCanonicalLinkDetector(xml.getObjectImpl(CanonicalLinkDetector.class,
+//                "canonicalLinkDetector", canonicalLinkDetector));
+//
+//        // Recrawlable resolver
+//        setRecrawlableResolver(xml.getObjectImpl(RecrawlableResolver.class,
+//                "recrawlableResolver", recrawlableResolver));
+//
+//        // RobotsMeta provider
+//        setRobotsMetaProvider(xml.getObjectImpl(
+//                RobotsMetaProvider.class, "robotsMeta", robotsMetaProvider));
+//
+//        // Link Extractors
+//        setLinkExtractors(xml.getObjectListImpl(LinkExtractor.class,
+//                "linkExtractors/extractor", linkExtractors));
+//
+//        postImportLinks.loadFromXML(xml.getXML("postImportLinks/fieldMatcher"));
+//        postImportLinksKeep =
+//                xml.getBoolean("postImportLinks/@keep", postImportLinksKeep);
+//
+//        // Removed/replaced version 2.x configuration options:
+//        xml.checkDeprecated("httpClientFactory", "httpFetchers/fetcher", true);
+//        xml.checkDeprecated("metadataFetcher", "httpFetchers/fetcher", true);
+//        xml.checkDeprecated("documentFetcher", "httpFetchers/fetcher", true);
+//        xml.checkDeprecated("redirectURLProvider",
+//                """
+//                    'redirectURLProvider' under 'httpFetchers/fetcher' for\s\
+//                    com.norconex.crawler.web.fetch.impl\
+//                    .GenericHttpFetcher""", true);
+//        xml.checkDeprecated("userAgent",
+//                """
+//                    'userAgent' under 'httpFetchers/fetcher' for\s\
+//                    com.norconex.crawler.web.fetch.impl\
+//                    .GenericHttpFetcher and possibly other fetchers""",
+//                        true);
+//    }
+//
+//    private void loadSimpleSettings(XML xml) {
+//        xml.checkDeprecated("keepOutOfScopeLinks", "keepReferencedLinks", true);
+//
+//        setUrlNormalizer(xml.getObjectImpl(
+//                WebURLNormalizer.class, "urlNormalizer", urlNormalizer));
+//        setDelayResolver(xml.getObjectImpl(
+//                DelayResolver.class, "delay", delayResolver));
+//
+//        setKeepReferencedLinks(new HashSet<>(xml.getDelimitedEnumList(
+//                "keepReferencedLinks", ReferencedLinkType.class,
+//                        new ArrayList<>(keepReferencedLinks))));
+//        urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
+//                "start/@stayOnProtocol",
+//                urlCrawlScopeStrategy.isStayOnProtocol()));
+//        urlCrawlScopeStrategy.setStayOnDomain(xml.getBoolean(
+//                "start/@stayOnDomain",
+//                urlCrawlScopeStrategy.isStayOnDomain()));
+//        urlCrawlScopeStrategy.setIncludeSubdomains(xml.getBoolean(
+//                "start/@includeSubdomains",
+//                urlCrawlScopeStrategy.isIncludeSubdomains()));
+//        urlCrawlScopeStrategy.setStayOnPort(xml.getBoolean(
+//                "start/@stayOnPort",
+//                urlCrawlScopeStrategy.isStayOnPort()));
+//        setStartReferencesSitemaps(
+//                xml.getStringList("start/sitemap", startReferencesSitemaps));
+//        setStayOnSitemap(xml.getBoolean(
+//                "start/@stayOnSitemap",
+//                isStayOnSitemap()));
+//    }
 }

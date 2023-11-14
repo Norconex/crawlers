@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.norconex.committer.core.batch;
 
 import java.util.Iterator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.AbstractCommitter;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.CommitterException;
@@ -24,8 +25,6 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -53,7 +52,7 @@ import lombok.ToString;
  *
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
- * <p>Subclasses inherits this {@link XMLConfigurable} configuration:</p>
+ * <p>Subclasses inherits this configuration:</p>
  *
  * {@nx.xml #options
  *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
@@ -66,40 +65,46 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public abstract class AbstractBatchCommitter extends AbstractCommitter
-        implements XMLConfigurable, BatchConsumer {
+public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
+        extends AbstractCommitter<T>
+        implements BatchConsumer {
 
-    private CommitterQueue queue = new FSQueue();
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    private CommitterQueue initializedQueue;
 
     @Override
     protected final void doInit() throws CommitterException {
-        if (queue == null) {
-            queue = new FSQueue();
+        if (getConfiguration().getQueue() != null) {
+            initializedQueue = getConfiguration().getQueue();
+        } else {
+            initializedQueue = new FSQueue();
         }
         initBatchCommitter();
-        queue.init(getCommitterContext(), this);
+        initializedQueue.init(getCommitterContext(), this);
     }
     @Override
     protected void doUpsert(UpsertRequest upsertRequest)
             throws CommitterException {
-        queue.queue(upsertRequest);
+        initializedQueue.queue(upsertRequest);
     }
     @Override
     protected void doDelete(DeleteRequest deleteRequest)
             throws CommitterException {
-        queue.queue(deleteRequest);
+        initializedQueue.queue(deleteRequest);
     }
     @Override
     protected void doClose() throws CommitterException {
         try {
-            queue.close();
+            initializedQueue.close();
         } finally {
             closeBatchCommitter();
         }
     }
     @Override
     protected void doClean() throws CommitterException {
-        queue.clean();
+        initializedQueue.clean();
     }
 
     @Override
@@ -115,26 +120,8 @@ public abstract class AbstractBatchCommitter extends AbstractCommitter
         fireInfo(CommitterEvent.COMMITTER_BATCH_END);
     }
 
-    @Override
-    public final void loadCommitterFromXML(XML xml) {
-        loadBatchCommitterFromXML(xml);
-        setCommitterQueue(
-                xml.getObjectImpl(CommitterQueue.class, "queue", queue));
-    }
-    @Override
-    public final void saveCommitterToXML(XML xml) {
-        saveBatchCommitterToXML(xml);
-        xml.addElement("queue", queue);
-    }
-
-    protected abstract void loadBatchCommitterFromXML(XML xml);
-    protected abstract void saveBatchCommitterToXML(XML xml);
-
-    public CommitterQueue getCommitterQueue() {
-        return queue;
-    }
-    public void setCommitterQueue(CommitterQueue queue) {
-        this.queue = queue;
+    protected CommitterQueue getInitializedQueue() {
+        return initializedQueue;
     }
 
     /**
@@ -163,6 +150,6 @@ public abstract class AbstractBatchCommitter extends AbstractCommitter
      * @throws CommitterException error closing committer
      */
     protected void closeBatchCommitter() throws CommitterException {
-        //NOOP
+        initializedQueue = null;
     }
 }

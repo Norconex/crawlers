@@ -31,6 +31,7 @@ import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
+import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -41,8 +42,6 @@ import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.path.FsPath;
 import com.norconex.importer.doc.DocMetadata;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -55,13 +54,13 @@ import lombok.ToString;
  * <a href="https://commons.apache.org/proper/commons-vfs/">Apache Commons
  * VFS</a>.
  * </p>
+ * @param <C> configuration type
  * @see AbstractAuthVfsFetcher
  */
 @EqualsAndHashCode
 @ToString
-@XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractVfsFetcher
-        extends AbstractFetcher<FileFetchRequest, FileFetchResponse>
+public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
+        extends AbstractFetcher<FileFetchRequest, FileFetchResponse, C>
         implements FileFetcher {
 
     @Getter(value = AccessLevel.PACKAGE)

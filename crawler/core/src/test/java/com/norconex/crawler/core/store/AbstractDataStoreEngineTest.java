@@ -27,9 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.EqualsUtil;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.TestUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -258,8 +257,7 @@ public abstract class AbstractDataStoreEngineTest {
     void testEngineWriteRead() {
         var engine = createEngine();
         assertThatNoException().isThrownBy(() ->
-                XML.assertWriteRead((XMLConfigurable) engine,
-                        "dataStoreEngine"));
+                BeanMapper.DEFAULT.assertWriteRead(engine));
     }
 
     private void savePojo(TestObject testPojo) {

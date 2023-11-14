@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,25 @@
  */
 package com.norconex.importer.response;
 
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.response.DummyResponseProcessor.DummyConfig;
+
 import lombok.Data;
 
 // For testing, does nothing
 @Data
-public class DummyResponseProcessor implements ImporterResponseProcessor {
+public class DummyResponseProcessor
+        implements ImporterResponseProcessor, Configurable<DummyConfig> {
 
-    private String dummyProperty = "dummy";
+    private final DummyConfig configuration = new DummyConfig();
 
     @Override
-    public ImporterStatus processImporterResponse(ImporterResponse response) {
-        return response.getImporterStatus();
+    public void processImporterResponse(ImporterResponse response) {
+        //NOOP
+    }
+
+    @Data
+    public static class DummyConfig {
+        private String dummyProperty = "dummy";
     }
 }

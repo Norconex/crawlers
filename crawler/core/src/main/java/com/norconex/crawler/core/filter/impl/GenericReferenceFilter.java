@@ -18,18 +18,17 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
+import com.norconex.crawler.core.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatchFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.OnMatch;
-import com.norconex.importer.handler.filter.OnMatchFilter;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 /**
  * <p>
@@ -63,66 +62,25 @@ public class GenericReferenceFilter implements
         ReferenceFilter,
         DocumentFilter,
         MetadataFilter,
-        XMLConfigurable {
+        Configurable<GenericReferenceFilterConfig> {
 
-    private OnMatch onMatch;
-    private final TextMatcher valueMatcher = new TextMatcher();
-
-    public GenericReferenceFilter() {
-        this(null, OnMatch.INCLUDE);
-    }
-    public GenericReferenceFilter(TextMatcher valueMatcher) {
-        this(valueMatcher, OnMatch.INCLUDE);
-    }
-    public GenericReferenceFilter(
-            TextMatcher valueMatcher,
-            OnMatch onMatch) {
-        setValueMatcher(valueMatcher);
-        setOnMatch(onMatch);
-    }
-
-    /**
-     * Gets the value matcher.
-     * @return value matcher
-     */
-    public TextMatcher getValueMatcher() {
-        return valueMatcher;
-    }
-    /**
-     * Sets the value matcher.
-     * @param valueMatcher value matcher
-     */
-    public void setValueMatcher(TextMatcher valueMatcher) {
-        this.valueMatcher.copyFrom(valueMatcher);
-    }
+    @Getter
+    private final GenericReferenceFilterConfig configuration =
+            new GenericReferenceFilterConfig();
 
     @Override
     public OnMatch getOnMatch() {
-        return onMatch;
-    }
-    public void setOnMatch(OnMatch onMatch) {
-        this.onMatch = onMatch;
+        return OnMatch.includeIfNull(configuration.getOnMatch());
     }
 
     @Override
     public boolean acceptReference(String reference) {
         var isInclude = getOnMatch() == OnMatch.INCLUDE;
-        if (StringUtils.isBlank(valueMatcher.getPattern())) {
+        if (StringUtils.isBlank(configuration.getValueMatcher().getPattern())) {
             return isInclude;
         }
-        var matches = valueMatcher.matches(reference);
+        var matches = configuration.getValueMatcher().matches(reference);
         return matches == isInclude;
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setOnMatch(xml.getEnum("@onMatch", OnMatch.class, onMatch));
-        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("onMatch", onMatch);
-        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
     }
 
     @Override

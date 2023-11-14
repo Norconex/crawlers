@@ -219,7 +219,8 @@ class StandardRobotsTxtProviderTest {
         var regexFilter = (GenericReferenceFilter) robotRule;
         Assertions.assertEquals(
                 match,
-                url.matches(regexFilter.getValueMatcher().getPattern()));
+                url.matches(regexFilter.getConfiguration()
+                        .getValueMatcher().getPattern()));
     }
 
     private void assertMatch(

@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  */
 package com.norconex.importer;
 
+import java.io.IOException;
+
 import lombok.experimental.StandardException;
 
 /**
  * Exception thrown when an issue prevented the proper importation of a file.
  */
 @StandardException
-public class ImporterException extends Exception {
+public class ImporterException extends IOException {
     private static final long serialVersionUID = 1L;
 }

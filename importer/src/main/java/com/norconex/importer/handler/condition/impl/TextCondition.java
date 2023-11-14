@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.io.IOException;
+
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.AbstractCharStreamCondition;
-import com.norconex.importer.handler.condition.AbstractStringCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.condition.BaseCondition;
+import com.norconex.importer.util.chunk.ChunkedTextReader;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * <p>
@@ -58,73 +59,53 @@ import lombok.ToString;
  *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class TextCondition extends AbstractStringCondition {
+@Data
+public class TextCondition
+        extends BaseCondition
+        implements Configurable<TextConditionConfig> {
 
-    private final TextMatcher fieldMatcher = new TextMatcher();
-    private final TextMatcher valueMatcher = new TextMatcher();
+    private final TextConditionConfig configuration =
+            new TextConditionConfig();
 
-    public TextCondition() {
-    }
+    public TextCondition() {}
     public TextCondition(TextMatcher valueMatcher) {
-        setValueMatcher(valueMatcher);
+        configuration.setValueMatcher(valueMatcher);
     }
     public TextCondition(TextMatcher fieldMatcher, TextMatcher valueMatcher) {
-        setValueMatcher(valueMatcher);
-        setFieldMatcher(fieldMatcher);
-    }
-
-    /**
-     * Gets the text matcher for content or field values.
-     * @return text matcher
-     */
-    public TextMatcher getValueMatcher() {
-        return valueMatcher;
-    }
-    /**
-     * Sets the text matcher for content or field values. Copies it.
-     * @param valueMatcher text matcher
-     */
-    public void setValueMatcher(TextMatcher valueMatcher) {
-        this.valueMatcher.copyFrom(valueMatcher);
-    }
-    /**
-     * Gets the text matcher of field names.
-     * @return field matcher
-     */
-    public TextMatcher getFieldMatcher() {
-        return fieldMatcher;
-    }
-    /**
-     * Sets the text matcher of field names. Copies it.
-     * @param fieldMatcher text matcher
-     */
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
+        configuration
+            .setValueMatcher(valueMatcher)
+            .setFieldMatcher(fieldMatcher);
     }
 
     @Override
-    protected boolean testDocument(HandlerDoc doc,
-            String input, ParseState parseState, int sectionIndex)
-                    throws ImporterHandlerException {
+    public boolean evaluate(DocContext docCtx) throws IOException {
+        var matches = new MutableBoolean();
+        ChunkedTextReader.builder()
+            .charset(configuration.getSourceCharset())
+            .fieldMatcher(configuration.getFieldMatcher())
+            .maxChunkSize(configuration.getMaxReadSize())
+            .build()
+            .read(docCtx, chunk -> {
+                if (matches.isFalse()
+                        && textMatches(docCtx, chunk.getText())) {
+                    matches.setTrue();
+                }
+                return true;
+            });
+        return matches.booleanValue();
+    }
+
+    private boolean textMatches(DocContext docCtx, String input) {
+
         // content
-        if (fieldMatcher.getPattern() == null) {
-            return valueMatcher.matches(input);
+        if (configuration.getFieldMatcher().getPattern() == null) {
+            return configuration.getValueMatcher().matches(input);
         }
 
         // field(s)
         return new PropertyMatcher(
-                fieldMatcher, valueMatcher).matches(doc.getMetadata());
-    }
-    @Override
-    protected void loadStringConditionFromXML(XML xml) {
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
-    }
-    @Override
-    protected void saveStringConditionToXML(XML xml) {
-        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
-        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
+                configuration.getFieldMatcher(),
+                configuration.getValueMatcher())
+                    .matches(docCtx.metadata());
     }
 }

@@ -20,9 +20,9 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
-import com.norconex.cfgconverter.json.XmlToJsonConfigConverter;
+import com.norconex.cfgconverter.json.XmlV4ToJsonV4ConfigConverter;
 import com.norconex.cfgconverter.xml.XmlToXmlV4ConfigConverter;
-import com.norconex.cfgconverter.yaml.XmlToYamlConfigConverter;
+import com.norconex.cfgconverter.yaml.XmlV4ToYamlV4ConfigConverter;
 import com.norconex.commons.lang.xml.XML;
 
 import lombok.EqualsAndHashCode;
@@ -63,8 +63,8 @@ public class ConfigConverterLauncher
 
     private enum Format {
         xml(XmlToXmlV4ConfigConverter::new), //NOSONAR
-        yaml(XmlToYamlConfigConverter::new), //NOSONAR
-        json(XmlToJsonConfigConverter::new)  //NOSONAR
+        yaml(XmlV4ToYamlV4ConfigConverter::new), //NOSONAR
+        json(XmlV4ToJsonV4ConfigConverter::new)  //NOSONAR
         ;
         final Supplier<ConfigConverter> converterSupplier;
         Format(Supplier<ConfigConverter> converterSupplier) {
@@ -123,8 +123,10 @@ public class ConfigConverterLauncher
             return Format.yaml;
         });
 
+        var xml = new XML(inputFile);
         try (var writer = Files.newBufferedWriter(outputFile)) {
-            fmt.converterSupplier.get().convert(new XML(inputFile), writer);
+
+            fmt.converterSupplier.get().convert(xml, writer);
         }
         return 0;
     }

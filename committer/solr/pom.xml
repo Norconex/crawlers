@@ -13,12 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project 
-  xmlns="https://maven.apache.org/POM/4.0.0" 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
->
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.norconex.crawler</groupId>
@@ -31,7 +26,7 @@
   <name>Norconex Committer Solr</name>
 
   <properties>
-    <solr.version>9.2.1</solr.version>
+    <solr.version>9.3.0</solr.version>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>  
   </properties>
   <inceptionYear>2009</inceptionYear>
@@ -79,6 +74,29 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- The following is to test write/read to/from XML/JSON/Yaml -->    
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-el</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- 
+      When testing Solr it seems to run on glassfish/jersey and 
+      it needs it as a dependency somehow.
+      -->
+    <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+      <version>2.0.1.Final</version>
       <scope>test</scope>
     </dependency>
     

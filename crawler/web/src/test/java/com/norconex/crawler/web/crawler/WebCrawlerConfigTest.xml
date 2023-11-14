@@ -17,6 +17,7 @@
 -->
 
 <crawlSession id="My Collector Name">
+<!-- TODO add support for crawler defaults:
 
   <crawlerDefaults>
 
@@ -25,6 +26,7 @@
     </start>
 
   </crawlerDefaults>
+ -->
 
 
   <!-- -->

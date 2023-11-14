@@ -43,7 +43,7 @@ class JdbcDataStoreEngineTest extends AbstractDataStoreEngineTest {
             var engine = new JdbcDataStoreEngine();
             var cfg = new Properties();
             cfg.add("jdbcUrl", connStr);
-            engine.setConfigProperties(cfg);
+            engine.getConfiguration().setProperties(cfg);
             return engine;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);

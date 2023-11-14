@@ -27,8 +27,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.UpsertRequest;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.fs.FsStubber;
 import com.norconex.crawler.fs.TestFsCrawlSession;
 import com.norconex.crawler.fs.fetch.FileFetcher;
@@ -95,8 +95,9 @@ public abstract class AbstractFileFetcherTest {
         //TODO reliably test dates. Probably best to create new files
 
 
-        assertThatNoException().isThrownBy(() -> XML.assertWriteRead(
-                FsStubber.randomize(fetcher.getClass()), "fetcher"));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(
+                        FsStubber.randomize(fetcher.getClass())));
         // Assert ACLs
 
         //TODO extract ACL, possibly making it a flag if costly?

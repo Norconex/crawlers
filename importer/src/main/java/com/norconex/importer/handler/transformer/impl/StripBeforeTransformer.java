@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
 
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.transformer.AbstractStringTransformer;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.handler.BaseDocumentHandler;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>Strips any content found before first match found for given pattern.</p>
@@ -59,71 +56,33 @@ import lombok.ToString;
  *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class StripBeforeTransformer extends AbstractStringTransformer
-        implements XMLConfigurable {
+@Data
+@Slf4j
+public class StripBeforeTransformer
+        extends BaseDocumentHandler
+        implements Configurable<StripBeforeTransformerConfig> {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(StripBeforeTransformer.class);
-
-    private boolean inclusive;
-    private final TextMatcher stripBeforeMatcher = new TextMatcher();
+    private final StripBeforeTransformerConfig configuration =
+            new StripBeforeTransformerConfig();
 
     @Override
-    protected void transformStringContent(HandlerDoc doc,
-            final StringBuilder content, final ParseState parseState,
-            final int sectionIndex) {
-        if (stripBeforeMatcher.getPattern() == null) {
+    public void handle(DocContext docCtx) throws IOException {
+        if (!configuration.getStripBeforeMatcher().isSet()) {
             LOG.error("No matcher pattern provided.");
             return;
         }
 
-        var m = stripBeforeMatcher.toRegexMatcher(content);
-        if (m.find()) {
-            if (inclusive) {
-                content.delete(0, m.end());
-            } else {
-                content.delete(0, m.start());
+        ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
+            var b = new StringBuilder(chunk.getText());
+            var m = configuration.getStripBeforeMatcher().toRegexMatcher(b);
+            if (m.find()) {
+                if (configuration.isInclusive()) {
+                    b.delete(0, m.end());
+                } else {
+                    b.delete(0, m.start());
+                }
             }
-        }
-    }
-
-    /**
-     * Gets the matcher for the text up to which to strip content.
-     * @return text matcher
-         */
-    public TextMatcher getStripBeforeMatcher() {
-        return stripBeforeMatcher;
-    }
-    /**
-     * Sets the matcher for the text up to which to strip content.
-     * @param stripBeforeMatcher text matcher
-         */
-    public void setStripBeforeMatcher(TextMatcher stripBeforeMatcher) {
-        this.stripBeforeMatcher.copyFrom(stripBeforeMatcher);
-    }
-
-    public boolean isInclusive() {
-        return inclusive;
-    }
-    /**
-     * Sets whether the match itself should be stripped or not.
-     * @param inclusive <code>true</code> to strip start and end text
-     */
-    public void setInclusive(final boolean inclusive) {
-        this.inclusive = inclusive;
-    }
-
-    @Override
-    protected void loadStringTransformerFromXML(final XML xml) {
-        setInclusive(xml.getBoolean("@inclusive", inclusive));
-        stripBeforeMatcher.loadFromXML(xml.getXML("stripBeforeMatcher"));
-    }
-
-    @Override
-    protected void saveStringTransformerToXML(final XML xml) {
-        xml.setAttribute("inclusive", inclusive);
-        stripBeforeMatcher.saveToXML(xml.addElement("stripBeforeMatcher"));
+            return b.toString();
+        });
     }
 }

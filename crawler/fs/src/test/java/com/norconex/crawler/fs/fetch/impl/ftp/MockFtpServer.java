@@ -107,12 +107,13 @@ class MockFtpServer {
 
     public static FtpFetcher fetcherClient() {
         var fetcher = new FtpFetcher();
-        fetcher.getCredentials()
-            .setUsername("testuser")
-            .setPassword("testpassword");
+        fetcher.getConfiguration()
+            .setMdtmLastModifiedTime(true)
+            .setUserDirIsRoot(false)
+            .getCredentials()
+                .setUsername("testuser")
+                .setPassword("testpassword");
         //fetcher.setPassiveMode(true);
-        fetcher.setUserDirIsRoot(false);
-        fetcher.setMdtmLastModifiedTime(true);
         return fetcher;
     }
 }

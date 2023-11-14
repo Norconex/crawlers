@@ -141,7 +141,7 @@ final class ThreadActionFinalize {
 
             var strategy = Optional.ofNullable(ctx
                     .crawler()
-                    .getCrawlerConfig()
+                    .getConfiguration()
                     .getSpoiledReferenceStrategizer())
                 .map(srs -> srs.resolveSpoiledReferenceStrategy(
                         ctx.docRecord().getReference(),

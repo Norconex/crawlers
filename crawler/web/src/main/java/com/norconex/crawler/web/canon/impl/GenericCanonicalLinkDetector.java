@@ -34,8 +34,6 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.canon.CanonicalLinkDetector;
 
 import lombok.EqualsAndHashCode;
@@ -92,12 +90,9 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-//@Schema(name = "com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector",
-//  allOf = CanonicalLinkDetector.class)
-//@Schema(allOf = CanonicalLinkDetector.class)
 public class GenericCanonicalLinkDetector
         implements CanonicalLinkDetector,
-            Configurable<GenericCanonicalLinkDetectorConfig>, XMLConfigurable {
+            Configurable<GenericCanonicalLinkDetectorConfig> {
 
     private static final List<ContentType> DEFAULT_CONTENT_TYPES =
             Collections.unmodifiableList(Arrays.asList(
@@ -110,27 +105,10 @@ public class GenericCanonicalLinkDetector
     private final GenericCanonicalLinkDetectorConfig configuration =
             new GenericCanonicalLinkDetectorConfig(DEFAULT_CONTENT_TYPES);
 
-//    private final List<ContentType> contentTypes =
-//            new ArrayList<>(DEFAULT_CONTENT_TYPES);
-//
-//
-//    public List<ContentType> getContentTypes() {
-//        return Collections.unmodifiableList(contentTypes);
-//    }
-//    /**
-//     * Sets the content types on which to perform canonical link detection.
-//     * @param contentTypes content types
-//     * @since 3.0.0
-//     */
-//    public void setContentTypes(List<ContentType> contentTypes) {
-//        CollectionUtil.setAll(this.contentTypes, contentTypes);
-//    }
-
     @Override
     public GenericCanonicalLinkDetectorConfig getConfiguration() {
         return configuration;
     }
-
 
     @Override
     public String detectFromMetadata(String reference, Properties metadata) {
@@ -202,17 +180,5 @@ public class GenericCanonicalLinkDetector
 
         return HttpURL.toAbsolute(
                 pageReference, StringEscapeUtils.unescapeHtml4(link));
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        configuration.setContentTypes(xml.getDelimitedList(
-                "contentTypes",
-                ContentType.class, configuration.getContentTypes()));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addDelimitedElementList(
-                "contentTypes", configuration.getContentTypes());
     }
 }

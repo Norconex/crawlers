@@ -14,44 +14,61 @@
  */
 package com.norconex.crawler.core.pipeline.importer;
 
-import java.io.ByteArrayInputStream;
-import java.time.ZonedDateTime;
+import java.util.List;
 
-import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.commons.lang.function.Predicates;
+import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.importer.response.ImporterResponse;
 
 public class MockImporterPipeline implements ImporterPipeline {
 
+    private final Predicates<ImporterPipelineContext> stages =
+        new Predicates<>(List.of(
+            new MetadataFiltersStage(FetchDirective.METADATA),
+            new MetadataChecksumStage(FetchDirective.METADATA),
+            new MetadataDedupStage(FetchDirective.METADATA),
+            new MetadataFiltersStage(FetchDirective.DOCUMENT),
+            new MetadataChecksumStage(FetchDirective.DOCUMENT),
+            new MetadataDedupStage(FetchDirective.DOCUMENT),
+            new DocumentFiltersStage(),
+            new DocumentPreProcessingStage(),
+            new ImportModuleStage()
+        ));
+
     @Override
     public ImporterResponse apply(ImporterPipelineContext ctx) {
-
-        //TODO make configurable to test multiple scenarios
-
-        // Simulate fetch
-        //TODO invoke mock fetch to test fetching??
-
-        var doc = ctx.getDocument();
-        doc.setInputStream(
-                new ByteArrayInputStream("Mock content.".getBytes()));
-
-        var rec = ctx.getDocRecord();
-        rec.setState(CrawlDocState.MODIFIED);
-        rec.setCrawlDate(ZonedDateTime.now());
-        rec.setContentEncoding("UTF-8");
-        rec.setContentType(ContentType.HTML);
-        rec.setContentChecksum("mock-content-checksum");
-        rec.setMetaChecksum("mock-meta-checksum");
-
-        //MAYBE Those should be set reflectively based on DocRecord properties?
-        var meta = doc.getMetadata();
-
-        meta.set("mock.alsoCached", ctx.getCachedDocRecord() != null);
-
-        meta.set(DocMetadata.CONTENT_TYPE, rec.getContentType());
-        meta.set(DocMetadata.CONTENT_ENCODING, rec.getContentEncoding());
-
-        return ctx.getCrawler().getImporter().importDocument(doc);
+        stages.test(ctx);
+        return ctx.getImporterResponse();
     }
+
+//    @Override
+//    public ImporterResponse DELETE_apply(ImporterPipelineContext ctx) {
+//
+//        //TODO make configurable to test multiple scenarios
+//
+//        // Simulate fetch
+//        //TODO invoke mock fetch to test fetching??
+//
+//        var doc = ctx.getDocument();
+//        doc.setInputStream(
+//                new ByteArrayInputStream("Mock content.".getBytes()));
+//
+//        var rec = ctx.getDocRecord();
+//        rec.setState(CrawlDocState.MODIFIED);
+//        rec.setCrawlDate(ZonedDateTime.now());
+//        rec.setCharset(UTF_8);
+//        rec.setContentType(ContentType.HTML);
+//        rec.setContentChecksum("mock-content-checksum");
+//        rec.setMetaChecksum("mock-meta-checksum");
+//
+//        //MAYBE Those should be set reflectively based on DocRecord properties?
+//        var meta = doc.getMetadata();
+//
+//        meta.set("mock.alsoCached", ctx.getCachedDocRecord() != null);
+//
+//        meta.set(DocMetadata.CONTENT_TYPE, rec.getContentType());
+//        meta.set(DocMetadata.CONTENT_ENCODING, rec.getCharset());
+//
+//        return ctx.getCrawler().getImporter().importDocument(doc);
+//    }
 }

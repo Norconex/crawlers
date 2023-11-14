@@ -28,10 +28,10 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
+import com.norconex.crawler.core.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatchFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.OnMatch;
-import com.norconex.importer.handler.filter.OnMatchFilter;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

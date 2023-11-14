@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.apache.commons.collections4.ListUtils;
 
-import com.norconex.importer.handler.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatch;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

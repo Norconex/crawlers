@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.text.TextMatcher.Method;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.checksum.AbstractDocumentChecksummer;
 import com.norconex.crawler.core.checksum.ChecksumUtil;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
@@ -28,8 +27,7 @@ import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.session.CrawlSessionException;
 import com.norconex.importer.doc.Doc;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * <p>Implementation of {@link DocumentChecksummer} which
@@ -88,25 +86,27 @@ import lombok.ToString;
  * </p>
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class MD5DocumentChecksummer extends AbstractDocumentChecksummer {
+@Data
+public class MD5DocumentChecksummer
+        extends AbstractDocumentChecksummer<MD5DocumentChecksummerConfig> {
 
-    private final TextMatcher fieldMatcher = new TextMatcher();
-	private boolean combineFieldsAndContent;
+    private final MD5DocumentChecksummerConfig configuration =
+            new MD5DocumentChecksummerConfig();
 
     @Override
     public String doCreateDocumentChecksum(Doc document) {
 
         // fields
-        var fm = new TextMatcher(fieldMatcher);
+        var fm = new TextMatcher(getConfiguration().getFieldMatcher());
         var isSourceFieldsSet = isFieldMatcherSet();
-        if (isCombineFieldsAndContent() && !isSourceFieldsSet) {
+        if (getConfiguration().isCombineFieldsAndContent()
+                && !isSourceFieldsSet) {
             fm.setMethod(Method.REGEX);
             fm.setPattern(".*");
         }
         var b = new StringBuilder();
-        if (isSourceFieldsSet || isCombineFieldsAndContent()) {
+        if (isSourceFieldsSet
+                || getConfiguration().isCombineFieldsAndContent()) {
             var checksum = ChecksumUtil.metadataChecksumMD5(
                     document.getMetadata(), fm);
             if (checksum != null) {
@@ -116,7 +116,8 @@ public class MD5DocumentChecksummer extends AbstractDocumentChecksummer {
         }
 
         // document
-        if (isCombineFieldsAndContent() || !isSourceFieldsSet) {
+        if (getConfiguration().isCombineFieldsAndContent()
+                || !isSourceFieldsSet) {
             try {
                 b.append(ChecksumUtil.checksumMD5(document.getInputStream()));
             } catch (IOException e) {
@@ -129,50 +130,8 @@ public class MD5DocumentChecksummer extends AbstractDocumentChecksummer {
         return StringUtils.trimToNull(b.toString());
     }
 
-    /**
-     * Gets the field matcher.
-     * @return field matcher
-     */
-    public TextMatcher getFieldMatcher() {
-        return fieldMatcher;
-    }
-    /**
-     * Sets the field matcher.
-     * @param fieldMatcher field matcher
-     */
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
-    }
-
     private boolean isFieldMatcherSet() {
-        return StringUtils.isNotBlank(fieldMatcher.getPattern());
-    }
-
-    /**
-     * Gets whether we are combining the fields and content checksums.
-     * @return <code>true</code> if combining fields and content checksums
-     */
-    public boolean isCombineFieldsAndContent() {
-        return combineFieldsAndContent;
-    }
-    /**
-     * Sets whether to combine the fields and content checksums.
-     * @param combineFieldsAndContent <code>true</code> if combining fields
-     *        and content checksums
-     */
-    public void setCombineFieldsAndContent(boolean combineFieldsAndContent) {
-        this.combineFieldsAndContent = combineFieldsAndContent;
-    }
-
-    @Override
-	protected void loadChecksummerFromXML(XML xml) {
-        setCombineFieldsAndContent(xml.getBoolean(
-                "@combineFieldsAndContent", combineFieldsAndContent));
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-    }
-	@Override
-	protected void saveChecksummerToXML(XML xml) {
-        xml.setAttribute("combineFieldsAndContent", combineFieldsAndContent);
-        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
+        return StringUtils.isNotBlank(
+                getConfiguration().getFieldMatcher().getPattern());
     }
 }

@@ -31,6 +31,7 @@ import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -44,7 +45,19 @@ import lombok.NonNull;
 
 public final class WebTestUtil {
 
-    private WebTestUtil() {}
+//    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
+    private static final BeanMapper beanMapper = BeanMapper.builder()
+            .unboundPropertyMapping("", null)
+            .build();
+//            new WebBeanMapperBuilderFactory()
+//                .apply(WebCrawlerConfig.class)
+//                .build();
+
+
+
+    public static BeanMapper beanMapper() {
+        return beanMapper;
+    }
 
     /**
      * Gets the {@link MemoryCommitter} from first committer of the first
@@ -62,7 +75,7 @@ public final class WebTestUtil {
     public static MemoryCommitter getFirstMemoryCommitter(
             @NonNull Crawler crawler) {
         return (MemoryCommitter)
-                crawler.getCrawlerConfig().getCommitters().get(0);
+                crawler.getConfiguration().getCommitters().get(0);
     }
     public static Crawler getFirstCrawler(
             @NonNull CrawlSession crawlSession) {
@@ -87,7 +100,7 @@ public final class WebTestUtil {
     public static GenericHttpFetcherConfig getFirstHttpFetcherConfig(
             @NonNull CrawlerConfig crawlerConfig) {
         return ((GenericHttpFetcher) ((WebCrawlerConfig) crawlerConfig)
-                .getFetchers().get(0)).getConfig();
+                .getFetchers().get(0)).getConfiguration();
     }
     public static GenericHttpFetcherConfig getFirstHttpFetcherConfig(
             @NonNull CrawlSessionConfig crawlSessionConfig) {

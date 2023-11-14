@@ -31,6 +31,7 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
@@ -38,6 +39,7 @@ import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionConfigMapperFactory;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -55,7 +57,21 @@ public final class TestUtil {
         }
     }
 
-    private TestUtil() {
+    private static final BeanMapper beanMapper =
+            CrawlSessionConfigMapperFactory.create(CrawlerConfig.class);
+
+//    private static final CrawlSessionConfigMapper configMapper =
+//            new CrawlSessionConfigMapper(CrawlerConfig.class);
+//
+
+    private TestUtil() {}
+
+//    public static CrawlSessionConfigMapper configMapper() {
+//        return configMapper;
+//    }
+
+    public static BeanMapper beanMapper() {
+        return beanMapper;
     }
 
     /**
@@ -74,7 +90,7 @@ public final class TestUtil {
     public static MemoryCommitter getFirstMemoryCommitter(
             @NonNull Crawler crawler) {
         return (MemoryCommitter)
-                crawler.getCrawlerConfig().getCommitters().get(0);
+                crawler.getConfiguration().getCommitters().get(0);
     }
     public static Crawler getFirstCrawler(
             @NonNull CrawlSession crawlSession) {
@@ -144,7 +160,7 @@ public final class TestUtil {
             List<String> startReferences,
             String... cmdArgs) throws IOException {
         var exit = new Exit();
-        var crawlSessionConfig = new CrawlSessionConfig(CrawlerConfig.class);
+        var crawlSessionConfig = new CrawlSessionConfig();
         crawlSessionConfig.setWorkDir(workDir);
         crawlSessionConfig.addEventListener(
                 event -> exit.getEvents().add(event.getName()));
@@ -205,7 +221,7 @@ public final class TestUtil {
             Consumer<CrawlerConfig> configModifier) {
         var crawler = CoreStubber.crawler(workDir);
         if (configModifier != null) {
-            configModifier.accept(crawler.getCrawlerConfig());
+            configModifier.accept(crawler.getConfiguration());
         }
         crawler.getCrawlSession().sneakyInitCrawlSession();
         crawler.sneakyInitCrawler();

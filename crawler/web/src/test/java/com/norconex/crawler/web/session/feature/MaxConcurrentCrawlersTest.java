@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -102,7 +103,8 @@ class MaxConcurrentCrawlersTest {
                                     i+1,
                                     totalCrawlers,
                                     maxConcurrentCrawlers));
-                    cfg.setStartReferences(serverUrl(client, startPath));
+                    cfg.setStartReferences(
+                            List.of(serverUrl(client, startPath)));
                     cfg.setMaxDepth(-1);
                     cfg.setNumThreads(1);
                     cfg.setMaxDocuments(maxDocs);

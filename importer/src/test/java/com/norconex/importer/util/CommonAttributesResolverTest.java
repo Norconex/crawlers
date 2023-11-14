@@ -16,6 +16,8 @@ package com.norconex.importer.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.charset.Charset;
+
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
@@ -30,8 +32,8 @@ class CommonAttributesResolverTest {
 
         CommonAttributesResolver.resolve(doc);
 
-        assertThat(doc.getDocRecord().getContentEncoding()).isEqualTo(
-                "UTF-16LE");
+        assertThat(doc.getDocRecord().getCharset()).isEqualTo(
+                Charset.forName("UTF-16LE"));
         assertThat(doc.getDocRecord().getContentType()).isEqualTo(
                 ContentType.PDF);
 

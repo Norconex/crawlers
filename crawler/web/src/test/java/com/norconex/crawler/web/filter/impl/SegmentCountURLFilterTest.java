@@ -22,8 +22,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.handler.filter.OnMatch;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.crawler.core.filter.OnMatch;
 
 class SegmentCountURLFilterTest {
 
@@ -85,7 +85,7 @@ class SegmentCountURLFilterTest {
         f.setDuplicate(true);
         f.setOnMatch(OnMatch.EXCLUDE);
         f.setSeparator(Pattern.compile("[/&]"));
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(f, "filter"));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(f));
     }
 }

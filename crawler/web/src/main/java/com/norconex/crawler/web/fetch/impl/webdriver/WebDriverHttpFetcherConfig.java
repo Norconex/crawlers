@@ -17,16 +17,15 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import java.awt.Dimension;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Map.Entry;
 import java.util.function.Function;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.MutableCapabilities;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -36,7 +35,8 @@ import lombok.Data;
  * @since 3.0.0
  */
 @Data
-public class WebDriverHttpFetcherConfig implements XMLConfigurable {
+@Accessors(chain = true)
+public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
 
     public enum WaitElementType {
         TAGNAME(By::tagName),
@@ -81,68 +81,68 @@ public class WebDriverHttpFetcherConfig implements XMLConfigurable {
     private String waitForElementSelector;
     private long waitForElementTimeout;
 
-    @Override
-    public void loadFromXML(XML xml) {
-        setBrowser(xml.getEnum("browser", Browser.class, browser));
-        setDriverPath(xml.getPath("driverPath", driverPath));
-        setBrowserPath(xml.getPath("browserPath", browserPath));
-        setRemoteURL(xml.getURL("remoteURL", remoteURL));
-
-        xml.ifXML("httpSniffer", x -> {
-            var cfg = new HttpSnifferConfig();
-            cfg.loadFromXML(x);
-            //x.populate(cfg);
-            setHttpSnifferConfig(cfg);
-        });
-
-        for (Entry<String, String> en : xml.getStringMap(
-                "capabilities/capability", "@name", ".").entrySet()) {
-            getCapabilities().setCapability(en.getKey(), en.getValue());
-        }
-
-        setWindowSize(xml.getDimension("windowSize", windowSize));
-        setEarlyPageScript(xml.getString("earlyPageScript", earlyPageScript));
-        setLatePageScript(xml.getString("latePageScript", latePageScript));
-        setPageLoadTimeout(
-                xml.getDurationMillis("pageLoadTimeout", pageLoadTimeout));
-        setImplicitlyWait(
-                xml.getDurationMillis("implicitlyWait", implicitlyWait));
-        setScriptTimeout(xml.getDurationMillis("scriptTimeout", scriptTimeout));
-        setWaitForElementType(xml.getEnum("waitForElement/@type",
-                WaitElementType.class, waitForElementType));
-        setWaitForElementSelector(xml.getString("waitForElement/@selector",
-                waitForElementSelector));
-        setWaitForElementTimeout(xml.getDurationMillis("waitForElement",
-                waitForElementTimeout));
-        setThreadWait(xml.getDurationMillis("threadWait", threadWait));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("browser", browser);
-        xml.addElement("driverPath", driverPath);
-        xml.addElement("browserPath", browserPath);
-        xml.addElement("remoteURL", remoteURL);
-
-        if (httpSnifferConfig != null) {
-            httpSnifferConfig.saveToXML(xml.addElement("httpSniffer"));
-        }
-
-        var capabXml = xml.addElement("capabilities");
-        for (Entry<String, Object> en : capabilities.asMap().entrySet()) {
-            capabXml.addElement("capability",
-                    en.getValue()).setAttribute("name", en.getKey());
-        }
-
-        xml.addElement("windowSize", windowSize);
-        xml.addElement("earlyPageScript", earlyPageScript);
-        xml.addElement("latePageScript", latePageScript);
-        xml.addElement("pageLoadTimeout", pageLoadTimeout);
-        xml.addElement("implicitlyWait", implicitlyWait);
-        xml.addElement("scriptTimeout", scriptTimeout);
-        xml.addElement("waitForElement", waitForElementTimeout)
-                .setAttribute("type", waitForElementType)
-                .setAttribute("selector", waitForElementSelector);
-        xml.addElement("threadWait", threadWait);
-    }
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        setBrowser(xml.getEnum("browser", Browser.class, browser));
+//        setDriverPath(xml.getPath("driverPath", driverPath));
+//        setBrowserPath(xml.getPath("browserPath", browserPath));
+//        setRemoteURL(xml.getURL("remoteURL", remoteURL));
+//
+//        xml.ifXML("httpSniffer", x -> {
+//            var cfg = new HttpSnifferConfig();
+//            cfg.loadFromXML(x);
+//            //x.populate(cfg);
+//            setHttpSnifferConfig(cfg);
+//        });
+//
+//        for (Entry<String, String> en : xml.getStringMap(
+//                "capabilities/capability", "@name", ".").entrySet()) {
+//            getCapabilities().setCapability(en.getKey(), en.getValue());
+//        }
+//
+//        setWindowSize(xml.getDimension("windowSize", windowSize));
+//        setEarlyPageScript(xml.getString("earlyPageScript", earlyPageScript));
+//        setLatePageScript(xml.getString("latePageScript", latePageScript));
+//        setPageLoadTimeout(
+//                xml.getDurationMillis("pageLoadTimeout", pageLoadTimeout));
+//        setImplicitlyWait(
+//                xml.getDurationMillis("implicitlyWait", implicitlyWait));
+//        setScriptTimeout(xml.getDurationMillis("scriptTimeout", scriptTimeout));
+//        setWaitForElementType(xml.getEnum("waitForElement/@type",
+//                WaitElementType.class, waitForElementType));
+//        setWaitForElementSelector(xml.getString("waitForElement/@selector",
+//                waitForElementSelector));
+//        setWaitForElementTimeout(xml.getDurationMillis("waitForElement",
+//                waitForElementTimeout));
+//        setThreadWait(xml.getDurationMillis("threadWait", threadWait));
+//    }
+//
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.addElement("browser", browser);
+//        xml.addElement("driverPath", driverPath);
+//        xml.addElement("browserPath", browserPath);
+//        xml.addElement("remoteURL", remoteURL);
+//
+//        if (httpSnifferConfig != null) {
+//            httpSnifferConfig.saveToXML(xml.addElement("httpSniffer"));
+//        }
+//
+//        var capabXml = xml.addElement("capabilities");
+//        for (Entry<String, Object> en : capabilities.asMap().entrySet()) {
+//            capabXml.addElement("capability",
+//                    en.getValue()).setAttribute("name", en.getKey());
+//        }
+//
+//        xml.addElement("windowSize", windowSize);
+//        xml.addElement("earlyPageScript", earlyPageScript);
+//        xml.addElement("latePageScript", latePageScript);
+//        xml.addElement("pageLoadTimeout", pageLoadTimeout);
+//        xml.addElement("implicitlyWait", implicitlyWait);
+//        xml.addElement("scriptTimeout", scriptTimeout);
+//        xml.addElement("waitForElement", waitForElementTimeout)
+//                .setAttribute("type", waitForElementType)
+//                .setAttribute("selector", waitForElementSelector);
+//        xml.addElement("threadWait", threadWait);
+//    }
 }

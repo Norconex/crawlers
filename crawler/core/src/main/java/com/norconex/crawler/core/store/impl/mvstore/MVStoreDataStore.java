@@ -20,54 +20,57 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
+import org.apache.commons.lang3.StringUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
 import com.norconex.crawler.core.store.DataStore;
+import com.norconex.crawler.core.store.impl.SerialUtil;
 
 import lombok.NonNull;
 
 public class MVStoreDataStore<T> implements DataStore<T> {
 
-    private final MVMap<String, T> map;
-    private String name;
+    private final MVMap<String, String> map;
+    private String storeName;
+    private final Class<? extends T> type;
 
-    protected MVStoreDataStore(MVStore mvstore, String name) {
+    protected MVStoreDataStore(
+            @NonNull MVStore mvstore,
+            @NonNull String storeName,
+            @NonNull Class<? extends T> type) {
         requireNonNull(mvstore, "'mvstore' must not be null.");
-        this.name = requireNonNull(name, "'name' must not be null.");
-        map = mvstore.openMap(name);
+        this.storeName = requireNonNull(storeName, "'name' must not be null.");
+        this.type = type;
+        map = mvstore.openMap(storeName);
     }
 
     @Override
     public String getName() {
-        return name;
+        return storeName;
     }
     String rename(String newName) {
-        var oldName = name;
+        var oldName = storeName;
         map.store.renameMap(map, newName);
-        name = newName;
+        storeName = newName;
         return oldName;
     }
 
     @Override
     public void save(String id, @NonNull T object) {
-        // MVStore doc says values cannot be changed after stored...
-        // but testings shows it is OK for us and faster.
-        // If issues arise, re-introduce cloning.
-        //    map.put(id, BeanUtil.clone(object))
-        map.put(id, object);
+        map.put(id, SerialUtil.toJsonString(object));
     }
 
     @Override
     public Optional<T> find(String id) {
-        return Optional.ofNullable(map.get(id));
+        return toObject(map.get(id));
     }
 
     @Override
     public Optional<T> findFirst() {
         var id = map.firstKey();
         if (id != null) {
-            return Optional.ofNullable(map.get(id));
+            return toObject(map.get(id));
         }
         return Optional.empty();
     }
@@ -92,7 +95,7 @@ public class MVStoreDataStore<T> implements DataStore<T> {
         var id = map.firstKey();
         if (id != null) {
             var removed = map.remove(id);
-            return Optional.ofNullable(removed);
+            return toObject(removed);
         }
         return Optional.empty();
     }
@@ -115,15 +118,24 @@ public class MVStoreDataStore<T> implements DataStore<T> {
     // returns true if was all read
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
-        for (Entry<String, T> en : map.entrySet()) {
-            if (!predicate.test(en.getKey(), en.getValue())) {
+        for (Entry<String, String> en : map.entrySet()) {
+            if (!predicate.test(
+                    en.getKey(),
+                    toObject(en.getValue()).orElse(null))) {
                 return false;
             }
         }
         return true;
     }
 
-    MVMap<String, T> getMVMap() {
+    private Optional<T> toObject(String json) {
+        if (StringUtils.isBlank(json)) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(SerialUtil.fromJson(json, type));
+    }
+
+    MVMap<String, String> getMVMap() {
         return map;
     }
 }

@@ -16,6 +16,8 @@ package com.norconex.crawler.fs.fetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.core.crawler.Crawler;
@@ -43,7 +45,7 @@ class FileFetcherProviderTest {
         assertThat(p.apply(crawler).getFetchers())
             .containsExactly(new LocalFetcher()); // default fetcher
 
-        crawlerCfg.setFetchers(new HdfsFetcher(), new SmbFetcher());
+        crawlerCfg.setFetchers(List.of(new HdfsFetcher(), new SmbFetcher()));
         crawler = Crawler.builder()
                 .crawlerConfig(crawlerCfg)
                 .crawlSession(sess)

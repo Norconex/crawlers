@@ -18,6 +18,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 
 import org.apache.commons.io.IOUtils;
@@ -35,9 +36,13 @@ class ImportModuleStageTest {
     void testImportModuleStage() throws IOException {
         var doc = CoreStubber.crawlDoc("ref", "tomato");
         var crawler = CoreStubber.crawler(tempDir);
-        crawler.getCrawlerConfig().getImporterConfig().setPreParseConsumer(
-                hctx -> hctx.getDoc().setInputStream(
-                        IOUtils.toInputStream("potato", UTF_8)));
+        crawler.getConfiguration().getImporterConfig().setHandler(hctx -> {
+            try {
+                hctx.output().asWriter().write("potato");
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         crawler.start();
         var ctx = new ImporterPipelineContext(crawler, doc);
         var stage = new ImportModuleStage();

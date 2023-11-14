@@ -29,7 +29,7 @@ public class FileFetcherProvider
     @Override
     public FileMultiFetcher apply(Crawler crawler) {
 
-        var cfg = crawler.getCrawlerConfig();
+        var cfg = crawler.getConfiguration();
 
         var fetchers = Fs.toFileFetchers(cfg.getFetchers());
         if (fetchers.isEmpty()) {

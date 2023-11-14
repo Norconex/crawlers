@@ -216,6 +216,22 @@
         <type>zip</type>
         <scope>provided</scope>
     </dependency>
+    
+    
+    <!-- TODO: TO FIGURE OUT HOW BEST TO INCLUDE (here vs in -core, etc.) -->    
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+      <version>5.0.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-el</artifactId>
+      <version>10.1.12</version>       
+      <scope>compile</scope>
+    </dependency>
+    
   </dependencies>
   
   <build>

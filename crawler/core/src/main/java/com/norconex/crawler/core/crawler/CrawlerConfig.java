@@ -22,12 +22,12 @@ import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.commons.lang.xml.XPathUtil;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
@@ -45,6 +45,7 @@ import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -180,8 +181,9 @@ import lombok.experimental.FieldNameConstants;
  */
 @SuppressWarnings("javadoc")
 @Data
+@Accessors(chain = true)
 @FieldNameConstants
-public class CrawlerConfig implements XMLConfigurable {
+public class CrawlerConfig {
 
     public enum OrphansStrategy {
         /**
@@ -371,6 +373,9 @@ public class CrawlerConfig implements XMLConfigurable {
      */
     private ImporterConfig importerConfig = new ImporterConfig();
 
+    @JsonProperty("committers")
+    @JacksonXmlElementWrapper(localName = "committers")
+    @JacksonXmlProperty(localName = "committer")
     private final List<Committer> committers = new ArrayList<>();
 
     /**
@@ -460,16 +465,9 @@ public class CrawlerConfig implements XMLConfigurable {
      * Sets the references to initiate crawling from.
      * @param startReferences start references
      */
-    @JsonIgnore
-    public void setStartReferences(String... startReferences) {
+    public CrawlerConfig setStartReferences(List<String> startReferences) {
         CollectionUtil.setAll(this.startReferences, startReferences);
-    }
-    /**
-     * Sets the references to initiate crawling from.
-     * @param startReferences start references
-     */
-    public void setStartReferences(List<String> startReferences) {
-        CollectionUtil.setAll(this.startReferences, startReferences);
+        return this;
     }
 
     /**
@@ -489,19 +487,9 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param startReferencesFiles file paths of seed files containing
      *     references
      */
-    @JsonIgnore
-    public void setStartReferencesFiles(Path... startReferencesFiles) {
+    public CrawlerConfig setStartReferencesFiles(List<Path> startReferencesFiles) {
         CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
-    }
-    /**
-     * Sets the file paths of seed files containing references to be used as
-     * start references.  Files are expected to have one reference per line.
-     * Blank lines and lines starting with # (comment) are ignored.
-     * @param startReferencesFiles file paths of seed files containing
-     *     references
-     */
-    public void setStartReferencesFiles(List<Path> startReferencesFiles) {
-        CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
+        return this;
     }
 
     /**
@@ -519,24 +507,12 @@ public class CrawlerConfig implements XMLConfigurable {
      * dynamically at launch time.
      * @param startReferencesProviders start references provider
      */
-    @JsonIgnore
-    public void setStartReferencesProviders(
-            ReferencesProvider... startReferencesProviders) {
-        CollectionUtil.setAll(
-                this.startReferencesProviders, startReferencesProviders);
-        CollectionUtil.removeNulls(this.startReferencesProviders);
-    }
-    /**
-     * Sets the providers of references used as starting points for crawling.
-     * Use this approach when references need to be provided
-     * dynamically at launch time.
-     * @param startReferencesProviders start references provider
-     */
-    public void setStartReferencesProviders(
+    public CrawlerConfig setStartReferencesProviders(
             List<ReferencesProvider> startReferencesProviders) {
         CollectionUtil.setAll(
                 this.startReferencesProviders, startReferencesProviders);
         CollectionUtil.removeNulls(this.startReferencesProviders);
+        return this;
     }
 
     /**
@@ -565,9 +541,10 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param stopOnExceptions exceptions that will stop the crawler when
      *         encountered
      */
-    public void setStopOnExceptions(
+    public CrawlerConfig setStopOnExceptions(
             List<Class<? extends Exception>> stopOnExceptions) {
         CollectionUtil.setAll(this.stopOnExceptions, stopOnExceptions);
+        return this;
     }
 
     /**
@@ -581,8 +558,9 @@ public class CrawlerConfig implements XMLConfigurable {
      * Sets reference filters.
      * @param referenceFilters the referenceFilters to set
      */
-    public void setReferenceFilters(List<ReferenceFilter> referenceFilters) {
+    public CrawlerConfig setReferenceFilters(List<ReferenceFilter> referenceFilters) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
+        return this;
     }
 
     /**
@@ -596,8 +574,9 @@ public class CrawlerConfig implements XMLConfigurable {
      * Sets document filters.
      * @param documentFilters document filters
      */
-    public void setDocumentFilters(List<DocumentFilter> documentFilters) {
+    public CrawlerConfig setDocumentFilters(List<DocumentFilter> documentFilters) {
         CollectionUtil.setAll(this.documentFilters, documentFilters);
+        return this;
     }
 
     /**
@@ -611,8 +590,9 @@ public class CrawlerConfig implements XMLConfigurable {
      * Sets metadata filters.
      * @param metadataFilters metadata filters
      */
-    public void setMetadataFilters(List<MetadataFilter> metadataFilters) {
+    public CrawlerConfig setMetadataFilters(List<MetadataFilter> metadataFilters) {
         CollectionUtil.setAll(this.metadataFilters, metadataFilters);
+        return this;
     }
 
     /**
@@ -628,8 +608,9 @@ public class CrawlerConfig implements XMLConfigurable {
      * to a target location/repository.
      * @param committers list of Committers
      */
-    public void setCommitters(List<Committer> committers) {
+    public CrawlerConfig setCommitters(List<Committer> committers) {
         CollectionUtil.setAll(this.committers, committers);
+        return this;
     }
 
     /**
@@ -647,8 +628,9 @@ public class CrawlerConfig implements XMLConfigurable {
      * detected configuration objects implementing {@link EventListener}.
      * @param eventListeners event listeners.
      */
-    public void setEventListeners(List<EventListener<?>> eventListeners) {
+    public CrawlerConfig setEventListeners(List<EventListener<?>> eventListeners) {
         CollectionUtil.setAll(this.eventListeners, eventListeners);
+        return this;
     }
     /**
      * Adds event listeners.
@@ -689,18 +671,20 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param preImportProcessors pre-import processors
      */
     @JsonIgnore
-    public void setPreImportProcessors(
+    public CrawlerConfig setPreImportProcessors(
             DocumentProcessor... preImportProcessors) {
         setPreImportProcessors(Arrays.asList(preImportProcessors));
+        return this;
     }
     /**
      * Sets pre-import processors.
      * @param preImportProcessors pre-import processors
      */
-    public void setPreImportProcessors(
+    public CrawlerConfig setPreImportProcessors(
             List<DocumentProcessor> preImportProcessors) {
         CollectionUtil.setAll(this.preImportProcessors, preImportProcessors);
         CollectionUtil.removeNulls(this.preImportProcessors);
+        return this;
     }
 
     /**
@@ -715,18 +699,20 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param postImportProcessors post-import processors
      */
     @JsonIgnore
-    public void setPostImportProcessors(
+    public CrawlerConfig setPostImportProcessors(
             DocumentProcessor... postImportProcessors) {
         setPostImportProcessors(Arrays.asList(postImportProcessors));
+        return this;
     }
     /**
      * Sets post-import processors.
      * @param postImportProcessors post-import processors
      */
-    public void setPostImportProcessors(
+    public CrawlerConfig setPostImportProcessors(
             List<DocumentProcessor> postImportProcessors) {
         CollectionUtil.setAll(this.postImportProcessors, postImportProcessors);
         CollectionUtil.removeNulls(this.postImportProcessors);
+        return this;
     }
 
     /**
@@ -748,153 +734,142 @@ public class CrawlerConfig implements XMLConfigurable {
      * successfully process a reference (others are not invoked).
      * @param fetchers one or more fetchers
      */
-    public void setFetchers(List<Fetcher<?, ?>> fetchers) {
+    public CrawlerConfig setFetchers(List<Fetcher<?, ?>> fetchers) {
         CollectionUtil.setAll(this.fetchers, fetchers);
-    }
-    /**
-     * One or more fetchers responsible for pulling documents and document
-     * metadata associated with a reference from a source.
-     * When more than one are configured and for each documents, fetchers will
-     * be invoked in their defined order, until the first one that accepts and
-     * successfully process a reference (others are not invoked).
-     * @param fetchers one or more fetchers
-     */
-    @JsonIgnore
-    public void setFetchers(Fetcher<?, ?>... fetchers) {
-        CollectionUtil.setAll(this.fetchers, fetchers);
+        return this;
     }
 
-    //--- XML Persist ----------------------------------------------------------
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute(Fields.id, id);
-
-        var startXML = xml.addElement("start")
-                .setAttribute("async", startReferencesAsync);
-        startXML.addElementList("ref", startReferences);
-        startXML.addElementList("refsFile", startReferencesFiles);
-        startXML.addElementList("provider", startReferencesProviders);
-
-        xml.addElement(Fields.numThreads, numThreads);
-        xml.addElement(Fields.maxDocuments, maxDocuments);
-        xml.addElement(Fields.maxDepth, maxDepth);
-        xml.addElement(Fields.idleTimeout, idleTimeout);
-        xml.addElement(Fields.minProgressLoggingInterval,
-                minProgressLoggingInterval);
-        xml.addElementList(
-                Fields.stopOnExceptions, "exception", stopOnExceptions);
-        xml.addElement(Fields.orphansStrategy, orphansStrategy);
-        xml.addElement(Fields.dataStoreEngine, dataStoreEngine);
-        xml.addElementList(Fields.referenceFilters, "filter", referenceFilters);
-        xml.addElementList(Fields.metadataFilters, "filter", metadataFilters);
-        xml.addElementList(Fields.documentFilters, "filter", documentFilters);
-        if (importerConfig != null) {
-            xml.addElement("importer", importerConfig);
-        }
-        xml.addElementList(Fields.committers, "committer", committers);
-        xml.addElement(Fields.metadataChecksummer, metadataChecksummer);
-        xml.addElement(Fields.metadataDeduplicate, metadataDeduplicate);
-        xml.addElement(Fields.documentChecksummer, documentChecksummer);
-        xml.addElement(Fields.documentDeduplicate, documentDeduplicate);
-        xml.addElement(Fields.spoiledReferenceStrategizer,
-                spoiledReferenceStrategizer);
-
-        xml.addElementList(Fields.eventListeners, "listener", eventListeners);
-
-        xml.addElement(Fields.metadataFetchSupport, metadataFetchSupport);
-        xml.addElement(Fields.documentFetchSupport, documentFetchSupport);
-
-        xml.addElementList(
-                Fields.preImportProcessors, "processor", preImportProcessors);
-        xml.addElementList(
-                Fields.postImportProcessors, "processor", postImportProcessors);
-
-        xml.addElement(Fields.fetchers)
-            .setAttribute("maxRetries", fetchersMaxRetries)
-            .setAttribute("retryDelay", fetchersRetryDelay)
-            .addElementList("fetcher", fetchers);
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setId(xml.getString(XPathUtil.attr(Fields.id), id));
-
-        setStartReferences(xml.getStringList("start/ref", startReferences));
-        setStartReferencesFiles(
-                xml.getPathList("start/refsFile", startReferencesFiles));
-        setStartReferencesProviders(
-                xml.getObjectListImpl(ReferencesProvider.class,
-                "start/provider", startReferencesProviders));
-        setStartReferencesAsync(
-                xml.getBoolean("start/@async", startReferencesAsync));
-
-        setNumThreads(xml.getInteger(Fields.numThreads, numThreads));
-        setMaxDocuments(xml.getInteger(Fields.maxDocuments, maxDocuments));
-        setMaxDepth(xml.getInteger(Fields.maxDepth, maxDepth));
-        setOrphansStrategy(xml.getEnum(Fields.orphansStrategy,
-                OrphansStrategy.class, orphansStrategy));
-        setIdleTimeout(xml.getDuration(Fields.idleTimeout, idleTimeout));
-        setMinProgressLoggingInterval(xml.getDuration(
-                Fields.minProgressLoggingInterval, minProgressLoggingInterval));
-        setStopOnExceptions(xml.getClassList(
-                "stopOnExceptions/exception", stopOnExceptions));
-        setReferenceFilters(xml.getObjectListImpl(ReferenceFilter.class,
-                "referenceFilters/filter", referenceFilters));
-        setMetadataFilters(xml.getObjectListImpl(MetadataFilter.class,
-                "metadataFilters/filter", metadataFilters));
-        setDocumentFilters(xml.getObjectListImpl(DocumentFilter.class,
-                "documentFilters/filter", documentFilters));
-
-        var importerXML = xml.getXML("importer");
-        if (importerXML != null) {
-            var cfg = new ImporterConfig();
-            importerXML.populate(cfg);
-            setImporterConfig(cfg);
-            //MAYBE handle ignore errors
-        } else if (getImporterConfig() == null) {
-            setImporterConfig(new ImporterConfig());
-        }
-
-        setDataStoreEngine(xml.getObjectImpl(
-                DataStoreEngine.class, "dataStoreEngine", dataStoreEngine));
-        setCommitters(xml.getObjectListImpl(Committer.class,
-                "committers/committer", committers));
-        setMetadataChecksummer(xml.getObjectImpl(MetadataChecksummer.class,
-                Fields.metadataChecksummer, metadataChecksummer));
-        setMetadataDeduplicate(xml.getBoolean("metadataDeduplicate",
-                metadataDeduplicate));
-        setDocumentChecksummer(xml.getObjectImpl(DocumentChecksummer.class,
-                Fields.documentChecksummer, documentChecksummer));
-        setDocumentDeduplicate(xml.getBoolean("documentDeduplicate",
-                documentDeduplicate));
-        setSpoiledReferenceStrategizer(xml.getObjectImpl(
-                SpoiledReferenceStrategizer.class,
-                Fields.spoiledReferenceStrategizer,
-                spoiledReferenceStrategizer));
-
-        setEventListeners(xml.getObjectListImpl(EventListener.class,
-                "eventListeners/listener", eventListeners));
-
-        setMetadataFetchSupport(xml.getEnum(
-                Fields.metadataFetchSupport,
-                FetchDirectiveSupport.class,
-                metadataFetchSupport));
-        setDocumentFetchSupport(xml.getEnum(
-                Fields.documentFetchSupport,
-                FetchDirectiveSupport.class,
-                documentFetchSupport));
-
-        setPreImportProcessors(xml.getObjectListImpl(DocumentProcessor.class,
-                "preImportProcessors/processor", preImportProcessors));
-        setPostImportProcessors(xml.getObjectListImpl(DocumentProcessor.class,
-                "postImportProcessors/processor", postImportProcessors));
-
-        setFetchers(xml.getObjectListImpl(
-                Fetcher.class, "fetchers/fetcher", fetchers));
-        setFetchersMaxRetries(xml.getInteger(
-                "fetchers/@maxRetries", fetchersMaxRetries));
-        setFetchersRetryDelay(xml.getDurationMillis(
-                "fetchers/@retryDelay", fetchersRetryDelay));
-    }
+//    //--- XML Persist ----------------------------------------------------------
+//
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.setAttribute(Fields.id, id);
+//
+//        var startXML = xml.addElement("start")
+//                .setAttribute("async", startReferencesAsync);
+//        startXML.addElementList("ref", startReferences);
+//        startXML.addElementList("refsFile", startReferencesFiles);
+//        startXML.addElementList("provider", startReferencesProviders);
+//
+//        xml.addElement(Fields.numThreads, numThreads);
+//        xml.addElement(Fields.maxDocuments, maxDocuments);
+//        xml.addElement(Fields.maxDepth, maxDepth);
+//        xml.addElement(Fields.idleTimeout, idleTimeout);
+//        xml.addElement(Fields.minProgressLoggingInterval,
+//                minProgressLoggingInterval);
+//        xml.addElementList(
+//                Fields.stopOnExceptions, "exception", stopOnExceptions);
+//        xml.addElement(Fields.orphansStrategy, orphansStrategy);
+//        xml.addElement(Fields.dataStoreEngine, dataStoreEngine);
+//        xml.addElementList(Fields.referenceFilters, "filter", referenceFilters);
+//        xml.addElementList(Fields.metadataFilters, "filter", metadataFilters);
+//        xml.addElementList(Fields.documentFilters, "filter", documentFilters);
+//        if (importerConfig != null) {
+//            xml.addElement("importer", importerConfig);
+//        }
+//        xml.addElementList(Fields.committers, "committer", committers);
+//        xml.addElement(Fields.metadataChecksummer, metadataChecksummer);
+//        xml.addElement(Fields.metadataDeduplicate, metadataDeduplicate);
+//        xml.addElement(Fields.documentChecksummer, documentChecksummer);
+//        xml.addElement(Fields.documentDeduplicate, documentDeduplicate);
+//        xml.addElement(Fields.spoiledReferenceStrategizer,
+//                spoiledReferenceStrategizer);
+//
+//        xml.addElementList(Fields.eventListeners, "listener", eventListeners);
+//
+//        xml.addElement(Fields.metadataFetchSupport, metadataFetchSupport);
+//        xml.addElement(Fields.documentFetchSupport, documentFetchSupport);
+//
+//        xml.addElementList(
+//                Fields.preImportProcessors, "processor", preImportProcessors);
+//        xml.addElementList(
+//                Fields.postImportProcessors, "processor", postImportProcessors);
+//
+//        xml.addElement(Fields.fetchers)
+//            .setAttribute("maxRetries", fetchersMaxRetries)
+//            .setAttribute("retryDelay", fetchersRetryDelay)
+//            .addElementList("fetcher", fetchers);
+//    }
+//
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        setId(xml.getString(XPathUtil.attr(Fields.id), id));
+//
+//        setStartReferences(xml.getStringList("start/ref", startReferences));
+//        setStartReferencesFiles(
+//                xml.getPathList("start/refsFile", startReferencesFiles));
+//        setStartReferencesProviders(
+//                xml.getObjectListImpl(ReferencesProvider.class,
+//                "start/provider", startReferencesProviders));
+//        setStartReferencesAsync(
+//                xml.getBoolean("start/@async", startReferencesAsync));
+//
+//        setNumThreads(xml.getInteger(Fields.numThreads, numThreads));
+//        setMaxDocuments(xml.getInteger(Fields.maxDocuments, maxDocuments));
+//        setMaxDepth(xml.getInteger(Fields.maxDepth, maxDepth));
+//        setOrphansStrategy(xml.getEnum(Fields.orphansStrategy,
+//                OrphansStrategy.class, orphansStrategy));
+//        setIdleTimeout(xml.getDuration(Fields.idleTimeout, idleTimeout));
+//        setMinProgressLoggingInterval(xml.getDuration(
+//                Fields.minProgressLoggingInterval, minProgressLoggingInterval));
+//        setStopOnExceptions(xml.getClassList(
+//                "stopOnExceptions/exception", stopOnExceptions));
+//        setReferenceFilters(xml.getObjectListImpl(ReferenceFilter.class,
+//                "referenceFilters/filter", referenceFilters));
+//        setMetadataFilters(xml.getObjectListImpl(MetadataFilter.class,
+//                "metadataFilters/filter", metadataFilters));
+//        setDocumentFilters(xml.getObjectListImpl(DocumentFilter.class,
+//                "documentFilters/filter", documentFilters));
+//
+//        var importerXML = xml.getXML("importer");
+//        if (importerXML != null) {
+//            var cfg = new ImporterConfig();
+//            importerXML.populate(cfg);
+//            setImporterConfig(cfg);
+//            //MAYBE handle ignore errors
+//        } else if (getImporterConfig() == null) {
+//            setImporterConfig(new ImporterConfig());
+//        }
+//
+//        setDataStoreEngine(xml.getObjectImpl(
+//                DataStoreEngine.class, "dataStoreEngine", dataStoreEngine));
+//        setCommitters(xml.getObjectListImpl(Committer.class,
+//                "committers/committer", committers));
+//        setMetadataChecksummer(xml.getObjectImpl(MetadataChecksummer.class,
+//                Fields.metadataChecksummer, metadataChecksummer));
+//        setMetadataDeduplicate(xml.getBoolean("metadataDeduplicate",
+//                metadataDeduplicate));
+//        setDocumentChecksummer(xml.getObjectImpl(DocumentChecksummer.class,
+//                Fields.documentChecksummer, documentChecksummer));
+//        setDocumentDeduplicate(xml.getBoolean("documentDeduplicate",
+//                documentDeduplicate));
+//        setSpoiledReferenceStrategizer(xml.getObjectImpl(
+//                SpoiledReferenceStrategizer.class,
+//                Fields.spoiledReferenceStrategizer,
+//                spoiledReferenceStrategizer));
+//
+//        setEventListeners(xml.getObjectListImpl(EventListener.class,
+//                "eventListeners/listener", eventListeners));
+//
+//        setMetadataFetchSupport(xml.getEnum(
+//                Fields.metadataFetchSupport,
+//                FetchDirectiveSupport.class,
+//                metadataFetchSupport));
+//        setDocumentFetchSupport(xml.getEnum(
+//                Fields.documentFetchSupport,
+//                FetchDirectiveSupport.class,
+//                documentFetchSupport));
+//
+//        setPreImportProcessors(xml.getObjectListImpl(DocumentProcessor.class,
+//                "preImportProcessors/processor", preImportProcessors));
+//        setPostImportProcessors(xml.getObjectListImpl(DocumentProcessor.class,
+//                "postImportProcessors/processor", postImportProcessors));
+//
+//        setFetchers(xml.getObjectListImpl(
+//                Fetcher.class, "fetchers/fetcher", fetchers));
+//        setFetchersMaxRetries(xml.getInteger(
+//                "fetchers/@maxRetries", fetchersMaxRetries));
+//        setFetchersRetryDelay(xml.getDurationMillis(
+//                "fetchers/@retryDelay", fetchersRetryDelay));
+//    }
 }

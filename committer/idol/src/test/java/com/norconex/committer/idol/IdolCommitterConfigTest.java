@@ -15,16 +15,16 @@
 package com.norconex.committer.idol;
 
 import java.io.IOException;
-import java.io.Reader;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 /**
  * @author Pascal Essiembre
@@ -33,24 +33,24 @@ class IdolCommitterConfigTest {
 
     @Test
     void testWriteRead() throws IOException {
-        IdolCommitter c = new IdolCommitter();
+        var c = new IdolCommitter();
 
-        FSQueue q = new FSQueue();
-        q.setBatchSize(10);
-        q.setMaxPerFolder(5);
-        c.setCommitterQueue(q);
+        var q = new FSQueue();
+        q.getConfiguration().setBatchSize(10);
+        q.getConfiguration().setMaxPerFolder(5);
+        c.getConfiguration()
+            .setQueue(q)
+            .setFieldMapping("subject", "title")
+            .setFieldMapping("body", "content");
 
-        c.setFieldMapping("subject", "title");
-        c.setFieldMapping("body", "content");
-
-        c.getRestrictions().add(new PropertyMatcher(
+        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("document.reference"),
                 TextMatcher.wildcard("*.pdf")));
-        c.getRestrictions().add(new PropertyMatcher(
+        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("title"),
                 TextMatcher.wildcard("Nah!")));
 
-        IdolCommitterConfig cfg = c.getConfig();
+        var cfg = c.getConfiguration();
         cfg.setUrl("http://somehost:9001");
         cfg.setCfs(true);
         cfg.setDatabaseName("mydatabase");
@@ -61,15 +61,14 @@ class IdolCommitterConfigTest {
         cfg.getDreDeleteRefParams().put("dparam1", "dvalue1");
         cfg.getDreDeleteRefParams().put("dparam2", "dvalue2");
 
-        XML.assertWriteRead(c, "committer");
+        BeanMapper.DEFAULT.assertWriteRead(c);
     }
 
     @Test
     void testValidation() throws IOException {
         Assertions.assertDoesNotThrow(() -> {
-            try (Reader r = ResourceLoader.getXmlReader(this.getClass())) {
-                XML xml = XML.of(r).create();
-                xml.toObjectImpl(IdolCommitter.class);
+            try (var r = ResourceLoader.getXmlReader(this.getClass())) {
+                BeanMapper.DEFAULT.read(IdolCommitter.class, r, Format.XML);
             }
         });
     }

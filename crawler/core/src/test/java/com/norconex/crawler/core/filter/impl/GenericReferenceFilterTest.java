@@ -21,18 +21,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.CoreStubber;
-import com.norconex.importer.handler.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatch;
 
 class GenericReferenceFilterTest {
 
     @Test
     void testGenericReferenceFilter() {
-        var f = new GenericReferenceFilter(TextMatcher.regex(".*blah.*"));
-        assertThat(
-                f.getValueMatcher()).isEqualTo(TextMatcher.regex(".*blah.*"));
+        var f = new GenericReferenceFilter();
+        f.getConfiguration().setValueMatcher(TextMatcher.regex(".*blah.*"));
+        assertThat(f.getConfiguration().getValueMatcher())
+            .isEqualTo(TextMatcher.regex(".*blah.*"));
 
         var doc1 = CoreStubber.crawlDoc("http://blah.com", "content");
         assertThat(f.acceptDocument(doc1)).isTrue();
@@ -45,33 +46,36 @@ class GenericReferenceFilterTest {
                 doc2.getReference(), doc2.getMetadata())).isFalse();
 
         // a blank expression means a match
-        f = new GenericReferenceFilter(TextMatcher.basic(""));
+        f = new GenericReferenceFilter();
+        f.getConfiguration().setValueMatcher(TextMatcher.basic(""));
         assertThat(f.acceptReference(null)).isTrue();
     }
 
     @Test
     void testCaseSensitivity() {
         var f = new GenericReferenceFilter();
-        f.setOnMatch(OnMatch.INCLUDE);
+        f.getConfiguration().setOnMatch(OnMatch.INCLUDE);
 
         // must match any case:
-        f.setValueMatcher(TextMatcher.regex("case").setIgnoreCase(true));
+        f.getConfiguration()
+            .setValueMatcher(TextMatcher.regex("case").setIgnoreCase(true));
         assertTrue(f.acceptReference("case"));
         assertTrue(f.acceptReference("CASE"));
 
         // must match only matching case:
-        f.setValueMatcher(TextMatcher.regex("case").setIgnoreCase(false));
+        f.getConfiguration()
+            .setValueMatcher(TextMatcher.regex("case").setIgnoreCase(false));
         assertTrue(f.acceptReference("case"));
         assertFalse(f.acceptReference("CASE"));
     }
 
-
     @Test
     void testWriteRead() {
         var f = new GenericReferenceFilter();
-        f.setValueMatcher(TextMatcher.regex(".*blah.*"));
-        f.setOnMatch(OnMatch.EXCLUDE);
+        f.getConfiguration()
+            .setValueMatcher(TextMatcher.regex(".*blah.*"))
+            .setOnMatch(OnMatch.EXCLUDE);
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(f, "filter"));
+                () -> BeanMapper.DEFAULT.assertWriteRead(f));
     }
 }

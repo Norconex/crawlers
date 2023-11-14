@@ -16,6 +16,7 @@ package com.norconex.crawler.web.sitemap.impl;
 
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -30,7 +31,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.web.MockWebCrawlSession;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
@@ -88,7 +89,7 @@ class GenericSitemapResolverTest {
 
 
         var resolver = ((WebCrawlerConfig)
-                crawler.getCrawlerConfig()).getSitemapResolver();
+                crawler.getConfiguration()).getSitemapResolver();
         resolver.resolve(SitemapContext
                 .builder()
                 .fetcher((HttpFetcher) crawler.getFetcher())
@@ -135,6 +136,7 @@ class GenericSitemapResolverTest {
         var r = new GenericSitemapResolver();
         r.setLenient(true);
         LOG.debug("Writing/Reading this: {}", r);
-        XML.assertWriteRead(r, "sitemapResolver");
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(r));
     }
 }

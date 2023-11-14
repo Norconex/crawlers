@@ -29,7 +29,7 @@ public class HttpFetcherProvider
     @Override
     public HttpMultiFetcher apply(Crawler crawler) {
 
-        var cfg = (WebCrawlerConfig) crawler.getCrawlerConfig();
+        var cfg = (WebCrawlerConfig) crawler.getConfiguration();
 
 //        var fetchers = (List<HttpFetcher>) cfg.getFetchers();
         //TODO really convert here?  and this way?

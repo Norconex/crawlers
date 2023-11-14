@@ -16,32 +16,32 @@ package com.norconex.crawler.core.crawler.event.impl;
 
 import static com.norconex.committer.core.CommitterEvent.COMMITTER_ACCEPT_YES;
 import static com.norconex.committer.core.service.CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_END;
-import static com.norconex.crawler.core.crawler.CrawlerEvent.REJECTED_IMPORT;
+import static com.norconex.crawler.core.crawler.CrawlerEvent.REJECTED_FILTER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
-import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListener.OnMultiple;
-import com.norconex.importer.handler.HandlerConsumer;
-import com.norconex.importer.handler.filter.OnMatch;
-import com.norconex.importer.handler.filter.impl.ReferenceFilter;
+import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
+import com.norconex.crawler.core.filter.OnMatch;
+import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 
 class StopCrawlerOnMaxEventListenerTest {
 
     private static final String UPSERTED = COMMITTER_SERVICE_UPSERT_END;
     private static final String ACCEPTED = COMMITTER_ACCEPT_YES;
     private static final String UPSERTED_OR_REJECTED =
-            COMMITTER_SERVICE_UPSERT_END + "|" + REJECTED_IMPORT;
+            COMMITTER_SERVICE_UPSERT_END + "|" + REJECTED_FILTER;
 
     @TempDir
     private Path tempDir;
@@ -73,16 +73,17 @@ class StopCrawlerOnMaxEventListenerTest {
         var crawlerCfg = TestUtil.getFirstCrawlerConfig(crawlSession);
 
         var listener = new StopCrawlerOnMaxEventListener();
-        listener.setEventMatcher(TextMatcher.regex(eventMatch));
-        listener.setMaximum(maximum);
-        listener.setOnMultiple(onMultiple);
+        listener.getConfiguration()
+            .setEventMatcher(TextMatcher.regex(eventMatch))
+            .setMaximum(maximum)
+            .setOnMultiple(onMultiple);
         crawlerCfg.addEventListener(listener);
 
-        var filter = new ReferenceFilter(TextMatcher.wildcard("*mock:reject*"));
-        filter.setOnMatch(OnMatch.EXCLUDE);
-
-        crawlerCfg.getImporterConfig().setPreParseConsumer(
-                HandlerConsumer.fromHandlers(filter));
+        var filter = new GenericReferenceFilter();
+        filter.getConfiguration()
+            .setValueMatcher(TextMatcher.wildcard("*mock:reject*"))
+            .setOnMatch(OnMatch.EXCLUDE);
+        crawlerCfg.setDocumentFilters(List.of(filter));
 
         crawlSession.start();
 
@@ -94,10 +95,11 @@ class StopCrawlerOnMaxEventListenerTest {
     @Test
     void testWriteRead() {
         var listener = new StopCrawlerOnMaxEventListener();
-        listener.setEventMatcher(TextMatcher.basic("blah"));
-        listener.setMaximum(10);
-        listener.setOnMultiple(OnMultiple.SUM);
+        listener.getConfiguration()
+            .setEventMatcher(TextMatcher.basic("blah"))
+            .setMaximum(10)
+            .setOnMultiple(OnMultiple.SUM);
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(listener, "listener"));
+                () -> BeanMapper.DEFAULT.assertWriteRead(listener));
     }
 }

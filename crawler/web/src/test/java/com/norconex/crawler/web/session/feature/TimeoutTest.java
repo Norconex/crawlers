@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
@@ -48,10 +49,10 @@ class TimeoutTest {
                 .forStartReferences(serverUrl(client, homePath))
                 .crawlerSetup(cfg -> {
                     var f = new GenericHttpFetcher();
-                    f.getConfig().setConnectionTimeout(1000);
-                    f.getConfig().setSocketTimeout(1000);
-                    f.getConfig().setConnectionRequestTimeout(1000);
-                    cfg.setFetchers(f);
+                    f.getConfiguration().setConnectionTimeout(1000);
+                    f.getConfiguration().setSocketTimeout(1000);
+                    f.getConfiguration().setConnectionRequestTimeout(1000);
+                    cfg.setFetchers(List.of(f));
                 })
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);

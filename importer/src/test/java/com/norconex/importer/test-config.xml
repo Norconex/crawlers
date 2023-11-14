@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2010-2017 Norconex Inc.
+   Copyright 2010-2023 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,26 +17,40 @@
 -->
 <importer>
 
-    <preParseHandlers>
-      <handler class="com.norconex.importer.handler.tagger.impl.ConstantTagger">
-        <constant name="Author">Lewis Carroll</constant>
+    <handlers>
+
+      <handler class="ConstantTransformer">
+        <constants>
+          <constant name="Author">
+            <values>
+              <value>Lewis Carroll</value>
+            </values>
+          </constant>
+        </constants>
       </handler>
       
       <!-- Should not trigger any transformation: -->
-      <handler class="com.norconex.importer.handler.transformer.impl.StripBetweenTransformer">
-          <stripBetween inclusive="false">
-              <startMatcher ignoreCase="true">potato</startMatcher>
-              <endMatcher ignoreCase="true">carrot</endMatcher>
-          </stripBetween>
+      <handler class="StripBetweenTransformer">
+        <operations>
+          <op inclusive="false">
+            <startMatcher ignoreCase="true">
+              <pattern>potato</pattern>
+            </startMatcher>
+            <endMatcher ignoreCase="true">
+              <pattern>carrot</pattern>
+            </endMatcher>
+          </op>
+        </operations>
       </handler>
 
       <!-- Should trigger transformation: -->
-      <handler class="com.norconex.importer.handler.transformer.impl.StripAfterTransformer"
-              inclusive="true">
-          <stripAfterMatcher ignoreCase="true">&lt;p&gt;</stripAfterMatcher>
+      <handler class="StripAfterTransformer">
+          <inclusive>true</inclusive>
+          <stripAfterMatcher ignoreCase="true">
+            <pattern>&lt;p&gt;</pattern>
+          </stripAfterMatcher>
       </handler>
 
-<!-- <filter class="..." />  --> 
-    </preParseHandlers>
+    </handlers>
 
 </importer>

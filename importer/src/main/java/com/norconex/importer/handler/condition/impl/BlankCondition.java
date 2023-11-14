@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,17 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import static com.norconex.commons.lang.xml.XPathUtil.attr;
-
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.IOUtil;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -40,7 +34,7 @@ import lombok.experimental.FieldNameConstants;
  * For metadata fields,
  * control characters (char &lt;= 32) are removed before evaluating whether
  * their values are empty. Dealing with the document content will
- * rather check if it is <code>null</code> or empty (no bytes returned
+ * instead check if it is <code>null</code> or empty (no bytes returned
  * when read).
  * </p>
  *
@@ -64,7 +58,7 @@ import lombok.experimental.FieldNameConstants;
  *     (Optional expression matching fields we want to test if blank,
  *      instead of using the document content.)
  *   </fieldMatcher>
- * </handler>
+ * </condition>
  * }
  *
  * {@nx.xml.example
@@ -81,52 +75,33 @@ import lombok.experimental.FieldNameConstants;
 @SuppressWarnings("javadoc")
 @FieldNameConstants
 @Data
-public class BlankCondition implements ImporterCondition, XMLConfigurable {
+public class BlankCondition
+        extends BaseCondition
+        implements Configurable<BlankConditionConfig> {
 
-    private final TextMatcher fieldMatcher = new TextMatcher();
-    private boolean matchAnyBlank;
-
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
-    }
+    @Getter
+    private final BlankConditionConfig configuration =
+            new BlankConditionConfig();
 
     @Override
-    public boolean testDocument(HandlerDoc doc, InputStream input,
-            ParseState parseState) throws ImporterHandlerException {
-
+    public boolean evaluate(DocContext docCtx) throws IOException {
         // do content
-        if (fieldMatcher.getPattern() == null) {
-            try {
-                return IOUtil.isEmpty(input);
-            } catch (IOException e) {
-                throw new ImporterHandlerException(
-                        "Cannot check if document content is blank.", e);
-            }
+        if (configuration.getFieldMatcher().getPattern() == null) {
+            return IOUtil.isEmpty(docCtx.input().asInputStream());
         }
 
         // If no values returned, call it blank
-        var values =
-                doc.getMetadata().matchKeys(fieldMatcher).valueList();
+        var values = docCtx.metadata().matchKeys(
+                configuration.getFieldMatcher()).valueList();
         if (values.isEmpty()) {
             return true;
         }
 
         // if some fields are returned, check them all for blankness
         // one at a time
-        if (matchAnyBlank) {
+        if (configuration.isMatchAnyBlank()) {
             return values.stream().anyMatch(StringUtils::isBlank);
         }
         return values.stream().allMatch(StringUtils::isBlank);
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        matchAnyBlank = xml.getBoolean(attr(Fields.matchAnyBlank), matchAnyBlank);
-        fieldMatcher.loadFromXML(xml.getXML(Fields.fieldMatcher));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute(Fields.matchAnyBlank, matchAnyBlank);
-        fieldMatcher.saveToXML(xml.addElement(Fields.fieldMatcher));
     }
 }

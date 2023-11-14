@@ -37,6 +37,8 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
+import lombok.NonNull;
+
 //MAYBE: consider moving somewhere more generic if we see value.
 public final class SerialUtil {
 
@@ -58,7 +60,7 @@ public final class SerialUtil {
         return new JsonFactory(mapper);
     }
 
-    public static JsonGenerator jsonGenerator(OutputStream os) {
+    public static JsonGenerator jsonGenerator(@NonNull OutputStream os) {
         try {
             return jsonFactory().createGenerator(os, JsonEncoding.UTF8);
         } catch (IOException e) {
@@ -67,7 +69,7 @@ public final class SerialUtil {
         }
     }
 
-    public static JsonParser jsonParser(InputStream is) {
+    public static JsonParser jsonParser(@NonNull InputStream is) {
         try {
             return jsonFactory().createParser(
                     new InputStreamReader(is, StandardCharsets.UTF_8));
@@ -77,7 +79,7 @@ public final class SerialUtil {
         }
     }
 
-    public static String toJsonString(Object object) {
+    public static String toJsonString(@NonNull Object object) {
         try {
             return mapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
@@ -85,11 +87,11 @@ public final class SerialUtil {
                     "Could not serialize object to JSON: " + object, e);
         }
     }
-    public static Reader toJsonReader(Object object) {
+    public static Reader toJsonReader(@NonNull Object object) {
         return new StringReader(toJsonString(object));
     }
 
-    public static <T> T fromJson(String json, Class<T> cls) {
+    public static <T> T fromJson(@NonNull String json, @NonNull Class<T> cls) {
         try {
             return mapper.readValue(json, cls);
         } catch (JsonProcessingException e) {
@@ -97,7 +99,7 @@ public final class SerialUtil {
                     "Could not deserialize JSON to object: " + json, e);
         }
     }
-    public static <T> T fromJson(Reader json, Class<T> cls) {
+    public static <T> T fromJson(@NonNull Reader json, @NonNull Class<T> cls) {
         try {
             return mapper.readValue(json, cls);
         } catch (IOException e) {
@@ -105,7 +107,8 @@ public final class SerialUtil {
                     "Could not deserialize JSON reader to object." + json, e);
         }
     }
-    public static <T> T fromJson(JsonParser json, Class<T> cls) {
+    public static <T> T fromJson(
+            @NonNull JsonParser json, @NonNull Class<T> cls) {
         try {
             return mapper.readValue(json, cls);
         } catch (IOException e) {

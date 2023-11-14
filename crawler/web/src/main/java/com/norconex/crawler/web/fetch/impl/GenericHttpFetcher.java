@@ -85,7 +85,6 @@ import org.apache.hc.core5.util.TimeValue;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
@@ -100,11 +99,12 @@ import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.crawler.web.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
+import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.util.CharsetUtil;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -282,10 +282,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuppressWarnings("javadoc")
 @Slf4j
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class GenericHttpFetcher
-        extends AbstractFetcher<HttpFetchRequest, HttpFetchResponse>
+        extends AbstractFetcher<
+                HttpFetchRequest, HttpFetchResponse, GenericHttpFetcherConfig>
         implements HttpFetcher {
 
     /** Form-based authentication method. */
@@ -316,20 +317,15 @@ public class GenericHttpFetcher
         return DefaultSchemePortResolver.INSTANCE.resolve(host);
     };
 
-    private final GenericHttpFetcherConfig cfg;
+    @Getter
+    @EqualsAndHashCode.Include
+    @ToString.Include
+    private final GenericHttpFetcherConfig configuration =
+            new GenericHttpFetcherConfig();
+
     private HttpClient httpClient;
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     private final AuthCache authCache = new BasicAuthCache();
     private Object userToken;
-
-    public GenericHttpFetcher() {
-        this(new GenericHttpFetcherConfig());
-    }
-    public GenericHttpFetcher(
-            @NonNull GenericHttpFetcherConfig httpFetcherConfig) {
-        cfg = httpFetcherConfig;
-    }
 
     @Override
     public HttpFetchResponse fetch(HttpFetchRequest fetchRequest)
@@ -346,7 +342,7 @@ public class GenericHttpFetcher
         try {
 
             //--- HSTS Policy --------------------------------------------------
-            if (!cfg.isHstsDisabled()) {
+            if (!configuration.isHstsDisabled()) {
                 HstsResolver.resolve(
                         httpClient, (WebDocRecord) doc.getDocRecord());
             }
@@ -367,10 +363,10 @@ public class GenericHttpFetcher
                 ctx.setUserToken(userToken);
             }
 
-            if (!cfg.isETagDisabled()) {
+            if (!configuration.isETagDisabled()) {
                 ApacheHttpUtil.setRequestIfNoneMatch(request, doc);
             }
-            if (!cfg.isIfModifiedSinceDisabled()) {
+            if (!configuration.isIfModifiedSinceDisabled()) {
                 ApacheHttpUtil.setRequestIfModifiedSince(request, doc);
             }
 
@@ -388,13 +384,13 @@ public class GenericHttpFetcher
                 var responseBuilder = GenericHttpFetchResponse.builder()
                     .statusCode(statusCode)
                     .reasonPhrase(reason)
-                    .userAgent(cfg.getUserAgent())
+                    .userAgent(configuration.getUserAgent())
                     .redirectTarget(ApacheRedirectCaptureStrategy
                             .getRedirectTarget(ctx));
 
                 //--- Extract headers ---
                 ApacheHttpUtil.applyResponseHeaders(
-                        response, cfg.getHeadersPrefix(), doc);
+                        response, configuration.getHeadersPrefix(), doc);
 
                 //--- Extract body ---
                 if (HttpMethod.GET.is(method) || HttpMethod.POST.is(method)) {
@@ -407,7 +403,7 @@ public class GenericHttpFetcher
                 }
 
                 //--- VALID http response handling ---------------------------------
-                if (cfg.getValidStatusCodes().contains(statusCode)) {
+                if (configuration.getValidStatusCodes().contains(statusCode)) {
                     userToken = ctx.getUserToken();
 
                     return responseBuilder
@@ -425,7 +421,7 @@ public class GenericHttpFetcher
                 //--- INVALID http response handling -------------------------------
 
                 // NOT_FOUND
-                if (cfg.getNotFoundStatusCodes().contains(statusCode)) {
+                if (configuration.getNotFoundStatusCodes().contains(statusCode)) {
                     return responseBuilder
                             .crawlDocState(CrawlDocState.NOT_FOUND)
                             .build();
@@ -449,13 +445,10 @@ public class GenericHttpFetcher
 
     @Override
     protected boolean acceptRequest(@NonNull HttpFetchRequest fetchRequest) {
-        return cfg.getHttpMethods().contains(
+        return configuration.getHttpMethods().contains(
                 fetchRequest.getMethod());
     }
 
-    public GenericHttpFetcherConfig getConfig() {
-        return cfg;
-    }
     public HttpClient getHttpClient() {
         return httpClient;
     }
@@ -463,7 +456,7 @@ public class GenericHttpFetcher
     @Override
     protected void fetcherStartup(CrawlSession crawlSession) {
         httpClient = createHttpClient();
-        var userAgent = cfg.getUserAgent();
+        var userAgent = configuration.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
             LOG.info("User-Agent: <None specified>");
             LOG.debug("""
@@ -474,8 +467,8 @@ public class GenericHttpFetcher
             LOG.info("User-Agent: {}", userAgent);
         }
 
-        if (cfg.getAuthConfig() != null && AUTH_METHOD_FORM.equalsIgnoreCase(
-                cfg.getAuthConfig().getMethod())) {
+        if (configuration.getAuthConfig() != null && AUTH_METHOD_FORM.equalsIgnoreCase(
+                configuration.getAuthConfig().getMethod())) {
             authenticateUsingForm(httpClient);
         }
     }
@@ -491,7 +484,7 @@ public class GenericHttpFetcher
     }
 
     public String getUserAgent() {
-        return cfg.getUserAgent();
+        return configuration.getUserAgent();
     }
 
     //TODO remove this method and configuration options: always do it
@@ -501,7 +494,7 @@ public class GenericHttpFetcher
     private void performDetection(Doc doc) {
         var docRecord = doc.getDocRecord();
         try {
-            if (cfg.isForceContentTypeDetection()
+            if (configuration.isForceContentTypeDetection()
                     || docRecord.getContentType() == null) {
                 docRecord.setContentType(ContentTypeDetector.detect(
                         doc.getInputStream(), doc.getReference()));
@@ -510,10 +503,10 @@ public class GenericHttpFetcher
             LOG.warn("Cannont perform content type detection.", e);
         }
         try {
-            if (cfg.isForceCharsetDetection()
-                    || StringUtils.isBlank(docRecord.getContentEncoding())) {
-                docRecord.setContentEncoding(CharsetUtil.detectCharset(
-                        doc.getInputStream()));
+            if (configuration.isForceCharsetDetection()
+                    || docRecord.getCharset() == null) {
+                docRecord.setCharset(CharsetDetector.builder()
+                        .build().detect(doc.getInputStream()));
             }
         } catch (IOException e) {
             LOG.warn("Cannot perform charset type detection.", e);
@@ -535,14 +528,14 @@ public class GenericHttpFetcher
         builder.setDefaultRequestConfig(createRequestConfig());
         builder.setProxy(createProxy());
         builder.setDefaultCredentialsProvider(createCredentialsProvider());
-        builder.setUserAgent(cfg.getUserAgent());
+        builder.setUserAgent(configuration.getUserAgent());
         builder.evictExpiredConnections();
         builder.evictIdleConnections(
-                TimeValue.ofMilliseconds(cfg.getMaxConnectionIdleTime()));
+                TimeValue.ofMilliseconds(configuration.getMaxConnectionIdleTime()));
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
         builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
-                cfg.getRedirectURLProvider()));
+                configuration.getRedirectURLProvider()));
 
         buildCustomHttpClient(builder);
 
@@ -554,23 +547,23 @@ public class GenericHttpFetcher
         final var sslSocketFactory = createSSLSocketFactory(sslContext);
 
         var tlsBuilder = TlsConfig.custom()
-                .setHandshakeTimeout(cfg.getSocketTimeout(), TimeUnit.MINUTES);
-        if (!cfg.getSSLProtocols().isEmpty()) {
+                .setHandshakeTimeout(configuration.getSocketTimeout(), TimeUnit.MINUTES);
+        if (!configuration.getSSLProtocols().isEmpty()) {
             tlsBuilder.setSupportedProtocols(
-                    cfg.getSSLProtocols().toArray(EMPTY_STRING_ARRAY));
+                    configuration.getSSLProtocols().toArray(EMPTY_STRING_ARRAY));
         }
         return PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslSocketFactory)
                 .setDefaultTlsConfig(tlsBuilder.build())
                 .setDefaultConnectionConfig(createConnectionConfig())
-                .setMaxConnTotal(cfg.getMaxConnections())
-                .setMaxConnPerRoute(cfg.getMaxConnectionsPerRoute())
+                .setMaxConnTotal(configuration.getMaxConnections())
+                .setMaxConnPerRoute(configuration.getMaxConnectionsPerRoute())
                 .build();
     }
 
     protected HttpRoutePlanner createRoutePlanner(
             SchemePortResolver schemePortResolver) {
-        if (StringUtils.isBlank(cfg.getLocalAddress())) {
+        if (StringUtils.isBlank(configuration.getLocalAddress())) {
             return null;
         }
         return new DefaultRoutePlanner(schemePortResolver) {
@@ -578,10 +571,10 @@ public class GenericHttpFetcher
             protected InetAddress determineLocalAddress(HttpHost firstHop,
                     HttpContext context) throws HttpException {
                 try {
-                    return InetAddress.getByName(cfg.getLocalAddress());
+                    return InetAddress.getByName(configuration.getLocalAddress());
                 } catch (UnknownHostException e) {
                     throw new CrawlerException("Invalid local address: {}"
-                            + cfg.getLocalAddress(), e);
+                            + configuration.getLocalAddress(), e);
                 }
             }
         };
@@ -598,7 +591,7 @@ public class GenericHttpFetcher
     protected void authenticateUsingForm(HttpClient httpClient) {
         try {
             ApacheHttpUtil.authenticateUsingForm(
-                    httpClient, cfg.getAuthConfig());
+                    httpClient, configuration.getAuthConfig());
         } catch (IOException | URISyntaxException e) {
             analyseException(e);
             throw new CrawlerException(
@@ -628,8 +621,8 @@ public class GenericHttpFetcher
     protected List<Header> createDefaultRequestHeaders() {
         //--- Configuration-defined headers
         List<Header> headers = new ArrayList<>();
-        for (String name : cfg.getRequestHeaderNames()) {
-            headers.add(new BasicHeader(name, cfg.getRequestHeader(name)));
+        for (String name : configuration.getRequestHeaderNames()) {
+            headers.add(new BasicHeader(name, configuration.getRequestHeader(name)));
         }
 
         //--- preemptive headers
@@ -638,8 +631,8 @@ public class GenericHttpFetcher
         // is not invoked from this class, we want to keep things
         // together and we add the preemptive authentication directly
         // in the default HTTP headers.
-        if (cfg.getAuthConfig() != null && cfg.getAuthConfig().isPreemptive()) {
-            var authConfig = cfg.getAuthConfig();
+        if (configuration.getAuthConfig() != null && configuration.getAuthConfig().isPreemptive()) {
+            var authConfig = configuration.getAuthConfig();
             if (StringUtils.isBlank(
                     authConfig.getCredentials().getUsername())) {
                 LOG.warn("Preemptive authentication is enabled while no "
@@ -670,22 +663,22 @@ public class GenericHttpFetcher
     protected RequestConfig createRequestConfig() {
         var builder = RequestConfig.custom()
                 .setConnectionRequestTimeout(
-                        cfg.getConnectionRequestTimeout(),
+                        configuration.getConnectionRequestTimeout(),
                         TimeUnit.MILLISECONDS)
-                .setMaxRedirects(cfg.getMaxRedirects())
-                .setExpectContinueEnabled(cfg.isExpectContinueEnabled())
-                .setCookieSpec(cfg.getCookieSpec());
-        if (cfg.getMaxRedirects() <= 0) {
+                .setMaxRedirects(configuration.getMaxRedirects())
+                .setExpectContinueEnabled(configuration.isExpectContinueEnabled())
+                .setCookieSpec(configuration.getCookieSpec());
+        if (configuration.getMaxRedirects() <= 0) {
             builder.setRedirectsEnabled(false);
         }
         return builder.build();
     }
     protected HttpHost createProxy() {
-        if (cfg.getProxySettings().isSet()) {
+        if (configuration.getProxySettings().isSet()) {
             return new HttpHost(
-                    cfg.getProxySettings().getScheme(),
-                    cfg.getProxySettings().getHost().getName(),
-                    cfg.getProxySettings().getHost().getPort());
+                    configuration.getProxySettings().getScheme(),
+                    configuration.getProxySettings().getHost().getName(),
+                    configuration.getProxySettings().getHost().getPort());
         }
         return null;
     }
@@ -693,7 +686,7 @@ public class GenericHttpFetcher
         BasicCredentialsProvider credsProvider = null;
 
         //--- Proxy ---
-        var proxy = cfg.getProxySettings();
+        var proxy = configuration.getProxySettings();
         if (proxy.isSet() && proxy.getCredentials().isSet()) {
             var password = EncryptionUtil.decryptPassword(
                     proxy.getCredentials());
@@ -711,7 +704,7 @@ public class GenericHttpFetcher
         }
 
         //--- Auth ---
-        var authConfig = cfg.getAuthConfig();
+        var authConfig = configuration.getAuthConfig();
         if (authConfig != null
                 && authConfig.getCredentials().isSet()
                 && !AUTH_METHOD_FORM.equalsIgnoreCase(authConfig.getMethod())
@@ -748,17 +741,17 @@ public class GenericHttpFetcher
         return ConnectionConfig
                 .custom()
                 .setConnectTimeout(
-                        cfg.getConnectionTimeout(), TimeUnit.MILLISECONDS)
-                .setSocketTimeout(cfg.getSocketTimeout(), TimeUnit.MILLISECONDS)
+                        configuration.getConnectionTimeout(), TimeUnit.MILLISECONDS)
+                .setSocketTimeout(configuration.getSocketTimeout(), TimeUnit.MILLISECONDS)
                 .setValidateAfterInactivity(TimeValue.ofMilliseconds(
-                        cfg.getMaxConnectionInactiveTime()))
+                        configuration.getMaxConnectionInactiveTime()))
                 .build();
     }
 
     protected SSLConnectionSocketFactory createSSLSocketFactory(
             SSLContext sslContext) {
-        if (!cfg.isTrustAllSSLCertificates()
-                && cfg.getSSLProtocols().isEmpty()) {
+        if (!configuration.isTrustAllSSLCertificates()
+                && configuration.getSSLProtocols().isEmpty()) {
             return null;
         }
 
@@ -783,7 +776,7 @@ public class GenericHttpFetcher
                 var sslParams = new SSLParameters();
 
                 // Trust all certificates
-                if (cfg.isTrustAllSSLCertificates()) {
+                if (configuration.isTrustAllSSLCertificates()) {
                     LOG.debug("SSL: Turning off host name verification.");
                     sslParams.setAlgorithmConstraints(
                             new AlgorithmConstraints() {
@@ -809,18 +802,18 @@ public class GenericHttpFetcher
                 }
 
                 // Specify protocols
-                if (!cfg.getSSLProtocols().isEmpty()) {
+                if (!configuration.getSSLProtocols().isEmpty()) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("SSL: Protocols={}",
-                                StringUtils.join(cfg.getSSLProtocols(), ","));
+                                StringUtils.join(configuration.getSSLProtocols(), ","));
                     }
-                    sslParams.setProtocols(cfg.getSSLProtocols().toArray(
+                    sslParams.setProtocols(configuration.getSSLProtocols().toArray(
                             ArrayUtils.EMPTY_STRING_ARRAY));
                 }
 
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");
 
-                if (cfg.isSniDisabled()) {
+                if (configuration.isSniDisabled()) {
                     // Disabling SNI extension introduced in Java 7 is necessary
                     // to avoid
                     // SSLProtocolException: handshake alert: unrecognized_name
@@ -842,7 +835,7 @@ public class GenericHttpFetcher
     }
 
     protected SSLContext createSSLContext() {
-        if (!cfg.isTrustAllSSLCertificates()) {
+        if (!configuration.isTrustAllSSLCertificates()) {
             return null;
         }
         LOG.info("SSL: Trusting all certificates.");
@@ -860,18 +853,18 @@ public class GenericHttpFetcher
 
     private void analyseException(Exception e) {
         if (e instanceof SSLHandshakeException
-                && !cfg.isTrustAllSSLCertificates()) {
+                && !configuration.isTrustAllSSLCertificates()) {
             LOG.warn("SSL handshake exception. Consider "
                     + "setting 'trustAllSSLCertificates' to true.");
         }
     }
 
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        xml.populate(cfg);
-    }
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        cfg.saveToXML(xml);
-    }
+//    @Override
+//    protected void loadFetcherFromXML(XML xml) {
+//        xml.populate(cfg);
+//    }
+//    @Override
+//    protected void saveFetcherToXML(XML xml) {
+//        configuration.saveToXML(xml);
+//    }
 }

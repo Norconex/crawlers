@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
@@ -35,7 +34,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
@@ -54,6 +52,7 @@ import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -182,26 +181,18 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 public class WebDriverHttpFetcher
-        extends AbstractFetcher<HttpFetchRequest, HttpFetchResponse>
+        extends AbstractFetcher<
+                HttpFetchRequest, HttpFetchResponse, WebDriverHttpFetcherConfig>
         implements HttpFetcher {
 
-    private final WebDriverHttpFetcherConfig cfg;
+    @Getter
+    private final WebDriverHttpFetcherConfig configuration =
+            new WebDriverHttpFetcherConfig();
     private CachedStreamFactory streamFactory;
     private String userAgent;
     private HttpSniffer httpSniffer;
     private ScreenshotHandler screenshotHandler;
     private WebDriverHolder driverHolder;
-
-    public WebDriverHttpFetcher() {
-        this(new WebDriverHttpFetcherConfig());
-    }
-    public WebDriverHttpFetcher(WebDriverHttpFetcherConfig config) {
-        cfg = Objects.requireNonNull(config, "'config' must not be null.");
-    }
-
-    public WebDriverHttpFetcherConfig getConfig() {
-        return cfg;
-    }
 
     @Override
     protected boolean acceptRequest(@NonNull HttpFetchRequest req) {
@@ -274,15 +265,15 @@ public class WebDriverHttpFetcher
             streamFactory = new CachedStreamFactory();
         }
 
-        driverHolder = new WebDriverHolder(cfg);
+        driverHolder = new WebDriverHolder(configuration);
 
-        if (cfg.getHttpSnifferConfig() != null) {
-            LOG.info("Starting {} HTTP sniffer...", cfg.getBrowser());
+        if (configuration.getHttpSnifferConfig() != null) {
+            LOG.info("Starting {} HTTP sniffer...", configuration.getBrowser());
             httpSniffer = new HttpSniffer();
             httpSniffer.start(
                     driverHolder.getDriverOptions().getValue(),
-                    cfg.getHttpSnifferConfig());
-            userAgent = cfg.getHttpSnifferConfig().getUserAgent();
+                    configuration.getHttpSnifferConfig());
+            userAgent = configuration.getHttpSnifferConfig().getUserAgent();
         }
     }
 
@@ -296,7 +287,7 @@ public class WebDriverHttpFetcher
     }
     @Override
     protected void fetcherThreadEnd(Crawler crawler) {
-        LOG.info("Shutting down {} web driver.", cfg.getBrowser());
+        LOG.info("Shutting down {} web driver.", configuration.getBrowser());
         if (driverHolder != null) {
             driverHolder.releaseDriver();
         }
@@ -305,7 +296,7 @@ public class WebDriverHttpFetcher
     @Override
     protected void fetcherShutdown(CrawlSession c) {
         if (httpSniffer != null) {
-            LOG.info("Shutting down {} HTTP sniffer...", cfg.getBrowser());
+            LOG.info("Shutting down {} HTTP sniffer...", configuration.getBrowser());
             Sleeper.sleepSeconds(5);
             httpSniffer.stop();
         }
@@ -323,52 +314,52 @@ public class WebDriverHttpFetcher
         var driver = driverHolder.getDriver();
         driver.get(url);
 
-        if (StringUtils.isNotBlank(cfg.getEarlyPageScript())) {
+        if (StringUtils.isNotBlank(configuration.getEarlyPageScript())) {
             ((JavascriptExecutor) driver).executeScript(
-                    cfg.getEarlyPageScript());
+                    configuration.getEarlyPageScript());
         }
 
-        if (cfg.getWindowSize() != null) {
+        if (configuration.getWindowSize() != null) {
             driver.manage().window().setSize(
                     new org.openqa.selenium.Dimension(
-                            cfg.getWindowSize().width,
-                            cfg.getWindowSize().height));
+                            configuration.getWindowSize().width,
+                            configuration.getWindowSize().height));
         }
 
         var timeouts = driver.manage().timeouts();
-        if (cfg.getPageLoadTimeout() != 0) {
-            timeouts.pageLoadTimeout(ofMillis(cfg.getPageLoadTimeout()));
+        if (configuration.getPageLoadTimeout() != 0) {
+            timeouts.pageLoadTimeout(ofMillis(configuration.getPageLoadTimeout()));
         }
-        if (cfg.getImplicitlyWait() != 0) {
-            timeouts.implicitlyWait(ofMillis(cfg.getImplicitlyWait()));
+        if (configuration.getImplicitlyWait() != 0) {
+            timeouts.implicitlyWait(ofMillis(configuration.getImplicitlyWait()));
         }
-        if (cfg.getScriptTimeout() != 0) {
-            timeouts.scriptTimeout(ofMillis(cfg.getScriptTimeout()));
+        if (configuration.getScriptTimeout() != 0) {
+            timeouts.scriptTimeout(ofMillis(configuration.getScriptTimeout()));
         }
 
-        if (cfg.getWaitForElementTimeout() != 0
-                && StringUtils.isNotBlank(cfg.getWaitForElementSelector())) {
+        if (configuration.getWaitForElementTimeout() != 0
+                && StringUtils.isNotBlank(configuration.getWaitForElementSelector())) {
             var elType = ObjectUtils.defaultIfNull(
-                    cfg.getWaitForElementType(), WaitElementType.TAGNAME);
+                    configuration.getWaitForElementType(), WaitElementType.TAGNAME);
             LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",
-                    cfg.getWaitForElementSelector(), elType, url);
+                    configuration.getWaitForElementSelector(), elType, url);
 
             var wait = new WebDriverWait(
-                    driver, Duration.ofMillis(cfg.getWaitForElementTimeout()));
+                    driver, Duration.ofMillis(configuration.getWaitForElementTimeout()));
             wait.until(ExpectedConditions.presenceOfElementLocated(
-                    elType.getBy(cfg.getWaitForElementSelector())));
+                    elType.getBy(configuration.getWaitForElementSelector())));
 
             LOG.debug("Done waiting for element '{}' of type '{}' for '{}'.",
-                    cfg.getWaitForElementSelector(), elType, url);
+                    configuration.getWaitForElementSelector(), elType, url);
         }
 
-        if (StringUtils.isNotBlank(cfg.getLatePageScript())) {
+        if (StringUtils.isNotBlank(configuration.getLatePageScript())) {
             ((JavascriptExecutor) driver).executeScript(
-                    cfg.getLatePageScript());
+                    configuration.getLatePageScript());
         }
 
-        if (cfg.getThreadWait() != 0) {
-            Sleeper.sleepMillis(cfg.getThreadWait());
+        if (configuration.getThreadWait() != 0) {
+            Sleeper.sleepMillis(configuration.getThreadWait());
         }
 
         var pageSource = driver.getPageSource();
@@ -425,23 +416,23 @@ public class WebDriverHttpFetcher
         }
         return response;
     }
-
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        xml.populate(cfg);
-        xml.ifXML("screenshot", x -> {
-            var h =
-                    new ScreenshotHandler(streamFactory);
-            x.populate(h);
-            setScreenshotHandler(h);
-        });
-    }
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        cfg.saveToXML(xml);
-        if (screenshotHandler != null) {
-            screenshotHandler.saveToXML(xml.addElement("screenshot"));
-        }
-    }
+//
+//    @Override
+//    protected void loadFetcherFromXML(XML xml) {
+//        xml.populate(cfg);
+//        xml.ifXML("screenshot", x -> {
+//            var h =
+//                    new ScreenshotHandler(streamFactory);
+//            x.populate(h);
+//            setScreenshotHandler(h);
+//        });
+//    }
+//    @Override
+//    protected void saveFetcherToXML(XML xml) {
+//        configuration.saveToXML(xml);
+//        if (screenshotHandler != null) {
+//            screenshotHandler.saveToXML(xml.addElement("screenshot"));
+//        }
+//    }
 
 }

@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 class CsvSplitterTest {
 
@@ -52,10 +47,11 @@ class CsvSplitterTest {
     }
 
     @Test
-    void testReferenceColumnByName() throws ImporterHandlerException {
+    void testReferenceColumnByName() throws IOException {
         var splitter = new CsvSplitter();
-        splitter.setUseFirstRowAsFields(true);
-        splitter.setReferenceColumn("clientPhone");
+        splitter.getConfiguration()
+            .setUseFirstRowAsFields(true)
+            .setReferenceColumn("clientPhone");
         var docs = split(splitter);
         Assertions.assertEquals(
                 "654-0987", docs.get(2).getMetadata().getString(
@@ -64,10 +60,11 @@ class CsvSplitterTest {
     }
 
     @Test
-    void testReferenceColumnByPosition() throws ImporterHandlerException {
+    void testReferenceColumnByPosition() throws IOException {
         var splitter = new CsvSplitter();
-        splitter.setUseFirstRowAsFields(false);
-        splitter.setReferenceColumn("2");
+        splitter.getConfiguration()
+            .setUseFirstRowAsFields(false)
+            .setReferenceColumn("2");
         var docs = split(splitter);
         Assertions.assertEquals("William Dalton",
                 docs.get(3).getMetadata().getString(
@@ -77,10 +74,11 @@ class CsvSplitterTest {
 
 
     @Test
-    void testContentColumn() throws ImporterHandlerException, IOException {
+    void testContentColumn() throws IOException, IOException {
         var splitter = new CsvSplitter();
-        splitter.setUseFirstRowAsFields(true);
-        splitter.setContentColumns("clientName", "3");
+        splitter.getConfiguration()
+            .setUseFirstRowAsFields(true)
+            .setContentColumns(List.of("clientName", "3"));
 
         var docs = split(splitter);
         Assertions.assertEquals("William Dalton 654-0987",
@@ -90,9 +88,9 @@ class CsvSplitterTest {
 
 
     @Test
-    void testFirstRowHeader() throws ImporterHandlerException {
+    void testFirstRowHeader() throws IOException {
         var splitter = new CsvSplitter();
-        splitter.setUseFirstRowAsFields(true);
+        splitter.getConfiguration().setUseFirstRowAsFields(true);
         var docs = split(splitter);
 
         Assertions.assertEquals(4, docs.size(),
@@ -104,25 +102,22 @@ class CsvSplitterTest {
     }
 
     private List<Doc> split(CsvSplitter splitter)
-            throws ImporterHandlerException {
+            throws IOException {
         var metadata = new Properties();
-        return splitter.splitApplicableDocument(
-                TestUtil.newHandlerDoc("n/a", input, metadata),
-                input, NullOutputStream.INSTANCE, ParseState.PRE);
-
+        var ctx = TestUtil.newDocContext("n/a", input, metadata);
+        splitter.accept(ctx);
+        return ctx.childDocs();
     }
 
     @Test
     void testWriteRead() {
         var splitter = new CsvSplitter();
-        splitter.setEscapeCharacter('.');
-        splitter.setLinesToSkip(10);
-        splitter.setQuoteCharacter('!');
-        splitter.addRestriction(new PropertyMatcher(
-                TextMatcher.basic("key").partial(),
-                TextMatcher.basic("value").partial().ignoreCase()));
-        splitter.setSeparatorCharacter('@');
-        splitter.setUseFirstRowAsFields(true);
-        XML.assertWriteRead(splitter, "handler");
+        splitter.getConfiguration()
+            .setEscapeCharacter('.')
+            .setLinesToSkip(10)
+            .setQuoteCharacter('!')
+            .setSeparatorCharacter('@')
+            .setUseFirstRowAsFields(true);
+        BeanMapper.DEFAULT.assertWriteRead(splitter);
     }
 }

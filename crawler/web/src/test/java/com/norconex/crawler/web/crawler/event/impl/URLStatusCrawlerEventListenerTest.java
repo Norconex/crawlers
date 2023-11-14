@@ -32,7 +32,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.WebsiteMock;
 
@@ -93,8 +93,7 @@ class URLStatusCrawlerEventListenerTest {
             "\"\",%sok1.html,200,OK".formatted(baseUrl),
             "\"\",%sok2.html,404,Not Found".formatted(baseUrl));
 
-        assertThatNoException().isThrownBy(() -> {
-            XML.assertWriteRead(urlStatusListener, "listener");
-        });
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(urlStatusListener));
     }
 }

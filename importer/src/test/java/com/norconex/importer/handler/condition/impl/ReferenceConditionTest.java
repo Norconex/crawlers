@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,26 @@ package com.norconex.importer.handler.condition.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.parser.ParseState;
 
 class ReferenceConditionTest {
 
     @Test
     void testAcceptDocument()
-            throws ImporterHandlerException {
+            throws IOException {
         var meta = new Properties();
         var cond = new ReferenceCondition();
 
-        cond.setValueMatcher(TextMatcher.regex(".*/login.*"));
+        cond.getConfiguration().setValueMatcher(
+                TextMatcher.regex(".*/login.*"));
 
         assertThat(TestUtil.condition(cond,
                 "http://www.example.com/login", null, meta, ParseState.PRE))
@@ -47,6 +49,6 @@ class ReferenceConditionTest {
     @Test
     void testWriteRead() {
         var cond = new ReferenceCondition(TextMatcher.regex("blah"));
-        XML.assertWriteRead(cond, "condition");
+        BeanMapper.DEFAULT.assertWriteRead(cond);
     }
 }

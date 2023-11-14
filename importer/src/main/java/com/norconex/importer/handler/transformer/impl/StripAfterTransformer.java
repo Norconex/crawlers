@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.transformer.AbstractStringTransformer;
-import com.norconex.importer.parser.ParseState;
+import java.io.IOException;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.handler.BaseDocumentHandler;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.util.chunk.ChunkedTextUtil;
+
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -58,69 +57,33 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
+@Data
 @Slf4j
-public class StripAfterTransformer extends AbstractStringTransformer
-        implements XMLConfigurable {
+public class StripAfterTransformer
+        extends BaseDocumentHandler
+        implements Configurable<StripAfterTransformerConfig> {
 
-    private boolean inclusive;
-    private final TextMatcher stripAfterMatcher = new TextMatcher();
+    private final StripAfterTransformerConfig configuration =
+            new StripAfterTransformerConfig();
 
     @Override
-    protected void transformStringContent(HandlerDoc doc,
-            final StringBuilder content, final ParseState parseState,
-            final int sectionIndex) {
-        if (stripAfterMatcher.getPattern() == null) {
+    public void handle(DocContext docCtx) throws IOException {
+        if (!configuration.getStripAfterMatcher().isSet()) {
             LOG.error("No matcher pattern provided.");
             return;
         }
 
-        var m = stripAfterMatcher.toRegexMatcher(content);
-        if (m.find()) {
-            if (inclusive) {
-                content.delete(m.start(), content.length());
-            } else {
-                content.delete(m.end(), content.length());
+        ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
+            var b = new StringBuilder(chunk.getText());
+            var m = configuration.getStripAfterMatcher().toRegexMatcher(b);
+            if (m.find()) {
+                if (configuration.isInclusive()) {
+                    b.delete(m.start(), b.length());
+                } else {
+                    b.delete(m.end(), b.length());
+                }
             }
-        }
-    }
-
-    /**
-     * Gets the matcher for the text from which to strip content.
-     * @return text matcher
-         */
-    public TextMatcher getStripAfterMatcher() {
-        return stripAfterMatcher;
-    }
-    /**
-     * Sets the matcher for the text from which to strip content.
-     * @param stripAfterMatcher text matcher
-         */
-    public void setStripAfterMatcher(TextMatcher stripAfterMatcher) {
-        this.stripAfterMatcher.copyFrom(stripAfterMatcher);
-    }
-
-    public boolean isInclusive() {
-        return inclusive;
-    }
-    /**
-     * Sets whether the match itself should be stripped or not.
-     * @param inclusive <code>true</code> to strip start and end text
-     */
-    public void setInclusive(final boolean inclusive) {
-        this.inclusive = inclusive;
-    }
-
-    @Override
-    protected void loadStringTransformerFromXML(final XML xml) {
-        setInclusive(xml.getBoolean("@inclusive", inclusive));
-        stripAfterMatcher.loadFromXML(xml.getXML("stripAfterMatcher"));
-    }
-
-    @Override
-    protected void saveStringTransformerToXML(final XML xml) {
-        xml.setAttribute("inclusive", inclusive);
-        stripAfterMatcher.saveToXML(xml.addElement("stripAfterMatcher"));
+            return b.toString();
+        });
     }
 }

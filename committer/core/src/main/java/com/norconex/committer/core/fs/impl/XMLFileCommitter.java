@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2017-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.fs.AbstractFSCommitter;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
-import com.norconex.commons.lang.xml.XML;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -99,17 +99,12 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class XMLFileCommitter
-        extends AbstractFSCommitter<EnhancedXMLStreamWriter> {
+public class XMLFileCommitter extends AbstractFSCommitter
+        <EnhancedXMLStreamWriter, XMLFileCommitterConfig> {
 
-    private int indent = -1;
-
-    public int getIndent() {
-        return indent;
-    }
-    public void setIndent(int indent) {
-        this.indent = indent;
-    }
+    @Getter
+    private final XMLFileCommitterConfig configuration =
+            new XMLFileCommitterConfig();
 
     @Override
     protected String getFileExtension() {
@@ -118,8 +113,8 @@ public class XMLFileCommitter
     @Override
     protected EnhancedXMLStreamWriter createDocWriter(Writer writer)
             throws IOException {
-        var xml =
-                new EnhancedXMLStreamWriter(writer, false, indent);
+        var xml = new EnhancedXMLStreamWriter(
+                writer, false, configuration.getIndent());
         xml.writeStartDocument();
         xml.writeStartElement("docs");
         return xml;
@@ -182,14 +177,5 @@ public class XMLFileCommitter
             xml.flush();
             xml.close();
         }
-    }
-
-    @Override
-    public void loadFSCommitterFromXML(XML xml) {
-        setIndent(xml.getInteger("indent", indent));
-    }
-    @Override
-    public void saveFSCommitterToXML(XML xml) {
-        xml.addElement("indent", indent);
     }
 }

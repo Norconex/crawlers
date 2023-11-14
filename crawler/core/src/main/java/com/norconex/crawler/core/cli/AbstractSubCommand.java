@@ -14,16 +14,19 @@
  */
 package com.norconex.crawler.core.cli;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.norconex.commons.lang.ExceptionUtil;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.config.ConfigurationLoader;
-import com.norconex.commons.lang.xml.ErrorHandlerCapturer;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,6 +78,7 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
     private final List<String> crawlers = new ArrayList<>();
 
     private CrawlSession crawlSession;
+//    private BeanMapper beanMapper;
 
     protected void printOut() {
         commandLine().getOut().println();
@@ -94,9 +98,17 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
     protected CrawlSession getCrawlSession() {
        return crawlSession;
     }
+    protected BeanMapper getBeanMapper() {
+        return parent.getBeanMapper();
+     }
     protected CrawlSessionConfig getCrawlSessionConfig() {
         return parent.getCrawlSessionBuilder().crawlSessionConfig();
     }
+//    protected BeanMapper getBeanMapper() {
+//        return beanMapper;
+//    }
+
+    protected abstract void runCommand();
 
     protected int createCrawlSession() {
         if (getConfigFile() == null || !getConfigFile().toFile().isFile()) {
@@ -104,18 +116,12 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
                     + getConfigFile().toFile().getAbsolutePath());
             return -1;
         }
-        var eh = new ErrorHandlerCapturer(getClass());
-        new ConfigurationLoader()
-                .setVariablesFile(getVariablesFile())
-                .loadFromXML(getConfigFile(), getCrawlSessionConfig(), eh);
-        if (!eh.getErrors().isEmpty()) {
-            printErr();
-            printErr(eh.getErrors().size()
-                    + " XML configuration errors detected:");
-            printErr();
-            eh.getErrors().stream().forEach(er ->
-                    printErr(er.getMessage()));
-            return  -1;
+//
+//        beanMapper = beanMapper();
+
+        var returnValue = configLoader();
+        if (returnValue != 0) {
+            return returnValue;
         }
 
         crawlSession = parent.getCrawlSessionBuilder().build();
@@ -133,5 +139,81 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
         return 0;
     }
 
-    protected abstract void runCommand();
+    private int configLoader() {
+        var cfg = getCrawlSessionConfig();
+        try {
+            ConfigurationLoader.builder()
+                    .variablesFile(getVariablesFile())
+                    .beanMapper(parent.getBeanMapper())
+                    .build()
+                    .toObject(getConfigFile(), cfg);
+        } catch (ConstraintViolationException e) {
+            if (!e.getConstraintViolations().isEmpty()) {
+                printErr();
+                printErr(e.getConstraintViolations().size()
+                        + " configuration errors detected:");
+                printErr();
+                e.getConstraintViolations().forEach(
+                        cv -> printErr(cv.getMessage()));
+                return  -1;
+            }
+        } catch (IOException e) {
+            printErr(ExceptionUtil.getFormattedMessages(e));
+            return -1;
+        }
+        return 0;
+    }
+
+
+
+//    //TODO apply crawler defaults....
+//
+//    //TODO move the crawler-specific BeamMapper initialization out
+//    // so it can be used outside file-loading context.
+//
+//    private BeanMapper beanMapper() {
+//        var builder = BeanMapper.builder()
+//            //MAYBE: make package configurable? Maybe use java service loaded?
+//            .unboundPropertyMapping("crawlerDefaults",
+//                    parent.getCrawlSessionBuilder().crawlerConfigClass())
+//            .unboundPropertyMapping("crawler",
+//                    parent.getCrawlSessionBuilder().crawlerConfigClass())
+//            .unboundPropertyMapping("importer", Importer.class);
+//
+//        registerPolymorpicTypes(builder);
+//
+//        var beanMapperCustomizer =
+//                parent.getCrawlSessionBuilder().beanMapperCustomizer();
+//        if (beanMapperCustomizer != null) {
+//            beanMapperCustomizer.accept(builder);
+//        }
+//        return builder.build();
+//    }
+//
+//    private void registerPolymorpicTypes(BeanMapperBuilder builder) {
+//        //TODO make scanning path configurable? Like java service loader?
+//        // or rely on fully qualified names for non Nx classes? Maybe the latter
+//        // is best to avoid name collisions?
+//        Predicate<String> predicate = nm -> nm.startsWith("com.norconex.");
+//
+//        // This one has too many that are not meant to be added as configuration
+//        // so we only accept those that are standalone listeners:
+//        builder.polymorphicType(EventListener.class,
+//                predicate.and(nm -> nm.endsWith("EventListener")));
+//        builder.polymorphicType(ReferencesProvider.class, predicate);
+//        builder.polymorphicType(DataStoreEngine.class, predicate);
+//        builder.polymorphicType(ReferenceFilter.class, predicate);
+//        builder.polymorphicType(MetadataFilter.class, predicate);
+//        builder.polymorphicType(DocumentFilter.class, predicate);
+//        builder.polymorphicType(DocumentProcessor.class, predicate);
+//        builder.polymorphicType(MetadataChecksummer.class, predicate);
+//        builder.polymorphicType(Committer.class, predicate);
+//        builder.polymorphicType(DocumentChecksummer.class, predicate);
+//        builder.polymorphicType(SpoiledReferenceStrategizer.class, predicate);
+//        builder.polymorphicType(Fetcher.class, predicate);
+//
+//        //TODO add importer dynamically somehow?  Maybe by adding
+//        // an unboundPropertyFactory, passing what it takes to load it?
+//
+//  }
 }

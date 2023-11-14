@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.pipeline.importer;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
@@ -42,7 +43,7 @@ class CommonAttribsResolutionStageTest {
                 CoreStubber.crawler(Path.of(".")), doc);
         new CommonAttribsResolutionStage().test(ctx);
 
-        assertThat(doc.getDocRecord().getContentEncoding()).isEqualTo("UTF-8");
+        assertThat(doc.getDocRecord().getCharset()).isEqualTo(UTF_8);
         assertThat(doc.getDocRecord().getContentType()).isEqualTo(
                 ContentType.HTML);
 

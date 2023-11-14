@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import org.json.JSONObject;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.fs.AbstractFSCommitter;
-import com.norconex.commons.lang.xml.XML;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -99,20 +99,16 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class JSONFileCommitter extends AbstractFSCommitter<Writer> {
-
-    private int indent = -1;
+public class JSONFileCommitter
+        extends AbstractFSCommitter<Writer, JSONFileCommitterConfig> {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private boolean first = true;
 
-    public int getIndent() {
-        return indent;
-    }
-    public void setIndent(int indent) {
-        this.indent = indent;
-    }
+    @Getter
+    private final JSONFileCommitterConfig configuration =
+            new JSONFileCommitterConfig();
 
     @Override
     protected String getFileExtension() {
@@ -141,8 +137,8 @@ public class JSONFileCommitter extends AbstractFSCommitter<Writer> {
 
         var upsertObj = new JSONObject();
         upsertObj.put("upsert", doc);
-        if (indent > -1) {
-            writer.write(upsertObj.toString(indent));
+        if (configuration.getIndent() > -1) {
+            writer.write(upsertObj.toString(configuration.getIndent()));
         } else {
             writer.write(upsertObj.toString());
         }
@@ -166,8 +162,8 @@ public class JSONFileCommitter extends AbstractFSCommitter<Writer> {
 
         var deleteObj = new JSONObject();
         deleteObj.put("delete", doc);
-        if (indent > -1) {
-            writer.write(deleteObj.toString(indent));
+        if (configuration.getIndent() > -1) {
+            writer.write(deleteObj.toString(configuration.getIndent()));
         } else {
             writer.write(deleteObj.toString());
         }
@@ -180,7 +176,7 @@ public class JSONFileCommitter extends AbstractFSCommitter<Writer> {
     protected void closeDocWriter(Writer writer)
             throws IOException {
         if (writer != null) {
-            if (indent > -1) {
+            if (configuration.getIndent() > -1) {
                 writer.write("\n");
             }
             writer.write("]");
@@ -189,17 +185,8 @@ public class JSONFileCommitter extends AbstractFSCommitter<Writer> {
     }
 
     private void newLine(Writer writer) throws IOException {
-        if (indent > -1) {
+        if (configuration.getIndent() > -1) {
             writer.write('\n');
         }
-    }
-
-    @Override
-    public void loadFSCommitterFromXML(XML xml) {
-        setIndent(xml.getInteger("indent", indent));
-    }
-    @Override
-    public void saveFSCommitterToXML(XML xml) {
-        xml.addElement("indent", indent);
     }
 }

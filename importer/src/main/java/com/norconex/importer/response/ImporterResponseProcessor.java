@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,15 @@ package com.norconex.importer.response;
  * Processes an importer response to modify it or perform other actions
  * as required before it is returned.
  */
+@FunctionalInterface
 public interface ImporterResponseProcessor {
 
     /**
      * Processes the importer response.
      * @param response the importer response
-     * @return new response status
+     * @return new response
      */
-    ImporterStatus processImporterResponse(ImporterResponse response);
+    //TODO make this a consumer instead?
+    void processImporterResponse(ImporterResponse response);
+//    ImporterResponse processImporterResponse(ImporterResponse response);
 }

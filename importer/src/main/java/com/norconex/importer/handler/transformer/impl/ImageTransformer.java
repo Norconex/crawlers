@@ -14,28 +14,23 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Objects;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.convert.DimensionConverter;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.ImporterConfig;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.ExternalHandler;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.transformer.AbstractDocumentTransformer;
-import com.norconex.importer.parser.ParseConfig;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.util.MatchUtil;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * <p>
@@ -97,140 +92,66 @@ import lombok.ToString;
  * @see ExternalHandler
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class ImageTransformer extends AbstractDocumentTransformer {
+@Data
+public class ImageTransformer
+        extends BaseDocumentHandler
+        implements Configurable<ImageTransformerConfig> {
 
-    public static final String DEFAULT_TARGET_FORMAT = "png";
-
-    //TODO Maybe: default == null == keep same as source,
-    // derived from detected content-type
-    private String targetFormat = DEFAULT_TARGET_FORMAT;
-
-    private boolean scaleStretch;
-    private Double scaleFactor;
-    private Dimension scaleDimension;
-    private Double rotateDegrees;
-    private Rectangle cropRectangle;
-
-    public ImageTransformer() {
-        addRestrictions(CommonRestrictions.imageIOStandardContentTypes(
-                DocMetadata.CONTENT_TYPE));
-    }
-
-    public String getTargetFormat() {
-        return targetFormat;
-    }
-    public void setTargetFormat(String targetFormat) {
-        this.targetFormat = targetFormat;
-    }
-
-    public boolean isScaleStretch() {
-        return scaleStretch;
-    }
-    public void setScaleStretch(boolean scaleStretch) {
-        this.scaleStretch = scaleStretch;
-    }
-
-    public Double getScaleFactor() {
-        return scaleFactor;
-    }
-    public void setScaleFactor(Double scaleFactor) {
-        this.scaleFactor = scaleFactor;
-    }
-
-    public Dimension getScaleDimension() {
-        return scaleDimension;
-    }
-    public void setScaleDimension(Dimension scaleDimension) {
-        this.scaleDimension = scaleDimension;
-    }
-
-    public Double getRotateDegrees() {
-        return rotateDegrees;
-    }
-    public void setRotateDegrees(Double rotateDegrees) {
-        this.rotateDegrees = rotateDegrees;
-    }
-
-    public Rectangle getCropRectangle() {
-        return cropRectangle;
-    }
-    public void setCropRectangle(Rectangle cropRectangle) {
-        this.cropRectangle = cropRectangle;
-    }
+    private final ImageTransformerConfig configuration =
+            new ImageTransformerConfig();
 
     @Override
-    protected void transformApplicableDocument(
-            HandlerDoc doc, final InputStream input, final OutputStream output,
-            final ParseState parseState) throws ImporterHandlerException {
-        Objects.requireNonNull("'targetFormat' must not be null");
+    public void handle(DocContext docCtx) throws IOException {
 
-        try {
+        // only proceed if we are dealing with a supported content type
+        if (!MatchUtil.matchesContentType(
+                configuration.getContentTypeMatcher(), docCtx.docRecord())) {
+            return;
+        }
+
+        try (var input = docCtx.input().asInputStream();
+                var output = docCtx.output().asOutputStream();) {
             var img = new MutableImage(input);
             transformImage(img);
-            img.write(output, targetFormat);
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Could not transform image: " + doc.getReference(), e);
+            img.write(output, configuration.getTargetFormat());
         }
     }
 
     public void transformImage(MutableImage image) {
         // Scale
-        if (scaleFactor != null) {
-            image.scaleFactor(scaleFactor);
+        if (configuration.getScale().getFactor() != null) {
+            image.scaleFactor(configuration.getScale().getFactor());
         }
-        if (scaleDimension != null) {
-            if (scaleStretch) {
-                image.stretch(scaleDimension);
+        // If either of height and width is set, we scale. If only
+        // one is set, we use the same value for both height and weight.
+        // Same for crop below.
+        var sheight = configuration.getScale().getHeight();
+        var swidth = configuration.getScale().getWidth();
+        if (anyNotNull(sheight, swidth)) {
+            var dimension = new Dimension(
+                    firstNonNull(swidth, sheight),
+                    firstNonNull(sheight, swidth));
+            if (configuration.getScale().isStretch()) {
+                image.stretch(dimension);
             } else {
-                image.scale(scaleDimension);
+                image.scale(dimension);
             }
         }
 
         // Rotate
-        if (rotateDegrees != null) {
-            image.rotate(rotateDegrees);
+        if (configuration.getRotation() != null) {
+            image.rotate(configuration.getRotation());
         }
 
         // Crop
-        if (cropRectangle != null) {
-            image.crop(cropRectangle);
-        }
-    }
-
-    @Override
-    protected void loadHandlerFromXML(XML xml) {
-        setTargetFormat(xml.getString("@targetFormat", targetFormat));
-        setScaleStretch(xml.getBoolean("scale/@stretch", scaleStretch));
-        setScaleFactor(xml.getDouble("scale/@factor", scaleFactor));
-        setScaleDimension(xml.getDimension("scale/@dimension", scaleDimension));
-        setRotateDegrees(xml.getDouble("rotate/@degrees", rotateDegrees));
-        setTargetFormat(xml.getString("@targetFormat", targetFormat));
-        if (xml.contains("crop/@dimension")) {
-            var dim = xml.getDimension("crop/@dimension");
-            setCropRectangle(new Rectangle(
-                    xml.getInteger("crop/@x", 0), xml.getInteger("crop/@y", 0),
-                    dim.width, dim.height));
-        }
-    }
-
-    @Override
-    protected void saveHandlerToXML(XML xml) {
-        xml.setAttribute("targetFormat", targetFormat);
-        xml.addElement("scale")
-                .setAttribute("stretch", scaleStretch)
-                .setAttribute("factor", scaleFactor)
-                .setAttribute("dimension", scaleDimension);
-        xml.addElement("rotate")
-                .setAttribute("degrees", rotateDegrees);
-        if (cropRectangle != null) {
-            xml.addElement("crop")
-                    .setAttribute("x", cropRectangle.x)
-                    .setAttribute("y", cropRectangle.y)
-                    .setAttribute("dimension",
-                            cropRectangle.width + "x" + cropRectangle.height);
+        var cheight = configuration.getCrop().getHeight();
+        var cwidth = configuration.getCrop().getWidth();
+        if (anyNotNull(cheight, cwidth)) {
+            image.crop(new Rectangle(
+                    configuration.getCrop().getX(),
+                    configuration.getCrop().getY(),
+                    firstNonNull(cwidth, cheight),
+                    firstNonNull(cheight, cwidth)));
         }
     }
 }

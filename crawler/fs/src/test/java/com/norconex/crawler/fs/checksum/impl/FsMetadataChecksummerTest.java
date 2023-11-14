@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.fs.FsStubber;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 
@@ -52,8 +52,7 @@ class FsMetadataChecksummerTest {
     @Test
     void testWriteRead() {
         assertThatNoException().isThrownBy(() ->
-                XML.assertWriteRead(FsStubber.randomize(
-                        FsMetadataChecksummer.class),
-                        "metadataChecksummer"));
+                BeanMapper.DEFAULT.assertWriteRead(
+                        FsStubber.randomize(FsMetadataChecksummer.class)));
     }
 }

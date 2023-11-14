@@ -15,35 +15,33 @@
 package com.norconex.crawler.web.link.impl;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
+import java.io.InputStreamReader;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.link.AbstractTextLinkExtractor;
 import com.norconex.crawler.web.link.Link;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.crawler.web.link.LinkExtractor;
 
-import lombok.AccessLevel;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.ToString;
 
 /**
  * <p>
  * Link extractor using regular expressions to extract links found in text
  * documents. Relative links are resolved to the document URL.
  * For HTML documents, it is best advised to use the
- * {@link HtmlLinkExtractor} or {@link DOMLinkExtractor},
+ * {@link HtmlLinkExtractor} or {@link DomLinkExtractor},
  * which addresses many cases specific to HTML.
  * </p>
  *
@@ -115,91 +113,58 @@ import lombok.Setter;
  * @since 2.7.0
  */
 @SuppressWarnings("javadoc")
-@Data
-public class RegexLinkExtractor extends AbstractTextLinkExtractor {
-
-    public static final String DEFAULT_CONTENT_TYPE_PATTERN = "text/.*";
+@EqualsAndHashCode
+@ToString
+public class RegexLinkExtractor
+        implements LinkExtractor, Configurable<RegexLinkExtractorConfig> {
 
     //TODO make buffer size and overlap size configurable
     //1MB: make configurable
-    public static final int MAX_BUFFER_SIZE = 1024 * 1024;
+    private static final int MAX_BUFFER_SIZE = 1024 * 1024;
     // max url leng is 2048 x 2 bytes x 2 for <a> anchor attributes.
-    public static final int OVERLAP_SIZE = 2 * 2 * 2048;
+    private static final int OVERLAP_SIZE = 2 * 2 * 2048;
 
-    /** Default maximum length a URL can have. */
-    public static final int DEFAULT_MAX_URL_LENGTH = 2048;
-
-    /**
-     * The maximum supported URL length.
-     * Default is {@value #DEFAULT_MAX_URL_LENGTH}.
-     * @param maxURLLength maximum URL length
-     * @return maximum URL length
-     */
-    private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
-    /**
-     * Gets the character set of pages on which link extraction is performed.
-     * Default is <code>null</code> (charset detection will be attempted).
-     * @param charset character set to use, or <code>null</code>
-     * @return character set to use, or <code>null</code>
-     */
-    private String charset;
-
-    @Setter(value = AccessLevel.NONE)
-    @Getter(value = AccessLevel.NONE)
-    private final Map<String, String> patterns = new ListOrderedMap<>();
+    @Getter
+    private final RegexLinkExtractorConfig configuration =
+            new RegexLinkExtractorConfig();
 
     @Override
-    public void extractTextLinks(
-            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
+    public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
+        doc.getReference();
+        Set<Link> links = new HashSet<>();
 
-        var sb = new StringBuilder();
-        int ch;
-        while ((ch = reader.read()) != -1) {
-            sb.append((char) ch);
-            if (sb.length() >= MAX_BUFFER_SIZE) {
-                var content = sb.toString();
-                extractLinks(content, doc.getReference(), links);
-                sb.delete(0, sb.length() - OVERLAP_SIZE);
+        if (configuration.getFieldMatcher().isSet()) {
+            // Fields
+            doc.getMetadata()
+                .matchKeys(configuration.getFieldMatcher())
+                .valueList()
+                    .forEach(val ->
+                            extractLinks(links, val, doc.getReference()));
+        } else {
+            // Body
+            var sb = new StringBuilder();
+            int ch;
+            try (var reader = new TextReader(
+                    new InputStreamReader(doc.getInputStream()))) {
+                while ((ch = reader.read()) != -1) {
+                    sb.append((char) ch);
+                    if (sb.length() >= MAX_BUFFER_SIZE) {
+                        var content = sb.toString();
+                        extractLinks(links, content, doc.getReference());
+                        sb.delete(0, sb.length() - OVERLAP_SIZE);
+                    }
+                }
             }
+            var content = sb.toString();
+            extractLinks(links, content, doc.getReference());
+            sb.setLength(0);
         }
-        var content = sb.toString();
-        extractLinks(content, doc.getReference(), links);
-        sb.setLength(0);
-    }
-
-    public List<String> getPatterns() {
-        return new ArrayList<>(patterns.keySet());
-    }
-
-    /**
-     * Gets a pattern replacement.
-     * @param pattern the pattern for which to obtain its replacement
-     * @return pattern replacement or <code>null</code> (no replacement)
-     * @since 2.8.0
-     */
-    public String getPatternReplacement(String pattern) {
-        return patterns.get(pattern);
-    }
-    public void clearPatterns() {
-        patterns.clear();
-    }
-    public void addPattern(String pattern) {
-        patterns.put(pattern, null);
-    }
-
-    /**
-     * Adds a URL pattern, with an optional replacement.
-     * @param pattern a regular expression
-     * @param replacement a regular expression replacement
-     * @since 2.8.0
-     */
-    public void addPattern(String pattern, String replacement) {
-        patterns.put(pattern, replacement);
+        return links;
     }
 
     private void extractLinks(
-            String content, String referrer, Set<Link> links) {
-        for (Entry<String, String> e: patterns.entrySet()) {
+            Set<Link> links, String content, String referrer) {
+        for (Entry<String, String> e: configuration.getPatterns().entrySet()) {
             var pattern = e.getKey();
             var repl = e.getValue();
             var matcher = Pattern.compile(pattern).matcher(content);
@@ -216,38 +181,6 @@ public class RegexLinkExtractor extends AbstractTextLinkExtractor {
                 link.setReferrer(referrer);
                 links.add(link);
             }
-        }
-    }
-
-    @Override
-    protected void loadTextLinkExtractorFromXML(XML xml) {
-        setMaxURLLength(xml.getInteger("@maxURLLength", maxURLLength));
-        setCharset(xml.getString("@charset", charset));
-
-        var xmlPtrns = xml.getXMLList("linkExtractionPatterns/pattern");
-        if (!xmlPtrns.isEmpty()) {
-            clearPatterns();
-            for (XML xmlPtrn : xmlPtrns) {
-                var regex = xmlPtrn.getString("match");
-                var repl = xmlPtrn.getString("replace");
-                if (StringUtils.isNotBlank(regex)) {
-                    addPattern(regex, repl);
-                }
-            }
-        }
-    }
-
-
-    @Override
-    protected void saveTextLinkExtractorToXML(XML xml) {
-        xml.setAttribute("maxURLLength", maxURLLength);
-        xml.setAttribute("charset", charset);
-        // Tags
-        var xmlPtrns = xml.addElement("linkExtractionPatterns");
-        for (Entry<String, String> entry : patterns.entrySet()) {
-            var xmlPtrn = xmlPtrns.addElement("pattern");
-            xmlPtrn.addElement("match", entry.getKey());
-            xmlPtrn.addElement("replace", entry.getValue());
         }
     }
 }

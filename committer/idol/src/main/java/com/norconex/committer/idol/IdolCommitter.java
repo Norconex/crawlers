@@ -16,22 +16,17 @@ package com.norconex.committer.idol;
 
 import java.util.Iterator;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
-import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -88,86 +83,33 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  */
 @SuppressWarnings("javadoc")
-public class IdolCommitter extends AbstractBatchCommitter {
+@EqualsAndHashCode
+@ToString
+public class IdolCommitter
+        extends AbstractBatchCommitter<IdolCommitterConfig> {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(IdolCommitter.class);
 
-    private final IdolCommitterConfig config = new IdolCommitterConfig();
-    private static final String ELEMENT_NAME_PARAM = "param";
-
-    @ToStringExclude
-    @HashCodeExclude
-    @EqualsExclude
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private IdolClient idolClient;
 
-    public IdolCommitterConfig getConfig() {
-        return config;
-    }
+    @Getter
+    private final IdolCommitterConfig configuration =
+            new IdolCommitterConfig();
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
         // IDOL Client
-        this.idolClient = new IdolClient(config);
+        idolClient = new IdolClient(configuration);
         LOG.info("IDOL {}URL: {}",
-                config.isCfs() ? "CFS " : "", config.getUrl());
+                configuration.isCfs() ? "CFS " : "", configuration.getUrl());
     }
 
     @Override
     protected void commitBatch(Iterator<CommitterRequest> it)
             throws CommitterException {
         idolClient.post(it);
-    }
-
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        config.setUrl(xml.getString("url", config.getUrl()));
-        config.setCfs(xml.getBoolean("cfs", config.isCfs()));
-        config.setDatabaseName(
-                xml.getString("databaseName", config.getDatabaseName()));
-        xml.ifXML("dreAddDataParams", x -> CollectionUtil.setAll(
-                config.getDreAddDataParams(),
-                x.getStringMap(ELEMENT_NAME_PARAM, "@name", ".")));
-        xml.ifXML("dreDeleteRefParams", x -> CollectionUtil.setAll(
-                config.getDreDeleteRefParams(),
-                x.getStringMap(ELEMENT_NAME_PARAM, "@name", ".")));
-        config.setSourceReferenceField(xml.getString(
-                "sourceReferenceField", config.getSourceReferenceField()));
-        config.setSourceContentField(xml.getString(
-                "sourceContentField", config.getSourceContentField()));
-    }
-
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        xml.addElement("url", config.getUrl());
-        xml.addElement("cfs", config.isCfs());
-        xml.addElement("databaseName", config.getDatabaseName());
-        if (!config.getDreAddDataParams().isEmpty()) {
-            XML x = xml.addElement("dreAddDataParams");
-            config.getDreAddDataParams().forEach(
-                    (k, v) -> x.addElement(ELEMENT_NAME_PARAM, v).setAttribute("name", k));
-        }
-        if (!config.getDreDeleteRefParams().isEmpty()) {
-            XML x = xml.addElement("dreDeleteRefParams");
-            config.getDreDeleteRefParams().forEach(
-                    (k, v) -> x.addElement(ELEMENT_NAME_PARAM, v).setAttribute("name", k));
-        }
-        xml.addElement(
-                "sourceReferenceField", config.getSourceReferenceField());
-        xml.addElement("sourceContentField", config.getSourceContentField());
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

@@ -25,11 +25,9 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.link.Link;
@@ -111,10 +109,10 @@ class XMLFeedLinkExtractorTest {
     @Test
     void testGenericWriteRead() {
         var extractor = new XMLFeedLinkExtractor();
-        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ct")));
-        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ref")));
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(extractor, "extractor"));
+//        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ct")));
+//        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ref")));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(extractor));
     }
 
     private boolean contains(Set<Link> links, String url) {

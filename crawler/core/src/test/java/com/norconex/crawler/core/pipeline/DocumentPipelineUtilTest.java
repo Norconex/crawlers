@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.pipeline;
 
+import static com.norconex.commons.lang.config.Configurable.configure;
 import static com.norconex.commons.lang.text.TextMatcher.basic;
 import static com.norconex.crawler.core.pipeline.DocumentPipelineUtil.isRejectedByMetadataFilters;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,8 +32,8 @@ import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core.filter.OnMatch;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
-import com.norconex.importer.handler.filter.OnMatch;
 
 class DocumentPipelineUtilTest {
 
@@ -45,20 +46,26 @@ class DocumentPipelineUtilTest {
         var doc = CoreStubber.crawlDocWithCache("ref", "content");
 
         // match - include
-        crawler.getCrawlerConfig().setMetadataFilters(List.of(
-                new GenericReferenceFilter(basic("ref"), OnMatch.INCLUDE)));
+        crawler.getConfiguration().setMetadataFilters(List.of(
+                configure(new GenericReferenceFilter(), cfg -> cfg
+                        .setValueMatcher(basic("ref"))
+                        .setOnMatch(OnMatch.INCLUDE))));
         var ctx1 = new DocumentPipelineContext(crawler, doc);
         assertThat(isRejectedByMetadataFilters(ctx1)).isFalse();
 
         // match - exclude
-        crawler.getCrawlerConfig().setMetadataFilters(List.of(
-                new GenericReferenceFilter(basic("ref"), OnMatch.EXCLUDE)));
+        crawler.getConfiguration().setMetadataFilters(List.of(
+                configure(new GenericReferenceFilter(), cfg -> cfg
+                        .setValueMatcher(basic("ref"))
+                        .setOnMatch(OnMatch.EXCLUDE))));
         var ctx2 = new DocumentPipelineContext(crawler, doc);
         assertThat(isRejectedByMetadataFilters(ctx2)).isTrue();
 
         // no match - include
-        crawler.getCrawlerConfig().setMetadataFilters(List.of(
-                new GenericReferenceFilter(basic("noref"), OnMatch.INCLUDE)));
+        crawler.getConfiguration().setMetadataFilters(List.of(
+                configure(new GenericReferenceFilter(), cfg -> cfg
+                        .setValueMatcher(basic("noref"))
+                        .setOnMatch(OnMatch.INCLUDE))));
         var ctx3 = new DocumentPipelineContext(crawler, doc);
         assertThat(isRejectedByMetadataFilters(ctx3)).isTrue();
     }
@@ -114,7 +121,7 @@ class DocumentPipelineUtilTest {
             boolean expected) {
         var doc = CoreStubber.crawlDocWithCache("ref", "content");
         var crawler = CoreStubber.crawler(tempDir);
-        var cfg = crawler.getCrawlerConfig();
+        var cfg = crawler.getConfiguration();
         cfg.setMetadataFetchSupport(metaSupport);
         cfg.setDocumentFetchSupport(docSupport);
 
@@ -123,4 +130,6 @@ class DocumentPipelineUtilTest {
                 originalDocState,
                 currentDirective)).isEqualTo(expected);
     }
+
+
 }

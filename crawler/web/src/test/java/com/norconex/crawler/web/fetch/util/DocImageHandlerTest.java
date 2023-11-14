@@ -15,6 +15,7 @@
 package com.norconex.crawler.web.fetch.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,35 +30,41 @@ import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.WebStubber;
-import com.norconex.crawler.web.fetch.util.DocImageHandler.DirStructure;
-import com.norconex.crawler.web.fetch.util.DocImageHandler.Target;
+import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
+import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 
 class DocImageHandlerTest {
 
     @Test
     void testWriteRead() {
         var h = new DocImageHandler();
-        h.setImageFormat("jpg");
-        h.setTargetDir(Paths.get("/tmp/blah"));
-        h.setTargetDirStructure(DirStructure.URL2PATH);
-        h.setTargetDirField("docImage");
-        h.setTargetMetaField("docMeta");
-        h.setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+        h.getConfiguration()
+        .setImageFormat("jpg")
+        .setTargetDir(Paths.get("/tmp/blah"))
+        .setTargetDirStructure(DirStructure.URL2PATH)
+        .setTargetDirField("docImage")
+        .setTargetMetaField("docMeta")
+        .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
-        XML.assertWriteRead(h, "docImageHandler");
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(h));
     }
 
     @Test
     void testHandleImage(@TempDir Path tempDir) throws IOException {
-        var h = new DocImageHandler(tempDir, "img-path", "img-64");
-        h.setImageFormat("jpg");
-        h.setTargetDirStructure(DirStructure.DATE);
-        h.setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+        var h = new DocImageHandler();
+        h.getConfiguration()
+            .setTargetDir(tempDir)
+            .setTargetDirField("img-path")
+            .setTargetMetaField("img-64")
+            .setImageFormat("jpg")
+            .setTargetDirStructure(DirStructure.DATE)
+            .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
         var doc = WebStubber.crawlDoc(
                 "http://site.com/page.html",

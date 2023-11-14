@@ -15,7 +15,10 @@
 package com.norconex.crawler.web.link.impl;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -24,18 +27,16 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.link.AbstractTextLinkExtractor;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
-import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerDoc;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -89,37 +90,56 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class XMLFeedLinkExtractor extends AbstractTextLinkExtractor {
+public class XMLFeedLinkExtractor
+        implements LinkExtractor, Configurable<XMLFeedLinkExtractorConfig> {
 
-    public XMLFeedLinkExtractor() {
-        // default content type this extractor applies to
-        setRestrictions(CommonRestrictions.xmlFeedContentTypes(
-                DocMetadata.CONTENT_TYPE));
-    }
+    @Getter
+    private final XMLFeedLinkExtractorConfig configuration =
+            new XMLFeedLinkExtractorConfig();
 
     @Override
-    public void extractTextLinks(
-            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
-        try {
+    public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
+
+        // only proceed if we are dealing with a supported content type
+        if (!configuration.getContentTypeMatcher().matches(
+                doc.getDocRecord().getContentType().toString())) {
+            return Set.of();
+        }
+
+        var refererUrl = doc.getReference();
+        Set<Link> links = new HashSet<>();
+
+        if (configuration.getFieldMatcher().isSet()) {
+            // Fields
+            var values = doc.getMetadata()
+                    .matchKeys(configuration.getFieldMatcher())
+                    .valueList();
+            for (String val: values) {
+                extractFeedLinks(links, new StringReader(val), refererUrl);
+            }
+        } else {
+            // Body
+            extractFeedLinks(
+                    links,
+                    new InputStreamReader(doc.getInputStream()),
+                    doc.getReference());
+        }
+        return links;
+    }
+
+    private void extractFeedLinks(
+            Set<Link> links, Reader reader, String referrerUrl)
+                    throws IOException {
+        try (reader) {
             var xmlReader = XMLUtil.createXMLReader();
-            var handler = new FeedHandler(doc.getReference(), links);
+            var handler = new FeedHandler(referrerUrl, links);
             xmlReader.setContentHandler(handler);
             xmlReader.setErrorHandler(handler);
             xmlReader.parse(new InputSource(reader));
         } catch (SAXException e) {
             throw new CrawlerException(
-                    "Could not parse XML Feed: " + doc.getReference(), e);
+                    "Could not parse XML Feed: " + referrerUrl, e);
         }
-    }
-
-    @Override
-    protected void loadTextLinkExtractorFromXML(XML xml) {
-        //NOOP
-    }
-
-    @Override
-    protected void saveTextLinkExtractorToXML(XML xml) {
-        //NOOP
     }
 
     private static class FeedHandler extends DefaultHandler {

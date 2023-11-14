@@ -168,14 +168,14 @@ class CrawlerThread implements Runnable {
         // and let parent wait an try again, for as long as the activity timeout
         // is not reached.
         if (activeTimeoutWatcher.isTimedOut(
-                crawler.getCrawlerConfig().getIdleTimeout())) {
+                crawler.getConfiguration().getIdleTimeout())) {
             LOG.warn("""
                 Crawler thread has been idle for more than {} and will\s\
                 be shut down. \s\
                 Documents still being processed by\s\
                 other crawler threads: {}. Crawler queue is empty: {}.""",
                     DurationFormatter.FULL.format(
-                            crawler.getCrawlerConfig().getIdleTimeout()),
+                            crawler.getConfiguration().getIdleTimeout()),
                     !activeEmpty, queueEmpty);
             return false;
         }
@@ -266,7 +266,7 @@ class CrawlerThread implements Runnable {
 
         // Rethrow exception if we want the crawler to stop
         var exceptionClasses =
-                ctx.crawler().getCrawlerConfig().getStopOnExceptions();
+                ctx.crawler().getConfiguration().getStopOnExceptions();
         if (CollectionUtils.isNotEmpty(exceptionClasses)) {
             for (Class<? extends Exception> c : exceptionClasses) {
                 if (c.isAssignableFrom(e.getClass())) {
@@ -278,7 +278,7 @@ class CrawlerThread implements Runnable {
         }
         LOG.error("""
             Encountered the following crawler exception and attempting\s\
-            to ignore it. To force the crawler to stop upon encountering\
+            to ignore it. To force the crawler to stop upon encountering\s\
             this exception, use the "stopOnExceptions" feature\s\
             of your crawler config.""", e);
         return !stopTheCrawler;

@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,19 @@
  */
 package com.norconex.crawler.core.filter.impl;
 
-import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
+import com.norconex.crawler.core.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatchFilter;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.OnMatch;
-import com.norconex.importer.handler.filter.OnMatchFilter;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 /**
  * <p>
@@ -62,72 +61,28 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class GenericMetadataFilter implements OnMatchFilter, MetadataFilter,
-        DocumentFilter, XMLConfigurable {
+public class GenericMetadataFilter implements
+        OnMatchFilter,
+        MetadataFilter,
+        DocumentFilter,
+        Configurable<GenericMetadataFilterConfig> {
 
-    private OnMatch onMatch;
-    private final TextMatcher fieldMatcher = new TextMatcher();
-    private final TextMatcher valueMatcher = new TextMatcher();
-
-    public GenericMetadataFilter() {
-        this(null, null, OnMatch.INCLUDE);
-    }
-    public GenericMetadataFilter(
-            TextMatcher fieldMatcher, TextMatcher valueMatcher) {
-        this(fieldMatcher, valueMatcher, OnMatch.INCLUDE);
-    }
-    public GenericMetadataFilter(
-            TextMatcher fieldMatcher,
-            TextMatcher valueMatcher,
-            OnMatch onMatch) {
-        setFieldMatcher(fieldMatcher);
-        setValueMatcher(valueMatcher);
-        setOnMatch(onMatch);
-    }
+    @Getter
+    private final GenericMetadataFilterConfig configuration =
+            new GenericMetadataFilterConfig();
 
     @Override
     public OnMatch getOnMatch() {
-        return onMatch;
-    }
-    public void setOnMatch(OnMatch onMatch) {
-        this.onMatch = onMatch;
-    }
-
-    /**
-     * Gets the field matcher.
-     * @return field matcher
-     */
-    public TextMatcher getFieldMatcher() {
-        return fieldMatcher;
-    }
-    /**
-     * Sets the field matcher.
-     * @param fieldMatcher field matcher
-     */
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
-    }
-    /**
-     * Gets the value matcher.
-     * @return value matcher
-     */
-    public TextMatcher getValueMatcher() {
-        return valueMatcher;
-    }
-    /**
-     * Sets the value matcher.
-     * @param valueMatcher value matcher
-     */
-    public void setValueMatcher(TextMatcher valueMatcher) {
-        this.valueMatcher.copyFrom(valueMatcher);
+        return OnMatch.includeIfNull(configuration.getOnMatch());
     }
 
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {
-        if (StringUtils.isBlank(fieldMatcher.getPattern())
-                || StringUtils.isBlank(valueMatcher.getPattern())
+        if (isBlank(configuration.getFieldMatcher().getPattern())
+                || isBlank(configuration.getValueMatcher().getPattern())
                 || new PropertyMatcher(
-                        fieldMatcher, valueMatcher).matches(metadata)) {
+                        configuration.getFieldMatcher(),
+                        configuration.getValueMatcher()).matches(metadata)) {
             return getOnMatch() == OnMatch.INCLUDE;
         }
         return getOnMatch() == OnMatch.EXCLUDE;
@@ -139,19 +94,6 @@ public class GenericMetadataFilter implements OnMatchFilter, MetadataFilter,
             return getOnMatch() == OnMatch.INCLUDE;
         }
         return acceptMetadata(document.getReference(), document.getMetadata());
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setOnMatch(xml.getEnum("@onMatch", OnMatch.class, onMatch));
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("onMatch", onMatch);
-        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
-        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
     }
 }
 

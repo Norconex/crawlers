@@ -19,10 +19,11 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 /**
  * SolrCommitter configuration tests.
@@ -36,48 +37,48 @@ class SolrCommitterConfigTest {
         var c = new SolrCommitter();
 
         var q = new FSQueue();
-        q.setBatchSize(10);
-        q.setMaxPerFolder(5);
-        c.setCommitterQueue(q);
+        q.getConfiguration().setBatchSize(10);
+        q.getConfiguration().setMaxPerFolder(5);
+        c.getConfiguration().setQueue(q);
 
         var creds = new Credentials();
         creds.setPassword("mypassword");
         creds.setUsername("myusername");
-        c.setCredentials(creds);
+        c.getConfiguration().setCredentials(creds);
 
-        c.setFieldMapping("subject", "title");
-        c.setFieldMapping("body", "content");
+        c.getConfiguration().setFieldMapping("subject", "title");
+        c.getConfiguration().setFieldMapping("body", "content");
 
-        c.getRestrictions().add(new PropertyMatcher(
+        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("document.reference"),
                 TextMatcher.wildcard("*.pdf")));
-        c.getRestrictions().add(new PropertyMatcher(
+        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("title"),
                 TextMatcher.wildcard("Nah!")));
 
-        c.setSourceIdField("sourceId");
-        c.setTargetIdField("targetId");
-        c.setTargetContentField("targetContent");
+        c.getConfiguration().setSourceIdField("sourceId");
+        c.getConfiguration().setTargetIdField("targetId");
+        c.getConfiguration().setTargetContentField("targetContent");
 
-        c.setSolrClientType(SolrClientType.CONCURRENT_UPDATE_HTTP2);
+        c.getConfiguration().setSolrClientType(
+                SolrClientType.CONCURRENT_UPDATE_HTTP2);
 
-        c.setSolrCommitDisabled(true);
+        c.getConfiguration().setSolrCommitDisabled(true);
 
-        c.setSolrURL("http://solrurl.com/test");
+        c.getConfiguration().setSolrURL("http://solrurl.com/test");
 
-        c.setUpdateUrlParam("param1", "value1a");
-        c.setUpdateUrlParam("param1", "value1b");
-        c.setUpdateUrlParam("param2", "value2");
+        c.getConfiguration().setUpdateUrlParam("param1", "value1a");
+        c.getConfiguration().setUpdateUrlParam("param1", "value1b");
+        c.getConfiguration().setUpdateUrlParam("param2", "value2");
 
-        XML.assertWriteRead(c, "committer");
+        BeanMapper.DEFAULT.assertWriteRead(c);
     }
 
     @Test
     void testValidation() {
         Assertions.assertDoesNotThrow(() -> {
-            try (var r = ResourceLoader.getXmlReader(getClass())) {
-                var xml = XML.of(r).create();
-                xml.toObjectImpl(SolrCommitter.class);
+            try (var r = ResourceLoader.getXmlReader(this.getClass())) {
+                BeanMapper.DEFAULT.read(SolrCommitter.class, r, Format.XML);
             }
         });
     }

@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.norconex.importer.doc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class DocRecordTest {
         di1.setContentType(ContentType.BMP);
         di1.setEmbeddedParentReferences(List.of("parentRef"));
         di1.addEmbeddedParentReference("parentRef2");
-        di1.setContentEncoding("contentEncoding");
+        di1.setCharset(StandardCharsets.US_ASCII);
 
         var di2 = new DocRecord("I will be replaced.");
         di2.copyFrom(di1);

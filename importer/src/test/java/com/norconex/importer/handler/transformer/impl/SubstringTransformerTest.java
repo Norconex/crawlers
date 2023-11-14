@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2017-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,23 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.ImporterException;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 class SubstringTransformerTest {
 
     @Test
     void testTransformTextDocument()
-            throws ImporterHandlerException {
+            throws IOException {
         var content = "1234567890";
 
         Assertions.assertEquals("", substring(0, 0, content));
@@ -42,31 +40,28 @@ class SubstringTransformerTest {
         Assertions.assertEquals("890", substring(7, 42, content));
         Assertions.assertEquals("1234", substring(-1, 4, content));
         Assertions.assertEquals("7890", substring(6, -1, content));
-        try {
-            substring(4, 1, content);
-            Assertions.fail("Should have triggered an exception.");
-        } catch (ImporterException e) {
-        }
+        assertThatExceptionOfType(UncheckedIOException.class)
+                .isThrownBy(() -> substring(4, 1, content));
     }
 
     private String substring(long begin, long end, String content)
-            throws ImporterHandlerException {
-        InputStream input = new ByteArrayInputStream(content.getBytes());
+            throws IOException {
         var t = new SubstringTransformer();
-        t.setBegin(begin);
-        t.setEnd(end);
-        var output = new ByteArrayOutputStream();
-        t.transformDocument(
-                TestUtil.newHandlerDoc("N/A", input, new Properties()),
-                input, output, ParseState.PRE);
-        return new String(output.toByteArray());
+        t.getConfiguration()
+            .setBegin(begin)
+            .setEnd(end);
+        var doc = TestUtil.newDocContext(content);
+        t.accept(doc);
+        return doc.input().asString();
     }
 
     @Test
     void testWriteRead() {
         var t = new SubstringTransformer();
-        t.setBegin(1000);
-        t.setEnd(5000);
-        XML.assertWriteRead(t, "handler");
+        t.getConfiguration()
+            .setBegin(1000)
+            .setEnd(5000);
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

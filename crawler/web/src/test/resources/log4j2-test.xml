@@ -19,6 +19,9 @@
     <Logger name="com.norconex" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="com.norconex.crawler.web" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.norconex.commons.lang" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

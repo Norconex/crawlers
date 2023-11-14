@@ -16,13 +16,12 @@ package com.norconex.crawler.web.session.recovery;
 
 import static java.lang.String.join;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -33,18 +32,11 @@ import org.apache.tools.ant.taskdefs.Java;
 import org.apache.tools.ant.types.Environment;
 
 import com.norconex.committer.core.Committer;
-import com.norconex.committer.core.CommitterContext;
-import com.norconex.committer.core.CommitterException;
-import com.norconex.committer.core.CommitterRequest;
-import com.norconex.committer.core.DeleteRequest;
-import com.norconex.committer.core.UpsertRequest;
-import com.norconex.committer.core.batch.queue.impl.FSQueueUtil;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
-import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.WebCrawlSession;
 import com.norconex.crawler.web.WebTestUtil;
@@ -100,9 +92,11 @@ public class ExternalCrawlSessionLauncher {
 
         // Save session config to file so it can be used from command-line
         var configFile = sessionConfig.getWorkDir().resolve("config.xml");
-        var xml = new XML("crawlSession");
-        sessionConfig.saveToXML(xml);
-        xml.write(configFile.toFile());
+        try (var writer = new FileWriter(configFile.toFile())) {
+            BeanMapper.DEFAULT.write(sessionConfig, writer, Format.XML);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not save XML.", e);
+        }
 
         var project = new Project();
         project.setBaseDir(sessionConfig.getWorkDir().toFile());
@@ -171,9 +165,9 @@ public class ExternalCrawlSessionLauncher {
     @Data
     @Setter(value = AccessLevel.NONE)
     public static class CrawlOutcome {
-        private final MemoryCommitter committerCombininedLaunches =
+        final MemoryCommitter committerCombininedLaunches =
                 new MemoryCommitter();
-        private final MemoryCommitter committerAfterLaunch =
+        final MemoryCommitter committerAfterLaunch =
                 new MemoryCommitter();
         private final int returnValue;
         private final String stdOut;
@@ -182,84 +176,6 @@ public class ExternalCrawlSessionLauncher {
             returnValue = captured.getReturnValue();
             stdOut = captured.getStdOut();
             stdErr = captured.getStdErr();
-        }
-    }
-
-    @Data
-    public static class TestCommitter implements Committer, XMLConfigurable {
-        private Path dir;
-        public TestCommitter() {}
-        public TestCommitter(Path dir) {
-            this.dir = dir;
-        }
-
-        @Override
-        @SneakyThrows
-        public void init(CommitterContext committerContext)
-                throws CommitterException {
-            Files.createDirectories(dir);
-        }
-        @Override
-        @SneakyThrows
-        public void clean() throws CommitterException {
-            FileUtil.delete(dir.toFile());
-        }
-        @Override
-        public boolean accept(CommitterRequest request)
-                throws CommitterException {
-            return true;
-        }
-        @Override
-        @SneakyThrows
-        public void upsert(UpsertRequest upsertRequest)
-                throws CommitterException {
-            FSQueueUtil.toZipFile(upsertRequest, dir.resolve(
-                    "upsert-" + UUID.randomUUID() + ".zip"));
-        }
-        @Override
-        @SneakyThrows
-        public void delete(DeleteRequest deleteRequest)
-                throws CommitterException {
-            FSQueueUtil.toZipFile(deleteRequest, dir.resolve(
-                    "delete-" + UUID.randomUUID() + ".zip"));
-        }
-        @Override
-        public void close() throws CommitterException {
-            //NOOP
-        }
-        @Override
-        public void loadFromXML(XML xml) {
-            setDir(xml.getPath("dir", dir));
-        }
-        @Override
-        public void saveToXML(XML xml) {
-            xml.addElement("dir", dir);
-        }
-        @SneakyThrows
-        public void fillMemoryCommitters(
-                CrawlOutcome outcome, ZonedDateTime launchTime) {
-            FSQueueUtil.findZipFiles(dir).forEach(zip -> {
-                try {
-                    CommitterRequest req = FSQueueUtil.fromZipFile(zip);
-                    if (Files.getLastModifiedTime(zip).compareTo(
-                            FileTime.from(launchTime.toInstant())) > 0) {
-                        if (req instanceof UpsertRequest upsert) {
-                            outcome.committerAfterLaunch.upsert(upsert);
-                        } else {
-                            outcome.committerAfterLaunch.delete(
-                                    (DeleteRequest) req);
-                        }
-                    }
-                    if (req instanceof UpsertRequest upsert) {
-                        outcome.committerCombininedLaunches.upsert(upsert);
-                    } else {
-                        outcome.committerCombininedLaunches.delete(
-                                (DeleteRequest) req);
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
         }
     }
 }

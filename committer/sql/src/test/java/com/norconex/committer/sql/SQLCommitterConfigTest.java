@@ -14,68 +14,70 @@
  */
 package com.norconex.committer.sql;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.IOException;
-import java.io.Reader;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 class SQLCommitterConfigTest {
 
     @Test
     void testWriteRead() throws Exception {
-        SQLCommitter c = new SQLCommitter();
+        var q = new FSQueue();
+        q.getConfiguration()
+            .setBatchSize(10)
+            .setMaxPerFolder(5);
 
-        FSQueue q = new FSQueue();
-        q.setBatchSize(10);
-        q.setMaxPerFolder(5);
-        c.setCommitterQueue(q);
+        var c = new SQLCommitter();
+        c.getConfiguration()
+            .setDriverPath("driverPath")
+            .setDriverClass("driverClass")
+            .setConnectionUrl("connectionUrl")
+            .setTableName("tableName")
+            .setPrimaryKey("id")
+            .setCreateTableSQL("createTableSQL")
+            .setCreateFieldSQL("createFieldSQL")
+            .setFixFieldNames(true)
+            .setFixFieldValues(true)
+            .setMultiValuesJoiner("^")
+            .setTargetContentField("targetContentField")
+            .setQueue(q)
+            .setFieldMapping("subject", "title")
+            .setFieldMapping("body", "content")
+            .addRestriction(new PropertyMatcher(
+                    TextMatcher.basic("document.reference"),
+                    TextMatcher.wildcard("*.pdf")))
+            .addRestriction(new PropertyMatcher(
+                    TextMatcher.basic("title"),
+                    TextMatcher.wildcard("Nah!")))
+            ;
 
-        c.setFieldMapping("subject", "title");
-        c.setFieldMapping("body", "content");
+        c.getConfiguration().getProperties().set("key1", "value1");
+        c.getConfiguration().getProperties().set("key2", "value2");
 
-        c.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")));
-        c.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+        c.getConfiguration().getCredentials()
+            .setUsername("Optimus")
+            .setPassword("Prime");
 
-        SQLCommitterConfig cfg = c.getConfig();
-
-
-        cfg.setDriverPath("driverPath");
-        cfg.setDriverClass("driverClass");
-        cfg.setConnectionUrl("connectionUrl");
-        cfg.getCredentials().setUsername("Optimus");
-        cfg.getCredentials().setPassword("Prime");
-        cfg.getProperties().set("key1", "value1");
-        cfg.getProperties().set("key2", "value2");
-        cfg.setTableName("tableName");
-        cfg.setPrimaryKey("id");
-        cfg.setCreateTableSQL("createTableSQL");
-        cfg.setCreateFieldSQL("createFieldSQL");
-        cfg.setFixFieldNames(true);
-        cfg.setFixFieldValues(true);
-        cfg.setMultiValuesJoiner("^");
-        cfg.setTargetContentField("targetContentField");
-
-        XML.assertWriteRead(c, "committer");
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
 
     @Test
     void testValidation() throws IOException {
         Assertions.assertDoesNotThrow(() -> {
-            try (Reader r = ResourceLoader.getXmlReader(this.getClass())) {
-                XML xml = XML.of(r).create();
-                xml.toObjectImpl(SQLCommitter.class);
+            try (var r = ResourceLoader.getXmlReader(this.getClass())) {
+                BeanMapper.DEFAULT.read(SQLCommitter.class, r, Format.XML);
             }
         });
     }

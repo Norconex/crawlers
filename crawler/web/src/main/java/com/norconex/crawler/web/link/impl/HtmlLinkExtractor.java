@@ -14,16 +14,15 @@
  */
 package com.norconex.crawler.web.link.impl;
 
+import static com.norconex.crawler.web.link.impl.HtmlLinkExtractorConfig.HTTP_EQUIV;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.IOException;
-import java.io.Reader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
@@ -39,27 +38,21 @@ import org.jsoup.nodes.Element;
 
 import com.google.common.base.Objects;
 import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.link.AbstractTextLinkExtractor;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
+import com.norconex.crawler.web.link.impl.HtmlLinkExtractorConfig.RegexPair;
 import com.norconex.crawler.web.url.WebURLNormalizer;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
 import com.norconex.crawler.web.util.Web;
-import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerDoc;
 
-import lombok.AccessLevel;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -72,7 +65,7 @@ import lombok.extern.slf4j.Slf4j;
  * so on a chunk of text at a time, so that large files are not fully loaded
  * into memory. If you prefer a more flexible implementation that loads the
  * DOM model in memory to perform link extraction, consider using
- * {@link DOMLinkExtractor}.
+ * {@link DomLinkExtractor}.
  * </p>
  *
  * <h3>Applicable documents</h3>
@@ -199,8 +192,8 @@ import lombok.extern.slf4j.Slf4j;
  * <h3>Extract links in certain parts only</h3>
  * <p>You can identify portions of a document where links
  * should be extracted or ignored with
- * {@link #setExtractBetweens(RegexPair...)} and
- * {@link #setNoExtractBetweens(RegexPair...)}. Eligible content for link
+ * {@link #setExtractBetweens(List)} and
+ * {@link #setNoExtractBetweens(List)}. Eligible content for link
  * extraction is identified first, and content to exclude is done on that
  * subset.
  * </p>
@@ -208,8 +201,8 @@ import lombok.extern.slf4j.Slf4j;
  * area by using
  * <a href="https://jsoup.org/cookbook/extracting-data/selector-syntax">selector-syntax</a>
  * to do so, with
- * {@link #setExtractSelectors(String...)} and
- * {@link #setNoExtractSelectors(String...)}.
+ * {@link #setExtractSelectors(List)} and
+ * {@link #setNoExtractSelectors(List)}.
  * </p>
  *
  * {@nx.xml.usage
@@ -278,87 +271,26 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuppressWarnings("javadoc")
 @Slf4j
-@Data
-public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
-
-    /** Default maximum length a URL can have. */
-    public static final int DEFAULT_MAX_URL_LENGTH = 2048;
-
-    /** Default supported URL schemes (http, https, and ftp). */
-    public static final List<String> DEFAULT_SCHEMES =
-            List.of("http", "https", "ftp");
+@EqualsAndHashCode
+@ToString
+public class HtmlLinkExtractor
+        implements LinkExtractor, Configurable<HtmlLinkExtractorConfig> {
 
     private static final int LOGGING_MAX_URL_LENGTH = 200;
 
-    private static final String HTTP_EQUIV = "http-equiv";
     private static final String CONTENT = "content";
-    private static final String START = "start";
-    private static final String END = "end";
 
     //--- Properties -----------------------------------------------------------
 
-    /**
-     * The maximum supported URL length. Longer URLs are ignored.
-     * @param maxURLLength maximum URL length
-     * @return maximum URL length
-     */
-    private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
-
-    /**
-     * Whether to ignore "nofollow" directives on HTML links. An example
-     * of such links:
-     * <pre>
-     * &lt;a href="https://yoursite.com/doNotCrawl.html" rel="nofollow"&gt;
-     *   By default this link won't be crawled.
-     * &lt;/a&gt;
-     * </pre>
-     * @param ignoreNofollow whether to ignore "nofollow" directives
-     * @return <code>true</code> if ignoring "nofollow" directives
-     */
-    private boolean ignoreNofollow;
-
-    /**
-     * Gets whether to ignore extra data associated with a link.
-     * @param ignoreLinkData <code>true</code> to ignore.
-     * @return <code>true</code> to ignore.
-     */
-    private boolean ignoreLinkData;
-
-    /**
-     * The character set to use for pages on which link extraction is performed.
-     * When <code>null</code> (default), character set detection will be
-     * attempted.
-     * @param charset character set to use, or <code>null</code>
-     * @return character set to use, or <code>null</code>
-     */
-    private String charset;
-
-    /**
-     * Gets whether links should be extracted from comments. Comment example:
-     * <pre>
-     * &lt;!--
-     * By default, this URL won't be crawled:
-     * &lt;a href="https://yoursite.com/somepage.html"&gt;Some URL&lt;/a&gt;
-     * --&gt;
-     * </pre>
-     * @return <code>true</code> if links should be extracted from comments.
-     */
-    private boolean commentsEnabled;
-
-    private final Properties tagAttribs = new Properties(true);
-    private final List<String> schemes = new ArrayList<>(DEFAULT_SCHEMES);
-    private final List<String> extractSelectors = new ArrayList<>();
-    private final List<String> noExtractSelectors = new ArrayList<>();
-    private final List<RegexPair> extractBetweens = new ArrayList<>();
-    private final List<RegexPair> noExtractBetweens = new ArrayList<>();
+    @Getter
+    private final HtmlLinkExtractorConfig configuration =
+            new HtmlLinkExtractorConfig();
 
     // NOTE: When this predicate is invoked the tag name is always lower case
     // and known to have been identified as a target tag name in configuration.
     // For each predicate, returning true won't try following predicates
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @Getter(value = AccessLevel.NONE)
-    @Setter(value = AccessLevel.NONE)
     private final BiPredicate<Tag, Set<Link>> tagLinksExtractor =
 
         //--- From tag body ---
@@ -426,183 +358,47 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             .anyMatch(Boolean::valueOf)
         );
 
-    //--- Constructor ----------------------------------------------------------
-
-    public HtmlLinkExtractor() {
-        // default content type this extractor applies to
-        setRestrictions(CommonRestrictions.htmlContentTypes(
-                DocMetadata.CONTENT_TYPE));
-
-        // default tags/attributes used to extract data.
-        addLinkTag("a", "href");
-        addLinkTag("frame", "src");
-        addLinkTag("iframe", "src");
-        addLinkTag("img", "src");
-        addLinkTag("meta", HTTP_EQUIV);
-    }
-
-    //--- Accessors ------------------------------------------------------------
-
-    /**
-     * Gets the patterns delimiting the portions of a document to be considered
-     * for link extraction.
-     * @return extract between patterns
-     */
-    public List<RegexPair> getExtractBetweens() {
-        return Collections.unmodifiableList(extractBetweens);
-    }
-    /**
-     * Sets the patterns delimiting the portions of a document to be considered
-     * for link extraction.
-     * @param betweens extract between patterns
-     */
-    public void setExtractBetweens(List<RegexPair> betweens) {
-        CollectionUtil.setAll(extractBetweens, betweens);
-    }
-    /**
-     * Adds patterns delimiting a portion of a document to be considered
-     * for link extraction.
-     * @param start pattern matching start of text portion
-     * @param end pattern matching end of text portion
-     * @param ignoreCase whether the patterns are case sensitive or not
-     */
-    public void addExtractBetween(
-            String start, String end, boolean ignoreCase) {
-        extractBetweens.add(new RegexPair(start, end, ignoreCase));
-    }
-
-    /**
-     * Gets the patterns delimiting the portions of a document to be excluded
-     * from link extraction.
-     * @return extract between patterns
-     */
-    public List<RegexPair> getNoExtractBetweens() {
-        return Collections.unmodifiableList(noExtractBetweens);
-    }
-    /**
-     * Sets the patterns delimiting the portions of a document to be excluded
-     * from link extraction.
-     * @param betweens extract between patterns
-     */
-    public void setNoExtractBetweens(List<RegexPair> betweens) {
-        CollectionUtil.setAll(noExtractBetweens, betweens);
-    }
-    /**
-     * Adds patterns delimiting a portion of a document to be excluded
-     * from link extraction.
-     * @param start pattern matching start of text portion
-     * @param end pattern matching end of text portion
-     * @param ignoreCase whether the patterns are case sensitive or not
-     */
-    public void addNoExtractBetween(
-            String start, String end, boolean ignoreCase) {
-        noExtractBetweens.add(new RegexPair(start, end, ignoreCase));
-    }
-
-    /**
-     * Gets the selectors matching the portions of a document to be considered
-     * for link extraction.
-     * @return selectors
-     */
-    public List<String> getExtractSelectors() {
-        return Collections.unmodifiableList(extractSelectors);
-    }
-    /**
-     * Sets the selectors matching the portions of a document to be considered
-     * for link extraction.
-     * @param selectors selectors
-     */
-    public void setExtractSelectors(List<String> selectors) {
-        CollectionUtil.setAll(extractSelectors, selectors);
-    }
-    /**
-     * Adds selectors matching the portions of a document to be considered
-     * for link extraction.
-     * @param selectors selectors
-     */
-    public void addExtractSelectors(List<String> selectors) {
-        extractSelectors.addAll(selectors);
-    }
-
-    /**
-     * Gets the selectors matching the portions of a document to be excluded
-     * from link extraction.
-     * @return selectors
-     */
-    public List<String> getNoExtractSelectors() {
-        return Collections.unmodifiableList(noExtractSelectors);
-    }
-    /**
-     * Sets the selectors matching the portions of a document to be excluded
-     * from link extraction.
-     * @param selectors selectors
-     */
-    public void setNoExtractSelectors(List<String> selectors) {
-        CollectionUtil.setAll(noExtractSelectors, selectors);
-    }
-    /**
-     * Adds selectors matching the portions of a document to be excluded
-     * from link extraction.
-     * @param selectors selectors
-     */
-    public void addNoExtractSelectors(List<String> selectors) {
-        noExtractSelectors.addAll(selectors);
-    }
-
-    /**
-     * Gets the schemes to be extracted.
-     * @return schemes to be extracted
-     */
-    public List<String> getSchemes() {
-        return Collections.unmodifiableList(schemes);
-    }
-    /**
-     * Sets the schemes to be extracted.
-     * @param schemes schemes to be extracted
-     */
-    public void setSchemes(List<String> schemes) {
-        CollectionUtil.setAll(this.schemes, schemes);
-    }
-
-    //--- Public methods -------------------------------------------------------
-
-    public synchronized void addLinkTag(String tagName, String attribute) {
-        tagAttribs.add(tagName, attribute);
-    }
-    public synchronized void removeLinkTag(String tagName, String attribute) {
-        if (attribute == null) {
-            tagAttribs.remove(tagName);
-        } else {
-            var values = tagAttribs.getStrings(tagName);
-            values.remove(attribute);
-            if (values.isEmpty()) {
-                tagAttribs.remove(tagName);
-            } else {
-                tagAttribs.setList(tagName, values);
-            }
-        }
-    }
-    public synchronized void clearLinkTags() {
-        tagAttribs.clear();
-    }
-
     @Override
-    public void extractTextLinks(
-            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
+    public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
+
+        // only proceed if we are dealing with a supported content type
+        if (!configuration.getContentTypeMatcher().matches(
+                doc.getDocRecord().getContentType().toString())) {
+            return Set.of();
+        }
+
         var refererUrl = doc.getReference();
-        try (var r = new TextReader(reader)) {
-            var firstChunk = true;
-            String text = null;
-            while ((text = r.readText()) != null) {
-                var content = normalizeWhiteSpaces(text);
-                refererUrl = adjustReferer(content, refererUrl, firstChunk);
-                firstChunk = false;
-                extractLinks(content, refererUrl, links);
+        Set<Link> links = new HashSet<>();
+
+        if (configuration.getFieldMatcher().isSet()) {
+            // Fields
+            doc.getMetadata()
+                .matchKeys(configuration.getFieldMatcher())
+                .valueList()
+                    .forEach(val ->
+                        extractLinksFromText(links, val, refererUrl, true));
+        } else {
+            // Body
+            try (var r = new TextReader(
+                    new InputStreamReader(doc.getInputStream()))) {
+                var firstChunk = true;
+                String text = null;
+                while ((text = r.readText()) != null) {
+                    extractLinksFromText(links, text, refererUrl, firstChunk);
+                }
             }
         }
+        return links;
     }
 
     //--- Non-public methods ---------------------------------------------------
+
+    private void extractLinksFromText(
+            Set<Link> links, String text, String url, boolean checkBaseHref) {
+        var content = normalizeWhiteSpaces(text);
+        var refererUrl = adjustReferer(content, url, checkBaseHref);
+        extractLinksFromCleanText(links, content, refererUrl);
+    }
 
     private String adjustReferer(
             final String content, final String refererUrl,
@@ -624,8 +420,8 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         return ref;
     }
 
-    private void extractLinks(
-            String theContent, String referrerUrl, Set<Link> links) {
+    private void extractLinksFromCleanText(
+            Set<Link> links, String theContent, String referrerUrl) {
         var content = theContent;
 
         // Eliminate content not matching extract patterns
@@ -637,11 +433,11 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 "(?is)(<script\\b[^>]*>)(.*?)(</script>)", "$1$3");
 
         // Possibly get rid of comments
-        if (!isCommentsEnabled()) {
+        if (!configuration.isCommentsEnabled()) {
             content = content.replaceAll("(?is)<!--.*?-->", "");
         }
 
-        Set<String> lcTagNames = new HashSet<>(tagAttribs
+        Set<String> lcTagNames = new HashSet<>(configuration.getTagAttribs()
                 .keySet()
                 .stream()
                 .map(String::toLowerCase)
@@ -687,7 +483,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
         tag.attribs.putAll(Web.parseDomAttributes(attribsStr));
 
-        tag.configAttribNames.addAll(tagAttribs
+        tag.configAttribNames.addAll(configuration.getTagAttribs()
                 .getStrings(tag.name)
                 .stream()
                 .filter(StringUtils::isNotBlank)
@@ -716,7 +512,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         var link = new Link(url);
         link.setReferrer(tag.referrer);
 
-        if (ignoreLinkData) {
+        if (configuration.isIgnoreLinkData()) {
             return links.add(link);
         }
 
@@ -738,7 +534,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     private boolean hasActiveDoNotFollow(Tag tag) {
         return "a".equals(tag.name)
-                && !ignoreNofollow
+                && !configuration.isIgnoreNofollow()
                 && tag.attribs.getStrings("rel")
                     .stream()
                     .anyMatch(s -> "nofollow".equalsIgnoreCase(trimToEmpty(s)));
@@ -754,16 +550,16 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     //like StripBetweenTagger
     private String excludeUnwantedContent(String content) {
         var newContent = content;
-        if (!extractBetweens.isEmpty()) {
+        if (!configuration.getExtractBetweens().isEmpty()) {
             newContent = applyExtractBetweens(newContent);
         }
-        if (!noExtractBetweens.isEmpty()) {
+        if (!configuration.getNoExtractBetweens().isEmpty()) {
             newContent = applyNoExtractBetweens(newContent);
         }
-        if (!extractSelectors.isEmpty()) {
+        if (!configuration.getExtractSelectors().isEmpty()) {
             newContent = applyExtractSelectors(newContent);
         }
-        if (!noExtractSelectors.isEmpty()) {
+        if (!configuration.getNoExtractSelectors().isEmpty()) {
             newContent = applyNoExtractSelectors(newContent);
         }
         return newContent;
@@ -771,7 +567,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     private String applyExtractBetweens(String content) {
         var b = new StringBuilder();
-        for (RegexPair regexPair : extractBetweens) {
+        for (RegexPair regexPair : configuration.getExtractBetweens()) {
             for (Pair<Integer, Integer> pair :
                     matchBetweens(content, regexPair)) {
                 b.append(content.substring(pair.getLeft(), pair.getRight()));
@@ -782,7 +578,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     private String applyNoExtractBetweens(String content) {
         var b = new StringBuilder(content);
-        for (RegexPair regexPair : noExtractBetweens) {
+        for (RegexPair regexPair : configuration.getNoExtractBetweens()) {
             var matches =
                     matchBetweens(content, regexPair);
             for (var i = matches.size() -1; i >= 0; i--) {
@@ -817,7 +613,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     private String applyExtractSelectors(String content) {
         var b = new StringBuilder();
         var doc = Jsoup.parse(content);
-        for (String selector : extractSelectors) {
+        for (String selector : configuration.getExtractSelectors()) {
             for (Element element : doc.select(selector)) {
                 if (b.length() > 0) {
                     b.append(" ");
@@ -829,7 +625,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     }
     private String applyNoExtractSelectors(String content) {
         var doc = Jsoup.parse(content);
-        for (String selector : noExtractSelectors) {
+        for (String selector : configuration.getNoExtractSelectors()) {
             for (Element element : doc.select(selector)) {
                 element.remove();
             }
@@ -854,13 +650,15 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
         url = HttpURL.toAbsolute(referrerUrl, url);
 
-        if (url.length() > maxURLLength) {
+        if (url.length() > configuration.getMaxURLLength()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("""
                     URL length ({}) exceeding maximum length allowed\s\
                     ({}) to be extracted. URL (showing first {} chars):\s\
                     {}...""",
-                        url.length(), maxURLLength, LOGGING_MAX_URL_LENGTH,
+                        url.length(),
+                        configuration.getMaxURLLength(),
+                        LOGGING_MAX_URL_LENGTH,
                         StringUtils.substring(url, 0, LOGGING_MAX_URL_LENGTH));
             }
             return null;
@@ -876,9 +674,9 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
         // if scheme is specified, make sure it is valid
         if (newURL.matches("(?i)^[a-z][a-z0-9\\+\\.\\-]*:.*$")) {
-            var supportedSchemes = getSchemes();
+            var supportedSchemes = configuration.getSchemes();
             if (supportedSchemes.isEmpty()) {
-                supportedSchemes = DEFAULT_SCHEMES;
+                supportedSchemes = HtmlLinkExtractorConfig.DEFAULT_SCHEMES;
             }
             for (String scheme : supportedSchemes) {
                 if (StringUtils.startsWithIgnoreCase(newURL, scheme + ":")) {
@@ -890,150 +688,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         return true;
     }
 
-    @Override
-    protected void loadTextLinkExtractorFromXML(XML xml) {
-        setMaxURLLength(xml.getInteger("@maxURLLength", maxURLLength));
-        setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
-        setCommentsEnabled(xml.getBoolean("@commentsEnabled", commentsEnabled));
-        setCharset(xml.getString("@charset", charset));
-        setIgnoreLinkData(xml.getBoolean("@ignoreLinkData", ignoreLinkData));
-        setSchemes(xml.getDelimitedStringList("schemes", schemes));
-        loadTagsAndAttributes(xml);
-        loadExtractAndNoExtractBetween(xml);
-        loadExtractAndNoExtractSelectors(xml);
-    }
-
-    private void loadTagsAndAttributes(XML xml) {
-        var xmlTagsParent = xml.getXML("tags");
-        if (xmlTagsParent != null && xmlTagsParent.isEmpty()) {
-            clearLinkTags();
-        } else {
-            var xmlTags = xml.getXMLList("tags/tag");
-            if (!xmlTags.isEmpty()) {
-                clearLinkTags();
-                for (XML xmlTag: xmlTags) {
-                    var name = xmlTag.getString("@name", null);
-                    var attr = xmlTag.getString("@attribute", null);
-                    if (StringUtils.isNotBlank(name)) {
-                        addLinkTag(name, attr);
-                    }
-                }
-            }
-        }
-    }
-
-    private void loadExtractAndNoExtractBetween(XML xml) {
-        // extract between
-        var xmlBetweens = xml.getXMLList("extractBetween");
-        if (!xmlBetweens.isEmpty()) {
-            extractBetweens.clear();
-            for (XML xmlBetween: xmlBetweens) {
-                addExtractBetween(
-                        xmlBetween.getString(START, null),
-                        xmlBetween.getString(END, null),
-                        xmlBetween.getBoolean("@ignoreCase", false));
-            }
-        }
-
-        // no extract between
-        var xmlNoBetweens = xml.getXMLList("noExtractBetween");
-        if (!xmlNoBetweens.isEmpty()) {
-            noExtractBetweens.clear();
-            for (XML xmlNoBetween: xmlNoBetweens) {
-                addNoExtractBetween(
-                        xmlNoBetween.getString(START, null),
-                        xmlNoBetween.getString(END, null),
-                        xmlNoBetween.getBoolean("@ignoreCase", false));
-            }
-        }
-    }
-
-    private void loadExtractAndNoExtractSelectors(XML xml) {
-        // extract selector
-        var extractSelList = xml.getStringList("extractSelector");
-        if (!extractSelList.isEmpty()) {
-            CollectionUtil.setAll(extractSelectors, extractSelList);
-        }
-
-        // no extract selector
-        var noExtractSelList = xml.getStringList("noExtractSelector");
-        if (!noExtractSelList.isEmpty()) {
-            CollectionUtil.setAll(noExtractSelectors, noExtractSelList);
-        }
-    }
-
-    @Override
-    protected void saveTextLinkExtractorToXML(XML xml) {
-        xml.setAttribute("maxURLLength", maxURLLength);
-        xml.setAttribute("ignoreNofollow", ignoreNofollow);
-        xml.setAttribute("commentsEnabled", commentsEnabled);
-        xml.setAttribute("charset", charset);
-        xml.setAttribute("ignoreLinkData", ignoreLinkData);
-
-        xml.addDelimitedElementList("schemes", schemes);
-
-        // Tags
-
-        if (tagAttribs.isEmpty()) {
-            xml.addElement("tags");
-        } else {
-            var xmlTags = xml.addElement("tags");
-            for (Entry<String, List<String>> entry :
-                    tagAttribs.entrySet()) {
-                for (String attrib : entry.getValue()) {
-                    xmlTags.addElement("tag")
-                            .setAttribute("name", entry.getKey())
-                            .setAttribute("attribute", attrib);
-                }
-            }
-        }
-
-        // extract between
-        for (RegexPair pair : extractBetweens) {
-            var xmlBetween = xml.addElement("extractBetween")
-                    .setAttribute("ignoreCase", pair.ignoreCase);
-            xmlBetween.addElement(START, pair.getStart());
-            xmlBetween.addElement(END, pair.getEnd());
-        }
-
-        // no extract between
-        for (RegexPair pair : noExtractBetweens) {
-            var xmlNoBetween = xml.addElement("noExtractBetween")
-                    .setAttribute("ignoreCase", pair.ignoreCase);
-            xmlNoBetween.addElement(START, pair.getStart());
-            xmlNoBetween.addElement(END, pair.getEnd());
-        }
-
-        // extract selector
-        xml.addElementList("extractSelector", extractSelectors);
-
-        // no extract selector
-        xml.addElementList("noExtractSelector", noExtractSelectors);
-    }
-
     //--- Inner Classes --------------------------------------------------------
-
-    //MAYBE: make standalone class?
-    @Data
-    public static class RegexPair {
-        private final String start;
-        private final String end;
-        private final boolean ignoreCase;
-        public RegexPair(String start, String end, boolean ignoreCase) {
-            this.start = start;
-            this.end = end;
-            this.ignoreCase = ignoreCase;
-        }
-        public String getStart() {
-            return start;
-        }
-        public String getEnd() {
-            return end;
-        }
-        public boolean isIgnoreCase() {
-            return ignoreCase;
-        }
-    }
 
     @EqualsAndHashCode
     @ToString

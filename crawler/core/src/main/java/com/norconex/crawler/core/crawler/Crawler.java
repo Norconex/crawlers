@@ -36,6 +36,7 @@ import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.service.CommitterService;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileUtil;
@@ -65,6 +66,7 @@ import com.norconex.importer.response.ImporterResponse;
 
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -86,7 +88,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuppressWarnings("javadoc")
 @Slf4j
-public class Crawler {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Crawler implements Configurable<CrawlerConfig> {
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
 
@@ -104,7 +107,8 @@ public class Crawler {
      * @return the crawler configuration
      */
     @Getter
-    private final CrawlerConfig crawlerConfig;
+    @EqualsAndHashCode.Include
+    private final CrawlerConfig configuration;
 
     @Getter(value=AccessLevel.PACKAGE)
     private final CrawlerImpl crawlerImpl;
@@ -189,7 +193,7 @@ public class Crawler {
             @NonNull CrawlerConfig crawlerConfig,
             @NonNull CrawlerImpl crawlerImpl) {
         this.crawlSession = crawlSession;
-        this.crawlerConfig = crawlerConfig;
+        configuration = crawlerConfig;
         this.crawlerImpl = crawlerImpl;
 
         if (StringUtils.isBlank(getId())) {
@@ -217,7 +221,7 @@ public class Crawler {
     //--- Set at construction --------------------------------------------------
 
     public String getId() {
-        return crawlerConfig.getId();
+        return configuration.getId();
     }
 
     /**
@@ -275,7 +279,7 @@ public class Crawler {
         fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
 
         //--- Store engine ---
-        dataStoreEngine = crawlerConfig.getDataStoreEngine();
+        dataStoreEngine = configuration.getDataStoreEngine();
         dataStoreEngine.init(this);
         docRecordService = new CrawlDocRecordService(
                 this, crawlerImpl.crawlDocRecordType());
@@ -309,12 +313,12 @@ public class Crawler {
             initCrawler(() -> {
                 resume.setValue(docRecordService.prepareForCrawlerStart());
                 importer = new Importer(
-                        getCrawlerConfig().getImporterConfig(),
+                        getConfiguration().getImporterConfig(),
                         getEventManager());
                 monitor = new CrawlerMonitor(this);
                 //TODO make general logging messages verbosity configurable
                 progressLogger = new CrawlProgressLogger(monitor,
-                        getCrawlerConfig().getMinProgressLoggingInterval());
+                        getConfiguration().getMinProgressLoggingInterval());
                 progressLogger.startTracking();
                 if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
                     CrawlerMonitorJMX.register(this);
@@ -330,7 +334,7 @@ public class Crawler {
                         .ifPresent(c -> c.accept(this, resume.getValue()));
 
                 // max documents
-                var cfgMaxDocs = getCrawlerConfig().getMaxDocuments();
+                var cfgMaxDocs = getConfiguration().getMaxDocuments();
                 var resumeMaxDocs = cfgMaxDocs;
                 if (cfgMaxDocs > -1 && resume.booleanValue()) {
                     resumeMaxDocs += monitor.getProcessedCount();
@@ -397,7 +401,7 @@ public class Crawler {
     }
 
     void processReferences(final ProcessFlags flags) {
-        var numThreads = getCrawlerConfig().getNumThreads();
+        var numThreads = getConfiguration().getNumThreads();
         final var latch = new CountDownLatch(numThreads);
         var execService = Executors.newFixedThreadPool(numThreads);
         try {
@@ -475,7 +479,7 @@ public class Crawler {
 
     void handleOrphans() {
 
-        var strategy = crawlerConfig.getOrphansStrategy();
+        var strategy = configuration.getOrphansStrategy();
         if (strategy == null) {
             // null is same as ignore
             strategy = OrphansStrategy.IGNORE;
@@ -581,8 +585,8 @@ public class Crawler {
 
     // store made of: checksum -> ref
     private DataStore<String> resolveMetaDedupStore() {
-        if (crawlerConfig.isMetadataDeduplicate()
-                && crawlerConfig.getMetadataChecksummer() != null) {
+        if (configuration.isMetadataDeduplicate()
+                && configuration.getMetadataChecksummer() != null) {
             return getDataStoreEngine().openStore(
                     "dedup-metadata", String.class);
         }
@@ -590,8 +594,8 @@ public class Crawler {
     }
     // store made of: checksum -> ref
     private DataStore<String> resolveDocumentDedupStore() {
-        if (crawlerConfig.isDocumentDeduplicate()
-                && crawlerConfig.getDocumentChecksummer() != null) {
+        if (configuration.isDocumentDeduplicate()
+                && configuration.getDocumentChecksummer() != null) {
             return getDataStoreEngine().openStore(
                     "dedup-document", String.class);
         }

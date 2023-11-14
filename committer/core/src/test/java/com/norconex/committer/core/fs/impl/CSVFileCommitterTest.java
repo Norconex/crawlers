@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 package com.norconex.committer.core.fs.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -32,8 +32,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.TestUtil;
-import com.norconex.committer.core.fs.impl.CSVFileCommitter.Column;
-import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>CSV File Committer tests.</p>
@@ -47,18 +45,16 @@ class CSVFileCommitterTest  {
     @Test
     void testMergedCSVFileCommitter()
             throws CommitterException, IOException {
-        var expected =
-                """
-        	type,URL,title,content
-        	upsert,http://example.com/1,title 1,content 1
-        	delete,http://example.com/2,title 2,
-        	upsert,http://example.com/3,title 3,content 3
-        	""";
+        var expected = """
+            type,URL,title,content
+            upsert,http://example.com/1,title 1,content 1
+            delete,http://example.com/2,title 2,
+            upsert,http://example.com/3,title 3,content 3
+            """;
 
         var c = commitSampleData(false);
 
-
-        var files = TestUtil.listFSFiles(c.getDirectory());
+        var files = TestUtil.listFSFiles(c.getResolvedDirectory());
         Assertions.assertEquals(1,  files.size());
 
         var actual = FileUtils.readFileToString(
@@ -71,12 +67,11 @@ class CSVFileCommitterTest  {
     void testSplitCSVFileCommitter()
             throws CommitterException, IOException {
 
-        var expectedUpsert =
-                """
-        	URL,title,content
-        	http://example.com/1,title 1,content 1
-        	http://example.com/3,title 3,content 3
-        	""";
+        var expectedUpsert = """
+            URL,title,content
+            http://example.com/1,title 1,content 1
+            http://example.com/3,title 3,content 3
+            """;
 
         var expectedDelete =
                 "URL,title,content\n"
@@ -84,15 +79,15 @@ class CSVFileCommitterTest  {
 
         var c = commitSampleData(true);
 
-        var files = TestUtil.listFSFiles(c.getDirectory());
+        var files = TestUtil.listFSFiles(c.getResolvedDirectory());
         Assertions.assertEquals(2,  files.size());
 
         var actualUpsert = FileUtils.readFileToString(
                 TestUtil.listFSUpsertFiles(
-                        c.getDirectory()).iterator().next(), UTF_8);
+                        c.getResolvedDirectory()).iterator().next(), UTF_8);
         var actualDelete = FileUtils.readFileToString(
                 TestUtil.listFSDeleteFiles(
-                        c.getDirectory()).iterator().next(), UTF_8);
+                        c.getResolvedDirectory()).iterator().next(), UTF_8);
 
         Assertions.assertEquals(expectedUpsert, actualUpsert);
         Assertions.assertEquals(expectedDelete, actualDelete);
@@ -120,14 +115,19 @@ class CSVFileCommitterTest  {
         var c = new CSVFileCommitter();
         // write 5 upserts and 2 deletes.
         // max docs per file being 2, so should generate 4 files.
-        c.setDocsPerFile(20);
-        c.setSplitUpsertDelete(splitUpsertDelete);
-        c.setShowHeaders(true);
-
-        c.setColumns(Arrays.asList(
-                new Column("document.reference", "URL"),
-                new Column("title"),
-                new Column(null)));
+        c.getConfiguration()
+            .setColumns(List.of(
+                    new CSVColumn()
+                        .setField("document.reference")
+                        .setHeader("URL"),
+                    new CSVColumn()
+                        .setField("title")
+                        .setHeader("title"),
+                    new CSVColumn()
+            ))
+            .setShowHeaders(true)
+            .setDocsPerFile(20)
+            .setSplitUpsertDelete(splitUpsertDelete);
 
         c.init(TestUtil.committerContext(folder));
         TestUtil.commitRequests(c, reqs);
@@ -136,27 +136,38 @@ class CSVFileCommitterTest  {
     }
 
     @Test
-    void testWriteRead() {
+    void testWriteRead() throws CommitterException {
         var c = new CSVFileCommitter();
-        c.setCompress(true);
-        c.setDirectory(Paths.get("c:\\temp"));
-        c.setDocsPerFile(5);
-        c.setFileNamePrefix("prefix");
-        c.setFileNamePrefix("suffix");
-        c.setSplitUpsertDelete(true);
-        c.setFormat("EXCEL");
-        c.setDelimiter('|');
-        c.setQuote('!');
-        c.setShowHeaders(true);
-        c.setEscape('%');
-        c.setTruncateAt(10);
-        c.setMultiValueJoinDelimiter("^^^");
-        c.setTypeHeader("Request Type");
-        c.setColumns(Arrays.asList(
-                new Column("document.reference", "URL", 2000),
-                new Column("title", "My Title", 100),
-                new Column(null, "My Content", 200)));
-        XML.assertWriteRead(c, "committer");
-    }
+        c.getConfiguration()
+            .setColumns(List.of(
+                    new CSVColumn()
+                        .setField("document.reference")
+                        .setHeader("URL")
+                        .setTruncateAt(2000),
+                    new CSVColumn()
+                        .setField("title")
+                        .setHeader("My Title")
+                        .setTruncateAt(100),
+                    new CSVColumn()
+                        .setHeader("My content")
+                        .setTruncateAt(200)
+            ))
+            .setFormat("EXCEL")
+            .setDelimiter('|')
+            .setQuote('!')
+            .setShowHeaders(true)
+            .setEscape('%')
+            .setTruncateAt(10)
+            .setTypeHeader("Request Type")
+            .setMultiValueJoinDelimiter("^^^")
+            .setDirectory(Paths.get("c:\\temp"))
+            .setDocsPerFile(5)
+            .setFileNamePrefix("prefix")
+            .setFileNamePrefix("suffix")
+            .setSplitUpsertDelete(true)
+            .setCompress(true);
 
+        assertThatNoException().isThrownBy(
+                () -> TestUtil.beanMapper().assertWriteRead(c));
+    }
 }

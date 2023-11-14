@@ -28,29 +28,29 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.parser.ParseState;
 
 class ScriptConditionTest {
 
     @ParameterizedTest
     @ArgumentsSource(SimpleProvider.class)
     void testScriptCondition(String engineName, String script)
-            throws ImporterHandlerException, IOException {
-        var cond = new ScriptCondition(new ScriptRunner<>(engineName, script));
+            throws IOException, IOException {
+        var cond = Configurable.configure(new ScriptCondition(), c -> c
+                .setEngineName(engineName)
+                .setScript(script));
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        var returnValue = cond.testDocument(
-                TestUtil.newHandlerDoc(htmlFile.getAbsolutePath(), is, metadata),
-                is, ParseState.PRE);
+        var returnValue = cond.evaluate(TestUtil.newDocContext(
+                htmlFile.getAbsolutePath(), is, metadata));
         is.close();
         Assertions.assertTrue(returnValue);
     }
@@ -82,8 +82,8 @@ class ScriptConditionTest {
 
     @Test
     void testWriteRead() {
-        XML.assertWriteRead(new ScriptCondition(
-                new ScriptRunner<>(ScriptRunner.JAVASCRIPT_ENGINE,
-                        "returnValue = blah == 'blah';")), "condition");
+        BeanMapper.DEFAULT.assertWriteRead(Configurable.configure(new ScriptCondition(), c -> c
+                .setEngineName(ScriptRunner.JAVASCRIPT_ENGINE)
+                .setScript("returnValue = blah == 'blah';")));
     }
 }

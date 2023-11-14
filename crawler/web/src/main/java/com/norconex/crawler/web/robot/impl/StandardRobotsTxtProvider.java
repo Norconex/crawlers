@@ -38,6 +38,7 @@ import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.filter.OnMatch;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.doc.WebDocRecord;
@@ -47,7 +48,6 @@ import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.robot.RobotsTxt;
 import com.norconex.crawler.web.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
-import com.norconex.importer.handler.filter.OnMatch;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -79,10 +79,10 @@ public class StandardRobotsTxtProvider
         extends CrawlerLifeCycleListener
         implements RobotsTxtProvider {
 
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private final Map<String, RobotsTxt> robotsTxtCache = new HashMap<>();
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Crawler crawler;
 
     @Override
@@ -324,7 +324,9 @@ public class StandardRobotsTxtProvider
         private final String path;
         public StdRobotsTxtFilter(
                 String path, String regex, OnMatch onMatch) {
-            super(TextMatcher.regex(regex).setIgnoreCase(true), onMatch);
+            getConfiguration()
+                .setValueMatcher(TextMatcher.regex(regex).setIgnoreCase(true))
+                .setOnMatch(onMatch);
             this.path = path;
         }
         @Override
@@ -334,8 +336,8 @@ public class StandardRobotsTxtProvider
         @Override
         public String toString() {
             return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE
-                    ? "Allow: " : "Disallow: ") + path
-                            + " (" + getValueMatcher().getPattern() + ")";
+                    ? "Allow: " : "Disallow: ") + path + " (" +
+                        getConfiguration().getValueMatcher().getPattern() + ")";
         }
     }
 }

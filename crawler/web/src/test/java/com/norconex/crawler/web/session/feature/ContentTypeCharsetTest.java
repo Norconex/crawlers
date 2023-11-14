@@ -86,14 +86,14 @@ class ContentTypeCharsetTest {
         //--- Second run with detect ---
 
         var mem2 = TestWebCrawlSession
-                .forStartReferences(serverUrl(client, urlPath))
-                .crawlerSetup(cfg -> {
-                    var fetcher = new GenericHttpFetcher();
-                    fetcher.getConfig().setForceContentTypeDetection(true);
-                    fetcher.getConfig().setForceCharsetDetection(true);
-                    cfg.setFetchers(List.of(fetcher));
-                })
-                .crawl();
+            .forStartReferences(serverUrl(client, urlPath))
+            .crawlerSetup(cfg -> {
+                var fetcher = new GenericHttpFetcher();
+                fetcher.getConfiguration().setForceContentTypeDetection(true);
+                fetcher.getConfiguration().setForceCharsetDetection(true);
+                cfg.setFetchers(List.of(fetcher));
+            })
+            .crawl();
 
         assertThat(mem2.getUpsertRequests()).hasSize(1);
         var doc2 = mem2.getUpsertRequests().get(0);

@@ -16,27 +16,21 @@ package com.norconex.crawler.core.filter.impl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
+import com.norconex.crawler.core.filter.OnMatch;
+import com.norconex.crawler.core.filter.OnMatchFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.OnMatch;
-import com.norconex.importer.handler.filter.OnMatchFilter;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -71,41 +65,22 @@ public class ExtensionReferenceFilter implements
         ReferenceFilter,
         DocumentFilter,
         MetadataFilter,
-        XMLConfigurable {
+        Configurable<ExtensionReferenceFilterConfig> {
 
-    private boolean ignoreCase;
-    private final Set<String> extensions = new HashSet<>();
-    private OnMatch onMatch;
-
-    public ExtensionReferenceFilter() {
-        this(null, OnMatch.INCLUDE, false);
-    }
-    public ExtensionReferenceFilter(String extensions) {
-        this(extensions, OnMatch.INCLUDE, false);
-    }
-    public ExtensionReferenceFilter(String extensions, OnMatch onMatch) {
-        this(extensions, onMatch, false);
-    }
-    public ExtensionReferenceFilter(
-            String extensions, OnMatch onMatch, boolean ignoreCase) {
-        setExtensions(extensions);
-        setOnMatch(onMatch);
-        setIgnoreCase(ignoreCase);
-    }
+    @Getter
+    private final ExtensionReferenceFilterConfig configuration =
+            new ExtensionReferenceFilterConfig();
 
     @Override
     public OnMatch getOnMatch() {
-        return onMatch;
-    }
-    public void setOnMatch(OnMatch onMatch) {
-        this.onMatch = onMatch;
+        return OnMatch.includeIfNull(configuration.getOnMatch());
     }
 
     @Override
     public boolean acceptReference(String reference) {
-        var safeOnMatch = OnMatch.includeIfNull(onMatch);
+        var safeOnMatch = getOnMatch();
 
-        if (extensions.isEmpty()) {
+        if (configuration.getExtensions().isEmpty()) {
             return safeOnMatch == OnMatch.INCLUDE;
         }
         String referencePath;
@@ -118,46 +93,15 @@ public class ExtensionReferenceFilter implements
 
         var refExtension = FilenameUtils.getExtension(referencePath);
 
-        for (String ext : extensions) {
-            if ((isIgnoreCase() && ext.equalsIgnoreCase(refExtension))
-                    || (!isIgnoreCase() && ext.equals(refExtension))) {
+        for (String ext : configuration.getExtensions()) {
+            if ((configuration.isIgnoreCase()
+                    && ext.equalsIgnoreCase(refExtension))
+                            || (!configuration.isIgnoreCase()
+                                    && ext.equals(refExtension))) {
                 return safeOnMatch == OnMatch.INCLUDE;
             }
         }
         return safeOnMatch == OnMatch.EXCLUDE;
-    }
-
-    public Set<String> getExtensions() {
-        return Collections.unmodifiableSet(extensions);
-    }
-    @JsonIgnore
-    public void setExtensions(String... extensions) {
-        CollectionUtil.setAll(this.extensions, extensions);
-    }
-    public void setExtensions(List<String> extensions) {
-        CollectionUtil.setAll(this.extensions, extensions);
-    }
-
-    public boolean isIgnoreCase() {
-        return ignoreCase;
-    }
-    public final void setIgnoreCase(boolean ignoreCase) {
-        this.ignoreCase = ignoreCase;
-    }
-
-    @JsonIgnore
-    @Override
-    public void loadFromXML(XML xml)  {
-        setExtensions(xml.getDelimitedStringList("."));
-        setOnMatch(xml.getEnum("@onMatch", OnMatch.class, onMatch));
-        setIgnoreCase(xml.getBoolean("@ignoreCase", ignoreCase));
-    }
-    @JsonIgnore
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("onMatch", onMatch);
-        xml.setAttribute("ignoreCase", ignoreCase);
-        xml.setTextContent(StringUtils.join(extensions, ','));
     }
 
     @JsonIgnore

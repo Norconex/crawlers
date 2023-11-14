@@ -20,7 +20,6 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -42,7 +41,7 @@ class SolrCommitterTest extends AbstractSolrTest {
 
     static {
         System.setProperty("solr.allow.unsafe.resourceloading", "true");
-        ClassLoader loader = SolrCommitterTest.class.getClassLoader();
+        var loader = SolrCommitterTest.class.getClassLoader();
         loader.setPackageAssertionStatus("org.apache.solr", true);
         loader.setPackageAssertionStatus("org.apache.lucene", true);
     }
@@ -56,7 +55,7 @@ class SolrCommitterTest extends AbstractSolrTest {
         });
 
         // Check that it's in Solr
-        SolrDocumentList results = queryId("1");
+        var results = queryId("1");
         Assertions.assertEquals(1, results.getNumFound());
     }
 
@@ -68,7 +67,7 @@ class SolrCommitterTest extends AbstractSolrTest {
         });
 
         //Check that there is 2 documents in Solr
-        SolrDocumentList results = getAllDocs();
+        var results = getAllDocs();
         Assertions.assertEquals(2, results.getNumFound());
     }
 
@@ -84,7 +83,7 @@ class SolrCommitterTest extends AbstractSolrTest {
         });
 
         //Check that there is 2 documents in Solr
-        SolrDocumentList results = getAllDocs();
+        var results = getAllDocs();
         Assertions.assertEquals(2, results.getNumFound());
     }
 
@@ -101,7 +100,7 @@ class SolrCommitterTest extends AbstractSolrTest {
         });
 
         //Check that there is 2 documents in Solr
-        SolrDocumentList results = getAllDocs();
+        var results = getAllDocs();
         Assertions.assertEquals(1, results.getNumFound());
     }
 
@@ -109,9 +108,10 @@ class SolrCommitterTest extends AbstractSolrTest {
     void testCommitDelete() throws Exception {
 
         // Add a document directly to Solr
-        SolrInputDocument doc = new SolrInputDocument();
-        doc.addField(SolrCommitter.DEFAULT_SOLR_ID_FIELD, "1");
-        doc.addField(SolrCommitter.DEFAULT_SOLR_CONTENT_FIELD, "Hello world!");
+        var doc = new SolrInputDocument();
+        doc.addField(SolrCommitterConfig.DEFAULT_SOLR_ID_FIELD, "1");
+        doc.addField(SolrCommitterConfig.DEFAULT_SOLR_CONTENT_FIELD,
+                "Hello world!");
         getSolrClient().add(doc);
         getSolrClient().commit();
 
@@ -121,7 +121,7 @@ class SolrCommitterTest extends AbstractSolrTest {
         });
 
         // Check that it's remove from Solr
-        SolrDocumentList results = queryId("1");
+        var results = queryId("1");
         Assertions.assertEquals(0, results.getNumFound());
     }
 
@@ -130,25 +130,23 @@ class SolrCommitterTest extends AbstractSolrTest {
 
     private SolrDocumentList queryId(String id)
             throws SolrServerException, IOException {
-        ModifiableSolrParams solrParams = new ModifiableSolrParams();
+        var solrParams = new ModifiableSolrParams();
         solrParams.set("q", String.format("%s:%s",
-                SolrCommitter.DEFAULT_SOLR_ID_FIELD, id));
-        QueryResponse response = getSolrClient().query(solrParams);
-        SolrDocumentList results = response.getResults();
-        return results;
+                SolrCommitterConfig.DEFAULT_SOLR_ID_FIELD, id));
+        var response = getSolrClient().query(solrParams);
+        return response.getResults();
     }
 
     private SolrDocumentList getAllDocs()
             throws SolrServerException, IOException{
-        ModifiableSolrParams solrParams = new ModifiableSolrParams();
+        var solrParams = new ModifiableSolrParams();
           solrParams.set("q", "*:*");
-        QueryResponse response = getSolrClient().query(solrParams);
-        SolrDocumentList results = response.getResults();
-        return results;
+        var response = getSolrClient().query(solrParams);
+        return response.getResults();
     }
 
     private UpsertRequest upsertRequest(String id, String content) {
-        Properties p = new Properties();
+        var p = new Properties();
         p.add("id", id);
         return new UpsertRequest(id, p, toInputStream(content, UTF_8));
     }

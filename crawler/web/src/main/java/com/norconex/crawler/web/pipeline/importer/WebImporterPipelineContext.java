@@ -45,7 +45,7 @@ public class WebImporterPipelineContext extends ImporterPipelineContext {
 
     @Override
     public WebCrawlerConfig getConfig() {
-        return (WebCrawlerConfig) getCrawler().getCrawlerConfig();
+        return (WebCrawlerConfig) getCrawler().getConfiguration();
     }
 
     @Override

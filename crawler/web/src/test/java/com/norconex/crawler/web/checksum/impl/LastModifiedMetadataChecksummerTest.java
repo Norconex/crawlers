@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 
 class LastModifiedMetadataChecksummerTest {
     @Test
@@ -36,8 +36,7 @@ class LastModifiedMetadataChecksummerTest {
     @Test
     void testWriteRead() {
         assertThatNoException().isThrownBy(() ->
-                XML.assertWriteRead(
-                        new LastModifiedMetadataChecksummer(),
-                        "metadataChecksummer"));
+                BeanMapper.DEFAULT.assertWriteRead(
+                        new LastModifiedMetadataChecksummer()));
     }
 }

@@ -13,19 +13,20 @@
  * limitations under the License.
  */
 package com.norconex.committer.amazoncloudsearch;
-import java.io.IOException;
-import java.io.Reader;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import org.junit.jupiter.api.Assertions;
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 
 /**
@@ -35,46 +36,47 @@ class AmazonCloudSearchCommitterConfigTest {
 
     @Test
     void testWriteRead() throws IOException {
-        AmazonCloudSearchCommitter c = new AmazonCloudSearchCommitter();
-        c.setAccessKey("accessKey");
-        c.setSecretKey("secretKey");
-        c.setServiceEndpoint("serviceEndpoint");
-        c.setSigningRegion("signingRegion");
-        c.setFixBadIds(true);
+        var q = new FSQueue();
+        q.getConfiguration()
+            .setBatchSize(10)
+            .setMaxPerFolder(5);
 
-        FSQueue q = new FSQueue();
-        q.setBatchSize(10);
-        q.setMaxPerFolder(5);
-        c.setCommitterQueue(q);
-
-        Credentials creds = new Credentials();
+        var creds = new Credentials();
         creds.setPassword("mypassword");
         creds.setUsername("myusername");
 
-        c.setFieldMapping("subject", "title");
-        c.setFieldMapping("body", "content");
-
-        c.getRestrictions().add(new PropertyMatcher(
+        var c = new AmazonCloudSearchCommitter();
+        c.getConfiguration()
+            .setAccessKey("accessKey")
+            .setSecretKey("secretKey")
+            .setServiceEndpoint("serviceEndpoint")
+            .setSigningRegion("signingRegion")
+            .setFixBadIds(true)
+            .setSourceIdField("mySourceIdField")
+            .setTargetContentField("myTargetContentField")
+            .setQueue(q)
+        .setFieldMapping("subject", "title")
+        .setFieldMapping("body", "content")
+            .addRestriction(new PropertyMatcher(
                 TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")));
-        c.getRestrictions().add(new PropertyMatcher(
+                TextMatcher.wildcard("*.pdf")))
+            .addRestriction(new PropertyMatcher(
                 TextMatcher.basic("title"),
                 TextMatcher.wildcard("Nah!")));
 
-        c.setSourceIdField("mySourceIdField");
-        c.setTargetContentField("myTargetContentField");
+        c.getConfiguration().getProxySettings().setHost(
+                new Host("example.com", 1234));
 
-        c.getProxySettings().setHost(new Host("example.com", 1234));
-
-        XML.assertWriteRead(c, "committer");
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test
     void testValidation() {
-        Assertions.assertDoesNotThrow(() -> {
-            try (Reader r = ResourceLoader.getXmlReader(this.getClass())) {
-                XML xml = XML.of(r).create();
-                xml.toObjectImpl(AmazonCloudSearchCommitter.class);
+        assertThatNoException().isThrownBy(() -> {
+            try (var r = ResourceLoader.getXmlReader(this.getClass())) {
+                BeanMapper.DEFAULT.read(
+                        AmazonCloudSearchCommitter.class, r, Format.XML);
             }
         });
     }

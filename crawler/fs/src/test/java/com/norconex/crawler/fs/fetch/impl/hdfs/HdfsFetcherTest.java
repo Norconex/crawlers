@@ -27,7 +27,7 @@ import org.apache.commons.vfs2.provider.hdfs.HdfsFileSystemConfigBuilder;
 import org.apache.hadoop.fs.Path;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.importer.doc.DocRecord;
@@ -47,15 +47,20 @@ class HdfsFetcherTest {
 
         var f = new HdfsFetcher();
         assertThatNoException().isThrownBy(() -> {
-            f.setConfigNames(names);
-            f.setConfigPaths(paths);
-            f.setConfigUrls(urls);
-            XML.assertWriteRead(f, "fetcher");
+            f.getConfiguration()
+                .setConfigNames(names)
+                .setConfigPaths(paths)
+                .setConfigUrls(urls);
+            assertThatNoException().isThrownBy(() ->
+                    BeanMapper.DEFAULT.assertWriteRead(f));
         });
 
-        assertThat(f.getConfigNames()).containsExactlyElementsOf(names);
-        assertThat(f.getConfigPaths()).containsExactlyElementsOf(paths);
-        assertThat(f.getConfigUrls()).containsExactlyElementsOf(urls);
+        assertThat(f.getConfiguration().getConfigNames())
+            .containsExactlyElementsOf(names);
+        assertThat(f.getConfiguration().getConfigPaths())
+            .containsExactlyElementsOf(paths);
+        assertThat(f.getConfiguration().getConfigUrls())
+            .containsExactlyElementsOf(urls);
 
         assertThat(f.acceptRequest(new FileFetchRequest(new CrawlDoc(
                 new DocRecord("hdfs://blah")), DOCUMENT))).isTrue();

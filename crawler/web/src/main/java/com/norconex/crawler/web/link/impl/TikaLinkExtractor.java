@@ -16,8 +16,10 @@ package com.norconex.crawler.web.link.impl;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,15 +34,13 @@ import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
 import org.xml.sax.SAXException;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.link.AbstractLinkExtractor;
 import com.norconex.crawler.web.link.LinkExtractor;
-import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.CommonRestrictions;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -69,29 +69,54 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class TikaLinkExtractor extends AbstractLinkExtractor {
+public class TikaLinkExtractor
+        implements LinkExtractor, Configurable<TikaLinkExtractorConfig> {
 
-    private boolean ignoreNofollow;
-    private boolean ignoreLinkData;
     private static final HtmlMapper fixedHtmlMapper = new FixedHtmlParserMapper();
 
-    public TikaLinkExtractor() {
-        // default content type this extractor applies to
-        setRestrictions(CommonRestrictions.htmlContentTypes(
-                DocMetadata.CONTENT_TYPE));
-    }
+    @Getter
+    private final TikaLinkExtractorConfig configuration =
+            new TikaLinkExtractorConfig();
 
     @Override
-    public void extractLinks(Set<com.norconex.crawler.web.link.Link> nxLinks,
-            CrawlDoc doc) throws IOException {
+    public Set<com.norconex.crawler.web.link.Link> extractLinks(CrawlDoc doc)
+            throws IOException {
+
+        // only proceed if we are dealing with a supported content type
+        if (!configuration.getContentTypeMatcher().matches(
+                doc.getDocRecord().getContentType().toString())) {
+            return Set.of();
+        }
+
+        var refererUrl = doc.getReference();
+        Set<com.norconex.crawler.web.link.Link> nxLinks = new HashSet<>();
+        if (configuration.getFieldMatcher().isSet()) {
+            // Fields
+            var values = doc.getMetadata()
+                .matchKeys(configuration.getFieldMatcher())
+                .valueList();
+            for (String val: values) {
+                extractTikaLinks(nxLinks,
+                        new ByteArrayInputStream(val.getBytes()), refererUrl);
+            }
+        } else {
+            // Body
+            extractTikaLinks(nxLinks, doc.getInputStream(), doc.getReference());
+        }
+        return nxLinks;
+    }
+
+    private void extractTikaLinks(
+            Set<com.norconex.crawler.web.link.Link> nxLinks,
+            InputStream is,
+            String referrerUrl) throws IOException {
         var linkHandler = new LinkContentHandler();
         var metadata = new Metadata();
         var parseContext = new ParseContext();
         parseContext.set(HtmlMapper.class, fixedHtmlMapper);
 
         var parser = new HtmlParser();
-        var referrerUrl = doc.getReference();
-        try (InputStream is = doc.getInputStream()) {
+        try (is) {
             parser.parse(is, linkHandler, metadata, parseContext);
             var tikaLinks = linkHandler.getLinks();
             tikaLinks.forEach(tikaLink -> toNxLink(referrerUrl, tikaLink)
@@ -116,7 +141,7 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
 
     private Optional<com.norconex.crawler.web.link.Link> toNxLink(
             String referrerUrl, Link tikaLink) {
-        if (!isIgnoreNofollow()
+        if (!configuration.isIgnoreNofollow()
                 && "nofollow".equalsIgnoreCase(
                         StringUtils.trim(tikaLink.getRel()))) {
             return Optional.empty();
@@ -134,7 +159,7 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
             var nxLink = new com.norconex.crawler.web.link.Link(extractedURL);
             nxLink.setReferrer(referrerUrl);
 
-            if (!ignoreLinkData) {
+            if (!configuration.isIgnoreLinkData()) {
                 tikaMetaToNxMeta(nxLink, tikaLink);
             }
 //System.err.println("EXTRACTED LINK: " + nxLink);
@@ -175,42 +200,6 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
             }
         }
         return null;
-    }
-
-    public boolean isIgnoreNofollow() {
-        return ignoreNofollow;
-    }
-    public void setIgnoreNofollow(boolean ignoreNofollow) {
-        this.ignoreNofollow = ignoreNofollow;
-    }
-
-    /**
-     * Gets whether to ignore extra data associated with a link.
-     * @return <code>true</code> to ignore.
-     * @since 3.0.0
-     */
-    public boolean isIgnoreLinkData() {
-        return ignoreLinkData;
-    }
-    /**
-     * Sets whether to ignore extra data associated with a link.
-     * @param ignoreLinkData <code>true</code> to ignore.
-     * @since 3.0.0
-     */
-    public void setIgnoreLinkData(boolean ignoreLinkData) {
-        this.ignoreLinkData = ignoreLinkData;
-    }
-
-    @Override
-    protected void loadLinkExtractorFromXML(XML xml) {
-        setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
-        setIgnoreLinkData(xml.getBoolean("@ignoreLinkData", ignoreLinkData));
-    }
-
-    @Override
-    protected void saveLinkExtractorToXML(XML xml) {
-        xml.setAttribute("ignoreNofollow", ignoreNofollow);
-        xml.setAttribute("ignoreLinkData", ignoreLinkData);
     }
 
     // Custom HTML Mapper that adds "title" to the supported anchor

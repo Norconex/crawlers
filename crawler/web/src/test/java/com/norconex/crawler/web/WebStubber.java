@@ -69,7 +69,7 @@ import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 import com.norconex.crawler.web.link.LinkExtractor;
-import com.norconex.crawler.web.link.impl.DOMLinkExtractor;
+import com.norconex.crawler.web.link.impl.DomLinkExtractor;
 import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
@@ -144,14 +144,14 @@ public final class WebStubber {
             resolv.setScope("crawler");
             return resolv;
         })
-        .randomize(DOMLinkExtractor.class, () -> {
-            var extractor = new DOMLinkExtractor();
-            extractor.addLinkSelector("text");
+        .randomize(DomLinkExtractor.class, () -> {
+            var extractor = new DomLinkExtractor();
+            extractor.getConfiguration().addLinkSelector("text");
             return extractor;
         })
         .randomize(LinkExtractor.class, () -> {
-            var extractor = new DOMLinkExtractor();
-            extractor.addLinkSelector("text");
+            var extractor = new DomLinkExtractor();
+            extractor.getConfiguration().addLinkSelector("text");
             return extractor;
         })
         .randomize(f -> "cookieSpec".equals(f.getName()), () -> "strict")
@@ -223,8 +223,8 @@ public final class WebStubber {
             Path workDir, String... startRefs) {
         var sessionConfig = crawlSessionConfig(workDir);
         if (ArrayUtils.isNotEmpty(startRefs)) {
-            WebTestUtil.getFirstCrawlerConfig(
-                    sessionConfig).setStartReferences(startRefs);
+            WebTestUtil.getFirstCrawlerConfig(sessionConfig)
+                    .setStartReferences(List.of(startRefs));
         }
         return WebCrawlSession.createSession(sessionConfig);
     }
@@ -243,7 +243,7 @@ public final class WebStubber {
     public static CrawlSessionConfig crawlSessionConfig(Path workDir) {
         List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
         crawlerConfigs.add(crawlerConfig());
-        var sessionConfig = new CrawlSessionConfig(WebCrawlerConfig.class);
+        var sessionConfig = new CrawlSessionConfig();
         sessionConfig.setWorkDir(workDir);
         sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
         sessionConfig.setCrawlerConfigs(crawlerConfigs);

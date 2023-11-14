@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import java.io.InputStream;
+import java.io.IOException;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -55,42 +53,20 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class ReferenceCondition
-        implements ImporterCondition, XMLConfigurable {
+        extends BaseCondition
+        implements Configurable<ReferenceConditionConfig> {
 
-    private final TextMatcher valueMatcher = new TextMatcher();
+    @Getter
+    private final ReferenceConditionConfig configuration =
+            new ReferenceConditionConfig();
 
-    public ReferenceCondition() {
-    }
+    public ReferenceCondition() {}
     public ReferenceCondition(TextMatcher valueMatcher) {
-        setValueMatcher(valueMatcher);
-    }
-
-    /**
-     * Gets the text matcher for field values.
-     * @return text matcher
-     */
-    public TextMatcher getValueMatcher() {
-        return valueMatcher;
-    }
-    /**
-     * Sets the text matcher for field values. Copies it.
-     * @param valueMatcher text matcher
-     */
-    public void setValueMatcher(TextMatcher valueMatcher) {
-        this.valueMatcher.copyFrom(valueMatcher);
+        configuration.setValueMatcher(valueMatcher);
     }
 
     @Override
-    public boolean testDocument(HandlerDoc doc, InputStream input,
-            ParseState parseState) throws ImporterHandlerException {
-        return valueMatcher.matches(doc.getReference());
-    }
-    @Override
-    public void loadFromXML(XML xml) {
-        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
+    public boolean evaluate(DocContext docCtx) throws IOException {
+        return configuration.getValueMatcher().matches(docCtx.reference());
     }
 }

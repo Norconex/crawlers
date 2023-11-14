@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,16 @@ import java.util.Iterator;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.Getter;
 
 // For simulating various batch-related conditions (e.g. failures)
-public class FailingBatchCommitter extends AbstractBatchCommitter {
+public class FailingBatchCommitter
+        extends AbstractBatchCommitter<BaseBatchCommitterConfig> {
 
+    @Getter
+    private final BaseBatchCommitterConfig configuration =
+            new BaseBatchCommitterConfig();
 
     int attempts = 0;
     int exceptionCount = 0;
@@ -46,15 +51,6 @@ public class FailingBatchCommitter extends AbstractBatchCommitter {
     }
     public int getTotalSuccessDocs() {
         return totalSuccessDocs;
-    }
-
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        // NOOP
-    }
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        // NOOP
     }
 
     @Override

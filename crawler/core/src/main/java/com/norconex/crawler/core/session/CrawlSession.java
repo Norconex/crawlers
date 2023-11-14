@@ -104,6 +104,7 @@ public class CrawlSession {
 
 
     protected CrawlSession(CrawlSessionBuilder builder) {
+
         //TODO clone config so modifications no longer apply?
         crawlSessionConfig = Objects.requireNonNull(builder.crawlSessionConfig,
                 "'crawlSessionConfig' must not be null.");

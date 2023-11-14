@@ -82,7 +82,7 @@ class HttpFetchStage extends AbstractImporterStage {
         //--- Add collector-specific metadata ---
         var meta = ctx.getDocument().getMetadata();
         meta.set(DocMetadata.CONTENT_TYPE, docRecord.getContentType());
-        meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getContentEncoding());
+        meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getCharset());
         meta.set(WebDocMetadata.ORIGINAL_REFERENCE,
                 docRecord.getOriginalReference());
 

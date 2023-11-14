@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,25 +26,25 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.map.Properties;
 
-public class ImportHandlerTest {
+class ImportHandlerTest {
 
     private Importer importer;
     private Properties metadata;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         importer = TestUtil.getTestConfigImporter();
         metadata = new Properties();
     }
 
     @AfterEach
-    public void tearDown() throws Exception {
+    void tearDown() throws Exception {
         importer = null;
         metadata = null;
     }
 
     @Test
-    public void testHandlers() throws IOException {
+    void testHandlers() throws IOException {
         InputStream is = new BufferedInputStream(
                 new FileInputStream(TestUtil.getAliceHtmlFile()));
         importer.importDocument(new ImporterRequest(is)

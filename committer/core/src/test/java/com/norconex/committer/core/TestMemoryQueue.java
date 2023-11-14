@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,29 @@ package com.norconex.committer.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.batch.BatchConsumer;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
 import com.norconex.committer.core.batch.queue.CommitterQueueException;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@ToString
+@EqualsAndHashCode
 public class TestMemoryQueue implements CommitterQueue {
 
+    @JsonIgnore
     private final List<CommitterRequest> requests = new ArrayList<>();
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private BatchConsumer batchConsumer;
 
     @Override
-    public void init(CommitterContext committerContext,
+    public void init(
+            CommitterContext committerContext,
             BatchConsumer batchConsumer) throws CommitterQueueException {
         this.batchConsumer = batchConsumer;
     }

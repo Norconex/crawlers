@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,26 +27,30 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.i18n.UncheckedException;
 
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.handler.filter.DocumentFilter;
-import com.norconex.importer.handler.tagger.DocumentTagger;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.condition.BaseCondition;
+import com.norconex.importer.handler.parser.ParseState;
 
 public final class TestUtil {
 
@@ -69,6 +73,10 @@ public final class TestUtil {
     public static String getContentAsString(Doc doc)
             throws IOException {
         return IOUtils.toString(doc.getInputStream(), StandardCharsets.UTF_8);
+    }
+    public static String getContentAsString(DocContext docCtx)
+            throws IOException {
+        return IOUtils.toString(docCtx.input().asReader(UTF_8));
     }
 
     public static File getAlicePdfFile() {
@@ -104,54 +112,34 @@ public final class TestUtil {
     }
 
     public static Importer getTestConfigImporter() throws IOException {
-        var config = new ImporterConfig();
-        try (var is =
-                TestUtil.class.getResourceAsStream("test-config.xml");
-                Reader r = new InputStreamReader(is)) {
-            new XML(r).populate(config);
+        try (Reader r = new InputStreamReader(
+                TestUtil.class.getResourceAsStream("test-config.xml"))) {
+            return BeanMapper.DEFAULT.read(Importer.class, r, Format.XML);
         }
-        return new Importer(config);
     }
 
-    public static boolean filter(DocumentFilter filter, String ref,
-            Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
-        return filter(filter, ref, null, metadata, parseState);
-    }
-    public static boolean filter(DocumentFilter filter, String ref,
-            InputStream is, Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
-        var input = is == null ? new NullInputStream(0) : is;
-        return filter.acceptDocument(
-                newHandlerDoc(ref, input, metadata), input, parseState);
-    }
-
-    public static boolean condition(ImporterCondition cond, String ref,
-            Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
+    public static boolean condition(BaseCondition cond, String ref,
+            Properties metadata, ParseState parseState) throws IOException {
         return condition(cond, ref, null, metadata, parseState);
     }
-    public static boolean condition(ImporterCondition cond, String ref,
+    public static boolean condition(BaseCondition cond, String ref,
             InputStream is, Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
+                    throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
-        return cond.testDocument(
-                newHandlerDoc(ref, input, metadata), input, parseState);
+        return cond.test(newDocContext(ref, input, metadata));
     }
 
-    public static void tag(DocumentTagger tagger, String ref,
+    public static void transform(Consumer<DocContext> t, String ref,
             Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
-        tag(tagger, ref, null, metadata, parseState);
+                    throws IOException {
+        transform(t, ref, null, metadata, parseState);
     }
-    public static void tag(DocumentTagger tagger, String ref,
+    public static void transform(Consumer<DocContext> t, String ref,
             InputStream is, Properties metadata, ParseState parseState)
-                    throws ImporterHandlerException {
+                    throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
-        tagger.tagDocument(
-                newHandlerDoc(ref, input, metadata), input, parseState);
+        t.accept(newDocContext(ref, input, metadata, parseState));
     }
-
 
     public static Doc newDoc(File file) {
         try {
@@ -163,23 +151,22 @@ public final class TestUtil {
         }
     }
 
-
-    public static HandlerDoc newHandlerDoc() {
-        return newHandlerDoc("N/A", null, new Properties());
+    public static Doc newDoc() {
+        return newDoc("N/A", null, new Properties());
     }
-    public static HandlerDoc newHandlerDoc(Properties meta) {
-        return newHandlerDoc("N/A", null, meta);
+    public static Doc newDoc(Properties meta) {
+        return newDoc("N/A", null, meta);
     }
-    public static HandlerDoc newHandlerDoc(String ref) {
-        return newHandlerDoc(ref, null, new Properties());
+    public static Doc newDoc(String ref) {
+        return newDoc(ref, null, new Properties());
     }
-    public static HandlerDoc newHandlerDoc(String ref, Properties meta) {
-        return newHandlerDoc(ref, null, meta);
+    public static Doc newDoc(String ref, Properties meta) {
+        return newDoc(ref, null, meta);
     }
-    public static HandlerDoc newHandlerDoc(String ref, InputStream in) {
-        return newHandlerDoc(ref, in, new Properties());
+    public static Doc newDoc(String ref, InputStream in) {
+        return newDoc(ref, in, new Properties());
     }
-    public static HandlerDoc newHandlerDoc(
+    public static Doc newDoc(
             String ref, InputStream in, Properties meta) {
         // Remove document.reference for tests that need the same count
         // as values they entered in metadata. Just keep it if explicitely
@@ -195,8 +182,37 @@ public final class TestUtil {
             doc.getDocRecord().setContentType(ContentType.valueOf(ct));
         }
 
-        return new HandlerDoc(doc);
+        return doc;
     }
+    public static DocContext newDocContext() {
+        return newDocContext("dummy-ref", null, new Properties());
+    }
+    public static DocContext newDocContext(
+            String ref, InputStream in) {
+        return newDocContext(ref, in, null, ParseState.PRE);
+    }
+    public static DocContext newDocContext(
+            String ref, InputStream in, Properties meta) {
+        return newDocContext(ref, in, meta, ParseState.PRE);
+    }
+    public static DocContext newDocContext(
+            String ref, InputStream in,
+            Properties meta, ParseState state) {
+        return DocContext.builder()
+                .doc(newDoc(ref, in, meta))
+                .parseState(state)
+                .eventManager(new EventManager())
+                .build();
+    }
+
+    public static DocContext newDocContext(String ref, String body) {
+        return newDocContext(ref, new ByteArrayInputStream(body.getBytes()));
+    }
+    public static DocContext newDocContext(String body) {
+        return newDocContext(
+                "dummy-ref", new ByteArrayInputStream(body.getBytes()));
+    }
+
 
     public static String contentAsString(Doc doc) {
         try {
@@ -234,5 +250,14 @@ public final class TestUtil {
 
     public static String toUtf8UnixLineString(ByteArrayOutputStream os) {
         return os.toString(UTF_8).replace("\r", "");
+    }
+
+    public static Path resourceAsFile(
+            Path folder, String resourcePath) throws IOException {
+        var file = Files.createTempFile(folder, null,
+                StringUtils.substringAfterLast(resourcePath, "/"));
+        Files.copy(TestUtil.class.getResourceAsStream(resourcePath), file,
+                StandardCopyOption.REPLACE_EXISTING);
+        return file;
     }
 }

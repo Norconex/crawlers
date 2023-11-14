@@ -77,7 +77,7 @@ class FileFetchStage extends AbstractImporterStage {
         //--- Add collector-specific metadata ---
         var meta = ctx.getDocument().getMetadata();
         meta.set(DocMetadata.CONTENT_TYPE, docRecord.getContentType());
-        meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getContentEncoding());
+        meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getCharset());
 
         var state = response.getCrawlDocState();
         //TODO really do here??  or just do it if different than response?

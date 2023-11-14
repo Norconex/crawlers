@@ -1,0 +1,199 @@
+{
+  "collector": {
+    "workDir": "/wordir",
+    "maxConcurrentCrawlers": "50",
+    "eventListeners": {
+      "listener": [
+        {
+          "sample": {
+            "sample": "sample",
+            "__text": "sample"
+          },
+          "class": "com.norconex.crawler.core.MockCollectorEventListener"
+        },
+        {
+          "sample": {
+            "sample": "sample",
+            "__text": "sample"
+          },
+          "class": "com.norconex.crawler.core.crawler.MockCrawlerEventListener"
+        }
+      ]
+    },
+    "crawlerDefaults": {
+      "numThreads": "1",
+      "maxDocuments": "111",
+      "orphansStrategy": "PROCESS",
+      "dataStoreEngine": {
+        "class": "com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine"
+      },
+      "referenceFilters": {
+        "filter": [
+          {
+            "class": "com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter",
+            "onMatch": "exclude",
+            "ignoreCase": "false",
+            "__text": "xml,pdf,doc"
+          },
+          {
+            "class": "com.norconex.crawler.core.filter.impl.RegexReferenceFilter",
+            "onMatch": "exclude",
+            "ignoreCase": "true",
+            "__text": ".*example.com.*"
+          }
+        ]
+      },
+      "metadataFilters": {
+        "filter": [
+          {
+            "class": "com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter",
+            "onMatch": "exclude",
+            "ignoreCase": "false",
+            "__text": "xml,pdf,doc"
+          },
+          {
+            "class": "com.norconex.crawler.core.filter.impl.RegexReferenceFilter",
+            "onMatch": "exclude",
+            "ignoreCase": "true",
+            "__text": ".*example.com.*"
+          },
+          {
+            "class": "com.norconex.crawler.core.filter.impl.RegexMetadataFilter",
+            "onMatch": "include",
+            "ignoreCase": "true",
+            "field": "title",
+            "__text": "Blah.*"
+          }
+        ]
+      },
+      "documentFilters": {
+        "filter": [
+          {
+            "class": "com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter",
+            "onMatch": "exclude",
+            "ignoreCase": "false",
+            "__text": "xml,pdf,doc"
+          },
+          {
+            "class": "com.norconex.crawler.core.filter.impl.RegexReferenceFilter",
+            "onMatch": "exclude",
+            "ignoreCase": "true",
+            "__text": ".*example.com.*"
+          },
+          {
+            "class": "com.norconex.crawler.core.filter.impl.RegexMetadataFilter",
+            "onMatch": "include",
+            "ignoreCase": "true",
+            "field": "title",
+            "__text": "Blah.*"
+          }
+        ]
+      },
+      "eventListeners": {
+        "listener": [
+          {
+            "sample": {
+              "sample": "sample",
+              "__text": "sample"
+            },
+            "class": "com.norconex.crawler.core.MockCollectorEventListener"
+          },
+          {
+            "sample": {
+              "sample": "sample",
+              "__text": "sample"
+            },
+            "class": "com.norconex.crawler.core.crawler.MockCrawlerEventListener"
+          },
+          {
+            "eventMatcher": {
+              "method": "csv",
+              "__text": "REJECTED_NOTFOUND,REJECTED_FILTER"
+            },
+            "class": "DeleteRejectedEventListener"
+          },
+          {
+            "eventMatcher": {
+              "method": "csv",
+              "__text": "DOCUMENT_COMMITTED_UPSERT,DOCUMENT_COMMITTED_DELETE"
+            },
+            "class": "StopCrawlerOnMaxEventListener",
+            "maximum": "100",
+            "onMultiple": "sum"
+          }
+        ]
+      },
+      "importer": {
+        "preParseHandlers": {
+          "handler": {
+            "replace": {
+              "valueMatcher": "A",
+              "toValue": "B"
+            },
+            "class": "com.norconex.importer.handler.transformer.impl.ReplaceTransformer"
+          }
+        },
+        "postParseHandlers": {
+          "handler": {
+            "replace": {
+              "valueMatcher": "C",
+              "toValue": "D"
+            },
+            "class": "com.norconex.importer.handler.transformer.impl.ReplaceTransformer"
+          }
+        }
+      },
+      "committers": {
+        "committer": {
+          "directory": "/tmp/somepath",
+          "class": "com.norconex.committer.core.fs.impl.JSONFileCommitter"
+        }
+      },
+      "documentChecksummer": {
+        "sourceFields": "field1,field2",
+        "sourceFieldsRegex": "field.*",
+        "class": "com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer",
+        "combineFieldsAndContent": "true",
+        "disabled": "false",
+        "keep": "true",
+        "targetField": "afield",
+        "onSet": "replace"
+      },
+      "spoiledReferenceStrategizer": {
+        "mapping": [
+          {
+            "state": "NOT_FOUND",
+            "strategy": "DELETE"
+          },
+          {
+            "state": "BAD_STATUS",
+            "strategy": "DELETE"
+          },
+          {
+            "state": "ERROR",
+            "strategy": "IGNORE"
+          }
+        ],
+        "class": "com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer",
+        "fallbackStrategy": "DELETE"
+      }
+    },
+    "crawlers": {
+      "crawler": [
+        {
+          "numThreads": "2",
+          "maxDocuments": "222",
+          "orphansStrategy": "DELETE",
+          "id": "myCrawler1"
+        },
+        {
+          "numThreads": "3",
+          "maxDocuments": "333",
+          "orphansStrategy": "IGNORE",
+          "id": "myCrawler2"
+        }
+      ]
+    },
+    "id": "Test Collector Core Config"
+  }
+}

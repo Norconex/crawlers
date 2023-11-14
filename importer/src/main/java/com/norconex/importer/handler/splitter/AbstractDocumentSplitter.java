@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,52 +14,30 @@
  */
 package com.norconex.importer.handler.splitter;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
 
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.AbstractImporterHandler;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.handler.BaseDocumentHandler;
+import com.norconex.importer.handler.DocContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-/**
- * <p>Base class for splitters.</p>
- *
- * <p>Subclasses inherit this {@link XMLConfigurable} configuration:</p>
- * {@nx.xml
- *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
- * }
- */
-@SuppressWarnings("javadoc")
-@EqualsAndHashCode
 @ToString
-public abstract class AbstractDocumentSplitter extends AbstractImporterHandler
-            implements DocumentSplitter {
+@EqualsAndHashCode
+public abstract class AbstractDocumentSplitter
+        <T extends BaseDocumentSplitterConfig>
+                extends BaseDocumentHandler
+                implements Configurable<T> {
 
     @Override
-    public final List<Doc> splitDocument(
-            HandlerDoc doc,
-            InputStream docInput,
-            OutputStream docOutput,
-            ParseState parseState)
-                    throws ImporterHandlerException {
-
-        if (!isApplicable(doc, parseState)) {
-            return Collections.emptyList();
+    public final void handle(DocContext docCtx) throws IOException {
+        split(docCtx);
+        if (!docCtx.childDocs().isEmpty()
+                && getConfiguration().isDiscardOriginal()) {
+            docCtx.rejectedBy(this);
         }
-        return splitApplicableDocument(
-                doc, docInput, docOutput, parseState);
     }
-
-    protected abstract List<Doc> splitApplicableDocument(
-            HandlerDoc doc, InputStream input, OutputStream output,
-            ParseState parseState)
-                    throws ImporterHandlerException;
+    public abstract void split(DocContext docCtx)
+            throws IOException;
 }

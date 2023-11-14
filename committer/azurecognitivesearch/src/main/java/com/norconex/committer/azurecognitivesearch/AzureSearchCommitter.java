@@ -15,22 +15,16 @@
 package com.norconex.committer.azurecognitivesearch;
 
 import java.util.Iterator;
-import java.util.Objects;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -160,28 +154,24 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  */
 @SuppressWarnings("javadoc")
-public class AzureSearchCommitter extends AbstractBatchCommitter {
+@EqualsAndHashCode
+@ToString
+public class AzureSearchCommitter
+        extends AbstractBatchCommitter<AzureSearchCommitterConfig> {
 
-    private final AzureSearchCommitterConfig config;
+    @Getter
+    private final AzureSearchCommitterConfig configuration =
+            new AzureSearchCommitterConfig();
 
-    @ToStringExclude
-    @HashCodeExclude
-    @EqualsExclude
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private AzureSearchClient client;
-
-    public AzureSearchCommitter() {
-        this(new AzureSearchCommitterConfig());
-    }
-    public AzureSearchCommitter(AzureSearchCommitterConfig config) {
-        this.config = Objects.requireNonNull(
-                config, "'config' must not be null.");
-    }
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        client = new AzureSearchClient(config);
-        if (getCommitterQueue() instanceof FSQueue queue && 
-                queue.getBatchSize() > 1000) {
+        client = new AzureSearchClient(configuration);
+        if (configuration.getQueue() instanceof FSQueue queue &&
+                queue.getConfiguration().getBatchSize() > 1000) {
             throw new CommitterException(
                     "Commit batch size cannot be greater than 1000.");
         }
@@ -199,32 +189,5 @@ public class AzureSearchCommitter extends AbstractBatchCommitter {
             client.close();
         }
         client = null;
-    }
-
-    public AzureSearchCommitterConfig getConfig() {
-        return config;
-    }
-
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        config.loadFromXML(xml);
-    }
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        config.saveToXML(xml);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

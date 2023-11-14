@@ -15,21 +15,16 @@
 package com.norconex.committer.neo4j;
 
 import java.util.Iterator;
-import java.util.Objects;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.neo4j.driver.internal.value.NullValue;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -134,26 +129,23 @@ import com.norconex.commons.lang.xml.XML;
  * @author Sylvain Roussy
  * @author Pascal Essiembre
  */
-public class Neo4jCommitter extends AbstractBatchCommitter {
+@SuppressWarnings("javadoc")
+@EqualsAndHashCode
+@ToString
+public class Neo4jCommitter
+        extends AbstractBatchCommitter<Neo4jCommitterConfig> {
 
-    private final Neo4jCommitterConfig config;
+    @Getter
+    private final Neo4jCommitterConfig configuration =
+            new Neo4jCommitterConfig();
 
-    @ToStringExclude
-    @HashCodeExclude
-    @EqualsExclude
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Neo4jClient client;
-
-    public Neo4jCommitter() {
-        this(new Neo4jCommitterConfig());
-    }
-    public Neo4jCommitter(Neo4jCommitterConfig config) {
-        this.config = Objects.requireNonNull(
-                config, "'config' must not be null.");
-    }
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        client = new Neo4jClient(config);
+        client = new Neo4jClient(configuration);
     }
 
     @Override
@@ -167,32 +159,5 @@ public class Neo4jCommitter extends AbstractBatchCommitter {
         if (client != null) {
             client.close();
         }
-    }
-
-    public Neo4jCommitterConfig getConfig() {
-        return config;
-    }
-
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        config.loadFromXML(xml);
-    }
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        config.saveToXML(xml);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

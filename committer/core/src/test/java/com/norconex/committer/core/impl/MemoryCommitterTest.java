@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,13 +40,13 @@ class MemoryCommitterTest  {
         assertThat(c.getUpsertCount()).isEqualTo(5);
         assertThat(c.getDeleteCount()).isEqualTo(2);
 
-
-        c.setIgnoreContent(true);
-        c.setFieldMatcher(TextMatcher.basic("blah"));
+        var cfg = c.getConfiguration()
+            .setIgnoreContent(true)
+            .setFieldMatcher(TextMatcher.basic("blah"));
         c.clean();
         TestUtil.commitRequests(c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1));
-        assertThat(c.isIgnoreContent()).isTrue();
-        assertThat(c.getFieldMatcher()).isEqualTo(TextMatcher.basic("blah"));
+        assertThat(cfg.isIgnoreContent()).isTrue();
+        assertThat(cfg.getFieldMatcher()).isEqualTo(TextMatcher.basic("blah"));
 
         assertThat(c.getRequestCount()).isEqualTo(7);
         assertThat(c.getUpsertCount()).isEqualTo(5);

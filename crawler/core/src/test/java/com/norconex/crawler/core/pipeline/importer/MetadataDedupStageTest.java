@@ -54,7 +54,7 @@ class MetadataDedupStageTest {
 
         var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
-        when(crawler.getCrawlerConfig()).thenReturn(cfg);
+        when(crawler.getConfiguration()).thenReturn(cfg);
 
         var doc = CoreStubber.crawlDoc("ref", "content");
         doc.getDocRecord().setMetaChecksum("somechecksum");

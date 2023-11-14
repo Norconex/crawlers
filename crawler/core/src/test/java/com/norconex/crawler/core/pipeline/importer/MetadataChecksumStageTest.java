@@ -35,7 +35,7 @@ class MetadataChecksumStageTest {
         var doc = CoreStubber.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
         var crawler = CoreStubber.crawler(tempDir);
-        crawler.getCrawlerConfig().setMetadataFetchSupport(
+        crawler.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 
         // without a checksummer
@@ -46,9 +46,10 @@ class MetadataChecksumStageTest {
 
         // with a checksummer
         var checksummer = new GenericMetadataChecksummer();
-        checksummer.setFieldMatcher(TextMatcher.basic("myfield"));
-        checksummer.setKeep(true);
-        crawler.getCrawlerConfig().setMetadataChecksummer(checksummer);
+        checksummer.getConfiguration()
+            .setFieldMatcher(TextMatcher.basic("myfield"))
+            .setKeep(true);
+        crawler.getConfiguration().setMetadataChecksummer(checksummer);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getMetadata().getString(
                 CrawlDocMetadata.CHECKSUM_METADATA)).isEqualTo(

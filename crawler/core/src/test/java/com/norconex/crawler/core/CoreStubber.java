@@ -161,7 +161,7 @@ public final class CoreStubber {
      * @return crawl session config
      */
     public static CrawlSessionConfig crawlSessionConfig(@NonNull Path workDir) {
-        var sessionConfig = new CrawlSessionConfig(CrawlerConfig.class);
+        var sessionConfig = new CrawlSessionConfig();
         sessionConfig.setWorkDir(workDir);
         sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
         sessionConfig.setCrawlerConfigs(List.of(crawlerConfig()));

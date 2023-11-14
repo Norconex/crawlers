@@ -1,4 +1,4 @@
-/* Copyright 2018-2022 Norconex Inc.
+/* Copyright 2018-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,21 @@
  */
 package com.norconex.importer.handler.splitter.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apache.commons.io.output.NullOutputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 class PDFPageSplitterTest {
 
@@ -46,7 +45,7 @@ class PDFPageSplitterTest {
     }
 
     @Test
-    void testSplit() throws ImporterHandlerException {
+    void testSplit() throws IOException {
         var s = new PDFPageSplitter();
         var pages = split(s);
 
@@ -63,15 +62,16 @@ class PDFPageSplitterTest {
     @Test
     void testWriteRead() {
         var splitter = new PDFPageSplitter();
-        splitter.setReferencePagePrefix("#page");
-        XML.assertWriteRead(splitter, "handler");
+        splitter.getConfiguration().setReferencePagePrefix("#page");
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(splitter));
     }
 
     private List<Doc> split(PDFPageSplitter splitter)
-            throws ImporterHandlerException {
+            throws IOException {
         var metadata = new Properties();
-        return splitter.splitApplicableDocument(
-                TestUtil.newHandlerDoc("n/a", input, metadata),
-                input, NullOutputStream.INSTANCE, ParseState.PRE);
+        var docCtx = TestUtil.newDocContext("n/a", input, metadata);
+        splitter.accept(docCtx);
+        return docCtx.childDocs();
     }
 }

@@ -21,6 +21,7 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.CrawlDocState;
 

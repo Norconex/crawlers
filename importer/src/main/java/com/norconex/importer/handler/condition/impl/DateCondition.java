@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,40 +14,23 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import static com.norconex.commons.lang.Operator.EQUALS;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
-import java.io.InputStream;
+import java.io.IOException;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 
-import com.norconex.commons.lang.Operator;
-import com.norconex.commons.lang.config.ConfigurationException;
-import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.time.ZonedDateTimeParser;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.ToString;
+import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
 
@@ -198,7 +181,9 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @FieldNameConstants
 @Slf4j
-public class DateCondition implements ImporterCondition, XMLConfigurable {
+public class DateCondition
+        extends BaseCondition
+        implements Configurable<DateConditionConfig> {
 
     public enum TimeUnit {
         YEAR(ChronoUnit.YEARS, "Y"),
@@ -233,85 +218,22 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
         }
     }
 
-    /**
-     * Field name(s) text matcher.
-     * @param fieldMatcher field matcher
-     * @return field matcher
-     */
-    private final TextMatcher fieldMatcher = new TextMatcher();
-
-    /**
-     * Value matcher for a date, or the begining of a date range
-     * (if an end date value matcher is also supplied).
-     * @param valueMatcher date matcher
-     * @return date matcher
-     */
-    private ValueMatcher valueMatcher;
-
-    /**
-     * Value matcher for then end of a date range. Only set when dealing
-     * with date ranges.
-     * @param valueMatcherRangeEnd end of range date matcher
-     * @return end of range date matcher
-     */
-    private ValueMatcher valueMatcherRangeEnd;
-
-    /**
-     * The format of a document date field value (see class documentation).
-     * @param format date format
-     * @return date format
-     */
-    private String format;
-
-    /**
-     * Time zone id to use for dates associated with a document when
-     * evaluating date conditions.
-     * @param docZoneId document zone id
-     * @return document zone id
-     */
-    private ZoneId docZoneId;
-
-    private ZoneId conditionZoneId;
-
-    public DateCondition() {
-    }
-    public DateCondition(TextMatcher fieldMatcher) {
-        this(fieldMatcher, null, null);
-    }
-    public DateCondition(
-            TextMatcher fieldMatcher, ValueMatcher valueMatcher) {
-        this(fieldMatcher, valueMatcher, null);
-    }
-    public DateCondition(
-            TextMatcher fieldMatcher,
-            ValueMatcher rangeStart,
-            ValueMatcher rangeEnd) {
-        setFieldMatcher(fieldMatcher);
-        valueMatcher = rangeStart;
-        valueMatcherRangeEnd = rangeEnd;
-    }
-
-    /**
-     * Sets the text matcher of field names. Copies it.
-     * @param fieldMatcher text matcher
-     */
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
-    }
+    @Getter
+    private final DateConditionConfig configuration =
+            new DateConditionConfig();
 
     @Override
-    public boolean testDocument(
-            HandlerDoc doc, InputStream input, ParseState parseState)
-                    throws ImporterHandlerException {
-        if (fieldMatcher.getPattern() == null) {
+    public boolean evaluate(DocContext docCtx) throws IOException {
+        if (configuration.getFieldMatcher().getPattern() == null) {
             throw new IllegalArgumentException(
                     "\"fieldMatcher\" pattern cannot be empty.");
         }
-        for (Entry<String, List<String>> en :
-                doc.getMetadata().matchKeys(fieldMatcher).entrySet()) {
+        for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                configuration.getFieldMatcher()).entrySet()) {
             for (String value : en.getValue()) {
-                if (matches(valueMatcher, en.getKey(), value)
-                        && matches(valueMatcherRangeEnd, en.getKey(), value)) {
+                if (matches(configuration.getValueMatcher(), en.getKey(), value)
+                        && matches(configuration.getValueMatcherRangeEnd(),
+                                en.getKey(), value)) {
                     return true;
                 }
             }
@@ -319,309 +241,27 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
         return false;
     }
     private boolean matches(
-            ValueMatcher matcher, String fieldName, String fieldValue) {
+            DateValueMatcher matcher, String fieldName, String fieldValue) {
         if (matcher == null) {
             return true;
         }
 
         var dt = ZonedDateTimeParser.builder()
-                .format(format)
-                .zoneId(docZoneId)
+                .format(configuration.getFormat())
+                .zoneId(configuration.getDocZoneId())
                 .build()
                 .parse(fieldValue);
         if (dt == null) {
             return false;
         }
 
-        // if the date obtained by the supplier (the date value or logic
-        // configured) starts with TODAY, we truncate that date to
-        // ensure we are comparing apples to apples. Else, one must ensure
-        // the date format matches for proper comparisons.
-        if (StringUtils.startsWithIgnoreCase(
-                matcher.getDateTimeSupplier().toString(), "today")) {
-            dt = dt.truncatedTo(ChronoUnit.DAYS);
-        }
-
-        var op = defaultIfNull(matcher.operator, EQUALS);
-        var evalResult = op.evaluate(
-                dt.toInstant(), matcher.getDateTime().toInstant());
+        var evalResult = matcher.test(dt);
         LOG.debug("{}: {} [{}] {} = {}",
-                fieldName, fieldValue, op, matcher.getDateTime(), evalResult);
+                fieldName,
+                fieldValue,
+                matcher.getOperator(),
+                matcher.getDateProvider().getDateTime(),
+                evalResult);
         return evalResult;
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-        setFormat(xml.getString("@format", format));
-
-        ZoneId dZoneId = null;
-        var dZoneIdStr = xml.getString("@docZoneId", null);
-        if (StringUtils.isNotBlank(dZoneIdStr)) {
-            dZoneId = ZoneId.of(dZoneIdStr);
-        }
-        setDocZoneId(dZoneId);
-
-        ZoneId cZoneId = null;
-        var cZoneIdStr = xml.getString("@conditionZoneId", null);
-        if (StringUtils.isNotBlank(cZoneIdStr)) {
-            cZoneId = ZoneId.of(cZoneIdStr);
-        }
-        conditionZoneId = cZoneId;
-
-        var nodes = xml.getXMLList(Fields.valueMatcher);
-        if (!nodes.isEmpty()) {
-            setValueMatcher(toValueMatcher(nodes.get(0)));
-        }
-        if (nodes.size() >= 2) {
-            setValueMatcherRangeEnd(toValueMatcher(nodes.get(1)));
-        }
-    }
-
-    private ValueMatcher toValueMatcher(XML xml) {
-        var operator = Operator.of(
-                xml.getString("@operator", EQUALS.toString()));
-        if (operator == null) {
-            throw new IllegalArgumentException(
-                    "Unsupported operator: " + xml.getString("@operator"));
-        }
-        var date = StringUtils.trimToNull(xml.getString("@date", null));
-        try {
-            return new ValueMatcher(operator, toDateTimeSupplier(date));
-        } catch (DateTimeParseException e) {
-            throw new ConfigurationException(
-                    "Date parse error for value: " + date, e);
-        }
-    }
-
-    private static final Pattern RELATIVE_PARTS = Pattern.compile(
-            //1              23            4         5
-            "^(NOW|TODAY)\\s*(([-+]{1})\\s*(\\d+)\\s*([YMDhms]{1})\\s*)?"
-            //6
-           + "(\\*?)$");
-    private Supplier<ZonedDateTime> toDateTimeSupplier(
-            @NonNull String dateStr) {
-        // NOW[-+]9[YMDhms][*]
-        // TODAY[-+]9[YMDhms][*]
-        var d = dateStr.trim();
-        
-        var m = RELATIVE_PARTS.matcher(d);
-        if (m.matches()) {
-            //--- Dynamic ---
-            TimeUnit unit = null;
-            var amount = NumberUtils.toInt(m.group(4), -1);
-            if (amount > -1) {
-                if  ("-".equals(m.group(3))) {
-                    amount = -amount;
-                }
-                var unitStr = m.group(5);
-                unit = TimeUnit.getTimeUnit(unitStr);
-                if (unit == null) {
-                    throw new ConfigurationException(
-                            "Invalid time unit: " + unitStr);
-                }
-            }
-            var fixed = !"*".equals(m.group(6));
-            var today = "TODAY".equals(m.group(1));
-
-            if (fixed) {
-                return new DynamicFixedDateTimeSupplier(
-                        unit, amount, today, conditionZoneId);
-            }
-            return new DynamicFloatingDateTimeSupplier(
-                    unit, amount, today, conditionZoneId);
-        }
-
-        //--- Static ---
-        String dateFormat = null;
-        var valueHasZone = false;
-
-        if (d.contains(".")) {
-            dateFormat = "yyyy-MM-dd'T'HH:mm:ss.nnn";
-        } else if (d.contains("T")) {
-            dateFormat = "yyyy-MM-dd'T'HH:mm:ss";
-        } else {
-            dateFormat = "yyyy-MM-dd";
-        }
-        if (StringUtils.countMatches(d, "-") > 2 || d.contains("+")) {
-            dateFormat += "Z";
-            valueHasZone = true;
-        }
-        if (d.contains("[")) {
-            dateFormat += "'['VV']'";
-            valueHasZone = true;
-        }
-
-        var dt = ZonedDateTimeParser.builder()
-                .format(dateFormat)
-                .zoneId(valueHasZone ? null : conditionZoneId)
-                .build()
-                .parse(d);
-        return new StaticDateTimeSupplier(dt);
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("format", format);
-        xml.setAttribute("docZoneId", docZoneId);
-        xml.setAttribute("conditionZoneId", conditionZoneId);
-        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
-        if (valueMatcher != null) {
-            xml.addElement(Fields.valueMatcher)
-                    .setAttribute("operator", valueMatcher.operator)
-                    .setAttribute("date", valueMatcher.dateTimeSupplier);
-        }
-        if (valueMatcherRangeEnd != null) {
-            // end tag name is same as start tag name in XML
-            xml.addElement(Fields.valueMatcher)
-                    .setAttribute("operator", valueMatcherRangeEnd.operator)
-                    .setAttribute("date",
-                            valueMatcherRangeEnd.dateTimeSupplier);
-        }
-    }
-
-    @EqualsAndHashCode
-    @ToString
-    public static class ValueMatcher {
-        private final Operator operator;
-        private final Supplier<ZonedDateTime> dateTimeSupplier;
-        public ValueMatcher(
-                Operator operator,
-                Supplier<ZonedDateTime> dateTimeSupplier) {
-            this.operator = operator;
-            this.dateTimeSupplier = dateTimeSupplier;
-        }
-        public ZonedDateTime getDateTime() {
-            return dateTimeSupplier.get();
-        }
-        protected Supplier<ZonedDateTime> getDateTimeSupplier() {
-            return dateTimeSupplier;
-        }
-    }
-
-    // Static local date, assumed to be of the zone Id supplied
-    // (the ZoneId argument is ignored).
-    @EqualsAndHashCode
-    public static class StaticDateTimeSupplier
-            implements Supplier<ZonedDateTime> {
-        private final ZonedDateTime dateTime;
-        private final String toString;
-        public StaticDateTimeSupplier(@NonNull ZonedDateTime dateTime) {
-            this.dateTime = dateTime;
-            toString = dateTime.format(DateTimeFormatter.ofPattern(
-                    "yyyy-MM-dd'T'HH:mm:ss.nnnZ'['VV']'"));
-        }
-        @Override
-        public ZonedDateTime get() {
-            return dateTime;
-        }
-        @Override
-        public String toString() {
-            return toString;
-        }
-    }
-
-    // Dynamically generated date time, that changes with every invocation.
-    @EqualsAndHashCode
-    public static class DynamicFloatingDateTimeSupplier
-            implements Supplier<ZonedDateTime> {
-        private final TimeUnit unit;
-        private final int amount;
-        private final boolean today; // default is false == NOW
-        private final ZoneId zoneId;
-        public DynamicFloatingDateTimeSupplier(
-                TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
-            this.unit = unit;
-            this.amount = amount;
-            this.today = today;
-            this.zoneId = zoneId;
-        }
-        @Override
-        public ZonedDateTime get() {
-            return dynamicDateTime(unit, amount, today, zoneId);
-        }
-        @Override
-        public String toString() {
-            return dynamicToString(unit, amount, today, true);
-        }
-    }
-
-    // Dynamically generated date time, that once generated, never changes
-    @EqualsAndHashCode
-    public static class DynamicFixedDateTimeSupplier
-            implements Supplier<ZonedDateTime> {
-        private final TimeUnit unit;
-        private final int amount;
-        private final boolean today; // default is false == NOW
-        private final ZoneId zoneId;
-        private final String toString;
-        @EqualsAndHashCode.Exclude
-        @ToString.Exclude        
-        private ZonedDateTime dateTime;
-        public DynamicFixedDateTimeSupplier(
-                TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
-            this.unit = unit;
-            this.amount = amount;
-            this.today = today;
-            this.zoneId = zoneId;
-            toString = dynamicToString(unit, amount, today, false);
-        }
-        @Override
-        public ZonedDateTime get() {
-            if (dateTime == null) {
-                dateTime = createDateTime(zoneId);
-            }
-            return dateTime;
-        }
-        public synchronized ZonedDateTime createDateTime(ZoneId zoneId) {
-            if (dateTime == null) {
-                return dynamicDateTime(unit, amount, today, zoneId);
-            }
-            return dateTime;
-        }
-        @Override
-        public String toString() {
-            return toString;
-        }
-    }
-
-    private static ZonedDateTime dynamicDateTime(
-            TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
-        var dt = ZonedDateTime.now(zoneIdOrUTC(zoneId));
-
-        if (today) {
-            dt = dt.truncatedTo(ChronoUnit.DAYS);
-        }
-        if (unit != null) {
-            dt = dt.plus(amount, unit.toTemporal());
-        }
-        return dt;
-    }
-    private static String dynamicToString(
-            TimeUnit unit,
-            int amount,
-            boolean today,
-            boolean floating) {
-        var b = new StringBuilder();
-        if (today) {
-            b.append("TODAY");
-        } else {
-            b.append("NOW");
-        }
-        if (unit != null) {
-            if (amount >= 0) {
-                b.append('+');
-            }
-            b.append(amount);
-            b.append(unit.toString());
-        }
-        if (floating) {
-            b.append('*');
-        }
-        return b.toString();
-    }
-
-    private static ZoneId zoneIdOrUTC(ZoneId zoneId) {
-        return zoneId == null ? ZoneOffset.UTC : zoneId;
     }
 }

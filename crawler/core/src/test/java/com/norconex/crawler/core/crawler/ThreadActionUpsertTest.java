@@ -25,7 +25,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.crawler.CrawlerThread.ThreadActionContext;
 import com.norconex.importer.response.ImporterResponse;
-import com.norconex.importer.response.ImporterStatus;
 
 class ThreadActionUpsertTest {
 
@@ -34,15 +33,15 @@ class ThreadActionUpsertTest {
 
     @Test
     void testThreadActionUpsert() {
+
         var crawler = CoreStubber.crawler(tempDir);
-        crawler.getCrawlerConfig().getImporterConfig().setResponseProcessors(
-                List.of(resp -> {
-                    resp.addNestedResponse(new ImporterResponse(
-                            CoreStubber.crawlDoc("childResponse1")));
-                    resp.addNestedResponse(new ImporterResponse(
-                            CoreStubber.crawlDoc("childResponse2")));
-                    return new ImporterStatus();
-                }));
+        crawler.getConfiguration().getImporterConfig().setResponseProcessors(
+            List.of(resp -> resp.setNestedResponses(List.of(
+                    new ImporterResponse()
+                        .setDoc(CoreStubber.crawlDoc("childResponse1")),
+                    new ImporterResponse()
+                        .setDoc(CoreStubber.crawlDoc("childResponse2"))
+            ))));
         // start just so we have the crawler setup properly to run our
         // tests
         crawler.start();
@@ -55,6 +54,7 @@ class ThreadActionUpsertTest {
         ctx.doc(doc);
         ctx.docRecord(doc.getDocRecord());
 
+        //TODO call within crawl session to prevent exception?
         ThreadActionUpsert.execute(ctx);
 
         assertThat(ctx.importerResponse()).isNotNull();

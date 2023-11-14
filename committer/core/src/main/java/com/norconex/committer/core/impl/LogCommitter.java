@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,15 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.AbstractCommitter;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -69,44 +68,27 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuppressWarnings("javadoc")
 @Slf4j
-@EqualsAndHashCode
-@ToString
-public class LogCommitter extends AbstractCommitter
-        implements XMLConfigurable  {
+@Data
+public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
 
     private static final int LOG_TIME_BATCH_SIZE = 100;
 
+    @JsonIgnore
     private long addCount = 0;
+    @JsonIgnore
     private long removeCount = 0;
+
+    private final LogCommitterConfig configuration = new LogCommitterConfig();
+
+    @Override
+    public LogCommitterConfig getConfiguration() {
+        return configuration;
+    }
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private final StopWatch watch = new StopWatch();
-
-    private boolean ignoreContent;
-    private final TextMatcher fieldMatcher = new TextMatcher();
-    private String logLevel;
-
-    public boolean isIgnoreContent() {
-        return ignoreContent;
-    }
-    public void setIgnoreContent(boolean ignoreContent) {
-        this.ignoreContent = ignoreContent;
-    }
-
-    public TextMatcher getFieldMatcher() {
-        return fieldMatcher;
-    }
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
-    }
-
-    public String getLogLevel() {
-        return logLevel;
-    }
-    public void setLogLevel(String logLevel) {
-        this.logLevel = logLevel;
-    }
 
     @Override
     protected void doInit() throws CommitterException {
@@ -122,7 +104,7 @@ public class LogCommitter extends AbstractCommitter
         stringifyRefAndMeta(
                 b, upsertRequest.getReference(), upsertRequest.getMetadata());
 
-        if (!ignoreContent) {
+        if (!configuration.isIgnoreContent()) {
             b.append("\n--- Content ---------------------------------------\n");
             try {
                 b.append(IOUtils.toString(
@@ -171,8 +153,9 @@ public class LogCommitter extends AbstractCommitter
         if (metadata != null) {
             b.append("\n--- Metadata: -------------------------------------\n");
             for (Entry<String, List<String>> en : metadata.entrySet()) {
-                if (fieldMatcher.getPattern() == null
-                        || fieldMatcher.matches(en.getKey())) {
+                if (configuration.getFieldMatcher().getPattern() == null
+                        || configuration.getFieldMatcher().matches(
+                                en.getKey())) {
                     for (String val : en.getValue()) {
                         b.append(en.getKey()).append(" = ")
                                 .append(val).append('\n');
@@ -184,7 +167,8 @@ public class LogCommitter extends AbstractCommitter
     }
 
     private void log(String txt) {
-        var lvl = Optional.ofNullable(logLevel).orElse("INFO").toUpperCase();
+        var lvl = Optional.ofNullable(configuration.getLogLevel())
+                .orElse("INFO").toUpperCase();
         if ("STDERR".equals(lvl)) {
             System.err.println(txt); //NOSONAR
         } else if ("STDOUT".equals(lvl)) {
@@ -192,18 +176,5 @@ public class LogCommitter extends AbstractCommitter
         } else {
             SLF4JUtil.log(LOG, lvl, txt);
         }
-    }
-
-    @Override
-    public void loadCommitterFromXML(XML xml) {
-        setLogLevel(xml.getString("logLevel", logLevel));
-        setIgnoreContent(xml.getBoolean("ignoreContent", ignoreContent));
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-    }
-    @Override
-    public void saveCommitterToXML(XML xml) {
-        xml.addElement("logLevel", logLevel);
-        xml.addElement("ignoreContent", ignoreContent);
-        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
     }
 }

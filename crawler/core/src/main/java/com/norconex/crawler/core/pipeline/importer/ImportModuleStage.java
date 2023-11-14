@@ -36,9 +36,9 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
         //TODO is it possible for content type not to be set here??
         // We make sure to set it to save it to store so IRecrawlableResolver
         // has one to deal with
-        if (!isContentTypeSet && response.getDocument() != null) {
+        if (!isContentTypeSet && response.getDoc() != null) {
             ctx.getDocRecord().setContentType(
-                    response.getDocument().getDocRecord().getContentType());
+                    response.getDoc().getDocRecord().getContentType());
         }
 
         return true;

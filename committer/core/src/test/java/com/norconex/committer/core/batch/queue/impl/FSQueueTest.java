@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
-import com.norconex.commons.lang.xml.XML;
 
 
 class FSQueueTest {
@@ -54,8 +53,9 @@ class FSQueueTest {
         final var batchQty = new MutableInt();
         final Set<String> batchRefs = new TreeSet<>();
 
-        queue.setCommitLeftoversOnInit(true);
-        queue.setBatchSize(5);
+        queue.getConfiguration()
+            .setCommitLeftoversOnInit(true)
+            .setBatchSize(5);
         queue.init(ctx, it -> {
             batchQty.increment();
             while (it.hasNext()) {
@@ -87,17 +87,21 @@ class FSQueueTest {
     @Test
     void testWriteRead() {
         var q = new FSQueue();
-        q.setBatchSize(50);
-        q.setMaxPerFolder(100);
-        q.setCommitLeftoversOnInit(true);
-        q.setIgnoreErrors(true);
-        q.setMaxRetries(6);
-        q.setRetryDelay(666);
+        q.getConfiguration()
+            .setBatchSize(50)
+            .setMaxPerFolder(100)
+            .setCommitLeftoversOnInit(true)
+            .getOnCommitFailure()
+                .setIgnoreErrors(true)
+                .setMaxRetries(6)
+                .setRetryDelay(666);
 
         assertThatNoException().isThrownBy(() -> {
-            XML.assertWriteRead(q, "queue");
+            TestUtil.beanMapper().assertWriteRead(q);
         });
-        assertThat(q.getMaxRetries()).isEqualTo(6);
-        assertThat(q.getRetryDelay()).isEqualTo(666);
+        assertThat(q.getConfiguration().getOnCommitFailure().getMaxRetries())
+                .isEqualTo(6);
+        assertThat(q.getConfiguration().getOnCommitFailure().getRetryDelay())
+                .isEqualTo(666);
     }
 }

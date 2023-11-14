@@ -54,7 +54,10 @@ class SftpFetcherTest extends AbstractFileFetcherTest {
     @Override
     protected FileFetcher fetcher() {
         var fetcher = new SftpFetcher();
-        fetcher.getCredentials().setUsername("user").setPassword("unsecure");
+        fetcher.getConfiguration()
+            .getCredentials()
+                .setUsername("user")
+                .setPassword("unsecure");
         return fetcher;
     }
 
