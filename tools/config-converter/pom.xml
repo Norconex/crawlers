@@ -21,7 +21,7 @@
     <groupId>com.norconex.crawler</groupId>
     <artifactId>nx-crawler-parent</artifactId>
     <version>4.0.0-SNAPSHOT</version>
-    <relativePath>..</relativePath>
+    <relativePath>../..</relativePath>
   </parent>  
   <artifactId>nx-config-converter</artifactId>
   <name>Norconex Configuration Converter</name>  
