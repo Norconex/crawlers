@@ -49,12 +49,12 @@ jobs:
       if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
       with:
         message: |
-          **Hello** 
+          **Hello 1st** 
           ${{ env.GIT_COMMIT_AUTHOR_NAME }}
 
     - uses: mshick/add-pr-comment@v2
       with:
         message: |
-          **Hello** 
+          **Hello 2nd** 
           ${{ env.GIT_COMMIT_AUTHOR_NAME }}
       
