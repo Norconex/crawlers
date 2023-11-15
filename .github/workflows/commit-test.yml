@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+    - name: Check out repository
+      uses: actions/checkout@v4
+
     - name: Expose git commit data
       uses: rlespinasse/git-commit-data-action@v1
         
