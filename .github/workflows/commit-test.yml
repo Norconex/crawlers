@@ -3,7 +3,7 @@ name: commit test
 on:
     push:
         branches: [ "dk-actions-v4" ]
-      pull_request:
+    pull_request:
         branches: [ "dk-actions-v4" ]
     
     jobs:
