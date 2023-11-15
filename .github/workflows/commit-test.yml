@@ -1,0 +1,35 @@
+name: commit test
+
+on:
+    push:
+        branches: [ "dk-actions-v4" ]
+      pull_request:
+        branches: [ "dk-actions-v4" ]
+    
+    jobs:
+      build:
+
+        runs-on: ubuntu-latest
+
+        steps:
+
+        - name: Expose git commit data
+        uses: rlespinasse/git-commit-data-action@v1
+        
+        - name: Print git commit data
+        run: |
+            echo "Get commit info"
+            echo " - ${{ env.GIT_COMMIT_SHA }}"
+            echo " - ${{ env.GIT_COMMIT_SHORT_SHA }}"
+            echo "Get author info"
+            echo " - ${{ env.GIT_COMMIT_AUTHOR }}"
+            echo " - ${{ env.GIT_COMMIT_AUTHOR_NAME }}"
+            echo " - ${{ env.GIT_COMMIT_AUTHOR_EMAIL }}"
+            echo "Get committer info"
+            echo " - ${{ env.GIT_COMMIT_COMMITTER }}"
+            echo " - ${{ env.GIT_COMMIT_COMMITTER_NAME }}"
+            echo " - ${{ env.GIT_COMMIT_COMMITTER_EMAIL }}"
+            echo "Get message info"
+            echo " - ${{ env.GIT_COMMIT_MESSAGE_SUBJECT }}"
+            echo " - ${{ env.GIT_COMMIT_MESSAGE_SUBJECT_SANITIZED }}"
+            echo " - ${{ env.GIT_COMMIT_MESSAGE_BODY }}"
