@@ -46,7 +46,13 @@ jobs:
       run: echo " @author ${{ env.GIT_COMMIT_AUTHOR_NAME }}"
 
     - uses: mshick/add-pr-comment@v2
-      if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' }}
+      if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
+      with:
+        message: |
+          **Hello** 
+          ${{ env.GIT_COMMIT_AUTHOR_NAME }}
+
+    - uses: mshick/add-pr-comment@v2
       with:
         message: |
           **Hello** 
