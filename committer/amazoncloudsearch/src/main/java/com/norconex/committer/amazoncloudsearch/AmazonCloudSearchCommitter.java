@@ -174,19 +174,6 @@ public class AmazonCloudSearchCommitter
     @JsonIgnore
     private AmazonCloudSearchDomain awsClient;
 
-//    public AmazonCloudSearchCommitter() {
-//        this(null);
-//    }
-//    public AmazonCloudSearchCommitter(String serviceEndpoint) {
-//        this(serviceEndpoint, null);
-//    }
-//
-//    public AmazonCloudSearchCommitter(String serviceEndpoint, String signingRegion) {
-//        this.serviceEndpoint = serviceEndpoint;
-//        this.signingRegion = signingRegion;
-//        setTargetContentField(DEFAULT_COULDSEARCH_CONTENT_FIELD);
-//    }
-
     @Override
     protected void initBatchCommitter() throws CommitterException {
         // Build AWS Client
