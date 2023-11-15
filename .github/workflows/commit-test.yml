@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+        pull-requests: write
     steps:
 
     - name: Check out repository
@@ -34,3 +36,8 @@ jobs:
         echo " - ${{ env.GIT_COMMIT_MESSAGE_SUBJECT }}"
         echo " - ${{ env.GIT_COMMIT_MESSAGE_SUBJECT_SANITIZED }}"
         echo " - ${{ env.GIT_COMMIT_MESSAGE_BODY }}"
+
+    - uses: mshick/add-pr-comment@v2
+      with:
+        message: |
+          **Hello push**
