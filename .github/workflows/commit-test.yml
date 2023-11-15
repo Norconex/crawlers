@@ -56,5 +56,5 @@ jobs:
       with:
         message: |
           **Hello 2nd** 
-          ${{ env.GIT_COMMIT_AUTHOR_NAME }}
+          ${{ env.GIT_COMMIT_AUTHOR_EMAIL }}
       
