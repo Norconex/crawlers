@@ -6,9 +6,8 @@ on:
     pull_request:
         branches: [ "dk-actions-v4" ]
     
-    jobs:
-      build:
-
+jobs:
+    build:
         runs-on: ubuntu-latest
 
         steps:
