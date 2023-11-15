@@ -48,12 +48,16 @@ jobs:
     - uses: mshick/add-pr-comment@v2
       if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
       with:
+        refresh-message-position: true
+        allow-repeats: true
         message: |
           **Hello 1st** 
           ${{ env.GIT_COMMIT_AUTHOR_NAME }}
 
     - uses: mshick/add-pr-comment@v2
       with:
+        refresh-message-position: true
+        allow-repeats: true
         message: |
           **Hello 2nd** 
           ${{ env.GIT_COMMIT_AUTHOR_EMAIL }}
@@ -61,6 +65,8 @@ jobs:
     
     - uses: mshick/add-pr-comment@v2
       with:
+        refresh-message-position: true
+        allow-repeats: true
         message: |
           **Hello 3rd** 
           ${{ env.GIT_COMMIT_AUTHOR_NAME }}      
