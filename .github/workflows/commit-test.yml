@@ -1,10 +1,10 @@
 name: commit test
 
 on:
-    push:
-        branches: [ "dk-actions-v4" ]
-    pull_request:
-        branches: [ "dk-actions-v4" ]
+  push:
+    branches: [ "dk-actions-v4" ]
+  pull_request:
+    branches: [ "dk-actions-v4" ]
     
 jobs:
   runs-on: ubuntu-latest
