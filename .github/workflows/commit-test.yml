@@ -37,7 +37,14 @@ jobs:
         echo " - ${{ env.GIT_COMMIT_MESSAGE_SUBJECT_SANITIZED }}"
         echo " - ${{ env.GIT_COMMIT_MESSAGE_BODY }}"
 
+    - name: check condition
+      if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' }}
+      run: echo "blank"
+
     - uses: mshick/add-pr-comment@v2
       with:
+        if: ${{ env.GIT_COMMIT_AUTHOR_NAME }}
         message: |
-          **Hello pull request**
+          **Hello** 
+          ${{ env.GIT_COMMIT_AUTHOR_NAME }}
+      
