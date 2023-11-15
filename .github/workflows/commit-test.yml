@@ -58,3 +58,9 @@ jobs:
           **Hello 2nd** 
           ${{ env.GIT_COMMIT_AUTHOR_EMAIL }}
       
+    
+    - uses: mshick/add-pr-comment@v2
+      with:
+        message: |
+          **Hello 3rd** 
+          ${{ env.GIT_COMMIT_AUTHOR_NAME }}      
