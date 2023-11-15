@@ -41,9 +41,13 @@ jobs:
       if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' }}
       run: echo "blank"
 
+    - name: 2nd condition check
+      if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
+      run: echo " @author ${{ env.GIT_COMMIT_AUTHO }}"
+
     - uses: mshick/add-pr-comment@v2
+      if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' }}
       with:
-        if: ${{ env.GIT_COMMIT_AUTHOR_NAME }}
         message: |
           **Hello** 
           ${{ env.GIT_COMMIT_AUTHOR_NAME }}
