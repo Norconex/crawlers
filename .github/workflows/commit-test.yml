@@ -38,13 +38,13 @@ jobs:
         echo " - ${{ env.GIT_COMMIT_MESSAGE_SUBJECT_SANITIZED }}"
         echo " - ${{ env.GIT_COMMIT_MESSAGE_BODY }}"
 
-    - name: check condition
-      if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' }}
-      run: echo "blank"
+    #- name: check condition
+    #  if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' }}
+    #  run: echo "blank"
 
-    - name: 2nd condition check
-      if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
-      run: echo " @author ${{ env.GIT_COMMIT_AUTHOR_NAME }}"
+    #- name: 2nd condition check
+    #  if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
+    #  run: echo " @author ${{ env.GIT_COMMIT_AUTHOR_NAME }}"
 
     - uses: mshick/add-pr-comment@v2
       if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
