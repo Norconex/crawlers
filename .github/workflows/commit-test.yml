@@ -56,11 +56,11 @@ jobs:
           ${{ env.GIT_COMMIT_AUTHOR_NAME }}
 
     - uses: mshick/add-pr-comment@v2
-      if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' || env.GIT_COMMIT_AUTHOR_EMAIL != 'null' }}
+      if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' || env.GIT_COMMIT_AUTHOR_EMAIL == 'null' }}
       with:
         refresh-message-position: true
         message: |
-          **Either Committer Name and Email address is missing, please config that before merging** 
+          **Either Commit Author Name and/or Email address is missing, please config that before merging** 
 
     - name: committer info check
       if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' || env.GIT_COMMIT_AUTHOR_EMAIL != 'null' }}
