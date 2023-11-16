@@ -46,14 +46,14 @@ jobs:
     #  if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
     #  run: echo " @author ${{ env.GIT_COMMIT_AUTHOR_NAME }}"
 
-    - uses: mshick/add-pr-comment@v2
-      if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
-      with:
-        refresh-message-position: true
-        #allow-repeats: true
-        message: |
-          **Hello 1st** 
-          ${{ env.GIT_COMMIT_AUTHOR_NAME }}
+   # - uses: mshick/add-pr-comment@v2
+   #   if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
+   #   with:
+   #     refresh-message-position: true
+   #     #allow-repeats: true
+   #     message: |
+   #       **Hello 1st** 
+   #       ${{ env.GIT_COMMIT_AUTHOR_NAME }}
 
     - uses: mshick/add-pr-comment@v2
       if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' || env.GIT_COMMIT_AUTHOR_EMAIL == 'null' }}
@@ -63,7 +63,7 @@ jobs:
           **Either Commit Author Name and/or Email address is missing, please config that before merging** 
 
     - name: committer info check
-      if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' || env.GIT_COMMIT_AUTHOR_EMAIL != 'null' }}
+      if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' || env.GIT_COMMIT_AUTHOR_EMAIL == 'null' }}
       run: |
         echo "Committer Name or Email is missing"
         exit 1
