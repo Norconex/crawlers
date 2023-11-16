@@ -65,7 +65,7 @@ jobs:
     - name: committer info check
       if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' || env.GIT_COMMIT_AUTHOR_EMAIL != 'null' }}
       run: |
-        echo: "Committer Name or Email is missing"
+        echo "Committer Name or Email is missing"
         exit 1
 
                 
