@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -271,10 +272,7 @@ class AzureSearchCommitterTest {
             throws CommitterException {
         //setup
         var metadata = new Properties();
-        var myField = """
-        	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
-        	aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\
-        	aaaaaaaaaaaaaaaa""";
+        var myField = StringUtils.repeat("a", 129);
         metadata.set(myField, "1");
         Exception expectedException = null;
 
