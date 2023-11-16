@@ -34,7 +34,7 @@
     <imgscalr.version>4.2</imgscalr.version>
     <jetty.version>9.4.51.v20230217</jetty.version>
     <netty.version>4.1.72.Final</netty.version>
-    <selenium.version>4.0.0</selenium.version>
+    <selenium.version>4.14.1</selenium.version>
     <okhttp.version>3.14.9</okhttp.version>
     
     <commons-compress.version>1.21</commons-compress.version>
