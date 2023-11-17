@@ -21,14 +21,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-/**
+/*
  * <p>
  * Class executing an external application
  * to extract data from and/or manipulate a document.
@@ -269,7 +268,7 @@ public class ExternalTransformerConfig {
      */
     private Map<String, String> environmentVariables = null;
 
-    /**
+    /*
      * Gets the format of the metadata input file sent to the external
      * application. One of "json" (default), "xml", or "properties" is expected.
      * Only applicable when the <code>${INPUT}</code> token
@@ -279,7 +278,7 @@ public class ExternalTransformerConfig {
      */
     private String metadataInputFormat = META_FORMAT_JSON;
 
-    /**
+    /*
      * Sets the format of the metadata output file from the external
      * application. One of "json" (default), "xml", or "properties" is expected.
      * Set to <code>null</code> for relying metadata extraction

@@ -27,7 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-/**
+/*
  * <p>
  * Parses and extracts text from a file using an external application to do so.
  * </p>
