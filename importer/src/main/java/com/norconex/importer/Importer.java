@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.bean.BeanUtil;
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentFamily;
 import com.norconex.commons.lang.file.ContentType;
@@ -59,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ToString
 @EqualsAndHashCode
-public class Importer implements Configurable<ImporterConfig> {
+public class Importer {
 
     @Getter
     private final ImporterConfig configuration;
