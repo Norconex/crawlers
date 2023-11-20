@@ -36,12 +36,9 @@ jobs:
         run: |
           STRING_TO_CHECK="changed-files"
           for file in ${{ steps.changed-files.outputs.changed_file }}; do
-            if grep -Fxq "$STRING_TO_CHECK" "$file"; then
+            if [grep -Fxq "$STRING_TO_CHECK" "$file"]; then
               echo "Found String"
-              #echo "The string '$STRING_TO_CHECK' exists in the file: $file"
-              #exit 1  # To set a non-zero exit code if the string is found
             else
-              echo "Not Found"
-              # echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
+              echo "Not Found"            
             fi                        
           done
