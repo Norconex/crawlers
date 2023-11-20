@@ -23,9 +23,9 @@ jobs:
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only --diff-filter=M ${{ github.event.before }} ${{ github.sha }} | grep '\.txt$')" >> $GITHUB_OUTPUT 
             else
                 echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT                
-                echo "MODIFIED_JAVA_FILES=$(git diff --name-only --diff-filter=M -- "*.txt")" >> $GITHUB_OUTPUT 
+                echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs | grep \.txt)" >> $GITHUB_OUTPUT
             fi
-            
+
       - name: List changed files
         run: |
           for file in ${{ steps.changed-files.outputs.changed_files }}; do
