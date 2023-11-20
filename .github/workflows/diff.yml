@@ -26,21 +26,20 @@ jobs:
             
       - name: List changed files
         run: |
-            for file in ${{ steps.changed-files.outputs.changed_files }}; do
-                if ${{ grep -Fxq  }}
-                echo "$file was changed"
-                echo test >> $file
-                more $file
-            done
+          for file in ${{ steps.changed-files.outputs.changed_files }}; do
+            echo "$file was changed"
+            echo test >> $file
+            more $file
+          done
 
       - name: Check for String in Modified Files
         run: |
-            STRING_TO_CHECK="changed-files"
-            for file in ${{ steps.changed-files.outputs.changed_file }}; do
-              if grep -q "$STRING_TO_CHECK" "$file"; then
-                echo "The string '$STRING_TO_CHECK' exists in the file: $file"
-              else
-                echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
-              fi
-            done
+          STRING_TO_CHECK="changed-files"
+          for file in ${{ steps.changed-files.outputs.changed_file }}; do
+            if grep -q "$STRING_TO_CHECK" "$file"; then
+              echo "The string '$STRING_TO_CHECK' exists in the file: $file"
+            else
+              echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
+            fi
+          done
             
