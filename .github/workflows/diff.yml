@@ -40,7 +40,7 @@ jobs:
               echo "The string '$STRING_TO_CHECK' exists in the file: $file"
             else
               echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
-            fi
-            more $file
+            fi                        
           done
+        shell: bash  
             
