@@ -17,7 +17,7 @@ jobs:
         id: filter-files
         run: |
           echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
-          echo "MODIFIED_TXT_FILES=$(git diff --name-only -- *.txt | xargs)" >> $GITHUB_OUTPUT
+          echo "MODIFIED_TXT_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.txt' | xargs)" >> $GITHUB_OUTPUT
 
 
       - name: display txt output
