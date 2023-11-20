@@ -5,4 +5,4 @@ public class file3 {
 }
 
 changed-file
-asfsdaf
+asfsdafasf
