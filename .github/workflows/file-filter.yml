@@ -17,7 +17,7 @@ jobs:
         id: filter-files
         run: |
           ls -l | grep .txt
-          echo "changed_files=$(ls -l | grep .txt)" >> $GITHUB_OUTPUT
+          echo "changed_files=$(ls -l | grep \.txt)" >> $GITHUB_OUTPUT
           
 
 
