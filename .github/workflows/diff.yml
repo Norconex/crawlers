@@ -36,7 +36,7 @@ jobs:
         run: |
           STRING_TO_CHECK="changed-files"
           NEW_LINES="new lines"
-          
+
           for file in ${{ steps.changed-files.outputs.changed_files }}; do
             if grep -Fxq "$STRING_TO_CHECK" "$file"; then
               echo "The string '$STRING_TO_CHECK' exists in the file: $file"
@@ -44,5 +44,6 @@ jobs:
               echo "Added '$NEW_LINES' after '$STRING_TO_CHECK' in $file"
             else
               echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
-            fi                        
+            fi
+            more $file                        
           done
