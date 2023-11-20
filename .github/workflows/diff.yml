@@ -45,8 +45,8 @@ jobs:
 
       - name: Check for String in Modified Files
         run: |
-          STRING_TO_CHECK="changed-files"
-          NEW_LINES="new lines"
+          STRING_TO_CHECK="@author"
+          NEW_LINES="@author Brian Yuen"
 
           for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
             if grep -q "$STRING_TO_CHECK" "$file"; then
