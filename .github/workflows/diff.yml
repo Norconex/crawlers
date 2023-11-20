@@ -42,6 +42,4 @@ jobs:
             else
               echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
             fi                        
-          done || exit 0  # To make sure the workflow doesn't fail if no string is found
-        shell: bash  
-            
+          done || exit 0  # To make sure the workflow doesn't fail if no string is found            
