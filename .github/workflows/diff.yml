@@ -56,5 +56,5 @@ jobs:
             else
               echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
             fi
-            more $file                        
+            more $file                         
           done
