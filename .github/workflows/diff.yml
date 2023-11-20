@@ -49,7 +49,7 @@ jobs:
           NEW_LINES="new lines"
 
           for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
-            if grep -Fxq "$STRING_TO_CHECK" "$file"; then
+            if grep -Fxq "^\s*$STRING_TO_CHECK" "$file"; then
               echo "The string '$STRING_TO_CHECK' exists in the file: $file"
               sed -i "/$STRING_TO_CHECK/a $NEW_LINES" "$file"
               echo "Added '$NEW_LINES' after '$STRING_TO_CHECK' in $file"
