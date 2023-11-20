@@ -4,4 +4,5 @@ public class file3 {
     sfsafdfsasfa
 }
 
-changed-filesdfdfst
+changed-file
+asfsdaf
