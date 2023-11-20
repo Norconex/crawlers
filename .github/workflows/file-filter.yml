@@ -17,7 +17,7 @@ jobs:
         id: filter-files
         run: |
           ls -l | grep .txt          
-          echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep "\.txt")" >> $GITHUB_OUTPUT
+          echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep "\.txt$")" >> $GITHUB_OUTPUT
           
 
       - name: display output
