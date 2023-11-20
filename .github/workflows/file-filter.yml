@@ -18,10 +18,11 @@ jobs:
         run: |
           ls -l | grep .txt          
           echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep "\.txt$")" >> $GITHUB_OUTPUT
-          
+          echo "MODIFIED_TXT_FILES=$(git diff --name-only -- '*.txt')" >> $GITHUB_OUTPUT
+
 
       - name: display output
         run: |
-          for file in ${{ steps.filter-files.outputs.MODIFIED_JAVA_FILES }}; do
+          for file in ${{ steps.filter-files.outputs.MODIFIED_TXT_FILES }}; do
             echo "$file was changed"            
           done
