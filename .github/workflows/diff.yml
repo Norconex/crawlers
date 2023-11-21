@@ -54,7 +54,7 @@ jobs:
         run: |
           STRING_TO_CHECK="@author ${{ env.author_name}}"
           SEARCH_STRING="@author"
-          NEW_LINES=" @author Brian Yuen\n * "
+          NEW_LINES="@author Brian Yuen\n * "
 
           for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
             if grep -q "$STRING_TO_CHECK" "$file"; then
