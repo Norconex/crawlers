@@ -51,7 +51,8 @@ jobs:
           for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
             if grep -q "$STRING_TO_CHECK" "$file"; then
               echo "The string '$STRING_TO_CHECK' exists in the file: $file"
-              sed -i "0,/$STRING_TO_CHECK/{s/$STRING_TO_CHECK/$NEW_LINE\n&/}" "$file"
+              #sed -i "0,/$STRING_TO_CHECK/{s/$STRING_TO_CHECK/$NEW_LINE\n&/}" "$file"
+              sed -i "/$STRING_TO_CHECK/ { s/$STRING_TO_CHECK/$NEW_STRING\n$STRING_TO_CHECK/; }" "$file"
               #sed -i "/$STRING_TO_CHECK/!b;a $NEW_LINES" "$file"
               echo "Added '$NEW_LINES' after '$STRING_TO_CHECK' in $file"
             else
