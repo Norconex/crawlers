@@ -8,14 +8,14 @@ on:
 
 
 jobs:
-  get_files:
+  update-author:
     name: run_when_pr_is_merged
     runs-on: ubuntu-latest
 
-    inputs:
+    env:
       author_name: 'brian'
-        description: 'Author name to search for'
-        required: true
+      description: 'Author name to search for'
+      required: true
 
 
     steps:
@@ -52,7 +52,7 @@ jobs:
 
       - name: Check for String in Modified Files
         run: |
-          STRING_TO_CHECK="@author ${{ inputs.author_name}}"
+          STRING_TO_CHECK="@author ${{ env.author_name}}"
           SEARCH_STRING="@author"
           NEW_LINES=" @author Brian Yuen\n * "
 
