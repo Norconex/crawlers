@@ -26,29 +26,30 @@ jobs:
       - name: Get changed files
         id: changed-files
         run: |
+            # get a list of all the modified java file and save it in the output 
             if ${{ github.event_name == 'pull_request' }}; then
-                echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
-                echo "MODIFIED_JAVA_FILES=$(git diff --name-only --diff-filter=M ${{ github.event.before }} ${{ github.sha }} | grep '\.txt$')" >> $GITHUB_OUTPUT 
+                #echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
+                echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java' | xarges)" >> $GITHUB_OUTPUT 
             else
-                echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT                
+                #echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT                
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
                 fi
 
-      - name: List changed files
-        run: |
-          for file in ${{ steps.changed-files.outputs.changed_files }}; do
-            echo "$file was changed"
-            echo test >> $file
-            more $file
-            done
+      #- name: List changed files
+      #  run: |
+      #    for file in ${{ steps.changed-files.outputs.changed_files }}; do
+      #      echo "$file was changed"
+      #      echo test >> $file
+      #      more $file
+      #      done
           
-      - name: List changed files
-        run: |
-          for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
-            echo "$file was changed"
-            echo test >> $file
-            more $file
-          done
+      #- name: List changed files
+      #  run: |
+      #    for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
+      #      echo "$file was changed"
+      #      echo test >> $file
+      #      more $file
+      #    done
 
       - name: Check for String in Modified Files
         run: |
@@ -57,15 +58,17 @@ jobs:
           NEW_LINES="@author Brian Yuen\n * "
 
           for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
+            # check if the Author's name is present in the @author tag
             if grep -q "$STRING_TO_CHECK" "$file"; then
               echo "The string '$STRING_TO_CHECK' exists in the file: $file"
+              echo "No change to file"
               #sed -i "/$SEARCH_STRING/ { s/$SEARCH_STRING/$NEW_LINES&/; :a; n; ba; }" "$file"
               #sed -i "/$STRING_TO_CHECK/ { s/$STRING_TO_CHECK/$NEW_LINES&/; :a; n; ba; }" "$file"
-              #sed -i "/$STRING_TO_CHECK/!b;a $NEW_LINES" "$file"
-              #echo "Added '$NEW_LINES' after '$STRING_TO_CHECK' in $file"
+              #sed -i "/$STRING_TO_CHECK/!b;a $NEW_LINES" "$file"              
             else
               echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
               sed -i "/$SEARCH_STRING/ { s/$SEARCH_STRING/$NEW_LINES&/; :a; n; ba; }" "$file"
+              echo "Added '$NEW_LINES' in $file"
             fi
             more $file                        
           done
