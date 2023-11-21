@@ -35,21 +35,21 @@ jobs:
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
                 fi
 
-      #- name: List changed files
-      #  run: |
-      #    for file in ${{ steps.changed-files.outputs.changed_files }}; do
-      #      echo "$file was changed"
-      #      echo test >> $file
-      #      more $file
-      #      done
+      - name: List changed files
+        run: |
+          echo "All the following files are changed:"
+          for file in ${{ steps.changed-files.outputs.changed_files }}; do
+            echo "$file was changed"
+            echo test >> $file
+            more $file
+            done
           
-      #- name: List changed files
-      #  run: |
-      #    for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
-      #      echo "$file was changed"
-      #      echo test >> $file
-      #      more $file
-      #    done
+      - name: List changed JAVA files
+        run: |
+          echo "Here is all the modified JAVA files:"
+          for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
+            echo "$file was changed"            
+          done
 
       - name: Check for String in Modified Files
         run: |
