@@ -45,7 +45,7 @@ jobs:
 
       - name: Check for String in Modified Files
         run: |
-          STRING_TO_CHECK="@author"
+          STRING_TO_CHECK="@author Kkkdkajfl"
           NEW_LINES=" @author Brian Yuen\n * "
 
           for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
