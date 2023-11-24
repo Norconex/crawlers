@@ -24,7 +24,6 @@ import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.core.session.CrawlSessionEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
-import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
