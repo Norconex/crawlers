@@ -51,7 +51,7 @@ import com.norconex.importer.handler.DocContext;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-/**
+/*
  * <p>
  * Class executing an external application
  * to extract data from and/or manipulate a document.

@@ -25,6 +25,7 @@ import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
@@ -43,19 +44,18 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
     @Override
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
 
-
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
+        addPolyType(map, CrawlerConfig.class);
+        addPolyType(map, CrawlSessionStopper.class);
+        addPolyType(map, DataStoreEngine.class);
         addPolyType(map, DocumentChecksummer.class);
-        addPolyType(map, MetadataChecksummer.class);
         addPolyType(map, DocumentFilter.class);
+        addPolyType(map, EventListener.class, "crawler.event.impl");
+        addPolyType(map, MetadataChecksummer.class);
         addPolyType(map, MetadataFilter.class);
         addPolyType(map, ReferenceFilter.class);
         addPolyType(map, SpoiledReferenceStrategizer.class);
-        addPolyType(map, DataStoreEngine.class);
-        addPolyType(map, CrawlSessionStopper.class);
-
-        addPolyType(map, EventListener.class, "crawler.event.impl");
         map.put(EventListener.class, StopCrawlerOnMaxEventListener.class);
 
         return map;
