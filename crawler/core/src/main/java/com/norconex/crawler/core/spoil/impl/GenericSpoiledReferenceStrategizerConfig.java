@@ -14,14 +14,16 @@
  */
 package com.norconex.crawler.core.spoil.impl;
 
-import com.norconex.commons.lang.config.Configurable;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -64,28 +66,37 @@ import lombok.ToString;
  * resulted in a bad status.
  * </p>
  */
-@EqualsAndHashCode
-@ToString
-public class GenericSpoiledReferenceStrategizer implements
-        SpoiledReferenceStrategizer,
-        Configurable<GenericSpoiledReferenceStrategizerConfig> {
+@Data
+@Accessors(chain = true)
+public class GenericSpoiledReferenceStrategizerConfig {
 
-    @Getter
-    private final GenericSpoiledReferenceStrategizerConfig configuration =
-            new GenericSpoiledReferenceStrategizerConfig();
+    public static final SpoiledReferenceStrategy DEFAULT_FALLBACK_STRATEGY =
+            SpoiledReferenceStrategy.DELETE;
 
-    @Override
-    public SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
-            String reference, CrawlDocState state) {
+    private final Map<CrawlDocState, SpoiledReferenceStrategy> mappings =
+            new HashMap<>();
+    private SpoiledReferenceStrategy fallbackStrategy =
+            DEFAULT_FALLBACK_STRATEGY;
 
-        var strategy = configuration.getMappings().get(state);
-        if (strategy == null) {
-            strategy = configuration.getFallbackStrategy();
-        }
-        if (strategy == null) {
-            strategy = GenericSpoiledReferenceStrategizerConfig
-                    .DEFAULT_FALLBACK_STRATEGY;
-        }
-        return strategy;
+    public GenericSpoiledReferenceStrategizerConfig() {
+        // store default mappings
+        mappings.put(CrawlDocState.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
+        mappings.put(CrawlDocState.BAD_STATUS,
+                SpoiledReferenceStrategy.GRACE_ONCE);
+        mappings.put(CrawlDocState.ERROR, SpoiledReferenceStrategy.GRACE_ONCE);
+    }
+
+    @JsonIgnore
+    public GenericSpoiledReferenceStrategizerConfig setMapping(
+            CrawlDocState state, SpoiledReferenceStrategy strategy) {
+        mappings.put(state, strategy);
+        return this;
+    }
+
+    public GenericSpoiledReferenceStrategizerConfig setMappings(
+            Map<CrawlDocState, SpoiledReferenceStrategy> mappings) {
+        this.mappings.clear();
+        this.mappings.putAll(mappings);
+        return this;
     }
 }

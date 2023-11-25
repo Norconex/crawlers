@@ -27,6 +27,8 @@ import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stop.CrawlSessionStopper;
 import com.norconex.crawler.core.stop.CrawlSessionStopperException;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -34,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
  * file is created under the working directory as {@value #STOP_FILE_NAME}.
  */
 @Slf4j
+@EqualsAndHashCode
+@ToString
 public class FileBasedStopper implements CrawlSessionStopper {
 
     public static final String STOP_FILE_NAME = ".crawlsession-stop";
