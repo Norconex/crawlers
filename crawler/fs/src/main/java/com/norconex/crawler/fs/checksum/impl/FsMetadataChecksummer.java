@@ -19,7 +19,6 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.checksum.AbstractMetadataChecksummer;
 import com.norconex.crawler.core.checksum.BaseChecksummerConfig;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
@@ -37,7 +36,8 @@ import lombok.Data;
  * </p>
  * <p>
  * You have the option to keep the checksum as a document metadata field.
- * When {@link #setKeep(boolean)} is <code>true</code>, the checksum will be
+ * When {@link BaseChecksummerConfig#setKeep(boolean)} is
+ * <code>true</code>, the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
  * {@link CrawlDocMetadata#CHECKSUM_METADATA}.
