@@ -141,7 +141,7 @@ public final class WebStubber {
                 new StringRandomizer(20).getRandomValue()))
         .randomize(DelayResolver.class, () -> {
             var resolv = new GenericDelayResolver();
-            resolv.setScope("crawler");
+            resolv.getConfiguration().setScope("crawler");
             return resolv;
         })
         .randomize(DomLinkExtractor.class, () -> {
@@ -265,7 +265,7 @@ public final class WebStubber {
         crawlerConfig.setId(MOCK_CRAWLER_ID);
         crawlerConfig.setNumThreads(1);
         ((GenericDelayResolver) crawlerConfig
-                .getDelayResolver()).setDefaultDelay(0);
+                .getDelayResolver()).getConfiguration().setDefaultDelay(0);
         crawlerConfig.setCommitters(List.of(new MemoryCommitter()));
         return crawlerConfig;
     }

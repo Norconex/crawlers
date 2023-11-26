@@ -37,19 +37,19 @@ import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.WebsiteMock;
 
 @MockServerSettings
-class URLStatusCrawlerEventListenerTest {
+class UrlStatusCrawlerEventListenerTest {
 
     @Test
     void testURLStatusCrawlerEventListener(
             ClientAndServer client, @TempDir Path tempDir) throws IOException {
 
-        var urlStatusListener = new URLStatusCrawlerEventListener();
-        urlStatusListener.setCombined(true);
-        urlStatusListener.setTimestamped(true);
-        urlStatusListener.setStatusCodes("200-299, 400-499, 500");
-        urlStatusListener.setFileNamePrefix("super-");
-        urlStatusListener.setOutputDir(tempDir.resolve("statuses"));
-
+        var urlStatusListener = new UrlStatusCrawlerEventListener();
+        urlStatusListener.getConfiguration()
+            .setCombined(true)
+            .setTimestamped(true)
+            .setStatusCodes("200-299, 400-499, 500")
+            .setFileNamePrefix("super-")
+            .setOutputDir(tempDir.resolve("statuses"));
 
         var ok1Path = "/ok1.html";
         var ok2Path = "/ok2.html";

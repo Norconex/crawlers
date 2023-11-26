@@ -14,11 +14,15 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.time.DurationParser;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -85,43 +89,21 @@ import lombok.ToString;
  *
  * @since 2.5.0
  */
-@EqualsAndHashCode
-@ToString
-public class ReferenceDelayResolver
-        extends AbstractDelayResolver<ReferenceDelayResolverConfig> {
+@Data
+@Accessors(chain = true)
+public class ReferenceDelayResolverConfig extends BaseDelayResolverConfig {
 
-    @Getter
-    private final ReferenceDelayResolverConfig configuration =
-            new ReferenceDelayResolverConfig();
+    private final List<DelayReferencePattern> delayReferencePatterns =
+            new ArrayList<>();
 
-    @Override
-    protected long resolveExplicitDelay(String url) {
-        long delay = -1;
-        for (DelayReferencePattern delayPattern :
-                configuration.getDelayReferencePatterns()) {
-            if (delayPattern.matches(url)) {
-                delay = delayPattern.getDelay();
-                break;
-            }
-        }
-        return delay;
+    public List<DelayReferencePattern> getDelayReferencePatterns() {
+        return Collections.unmodifiableList(delayReferencePatterns);
     }
-
-//    @Override
-//    protected void loadDelaysFromXML(XML xml) {
-//        for (XML pxml : xml.getXMLList("pattern")) {
-//            delayReferencePatterns.add(new DelayReferencePattern(
-//                    pxml.getString(".", ""),
-//                    pxml.getDurationMillis("@delay", DEFAULT_DELAY)));
-//        }
-//    }
-//
-//    @Override
-//    protected void saveDelaysToXML(XML xml) {
-//        for (DelayReferencePattern delayPattern : delayReferencePatterns) {
-//            xml.addElement("pattern", delayPattern.getPattern())
-//                    .setAttribute("delay", delayPattern.getDelay());
-//        }
-//    }
+    public ReferenceDelayResolverConfig setDelayReferencePatterns(
+            List<DelayReferencePattern> delayReferencePatterns) {
+        CollectionUtil.setAll(
+                this.delayReferencePatterns, delayReferencePatterns);
+        return this;
+    }
 }
 

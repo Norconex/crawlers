@@ -22,10 +22,9 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.crawler.core.filter.OnMatch;
@@ -33,8 +32,9 @@ import com.norconex.crawler.core.filter.OnMatchFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 /**
  * <p>
  * Filters URL based based on the number of URL segments. A URL with
@@ -53,7 +53,7 @@ import lombok.EqualsAndHashCode;
  * </p>
  *
  * {@nx.xml.usage
- *  <filter class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
+ *  <filter class="com.norconex.crawler.web.filter.impl.SegmentCountUrlFilter"
  *      onMatch="[include|exclude]"
  *      count="(numeric value)"
  *      duplicate="[false|true]">
@@ -62,7 +62,7 @@ import lombok.EqualsAndHashCode;
  * }
  *
  * {@nx.xml.example
- *  <filter class="SegmentCountURLFilter" onMatch="exclude" count="5" />
+ *  <filter class="SegmentCountUrlFilter" onMatch="exclude" count="5" />
  * }
  * <p>
  * The above example will reject URLs with more than 5 forward slashes after
@@ -72,61 +72,22 @@ import lombok.EqualsAndHashCode;
  * @since 1.2
  * @see Pattern
  */
-@Data
-public class SegmentCountURLFilter implements OnMatchFilter,
-        ReferenceFilter, DocumentFilter, MetadataFilter, XMLConfigurable{
+@EqualsAndHashCode
+@ToString
+public class SegmentCountUrlFilter implements
+        OnMatchFilter,
+        ReferenceFilter,
+        DocumentFilter,
+        MetadataFilter,
+        Configurable<SegmentCountUrlFilterConfig>{
 
-    /** Default segment separator pattern. */
-    public static final Pattern DEFAULT_SEGMENT_SEPARATOR_PATTERN =
-            Pattern.compile("/");
-    /** Default segment count. */
-    public static final int DEFAULT_SEGMENT_COUNT = 10;
+    @Getter
+    private final SegmentCountUrlFilterConfig configuration =
+            new SegmentCountUrlFilterConfig();
 
-    private int count = DEFAULT_SEGMENT_COUNT;
-    private boolean duplicate;
-    @EqualsAndHashCode.Exclude
-    private Pattern separator = DEFAULT_SEGMENT_SEPARATOR_PATTERN;
-    private OnMatch onMatch;
-
-    /**
-     * Constructor.
-     */
-    public SegmentCountURLFilter() {
-        this(DEFAULT_SEGMENT_COUNT);
-    }
-    /**
-     * Constructor.
-     * @param count how many segment
-     */
-    public SegmentCountURLFilter(int count) {
-        this(count, OnMatch.INCLUDE);
-    }
-    /**
-     * Constructor.
-     * @param count how many segment
-     * @param onMatch what to do on match
-     */
-    public SegmentCountURLFilter(
-            int count, OnMatch onMatch) {
-        this(count, onMatch, false);
-    }
-    /**
-     * Constructor.
-     * @param count how many segment
-     * @param onMatch what to do on match
-     * @param duplicate whether to handle duplicates
-     */
-    public SegmentCountURLFilter(
-            int count, OnMatch onMatch, boolean duplicate) {
-        setCount(count);
-        setOnMatch(onMatch);
-        setDuplicate(duplicate);
-        setSeparator(DEFAULT_SEGMENT_SEPARATOR_PATTERN);
-    }
-
-    @EqualsAndHashCode.Include(replaces = "separator")
-    String getSeparatorAsString() {
-        return separator == null ? null : separator.toString();
+    @Override
+    public OnMatch getOnMatch() {
+        return OnMatch.includeIfNull(configuration.getOnMatch());
     }
 
     @Override
@@ -140,14 +101,14 @@ public class SegmentCountURLFilter implements OnMatchFilter,
     @Override
     public boolean acceptReference(String url) {
         var isInclude = getOnMatch() == OnMatch.INCLUDE;
-        if (separator == null) {
+        if (configuration.getSeparator() == null) {
             return isInclude;
         }
 
         var cleanSegments = getCleanSegments(url);
 
         var reachedCount = false;
-        if (duplicate) {
+        if (configuration.isDuplicate()) {
             Map<String, Integer> segMap = new HashMap<>();
             for (String seg : cleanSegments) {
                 var dupCount = segMap.get(seg);
@@ -155,14 +116,14 @@ public class SegmentCountURLFilter implements OnMatchFilter,
                     dupCount = 0;
                 }
                 dupCount++;
-                if (dupCount >= count) {
+                if (dupCount >= configuration.getCount()) {
                     reachedCount = true;
                     break;
                 }
                 segMap.put(seg, dupCount);
             }
         } else {
-            reachedCount = cleanSegments.size() >= count;
+            reachedCount = cleanSegments.size() >= configuration.getCount();
         }
 
         return reachedCount == isInclude;
@@ -170,7 +131,7 @@ public class SegmentCountURLFilter implements OnMatchFilter,
 
     private List<String> getCleanSegments(String url) {
         var path = new HttpURL(url).getPath();
-        var allSegments = separator.split(path);
+        var allSegments = configuration.getSeparator().split(path);
         // remove empty/nulls
         List<String> cleanSegments = new ArrayList<>();
         for (String segment : allSegments) {
@@ -179,20 +140,5 @@ public class SegmentCountURLFilter implements OnMatchFilter,
             }
         }
         return cleanSegments;
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setSeparator(xml.getPattern("separator", getSeparator()));
-        setCount(xml.getInteger("@count", DEFAULT_SEGMENT_COUNT));
-        setDuplicate(xml.getBoolean("@duplicate", false));
-        setOnMatch(xml.getEnum("@onMatch", OnMatch.class, onMatch));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("count", count);
-        xml.setAttribute("duplicate", duplicate);
-        xml.setAttribute("onMatch", onMatch);
-        xml.addElement("separator", separator);
     }
 }

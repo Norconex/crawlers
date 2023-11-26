@@ -34,15 +34,15 @@ import com.norconex.crawler.web.link.Link;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.DocMetadata;
 
-class XMLFeedLinkExtractorTest {
+class XmlFeedLinkExtractorTest {
 
     @Test
     void testAtomLinkExtraction()  throws IOException {
         var baseURL = "http://www.example.com/";
         var baseDir = baseURL + "test/";
-        var docURL = baseDir + "XMLFeedLinkExtractorTest.atom";
+        var docURL = baseDir + "XmlFeedLinkExtractorTest.atom";
 
-        var extractor = new XMLFeedLinkExtractor();
+        var extractor = new XmlFeedLinkExtractor();
 
         // All these must be found
         String[] expectedURLs = {
@@ -52,7 +52,7 @@ class XMLFeedLinkExtractorTest {
         };
 
         InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
-                "XMLFeedLinkExtractorTest.atom"));
+                "XmlFeedLinkExtractorTest.atom"));
 
         var ct = ContentTypeDetector.detect(is);
 
@@ -75,9 +75,9 @@ class XMLFeedLinkExtractorTest {
     void testRSSLinkExtraction()  throws IOException {
         var baseURL = "http://www.example.com/";
         var baseDir = baseURL + "test/";
-        var docURL = baseDir + "XMLFeedLinkExtractorTest.rss";
+        var docURL = baseDir + "XmlFeedLinkExtractorTest.rss";
 
-        var extractor = new XMLFeedLinkExtractor();
+        var extractor = new XmlFeedLinkExtractor();
 
         // All these must be found
         String[] expectedURLs = {
@@ -87,7 +87,7 @@ class XMLFeedLinkExtractorTest {
         };
 
         InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
-                "XMLFeedLinkExtractorTest.rss"));
+                "XmlFeedLinkExtractorTest.rss"));
 
         var ct = ContentTypeDetector.detect(is);
 
@@ -108,7 +108,7 @@ class XMLFeedLinkExtractorTest {
 
     @Test
     void testGenericWriteRead() {
-        var extractor = new XMLFeedLinkExtractor();
+        var extractor = new XmlFeedLinkExtractor();
 //        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ct")));
 //        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ref")));
         assertThatNoException().isThrownBy(() ->

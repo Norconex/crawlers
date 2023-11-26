@@ -29,8 +29,13 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 
+import com.norconex.commons.lang.config.Configurable;
+
 import io.netty.handler.codec.http.HttpResponse;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.filters.ResponseFilter;
@@ -53,12 +58,17 @@ import net.lightbody.bmp.util.HttpMessageInfo;
  * @since 3.0.0
  */
 @Slf4j
-class HttpSniffer {
+@EqualsAndHashCode
+@ToString
+public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
     //MAYBE If it gets stable enough, move the proxy setting to Browser class.
 
     private final ThreadLocal<FilterAndSource> tlocal = new ThreadLocal<>();
     private BrowserMobProxyServer mobProxy;
+
+    @Getter
+    private final HttpSnifferConfig configuration = new HttpSnifferConfig();
 
     void bind(String url) {
         if (mobProxy == null) {
@@ -90,9 +100,9 @@ class HttpSniffer {
         return fs.filter;
     }
 
-    void start(@NonNull MutableCapabilities options, HttpSnifferConfig config) {
+    void start(@NonNull MutableCapabilities options) {
 
-        var cfg = ofNullable(config).orElseGet(HttpSnifferConfig::new);
+        var cfg = ofNullable(configuration).orElseGet(HttpSnifferConfig::new);
 
         mobProxy = new BrowserMobProxyServer();
         mobProxy.setTrustAllServers(true);

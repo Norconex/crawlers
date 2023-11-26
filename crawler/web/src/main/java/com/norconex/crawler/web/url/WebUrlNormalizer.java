@@ -32,7 +32,7 @@ import com.norconex.crawler.core.filter.ReferenceFilter;
  * Implementors also implementing XMLConfigurable must name their XML tag
  * <code>urlNormalizer</code> to ensure it gets loaded properly.
  */
-public interface WebURLNormalizer {
+public interface WebUrlNormalizer {
 
     /**
      * Normalize the given URL.

@@ -37,7 +37,9 @@ import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.importer.util.DomUtil;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -195,10 +197,12 @@ import lombok.Data;
  * @since 3.0.0
  */
 @SuppressWarnings("javadoc")
-@Data
+@EqualsAndHashCode
+@ToString
 public class DomLinkExtractor
         implements LinkExtractor, Configurable<DomLinkExtractorConfig> {
 
+    @Getter
     private final DomLinkExtractorConfig configuration =
             new DomLinkExtractorConfig();
 

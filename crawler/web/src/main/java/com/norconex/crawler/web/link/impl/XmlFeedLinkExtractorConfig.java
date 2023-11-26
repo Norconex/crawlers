@@ -52,13 +52,13 @@ import lombok.experimental.Accessors;
  * </ul>
  *
  * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.link.impl.XMLFeedLinkExtractor">
+ * <extractor class="com.norconex.crawler.web.link.impl.XmlFeedLinkExtractor">
  *   {@nx.include com.norconex.crawler.web.link.AbstractTextLinkExtractor@nx.xml.usage}
  * </extractor>
  * }
  *
  * {@nx.xml.example
- * <extractor class="com.norconex.crawler.web.link.impl.XMLFeedLinkExtractor">
+ * <extractor class="com.norconex.crawler.web.link.impl.XmlFeedLinkExtractor">
  *   <restrictTo field="document.reference" method="regex">.*rss$</restrictTo>
  * </extractor>
  * }
@@ -73,7 +73,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class XMLFeedLinkExtractorConfig {
+public class XmlFeedLinkExtractorConfig {
     /**
      * The matcher of content types to apply link extraction on. No attempt to
      * extract links from any other content types will be made. Default is
@@ -92,7 +92,7 @@ public class XMLFeedLinkExtractorConfig {
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
 
-    public XMLFeedLinkExtractorConfig setFieldMatcher(
+    public XmlFeedLinkExtractorConfig setFieldMatcher(
             TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
@@ -105,7 +105,7 @@ public class XMLFeedLinkExtractorConfig {
      * @param contentTypeMatcher content type matcher
      * @return this
      */
-    public XMLFeedLinkExtractorConfig setContentTypeMatcher(
+    public XmlFeedLinkExtractorConfig setContentTypeMatcher(
             TextMatcher matcher) {
         contentTypeMatcher.copyFrom(matcher);
         return this;

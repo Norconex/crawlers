@@ -26,8 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.hc.core5.http.HttpStatus;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
@@ -43,29 +43,28 @@ import com.norconex.crawler.web.sitemap.SitemapResolver;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @Slf4j
-public class GenericSitemapResolver
-        extends CrawlerLifeCycleListener
-        implements SitemapResolver, XMLConfigurable {
+public class GenericSitemapResolver extends CrawlerLifeCycleListener
+        implements SitemapResolver, Configurable<GenericSitemapResolverConfig> {
 
+    @JsonIgnore
     static final String SITEMAP_STORE_NAME =
             SitemapRecord.class.getSimpleName();
-
+    @JsonIgnore
     private DataStore<SitemapRecord> sitemapStore;
-
+    @JsonIgnore
     private final MutableBoolean stopping = new MutableBoolean();
 
     @EqualsAndHashCode.Include
     @ToString.Include
     @Getter
-    @Setter
-    private boolean lenient;
+    private final GenericSitemapResolverConfig configuration =
+            new GenericSitemapResolverConfig();
 
     @Override
     public void resolve(SitemapContext ctx) {
@@ -148,7 +147,7 @@ public class GenericSitemapResolver
         sitemapDoc.getInputStream().enforceFullCaching();
 
         List<SitemapRecord> childSitemaps = new ArrayList<>();
-        var parser = new SitemapParser(lenient, stopping);
+        var parser = new SitemapParser(configuration.isLenient(), stopping);
         childSitemaps.addAll(parser.parse(sitemapDoc, ctx.getUrlConsumer()));
 
         return childSitemaps;
@@ -206,16 +205,5 @@ public class GenericSitemapResolver
     protected void onCrawlerShutdown(CrawlerEvent event) {
         Optional.ofNullable(sitemapStore).ifPresent(DataStore::close);
         sitemapStore = null;
-    }
-
-    //--- Load/Save ------------------------------------------------------------
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setLenient(xml.getBoolean("@lenient", lenient));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("lenient", lenient);
     }
 }

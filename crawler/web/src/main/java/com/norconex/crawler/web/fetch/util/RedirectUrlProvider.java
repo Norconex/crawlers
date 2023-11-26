@@ -31,9 +31,9 @@ import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
  * @since 2.4.0
  */
 @JsonDeserialize(
-    as = GenericRedirectURLProvider.class
+    as = GenericRedirectUrlProvider.class
 )
-public interface RedirectURLProvider {
+public interface RedirectUrlProvider {
 
     /**
      * Provides the redirect URL that the crawler must follow. This method

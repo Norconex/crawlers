@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.filter.impl;
 
+import static com.norconex.commons.lang.config.Configurable.configure;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.util.regex.Pattern;
@@ -25,9 +26,9 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.filter.OnMatch;
 
-class SegmentCountURLFilterTest {
+class SegmentCountUrlFilterTest {
 
-    private SegmentCountURLFilter f;
+    private SegmentCountUrlFilter f;
     private String url;
 
     @AfterEach
@@ -40,51 +41,75 @@ class SegmentCountURLFilterTest {
     void testSegmentMatches() {
         //--- Test proper segment counts ---
         url = "http://www.example.com/one/two/three/four/five/page.html";
-        f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE);
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(5)
+                .setOnMatch(OnMatch.EXCLUDE));
         Assertions.assertFalse(f.acceptReference(url),
                 "URL wrongfully rejected.");
-        f = new SegmentCountURLFilter(6, OnMatch.EXCLUDE);
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(6)
+                .setOnMatch(OnMatch.EXCLUDE));
         Assertions.assertFalse(f.acceptReference(url),
                 "URL wrongfully accepted.");
-        f = new SegmentCountURLFilter(7, OnMatch.EXCLUDE);
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(7)
+                .setOnMatch(OnMatch.EXCLUDE));
         Assertions.assertTrue( f.acceptReference(url),
                 "URL wrongfully rejected.");
 
         //--- Test proper duplicate counts ---
         url = "http://www.example.com/aa/bb/aa/cc/bb/aa/aa/bb/cc/dd.html";
-        f = new SegmentCountURLFilter(3, OnMatch.EXCLUDE, true);
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(3)
+                .setOnMatch(OnMatch.EXCLUDE)
+                .setDuplicate(true));
         Assertions.assertFalse(f.acceptReference(url),
                 "URL wrongfully rejected.");
-        f = new SegmentCountURLFilter(4, OnMatch.EXCLUDE, true);
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(4)
+                .setOnMatch(OnMatch.EXCLUDE)
+                .setDuplicate(true));
         Assertions.assertFalse(f.acceptReference(url),
                 "URL wrongfully accepted.");
-        f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE, true);
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(5)
+                .setOnMatch(OnMatch.EXCLUDE)
+                .setDuplicate(true));
         Assertions.assertTrue(f.acceptReference(url),
                 "URL wrongfully rejected.");
 
         //--- Test custom separator (query string ---
         url = "http://www.example.com/one/two_three|four-five/page.html";
-        f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE);
-        f.setSeparator(Pattern.compile("[/_|-]"));
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(5)
+                .setOnMatch(OnMatch.EXCLUDE)
+                .setSeparator(Pattern.compile("[/_|-]")));
         Assertions.assertFalse(f.acceptReference(url),
                 "URL wrongfully rejected.");
-        f = new SegmentCountURLFilter(6, OnMatch.EXCLUDE);
-        f.setSeparator(Pattern.compile("[/_|-]"));
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(6)
+                .setOnMatch(OnMatch.EXCLUDE)
+                .setSeparator(Pattern.compile("[/_|-]")));
         Assertions.assertFalse(f.acceptReference(url),
                 "URL wrongfully accepted.");
-        f = new SegmentCountURLFilter(7, OnMatch.EXCLUDE);
-        f.setSeparator(Pattern.compile("[/_|-]"));
+        f = configure(new SegmentCountUrlFilter(), c -> c
+                .setCount(7)
+                .setOnMatch(OnMatch.EXCLUDE)
+                .setSeparator(Pattern.compile("[/_|-]")));
         Assertions.assertTrue(f.acceptReference(url),
                 "URL wrongfully rejected.");
     }
 
+//    private SegmentCountUrlFilter newFilter() {}
+
     @Test
     void testWriteRead() {
-        var f = new SegmentCountURLFilter();
-        f.setCount(5);
-        f.setDuplicate(true);
-        f.setOnMatch(OnMatch.EXCLUDE);
-        f.setSeparator(Pattern.compile("[/&]"));
+        var f = new SegmentCountUrlFilter();
+        f.getConfiguration()
+            .setCount(5)
+            .setDuplicate(true)
+            .setOnMatch(OnMatch.EXCLUDE)
+            .setSeparator(Pattern.compile("[/&]"));
         assertThatNoException().isThrownBy(() ->
                 BeanMapper.DEFAULT.assertWriteRead(f));
     }

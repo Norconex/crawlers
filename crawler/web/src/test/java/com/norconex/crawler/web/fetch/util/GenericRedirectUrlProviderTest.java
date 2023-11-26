@@ -22,11 +22,11 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 
-class GenericRedirectURLProviderTest {
+class GenericRedirectUrlProviderTest {
 
     @Test
     void testWriteRead() {
-        var p = new GenericRedirectURLProvider();
+        var p = new GenericRedirectUrlProvider();
         p.setFallbackCharset(StandardCharsets.UTF_8.toString());
         assertThatNoException().isThrownBy(() ->
                 BeanMapper.DEFAULT.assertWriteRead(p));

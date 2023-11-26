@@ -26,14 +26,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.web.url.impl.GenericURLNormalizer.Normalization;
-import com.norconex.crawler.web.url.impl.GenericURLNormalizer.Replace;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.crawler.web.url.impl.GenericUrlNormalizerConfig.Normalization;
+import com.norconex.crawler.web.url.impl.GenericUrlNormalizerConfig.Replace;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class GenericURLNormallizerTest {
+class GenericUrlNormallizerTest {
 
     private String s;
     private String t;
@@ -46,8 +46,8 @@ class GenericURLNormallizerTest {
 
     @Test
     void testAddDomainTrailingSlash() {
-        var n = new GenericURLNormalizer();
-        n.setNormalizations(List.of(
+        var n = new GenericUrlNormalizer();
+        n.getConfiguration().setNormalizations(List.of(
                 Normalization.ADD_DOMAIN_TRAILING_SLASH
                 ));
         s = "http://example.com";
@@ -58,8 +58,8 @@ class GenericURLNormallizerTest {
     // Test for https://github.com/Norconex/collector-http/issues/2904
     @Test
     void testUppercaseProtocol() {
-        var n = new GenericURLNormalizer();
-        n.setNormalizations(List.of(
+        var n = new GenericUrlNormalizer();
+        n.getConfiguration().setNormalizations(List.of(
                 Normalization.ENCODE_NON_URI_CHARACTERS
                 ));
         s = "HTTP://example.com/";
@@ -70,8 +70,8 @@ class GenericURLNormallizerTest {
     // Test for https://github.com/Norconex/collector-http/issues/290
     @Test
     void testRemoveTrailingSlashWithOnlyHostname() {
-        var n = new GenericURLNormalizer();
-        n.setNormalizations(List.of(
+        var n = new GenericUrlNormalizer();
+        n.getConfiguration().setNormalizations(List.of(
                 Normalization.REMOVE_TRAILING_SLASH
                 ));
         s = "http://bot.nerus.com/";
@@ -80,9 +80,9 @@ class GenericURLNormallizerTest {
     }
 
     @Test
-	void testReplacements() {
-        var n = new GenericURLNormalizer();
-        n.setReplaces(List.of(
+    void testReplacements() {
+        var n = new GenericUrlNormalizer();
+        n.getConfiguration().setReplaces(List.of(
                 new Replace("\\.htm$", ".html"),
                 new Replace("&debug=true"),
                 new Replace("(http://)(.*//)(www.example.com)", "$1$3")));
@@ -98,13 +98,13 @@ class GenericURLNormallizerTest {
         s = "http://www.example.com/record?id=1&debug=true&view=print";
         t = "http://www.example.com/record?id=1&view=print";
         assertEquals(t, n.normalizeURL(s));
-	}
+    }
 
     @Test
     void testGithubIssue160() {
         // Github issue #160
-        var n = new GenericURLNormalizer();
-        n.setNormalizations(List.of(
+        var n = new GenericUrlNormalizer();
+        n.getConfiguration().setNormalizations(List.of(
                 Normalization.LOWERCASE_SCHEME_HOST,
                 Normalization.UPPERCASE_ESCAPESEQUENCE,
                 Normalization.DECODE_UNRESERVED_CHARACTERS,
@@ -125,13 +125,13 @@ class GenericURLNormallizerTest {
     @Test
     void testGithubIssue29() {
         // Github issue #29
-        var n = new GenericURLNormalizer();
-        n.setNormalizations(List.of(
+        var n = new GenericUrlNormalizer();
+        n.getConfiguration().setNormalizations(List.of(
                 Normalization.LOWERCASE_SCHEME_HOST,
                 Normalization.UPPERCASE_ESCAPESEQUENCE,
                 Normalization.DECODE_UNRESERVED_CHARACTERS,
                 Normalization.REMOVE_DEFAULT_PORT));
-        n.setReplaces(List.of(
+        n.getConfiguration().setReplaces(List.of(
                 new Replace("&view=print", "&view=html")));
 
         s = "http://www.somehost.com/hook/";
@@ -141,15 +141,15 @@ class GenericURLNormallizerTest {
 
     @Test
     void testWriteRead() {
-        var n = new GenericURLNormalizer();
-        n.setNormalizations(List.of(
+        var n = new GenericUrlNormalizer();
+        n.getConfiguration().setNormalizations(List.of(
                 Normalization.LOWERCASE_SCHEME_HOST,
                 Normalization.ADD_DIRECTORY_TRAILING_SLASH,
                 Normalization.DECODE_UNRESERVED_CHARACTERS,
                 Normalization.REMOVE_DOT_SEGMENTS,
                 Normalization.REMOVE_DUPLICATE_SLASHES,
                 Normalization.REMOVE_SESSION_IDS));
-        n.setReplaces(List.of(
+        n.getConfiguration().setReplaces(List.of(
                 new Replace("\\.htm", ".html"),
                 new Replace("&debug=true")));
         LOG.debug("Writing/Reading this: {}", n);
@@ -159,34 +159,37 @@ class GenericURLNormallizerTest {
 
     @Test
     void testLoadFromXML() throws IOException {
-        GenericURLNormalizer n;
-        var xml = "<urlNormalizer><normalizations></normalizations>"
+        GenericUrlNormalizer n;
+        var xml1 = "<urlNormalizer><normalizations></normalizations>"
                         + "</urlNormalizer>";
 
         // an empty <normalizations> tag means have none
-        n = new GenericURLNormalizer();
-        try (Reader r = new StringReader(xml)) {
-            new XML(r).populate(n);
+        n = new GenericUrlNormalizer();
+        try (Reader r = new StringReader(xml1)) {
+            BeanMapper.DEFAULT.read(n, r, Format.XML);
         }
-        assertEquals(0, n.getNormalizations().size());
+        assertEquals(0, n.getConfiguration().getNormalizations().size());
 
         // no <normalizations> tag means use defaults
-        n = new GenericURLNormalizer();
-        xml = "<urlNormalizer></urlNormalizer>";
-        try (Reader r = new StringReader(xml)) {
-            new XML(r).populate(n);
+        n = new GenericUrlNormalizer();
+        var xml2 = "<urlNormalizer></urlNormalizer>";
+        try (Reader r = new StringReader(xml2)) {
+            BeanMapper.DEFAULT.read(n, r, Format.XML);
         }
-        assertEquals(6, n.getNormalizations().size());
+        assertEquals(6, n.getConfiguration().getNormalizations().size());
 
         // normal... just a few
-        n = new GenericURLNormalizer();
-        xml = """
-        	<urlNormalizer><normalizations>\
-        	lowerCaseSchemeHost, removeSessionIds</normalizations>\
-        	</urlNormalizer>""";
-        try (Reader r = new StringReader(xml)) {
-            new XML(r).populate(n);
+        n = new GenericUrlNormalizer();
+        var xml3 = """
+            <urlNormalizer>
+              <normalizations>
+                <normalization>removeSessionIds</normalization>
+                <normalization>lowerCaseSchemeHost</normalization>
+              </normalizations>
+            </urlNormalizer>""";
+        try (Reader r = new StringReader(xml3)) {
+            BeanMapper.DEFAULT.read(n, r, Format.XML);
         }
-        assertEquals(2, n.getNormalizations().size());
+        assertEquals(2, n.getConfiguration().getNormalizations().size());
     }
 }

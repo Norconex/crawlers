@@ -40,7 +40,7 @@ import com.norconex.crawler.web.robot.RobotsMetaProvider;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.sitemap.SitemapLocator;
 import com.norconex.crawler.web.sitemap.SitemapResolver;
-import com.norconex.crawler.web.url.WebURLNormalizer;
+import com.norconex.crawler.web.url.WebUrlNormalizer;
 
 /**
  * <p>
@@ -68,7 +68,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, RobotsMetaProvider.class);
         addPolyType(map, SitemapLocator.class);
         addPolyType(map, SitemapResolver.class);
-        addPolyType(map, WebURLNormalizer.class);
+        addPolyType(map, WebUrlNormalizer.class);
 
         map.put(CrawlerConfig.class, WebCrawlerConfig.class);
 

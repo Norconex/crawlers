@@ -15,20 +15,15 @@
 package com.norconex.crawler.web.sitemap.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
-
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
-import com.norconex.crawler.web.sitemap.SitemapLocator;
-import com.norconex.crawler.web.util.Web;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 
 /**
  * <p>
@@ -59,29 +54,33 @@ import lombok.ToString;
  * </sitemapLocator>
  * }
  */
-@EqualsAndHashCode
-@ToString
-public class GenericSitemapLocator implements
-        SitemapLocator, Configurable<GenericSitemapLocatorConfig> {
+@Data
+@Accessors(chain = true)
+@FieldNameConstants
+public class GenericSitemapLocatorConfig {
 
-    @Getter
-    private final GenericSitemapLocatorConfig configuration =
-            new GenericSitemapLocatorConfig();
+    public static final List<String> DEFAULT_PATHS =
+            List.of("/sitemap.xml", "/sitemap_index.xml");
 
-    @Override
-    public List<String> locations(String reference, Crawler crawler) {
-        List<String> resolvedpaths = new ArrayList<>(configuration.getPaths());
-        if (!configuration.isRobotsTxtSitemapDisabled()) {
-            var robotsTxt = Web.robotsTxt(crawler, reference);
-            if (robotsTxt != null) {
-                var locs = robotsTxt.getSitemapLocations();
-                if (CollectionUtils.isNotEmpty(locs)) {
-                    resolvedpaths.addAll(locs);
-                }
-            }
-        }
-        return resolvedpaths.stream()
-                .map(p -> HttpURL.toAbsolute(reference, p))
-                .toList();
+    private final List<String> paths = new ArrayList<>(DEFAULT_PATHS);
+
+    private boolean robotsTxtSitemapDisabled;
+
+    /**
+     * Gets the URL paths, relative to the URL root, from which to try
+     * locate and resolve sitemaps. Default paths are
+     * "/sitemap.xml" and "/sitemap-index.xml".
+     * @return sitemap paths.
+     */
+    public List<String> getPaths() {
+        return Collections.unmodifiableList(paths);
+    }
+    /**
+     * Sets the URL paths, relative to the URL root, from which to try
+     * locate and resolve sitemaps.
+     * @param paths sitemap paths.
+     */
+    public void setPaths(List<String> paths) {
+        CollectionUtil.setAll(this.paths, paths);
     }
 }

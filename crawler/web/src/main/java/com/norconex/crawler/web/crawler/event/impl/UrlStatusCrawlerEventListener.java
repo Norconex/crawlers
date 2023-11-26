@@ -23,7 +23,6 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +31,12 @@ import java.util.stream.Stream;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -52,7 +48,9 @@ import com.norconex.crawler.web.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.link.impl.TikaLinkExtractor;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -67,7 +65,8 @@ import lombok.ToString;
  * By default, the status of all fetched URLs are stored by this listener,
  * regardless what were those statuses.  This can generate very lengthy reports
  * on large crawls. If you are only interested in certain status codes, you can
- * listen only for those using the {@link #setStatusCodes(String)} method
+ * listen only for those using the
+ * {@link UrlStatusCrawlerEventListenerConfig#setStatusCodes(String)} method
  * or XML configuration equivalent. You specify the codes you want to listen
  * for as coma-separated values. Ranges are also supported: specify two range
  * values (both inclusive) separated by an hyphen.  For instance, if you want
@@ -81,8 +80,9 @@ import lombok.ToString;
  * By default one generated report is created for each crawler, stored
  * in crawler-specific directories under the collector working directory.
  * The collector working directory can be overwritten using
- * {@link #setOutputDir(Path)}.
- * If {@link #isCombined()} is <code>true</code>, status from all crawlers
+ * {@link UrlStatusCrawlerEventListenerConfig#setOutputDir(Path)}.
+ * If {@link UrlStatusCrawlerEventListenerConfig#isCombined()}
+ * is <code>true</code>, status from all crawlers
  * defined will be written to a unique file in the collector working directory.
  * </p>
  *
@@ -95,14 +95,15 @@ import lombok.ToString;
  * </pre>
  * <p>
  * The filename prefix can be changed from "urlstatuses-" to anything else
- * using {@link #setFileNamePrefix(String)}.
+ * using {@link UrlStatusCrawlerEventListenerConfig#setFileNamePrefix(String)}.
  * </p>
  *
  * <h3>Filter which crawler to record URL statuses</h3>
  * <p>
  * By default all crawlers will have their URL fetch statuses recorded when
  * using this event listener.  To only do so for some crawlers, you can
- * use {@link #setCrawlerIds(List)} to identify them.
+ * use {@link UrlStatusCrawlerEventListenerConfig#setCrawlerIds(List)} to
+ * identify them.
  * </p>
  *
  * <h3>Referring/parent URLs and custom link extractor</h3>
@@ -116,7 +117,7 @@ import lombok.ToString;
  *
  * {@nx.xml.usage
  * <listener
- *     class="com.norconex.crawler.web.crawler.event.impl.URLStatusCrawlerEventListener">
+ *     class="com.norconex.crawler.web.crawler.event.impl.UrlStatusCrawlerEventListener">
  *   <statusCodes>(CSV list of status codes)</statusCodes>
  *   <crawlerIds>
  *     <!-- repeat as needed -->
@@ -130,7 +131,7 @@ import lombok.ToString;
  * }
  *
  * {@nx.xml.example
- * <listener class="URLStatusCrawlerEventListener">
+ * <listener class="UrlStatusCrawlerEventListener">
  *   <statusCodes>404</statusCodes>
  *   <outputDir>/report/path/</outputDir>
  *   <fileNamePrefix>brokenLinks</fileNamePrefix>
@@ -143,111 +144,27 @@ import lombok.ToString;
  *
  * @since 2.2.0
  */
+
 @EqualsAndHashCode
 @ToString
-public class URLStatusCrawlerEventListener
-        implements EventListener<Event>, XMLConfigurable {
+@Slf4j
+public class UrlStatusCrawlerEventListener implements
+        EventListener<Event>,
+        Configurable<UrlStatusCrawlerEventListenerConfig> {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(URLStatusCrawlerEventListener.class);
-
-    public static final String DEFAULT_FILENAME_PREFIX = "urlstatuses-";
-
-    private String statusCodes;
-    private Path outputDir;
-    private String fileNamePrefix = DEFAULT_FILENAME_PREFIX;
-    private final List<String> crawlerIds = new ArrayList<>();
-    private boolean combined;
-    private boolean timestamped;
+    @Getter
+    private final UrlStatusCrawlerEventListenerConfig configuration =
+            new UrlStatusCrawlerEventListenerConfig();
 
     // variables set when crawler starts/resumes
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private final List<Integer> parsedCodes = new ArrayList<>();
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private final Map<String, CSVPrinter> csvPrinters = new HashMap<>();
-
-    /**
-     * Gets the status codes to listen for. Default is <code>null</code>
-     * (listens for all status codes).
-     * @return status codes
-     */
-    public String getStatusCodes() {
-        return statusCodes;
-    }
-    /**
-     * Sets a coma-separated list of status codes to listen to.
-     * See class documentation for how to specify code ranges.
-     * @param statusCodes the status codes to listen for
-     */
-    public void setStatusCodes(String statusCodes) {
-        this.statusCodes = statusCodes;
-    }
-
-    /**
-     * Gets the local directory where this listener report will be written.
-     * Default uses the collector working directory.
-     * @return directory path
-     */
-    public Path getOutputDir() {
-        return outputDir;
-    }
-    /**
-     * Sets the local directory where this listener report will be written.
-     * @param outputDir directory path
-     */
-    public void setOutputDir(Path outputDir) {
-        this.outputDir = outputDir;
-    }
-
-    /**
-     * Gets the generated report file name prefix. See class documentation
-     * for default prefix.
-     * @return file name prefix
-     */
-    public String getFileNamePrefix() {
-        return fileNamePrefix;
-    }
-    /**
-     * Sets the generated report file name prefix.
-     * @param fileNamePrefix file name prefix
-     */
-    public void setFileNamePrefix(String fileNamePrefix) {
-        this.fileNamePrefix = fileNamePrefix;
-    }
-
-    /**
-     * Gets whether to add a timestamp to the file name, to ensure
-     * a new one is created with each run.
-     * @return <code>true</code> if timestamped
-     * @since 3.0.0
-     */
-    public boolean isTimestamped() {
-        return timestamped;
-    }
-    /**
-     * Sets whether to add a timestamp to the file name, to ensure
-     * a new one is created with each run.
-     * @param timestamped <code>true</code> if timestamped
-     * @since 3.0.0
-     */
-    public void setTimestamped(boolean timestamped) {
-        this.timestamped = timestamped;
-    }
-
-    public boolean isCombined() {
-        return combined;
-    }
-    public void setCombined(boolean combined) {
-        this.combined = combined;
-    }
-    public List<String> getCrawlerIds() {
-        return Collections.unmodifiableList(crawlerIds);
-    }
-    public void setCrawlerIds(List<String> crawlerIds) {
-        CollectionUtil.setAll(this.crawlerIds, crawlerIds);
-    }
 
     @Override
     public void accept(Event event) {
@@ -273,7 +190,7 @@ public class URLStatusCrawlerEventListener
         if ((ce.getSubject() instanceof HttpFetchResponse response)
                 && (parsedCodes.isEmpty()
                 || parsedCodes.contains(response.getStatusCode()))) {
-            var csv = csvPrinters.get(combined
+            var csv = csvPrinters.get(configuration.isCombined()
                     ? null : ce.getSource().getId());
             if (csv != null) {
                 var crawlRef = (WebDocRecord) ce.getCrawlDocRecord();
@@ -301,32 +218,34 @@ public class URLStatusCrawlerEventListener
 
         var baseDir = getBaseDir(collector);
         var timestamp = "";
-        if (isTimestamped()) {
+        if (configuration.isTimestamped()) {
             timestamp = LocalDateTime.now().truncatedTo(
                     ChronoUnit.MILLIS).toString();
             timestamp = timestamp.replace(':', '-');
         }
 
         // if combined == true, get using null to hashmap.
-        if (combined) {
+        if (configuration.isCombined()) {
             csvPrinters.put(null,
                     createCSVPrinter(baseDir, collector.getId(), timestamp));
         } else {
             for (Crawler crawler : collector.getCrawlers()) {
                 var id = crawler.getId();
-                if (crawlerIds.isEmpty() || crawlerIds.contains(id)) {
-                    csvPrinters.put(id, createCSVPrinter(baseDir, id, timestamp));
+                if (configuration.getCrawlerIds().isEmpty()
+                        || configuration.getCrawlerIds().contains(id)) {
+                    csvPrinters.put(id, createCSVPrinter(
+                            baseDir, id, timestamp));
                 }
             }
         }
 
         // Parse status codes
-        if (StringUtils.isBlank(statusCodes)) {
+        if (StringUtils.isBlank(configuration.getStatusCodes())) {
             parsedCodes.clear();
             return;
         }
 
-        Stream.of(StringUtils.split(statusCodes,  ','))
+        Stream.of(StringUtils.split(configuration.getStatusCodes(),  ','))
             .map(String::trim)
             .forEach(range -> resolveStatusCodeRange(parsedCodes, range));
     }
@@ -355,13 +274,14 @@ public class URLStatusCrawlerEventListener
     }
 
     private Path getBaseDir(CrawlSession collector) {
-        if (outputDir == null) {
+        if (configuration.getOutputDir() == null) {
             return collector.getWorkDir();
         }
-        return outputDir;
+        return configuration.getOutputDir();
     }
     private CSVPrinter createCSVPrinter(Path dir, String id, String suffix) {
-        var prefix = StringUtils.defaultString(fileNamePrefix);
+        var prefix = StringUtils.defaultString(
+                configuration.getFileNamePrefix());
         var safeSuffix = "";
         if (StringUtils.isNotBlank(suffix)) {
             safeSuffix = "-" + suffix;
@@ -391,24 +311,5 @@ public class URLStatusCrawlerEventListener
                     + "can only contain valid numbers. This number is invalid: "
                     + num);
         }
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setStatusCodes(xml.getString("statusCodes", statusCodes));
-        setOutputDir(xml.getPath("outputDir", outputDir));
-        setFileNamePrefix(xml.getString("fileNamePrefix", fileNamePrefix));
-        setCrawlerIds(xml.getStringList("crawlerIds/id", crawlerIds));
-        setCombined(xml.getBoolean("combined", combined));
-        setTimestamped(xml.getBoolean("timestamped", timestamped));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("statusCodes", statusCodes);
-        xml.addElement("outputDir", outputDir);
-        xml.addElement("fileNamePrefix", fileNamePrefix);
-        xml.addElementList("crawlerIds", "id", crawlerIds);
-        xml.addElement("combined", combined);
-        xml.addElement("timestamped", timestamped);
     }
 }

@@ -27,8 +27,8 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -87,8 +87,8 @@ import lombok.experimental.FieldNameConstants;
  * @since 3.0.0
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
+@Data
+@Accessors(chain = true)
 @FieldNameConstants
 public class HttpAuthConfig {
 
@@ -107,85 +107,112 @@ public class HttpAuthConfig {
     /** Experimental: Kerberos authentication method. */
     public static final String METHOD_KERBEROS = "Kerberos";
 
-    private String method;
-    private String url;
-    //TODO consider taking those out in favor of 'formParams'?
-    private String formUsernameField;
-    private String formPasswordField;
-    private final Credentials credentials = new Credentials();
-    private Host host;
-    private String realm;
-    //form
-    private Charset formCharset = StandardCharsets.UTF_8;
-    private String formSelector;
-    private final Map<String, String> formParams = new HashMap<>();
-
-    private String workstation;
-    private String domain;
-    private boolean preemptive;
-
-
     /**
-     * Gets the authentication method.
-     * @return authentication method
-     */
-    public String getMethod() {
-        return method;
-    }
-    /**
-     * Sets the authentication method.
-     * <br><br>
-     * Valid values are (case insensitive):
+     * <p>
+     * The authentication method. Valid values are (case insensitive):
+     * </p>
      * <ul>
      *   <li>form</li>
      *   <li>basic</li>
      *   <li>digest</li>
      *   <li>ntlm</li>
-     * </ul>
-     * Experimental (not fully tested, please report):
-     * <ul>
      *   <li>spnego</li>
      *   <li>kerberos</li>
      * </ul>
+     * @return authentication method
      * @param method authentication method
      */
-    public void setMethod(String method) {
-        this.method = method;
-    }
+    private String method;
 
     /**
-     * Gets the name of the HTML field where the username is set.
+     * The URL for "form" authentication.
+     * The username and password will be POSTed to this URL.
      * This is used only for "form" authentication.
-     * @return username name of the HTML field
+     * @param url "form" authentication URL
+     * @return "form" authentication URL
      */
-    public String getFormUsernameField() {
-        return formUsernameField;
-    }
+    private String url;
+    //TODO consider taking those out in favor of 'formParams'?
+
     /**
-     * Sets the name of the HTML field where the username is set.
+     * The name of the HTML field where the username is set.
      * This is used only for "form" authentication.
      * @param formUsernameField name of the HTML field
+     * @return username name of the HTML field
      */
-    public void setFormUsernameField(String formUsernameField) {
-        this.formUsernameField = formUsernameField;
-    }
+    private String formUsernameField;
 
     /**
-     * Gets the name of the HTML field where the password is set.
-     * This is used only for "form" authentication.
-     * @return name of the HTML field
-     */
-    public String getFormPasswordField() {
-        return formPasswordField;
-    }
-    /**
-     * Sets the name of the HTML field where the password is set.
+     * The name of the HTML field where the password is set.
      * This is used only for "form" authentication.
      * @param formPasswordField name of the HTML field
+     * @return name of the HTML field
      */
-    public void setFormPasswordField(String formPasswordField) {
-        this.formPasswordField = formPasswordField;
-    }
+    private String formPasswordField;
+
+    private final Credentials credentials = new Credentials();
+
+    /**
+     * The host for the current authentication scope.
+     * <code>null</code> (default value) indicates "any host" for the
+     * scope.
+     * Used for BASIC and DIGEST authentication.
+     * @param host host for the scope
+     * @return host for the scope
+     */
+    private Host host;
+
+    /**
+     * The realm name for the current authentication scope.
+     * <code>null</code> (default) indicates "any realm" for the scope.
+     * Used for BASIC and DIGEST authentication.
+     * @param realm reaml name for the scope
+     * @return realm name for the scope
+     */
+    private String realm;
+
+    //form
+    /**
+     * The authentication form character set for the form field values.
+     * Default is UTF-8.
+     * @param formCharset authentication form character set
+     * @return authentication form character set
+     */
+    private Charset formCharset = StandardCharsets.UTF_8;
+
+    /**
+     * The CSS selelector that identifies the form in a login page.
+     * When set, requires {@link #getUrl()} to be pointing to a login
+     * page containing a login form.
+     * @param formSelector form selector
+     * @return form selector
+     */
+    private String formSelector;
+
+    private final Map<String, String> formParams = new HashMap<>();
+
+    /**
+     * The NTLM authentication workstation name.
+     * @param workstation workstation name
+     * @return workstation name
+     */
+    private String workstation;
+
+    /**
+     * Gets the NTLM authentication domain.
+     * @param domain authentication domain
+     * @return authentication domain
+     */
+    private String domain;
+
+    /**
+     * Whether to perform preemptive authentication
+     * (valid for "basic" authentication method).
+     * @param preemptive
+     *            <code>true</code> to perform preemptive authentication
+     * @return <code>true</code> to perform preemptive authentication
+     */
+    private boolean preemptive;
 
     public Credentials getCredentials() {
         return credentials;
@@ -195,106 +222,12 @@ public class HttpAuthConfig {
     }
 
     /**
-     * Gets the URL for "form" authentication.
-     * The username and password will be POSTed to this URL.
-     * This is used only for "form" authentication.
-     * @return "form" authentication URL
-     */
-    public String getUrl() {
-        return url;
-    }
-    /**
-     * Sets the URL for "form" authentication.
-     * The username and password will be POSTed to this URL.
-     * This is used only for "form" authentication.
-     * @param url "form" authentication URL
-     */
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    /**
-     * Gets the host for the current authentication scope.
-     * <code>null</code> means any host names for the scope.
-     * Used for BASIC and DIGEST authentication.
-     * @return host for the scope
-     */
-    public Host getHost() {
-        return host;
-    }
-    /**
-     * Sets the host for the current authentication scope.
-     * Setting this to null (default value) indicates "any host" for the
-     * scope.
-     * Used for BASIC and DIGEST authentication.
-     * @param host host for the scope
-     */
-    public void setHost(Host host) {
-        this.host = host;
-    }
-
-    /**
-     * Gets the realm name for the current authentication scope.
-     * <code>null</code> indicates "any realm"
-     * for the scope.
-     * Used for BASIC and DIGEST authentication.
-     * @return realm name for the scope
-     */
-    public String getRealm() {
-        return realm;
-    }
-    /**
-     * Sets the realm name for the current authentication scope.
-     * Setting this to null (the default value) indicates "any realm"
-     * for the scope.
-     * Used for BASIC and DIGEST authentication.
-     * @param realm reaml name for the scope
-     */
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
-
-    /**
-     * Gets the authentication form character set.
-     * @return authentication form character set
-     */
-    public Charset getFormCharset() {
-        return formCharset;
-    }
-    /**
-     * Sets the authentication form character set for the form field values.
-     * Default is UTF-8.
-     * @param formCharset authentication form character set
-     */
-    public void setFormCharset(Charset formCharset) {
-        this.formCharset = formCharset;
-    }
-
-    /**
-     * Gets the CSS selelector that identifies the form in a login page.
-     * When set, requires {@link #getUrl()} to be pointing to a login
-     * page containing a login form.
-     * @return form selector
-     */
-    public String getFormSelector() {
-        return formSelector;
-    }
-    /**
-     * Sets the CSS selelector that identifies the form in a login page.
-     * When set, requires {@link #getUrl()} to be pointing to a login
-     * page containing a login form.
-     * @param formSelector form selector
-     */
-    public void setFormSelector(String formSelector) {
-        this.formSelector = formSelector;
-    }
-
-    /**
      * Sets an authentication form parameter (equivalent to "input" or other
      * fields in HTML forms).
      * @param name form parameter name
      * @param value form parameter value
      */
+    @JsonIgnore
     public void setFormParam(String name, String value) {
         formParams.put(name, value);
     }
@@ -313,6 +246,7 @@ public class HttpAuthConfig {
      * @return form parameter value or <code>null</code> if
      *         no match is found
      */
+    @JsonIgnore
     public String getFormParam(String name) {
         return formParams.get(name);
     }
@@ -334,64 +268,6 @@ public class HttpAuthConfig {
         return Collections.unmodifiableList(
                 new ArrayList<>(formParams.keySet()));
     }
-    /**
-     * Remove the authentication form parameter matching the given name.
-     * @param name name of form parameter to remove
-     * @return the previous value associated with the name, or <code>null</code>
-     *         if there was no form parameter for the name.
-     */
-    public String removeFormParameter(String name) {
-        return formParams.remove(name);
-    }
-
-    /**
-     * Gets whether to perform preemptive authentication
-     * (valid for "basic" authentication method).
-     * @return <code>true</code> to perform preemptive authentication
-     */
-    public boolean isPreemptive() {
-        return preemptive;
-    }
-    /**
-     * Sets whether to perform preemptive authentication
-     * (valid for "basic" authentication method).
-     * @param preemptive
-     *            <code>true</code> to perform preemptive authentication
-     */
-    public void setPreemptive(boolean preemptive) {
-        this.preemptive = preemptive;
-    }
-
-    /**
-     * Gets the NTLM authentication workstation name.
-     * @return workstation name
-     */
-    public String getWorkstation() {
-        return workstation;
-    }
-    /**
-     * Sets the NTLM authentication workstation name.
-     * @param workstation workstation name
-     */
-    public void setWorkstation(String workstation) {
-        this.workstation = workstation;
-    }
-
-    /**
-     * Gets the NTLM authentication domain.
-     * @return authentication domain
-     */
-    public String getDomain() {
-        return domain;
-    }
-    /**
-     * Sets the NTLM authentication domain
-     * @param domain authentication domain
-     */
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
 //
 //    @Override
 //    public void loadFromXML(XML xml) {

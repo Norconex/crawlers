@@ -99,8 +99,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-public class GenericRedirectURLProvider
-        implements RedirectURLProvider, XMLConfigurable {
+public class GenericRedirectUrlProvider
+        implements RedirectUrlProvider, XMLConfigurable {
 
     public static final String DEFAULT_FALLBACK_CHARSET =
             StandardCharsets.UTF_8.toString();

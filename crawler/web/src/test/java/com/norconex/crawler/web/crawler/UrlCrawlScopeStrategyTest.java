@@ -17,7 +17,7 @@ package com.norconex.crawler.web.crawler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class URLCrawlScopeStrategyTest {
+class UrlCrawlScopeStrategyTest {
 
     @Test
     void testURLCrawlScopeStrategy() {
@@ -28,7 +28,7 @@ class URLCrawlScopeStrategyTest {
         var sameSite = "http://example.com:80/diff/same.html";
         var noSchemeDiffDomain = "//server1.elsewhere.com";
 
-        var s = new URLCrawlScopeStrategy();
+        var s = new UrlCrawlScopeStrategy();
 
         Assertions.assertTrue(s.isInScope(url, diffProtocol));
         Assertions.assertTrue(s.isInScope(url, diffDomain));
@@ -37,8 +37,8 @@ class URLCrawlScopeStrategyTest {
         Assertions.assertTrue(s.isInScope(url, noSchemeDiffDomain));
 
         // Protocol
-        s = new URLCrawlScopeStrategy();
-        s.setStayOnProtocol(true);
+        s = new UrlCrawlScopeStrategy();
+        s.getConfiguration().setStayOnProtocol(true);
         Assertions.assertFalse(s.isInScope(url, diffProtocol));
         Assertions.assertTrue(s.isInScope(url, diffDomain));
         Assertions.assertTrue(s.isInScope(url, diffPort));
@@ -46,8 +46,8 @@ class URLCrawlScopeStrategyTest {
         Assertions.assertTrue(s.isInScope(url, noSchemeDiffDomain));
 
         // Domain
-        s = new URLCrawlScopeStrategy();
-        s.setStayOnDomain(true);
+        s = new UrlCrawlScopeStrategy();
+        s.getConfiguration().setStayOnDomain(true);
         Assertions.assertTrue(s.isInScope(url, diffProtocol));
         Assertions.assertFalse(s.isInScope(url, diffDomain));
         Assertions.assertTrue(s.isInScope(url, diffPort));
@@ -55,8 +55,8 @@ class URLCrawlScopeStrategyTest {
         Assertions.assertFalse(s.isInScope(url, noSchemeDiffDomain));
 
         // Port
-        s = new URLCrawlScopeStrategy();
-        s.setStayOnPort(true);
+        s = new UrlCrawlScopeStrategy();
+        s.getConfiguration().setStayOnPort(true);
         Assertions.assertFalse(s.isInScope(url, diffProtocol)); // https = 443
         Assertions.assertTrue(s.isInScope(url, diffDomain));
         Assertions.assertFalse(s.isInScope(url, diffPort));
@@ -65,10 +65,11 @@ class URLCrawlScopeStrategyTest {
 
 
         // Protocol + Domain + Port
-        s = new URLCrawlScopeStrategy();
-        s.setStayOnProtocol(true);
-        s.setStayOnDomain(true);
-        s.setStayOnPort(true);
+        s = new UrlCrawlScopeStrategy();
+        s.getConfiguration()
+            .setStayOnProtocol(true)
+            .setStayOnDomain(true)
+            .setStayOnPort(true);
         Assertions.assertFalse(s.isInScope(url, diffProtocol));
         Assertions.assertFalse(s.isInScope(url, diffDomain));
         Assertions.assertFalse(s.isInScope(url, diffPort));
@@ -84,10 +85,10 @@ class URLCrawlScopeStrategyTest {
         var sub3 = "http://sub3.sub2.sub1.example.com/test3.html";
         var sub4 = "http://different.com/testd.html";
 
-        var s = new URLCrawlScopeStrategy();
+        var s = new UrlCrawlScopeStrategy();
 
         // Same or not
-        s.setStayOnDomain(false);
+        s.getConfiguration().setStayOnDomain(false);
         Assertions.assertTrue(s.isInScope(sub0, sub1));
         Assertions.assertTrue(s.isInScope(sub1, sub2));
         Assertions.assertTrue(s.isInScope(sub0, sub3));
@@ -97,8 +98,8 @@ class URLCrawlScopeStrategyTest {
         Assertions.assertTrue(s.isInScope(sub1, sub4));
 
         // Same or any sub-domain
-        s.setStayOnDomain(true);
-        s.setIncludeSubdomains(true);
+        s.getConfiguration().setStayOnDomain(true);
+        s.getConfiguration().setIncludeSubdomains(true);
         Assertions.assertTrue(s.isInScope(sub0, sub1));
         Assertions.assertTrue(s.isInScope(sub1, sub2));
         Assertions.assertTrue(s.isInScope(sub0, sub3));

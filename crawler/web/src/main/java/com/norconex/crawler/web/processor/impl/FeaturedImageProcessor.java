@@ -14,6 +14,11 @@
  */
 package com.norconex.crawler.web.processor.impl;
 
+import static com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.COLLECTOR_FEATURED_IMAGE_INLINE;
+import static com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.COLLECTOR_FEATURED_IMAGE_PATH;
+import static com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.COLLECTOR_FEATURED_IMAGE_URL;
+import static com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.DEFAULT_IMAGE_CACHE_DIR;
+import static com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.DEFAULT_STORAGE_DISK_DIR;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -26,11 +31,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -47,7 +48,7 @@ import org.jsoup.nodes.Element;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.url.HttpURL;
@@ -55,7 +56,6 @@ import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.processor.DocumentProcessor;
@@ -63,10 +63,12 @@ import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.HttpMethod;
+import com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.Storage;
+import com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.StorageDiskStructure;
 import com.norconex.importer.doc.Doc;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -211,83 +213,24 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2.8.0
  */
 @SuppressWarnings("javadoc")
-@Data
+@EqualsAndHashCode
+@ToString
 @Slf4j
-public class FeaturedImageProcessor extends CrawlerLifeCycleListener
-        implements DocumentProcessor {
-    //, XMLConfigurable {
+public class FeaturedImageProcessor
+        extends
+            CrawlerLifeCycleListener
+        implements
+            DocumentProcessor,
+            Configurable<FeaturedImageProcessorConfig> {
 
     //TODO add ability to extract from popular HTML <meta> for
     // featured image
+    //TODO use DocImageHandler from Importer?
+    //TODO add option to process embedded images (base 64)
 
-    public static final String COLLECTOR_FEATURED_IMAGE_URL =
-            CrawlDocMetadata.PREFIX + "featured-image-url";
-    public static final String COLLECTOR_FEATURED_IMAGE_PATH =
-            CrawlDocMetadata.PREFIX + "featured-image-path";
-    public static final String COLLECTOR_FEATURED_IMAGE_INLINE =
-            CrawlDocMetadata.PREFIX + "featured-image-inline";
-
-    public static final String DEFAULT_PAGE_CONTENT_TYPE_PATTERN =
-            "text/html|application/(xhtml\\+xml|vnd\\.wap.xhtml\\+xml|x-asp)";
-    public static final int DEFAULT_IMAGE_CACHE_SIZE = 1000;
-
-    /**
-     * Default image cache directory, relative to the crawler working
-     * directory.
-     */
-    public static final String DEFAULT_IMAGE_CACHE_DIR =
-            "featuredImageCache";
-    /**
-     * Default featured image directory, relative to the crawler working
-     * directory.
-     */
-    public static final String DEFAULT_STORAGE_DISK_DIR =
-            "featuredImages";
-
-    public static final String DEFAULT_IMAGE_FORMAT = "png";
-    public static final Dimension DEFAULT_MIN_SIZE = new Dimension(400, 400);
-    public static final Dimension DEFAULT_SCALE_SIZE = new Dimension(150, 150);
-    public static final Storage DEFAULT_STORAGE = Storage.URL;
-    public static final StorageDiskStructure DEFAULT_STORAGE_DISK_STRUCTURE =
-            StorageDiskStructure.URL2PATH;
-
-    public enum Storage { URL, INLINE, DISK }
-    public enum StorageDiskStructure { URL2PATH, DATE, DATETIME }
-    public enum Quality {
-        AUTO(Method.AUTOMATIC),
-        LOW(Method.SPEED),
-        MEDIUM(Method.BALANCED),
-        HIGH(Method.QUALITY),
-        MAX(Method.ULTRA_QUALITY);
-        private final Method scalrMethod;
-        Quality(Method scalrMethod) {
-            this.scalrMethod = scalrMethod;
-        }
-    }
-
-    //TODO use DocImageHandler from Importer reuse its Javadoc
-    // and XML write/read where applicable.
-
-    private String pageContentTypePattern = DEFAULT_PAGE_CONTENT_TYPE_PATTERN;
-    private String domSelector;
-    private Dimension minDimensions = DEFAULT_MIN_SIZE;
-    private Dimension scaleDimensions = DEFAULT_SCALE_SIZE;
-    private boolean scaleStretch;
-    private String imageFormat = DEFAULT_IMAGE_FORMAT;
-    private int imageCacheSize = DEFAULT_IMAGE_CACHE_SIZE;
-
-    private Path imageCacheDir;
-    private boolean largest;
-    private final List<Storage> storage =
-            new ArrayList<>(Arrays.asList(DEFAULT_STORAGE));
-
-    private Path storageDiskDir;
-    private StorageDiskStructure storageDiskStructure;
-    private Quality scaleQuality = Quality.AUTO;
-
-    private String storageDiskField = COLLECTOR_FEATURED_IMAGE_PATH;
-    private String storageInlineField = COLLECTOR_FEATURED_IMAGE_INLINE;
-    private String storageUrlField = COLLECTOR_FEATURED_IMAGE_URL;
+    @Getter
+    private final FeaturedImageProcessorConfig configuration =
+            new FeaturedImageProcessorConfig();
 
     private static final Map<Path, ImageCache> IMG_CACHES = new HashMap<>();
 
@@ -296,23 +239,15 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
     @JsonIgnore
     private ImageCache cache;
 
-    //TODO add option to process embedded images (base 64)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    private Path resolvedImageCacheDir;
 
-    /**
-     * Gets the storage mechanisms.
-     * @return storage mechanisms
-     */
-    public List<Storage> getStorage() {
-        return Collections.unmodifiableList(storage);
-    }
-    /**
-     * Sets the storage mechanisms.
-     * @param storage storage mechanisms
-     * @since 3.0.0
-     */
-    public void setStorage(List<Storage> storage) {
-        CollectionUtil.setAll(this.storage, storage);
-    }
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    private Path resolvedStorageDiskDir;
 
     //--- Init. ----------------------------------------------------------------
 
@@ -321,30 +256,32 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
         var workDir = event.getSource().getWorkDir();
 
         // Initialize image cache directory
-        if (imageCacheSize > 0) {
-            if (imageCacheDir == null) {
-                imageCacheDir = workDir.resolve(DEFAULT_IMAGE_CACHE_DIR);
-            }
+        if (configuration.getImageCacheSize() > 0) {
+            resolvedImageCacheDir = ofNullable(configuration.getImageCacheDir())
+                    .orElseGet(() -> workDir.resolve(DEFAULT_IMAGE_CACHE_DIR));
             try {
-                Files.createDirectories(imageCacheDir);
-                LOG.info("Featured image cache directory: {}", imageCacheDir);
+                Files.createDirectories(resolvedImageCacheDir);
+                LOG.info("Featured image cache directory: {}",
+                        resolvedImageCacheDir);
             } catch (IOException e) {
                 throw new CrawlerException(
                         "Could not create featured image cache directory.", e);
             }
-            cache = IMG_CACHES.computeIfAbsent(imageCacheDir, dir ->
-                    new ImageCache(imageCacheSize, imageCacheDir));
+            cache = IMG_CACHES.computeIfAbsent(
+                    resolvedImageCacheDir, dir -> new ImageCache(
+                            configuration.getImageCacheSize(),
+                            resolvedImageCacheDir));
         }
 
         // Initialize image directory
-        if (storage.contains(Storage.DISK)) {
-            if (storageDiskDir == null) {
-                storageDiskDir = workDir.resolve(DEFAULT_STORAGE_DISK_DIR);
-            }
+        if (configuration.getStorage().contains(Storage.DISK)) {
+            resolvedStorageDiskDir = ofNullable(
+                    configuration.getStorageDiskDir()).orElseGet(
+                            () -> workDir.resolve(DEFAULT_STORAGE_DISK_DIR));
             try {
-                Files.createDirectories(storageDiskDir);
+                Files.createDirectories(resolvedStorageDiskDir);
                 LOG.info("Featured image storage directory: {}",
-                        storageDiskDir);
+                        resolvedStorageDiskDir);
             } catch (IOException e) {
                 throw new CrawlerException(
                         "Could not create featured image storage directory.",
@@ -362,9 +299,9 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
 
 
         // Return if not valid content type
-        if (StringUtils.isNotBlank(pageContentTypePattern)
+        if (StringUtils.isNotBlank(configuration.getPageContentTypePattern())
                 && !Objects.toString(doc.getDocRecord().getContentType())
-                        .matches(pageContentTypePattern)) {
+                        .matches(configuration.getPageContentTypePattern())) {
             return;
         }
 
@@ -376,7 +313,8 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
                         .map(Charset::toString)
                         .orElse(null),
                     doc.getReference());
-            var img = findFeaturedImage(dom, fetcher, largest);
+            var img = findFeaturedImage(
+                    dom, fetcher, configuration.isLargest());
 
             // Save the image
             if (img != null) {
@@ -395,61 +333,68 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
 
     private void storeImage(FeaturedImage img, Doc doc)
             throws IOException {
-        if (storage.contains(Storage.URL)) {
-            doc.getMetadata().add(Objects.toString(storageUrlField,
+        var imgFormat = configuration.getImageFormat();
+        if (configuration.getStorage().contains(Storage.URL)) {
+            doc.getMetadata().add(Objects.toString(
+                    configuration.getStorageUrlField(),
                     COLLECTOR_FEATURED_IMAGE_URL), img.getUrl());
         }
-        if (storage.contains(Storage.INLINE)) {
-            doc.getMetadata().add(Objects.toString(storageInlineField,
+        if (configuration.getStorage().contains(Storage.INLINE)) {
+            doc.getMetadata().add(Objects.toString(
+                    configuration.getStorageInlineField(),
                     COLLECTOR_FEATURED_IMAGE_INLINE),
-                    img.toHTMLInlineString(imageFormat));
+                    img.toHTMLInlineString(imgFormat));
         }
-        if (storage.contains(Storage.DISK)) {
+        if (configuration.getStorage().contains(Storage.DISK)) {
             Path imageFile = null;
-            if (storageDiskStructure == StorageDiskStructure.DATE) {
+            if (configuration.getStorageDiskStructure()
+                    == StorageDiskStructure.DATE) {
                 var fileId = Long.toString(TimeIdGenerator.next());
-                imageFile = FileUtil.createDateDirs(storageDiskDir.toFile())
-                    .toPath()
-                    .resolve(fileId + "." + imageFormat);
-            } else if (storageDiskStructure == StorageDiskStructure.DATETIME) {
+                imageFile = FileUtil.createDateDirs(
+                        resolvedStorageDiskDir.toFile()).toPath().resolve(
+                                fileId + "." + imgFormat);
+            } else if (configuration.getStorageDiskStructure() ==
+                    StorageDiskStructure.DATETIME) {
                 var fileId = Long.toString(TimeIdGenerator.next());
-                imageFile = FileUtil.createDateTimeDirs(storageDiskDir.toFile())
-                        .toPath()
-                        .resolve(fileId + "." + imageFormat);
+                imageFile = FileUtil.createDateTimeDirs(
+                        resolvedStorageDiskDir.toFile()).toPath().resolve(
+                                fileId + "." + imgFormat);
             } else {
                 String filePath = null;
                 if (StringUtils.startsWith(img.getUrl(), "data:")) {
                     filePath = FileUtil.createURLDirs(
-                            storageDiskDir.toFile(),
+                            resolvedStorageDiskDir.toFile(),
                             doc.getReference() + "/base64-"
                                     + img.getUrl().hashCode(), true)
                                             .getAbsolutePath();
                 } else {
                     filePath = FileUtil.createURLDirs(
-                            storageDiskDir.toFile(), img.getUrl(), true)
+                            resolvedStorageDiskDir.toFile(), img.getUrl(), true)
                                     .getAbsolutePath();
                 }
-                if (!endsWithIgnoreCase(filePath, "." + imageFormat)) {
-                    filePath += "." + imageFormat;
+                if (!endsWithIgnoreCase(
+                        filePath, "." + imgFormat)) {
+                    filePath += "." + imgFormat;
                 }
                 imageFile = Paths.get(filePath);
             }
-            ImageIO.write(img.getImage(), imageFormat, imageFile.toFile());
+            ImageIO.write(img.getImage(), imgFormat, imageFile.toFile());
             doc.getMetadata().add(Objects.toString(
-                    storageDiskField, COLLECTOR_FEATURED_IMAGE_PATH),
+                    configuration.getStorageDiskField(),
+                    COLLECTOR_FEATURED_IMAGE_PATH),
                     imageFile.toFile().getAbsolutePath());
         }
     }
 
     private boolean savingImage() {
-        return storage.contains(Storage.INLINE)
-                || storage.contains(Storage.DISK);
+        return configuration.getStorage().contains(Storage.INLINE)
+                || configuration.getStorage().contains(Storage.DISK);
     }
 
     private FeaturedImage findFeaturedImage(
             Document dom, HttpFetcher fetcher, boolean largest) {
-        var els = isNotBlank(domSelector)
-                ? dom.select(domSelector)
+        var els = isNotBlank(configuration.getDomSelector())
+                ? dom.select(configuration.getDomSelector())
                 : dom.getElementsByTag("img");
 
         FeaturedImage largestImg = null;
@@ -462,7 +407,8 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
                 continue;
             }
 
-            if (minDimensions == null || img.contains(minDimensions)) {
+            if (configuration.getMinDimensions() == null
+                    || img.contains(configuration.getMinDimensions())) {
                 if (!largest) {
                     return img;
                 }
@@ -518,27 +464,27 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
         }
 
         // If scale is null, return as is (no scaling).
-        if (scaleDimensions == null) {
+        if (configuration.getScaleDimensions() == null) {
             return origImg;
         }
 
         // if image is smaller than minimum dimension... cache empty image
-        if (minDimensions != null &&
-                (origImg.getWidth() < minDimensions.getWidth()
-                        || origImg.getHeight() < minDimensions.getHeight())) {
+        var minDims = configuration.getMinDimensions();
+        if (minDims != null && (origImg.getWidth() < minDims.getWidth()
+                || origImg.getHeight() < minDims.getHeight())) {
             return new BufferedImage(1, 1, origImg.getType());
         }
 
-        var scaledWidth = (int) scaleDimensions.getWidth();
-        var scaledHeight = (int) scaleDimensions.getHeight();
+        var scaledWidth = (int) configuration.getScaleDimensions().getWidth();
+        var scaledHeight = (int) configuration.getScaleDimensions().getHeight();
 
         var mode = Mode.AUTOMATIC;
-        if (scaleStretch) {
+        if (configuration.isScaleStretch()) {
             mode = Mode.FIT_EXACT;
         }
         var method = Method.AUTOMATIC;
-        if (scaleQuality != null) {
-            method = scaleQuality.scalrMethod;
+        if (configuration.getScaleQuality() != null) {
+            method = configuration.getScaleQuality().getScalrMethod();
         }
 
         var newImg =
@@ -546,7 +492,8 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
         // Remove alpha layer for formats not supporting it. This prevents
         // some files from having a colored background (instead of transparency)
         // or to not be saved properly (e.g. png to bmp).
-        if (EqualsUtil.equalsNoneIgnoreCase(imageFormat, "png", "gif")) {
+        if (EqualsUtil.equalsNoneIgnoreCase(
+                configuration.getImageFormat(), "png", "gif")) {
             var fixedImg = new BufferedImage(
                     newImg.getWidth(), newImg.getHeight(),
                     BufferedImage.TYPE_INT_RGB);

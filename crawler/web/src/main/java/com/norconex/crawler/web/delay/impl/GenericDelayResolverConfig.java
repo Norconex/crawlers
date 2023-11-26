@@ -14,11 +14,15 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.time.DurationParser;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -91,63 +95,18 @@ import lombok.ToString;
  * say, except on weekend, where it is more agressive (1 second).
  * </p>
  */
-@EqualsAndHashCode
-@ToString
-public class GenericDelayResolver
-        extends AbstractDelayResolver<GenericDelayResolverConfig> {
+@Data
+@Accessors(chain = true)
+public class GenericDelayResolverConfig extends BaseDelayResolverConfig {
 
-    @Getter
-    private final GenericDelayResolverConfig configuration =
-            new GenericDelayResolverConfig();
+    private final List<DelaySchedule> schedules = new ArrayList<>();
 
-    @Override
-    protected long resolveExplicitDelay(String url) {
-        long delay = -1;
-        for (DelaySchedule schedule : configuration.getSchedules()) {
-            if (schedule.isCurrentTimeInSchedule()) {
-                delay = schedule.getDelay();
-                break;
-            }
-        }
-        return delay;
+    public List<DelaySchedule> getSchedules() {
+        return Collections.unmodifiableList(schedules);
     }
-//
-//    @Override
-//    protected void loadDelaysFromXML(XML xml) {
-//        for (XML sxml : xml.getXMLList("schedule")) {
-//            schedules.add(new DelaySchedule(
-//                    sxml.getString("@dayOfWeek", null),
-//                    sxml.getString("@dayOfMonth", null),
-//                    sxml.getString("@time", null),
-//                    sxml.getDurationMillis(".", DEFAULT_DELAY)
-//            ));
-//        }
-//    }
-//
-//    @Override
-//    protected void saveDelaysToXML(XML xml) {
-//        var from = "from ";
-//        var to = " to ";
-//        for (DelaySchedule schedule : schedules) {
-//            var sxml = xml.addElement("schedule", schedule.getDelay());
-//            if (schedule.getDayOfWeekRange() != null) {
-//                sxml.setAttribute("dayOfWeek",
-//                        from + schedule.getDayOfWeekRange().getMinimum()
-//                      + to + schedule.getDayOfWeekRange().getMaximum());
-//            }
-//            if (schedule.getDayOfMonthRange() != null) {
-//                sxml.setAttribute("dayOfMonth",
-//                        from + schedule.getDayOfMonthRange().getMinimum()
-//                      + to + schedule.getDayOfMonthRange().getMaximum());
-//            }
-//            if (schedule.getTimeRange() != null) {
-//                int min = schedule.getTimeRange().getMinimum();
-//                int max = schedule.getTimeRange().getMaximum();
-//                sxml.setAttribute("time",
-//                        from + (min / 100) + ":" + (min % 100)
-//                      + to + (max / 100) + ":" + (max % 100));
-//            }
-//        }
-//    }
-
+    public GenericDelayResolverConfig setSchedules(
+            List<DelaySchedule> schedules) {
+        CollectionUtil.setAll(this.schedules, schedules);
+        return this;
+    }
 }

@@ -14,12 +14,8 @@
  */
 package com.norconex.crawler.web.crawler;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.norconex.commons.lang.url.HttpURL;
-
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import lombok.experimental.Accessors;
 
 /**
  * <p>By default a crawler will try to follow all links it discovers. You can
@@ -38,8 +34,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 //TODO make this an interface so developers can provide their own?
 @Data
-@Slf4j
-public class URLCrawlScopeStrategy {
+@Accessors(chain = true)
+@SuppressWarnings("javadoc")
+public class UrlCrawlScopeStrategyConfig {
 
     /**
      * Whether the crawler should always stay on the same domain name as
@@ -49,7 +46,6 @@ public class URLCrawlScopeStrategy {
      * @param stayOnDomain <code>true</code> for the crawler to stay on domain
      * @return <code>true</code> if the crawler should stay on a domain
      */
-    @SuppressWarnings("javadoc")
     private boolean stayOnDomain;
 
     /**
@@ -59,7 +55,6 @@ public class URLCrawlScopeStrategy {
      * @return <code>true</code> if including sub-domains
      * @since 2.9.0
      */
-    @SuppressWarnings("javadoc")
     private boolean includeSubdomains;
 
     /**
@@ -70,7 +65,6 @@ public class URLCrawlScopeStrategy {
      * @param stayOnPort <code>true</code> for the crawler to stay on port
      * @return <code>true</code> if the crawler should stay on a port
      */
-    @SuppressWarnings("javadoc")
     private boolean stayOnPort;
 
     /**
@@ -82,53 +76,5 @@ public class URLCrawlScopeStrategy {
      *        <code>true</code> for the crawler to stay on protocol
      * @return <code>true</code> if the crawler should stay on protocol
      */
-    @SuppressWarnings("javadoc")
     private boolean stayOnProtocol = false;
-
-    public boolean isInScope(String inScopeURL, String candidateURL) {
-        // if not specifying any scope, candidate URL is good
-        if (!stayOnProtocol && !stayOnDomain && !stayOnPort) {
-            return true;
-        }
-
-        try {
-            var inScope = new HttpURL(inScopeURL);
-            HttpURL candidate;
-            if (candidateURL.startsWith("//")) {
-                candidate = new HttpURL(
-                        inScope.getProtocol() + ':' + candidateURL);
-            } else {
-                candidate = new HttpURL(candidateURL);
-            }
-            if (stayOnProtocol && !inScope.getProtocol().equalsIgnoreCase(
-                    candidate.getProtocol())) {
-                LOG.debug("Rejected protocol for: {}", candidateURL);
-                return false;
-            }
-            if (stayOnDomain
-                    && !isOnDomain(inScope.getHost(), candidate.getHost())) {
-                LOG.debug("Rejected domain for: {}", candidateURL);
-                return false;
-            }
-            if (stayOnPort && inScope.getPort() != candidate.getPort()) {
-                LOG.debug("Rejected port for: {}", candidateURL);
-                return false;
-            }
-            return true;
-        } catch (Exception e) {
-            LOG.debug("Unsupported URL \"{}\".", candidateURL, e);
-            return false;
-        }
-    }
-
-    private boolean isOnDomain(String inScope, String candidate) {
-        // if domains are the same, we are good. Covers zero depth too.
-        if (inScope.equalsIgnoreCase(candidate)) {
-            return true;
-        }
-
-        // if accepting sub-domains, check if it ends the same.
-        return includeSubdomains
-                && StringUtils.endsWithIgnoreCase(candidate, "." + inScope);
-    }
 }

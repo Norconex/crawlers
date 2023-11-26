@@ -222,13 +222,13 @@
     <dependency>
       <groupId>jakarta.el</groupId>
       <artifactId>jakarta.el-api</artifactId>
-      <version>5.0.1</version>
+<!--      <version>5.0.1</version>-->
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-el</artifactId>
-      <version>10.1.12</version>       
+<!--      <version>10.1.12</version>-->       
       <scope>compile</scope>
     </dependency>
     

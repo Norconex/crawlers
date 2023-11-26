@@ -17,25 +17,24 @@ package com.norconex.crawler.web.recrawl.impl;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
-import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency;
+import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 import com.norconex.crawler.web.sitemap.SitemapChangeFrequency;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -114,61 +113,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuppressWarnings("javadoc")
 @Slf4j
-@Data
-public class GenericRecrawlableResolver
-        implements RecrawlableResolver {
-        //, XMLConfigurable{
+@EqualsAndHashCode
+@ToString
+public class GenericRecrawlableResolver implements
+        RecrawlableResolver, Configurable<GenericRecrawlableResolverConfig> {
 
-    public enum SitemapSupport {
-        FIRST, LAST, NEVER;
-        public static SitemapSupport getSitemapSupport(String sitemapSupport) {
-            if (StringUtils.isBlank(sitemapSupport)) {
-                return null;
-            }
-            for (SitemapSupport v : SitemapSupport.values()) {
-                if (v.toString().equalsIgnoreCase(sitemapSupport)) {
-                    return v;
-                }
-            }
-            return null;
-        }
-    }
-
-    private SitemapSupport sitemapSupport = SitemapSupport.FIRST;
-    private final List<MinFrequency> minFrequencies = new ArrayList<>();
-
-    /**
-     * Gets the sitemap support strategy. Defualt is
-     * {@link SitemapSupport#FIRST}.
-     * @return sitemap support strategy
-     */
-    public SitemapSupport getSitemapSupport() {
-        return sitemapSupport;
-    }
-    /**
-     * Sets the sitemap support strategy. A <code>null</code> value
-     * is equivalent to specifying the default {@link SitemapSupport#FIRST}.
-     * @param sitemapSupport sitemap support strategy
-     */
-    public void setSitemapSupport(SitemapSupport sitemapSupport) {
-        this.sitemapSupport = sitemapSupport;
-    }
-
-    /**
-     * Gets minimum frequencies.
-     * @return minimum frequencies
-     */
-    public List<MinFrequency> getMinFrequencies() {
-        return Collections.unmodifiableList(minFrequencies);
-    }
-    /**
-     * Sets minimum frequencies.
-     * @param minFrequencies minimum frequencies
-     * @since 3.0.0
-     */
-    public void setMinFrequencies(Collection<MinFrequency> minFrequencies) {
-        CollectionUtil.setAll(this.minFrequencies, minFrequencies);
-    }
+    @Getter
+    private final GenericRecrawlableResolverConfig configuration =
+            new GenericRecrawlableResolverConfig();
 
     @Override
     public boolean isRecrawlable(WebDocRecord prevData) {
@@ -178,7 +130,7 @@ public class GenericRecrawlableResolver
             return true;
         }
 
-        var ss = sitemapSupport;
+        var ss = configuration.getSitemapSupport();
         if (ss == null) {
             ss = SitemapSupport.FIRST;
         }
@@ -204,7 +156,7 @@ public class GenericRecrawlableResolver
     }
 
     private MinFrequency getMatchingMinFrequency(WebDocRecord prevData) {
-        for (MinFrequency f : minFrequencies) {
+        for (MinFrequency f : configuration.getMinFrequencies()) {
             var applyTo = f.getApplyTo();
             if (StringUtils.isBlank(applyTo)) {
                 applyTo = "reference";
@@ -392,21 +344,21 @@ public class GenericRecrawlableResolver
                 .format(millis);
     }
 
-    @Data
-    @NoArgsConstructor
-    public static class MinFrequency {
-        private String applyTo;
-        private String value;
-        private final TextMatcher matcher = new TextMatcher();
-        public MinFrequency(String applyTo, String value, TextMatcher matcher) {
-            this.applyTo = applyTo;
-            this.value = value;
-            this.matcher.copyFrom(matcher);
-        }
-        public void setMatcher(TextMatcher matcher) {
-            this.matcher.copyFrom(matcher);
-        }
-    }
+//    @Data
+//    @NoArgsConstructor
+//    public static class MinFrequency {
+//        private String applyTo;
+//        private String value;
+//        private final TextMatcher matcher = new TextMatcher();
+//        public MinFrequency(String applyTo, String value, TextMatcher matcher) {
+//            this.applyTo = applyTo;
+//            this.value = value;
+//            this.matcher.copyFrom(matcher);
+//        }
+//        public void setMatcher(TextMatcher matcher) {
+//            this.matcher.copyFrom(matcher);
+//        }
+//    }
 
 //    @Override
 //    public void loadFromXML(XML xml) {

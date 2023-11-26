@@ -63,7 +63,8 @@ public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
     private Path browserPath;
     private URL remoteURL;
 
-    private HttpSnifferConfig httpSnifferConfig;
+    private HttpSniffer httpSniffer;
+    private ScreenshotHandler screenshotHandler;
 
     private final MutableCapabilities capabilities = new MutableCapabilities();
 

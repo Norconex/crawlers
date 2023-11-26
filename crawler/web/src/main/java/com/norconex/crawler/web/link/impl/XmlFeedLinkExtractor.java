@@ -69,13 +69,13 @@ import lombok.ToString;
  * </ul>
  *
  * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.link.impl.XMLFeedLinkExtractor">
+ * <extractor class="com.norconex.crawler.web.link.impl.XmlFeedLinkExtractor">
  *   {@nx.include com.norconex.crawler.web.link.AbstractTextLinkExtractor@nx.xml.usage}
  * </extractor>
  * }
  *
  * {@nx.xml.example
- * <extractor class="com.norconex.crawler.web.link.impl.XMLFeedLinkExtractor">
+ * <extractor class="com.norconex.crawler.web.link.impl.XmlFeedLinkExtractor">
  *   <restrictTo field="document.reference" method="regex">.*rss$</restrictTo>
  * </extractor>
  * }
@@ -90,12 +90,12 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class XMLFeedLinkExtractor
-        implements LinkExtractor, Configurable<XMLFeedLinkExtractorConfig> {
+public class XmlFeedLinkExtractor
+        implements LinkExtractor, Configurable<XmlFeedLinkExtractorConfig> {
 
     @Getter
-    private final XMLFeedLinkExtractorConfig configuration =
-            new XMLFeedLinkExtractorConfig();
+    private final XmlFeedLinkExtractorConfig configuration =
+            new XmlFeedLinkExtractorConfig();
 
     @Override
     public Set<Link> extractLinks(CrawlDoc doc) throws IOException {

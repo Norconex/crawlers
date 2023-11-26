@@ -19,24 +19,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.convert.GenericConverter;
 import com.norconex.commons.lang.url.URLNormalizer;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
-import com.norconex.crawler.web.url.WebURLNormalizer;
+import com.norconex.crawler.web.url.WebUrlNormalizer;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Generic implementation of {@link WebURLNormalizer} that should satisfy
+ * Generic implementation of {@link WebUrlNormalizer} that should satisfy
  * most URL normalization needs.  This implementation relies on
  * {@link URLNormalizer}.  Please refer to it for complete documentation and
  * examples.
@@ -64,7 +61,7 @@ import lombok.ToString;
  * or via XML configuration.  Each
  * normalizations is identified by a code name.  The following is the
  * complete code name list for supported normalizations.  Click on any code
- * name to get a full description from {@link WebURLNormalizer}:
+ * name to get a full description from {@link WebUrlNormalizer}:
  * </p>
  * <ul>
  *   <li>{@link URLNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash} (since 2.6.0)</li>
@@ -106,7 +103,7 @@ import lombok.ToString;
  *
  * {@nx.xml.usage
  *  <urlNormalizer
- *      class="com.norconex.crawler.web.url.impl.GenericURLNormalizer">
+ *      class="com.norconex.crawler.web.url.impl.GenericUrlNormalizer">
  *    <normalizations>
  *      (normalization code names, coma separated)
  *    </normalizations>
@@ -127,7 +124,7 @@ import lombok.ToString;
  * </p>
  *
  * {@nx.xml.example
- * <urlNormalizer class="com.norconex.crawler.web.url.impl.GenericURLNormalizer">
+ * <urlNormalizer class="com.norconex.crawler.web.url.impl.GenericUrlNormalizer">
  *   <normalizations>
  *       removeFragment, lowerCaseSchemeHost, upperCaseEscapeSequence,
  *       decodeUnreservedCharacters, removeDefaultPort,
@@ -149,9 +146,9 @@ import lombok.ToString;
  * as well as replace "&amp;type=summary" with "&amp;type=full".
  * </p>
  */
-@EqualsAndHashCode
-@ToString
-public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
+@Data
+@Accessors(chain = true)
+public class GenericUrlNormalizerConfig {
 
     public enum Normalization {
         ADD_DIRECTORY_TRAILING_SLASH(URLNormalizer::addDirectoryTrailingSlash),
@@ -187,16 +184,22 @@ public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
         UNSECURE_SCHEME(URLNormalizer::unsecureScheme),
         UPPERCASE_ESCAPESEQUENCE(URLNormalizer::upperCaseEscapeSequence),
         ;
-        private final Consumer<URLNormalizer> c;
+        @Getter
+        private final Consumer<URLNormalizer> consumer;
         Normalization(Consumer<URLNormalizer> c) {
-            this.c = c;
+            consumer = c;
+        }
+
+        @JsonCreator
+        static Normalization of(String name) {
+            return GenericConverter.convert(name, Normalization.class);
         }
     }
 
     private final List<Normalization> normalizations = new ArrayList<>();
     private final List<Replace> replaces = new ArrayList<>();
 
-    public GenericURLNormalizer() {
+    public GenericUrlNormalizerConfig() {
         setNormalizations(List.of(
                 Normalization.REMOVE_FRAGMENT,
                 Normalization.LOWERCASE_SCHEME_HOST,
@@ -206,66 +209,21 @@ public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
                 Normalization.ENCODE_NON_URI_CHARACTERS));
     }
 
-    @Override
-    public String normalizeURL(String url) {
-        var normalizer = new URLNormalizer(url);
-        for (Normalization n : normalizations) {
-            n.c.accept(normalizer);
-        }
-        var normedURL = normalizer.toString();
-        for (Replace replace : replaces) {
-            if (replace == null || StringUtils.isBlank(replace.getMatch())) {
-                continue;
-            }
-            var replacement = replace.getReplacement();
-            if (StringUtils.isBlank(replacement)) {
-                replacement = StringUtils.EMPTY;
-            }
-            normedURL = normedURL.replaceAll(replace.getMatch(), replacement);
-        }
-        return normedURL;
-    }
-
     public List<Normalization> getNormalizations() {
         return Collections.unmodifiableList(normalizations);
     }
-    public void setNormalizations(List<Normalization> normalizations) {
+    public GenericUrlNormalizerConfig setNormalizations(
+            List<Normalization> normalizations) {
         CollectionUtil.setAll(this.normalizations, normalizations);
+        return this;
     }
 
     public List<Replace> getReplaces() {
         return Collections.unmodifiableList(replaces);
     }
-    public void setReplaces(List<Replace> replaces) {
+    public GenericUrlNormalizerConfig setReplaces(List<Replace> replaces) {
         CollectionUtil.setAll(this.replaces, replaces);
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setNormalizations(xml.getDelimitedEnumList(
-                "normalizations", Normalization.class, normalizations));
-        var xmlReplaces = xml.getXMLList("replacements/replace");
-        if (!xmlReplaces.isEmpty()) {
-            replaces.clear();
-        }
-        for (XML xmlReplace : xmlReplaces) {
-            var match = xmlReplace.getString("match", "");
-            var replacement = xmlReplace.getString("replacement", "");
-            replaces.add(new Replace(match, replacement));
-        }
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addDelimitedElementList("normalizations", normalizations);
-        if (!replaces.isEmpty()) {
-            var xmlReplaces = xml.addElement("replacements");
-            for (Replace replace : replaces) {
-                var xmlReplace = xmlReplaces.addElement("replace");
-                xmlReplace.addElement("match", replace.getMatch());
-                xmlReplace.addElement("replacement", replace.getReplacement());
-            }
-        }
+        return this;
     }
 
     @Data
