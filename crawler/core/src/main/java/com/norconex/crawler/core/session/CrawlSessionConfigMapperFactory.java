@@ -14,22 +14,14 @@
  */
 package com.norconex.crawler.core.session;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.EventListener;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.cfg.MapperBuilder;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.norconex.committer.core.Committer;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.BeanMapperBuilder;
-import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
@@ -43,8 +35,6 @@ import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.importer.Importer;
 
-import lombok.RequiredArgsConstructor;
-
 /**
  * Create a base {@link BeanMapperBuilder} initialized to support mapping
  * XML, Yaml, JSON to crawler objects. Concrete crawler implementations
@@ -53,10 +43,10 @@ import lombok.RequiredArgsConstructor;
  */
 public final class CrawlSessionConfigMapperFactory {
 
-    private static final ThreadLocal<String> crawlerDefaultsTL =
-            new ThreadLocal<>();
-    private static final ThreadLocal<BeanMapper> beanMapperTL =
-            new ThreadLocal<>();
+//    private static final ThreadLocal<String> crawlerDefaultsTL =
+//            new ThreadLocal<>();
+//    private static final ThreadLocal<BeanMapper> beanMapperTL =
+//            new ThreadLocal<>();
 
     private CrawlSessionConfigMapperFactory() {}
 
@@ -136,157 +126,157 @@ public final class CrawlSessionConfigMapperFactory {
         // an unboundPropertyFactory, passing what it takes to load it?
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private static void customizeObjectMapper(
-//            BeanMapper.BeanMapperBuilder beanMapperBuilder,
-            MapperBuilder<?, ?> mapperBuilder,
-            Class<? extends CrawlerConfig> crawlerConfigClass) {
-
-
-        var module = new SimpleModule();
-        module.addDeserializer((Class)crawlerConfigClass,
-                new CrawlerWithDefaultsDeserializer(crawlerConfigClass));
-        mapperBuilder.addModules(module);
-
-
-        //Since crawler defaults are only a concern when loading from
-        // configuration, maybe we should support it there instead?
-
-
-
-        // or look at Jackson InputDecorator
-        // or a custom parser just for crawler that on being created, would load the crawlerDefaults node
-        //          or it could be generic with defaultPropertyMappings: e.g.: crawlerDefault -> crawler
-
-        // or a custom DefaultDeserializationContext on jsonfactory (and overwrite readRootValue?)
-        // or subclass ObjectMapper and overwrite _readMapAndClose (or other init-like method)
-
-
-
-
-
-
-
-
+//    @SuppressWarnings({ "unchecked", "rawtypes" })
+//    private static void customizeObjectMapper(
+////            BeanMapper.BeanMapperBuilder beanMapperBuilder,
+//            MapperBuilder<?, ?> mapperBuilder,
+//            Class<? extends CrawlerConfig> crawlerConfigClass) {
+//
+//
 //        var module = new SimpleModule();
 //        module.addDeserializer((Class)crawlerConfigClass,
 //                new CrawlerWithDefaultsDeserializer(crawlerConfigClass));
-//        mb.addModules(module);
-
-
-
-
-        //new ObjectReader().readValue(null)
-
-
-      // handle "crawlerDefaults"
-
-
-//      mp.setDefaultTyping(null)
-//      mp.withCoercionConfig(getClass(), null)
-//      mp.withConfigOverride(getClass(), null)
-
-
-
-
-      //TODO
-      // if encountering crawlerDefaults, stick it in thread local.
-      // at the end of mapping, if it was a crawl session config,
-      // apply default configs across.  better way?  Maybe let the
-      // loader load the defaults first, then different?
-      // or maybe just reference and load crawlerDefaults as the
-      // initial crawler before mapping?
-      // Other option: check if we can force Jackson to deserialize
-      // a specific entity first?
-
-      // maybe a custom deserializer that would look for the specific property first, then let the rest happen?
-
-//      @JsonPropertyOrder({ "id", "label", "target", "source", "attributes" })
-//      public class Relation { ... }
-
-      //on Jackson deserializer, context.getAttribute -> Object
-
-      //TODO
-      // can this one be used to do the reflection search?
-      //mp.subtypeResolver(null)
-    }
+//        mapperBuilder.addModules(module);
+//
+//
+//        //Since crawler defaults are only a concern when loading from
+//        // configuration, maybe we should support it there instead?
+//
+//
+//
+//        // or look at Jackson InputDecorator
+//        // or a custom parser just for crawler that on being created, would load the crawlerDefaults node
+//        //          or it could be generic with defaultPropertyMappings: e.g.: crawlerDefault -> crawler
+//
+//        // or a custom DefaultDeserializationContext on jsonfactory (and overwrite readRootValue?)
+//        // or subclass ObjectMapper and overwrite _readMapAndClose (or other init-like method)
+//
+//
+//
+//
+//
+//
+//
+//
+////        var module = new SimpleModule();
+////        module.addDeserializer((Class)crawlerConfigClass,
+////                new CrawlerWithDefaultsDeserializer(crawlerConfigClass));
+////        mb.addModules(module);
+//
+//
+//
+//
+//        //new ObjectReader().readValue(null)
+//
+//
+//      // handle "crawlerDefaults"
+//
+//
+////      mp.setDefaultTyping(null)
+////      mp.withCoercionConfig(getClass(), null)
+////      mp.withConfigOverride(getClass(), null)
+//
+//
+//
+//
+//      //TODO
+//      // if encountering crawlerDefaults, stick it in thread local.
+//      // at the end of mapping, if it was a crawl session config,
+//      // apply default configs across.  better way?  Maybe let the
+//      // loader load the defaults first, then different?
+//      // or maybe just reference and load crawlerDefaults as the
+//      // initial crawler before mapping?
+//      // Other option: check if we can force Jackson to deserialize
+//      // a specific entity first?
+//
+//      // maybe a custom deserializer that would look for the specific property first, then let the rest happen?
+//
+////      @JsonPropertyOrder({ "id", "label", "target", "source", "attributes" })
+////      public class Relation { ... }
+//
+//      //on Jackson deserializer, context.getAttribute -> Object
+//
+//      //TODO
+//      // can this one be used to do the reflection search?
+//      //mp.subtypeResolver(null)
+//    }
 
 //    private BeanMapper getBeanMapper
 
-    @RequiredArgsConstructor
-    public static class CrawlerWithDefaultsDeserializer
-            extends JsonDeserializer<CrawlerConfig> {
-//        private final MapperBuilder<?, ?> beanMapperBuilder;
-        private final Class<? extends CrawlerConfig> crawlerConfigClass;
-//        private final BeanMapper beanMapper;
-        @Override
-        public CrawlerConfig deserialize(
-                JsonParser p, DeserializationContext ctxt) throws IOException {
-
-            var defs = crawlerDefaultsTL.get();
-            var bm = beanMapperTL.get();
-            if (defs != null) {
-
-//                defsNode
-                CrawlerConfig cfg = bm.read(
-                        crawlerConfigClass,
-                        new StringReader(defs),
-                        Format.JSON);
-                return bm.read(cfg, new StringReader(ctxt.readTree(p).toString()), Format.JSON);
-            }
-
-//            return p.readValueAs(crawlerConfigClass);
-
-            return  bm.read(
-                    crawlerConfigClass,
-                    new StringReader(ctxt.readTree(p).toString()),
-                    Format.JSON);
-////
-
-
-
-
-
-
-
-
-
-
-
-
-//            // Apply crawler config on top of defaults, if any, and returned
-//            // the bonified default as the config.
-//            var parent = p.getParsingContext().getParent().getParent();
+//    @RequiredArgsConstructor
+//    public static class CrawlerWithDefaultsDeserializer
+//            extends JsonDeserializer<CrawlerConfig> {
+////        private final MapperBuilder<?, ?> beanMapperBuilder;
+//        private final Class<? extends CrawlerConfig> crawlerConfigClass;
+////        private final BeanMapper beanMapper;
+//        @Override
+//        public CrawlerConfig deserialize(
+//                JsonParser p, DeserializationContext ctxt) throws IOException {
 //
-//System.err.println("PARENT: " + parent);
+//            var defs = crawlerDefaultsTL.get();
+//            var bm = beanMapperTL.get();
+//            if (defs != null) {
 //
-//            var root = p.getCodec().readTree(p);
-//System.err.println("ROOT NODE: " + root);
-//            var defaultsNode = root.path("crawlerDefaults");
-//System.err.println("DEFAULTS NODE: " + defaultsNode);
-//            if (defaultsNode != null
-//                    && !(defaultsNode instanceof MissingNode)) {
-//                var currentNode = ctxt.readTree(p);
-//                var mergedNode = merge((JsonNode) defaultsNode, currentNode);
-//                return ctxt.readTreeAsValue(mergedNode, crawlerConfigClass);
+////                defsNode
+//                CrawlerConfig cfg = bm.read(
+//                        crawlerConfigClass,
+//                        new StringReader(defs),
+//                        Format.JSON);
+//                return bm.read(cfg, new StringReader(ctxt.readTree(p).toString()), Format.JSON);
 //            }
 //
-//            return p.readValueAs(crawlerConfigClass);
-
-
-
-
-//          p.getCodec().create
+////            return p.readValueAs(crawlerConfigClass);
 //
-//            node.at("/response/history").getValueAsInt();
+//            return  bm.read(
+//                    crawlerConfigClass,
+//                    new StringReader(ctxt.readTree(p).toString()),
+//                    Format.JSON);
+//////
 //
-//            int id = (Integer) (node.get("id")).numberValue();
-//            var itemName = node.get("itemName").asText();
 //
-//            return new Item(id, itemName);
-//            return null;
-        }
-    }
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+////            // Apply crawler config on top of defaults, if any, and returned
+////            // the bonified default as the config.
+////            var parent = p.getParsingContext().getParent().getParent();
+////
+////System.err.println("PARENT: " + parent);
+////
+////            var root = p.getCodec().readTree(p);
+////System.err.println("ROOT NODE: " + root);
+////            var defaultsNode = root.path("crawlerDefaults");
+////System.err.println("DEFAULTS NODE: " + defaultsNode);
+////            if (defaultsNode != null
+////                    && !(defaultsNode instanceof MissingNode)) {
+////                var currentNode = ctxt.readTree(p);
+////                var mergedNode = merge((JsonNode) defaultsNode, currentNode);
+////                return ctxt.readTreeAsValue(mergedNode, crawlerConfigClass);
+////            }
+////
+////            return p.readValueAs(crawlerConfigClass);
+//
+//
+//
+//
+////          p.getCodec().create
+////
+////            node.at("/response/history").getValueAsInt();
+////
+////            int id = (Integer) (node.get("id")).numberValue();
+////            var itemName = node.get("itemName").asText();
+////
+////            return new Item(id, itemName);
+////            return null;
+//        }
+//    }
 
 
 
