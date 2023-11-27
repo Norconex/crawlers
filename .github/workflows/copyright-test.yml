@@ -22,11 +22,11 @@ jobs:
         echo "Files with Copyright (year) Norconex Inc.:"
         while IFS= read -r file; do
           echo "File that has been modified: ${file}"
-          echo "\n"
+          echo " "
           # Update copyright year in each file
           sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
           head -n 10 "${file}"
-          echo "\n"
+          echo "End of File "
         done <<< "${copyright_files}"
 
         
