@@ -20,8 +20,8 @@ jobs:
         echo "files_with_copyright=$(grep -r -l "Copyright [0-9]\{4\} Norconex Inc." . || true)" >> $GITHUB_OUTPUT
 
         # Print the list of files found
-        echo "Files with Copyright pattern:"
-        echo "$files_with_copyright"
+        #echo "Files with Copyright pattern:"
+        #echo "$files_with_copyright"
 
         # Save the list of files to an environment variable for future steps
         #echo "::set-env name=FILES_WITH_COPYRIGHT::$files_with_copyright"
