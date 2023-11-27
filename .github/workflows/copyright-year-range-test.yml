@@ -16,7 +16,7 @@ jobs:
     - name: Find and Replace Copyright Files
       run: |
         # Find files with the specified copyright pattern
-        copyright_files=$(grep -rlE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
+        copyright_files=$(grep -rlE --exclude="*.sh" 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
 
         # Iterate over each file and perform the replacement
         echo ""
