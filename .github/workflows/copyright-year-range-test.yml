@@ -16,7 +16,7 @@ jobs:
     - name: Find and Replace Copyright Files
       run: |
         # Find files with the specified copyright pattern
-        copyright_files=$(grep -rlE --exclude="*.sh" 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
+        copyright_files=$(grep -rlE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
 
         # Iterate over each file and perform the replacement
         echo ""
@@ -31,7 +31,7 @@ jobs:
 
             # Display the top 10 lines of the modified file
             echo "File that has been modified: ${file}"
-            echo "
+            echo ""
             echo "Top 10 lines of ${file} after replacement:"
             head -n 10 "${file}"
             echo "End of File"
