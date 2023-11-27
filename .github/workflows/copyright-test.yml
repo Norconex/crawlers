@@ -21,7 +21,11 @@ jobs:
       run: |
         # Find files with the specified copyright pattern
         copyright_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
-        echo "files_1=${copyright_files}" >> $GITHUB_ENV
+        {
+          echo 'files_1<<EOF'
+          grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .
+          echo EOF 
+        } >> "$GITHUB_ENV"
         echo "::set-output name=files::${copyright_files}"
 
     - name: Display Copyright Files
