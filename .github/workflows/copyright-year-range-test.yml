@@ -1,0 +1,37 @@
+name: Find, Replace, and Display Copyright Files
+
+on:
+  push:
+    branches:
+      - dk-actions-v4
+
+jobs:
+  find-replace-and-display-copyright:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Find and Replace Copyright Files
+      run: |
+        # Find files with the specified copyright pattern
+        copyright_files=$(grep -rlE 'Copyright [0-9]{4} - [0-9]{4} Norconex Inc\.' .)
+
+        # Iterate over each file and perform the replacement
+        for file in ${copyright_files}; do
+          sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
+
+          # Display the top 10 lines of the modified file
+          echo ""
+          echo "Files with Copyright (year)-(year) Norconex Inc.:"
+          echo "" 
+          echo "Top 10 lines of ${file} after replacement:"
+          head -n 10 "${file}"
+          echo "End of File"
+        done
+
+        # Set an output variable for further use
+        echo "files=${copyright_files}" >> $GITHUB_ENV
+
+# Add more steps as needed for your workflow
