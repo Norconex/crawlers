@@ -16,15 +16,17 @@ jobs:
     - name: Find and Replace Copyright Files
       run: |
         # Find files with the specified copyright pattern
-        copyright_files=$(grep -rlE 'Copyright [0-9]{4} - [0-9]{4} Norconex Inc\.' .)
+        copyright_files=$(grep -rlE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
 
         # Iterate over each file and perform the replacement
+        echo ""
+        echo "Files with Copyright (year)-(year) Norconex Inc.:"
         for file in ${copyright_files}; do
+          echo "File that has been modified: ${file}"
+          echo " "
           sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
 
           # Display the top 10 lines of the modified file
-          echo ""
-          echo "Files with Copyright (year)-(year) Norconex Inc.:"
           echo "" 
           echo "Top 10 lines of ${file} after replacement:"
           head -n 10 "${file}"
