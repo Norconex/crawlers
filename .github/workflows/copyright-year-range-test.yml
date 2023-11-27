@@ -31,7 +31,4 @@ jobs:
           echo "End of File"
         done
 
-        # Set an output variable for further use
-        echo "files=${copyright_files}" >> $GITHUB_ENV
 
-# Add more steps as needed for your workflow
