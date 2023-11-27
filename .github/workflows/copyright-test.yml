@@ -1,4 +1,4 @@
-name: Find Copyright Files
+name: Update Copyright Year
 
 on:
   push:
@@ -6,40 +6,28 @@ on:
       - dk-actions-v4
 
 jobs:
-  find-copyright:
+  update-copyright-year:
     runs-on: ubuntu-latest
-
-    outputs:
-      files: ${{ steps.set-output.outputs.files }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Find Copyright Files
-      id: set-output
+    - name: Find and Update Copyright Year
       run: |
         # Find files with the specified copyright pattern
         copyright_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
-        {
-          echo 'files_1<<EOF'
-          grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .
-          echo EOF 
-        } >> "$GITHUB_ENV"
-        echo "::set-output name=files::${copyright_files}"
 
-    - name: Display Copyright Files
-      run: |
-        # Access the output from the previous step
-        files="${{ steps.set-output.outputs.files }}"
-        echo "Files with Copyright (4-digit-years) Norconex Inc.:"
-        echo "${files}"
+        # Display the files
+        echo "Files with Copyright (year) Norconex Inc.:"
+        while IFS= read -r file; do
+          echo "${file}"
+          
+          # Update copyright year in each file
+          sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
+        done <<< "${copyright_files}"
 
-    - name: Display Files_1
-      run: |
-        echo "files in files_1"
-        for file in ${{env.files_1}}; do
-          echo "$file"
-        done
+        # Set an output variable for further use
+        echo "files=${copyright_files}" >> $GITHUB_ENV
 
 # Add more steps as needed for your workflow
