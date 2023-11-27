@@ -1,18 +1,1 @@
-name: find modified files in push
 
-on:
-  push:
-    branches: [ dk-actions-v4 ]
-
-jobs:
-  get_files:
-    name: run_when_push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-           fetch-depth: 0
-      
-      - name: Get changes
-        run: git diff --name-only ${{ github.event.before }} ${{ github.event.after }}
