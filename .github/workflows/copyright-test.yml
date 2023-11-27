@@ -25,9 +25,11 @@ jobs:
           
           # Update copyright year in each file
           sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
+          head -n 10 "$(file)"
         done <<< "${copyright_files}"
 
+        
         # Set an output variable for further use
-        echo "files=${copyright_files}" >> $GITHUB_ENV
+        #echo "files=${copyright_files}" >> $GITHUB_ENV
 
 # Add more steps as needed for your workflow
