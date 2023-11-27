@@ -25,7 +25,7 @@ jobs:
           
           # Update copyright year in each file
           sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
-          head -n 10 "$(file)"
+          head -n 10 "${file}"
         done <<< "${copyright_files}"
 
         
