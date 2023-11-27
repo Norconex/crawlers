@@ -1,0 +1,32 @@
+name: Find Copyright Files
+
+on:
+  push:
+    branches: [ "dk-actions-v4" ]
+
+
+jobs:
+  find_copyright:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Find Copyright Files
+      run: |
+        # Use grep to find files with the specified copyright pattern
+        files_with_copyright=$(grep -r -l "Copyright [0-9]\{4\} Norconex Inc." . || true)
+
+        # Print the list of files found
+        echo "Files with Copyright pattern:"
+        echo "$files_with_copyright"
+
+        # Save the list of files to an environment variable for future steps
+        echo "::set-env name=FILES_WITH_COPYRIGHT::$files_with_copyright"
+        
+    - name: Display Results
+      run: |
+        # Access the environment variable containing the list of files
+        echo "Files with Copyright pattern:"
+        echo "$FILES_WITH_COPYRIGHT"
