@@ -17,12 +17,6 @@ package com.norconex.crawler.core.cli;
 //@Slf4j
 class CliLauncherTest {
 
-import static com.norconex.crawler.core.TestUtil.testLaunch;
-import static org.assertj.core.api.Assertions.assertThat;
-
-@Slf4j
-class CliLauncherTest {
-
     //TODO migrate these:
     // Maybe a class for each crawler action/test?
 
