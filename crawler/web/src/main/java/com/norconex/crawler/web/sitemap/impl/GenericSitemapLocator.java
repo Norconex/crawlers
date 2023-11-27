@@ -15,23 +15,20 @@
 package com.norconex.crawler.web.sitemap.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.commons.lang.xml.XPathUtil;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.sitemap.SitemapLocator;
 import com.norconex.crawler.web.util.Web;
 
-import lombok.Data;
-import lombok.experimental.FieldNameConstants;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -62,22 +59,19 @@ import lombok.experimental.FieldNameConstants;
  * </sitemapLocator>
  * }
  */
-@Data
-@FieldNameConstants
-public class GenericSitemapLocator
-        implements SitemapLocator, XMLConfigurable {
+@EqualsAndHashCode
+@ToString
+public class GenericSitemapLocator implements
+        SitemapLocator, Configurable<GenericSitemapLocatorConfig> {
 
-    public static final List<String> DEFAULT_PATHS =
-            List.of("/sitemap.xml", "/sitemap_index.xml");
-
-    private final List<String> paths = new ArrayList<>(DEFAULT_PATHS);
-
-    private boolean robotsTxtSitemapDisabled;
+    @Getter
+    private final GenericSitemapLocatorConfig configuration =
+            new GenericSitemapLocatorConfig();
 
     @Override
     public List<String> locations(String reference, Crawler crawler) {
-        List<String> resolvedpaths = new ArrayList<>(paths);
-        if (!robotsTxtSitemapDisabled) {
+        List<String> resolvedpaths = new ArrayList<>(configuration.getPaths());
+        if (!configuration.isRobotsTxtSitemapDisabled()) {
             var robotsTxt = Web.robotsTxt(crawler, reference);
             if (robotsTxt != null) {
                 var locs = robotsTxt.getSitemapLocations();
@@ -86,41 +80,8 @@ public class GenericSitemapLocator
                 }
             }
         }
-
         return resolvedpaths.stream()
                 .map(p -> HttpURL.toAbsolute(reference, p))
                 .toList();
-    }
-
-    /**
-     * Gets the URL paths, relative to the URL root, from which to try
-     * locate and resolve sitemaps. Default paths are
-     * "/sitemap.xml" and "/sitemap-index.xml".
-     * @return sitemap paths.
-     */
-    public List<String> getPaths() {
-        return Collections.unmodifiableList(paths);
-    }
-    /**
-     * Sets the URL paths, relative to the URL root, from which to try
-     * locate and resolve sitemaps.
-     * @param paths sitemap paths.
-     */
-    public void setPaths(List<String> paths) {
-        CollectionUtil.setAll(this.paths, paths);
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setPaths(xml.getStringList("paths/path", getPaths()));
-        setRobotsTxtSitemapDisabled(
-                xml.getBoolean(XPathUtil.attr(Fields.robotsTxtSitemapDisabled),
-                        isRobotsTxtSitemapDisabled()));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute(Fields.robotsTxtSitemapDisabled,
-                isRobotsTxtSitemapDisabled());
-        xml.addElement(Fields.paths).addElementList("path", getPaths());
     }
 }

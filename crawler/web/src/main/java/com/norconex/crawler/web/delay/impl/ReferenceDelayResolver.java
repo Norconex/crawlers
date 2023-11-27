@@ -14,13 +14,11 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -87,16 +85,20 @@ import lombok.Data;
  *
  * @since 2.5.0
  */
-@Data
-public class ReferenceDelayResolver extends AbstractDelayResolver {
+@EqualsAndHashCode
+@ToString
+public class ReferenceDelayResolver
+        extends AbstractDelayResolver<ReferenceDelayResolverConfig> {
 
-    private List<DelayReferencePattern> delayReferencePatterns =
-            new ArrayList<>();
+    @Getter
+    private final ReferenceDelayResolverConfig configuration =
+            new ReferenceDelayResolverConfig();
 
     @Override
     protected long resolveExplicitDelay(String url) {
         long delay = -1;
-        for (DelayReferencePattern delayPattern : delayReferencePatterns) {
+        for (DelayReferencePattern delayPattern :
+                configuration.getDelayReferencePatterns()) {
             if (delayPattern.matches(url)) {
                 delay = delayPattern.getDelay();
                 break;
@@ -105,35 +107,21 @@ public class ReferenceDelayResolver extends AbstractDelayResolver {
         return delay;
     }
 
-    @Override
-    protected void loadDelaysFromXML(XML xml) {
-        for (XML pxml : xml.getXMLList("pattern")) {
-            delayReferencePatterns.add(new DelayReferencePattern(
-                    pxml.getString(".", ""),
-                    pxml.getDurationMillis("@delay", DEFAULT_DELAY)));
-        }
-    }
-
-    @Override
-    protected void saveDelaysToXML(XML xml) {
-        for (DelayReferencePattern delayPattern : delayReferencePatterns) {
-            xml.addElement("pattern", delayPattern.getPattern())
-                    .setAttribute("delay", delayPattern.getDelay());
-        }
-    }
-
-    @Data
-    public static class DelayReferencePattern {
-        private final String pattern;
-        private final long delay;
-
-        public DelayReferencePattern(String pattern, long delay) {
-            this.pattern = pattern;
-            this.delay = delay;
-        }
-        public boolean matches(String reference) {
-            return reference.matches(pattern);
-        }
-    }
+//    @Override
+//    protected void loadDelaysFromXML(XML xml) {
+//        for (XML pxml : xml.getXMLList("pattern")) {
+//            delayReferencePatterns.add(new DelayReferencePattern(
+//                    pxml.getString(".", ""),
+//                    pxml.getDurationMillis("@delay", DEFAULT_DELAY)));
+//        }
+//    }
+//
+//    @Override
+//    protected void saveDelaysToXML(XML xml) {
+//        for (DelayReferencePattern delayPattern : delayReferencePatterns) {
+//            xml.addElement("pattern", delayPattern.getPattern())
+//                    .setAttribute("delay", delayPattern.getDelay());
+//        }
+//    }
 }
 

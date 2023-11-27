@@ -17,6 +17,9 @@ package com.norconex.crawler.web.processor.impl;
 import static com.norconex.crawler.web.TestResource.IMG_160X120_PNG;
 import static com.norconex.crawler.web.TestResource.IMG_320X240_PNG;
 import static com.norconex.crawler.web.TestResource.IMG_640X480_PNG;
+import static com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.Storage.DISK;
+import static com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.Storage.INLINE;
+import static com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.Storage.URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -41,9 +44,9 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.MockWebCrawlSession;
 import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor.Quality;
-import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor.Storage;
-import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor.StorageDiskStructure;
+import com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.Quality;
+import com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.Storage;
+import com.norconex.crawler.web.processor.impl.FeaturedImageProcessorConfig.StorageDiskStructure;
 
 @MockServerSettings
 class FeaturedImageProcessorTest {
@@ -65,15 +68,16 @@ class FeaturedImageProcessorTest {
         var fetcher = crawler.getFetcher();
 
         var fip = new FeaturedImageProcessor();
-        fip.setStorage(List.of(Storage.INLINE, Storage.URL, Storage.DISK));
-        fip.setStorageDiskDir(tempDir.resolve("imageStorage"));
-        fip.setImageCacheDir(tempDir.resolve("imageCache"));
-        fip.setStorageInlineField("image-inline");
-        fip.setStorageUrlField("image-url");
-        fip.setStorageDiskField("image-path");
-        fip.setLargest(true);
-        fip.setImageCacheSize(0);
-        fip.setScaleDimensions(null);
+        fip.getConfiguration()
+            .setStorage(List.of(INLINE, URL, DISK))
+            .setStorageDiskDir(tempDir.resolve("imageStorage"))
+            .setImageCacheDir(tempDir.resolve("imageCache"))
+            .setStorageInlineField("image-inline")
+            .setStorageUrlField("image-url")
+            .setStorageDiskField("image-path")
+            .setLargest(true)
+            .setImageCacheSize(0)
+            .setScaleDimensions(null);
         fip.onCrawlerRunBegin(CrawlerEvent.builder()
                 .name("test")
                 .source(crawler)
@@ -90,9 +94,10 @@ class FeaturedImageProcessorTest {
 
         // first over 200x200, scaled 50% down
         doc = newDoc(docUrl);
-        fip.setLargest(false);
-        fip.setMinDimensions(new Dimension(200, 200));
-        fip.setScaleDimensions(new Dimension(160, 160));
+        fip.getConfiguration()
+            .setLargest(false)
+            .setMinDimensions(new Dimension(200, 200))
+            .setScaleDimensions(new Dimension(160, 160));
         fip.processDocument(fetcher, doc);
         assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
                 baseUrl + "/page/320x240.png");
@@ -105,9 +110,10 @@ class FeaturedImageProcessorTest {
         // first over 1x1 (base 64)
         doc = newDoc(docUrl);
         doc.getMetadata().remove("image-url");
-        fip.setLargest(false);
-        fip.setMinDimensions(new Dimension(1, 1));
-        fip.setScaleDimensions(null);
+        fip.getConfiguration()
+            .setLargest(false)
+            .setMinDimensions(new Dimension(1, 1))
+            .setScaleDimensions(null);
         fip.processDocument(fetcher, doc);
         img = new MutableImage(
                 Paths.get(doc.getMetadata().getString("image-path")));
@@ -119,22 +125,23 @@ class FeaturedImageProcessorTest {
         var p = new FeaturedImageProcessor();
 
         // All settings
-        p.setDomSelector("dom.dom");
-        p.setImageCacheDir(Paths.get("c:\\somedir"));
-        p.setImageCacheSize(5000);
-        p.setImageFormat("jpg");
-        p.setLargest(true);
-        p.setMinDimensions(new Dimension(100, 400));
-        p.setPageContentTypePattern("text/html");
-        p.setScaleQuality(Quality.LOW);
-        p.setScaleDimensions(new Dimension(50, 50));
-        p.setScaleStretch(true);
-        p.setStorage(List.of(Storage.URL, Storage.INLINE, Storage.DISK));
-        p.setStorageDiskDir(Paths.get("c:\\someotherdir"));
-        p.setStorageDiskStructure(StorageDiskStructure.DATETIME);
-        p.setStorageDiskField("diskField");
-        p.setStorageInlineField("inlineField");
-        p.setStorageUrlField("urlField");
+        p.getConfiguration()
+            .setDomSelector("dom.dom")
+            .setImageCacheDir(Paths.get("c:\\somedir"))
+            .setImageCacheSize(5000)
+            .setImageFormat("jpg")
+            .setLargest(true)
+            .setMinDimensions(new Dimension(100, 400))
+            .setPageContentTypePattern("text/html")
+            .setScaleQuality(Quality.LOW)
+            .setScaleDimensions(new Dimension(50, 50))
+            .setScaleStretch(true)
+            .setStorage(List.of(Storage.URL, Storage.INLINE, Storage.DISK))
+            .setStorageDiskDir(Paths.get("c:\\someotherdir"))
+            .setStorageDiskStructure(StorageDiskStructure.DATETIME)
+            .setStorageDiskField("diskField")
+            .setStorageInlineField("inlineField")
+            .setStorageUrlField("urlField");
 
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(p));

@@ -37,10 +37,10 @@ class GenericSitemapLocatorTest {
     void testGenericSitemapLocator(@TempDir Path tempDir) {
 
         var locator = new GenericSitemapLocator();
-        assertThat(locator.getPaths()).contains(
+        assertThat(locator.getConfiguration().getPaths()).contains(
                 "/sitemap.xml", "/sitemap_index.xml");
 
-        locator.setPaths(List.of("abc.xml", "def.xml"));
+        locator.getConfiguration().setPaths(List.of("abc.xml", "def.xml"));
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(locator));
 
@@ -60,7 +60,7 @@ class GenericSitemapLocatorTest {
                     "http://example.com/def.xml");
 
         // try with empty paths
-        locator.setPaths(null);
+        locator.getConfiguration().setPaths(null);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(locator));
     }

@@ -14,19 +14,13 @@
  */
 package com.norconex.crawler.core.spoil.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -73,79 +67,25 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class GenericSpoiledReferenceStrategizer implements
-        SpoiledReferenceStrategizer, XMLConfigurable {
+        SpoiledReferenceStrategizer,
+        Configurable<GenericSpoiledReferenceStrategizerConfig> {
 
-    public static final SpoiledReferenceStrategy DEFAULT_FALLBACK_STRATEGY =
-            SpoiledReferenceStrategy.DELETE;
-
-    private final Map<CrawlDocState, SpoiledReferenceStrategy> mappings =
-            new HashMap<>();
-    private SpoiledReferenceStrategy fallbackStrategy =
-            DEFAULT_FALLBACK_STRATEGY;
-
-    public GenericSpoiledReferenceStrategizer() {
-        // store default mappings
-        mappings.put(CrawlDocState.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
-        mappings.put(CrawlDocState.BAD_STATUS,
-                SpoiledReferenceStrategy.GRACE_ONCE);
-        mappings.put(CrawlDocState.ERROR, SpoiledReferenceStrategy.GRACE_ONCE);
-    }
+    @Getter
+    private final GenericSpoiledReferenceStrategizerConfig configuration =
+            new GenericSpoiledReferenceStrategizerConfig();
 
     @Override
     public SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
             String reference, CrawlDocState state) {
 
-        var strategy = mappings.get(state);
+        var strategy = configuration.getMappings().get(state);
         if (strategy == null) {
-            strategy = getFallbackStrategy();
+            strategy = configuration.getFallbackStrategy();
         }
         if (strategy == null) {
-            strategy = DEFAULT_FALLBACK_STRATEGY;
+            strategy = GenericSpoiledReferenceStrategizerConfig
+                    .DEFAULT_FALLBACK_STRATEGY;
         }
         return strategy;
-    }
-
-    public SpoiledReferenceStrategy getFallbackStrategy() {
-        return fallbackStrategy;
-    }
-    public void setFallbackStrategy(SpoiledReferenceStrategy fallbackStrategy) {
-        this.fallbackStrategy = fallbackStrategy;
-    }
-
-    public void addMapping(
-            CrawlDocState state, SpoiledReferenceStrategy strategy) {
-        mappings.put(state, strategy);
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        var fallback = xml.getEnum(
-                "@fallbackStrategy",
-                SpoiledReferenceStrategy.class, fallbackStrategy);
-        if (fallback != null) {
-            setFallbackStrategy(fallback);
-        }
-
-        for (XML node : xml.getXMLList("mapping")) {
-            var attribState = node.getString("@state", null);
-            var strategy = node.getEnum(
-                    "@strategy", SpoiledReferenceStrategy.class);
-            if (StringUtils.isBlank(attribState) || strategy == null) {
-                continue;
-            }
-            var state = CrawlDocState.valueOf(attribState);
-            addMapping(state, strategy);
-        }
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("fallbackStrategy", getFallbackStrategy());
-        for (Entry<CrawlDocState, SpoiledReferenceStrategy> entry :
-                mappings.entrySet()) {
-            xml.addElement("mapping")
-                    .setAttribute("state", entry.getKey())
-                    .setAttribute("strategy", entry.getValue());
-        }
     }
 }

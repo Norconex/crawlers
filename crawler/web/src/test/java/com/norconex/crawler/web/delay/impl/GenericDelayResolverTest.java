@@ -25,23 +25,24 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.web.delay.impl.GenericDelayResolver.DelaySchedule;
 @Disabled
 class GenericDelayResolverTest {
 
     @Test
     void testWriteRead() {
-        var r = new GenericDelayResolver();
-        r.setDefaultDelay(10000);
-        r.setIgnoreRobotsCrawlDelay(true);
-        r.setScope("thread");
         List<DelaySchedule> schedules = new ArrayList<>();
         schedules.add(new DelaySchedule(
                 "from Monday to Wednesday",
                 "from 1 to 15",
                 "from 1:00 to 2:00",
                 1000));
-        r.setSchedules(schedules);
+
+        var r = new GenericDelayResolver();
+        r.getConfiguration()
+            .setSchedules(schedules)
+            .setDefaultDelay(10000)
+            .setIgnoreRobotsCrawlDelay(true)
+            .setScope("thread");
 
         assertThatNoException().isThrownBy(() ->
                 BeanMapper.DEFAULT.assertWriteRead(r));
@@ -72,11 +73,11 @@ class GenericDelayResolverTest {
     @Test
     void testDelay() {
         var r = new GenericDelayResolver();
-        r.setDefaultDelay(0);
+        r.getConfiguration().setDefaultDelay(0);
         assertThatNoException().isThrownBy(
                 () -> r.delay(null, "http://somewhere.com"));
 
-        r.setDefaultDelay(50);
+        r.getConfiguration().setDefaultDelay(50);
         assertThatNoException().isThrownBy(
                 () -> r.delay(null, "http://somewhere.com"));
         // doing twice in a row to trigger within elapsed time

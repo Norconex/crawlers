@@ -149,7 +149,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                     .setTargetMetaField("myimage");
 
                 var f = createWebDriverHttpFetcher();
-                f.setScreenshotHandler(h);
+                f.getConfiguration().setScreenshotHandler(h);
                 cfg.setFetchers(List.of(f));
                 cfg.setMaxDepth(0);
             })
@@ -189,7 +189,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
             // by proxy, which resides locally.
             .forStartReferences(serverUrl(client, path))
             .crawlerSetup(cfg -> {
-                var snifCfg = new HttpSnifferConfig();
+                var sniffer = new HttpSniffer();
+                var snifCfg = sniffer.getConfiguration();
                 snifCfg.setHost("host.testcontainers.internal");
                 snifCfg.setPort(freePort());
                 // also test sniffer with large content
@@ -199,7 +200,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 Testcontainers.exposeHostPorts(
                         client.getPort(), snifCfg.getPort());
                 var f = createWebDriverHttpFetcher();
-                f.getConfiguration().setHttpSnifferConfig(snifCfg);
+                f.getConfiguration().setHttpSniffer(sniffer);
                 cfg.setFetchers(List.of(f));
                 cfg.setMaxDepth(0);
             })

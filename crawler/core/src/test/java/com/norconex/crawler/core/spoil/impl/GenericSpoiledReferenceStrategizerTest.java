@@ -14,9 +14,11 @@
  */
 package com.norconex.crawler.core.spoil.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
 
@@ -26,9 +28,14 @@ class GenericSpoiledReferenceStrategizerTest  {
     @Test
     void testWriteRead() {
         var s = new GenericSpoiledReferenceStrategizer();
-        s.setFallbackStrategy(SpoiledReferenceStrategy.GRACE_ONCE);
-        s.addMapping(CrawlDocState.MODIFIED, SpoiledReferenceStrategy.IGNORE);
-        s.addMapping(CrawlDocState.BAD_STATUS, SpoiledReferenceStrategy.DELETE);
-        XML.assertWriteRead(s, "spoiledReferenceStrategizer");
+        s.getConfiguration()
+            .setFallbackStrategy(SpoiledReferenceStrategy.GRACE_ONCE)
+            .setMapping(CrawlDocState.MODIFIED,
+                    SpoiledReferenceStrategy.IGNORE)
+            .setMapping(CrawlDocState.BAD_STATUS,
+                    SpoiledReferenceStrategy.DELETE);
+        assertThatNoException().isThrownBy(() -> {
+            BeanMapper.DEFAULT.assertWriteRead(s);
+        });
     }
 }

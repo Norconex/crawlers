@@ -52,8 +52,8 @@ import com.norconex.crawler.web.sitemap.SitemapLocator;
 import com.norconex.crawler.web.sitemap.SitemapResolver;
 import com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver;
-import com.norconex.crawler.web.url.WebURLNormalizer;
-import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
+import com.norconex.crawler.web.url.WebUrlNormalizer;
+import com.norconex.crawler.web.url.impl.GenericUrlNormalizer;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.Data;
@@ -88,7 +88,7 @@ import lombok.experimental.FieldNameConstants;
  * <b>Scope: </b> To limit crawling to specific web domains, and avoid creating
  * many filters to that effect, you can tell the crawler to "stay" within
  * the web site "scope" with
- * {@link #setUrlCrawlScopeStrategy(URLCrawlScopeStrategy)}.
+ * {@link #setUrlCrawlScopeStrategy(UrlCrawlScopeStrategy)}.
  * </p>
  *
  * <h3>URL Normalization</h3>
@@ -98,7 +98,7 @@ import lombok.experimental.FieldNameConstants;
  * same document multiple times. To avoid this, URLs are "normalized". That is,
  * they are converted so they are always formulated the same way.
  * By default, the crawler only applies normalization in ways that are
- * semantically equivalent (see {@link GenericURLNormalizer}).
+ * semantically equivalent (see {@link GenericUrlNormalizer}).
  * </p>
  *
  * <h3>Crawl Speed</h3>
@@ -573,15 +573,15 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param urlCrawlScopeStrategy strategy to use
      * @return the strategy
      */
-    private URLCrawlScopeStrategy urlCrawlScopeStrategy =
-            new URLCrawlScopeStrategy();
+    private UrlCrawlScopeStrategy urlCrawlScopeStrategy =
+            new UrlCrawlScopeStrategy();
 
     /**
-     * The URL normalizer. Defaults to {@link GenericURLNormalizer}.
+     * The URL normalizer. Defaults to {@link GenericUrlNormalizer}.
      * @param urlNormalizer URL normalizer
      * @return URL normalizer
      */
-    private WebURLNormalizer urlNormalizer = new GenericURLNormalizer();
+    private WebUrlNormalizer urlNormalizer = new GenericUrlNormalizer();
 
     /**
      * The delay resolver dictating the minimum amount of time to wait
@@ -883,7 +883,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
 //        xml.checkDeprecated("keepOutOfScopeLinks", "keepReferencedLinks", true);
 //
 //        setUrlNormalizer(xml.getObjectImpl(
-//                WebURLNormalizer.class, "urlNormalizer", urlNormalizer));
+//                WebUrlNormalizer.class, "urlNormalizer", urlNormalizer));
 //        setDelayResolver(xml.getObjectImpl(
 //                DelayResolver.class, "delay", delayResolver));
 //

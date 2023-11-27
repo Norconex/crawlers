@@ -22,8 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.norconex.commons.lang.bean.module.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.time.DurationParser;
@@ -31,6 +30,7 @@ import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -100,8 +100,9 @@ import lombok.experimental.FieldNameConstants;
  */
 @Data
 @FieldNameConstants
+@Accessors(chain = true)
 @SuppressWarnings("javadoc")
-public class CrawlSessionConfig { // implements XMLConfigurable {
+public class CrawlSessionConfig {
 
     /** Default relative directory where generated files are written. */
     public static final Path DEFAULT_WORK_DIR = Paths.get("./work");
@@ -168,9 +169,9 @@ public class CrawlSessionConfig { // implements XMLConfigurable {
 
     // see methods for javadoc
     @JsonProperty("crawlers")
-    @JacksonXmlElementWrapper(localName = "crawlers")
-    @JacksonXmlProperty(localName = "crawler")
+    @JsonXmlCollection(entryName = "crawler")
     private final List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
+    @JsonXmlCollection
     private final List<EventListener<?>> eventListeners = new ArrayList<>();
 
     /**

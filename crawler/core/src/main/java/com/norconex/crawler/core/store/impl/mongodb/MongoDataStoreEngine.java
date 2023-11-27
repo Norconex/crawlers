@@ -27,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.pojo.PojoCodecProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -36,17 +34,18 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.text.StringUtil;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -60,13 +59,11 @@ import lombok.ToString;
  * }
  *
  */
+@Slf4j
 @EqualsAndHashCode
 @ToString
 public class MongoDataStoreEngine
-        implements DataStoreEngine, XMLConfigurable {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(MongoDataStoreEngine.class);
+        implements DataStoreEngine, Configurable<MongoDataStoreEngineConfig> {
 
     private static final String STORE_TYPES_KEY =
             MongoDataStoreEngine.class.getSimpleName() + "--storetypes";
@@ -76,16 +73,9 @@ public class MongoDataStoreEngine
     private MongoDatabase database;
     private MongoCollection<Document> storeTypes;
 
-    // Configurable:
-    private String connectionString;
-
-    public String getConnectionString() {
-        return connectionString;
-    }
-    public void setConnectionString(String connectionString) {
-        this.connectionString = connectionString;
-    }
-
+    @Getter
+    private MongoDataStoreEngineConfig configuration =
+            new MongoDataStoreEngineConfig();
     @Override
     public void init(Crawler crawler) {
         LOG.info("Initializing MongoDB data store engine...");
@@ -103,7 +93,8 @@ public class MongoDataStoreEngine
                     MongoClientSettings.getDefaultCodecRegistry(),
                     CodecRegistries.fromProviders(
                         PojoCodecProvider.builder().automatic(true).build())))
-                .applyConnectionString(new ConnectionString(connectionString))
+                .applyConnectionString(new ConnectionString(
+                        configuration.getConnectionString()))
                 .build());
 
         database = client.getDatabase(dbName);
@@ -180,17 +171,6 @@ public class MongoDataStoreEngine
             throw new DataStoreException(
                     "Could not determine type of: " + name, e);
         }
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setConnectionString(
-                xml.getString("connectionString", getConnectionString()));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("connectionString", getConnectionString());
     }
 
     private boolean colExists(String name) {

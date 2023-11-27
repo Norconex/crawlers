@@ -14,18 +14,10 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.norconex.commons.lang.CircularRange;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.crawler.CrawlerException;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -101,23 +93,17 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-public class GenericDelayResolver extends AbstractDelayResolver {
+public class GenericDelayResolver
+        extends AbstractDelayResolver<GenericDelayResolverConfig> {
 
-    private static final int MIN_DOW_LENGTH = 3;
-
-    private List<DelaySchedule> schedules = new ArrayList<>();
-
-    public List<DelaySchedule> getSchedules() {
-        return schedules;
-    }
-    public void setSchedules(List<DelaySchedule> schedules) {
-        this.schedules = schedules;
-    }
+    @Getter
+    private final GenericDelayResolverConfig configuration =
+            new GenericDelayResolverConfig();
 
     @Override
     protected long resolveExplicitDelay(String url) {
         long delay = -1;
-        for (DelaySchedule schedule : schedules) {
+        for (DelaySchedule schedule : configuration.getSchedules()) {
             if (schedule.isCurrentTimeInSchedule()) {
                 delay = schedule.getDelay();
                 break;
@@ -125,138 +111,43 @@ public class GenericDelayResolver extends AbstractDelayResolver {
         }
         return delay;
     }
+//
+//    @Override
+//    protected void loadDelaysFromXML(XML xml) {
+//        for (XML sxml : xml.getXMLList("schedule")) {
+//            schedules.add(new DelaySchedule(
+//                    sxml.getString("@dayOfWeek", null),
+//                    sxml.getString("@dayOfMonth", null),
+//                    sxml.getString("@time", null),
+//                    sxml.getDurationMillis(".", DEFAULT_DELAY)
+//            ));
+//        }
+//    }
+//
+//    @Override
+//    protected void saveDelaysToXML(XML xml) {
+//        var from = "from ";
+//        var to = " to ";
+//        for (DelaySchedule schedule : schedules) {
+//            var sxml = xml.addElement("schedule", schedule.getDelay());
+//            if (schedule.getDayOfWeekRange() != null) {
+//                sxml.setAttribute("dayOfWeek",
+//                        from + schedule.getDayOfWeekRange().getMinimum()
+//                      + to + schedule.getDayOfWeekRange().getMaximum());
+//            }
+//            if (schedule.getDayOfMonthRange() != null) {
+//                sxml.setAttribute("dayOfMonth",
+//                        from + schedule.getDayOfMonthRange().getMinimum()
+//                      + to + schedule.getDayOfMonthRange().getMaximum());
+//            }
+//            if (schedule.getTimeRange() != null) {
+//                int min = schedule.getTimeRange().getMinimum();
+//                int max = schedule.getTimeRange().getMaximum();
+//                sxml.setAttribute("time",
+//                        from + (min / 100) + ":" + (min % 100)
+//                      + to + (max / 100) + ":" + (max % 100));
+//            }
+//        }
+//    }
 
-    @Override
-    protected void loadDelaysFromXML(XML xml) {
-        for (XML sxml : xml.getXMLList("schedule")) {
-            schedules.add(new DelaySchedule(
-                    sxml.getString("@dayOfWeek", null),
-                    sxml.getString("@dayOfMonth", null),
-                    sxml.getString("@time", null),
-                    sxml.getDurationMillis(".", DEFAULT_DELAY)
-            ));
-        }
-    }
-
-    @Override
-    protected void saveDelaysToXML(XML xml) {
-        var from = "from ";
-        var to = " to ";
-        for (DelaySchedule schedule : schedules) {
-            var sxml = xml.addElement("schedule", schedule.getDelay());
-            if (schedule.getDayOfWeekRange() != null) {
-                sxml.setAttribute("dayOfWeek",
-                        from + schedule.getDayOfWeekRange().getMinimum()
-                      + to + schedule.getDayOfWeekRange().getMaximum());
-            }
-            if (schedule.getDayOfMonthRange() != null) {
-                sxml.setAttribute("dayOfMonth",
-                        from + schedule.getDayOfMonthRange().getMinimum()
-                      + to + schedule.getDayOfMonthRange().getMaximum());
-            }
-            if (schedule.getTimeRange() != null) {
-                int min = schedule.getTimeRange().getMinimum();
-                int max = schedule.getTimeRange().getMaximum();
-                sxml.setAttribute("time",
-                        from + (min / 100) + ":" + (min % 100)
-                      + to + (max / 100) + ":" + (max % 100));
-            }
-        }
-    }
-
-    @EqualsAndHashCode
-    @ToString
-    public static class DelaySchedule {
-        private final CircularRange<DOW> dayOfWeekRange;
-        private final CircularRange<Integer> dayOfMonthRange;
-        // time is 4 digits. E.g., 16:34 is 1634
-        //MAYBE: use LocalTime (and make this class top-level)?
-        private final CircularRange<Integer> timeRange;
-        private final long delay;
-        public enum DOW {MON,TUE,WED,THU,FRI,SAT,SUN}
-
-        public DelaySchedule(String dow, String dom, String time, long delay) {
-            dayOfWeekRange = parseDayOfWeekRange(dow);
-            dayOfMonthRange = parseDayOfMonthRange(dom);
-            timeRange = parseTime(time);
-            this.delay = delay;
-        }
-        public boolean isCurrentTimeInSchedule() {
-            return isDateTimeInSchedule(LocalDateTime.now());
-        }
-        boolean isDateTimeInSchedule(LocalDateTime dt) {
-            if ((dayOfWeekRange != null && !dayOfWeekRange.contains(
-                    DOW.values()[dt.getDayOfWeek().ordinal()]))
-                    || (dayOfMonthRange != null
-                    && !dayOfMonthRange.contains(dt.getDayOfMonth()))) {
-                return false;
-            }
-            return timeRange == null || timeRange.contains(
-                    (dt.getHour() * 100) + dt.getMinute());
-        }
-        public CircularRange<DOW> getDayOfWeekRange() {
-            return dayOfWeekRange;
-        }
-        public CircularRange<Integer> getDayOfMonthRange() {
-            return dayOfMonthRange;
-        }
-        public CircularRange<Integer> getTimeRange() {
-            return timeRange;
-        }
-        public long getDelay() {
-            return delay;
-        }
-        private CircularRange<Integer> parseTime(String time) {
-            if (StringUtils.isBlank(time)) {
-                return null;
-            }
-            var localTime = normalize(time);
-            var parts = StringUtils.split(localTime, '-');
-            return CircularRange.between(
-                    0, 2359, toTimeInt(parts[0]), toTimeInt(parts[1]));
-        }
-        private CircularRange<DOW> parseDayOfWeekRange(String dayOfWeek) {
-            if (StringUtils.isBlank(dayOfWeek)) {
-                return null;
-            }
-            var dow = normalize(dayOfWeek);
-            var parts = StringUtils.split(dow, '-');
-            return CircularRange.between(
-                    DOW.MON, DOW.SUN, toDow(parts[0]), toDow(parts[1]));
-        }
-        private CircularRange<Integer> parseDayOfMonthRange(String dayOfMonth) {
-            if (StringUtils.isBlank(dayOfMonth)) {
-                return null;
-            }
-            var dom = normalize(dayOfMonth);
-            var parts = StringUtils.split(dom, '-');
-            return CircularRange.between(1, 31,
-                    Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
-        }
-        private Integer toTimeInt(String str) {
-            if (str.contains(":")) {
-                var parts = StringUtils.split(str, ':');
-                return (Integer.parseInt(parts[0]) * 100)
-                        + Integer.parseInt(parts[1]);
-            }
-            return Integer.parseInt(str) * 100;
-        }
-        private static DOW toDow(String str) {
-            if (str.length() < MIN_DOW_LENGTH) {
-                throw new CrawlerException("Invalid day of week: " + str);
-            }
-            var dow = str.substring(0, MIN_DOW_LENGTH);
-            return DOW.valueOf(dow.toUpperCase());
-        }
-        private String normalize(String str) {
-            var out = str.toLowerCase();
-            out = StringUtils.remove(out, "from");
-            out = out.replace("to", "-");
-            out = StringUtils.remove(out, " ");
-            if (!out.contains("-")) {
-                throw new CrawlerException("Invalid range format: " + str);
-            }
-            return out;
-        }
-    }
 }

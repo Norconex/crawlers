@@ -24,7 +24,7 @@
   <workDir>/workdir</workDir>
   
   <eventListeners>
-    <listener class="com.norconex.crawler.web.crawler.event.impl.URLStatusCrawlerEventListener">
+    <listener class="com.norconex.crawler.web.crawler.event.impl.UrlStatusCrawlerEventListener">
       <statusCodes>404</statusCodes>
       <outputDir>/tmp/path</outputDir>
       <fileNamePrefix>broken-links</fileNamePrefix>
@@ -60,7 +60,7 @@
       </listener>
     </eventListeners>
     
-    <urlNormalizer class="com.norconex.crawler.web.url.impl.GenericURLNormalizer">
+    <urlNormalizer class="com.norconex.crawler.web.url.impl.GenericUrlNormalizer">
       <normalizations>
         lowerCaseSchemeHost, upperCaseEscapeSequence, 
         decodeUnreservedCharacters, removeDefaultPort 
@@ -171,7 +171,7 @@
       <filter class=".GenericReferenceFilter" onMatch="exclude">
         <valueMatcher ignoreCase="false" method="regex">.*example.com.*</valueMatcher>
       </filter>
-      <filter class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
+      <filter class="com.norconex.crawler.web.filter.impl.SegmentCountUrlFilter"
               onMatch="exclude" count="5" duplicate="false">
         <separator>/</separator>
       </filter>
@@ -213,7 +213,7 @@
         <valueMatcher ignoreCase="true" method="regex">Blah.*</valueMatcher>
         <fieldMatcher>title</fieldMatcher>
       </filter>
-      <filter class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
+      <filter class="com.norconex.crawler.web.filter.impl.SegmentCountUrlFilter"
               onMatch="exclude" count="5" duplicate="false">
         <separator>/</separator>
       </filter>
@@ -280,7 +280,7 @@
           <pattern><match>http://.*?\.html</match></pattern>
         </linkExtractionPatterns>
       </extractor>
-      <extractor class="com.norconex.crawler.web.link.impl.XMLFeedLinkExtractor">
+      <extractor class="com.norconex.crawler.web.link.impl.XmlFeedLinkExtractor">
         <restrictTo>
           <fieldMatcher>document.contentType</fieldMatcher>
           <valueMatcher method="regex">.*</valueMatcher>
@@ -301,7 +301,7 @@
         <fieldMatcher>title</fieldMatcher>
         <valueMatcher ignoreCase="true" method="regex">Blah.*</valueMatcher>
       </filter>
-      <filter class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
+      <filter class="com.norconex.crawler.web.filter.impl.SegmentCountUrlFilter"
               onMatch="exclude" count="5" duplicate="false">
         <separator>/</separator>
       </filter>

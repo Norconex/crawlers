@@ -40,7 +40,7 @@ class MongoDataStoreEngineTest extends AbstractDataStoreEngineTest {
 
         LOG.info("Creating new Mongo data store engine using: {}", connStr);
         var engine = new MongoDataStoreEngine();
-        engine.setConnectionString(connStr);
+        engine.getConfiguration().setConnectionString(connStr);
         return engine;
     }
 }

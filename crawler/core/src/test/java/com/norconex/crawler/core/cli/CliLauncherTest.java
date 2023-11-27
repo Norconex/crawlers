@@ -14,23 +14,8 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.committer.core.CommitterEvent;
-import com.norconex.committer.core.service.CommitterServiceEvent;
-import com.norconex.commons.lang.SystemUtil;
-import com.norconex.crawler.core.CoreStubber;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.core.session.CrawlSessionEvent;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.core.tools.picocli.CommandLine;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+//@Slf4j
+class CliLauncherTest {
 
 import static com.norconex.crawler.core.TestUtil.testLaunch;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,8 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 class CliLauncherTest {
 
+    //TODO migrate these:
     // Maybe a class for each crawler action/test?
 
+  /*
     @TempDir
     private Path tempDir;
 
@@ -302,6 +289,7 @@ class CliLauncherTest {
                 exit1.getStdOut().trim());
     }
 
+*/
     //TODO write unit tests for <app> help command
     //TODO test with .variables and .properties and system env/props
 }

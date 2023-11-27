@@ -41,7 +41,9 @@ public class GenericCanonicalLinkDetectorConfig {
      * Sets the content types on which to perform canonical link detection.
      * @param contentTypes content types
      */
-    public void setContentTypes(List<ContentType> contentTypes) {
+    public GenericCanonicalLinkDetectorConfig setContentTypes(
+            List<ContentType> contentTypes) {
         CollectionUtil.setAll(this.contentTypes, contentTypes);
+        return this;
     }
 }

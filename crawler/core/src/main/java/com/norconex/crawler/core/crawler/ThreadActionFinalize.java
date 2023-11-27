@@ -28,7 +28,7 @@ import com.norconex.crawler.core.crawler.CrawlerThread.ThreadActionContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
+import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizerConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -146,7 +146,7 @@ final class ThreadActionFinalize {
                 .map(srs -> srs.resolveSpoiledReferenceStrategy(
                         ctx.docRecord().getReference(),
                         ctx.docRecord().getState()))
-                .orElse(GenericSpoiledReferenceStrategizer
+                .orElse(GenericSpoiledReferenceStrategizerConfig
                         .DEFAULT_FALLBACK_STRATEGY);
 
             if (strategy == SpoiledReferenceStrategy.IGNORE) {

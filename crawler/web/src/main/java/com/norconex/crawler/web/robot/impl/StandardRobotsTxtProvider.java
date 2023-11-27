@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hc.core5.http.HttpStatus;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.url.HttpURL;
@@ -49,7 +50,6 @@ import com.norconex.crawler.web.robot.RobotsTxt;
 import com.norconex.crawler.web.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -74,15 +74,18 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @Slf4j
-@Data
+@EqualsAndHashCode
+@ToString
 public class StandardRobotsTxtProvider
         extends CrawlerLifeCycleListener
         implements RobotsTxtProvider {
 
+    @JsonIgnore
     private final Map<String, RobotsTxt> robotsTxtCache = new HashMap<>();
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private Crawler crawler;
 
     @Override

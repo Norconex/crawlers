@@ -26,20 +26,21 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.web.delay.impl.ReferenceDelayResolver.DelayReferencePattern;
 @Disabled
 class ReferenceDelayResolverTest {
 
     @Test
     void testWriteRead() {
-        var r = new ReferenceDelayResolver();
-        r.setDefaultDelay(10000);
-        r.setIgnoreRobotsCrawlDelay(true);
-        r.setScope("thread");
         List<DelayReferencePattern> delayPatterns = new ArrayList<>();
         delayPatterns.add(new DelayReferencePattern(
                 "http://example\\.com/.*", 1000));
-        r.setDelayReferencePatterns(delayPatterns);
+
+        var r = new ReferenceDelayResolver();
+        r.getConfiguration()
+            .setDelayReferencePatterns(delayPatterns)
+            .setDefaultDelay(10000)
+            .setIgnoreRobotsCrawlDelay(true)
+            .setScope("thread");
 
         assertThatNoException().isThrownBy(() ->
                 BeanMapper.DEFAULT.assertWriteRead(r));
@@ -55,7 +56,7 @@ class ReferenceDelayResolverTest {
     @Test
     void testResolveExplicitDelay() {
         var r = new ReferenceDelayResolver();
-        r.setDelayReferencePatterns(List.of(
+        r.getConfiguration().setDelayReferencePatterns(List.of(
                 new DelayReferencePattern(".*abc.*", 123),
                 new DelayReferencePattern(".*def.*", 456)));
 

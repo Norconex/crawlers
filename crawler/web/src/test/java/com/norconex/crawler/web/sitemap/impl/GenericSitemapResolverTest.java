@@ -134,7 +134,7 @@ class GenericSitemapResolverTest {
     @Test
     void testWriteRead() {
         var r = new GenericSitemapResolver();
-        r.setLenient(true);
+        r.getConfiguration().setLenient(true);
         LOG.debug("Writing/Reading this: {}", r);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(r));

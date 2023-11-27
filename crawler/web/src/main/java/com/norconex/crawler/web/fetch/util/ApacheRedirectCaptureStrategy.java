@@ -35,12 +35,12 @@ public class ApacheRedirectCaptureStrategy extends DefaultRedirectStrategy {
             ApacheRedirectCaptureStrategy.class.getName() + ".targetRedirect";
 
 
-    private final RedirectURLProvider redirectURLProvider;
+    private final RedirectUrlProvider redirectUrlProvider;
 
 
     public ApacheRedirectCaptureStrategy(
-            RedirectURLProvider redirectURLProvider) {
-        this.redirectURLProvider = redirectURLProvider;
+            RedirectUrlProvider redirectUrlProvider) {
+        this.redirectUrlProvider = redirectUrlProvider;
     }
 
     // Here we always return false since we are not following redirects
@@ -55,7 +55,7 @@ public class ApacheRedirectCaptureStrategy extends DefaultRedirectStrategy {
 
         var isRedirected = super.isRedirected(request, response, context);
         if (isRedirected) {
-            var targetURL = redirectURLProvider.provideRedirectURL(
+            var targetURL = redirectUrlProvider.provideRedirectURL(
                     request, response, context);
             if (StringUtils.isNotBlank(targetURL)) {
                 context.setAttribute(TARGET_REDIRECT_CONTEXT_KEY, targetURL);

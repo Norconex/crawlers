@@ -16,13 +16,11 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -56,7 +54,8 @@ import lombok.Data;
  * @since 3.0.0
  */
 @Data
-public class HttpSnifferConfig implements XMLConfigurable {
+@Accessors(chain = true)
+public class HttpSnifferConfig {
 
     public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_MAX_BUFFER_SIZE =
@@ -68,31 +67,33 @@ public class HttpSnifferConfig implements XMLConfigurable {
     private final Map<String, String> requestHeaders = new HashMap<>();
     private int maxBufferSize = DEFAULT_MAX_BUFFER_SIZE;
 
-    public void setRequestHeaders(Map<String, String> requestHeaders) {
+    public HttpSnifferConfig setRequestHeaders(
+            Map<String, String> requestHeaders) {
         this.requestHeaders.clear();
         this.requestHeaders.putAll(requestHeaders);
+        return this;
     }
 
-    @Override
-    public void loadFromXML(XML xml) {
-        setHost(xml.getString("host", getHost()));
-        setPort(xml.getInteger("port", getPort()));
-        setUserAgent(xml.getString("userAgent", getUserAgent()));
-        setMaxBufferSize(xml.getDataSize(
-                "maxBufferSize", (long) getMaxBufferSize()).intValue());
-        setRequestHeaders(xml.getStringMap(
-                "headers/header", "@name", ".", requestHeaders));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("host", host);
-        xml.addElement("port", port);
-        xml.addElement("userAgent", userAgent);
-        xml.addElement("maxBufferSize", maxBufferSize);
-        var xmlHeaders = xml.addXML("headers");
-        for (Entry<String, String> entry : requestHeaders.entrySet()) {
-            xmlHeaders.addXML("header").setAttribute(
-                    "name", entry.getKey()).setTextContent(entry.getValue());
-        }
-    }
+//    @Override
+//    public void loadFromXML(XML xml) {
+//        setHost(xml.getString("host", getHost()));
+//        setPort(xml.getInteger("port", getPort()));
+//        setUserAgent(xml.getString("userAgent", getUserAgent()));
+//        setMaxBufferSize(xml.getDataSize(
+//                "maxBufferSize", (long) getMaxBufferSize()).intValue());
+//        setRequestHeaders(xml.getStringMap(
+//                "headers/header", "@name", ".", requestHeaders));
+//    }
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.addElement("host", host);
+//        xml.addElement("port", port);
+//        xml.addElement("userAgent", userAgent);
+//        xml.addElement("maxBufferSize", maxBufferSize);
+//        var xmlHeaders = xml.addXML("headers");
+//        for (Entry<String, String> entry : requestHeaders.entrySet()) {
+//            xmlHeaders.addXML("header").setAttribute(
+//                    "name", entry.getKey()).setTextContent(entry.getValue());
+//        }
+//    }
 }

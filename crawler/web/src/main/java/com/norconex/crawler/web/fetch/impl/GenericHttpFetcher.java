@@ -98,7 +98,7 @@ import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.crawler.web.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
-import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
+import com.norconex.crawler.web.url.impl.GenericUrlNormalizer;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
@@ -161,7 +161,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * If you want to convert non-secure URLs secure ones regardless of website
  * HSTS support, use
- * {@link GenericURLNormalizer.Normalization#secureScheme} instead.
+ * {@link GenericUrlNormalizer.Normalization#secureScheme} instead.
  * To disable HSTS support, use
  * {@link GenericHttpFetcherConfig#setDisableHSTS(boolean)}.
  * </p>
@@ -535,7 +535,7 @@ public class GenericHttpFetcher
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
         builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
-                configuration.getRedirectURLProvider()));
+                configuration.getRedirectUrlProvider()));
 
         buildCustomHttpClient(builder);
 

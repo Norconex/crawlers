@@ -31,8 +31,8 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.doc.WebDocRecord;
-import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver.MinFrequency;
-import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver.SitemapSupport;
+import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency;
+import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,14 +42,14 @@ class GenericRecrawlableResolverTest {
     @Test
     void testWriteRead() {
         var r = new GenericRecrawlableResolver();
-        r.setSitemapSupport(SitemapSupport.LAST);
+        r.getConfiguration().setSitemapSupport(SitemapSupport.LAST);
 
         var f1 = new MinFrequency("reference", "monthly",
                 TextMatcher.regex(".*\\.pdf").ignoreCase());
         var f2 = new MinFrequency("contentType", "1234",
                 TextMatcher.regex(".*"));
 
-        r.setMinFrequencies(List.of(f1, f2));
+        r.getConfiguration().setMinFrequencies(List.of(f1, f2));
 
         LOG.debug("Writing/Reading this: {}", r);
         assertThatNoException().isThrownBy(
@@ -60,7 +60,7 @@ class GenericRecrawlableResolverTest {
     @Test
     void testCustomFrequency() {
         var r = new GenericRecrawlableResolver();
-        r.setSitemapSupport(SitemapSupport.NEVER);
+        r.getConfiguration().setSitemapSupport(SitemapSupport.NEVER);
 
         var prevCrawlDate = ZonedDateTime.now().minusDays(10);
 
@@ -72,12 +72,12 @@ class GenericRecrawlableResolverTest {
         var f = new MinFrequency(
                 "reference", "120 days", TextMatcher.regex(".*"));
 
-        r.setMinFrequencies(List.of(f));
+        r.getConfiguration().setMinFrequencies(List.of(f));
         Assertions.assertFalse(r.isRecrawlable(prevCrawl));
 
         // Delay has passed
         f = new MinFrequency("reference", "5 days", TextMatcher.regex(".*"));
-        r.setMinFrequencies(List.of(f));
+        r.getConfiguration().setMinFrequencies(List.of(f));
         Assertions.assertTrue(r.isRecrawlable(prevCrawl));
     }
 
@@ -149,12 +149,12 @@ class GenericRecrawlableResolverTest {
                     ZonedDateTime.now().minusDays(sitemapLastModDays));
         }
 
-        resolver.setSitemapSupport(
+        resolver.getConfiguration().setSitemapSupport(
                 SitemapSupport.getSitemapSupport(sitemapSupport));
 
         var matcher = "reference".equals(minFreqApplyTo)
                 ? TextMatcher.basic(url) : TextMatcher.basic("text/html");
-        resolver.setMinFrequencies(List.of(new MinFrequency(
+        resolver.getConfiguration().setMinFrequencies(List.of(new MinFrequency(
                 minFreqApplyTo, minFreqValue, matcher)));
 
         assertThat(resolver.isRecrawlable(prevRec)).isEqualTo(expected);

@@ -31,8 +31,8 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.web.fetch.HttpMethod;
-import com.norconex.crawler.web.fetch.util.GenericRedirectURLProvider;
-import com.norconex.crawler.web.fetch.util.RedirectURLProvider;
+import com.norconex.crawler.web.fetch.util.GenericRedirectUrlProvider;
+import com.norconex.crawler.web.fetch.util.RedirectUrlProvider;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -235,12 +235,12 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
 
     /**
      * The redirect URL provider.
-     * Defaults to {@link GenericRedirectURLProvider}.
-     * @param redirectURLProvider redirect URL provider
+     * Defaults to {@link GenericRedirectUrlProvider}.
+     * @param redirectUrlProvider redirect URL provider
      * @return the redirect URL provider
      */
-    private RedirectURLProvider redirectURLProvider =
-            new GenericRedirectURLProvider();
+    private RedirectUrlProvider redirectUrlProvider =
+            new GenericRedirectUrlProvider();
 
     private final List<HttpMethod> httpMethods = new ArrayList<>(Arrays.asList(
             HttpMethod.GET, HttpMethod.HEAD));
@@ -288,8 +288,10 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * Gets valid HTTP response status codes.
      * @param validStatusCodes valid status codes
      */
-    public void setValidStatusCodes(List<Integer> validStatusCodes) {
+    public GenericHttpFetcherConfig setValidStatusCodes(
+            List<Integer> validStatusCodes) {
         CollectionUtil.setAll(this.validStatusCodes, validStatusCodes);
+        return this;
     }
 
     /**
@@ -460,8 +462,8 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
 //        setIfModifiedSinceDisabled(xml.getBoolean(
 //                "ifModifiedSinceDisabled", ifModifiedSinceDisabled));
 //        setETagDisabled(xml.getBoolean("eTagDisabled", eTagDisabled));
-//        setRedirectURLProvider(xml.getObjectImpl(RedirectURLProvider.class,
-//                "redirectURLProvider", redirectURLProvider));
+//        setRedirectURLProvider(xml.getObjectImpl(RedirectUrlProvider.class,
+//                "redirectUrlProvider", redirectUrlProvider));
 //
 //        trustAllSSLCertificates = xml.getBoolean(
 //                "trustAllSSLCertificates", trustAllSSLCertificates);
@@ -508,7 +510,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
 //        xml.addElement("ifModifiedSinceDisabled", ifModifiedSinceDisabled);
 //        xml.addElement("eTagDisabled", eTagDisabled);
 //
-//        xml.addElement("redirectURLProvider", redirectURLProvider);
+//        xml.addElement("redirectUrlProvider", redirectUrlProvider);
 //
 //        xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
 //        xml.addElement("sniDisabled", sniDisabled);

@@ -15,6 +15,8 @@
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import static java.time.Duration.ofMillis;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +25,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.openqa.selenium.JavascriptExecutor;
@@ -39,7 +40,6 @@ import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlDocState;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -190,8 +190,8 @@ public class WebDriverHttpFetcher
             new WebDriverHttpFetcherConfig();
     private CachedStreamFactory streamFactory;
     private String userAgent;
-    private HttpSniffer httpSniffer;
-    private ScreenshotHandler screenshotHandler;
+//    private HttpSniffer httpSniffer;
+//    private ScreenshotHandler screenshotHandler;
     private WebDriverHolder driverHolder;
 
     @Override
@@ -220,15 +220,16 @@ public class WebDriverHttpFetcher
 
         LOG.debug("Fetching document: {}", doc.getReference());
 
-        if (httpSniffer != null) {
-            httpSniffer.bind(doc.getReference());
+        if (configuration.getHttpSniffer() != null) {
+            configuration.getHttpSniffer().bind(doc.getReference());
         }
 
         doc.setInputStream(fetchDocumentContent(doc.getReference()));
         var response = resolveDriverResponse(doc);
 
-        if (screenshotHandler != null) {
-            screenshotHandler.takeScreenshot(driverHolder.getDriver(), doc);
+        if (configuration.getScreenshotHandler() != null) {
+            configuration.getScreenshotHandler().takeScreenshot(
+                    driverHolder.getDriver(), doc);
         }
 
         if (response != null) {
@@ -236,7 +237,7 @@ public class WebDriverHttpFetcher
         }
 
         return GenericHttpFetchResponse.builder()
-                .crawlDocState(WebCrawlDocState.NEW)
+                .crawlDocState(CrawlDocState.NEW)
                 .statusCode(200)
                 .reasonPhrase("No exception thrown, but real status code "
                         + "unknown. Capture headers for real status code.")
@@ -249,13 +250,13 @@ public class WebDriverHttpFetcher
         return userAgent;
     }
 
-    public ScreenshotHandler getScreenshotHandler() {
-        return screenshotHandler;
-    }
-    public void setScreenshotHandler(
-            ScreenshotHandler screenshotHandler) {
-        this.screenshotHandler = screenshotHandler;
-    }
+//    public ScreenshotHandler getScreenshotHandler() {
+//        return screenshotHandler;
+//    }
+//    public void setScreenshotHandler(
+//            ScreenshotHandler screenshotHandler) {
+//        this.screenshotHandler = screenshotHandler;
+//    }
 
     @Override
     protected void fetcherStartup(CrawlSession c) {
@@ -267,13 +268,12 @@ public class WebDriverHttpFetcher
 
         driverHolder = new WebDriverHolder(configuration);
 
-        if (configuration.getHttpSnifferConfig() != null) {
+        if (configuration.getHttpSniffer() != null) {
             LOG.info("Starting {} HTTP sniffer...", configuration.getBrowser());
-            httpSniffer = new HttpSniffer();
-            httpSniffer.start(
-                    driverHolder.getDriverOptions().getValue(),
-                    configuration.getHttpSnifferConfig());
-            userAgent = configuration.getHttpSnifferConfig().getUserAgent();
+            configuration.getHttpSniffer().start(
+                    driverHolder.getDriverOptions().getValue());
+            userAgent = configuration.getHttpSniffer()
+                    .getConfiguration().getUserAgent();
         }
     }
 
@@ -295,14 +295,13 @@ public class WebDriverHttpFetcher
 
     @Override
     protected void fetcherShutdown(CrawlSession c) {
-        if (httpSniffer != null) {
-            LOG.info("Shutting down {} HTTP sniffer...", configuration.getBrowser());
+        if (configuration.getHttpSniffer() != null) {
+            LOG.info("Shutting down {} HTTP sniffer...",
+                    configuration.getBrowser());
             Sleeper.sleepSeconds(5);
-            httpSniffer.stop();
+            configuration.getHttpSniffer().stop();
         }
     }
-
-
 
     protected WebDriver getWebDriver() {
         return driverHolder.getDriver();
@@ -328,24 +327,26 @@ public class WebDriverHttpFetcher
 
         var timeouts = driver.manage().timeouts();
         if (configuration.getPageLoadTimeout() != 0) {
-            timeouts.pageLoadTimeout(ofMillis(configuration.getPageLoadTimeout()));
+            timeouts.pageLoadTimeout(
+                    ofMillis(configuration.getPageLoadTimeout()));
         }
         if (configuration.getImplicitlyWait() != 0) {
-            timeouts.implicitlyWait(ofMillis(configuration.getImplicitlyWait()));
+            timeouts.implicitlyWait(
+                    ofMillis(configuration.getImplicitlyWait()));
         }
         if (configuration.getScriptTimeout() != 0) {
             timeouts.scriptTimeout(ofMillis(configuration.getScriptTimeout()));
         }
 
         if (configuration.getWaitForElementTimeout() != 0
-                && StringUtils.isNotBlank(configuration.getWaitForElementSelector())) {
-            var elType = ObjectUtils.defaultIfNull(
-                    configuration.getWaitForElementType(), WaitElementType.TAGNAME);
+                && isNotBlank(configuration.getWaitForElementSelector())) {
+            var elType = defaultIfNull(configuration.getWaitForElementType(),
+                    WaitElementType.TAGNAME);
             LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",
                     configuration.getWaitForElementSelector(), elType, url);
 
-            var wait = new WebDriverWait(
-                    driver, Duration.ofMillis(configuration.getWaitForElementTimeout()));
+            var wait = new WebDriverWait(driver, Duration.ofMillis(
+                    configuration.getWaitForElementTimeout()));
             wait.until(ExpectedConditions.presenceOfElementLocated(
                     elType.getBy(configuration.getWaitForElementSelector())));
 
@@ -369,8 +370,8 @@ public class WebDriverHttpFetcher
 
     private HttpFetchResponse resolveDriverResponse(Doc doc) {
         HttpFetchResponse response = null;
-        if (httpSniffer != null) {
-            var driverResponseFilter = httpSniffer.unbind();
+        if (configuration.getHttpSniffer() != null) {
+            var driverResponseFilter = configuration.getHttpSniffer().unbind();
             if (driverResponseFilter != null) {
                 for (Entry<String, String> en
                         : driverResponseFilter.getHeaders()) {

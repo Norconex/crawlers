@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcherConfig.WaitElementType;
@@ -58,12 +59,14 @@ class WebDriverHttpFetcherConfigTest  {
         c.getCapabilities().setCapability("cap1", "val1");
         c.getCapabilities().setCapability("cap2", "val2");
 
-        var sc = new HttpSnifferConfig();
-        sc.setPort(123);
-        sc.setUserAgent("Agent 007");
-        sc.getRequestHeaders().put("rh1", "hrval1");
-        sc.getRequestHeaders().put("rh2", "hrval2");
-        c.setHttpSnifferConfig(sc);
+        var snif = new HttpSniffer();
+        snif.getConfiguration()
+            .setPort(123)
+            .setUserAgent("Agent 007")
+            .getRequestHeaders().putAll(MapUtil.toMap(
+                    "rh1", "hrval1",
+                    "rh2", "hrval2"));
+        c.setHttpSniffer(snif);
 
         c.setReferenceFilters(List.of(
                 configure(new GenericReferenceFilter(), cfg -> cfg
@@ -78,7 +81,7 @@ class WebDriverHttpFetcherConfigTest  {
             .setTargetDirStructure(DirStructure.DATE)
             .setTargetMetaField("targetMeta")
             .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
-        f.setScreenshotHandler(sh);
+        c.setScreenshotHandler(sh);
 
         assertThatNoException().isThrownBy(() ->
                 BeanMapper.DEFAULT.assertWriteRead(f));

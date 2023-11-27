@@ -20,16 +20,17 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.robot.RobotsMeta;
 import com.norconex.crawler.web.robot.RobotsMetaProvider;
 import com.norconex.crawler.web.util.Web;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -66,11 +67,14 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @Slf4j
-@Data
-public class StandardRobotsMetaProvider
-        implements RobotsMetaProvider, XMLConfigurable {
+@EqualsAndHashCode
+@ToString
+public class StandardRobotsMetaProvider implements
+        RobotsMetaProvider, Configurable<StandardRobotsMetaProviderConfig> {
 
-    private String headersPrefix;
+    @Getter
+    private final StandardRobotsMetaProviderConfig configuration =
+            new StandardRobotsMetaProviderConfig();
 
     @Override
     public RobotsMeta getRobotsMeta(
@@ -129,8 +133,8 @@ public class StandardRobotsMetaProvider
     private RobotsMeta findInHeaders(
             Properties httpHeaders, String documentUrl) {
         var name = "X-Robots-Tag";
-        if (StringUtils.isNotBlank(headersPrefix)) {
-            name = headersPrefix + name;
+        if (StringUtils.isNotBlank(configuration.getHeadersPrefix())) {
+            name = configuration.getHeadersPrefix() + name;
         }
         var content = httpHeaders.getString(name);
         var robotsMeta = buildMeta(content);
@@ -176,15 +180,5 @@ public class StandardRobotsMetaProvider
 
     private boolean isEndOfHead(String line) {
         return line.matches("(?is)<\\s*/\\s*HEAD\\s*>");
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setHeadersPrefix(xml.getString("headersPrefix", headersPrefix));
-    }
-
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("headersPrefix", headersPrefix);
     }
 }
