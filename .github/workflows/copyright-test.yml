@@ -15,23 +15,20 @@ jobs:
 
     - name: Find and Update Copyright Year
       run: |
-        # Find files with the specified copyright pattern
-        copyright_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
+        # Find files with the single year copyright pattern
+        singleyear_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
 
         # Display the files
         echo "Files with Copyright (year) Norconex Inc.:"
-        for file in ${copyright_files}; do
-        #while IFS= read -r file; do
-          echo "File that has been modified: ${file}"
+        for file in ${singleyear_files}; do
+        echo "File that has been modified: ${file}"
           echo " "
           # Update copyright year in each file
           sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
           head -n 10 "${file}"
           echo "End of File "
         done
-          #done <<< "${copyright_files}"
 
         
-        # Set an output variable for further use
-        #echo "files=${copyright_files}" >> $GITHUB_ENV
+        
 
