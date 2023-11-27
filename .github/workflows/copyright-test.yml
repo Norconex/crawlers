@@ -23,7 +23,7 @@ jobs:
         echo "$files_with_copyright"
 
         # Save the list of files to an environment variable for future steps
-        echo "::set-env name=FILES_WITH_COPYRIGHT::$files_with_copyright"
+        #echo "::set-env name=FILES_WITH_COPYRIGHT::$files_with_copyright"
         
     - name: Display Results
       run: |
