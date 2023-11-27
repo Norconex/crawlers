@@ -11,13 +11,13 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Find Copyright Files
       id: find-files
       run: |
         # Use grep to find files with the specified copyright pattern
-        echo "files_with_copyright=$(grep -r -l "Copyright [0-9]\{4\} Norconex Inc." . || true)" >> $GITHUB_OUTPUT
+        echo "files_with_copyright=$(grep -r -l 'Copyright [0-9]\{4\} Norconex Inc.' .)" >> $GITHUB_OUTPUT
 
         # Print the list of files found
         #echo "Files with Copyright pattern:"
