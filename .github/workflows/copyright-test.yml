@@ -21,13 +21,21 @@ jobs:
       run: |
         # Find files with the specified copyright pattern
         copyright_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
+        echo "copyright_files_1=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)" >> $GITHUB_OUTPUT
         echo "::set-output name=files::${copyright_files}"
 
     - name: Display Copyright Files
       run: |
         # Access the output from the previous step
-        files="${{ steps.find-copyright.outputs.files }}"
+        files="${{ steps.set-output.outputs.files }}"
         echo "Files with Copyright (4-digit-years) Norconex Inc.:"
         echo "${files}"
+
+    - name: Display Files_1
+      run: |
+        echo "files in files_1"
+        for file in ${{steps.set-output.outputs.copyright_files_1}}; do
+          echo "$file"
+        done
 
 # Add more steps as needed for your workflow
