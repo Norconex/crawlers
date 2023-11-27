@@ -2,34 +2,37 @@ name: Find Copyright Files
 
 on:
   push:
-    branches: [ "dk-actions-v4" ]
-
+    branches:
+      - dk-actions-v4
 
 jobs:
-  find_copyright:
+  find-copyright:
+    runs-on: ubuntu-latest
+
+    outputs:
+      files: ${{ steps.set-output.outputs.files }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Find Copyright Files
+      id: set-output
+      run: |
+        # Find files with the specified copyright pattern
+        copyright_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
+        echo "::set-output name=files::${copyright_files}"
+
+  display-files:
+    needs: find-copyright
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
-
-    - name: Find Copyright Files
-      id: find-files
+    - name: Display Copyright Files
       run: |
-        # Use grep to find files with the specified copyright pattern
-        echo "files_with_copyright=$(grep -r -l 'Copyright [0-9]\{4\} Norconex Inc.' .)" >> $GITHUB_OUTPUT
+        # Access the output from the previous step
+        files="${{ needs.find-copyright.outputs.files }}"
+        echo "Files with Copyright (4-digit-years) Norconex Inc.:"
+        echo "${files}"
 
-        # Print the list of files found
-        #echo "Files with Copyright pattern:"
-        #echo "$files_with_copyright"
-
-        # Save the list of files to an environment variable for future steps
-        #echo "::set-env name=FILES_WITH_COPYRIGHT::$files_with_copyright"
-        
-    - name: Display Results
-      run: |
-        # Access the environment variable containing the list of files
-        echo "Files with Copyright pattern:"
-        for file in ${{ steps.find-files.outputs.files_with_copyright }}; do
-          echo "$file"
-        done
+# Add more steps as needed for your workflow
