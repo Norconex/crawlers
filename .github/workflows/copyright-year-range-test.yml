@@ -22,15 +22,25 @@ jobs:
         echo ""
         echo "Files with Copyright (year)-(year) Norconex Inc.:"
         for file in ${copyright_files}; do
-          echo "File that has been modified: ${file}"
-          echo " "
-          sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
+          # Extract the second year from the copyright pattern
+          second_year=$(grep -oE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "${file}" | sed -n 's/.*-\([0-9]\{4\}\) Norconex Inc\./\1/p')
 
-          # Display the top 10 lines of the modified file
-          echo "" 
-          echo "Top 10 lines of ${file} after replacement:"
-          head -n 10 "${file}"
-          echo "End of File"
+          # Check if the second year is not equal to the current year
+          if [ "${second_year}" != "$(date +'%Y')" ]; then
+            sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
+
+            # Display the top 10 lines of the modified file
+            echo "File that has been modified: ${file}"
+            echo "
+            echo "Top 10 lines of ${file} after replacement:"
+            head -n 10 "${file}"
+            echo "End of File"
+          else
+            echo "Skipping replacement in ${file} because the second year is already the current year."
+          fi
         done
+
+        
+     
 
 
