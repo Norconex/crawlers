@@ -30,6 +30,7 @@ jobs:
             sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
 
             # Display the top 10 lines of the modified file
+            echo ""
             echo "File that has been modified: ${file}"
             echo ""
             echo "Top 10 lines of ${file} after replacement:"
@@ -40,6 +41,20 @@ jobs:
           fi
         done
 
+    - name: Find files with no Copyright
+      run: |
+        # Find files that do not contain the specified patterns
+        non_copyright_files=$(grep -rlE --exclude="*.sh" -L 'Copyright [0-9]{4} Norconex Inc\.' . | grep -rlE --exclude="*.sh" -L 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
+      
+        echo "Files with NO Copyright Info:"
+        for file in ${non_copyright_files}; do
+          echo "File: ${file}"
+          echo " "
+          # Update copyright year in each file
+            #sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
+            #head -n 10 "${file}"
+            #echo "End of File "
+        done
         
      
 
