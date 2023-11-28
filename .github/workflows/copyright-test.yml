@@ -33,6 +33,7 @@ jobs:
             echo " "            
             head -n 10 "${file}"
             echo "End of File "
+            echo ""
           else
             echo "Skipping replacement in ${file} because the year is already the current year."
           fi
