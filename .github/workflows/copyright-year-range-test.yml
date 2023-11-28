@@ -28,7 +28,7 @@ jobs:
         
           if [ "$year_in_file" != "$current_year" ]; then
             # Update copyright year in each file
-            sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+            sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"
             echo "File that has been modified: ${file}"
             echo " "            
             head -n 10 "${file}"
