@@ -17,16 +17,25 @@ jobs:
       run: |
         # Find files with the single year copyright pattern
         singleyear_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
-
+                 
         # Display the files
+        current_year=$(date +'%Y')
         echo "Files with Copyright (year) Norconex Inc.:"
         for file in ${singleyear_files}; do
-        echo "File that has been modified: ${file}"
-          echo " "
-          # Update copyright year in each file
-          sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
-          head -n 10 "${file}"
-          echo "End of File "
+        
+          # Check if the (year) found is the current year          
+          year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
+        
+          if [ "$year_in_file" != "$current_year" ]; then
+            # Update copyright year in each file
+            sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+            echo "File that has been modified: ${file}"
+            echo " "            
+            head -n 10 "${file}"
+            echo "End of File "
+          else
+            echo "Skipping replacement in ${file} because the year is already the current year."
+          fi
         done
 
         
