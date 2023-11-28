@@ -19,15 +19,30 @@ jobs:
         singleyear_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
 
         # Display the files
+        current_year=$(date +'%Y')
         echo "Files with Copyright (year) Norconex Inc.:"
         for file in ${singleyear_files}; do
-        echo "File that has been modified: ${file}"
-          echo " "
-          # Update copyright year in each file
-          sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
-          head -n 10 "${file}"
-          echo "End of File "
+        
+          # Check if the (year) found is the current year          
+          year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
+        
+          if [ "$year_in_file" != "$current_year" ]; then
+            # Update copyright year in each file
+            sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+            echo "File that has been modified: ${file}"
+            echo " "            
+            head -n 10 "${file}"
+            echo "End of File "
+            echo ""
+          else
+            echo "Skipping replacement in ${file} because the year is already the current year."
+            echo " "            
+            head -n 10 "${file}"
+            echo "End of File "
+            echo ""
+          fi
         done
+
 
     - name: Find and Replace Range Year Copyright Files
       run: |
@@ -57,20 +72,6 @@ jobs:
           fi
         done
 
-    - name: Find files with no Copyright
-      run: |
-        # Find files that do not contain the specified patterns
-        non_copyright_files=$(grep -rlE --exclude="*.sh" -L 'Copyright [0-9]{4} Norconex Inc\.' . | grep -rlE --exclude="*.sh" -L 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
-      
-        echo "Files with NO Copyright Info:"
-        for file in ${non_copyright_files}; do
-          echo "File: ${file}"
-          echo " "
-          # Update copyright year in each file
-            #sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
-            #head -n 10 "${file}"
-            #echo "End of File "
-        done
         
      
 
