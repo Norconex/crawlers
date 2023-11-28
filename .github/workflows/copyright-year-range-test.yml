@@ -13,6 +13,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Find and Update Copyright Year
+      run: |
+        # Find files with the single year copyright pattern
+        singleyear_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
+
+        # Display the files
+        echo "Files with Copyright (year) Norconex Inc.:"
+        for file in ${singleyear_files}; do
+        echo "File that has been modified: ${file}"
+          echo " "
+          # Update copyright year in each file
+          sed -i "s/Copyright [0-9]\{4\} Norconex Inc\./Copyright $(date +'%Y') Norconex Inc./g" "${file}"
+          head -n 10 "${file}"
+          echo "End of File "
+        done
+
     - name: Find and Replace Copyright Files
       run: |
         # Find files with the year-year copyright pattern
