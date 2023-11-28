@@ -13,7 +13,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Find and Update Copyright Year
+    - name: Find and Replace Single Year Copyright Files
       run: |
         # Find files with the single year copyright pattern
         singleyear_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
@@ -29,7 +29,7 @@ jobs:
           echo "End of File "
         done
 
-    - name: Find and Replace Copyright Files
+    - name: Find and Replace Range Year Copyright Files
       run: |
         # Find files with the year-year copyright pattern
         range_year_files=$(grep -rlE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
