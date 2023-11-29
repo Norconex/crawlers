@@ -44,7 +44,7 @@ jobs:
             if [[ "${file}" != *.yml && "${file}" != *.yaml ]]; then
               # check if file contain single year copyright info
               if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
-                echo "$file: Single Copyright "
+                echo "$file: Single year Copyright"
 
                 #Check if the (year) found is the current year          
                 year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
@@ -58,6 +58,7 @@ jobs:
                   echo "End of File "
                   echo ""
                 else
+                  echo ""
                   echo "Skipping replacement in ${file} because the year is already the current year."
                   echo " "            
                   head -n 10 "${file}"
@@ -66,9 +67,27 @@ jobs:
                 fi
               # check if file contain range year copyright info  
               elif grep -qE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "$file"; then
-                echo ""
-                echo "$file: Range Copyright (year)-(year) Norconex Inc."
-               else
+                echo "$file: Range year Copyright"
+
+                # Extract the second year from the copyright pattern
+                second_year=$(grep -oE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "${file}" | sed -n 's/.*-\([0-9]\{4\}\) Norconex Inc\./\1/p')
+    
+                # Check if the second year is not equal to the current year
+                if [ "${second_year}" != "$(date +'%Y')" ]; then
+                  sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
+    
+                  # Display the top 10 lines of the modified file
+                  echo ""
+                  echo "File that has been modified: ${file}"
+                  echo ""
+                  echo "Top 10 lines of ${file} after replacement:"
+                  head -n 10 "${file}"
+                  echo "End of File"
+                else
+                  echo ""
+                  echo "Skipping replacement in ${file} because the second year is already the current year."
+                fi
+              else
                 echo ""
                 echo "$file doesn't contains Copyright Info"  
                 echo ""
