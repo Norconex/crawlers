@@ -107,7 +107,7 @@ jobs:
           
       - name: List all changed files
         run: |
-            echo "Here is all the modified JAVA files:"
+            echo "Here is all the modified files:"
             for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
               echo "$file was changed"            
             done    
