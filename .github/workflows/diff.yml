@@ -29,21 +29,21 @@ jobs:
         run: |
             # get a list of all the modified java file and save it in the output 
             if ${{ github.event_name == 'pull_request' }}; then
-                echo "MODIFIED_FILES=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
-                modified_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-                echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java' | xarges)" >> $GITHUB_OUTPUT 
+                echo "MODIFIED_FILES=$(git diff --name-only -r HEAD^1 HEAD)" >> $GITHUB_OUTPUT
+                #modified_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+                echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java')" >> $GITHUB_OUTPUT 
             else
                 echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
                 fi
 
-      - name: display the modified files
-        run: |
-          for file in ${modified_files}; do
-            echo ""
-            echo $file
-            echo ""
-          done
+      # - name: display the modified files
+      #   run: |
+      #     for file in ${modified_files}; do
+      #       echo ""
+      #       echo $file
+      #       echo ""
+      #     done
 
       - name: List all changed files contain Copyright Info
         run: |
