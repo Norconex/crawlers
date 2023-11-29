@@ -1,16 +1,16 @@
 /*
  * 
  * 
- * Copyright 2018 Norconex Inc.
+ * Copyright 2023 Norconex Inc.
  * 
  * 
  */
 
-public class file3 {
+ public class file3 {
     main afdasf dsfsfgasdsfsdsafasdfafdssadasdafsdsadfasfssfgfsesfsdfchan
     changed-files
     sfsafdfsasfasdffdfsdfssafsdfsfsdsgf
-}zxc
+}
 sfsfd
 sdsasfesfd
 sadff
