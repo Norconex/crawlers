@@ -27,6 +27,7 @@ jobs:
       - name: Get modified files 
         id: modified-files
         uses: jitterbit/get-changed-files@v1
+        continue-on-error: true
 
       - run: |
           for changed_file in ${{ steps.modified-files.outputs.all }}; do
