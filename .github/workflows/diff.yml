@@ -26,13 +26,14 @@ jobs:
       
       - name: Get modified files 
         id: modified-files
-        uses: jitterbit/get-changed-files@v1
-        continue-on-error: true
+        #uses: jitterbit/get-changed-files@v1
+        #continue-on-error: true
+        uses: tj-actions/changed-files@v40
 
-      - run: |
-          for changed_file in ${{ steps.modified-files.outputs.all }}; do
-            echo "Do something with this ${changed_file}."
-          done
+      # - run: |
+      #     for changed_file in ${{ steps.modified-files.outputs.all }}; do
+      #       echo "Do something with this ${changed_file}."
+      #     done
 
       # - name: Get changed files
       #   id: changed-files
@@ -50,7 +51,7 @@ jobs:
         run: |
           current_year=$(date +'%Y')
           echo "All the following changed contains Copyright Info:"
-          for file in ${{ steps.modified-files.outputs.all }}; do
+          for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
             # exclude all yml and yaml files
             if [[ "${file}" != *.yml && "${file}" != *.yaml ]]; then
               # check if file contain single year copyright info
