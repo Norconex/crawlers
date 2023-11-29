@@ -1,6 +1,7 @@
 name: Find, Replace, and Display Copyright Files
 
 on:
+  pull_request:
   push:
     branches:
       - dk-actions-v4

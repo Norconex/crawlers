@@ -19,9 +19,10 @@ jobs:
       author_name: 'new-author'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-            fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+          ref: dk-actions-v4
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
       
       - name: Get changed files
         id: changed-files
@@ -46,11 +47,11 @@ jobs:
               if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
                 echo "$file: Single year Copyright"
 
-                #Check if the (year) found is the current year          
+                #Check if the existing year found is the current year          
                 year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
                               
                 if [ "$year_in_file" != "$current_year" ]; then
-                  # Update copyright year in each file
+                  # Append current year to the existing copyright info in each file
                   sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"
                   echo "File that has been modified: ${file}"
                   echo " "            
@@ -69,10 +70,10 @@ jobs:
               elif grep -qE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "$file"; then
                 echo "$file: Range year Copyright"
 
-                # Extract the second year from the copyright pattern
+                # Extract the second year from the copyright info
                 second_year=$(grep -oE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "${file}" | sed -n 's/.*-\([0-9]\{4\}\) Norconex Inc\./\1/p')
     
-                # Check if the second year is not equal to the current year
+                # Check if the second year is not equal to the current year, if so replace the 2nd year with the current year
                 if [ "${second_year}" != "$(date +'%Y')" ]; then
                   sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
     
@@ -132,35 +133,4 @@ jobs:
       #     done
 
 
-      # - name: Find and Update Copyright Year
-      #   run: |
-
-      #     for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
-            
-      #       # Find files with the single year copyright pattern
-      #       singleyear_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
-                     
-      #       # Display the files
-      #       current_year=$(date +'%Y')
-      #       echo "Files with Copyright (year) Norconex Inc.:"
-      #       for file in ${singleyear_files}; do
-            
-      #         # Check if the (year) found is the current year          
-      #         year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
-            
-      #         if [ "$year_in_file" != "$current_year" ]; then
-      #           # Update copyright year in each file
-      #           sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
-      #           echo "File that has been modified: ${file}"
-      #           echo " "            
-      #           head -n 10 "${file}"
-      #           echo "End of File "
-      #           echo ""
-      #         else
-      #           echo "Skipping replacement in ${file} because the year is already the current year."
-      #           echo " "            
-      #           head -n 10 "${file}"
-      #           echo "End of File "
-      #           echo ""
-      #         fi
-      #       done
+      
