@@ -12,5 +12,5 @@ public class file3 {
     sfsafdfsasfasdffdfsdfssafsdfsfsdsgf
 }
 
-changed-file
+changed-fileafse
 sdsasfesfd
