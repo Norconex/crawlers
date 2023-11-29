@@ -39,12 +39,14 @@ jobs:
         run: |
           echo "All the following files are changed:"
           for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
-            if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
-              echo "$file contains Copyright Info"
-              #echo test >> $file
-            else
-              echo "$file doesn't contains Copyright Info"  
-            fi
+            if [[ "${file}" != *.yml && "${file}" != *.yaml ]]; then
+              if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
+                echo "$file contains Copyright Info"
+                #echo test >> $file
+              else
+                echo "$file doesn't contains Copyright Info"  
+              fi
+            fi  
           done
           
       - name: List changed JAVA files
