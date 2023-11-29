@@ -26,6 +26,7 @@ jobs:
           # Check if the (year) found is the current year          
           year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
         
+          # Replace the Copyright with new one if the year is not the current year
           if [ "$year_in_file" != "$current_year" ]; then
             # Update copyright year in each file
             sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"

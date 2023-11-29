@@ -1,9 +1,7 @@
 /*
  * 
  * 
- * @author sffjkalsfssfbcvsf
- * @author Kkkdkajfl
- * @author kijsfklmsd
+ * Copyright 2023 Norconex Inc.
  * 
  * 
  */

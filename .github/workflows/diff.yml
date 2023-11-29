@@ -28,10 +28,10 @@ jobs:
         run: |
             # get a list of all the modified java file and save it in the output 
             if ${{ github.event_name == 'pull_request' }}; then
-                echo "MODIFIED_FILES=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
+                echo "MODIFIED_FILES=$(git diff --name-only -r HEAD^1 HEAD | grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' . |xargs)" >> $GITHUB_OUTPUT
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java' | xarges)" >> $GITHUB_OUTPUT 
             else
-                echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT                
+                echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' . | xargs)" >> $GITHUB_OUTPUT                
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
                 fi
 
@@ -51,24 +51,58 @@ jobs:
             echo "$file was changed"            
           done
 
-      - name: Check for String in Modified Files
-        run: |
-          STRING_TO_CHECK="@author ${{ env.author_name}}"
-          SEARCH_STRING="@author"
-          NEW_LINES="@author New Author\n * "
+      # - name: Check for String in Modified Files
+      #   run: |
+      #     STRING_TO_CHECK="@author ${{ env.author_name}}"
+      #     SEARCH_STRING="@author"
+      #     NEW_LINES="@author New Author\n * "
 
-          for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
-            # check if the Author's name is present in the @author tag
-            if grep -q "$STRING_TO_CHECK" "$file"; then
-              echo "The string '$STRING_TO_CHECK' exists in the file: $file"
-              echo "No change to file"
-              #sed -i "/$SEARCH_STRING/ { s/$SEARCH_STRING/$NEW_LINES&/; :a; n; ba; }" "$file"
-              #sed -i "/$STRING_TO_CHECK/ { s/$STRING_TO_CHECK/$NEW_LINES&/; :a; n; ba; }" "$file"
-              #sed -i "/$STRING_TO_CHECK/!b;a $NEW_LINES" "$file"              
-            else
-              echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
-              sed -i "/$SEARCH_STRING/ { s/$SEARCH_STRING/$NEW_LINES&/; :a; n; ba; }" "$file"
-              echo "Added '$NEW_LINES' in $file"
-            fi
-            more $file                        
-          done
+      #     for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
+      #       # check if the Author's name is present in the @author tag
+      #       if grep -q "$STRING_TO_CHECK" "$file"; then
+      #         echo "The string '$STRING_TO_CHECK' exists in the file: $file"
+      #         echo "No change to file"
+      #         #sed -i "/$SEARCH_STRING/ { s/$SEARCH_STRING/$NEW_LINES&/; :a; n; ba; }" "$file"
+      #         #sed -i "/$STRING_TO_CHECK/ { s/$STRING_TO_CHECK/$NEW_LINES&/; :a; n; ba; }" "$file"
+      #         #sed -i "/$STRING_TO_CHECK/!b;a $NEW_LINES" "$file"              
+      #       else
+      #         echo "The string '$STRING_TO_CHECK' doesn't exist in the file: $file"
+      #         sed -i "/$SEARCH_STRING/ { s/$SEARCH_STRING/$NEW_LINES&/; :a; n; ba; }" "$file"
+      #         echo "Added '$NEW_LINES' in $file"
+      #       fi
+      #       more $file                        
+      #     done
+
+
+      # - name: Find and Update Copyright Year
+      #   run: |
+
+      #     for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
+            
+      #       # Find files with the single year copyright pattern
+      #       singleyear_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
+                     
+      #       # Display the files
+      #       current_year=$(date +'%Y')
+      #       echo "Files with Copyright (year) Norconex Inc.:"
+      #       for file in ${singleyear_files}; do
+            
+      #         # Check if the (year) found is the current year          
+      #         year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
+            
+      #         if [ "$year_in_file" != "$current_year" ]; then
+      #           # Update copyright year in each file
+      #           sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+      #           echo "File that has been modified: ${file}"
+      #           echo " "            
+      #           head -n 10 "${file}"
+      #           echo "End of File "
+      #           echo ""
+      #         else
+      #           echo "Skipping replacement in ${file} because the year is already the current year."
+      #           echo " "            
+      #           head -n 10 "${file}"
+      #           echo "End of File "
+      #           echo ""
+      #         fi
+      #       done
