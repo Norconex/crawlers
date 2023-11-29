@@ -28,10 +28,10 @@ jobs:
         run: |
             # get a list of all the modified java file and save it in the output 
             if ${{ github.event_name == 'pull_request' }}; then
-                echo "MODIFIED_FILES=$(git diff --name-only -r HEAD^1 HEAD | grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' . | xargs)" >> $GITHUB_OUTPUT
+                echo "MODIFIED_FILES=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java' | xarges)" >> $GITHUB_OUTPUT 
             else
-                echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' . | xargs)" >> $GITHUB_OUTPUT                
+                echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT                
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
                 fi
 
@@ -39,9 +39,13 @@ jobs:
         run: |
           echo "All the following files are changed:"
           for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
-            echo "$file was changed"
-            #echo test >> $file
-            done
+            if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
+              echo "$file contains Copyright Info"
+              #echo test >> $file
+            else
+              echo "$file doesn't contains Copyright Info"  
+            fi
+          done
           
       - name: List changed JAVA files
         run: |
