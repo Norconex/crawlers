@@ -34,23 +34,23 @@ jobs:
             echo "Do something with this ${changed_file}."
           done
 
-      - name: Get changed files
-        id: changed-files
-        run: |
-            # get a list of all the modified java file and save it in the output 
-            if ${{ github.event_name == 'pull_request' }}; then
-                echo "MODIFIED_FILES=$(git diff --name-only -r HEAD^1 HEAD)" >> $GITHUB_OUTPUT
-                echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java')" >> $GITHUB_OUTPUT 
-            else
-                echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
-                echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
-                fi
+      # - name: Get changed files
+      #   id: changed-files
+      #   run: |
+      #       # get a list of all the modified java file and save it in the output 
+      #       if ${{ github.event_name == 'pull_request' }}; then
+      #           echo "MODIFIED_FILES=$(git diff --name-only -r HEAD^1 HEAD)" >> $GITHUB_OUTPUT
+      #           echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java')" >> $GITHUB_OUTPUT 
+      #       else
+      #           echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
+      #           echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
+      #           fi
     
       - name: List all changed files contain Copyright Info
         run: |
           current_year=$(date +'%Y')
           echo "All the following changed contains Copyright Info:"
-          for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
+          for file in ${{ steps.modified-files.outputs.all }}; do
             # exclude all yml and yaml files
             if [[ "${file}" != *.yml && "${file}" != *.yaml ]]; then
               # check if file contain single year copyright info
@@ -106,19 +106,19 @@ jobs:
             fi  
           done
           
-      - name: List all changed files
-        run: |
-            echo "Here is all the modified files:"
-            for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
-              echo "$file was changed"            
-            done    
+      # - name: List all changed files
+      #   run: |
+      #       echo "Here is all the modified files:"
+      #       for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
+      #         echo "$file was changed"            
+      #       done    
 
-      - name: List all changed JAVA files
-        run: |
-          echo "Here is all the modified JAVA files:"
-          for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
-            echo "$file was changed"            
-          done
+      # - name: List all changed JAVA files
+      #   run: |
+      #     echo "Here is all the modified JAVA files:"
+      #     for file in ${{ steps.changed-files.outputs.MODIFIED_JAVA_FILES }}; do
+      #       echo "$file was changed"            
+      #     done
 
       # - name: Check for String in Modified Files
       #   run: |
