@@ -32,11 +32,11 @@ jobs:
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java' | xarges)" >> $GITHUB_OUTPUT 
             else
                 echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
-                ALL_MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)
+                ALL_MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
                 fi
 
-      - name: List all changed files
+      - name: List all changed files contains copyright info
         run: |
           echo "All the following files are changed:"
           for file in ${ALL_MODIFIED_FILES}; do
@@ -52,7 +52,7 @@ jobs:
           
       - name: List all changed files
         run: |
-            echo "Here is all the modified JAVA files:"
+            echo "Here is all the modified files:"
             for file in ${ALL_MODIFIED_FILES}; do
               echo "$file was changed"            
             done    
