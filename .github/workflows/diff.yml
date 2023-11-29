@@ -32,28 +32,29 @@ jobs:
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only -r HEAD^1 HEAD -- '*.java' | xarges)" >> $GITHUB_OUTPUT 
             else
                 echo "MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
-                ALL_MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
                 echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.java' | xargs)" >> $GITHUB_OUTPUT
                 fi
 
-      - name: List all changed files contains copyright info
+      - name: List all changed files
         run: |
-          echo "All the following files are changed:"
-          for file in ${ALL_MODIFIED_FILES}; do
+          echo "All the following changed contains Copyright Info:"
+          for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
             if [[ "${file}" != *.yml && "${file}" != *.yaml ]]; then
               if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
                 echo "$file contains Copyright Info"
                 #echo test >> $file
               else
+                echo ""
                 echo "$file doesn't contains Copyright Info"  
+                echo ""
               fi
             fi  
           done
           
       - name: List all changed files
         run: |
-            echo "Here is all the modified files:"
-            for file in ${ALL_MODIFIED_FILES}; do
+            echo "Here is all the modified JAVA files:"
+            for file in ${{ steps.changed-files.outputs.MODIFIED_FILES }}; do
               echo "$file was changed"            
             done    
 
