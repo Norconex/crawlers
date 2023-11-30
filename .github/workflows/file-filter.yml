@@ -1,0 +1,33 @@
+name: file filter
+
+on:
+  push:
+    branches: [ dk-actions-v4 ]
+
+
+jobs:
+  get_files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+
+      - name: filter files
+        id: filter-files
+        run: |
+          echo "MODIFIED_JAVA_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
+          echo "MODIFIED_TXT_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.txt' | xargs)" >> $GITHUB_OUTPUT
+
+
+      - name: display txt output
+        run: |
+          for file in ${{ steps.filter-files.outputs.MODIFIED_TXT_FILES }}; do
+            echo "$file was changed"            
+          done
+
+      - name: display java output
+        run: |
+          for file in ${{ steps.filter-files.outputs.MODIFIED_JAVA_FILES }}; do
+            echo "$file was changed"            
+          done

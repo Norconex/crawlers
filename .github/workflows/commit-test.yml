@@ -1,25 +1,24 @@
 name: commit test
 
 on:
-  push:
-    branches: [ "dk-actions-v4" ]
   pull_request:
     branches: [ "dk-actions-v4" ]
     
 jobs:
   build:
+    name: committer check
     runs-on: ubuntu-latest
     permissions:
         pull-requests: write
     steps:
 
-    - name: Check out repository
+    - name: Check out repository 
       uses: actions/checkout@v4
 
     - name: Expose git commit data
       uses: rlespinasse/git-commit-data-action@v1
         
-    - name: Print git commit data
+    - name: Print git commit data 
       run: |
         echo "Get commit info"
         echo " - ${{ env.GIT_COMMIT_SHA }}"
@@ -37,7 +36,36 @@ jobs:
         echo " - ${{ env.GIT_COMMIT_MESSAGE_SUBJECT_SANITIZED }}"
         echo " - ${{ env.GIT_COMMIT_MESSAGE_BODY }}"
 
+    #- name: check condition
+    #  if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' }}
+    #  run: echo "blank"
+
+    #- name: 2nd condition check
+    #  if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
+    #  run: echo " @author ${{ env.GIT_COMMIT_AUTHOR_NAME }}"
+
+   # - uses: mshick/add-pr-comment@v2
+   #   if: ${{ env.GIT_COMMIT_AUTHOR_NAME != 'null' }}
+   #   with:
+   #     refresh-message-position: true
+   #     #allow-repeats: true
+   #     message: |
+   #       **Hello 1st** 
+   #       ${{ env.GIT_COMMIT_AUTHOR_NAME }}
+
     - uses: mshick/add-pr-comment@v2
+      if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' || env.GIT_COMMIT_AUTHOR_EMAIL == 'null' }}
       with:
+        refresh-message-position: true
         message: |
-          **Hello push**
+          **Either Commit Author Name and/or Email address is missing, please config that before merging** 
+
+    - name: committer info check
+      if: ${{ env.GIT_COMMIT_AUTHOR_NAME == 'null' || env.GIT_COMMIT_AUTHOR_EMAIL == 'null' }}
+      run: |
+        echo "Committer Author Name or Email is missing"
+        exit 1
+
+                 
+        
+    

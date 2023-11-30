@@ -6,9 +6,11 @@
  * 
  */
 
-public class file11_3_2 {
-
+public class file3 {
     main afdasf dsfsfgasdsfsdsafasdfafdssadasdafsdsadfasfssfgfsesfsdfchan
     changed-files
-    sfsafdfsasfasdffdfsdfssafsdfsfsdsgfadasd
-  }
+    sfsafdfsasfasdffdfsdfssafsdfsfsdsgf
+}zxcsf
+sfsfd
+sdsasfesfd
+sadff

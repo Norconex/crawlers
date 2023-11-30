@@ -1,0 +1,80 @@
+name: Find, Replace, and Display Copyright Files
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dk-actions-v4
+
+jobs:
+  find-replace-and-display-copyright:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Find and Replace Single Year Copyright Files
+      run: |
+        # Find files with the single year copyright pattern
+        singleyear_files=$(grep -rlE 'Copyright [0-9]{4} Norconex Inc\.' .)
+
+        # Display the files
+        current_year=$(date +'%Y')
+        echo "Files with Copyright (year) Norconex Inc.:"
+        for file in ${singleyear_files}; do
+        
+          # Check if the (year) found is the current year          
+          year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
+        
+          # Replace the Copyright with new one if the year is not the current year
+          if [ "$year_in_file" != "$current_year" ]; then
+            # Update copyright year in each file
+            sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"
+            echo "File that has been modified: ${file}"
+            echo " "            
+            head -n 10 "${file}"
+            echo "End of File "
+            echo ""
+          else
+            echo "Skipping replacement in ${file} because the year is already the current year."
+            echo " "            
+            head -n 10 "${file}"
+            echo "End of File "
+            echo ""
+          fi
+        done
+
+
+    - name: Find and Replace Range Year Copyright Files
+      run: |
+        # Find files with the year-year copyright pattern
+        range_year_files=$(grep -rlE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' .)
+
+        # Iterate over each file and perform the replacement
+        echo ""
+        echo "Files with Copyright (year)-(year) Norconex Inc.:"
+        for file in ${range_year_files}; do
+          # Extract the second year from the copyright pattern
+          second_year=$(grep -oE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "${file}" | sed -n 's/.*-\([0-9]\{4\}\) Norconex Inc\./\1/p')
+
+          # Check if the second year is not equal to the current year
+          if [ "${second_year}" != "$(date +'%Y')" ]; then
+            sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
+
+            # Display the top 10 lines of the modified file
+            echo ""
+            echo "File that has been modified: ${file}"
+            echo ""
+            echo "Top 10 lines of ${file} after replacement:"
+            head -n 10 "${file}"
+            echo "End of File"
+          else
+            echo "Skipping replacement in ${file} because the second year is already the current year."
+          fi
+        done
+
+        
+     
+
+
