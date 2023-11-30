@@ -147,7 +147,7 @@ jobs:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         
         run: |
-          # Configure Git identity
+          # Configure Git identity 
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
 
