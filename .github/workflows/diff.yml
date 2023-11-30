@@ -164,3 +164,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Apply Copyright year changes
+          branch: dk-actions-v4
