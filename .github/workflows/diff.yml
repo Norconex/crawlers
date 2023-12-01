@@ -32,6 +32,11 @@ jobs:
       - run: |
           for changed_file in ${{ steps.modified-files.outputs.all_changed_files }}; do
             echo "Do something with this ${changed_file}."
+            echo ""
+            if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
+                echo "$file: Single year Copyright"
+                echo ""
+            fi
           done
 
       # - name: Get changed files
