@@ -32,7 +32,7 @@ jobs:
       - run: |
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
             echo "Do something with this ${file}."
-            ls -l
+            ls test-folder
             #echo ""
             if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
                 echo "$file: Single year Copyright"
