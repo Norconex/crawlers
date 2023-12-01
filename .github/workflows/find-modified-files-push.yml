@@ -1,0 +1,36 @@
+name: find modified files in push
+
+on:  
+  push:
+    branches: [ dk-actions-v4 ]
+
+
+jobs:
+  update-author:
+    name: run_when_pr_is_merged
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+  
+
+    env:
+      author_name: 'new-author'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dk-actions-v4
+          fetch-depth: 0
+      
+      - name: Get modified files 
+        id: changed-files
+        #uses: jitterbit/get-changed-files@v1
+        #continue-on-error: true
+        uses: tj-actions/changed-files@v40
+
+      - name: List all changed files
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done

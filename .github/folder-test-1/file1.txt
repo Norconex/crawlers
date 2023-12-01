@@ -1,19 +1,14 @@
-/*
- * 
- * 
- * @author Kkkdkajfl
- * @author kijsfklm
- * 
- * fg
- */
+Norconex Committer Core
+Copyright 2008 Norconex Inc.
 
-afsafas fsafas fsagf fdasdfasfasfsafdx
+General Information:
+====================
 
-fasdgf asfg fgasg a
-asdfafsaddassffdsdfsdfsfsfsa
-asfsfda fsaxvxvdf
-asfafasfsdfsaf
+For any inquiries about Norconex Committer Elasticsearch, 
+please contact Norconex Inc. at info@norconex.com.
 
-asfsdf aff
+This product website and documentation is located at:
+https://opensource.norconex.com/committers/elasticsearch/
 
-fdsafdfasfsafdasdsfsasdfs
+Norconex licenses:
+==================
