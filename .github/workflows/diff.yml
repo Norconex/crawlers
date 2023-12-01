@@ -29,10 +29,10 @@ jobs:
         #continue-on-error: true
         uses: tj-actions/changed-files@v40
 
-      # - run: |
-      #     for changed_file in ${{ steps.modified-files.outputs.all }}; do
-      #       echo "Do something with this ${changed_file}."
-      #     done
+      - run: |
+          for changed_file in ${{ steps.modified-files.outputs.all_changed_files }}; do
+            echo "Do something with this ${changed_file}."
+          done
 
       # - name: Get changed files
       #   id: changed-files
