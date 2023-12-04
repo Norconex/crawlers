@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.CircularRange;
 import com.norconex.crawler.core.crawler.CrawlerException;
@@ -62,15 +63,19 @@ public class DelaySchedule {
         return timeRange == null || timeRange.contains(
                 (dt.getHour() * 100) + dt.getMinute());
     }
+    @JsonIgnore
     public CircularRange<DelaySchedule.DOW> getDayOfWeekRange() {
         return dayOfWeekRange;
     }
+    @JsonIgnore
     public CircularRange<Integer> getDayOfMonthRange() {
         return dayOfMonthRange;
     }
+    @JsonIgnore
     public CircularRange<Integer> getTimeRange() {
         return timeRange;
     }
+
     public long getDelay() {
         return delay;
     }
@@ -126,5 +131,25 @@ public class DelaySchedule {
             throw new CrawlerException("Invalid range format: " + str);
         }
         return out;
+    }
+
+    //NOTE: The following methods are so Api schema generation
+    // references are generated to CircularReference as opposed
+    // to CircularReferenceInteger, CircularReferenceDOW, etc.
+    // If there is a better way delete these.
+    @SuppressWarnings("rawtypes")
+    @JsonProperty("dayOfWeekRange")
+    CircularRange dayOfWeekRange() {
+        return dayOfWeekRange;
+    }
+    @SuppressWarnings("rawtypes")
+    @JsonProperty("dayOfMonthRange")
+    CircularRange dayOfMonthRange() {
+        return dayOfMonthRange;
+    }
+    @SuppressWarnings("rawtypes")
+    @JsonProperty("timeRange")
+    CircularRange timeRange() {
+        return timeRange;
     }
 }
