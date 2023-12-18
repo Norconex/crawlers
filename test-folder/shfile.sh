@@ -17,3 +17,5 @@
 
 # Gets all directories with a pom.xml in them and returns them all
 # separated by spaces
+
+asfasfasfd
