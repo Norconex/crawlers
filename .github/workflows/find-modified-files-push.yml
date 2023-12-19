@@ -43,7 +43,7 @@ jobs:
         run: |
             current_year=$(date +'%Y')
             echo "All the following changed contains Copyright Info:"
-            for file in ${{ steps.changedd-files.outputs.all_changed_files }}; do
+            for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
               # exclude all yml and yaml files
               if [[ "${file}" != *.yml && "${file}" != *.yaml ]]; then
                 # check if file contain single year copyright info
