@@ -1,0 +1,100 @@
+name: find modified files in push
+
+on:  
+  push:
+    branches: [ dk-actions-v4 ]
+
+
+jobs:
+  update-author:
+    name: run_when_pr_is_merged
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+  
+
+    #env:
+    #  author_name: 'new-author'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dk-actions-v4
+          fetch-depth: 0
+      
+      - name: Get modified files 
+        id: changed-files
+        #uses: jitterbit/get-changed-files@v1
+        #continue-on-error: true
+        uses: tj-actions/changed-files@v40
+
+      - name: List all changed files
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+            if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
+                echo "$file: Single year Copyright"
+                echo ""
+            fi
+          done
+
+      - name: List all changed files contain Copyright Info
+        run: |
+            current_year=$(date +'%Y')
+            echo "All the following changed contains Copyright Info:"
+            for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
+              # exclude all yml and yaml files
+              if [[ "${file}" != *.yml && "${file}" != *.yaml ]]; then
+                # check if file contain single year copyright info
+                if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
+                  echo "$file: Single year Copyright"
+  
+                  #Check if the existing year found is the current year          
+                  year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
+                                
+                  if [ "$year_in_file" != "$current_year" ]; then
+                    # Append current year to the existing copyright info in each file
+                    sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"
+                    echo "File that has been modified: ${file}"
+                    echo " "            
+                    head -n 10 "${file}"
+                    echo "End of File "
+                    echo ""
+                  else
+                    echo ""
+                    echo "Skipping replacement in ${file} because the year is already the current year."
+                    echo " "            
+                    head -n 10 "${file}"
+                    echo "End of File "
+                    echo ""
+                  fi
+                # check if file contain range year copyright info  
+                elif grep -qE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "$file"; then
+                  echo "$file: Range year Copyright"
+  
+                  # Extract the second year from the copyright info
+                  second_year=$(grep -oE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "${file}" | sed -n 's/.*-\([0-9]\{4\}\) Norconex Inc\./\1/p')
+      
+                  # Check if the second year is not equal to the current year, if so replace the 2nd year with the current year
+                  if [ "${second_year}" != "$(date +'%Y')" ]; then
+                    sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
+      
+                    # Display the top 10 lines of the modified file
+                    echo ""
+                    echo "File that has been modified: ${file}"
+                    echo ""
+                    echo "Top 10 lines of ${file} after replacement:"
+                    head -n 10 "${file}"
+                    echo "End of File"
+                  else
+                    echo ""
+                    echo "Skipping replacement in ${file} because the second year is already the current year."
+                  fi
+                else
+                  echo ""
+                  echo "$file doesn't contains Copyright Info"  
+                  echo ""
+                fi
+              fi  
+            done

@@ -1,5 +1,5 @@
 @echo off
-REM Copyright 2017-2023 Norconex Inc.
+REM Copyright 2017 Norconex Inc.
 REM 
 REM Licensed under the Apache License, Version 2.0 (the "License");
 REM you may not use this file except in compliance with the License.
@@ -14,4 +14,4 @@ REM See the License for the specific language governing permissions and
 REM limitations under the License.
 cd %~dp0
 
-asffaf
+fsdf

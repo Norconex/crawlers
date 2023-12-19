@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: dk-actions-v4
-          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+          fetch-depth: 0
       
       - name: Get modified files 
         id: modified-files
@@ -29,10 +29,16 @@ jobs:
         #continue-on-error: true
         uses: tj-actions/changed-files@v40
 
-      # - run: |
-      #     for changed_file in ${{ steps.modified-files.outputs.all }}; do
-      #       echo "Do something with this ${changed_file}."
-      #     done
+      - run: |
+          for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
+            echo "Do something with this ${file}."
+            ls test-folder
+            #echo ""
+            if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
+                echo "$file: Single year Copyright"
+                echo ""
+            fi
+          done
 
       # - name: Get changed files
       #   id: changed-files
