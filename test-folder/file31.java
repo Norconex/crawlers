@@ -1,7 +1,7 @@
 /*
  * 
  * 
- * Copyright 1999 Norconex Inc.
+ * Copyright 1999-2023 Norconex Inc.
  * 
  * 
  */
