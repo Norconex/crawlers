@@ -169,8 +169,8 @@ jobs:
       #     git remote add origin_with_token "https://$ACCESS_TOKEN@github.com/${{ github.repository }}.git"
       #     git push origin_with_token ${{ github.head_ref }} --force
 
-      - name: Upload Modified Files
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: Apply Copyright year changes
-          branch: dk-actions-v4
+      # - name: Upload Modified Files
+      #   uses: stefanzweifel/git-auto-commit-action@v5
+      #   with:
+      #     commit_message: Apply Copyright year changes
+      #     branch: dk-actions-v4
