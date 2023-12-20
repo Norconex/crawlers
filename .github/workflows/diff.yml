@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: dk-actions-v4
+          #ref: dk-actions-v4
           fetch-depth: 0
       
       - name: Get modified files 
