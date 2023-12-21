@@ -119,9 +119,9 @@ jobs:
                   more $file
                   echo ""
                   rm tmp.txt
-                fi
                 else
                   echo "other format"
+                fi
               fi
             fi  
           done
