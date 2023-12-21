@@ -108,6 +108,12 @@ jobs:
                 echo ""
                 echo "$file doesn't contains Copyright Info"  
                 echo ""
+                cat $file >> test-folder/copyright-java.txt
+                more test-folder/copyright-java.txt
+                echo ""
+                cat test-folder/copyright-java.txt > $file
+                more $file
+                echo ""
               fi
             fi  
           done
