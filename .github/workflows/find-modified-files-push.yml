@@ -93,8 +93,10 @@ jobs:
                   fi
                 else
                   echo ""
-                  echo "$file doesn't contains Copyright Info"  
+                  echo "$file doesn't contains Copyright Info"                    
                   echo ""
+                  cat $file >> test-folder/copyright-java.txt
+                  more test-folder/copyright-java.txt
                 fi
               fi  
             done
