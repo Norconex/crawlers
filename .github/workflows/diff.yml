@@ -120,7 +120,7 @@ jobs:
                   echo ""
                   rm tmp.txt
                 else
-                  echo "other format"
+                  echo "$file is in other format"
                 fi
               fi
             fi  
