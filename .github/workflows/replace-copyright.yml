@@ -19,11 +19,13 @@ jobs:
 
           more test-folder/testsh.sh
           echo ""
-          
-          sed -e '/#!\/bin\/bash/{r test-folder/copyright_header.txt' -e 'd}' test-folder/testsh.sh
+          echo ""
+          "sed -e '/#!\/bin\/bash/{r test-folder/copyright_header.txt' -e 'd}' test-folder/testsh.sh" > tmp.sh
 
+          echo ""
           echo ""
           more test-folder/testsh.sh
 
+          echo ""
           echo ""
           more tmp.sh
