@@ -111,18 +111,25 @@ jobs:
                   echo "$file doesn't contains Copyright Info"
                   echo "Copyright Info will be added"  
                   echo ""
-                  cat test-folder/javafile_copyright_header.txt > tmp.txt
-                  cat $file >> tmp.txt
-                  more tmp.txt
+                  cat test-folder/header-file/java_file.txt $file
+                  #cat test-folder/header-file/java_file.txt > tmp.txt
+                  #cat $file >> tmp.txt
+                  #more tmp.txt
                   echo ""
-                  cat tmp.txt > $file
+                  #cat tmp.txt > $file
                   more $file
                   echo ""
                   rm tmp.txt
                 elif [[ "${file}" == *.sh ]]; then
-                  echo "$file is batch file"
+                  echo "$file is a batch file"
                   echo ""
-                  sed -e '/#!\/bin\/bash/ {' -e 'r test-folder/shfile_copyright_header.txt' -e 'd' -e '}' -i $file
+                  sed -e '/#!\/bin\/bash/ {' -e 'r test-folder/header-file/sh_file.txt' -e 'd' -e '}' -i $file
+                  echo ""
+                  more $file
+                elif [[ "${file}" == *.xml ]]; then
+                  echo "$file is a xml file"
+                  echo ""
+                  
                   echo ""
                   more $file
                 else
