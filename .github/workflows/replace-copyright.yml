@@ -18,7 +18,7 @@ jobs:
           copyright_header=$(cat test-folder/copyright_header.txt)
 
           more test-folder/testsh.sh
-          
-          sed -i "s|#!/bin/bash|$copyright_header|" "test-folder/testsh.sh"
+
+          sed -i "s|#!/bin/bash|$copyright_header|" test-folder/testsh.sh
 
           more test-folder/testsh.sh
