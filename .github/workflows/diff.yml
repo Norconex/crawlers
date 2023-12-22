@@ -107,7 +107,7 @@ jobs:
               else
                 if [[ "${file}" == *.java ]]; then
                   echo ""
-                  echo "Java file"
+                  echo "$file is Java file"
                   echo "$file doesn't contains Copyright Info"
                   echo "Copyright Info will be added"  
                   echo ""
@@ -119,6 +119,10 @@ jobs:
                   more $file
                   echo ""
                   rm tmp.txt
+                elif [[ "${file}" == *.sh ]]; then
+                  echo "$file is batch file"
+                  echo ""
+                  
                 else
                   echo "$file is in other format"
                 fi
