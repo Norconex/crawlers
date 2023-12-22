@@ -20,7 +20,7 @@ jobs:
           more test-folder/testsh.sh
           echo ""
           echo ""
-          sed -e '/#!\/bin\/bash/ {' -e 'r test-folder/copyright_header.txt' -e 'd' -e ''}' -i test-folder/testsh.sh > tmp.sh
+          sed -e '/#!\/bin\/bash/ {' -e 'r test-folder/copyright_header.txt' -e 'd' -e '}' -i test-folder/testsh.sh > tmp.sh
           
 
           echo ""
