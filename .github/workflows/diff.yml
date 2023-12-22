@@ -111,12 +111,11 @@ jobs:
                   echo "$file doesn't contains Copyright Info"
                   echo "Copyright Info will be added"  
                   echo ""
-                  cat test-folder/header-file/java_file.txt $file
-                  #cat test-folder/header-file/java_file.txt > tmp.txt
-                  #cat $file >> tmp.txt
+                  cat test-folder/header-file/java_file.txt $file > tmp.txt
+                  
                   #more tmp.txt
                   echo ""
-                  #cat tmp.txt > $file
+                  mv tmp.txt $file
                   more $file
                   echo ""
                   rm tmp.txt
