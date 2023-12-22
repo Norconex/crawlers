@@ -21,7 +21,7 @@ jobs:
           echo ""
           echo ""
           #sed -e '/#!\/bin\/bash/{r test-folder/copyright_header.txt' -e 'd}' test-folder/testsh.sh > tmp.sh
-          sed -i "s/\#\!\/bin\/bash/cat test-folder/copyright_header.txt/e" test-folder/copyright_header.txt
+          sed -i s/#!\/bin\/bash/cat test-folder/copyright_header.txt/e test-folder/copyright_header.txt
 
           echo ""
           echo ""
