@@ -15,10 +15,10 @@ jobs:
 
       - name: Find and Replace Shebang
         run: |
-          copyright_header=$(cat test-folder/copyright_header.txt)
+          #copyright_header=$(cat test-folder/copyright_header.txt)
 
           more test-folder/testsh.sh
 
-          sed -i "s|#!/bin/bash|$copyright_header|" test-folder/testsh.sh
+          sed -i '/s|#!/bin/bash/r test-folder/copyright_header.txt' test-folder/testsh.sh
 
           more test-folder/testsh.sh
