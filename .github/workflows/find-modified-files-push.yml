@@ -95,7 +95,7 @@ jobs:
                   echo ""
                   echo "$file doesn't contains Copyright Info"                    
                   echo ""
-                  cat $file >> test-folder/copyright-java.txt
+                  cat $file >> test-folder/javafile_copyrightheader.txt
                   more test-folder/copyright-java.txt
                   echo ""
                   cat test-folder/copyright-java.txt > $file

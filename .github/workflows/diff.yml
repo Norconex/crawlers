@@ -111,7 +111,7 @@ jobs:
                   echo "$file doesn't contains Copyright Info"
                   echo "Copyright Info will be added"  
                   echo ""
-                  cat test-folder/copyright-java.txt > tmp.txt
+                  cat test-folder/javafile_copyright_header.txt > tmp.txt
                   cat $file >> tmp.txt
                   more tmp.txt
                   echo ""
@@ -122,7 +122,9 @@ jobs:
                 elif [[ "${file}" == *.sh ]]; then
                   echo "$file is batch file"
                   echo ""
-                  
+                  sed -e '/#!\/bin\/bash/ {' -e 'r test-folder/shfile_copyright_header.txt' -e 'd' -e '}' -i $file
+                  echo ""
+                  more $file
                 else
                   echo "$file is in other format"
                 fi
