@@ -19,6 +19,6 @@ jobs:
 
           more test-folder/testsh.sh
 
-          sed -i '/s|#!/bin/bash/r test-folder/copyright_header.txt' test-folder/testsh.sh
+          sed -i '/#!\/bin\/bash/r test-folder/copyright_header.txt' test-folder/testsh.sh
 
           more test-folder/testsh.sh
