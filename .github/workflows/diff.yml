@@ -118,7 +118,6 @@ jobs:
                   mv tmp.txt $file
                   more $file
                   echo ""
-                  rm tmp.txt
                 elif [[ "${file}" == *.sh ]]; then
                   echo "$file is a batch file"
                   echo ""
