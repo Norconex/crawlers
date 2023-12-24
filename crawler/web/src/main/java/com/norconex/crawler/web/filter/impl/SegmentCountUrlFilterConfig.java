@@ -16,6 +16,8 @@ package com.norconex.crawler.web.filter.impl;
 
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.crawler.core.filter.OnMatch;
 
 import lombok.Data;
@@ -71,12 +73,18 @@ public class SegmentCountUrlFilterConfig {
     private int count = DEFAULT_SEGMENT_COUNT;
     private boolean duplicate;
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private Pattern separator = DEFAULT_SEGMENT_SEPARATOR_PATTERN;
     private OnMatch onMatch;
 
     @EqualsAndHashCode.Include(replaces = "separator")
+    @JsonProperty(value = "separator")
     String getSeparatorAsString() {
         return separator == null ? null : separator.toString();
+    }
+    @JsonProperty(value = "separator")
+    void setSeparatorAsString(String separator) {
+        this.separator = separator == null ? null : Pattern.compile(separator);
     }
 
 //
