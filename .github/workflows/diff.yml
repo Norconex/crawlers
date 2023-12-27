@@ -105,31 +105,36 @@ jobs:
                   echo "Skipping replacement in ${file} because the second year is already the current year."
                 fi
               else
+                echo "$file doesn't contains Copyright Info"
+                echo "Copyright Info will be added"
+
+                # check if file type is java file  
                 if [[ "${file}" == *.java ]]; then
                   echo ""
-                  echo "$file is Java file"
-                  echo "$file doesn't contains Copyright Info"
-                  echo "Copyright Info will be added"  
+                  echo "$file is Java file"                    
                   echo ""
                   cat test-folder/header-file/java_file.txt $file > tmp.txt
-                  
-                  #more tmp.txt
                   echo ""
                   mv tmp.txt $file
                   more $file
                   echo ""
+                # check if file type is batch file  
                 elif [[ "${file}" == *.sh ]]; then
                   echo "$file is a batch file"
                   echo ""
                   sed -e '/#!\/bin\/bash/ {' -e 'r test-folder/header-file/sh_file.txt' -e 'd' -e '}' -i $file
                   echo ""
                   more $file
+                  echo ""
+                # check if file type is xml file  
                 elif [[ "${file}" == *.xml ]]; then
                   echo "$file is a xml file"
+                  echo ""           
+                  cat test-folder/header-file/xmkl_file.txt $file > tmp.txt
                   echo ""
-                  
-                  echo ""
+                  mv tmp.txt $file       
                   more $file
+                  echo ""
                 else
                   echo "$file is in other format"
                 fi
