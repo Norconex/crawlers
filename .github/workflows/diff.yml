@@ -125,16 +125,15 @@ jobs:
                   sed -e '/#!\/bin\/bash/ {' -e 'r test-folder/header-file/sh_file.txt' -e 'd' -e '}' -i $file
                   echo ""
                   more $file
-                  echo ""
+                  echo
                 # check if file type is xml file  
                 elif [[ "${file}" == *.xml ]]; then
                   echo "$file is a xml file"
                   echo ""           
-                  cat test-folder/header-file/xmkl_file.txt $file > tmp.txt
+                  cat test-folder/header-file/xml_file.txt $file > tmp.txt
                   echo ""
                   mv tmp.txt $file       
                   more $file
-                  echo ""
                 else
                   echo "$file is in other format"
                 fi
