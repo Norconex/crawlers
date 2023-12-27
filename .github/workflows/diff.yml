@@ -119,6 +119,14 @@ jobs:
                   more $file
                   echo ""
                 # check if file type is batch file  
+                elif [[ "${file}" == *.bat ]]; then
+                    echo "$file is a batch file"
+                    echo ""
+                    sed -e '/@echo off/ {' -e 'r test-folder/header-file/bat_file.txt' -e 'd' -e '}' -i $file
+                    echo ""
+                    more $file
+                    echo
+                # check if file type is shell file  
                 elif [[ "${file}" == *.sh ]]; then
                   echo "$file is a batch file"
                   echo ""
