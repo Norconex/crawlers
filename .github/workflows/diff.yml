@@ -142,6 +142,22 @@ jobs:
                   echo ""
                   mv tmp.txt $file       
                   more $file
+                # check if file type is html file
+                elif [[ "${file}" == *.html ]]; then
+                  echo "$file is a html file"
+                  echo ""           
+                  cat test-folder/header-file/html_file.txt $file > tmp.txt
+                  echo ""
+                  mv tmp.txt $file       
+                  more $file
+                # check if file type is jsp file
+                elif [[ "${file}" == *.jsp ]]; then
+                  echo "$file is a jsp file"
+                  echo ""           
+                  #cat test-folder/header-file/xml_file.txt $file > tmp.txt
+                  echo ""
+                  mv tmp.txt $file       
+                  more $file
                 else
                   echo "$file is in other format"
                 fi
