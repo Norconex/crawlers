@@ -57,8 +57,8 @@ jobs:
           current_year=$(date +'%Y')
           echo "All the following changed contains Copyright Info:"
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
-            # exclude all yml and yaml files
-            if [[ "${file}" != *.yml && "${file}" != *.yaml ]]; then
+            # exclude all jsp files
+            if [[ "${file}" != *.jsp ]]; then
               # check if file contain single year copyright info
               if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
                 echo "$file: Single year Copyright"
@@ -150,11 +150,11 @@ jobs:
                   echo ""
                   mv tmp.txt $file       
                   more $file
-                # check if file type is jsp file
-                elif [[ "${file}" == *.jsp ]]; then
-                  echo "$file is a jsp file"
+                # check if file type is yml or yaml file
+                elif [[ "${file}" == *.yml || "${file}" == *.yaml ]]; then
+                  echo "$file is a yml/yaml file"
                   echo ""           
-                  #cat test-folder/header-file/xml_file.txt $file > tmp.txt
+                  cat test-folder/header-file/yml_file.txt $file > tmp.txt
                   echo ""
                   mv tmp.txt $file       
                   more $file
@@ -162,7 +162,10 @@ jobs:
                   echo "$file is in other format"
                 fi
               fi
-            fi  
+            else
+              echo "$file is in jsp format, will skip checking."
+            fi
+
           done
           
       
