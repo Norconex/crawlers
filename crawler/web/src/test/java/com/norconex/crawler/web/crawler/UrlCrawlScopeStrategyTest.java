@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 class UrlCrawlScopeStrategyTest {
 
     @Test
-    void testURLCrawlScopeStrategy() {
+    void testUrlCrawlScopeStrategy() {
         var url = "http://example.com/base/for/test.html";
         var diffProtocol = "https://example.com/diff/protocol.html";
         var diffDomain = "http://www.example.com/diff/domain.html";
