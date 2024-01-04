@@ -1,0 +1,14 @@
+<html>
+<head>
+  <title>ILinkExtractor tests</title>
+  <meta charset="UTF-8">
+  <base href="blah.html" />
+  <meta name="description" content="a test page">
+</head>
+<body>
+<a href="?param=value">Relative to base URL</a>
+<a href="/d/e/f.html">Relative to root</a>
+<a href="path^blah.html">Badly formed relative URL</a>
+<a href="http://www.anotherhost.com/k/l/m.html">Absolute to another domain</a>
+</body>
+</html>
