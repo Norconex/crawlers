@@ -2,7 +2,7 @@ name: find modified files and check copyright information
 
 on:  
   pull_request:
-    branches: [ upcoming-v4 ]
+    branches: [ feature/copyright-check ]
 
 
 jobs:
