@@ -92,6 +92,18 @@ jobs:
                   head -n 20 "${file}"
                   echo "End of File"
                   echo ""
+                  echo "update year in file"
+                  echo ""
+                  #Check if the existing year in the newly added copyright info is the current year          
+                  year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")                              
+                  if [ "$year_in_file" != "$current_year" ]; then
+                    # Replace existing year with current year in copyright info
+                    sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+                  fi
+                  echo "Top 20 lines of ${file}:"
+                  head -n 20 "${file}"
+                  echo "End of File"
+                  echo ""
                 # check if file type is batch file  
                 elif [[ "${file}" == *.bat ]]; then
                     echo "$file is a batch file"
