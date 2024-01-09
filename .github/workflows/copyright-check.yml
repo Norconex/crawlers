@@ -22,7 +22,7 @@ jobs:
         id: modified-files
         uses: tj-actions/changed-files@v40
       
-      - name: List all changed files contain Copyright Info
+      - name: List all changed files
         run: |
           current_year=$(date +'%Y')          
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
@@ -36,7 +36,7 @@ jobs:
                 year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
                               
                 if [ "$year_in_file" != "$current_year" ]; then
-                  # Append current year to the existing copyright info in each file
+                  # Append current year to the existing copyright info in file
                   sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"
                   echo "File that has been modified: ${file}"
                   echo " "      
@@ -45,6 +45,7 @@ jobs:
                   echo "End of File "
                   echo ""
                 else
+                  # skip if year in date is already the current year
                   echo ""
                   echo "Skipping replacement in ${file} because the year is already the current year."
                   echo " "
@@ -53,6 +54,7 @@ jobs:
                   echo "End of File "
                   echo ""
                 fi
+
               # check if file contain range year copyright info  
               elif grep -qE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "$file"; then
                 echo "$file: Range year Copyright"
@@ -72,10 +74,12 @@ jobs:
                   head -n 20 "${file}"
                   echo "End of File"
                 else
+                  # skip if 2nd year in date is already the current year
                   echo ""
                   echo "Skipping replacement in ${file} because the second year is already the current year."
                 fi
               else
+                # If file doesn't contain Copyright Information, then add it from header file
                 echo "$file doesn't contains Copyright Info"
                 echo "Copyright Info will be added"
 
