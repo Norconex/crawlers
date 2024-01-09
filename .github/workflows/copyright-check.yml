@@ -138,7 +138,17 @@ jobs:
                   echo "Top 20 lines of ${file}:"
                   head -n 20 "${file}"
                   echo "End of File"
-                  echo
+                  echo ""
+                  #Check if the existing year in the newly added copyright info is the current year          
+                  year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")                              
+                  if [ "$year_in_file" != "$current_year" ]; then
+                    # Replace existing year with current year in copyright info
+                    sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+                  fi
+                  echo "Top 20 lines of ${file}:"
+                  head -n 20 "${file}"
+                  echo "End of File"
+                  echo ""
                 # check if file type is xml file  
                 elif [[ "${file}" == *.xml ]]; then
                   echo "$file is a xml file"
@@ -149,6 +159,17 @@ jobs:
                   echo "Top 20 lines of ${file}:"
                   head -n 20 "${file}"
                   echo "End of File"
+                  echo ""
+                  #Check if the existing year in the newly added copyright info is the current year          
+                  year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")                              
+                  if [ "$year_in_file" != "$current_year" ]; then
+                    # Replace existing year with current year in copyright info
+                    sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+                  fi
+                  echo "Top 20 lines of ${file}:"
+                  head -n 20 "${file}"
+                  echo "End of File"
+                  echo ""
                 # check if file type is html file
                 elif [[ "${file}" == *.html ]]; then
                   echo "$file is a html file"
@@ -159,6 +180,17 @@ jobs:
                   echo "Top 20 lines of ${file}:"
                   head -n 20 "${file}"
                   echo "End of File"
+                  echo ""
+                  #Check if the existing year in the newly added copyright info is the current year          
+                  year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")                              
+                  if [ "$year_in_file" != "$current_year" ]; then
+                    # Replace existing year with current year in copyright info
+                    sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+                  fi
+                  echo "Top 20 lines of ${file}:"
+                  head -n 20 "${file}"
+                  echo "End of File"
+                  echo ""
                 # check if file type is yml or yaml file
                 elif [[ "${file}" == *.yml || "${file}" == *.yaml ]]; then
                   echo "$file is a yml/yaml file"
@@ -169,6 +201,17 @@ jobs:
                   echo "Top 20 lines of ${file}:"
                   head -n 20 "${file}"
                   echo "End of File"
+                  echo ""
+                  #Check if the existing year in the newly added copyright info is the current year          
+                  year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")                              
+                  if [ "$year_in_file" != "$current_year" ]; then
+                    # Replace existing year with current year in copyright info
+                    sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+                  fi
+                  echo "Top 20 lines of ${file}:"
+                  head -n 20 "${file}"
+                  echo "End of File"
+                  echo ""
                 else
                   echo "$file is in other format"
                 fi
