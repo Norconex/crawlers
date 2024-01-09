@@ -24,8 +24,7 @@ jobs:
       
       - name: List all changed files contain Copyright Info
         run: |
-          current_year=$(date +'%Y')
-          echo "All the following changed contains Copyright Info:"
+          current_year=$(date +'%Y')          
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
             # exclude all jsp files
             if [[ "${file}" != *.jsp ]]; then
