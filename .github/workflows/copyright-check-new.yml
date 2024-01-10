@@ -2,7 +2,7 @@ name: Check CopyRight Info on Files
 
 on:  
   pull_request:
-    branches: [ dk-actions-v4 ]
+    branches: [ feature/copyright-check ]
 
 
 jobs:
