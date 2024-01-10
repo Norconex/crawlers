@@ -98,7 +98,7 @@ jobs:
             fi
           done
           
-      - name: Check files' Copyright Info year
+      - name: Verify Year on files' Copyright Info is up to date
         run: |
           current_year=$(date +'%Y')          
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
