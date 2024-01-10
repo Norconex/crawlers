@@ -1,0 +1,158 @@
+name: Check CopyRight Info on Files
+
+on:  
+  pull_request:
+    branches: [ dk-actions-v4 ]
+
+
+jobs:
+  update-author:
+    name: check copyright info
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get modified files 
+        id: modified-files        
+        uses: tj-actions/changed-files@v40
+
+      - name: Find all changed files don't contain Copyright Info and add the info to it
+        run: |
+          for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
+            if ! grep -qE 'Copyright [0-9]{4} Norconex Inc\.|Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "$file"; then
+              # check if file type is java file  
+              if [[ "${file}" == *.java ]]; then
+                echo ""
+                echo "$file is Java file"                    
+                echo ""
+                cat .github/workflows/copyright-headers/java_file.txt $file > tmp.txt
+                echo ""
+                mv tmp.txt $file
+                echo "Top 20 lines of ${file} after replacement:"
+                head -n 20 "${file}"
+                echo "End of File"
+                echo ""
+              # check if file type is batch file  
+              elif [[ "${file}" == *.bat ]]; then
+                echo "$file is a batch file"
+                echo ""
+                sed -e '/@echo off/ {' -e 'r .github/workflows/copyright-headers/bat_file.txt' -e 'd' -e '}' -i $file
+                echo ""
+                echo "Top 20 lines of ${file} after replacement:"
+                head -n 20 "${file}"
+                echo "End of File"                
+              # check if file type is shell file  
+              elif [[ "${file}" == *.sh ]]; then
+                echo "$file is a batch file"
+                echo ""
+                sed -e '/#!\/bin\/bash/ {' -e 'r .github/workflows/copyright-headers/sh_file.txt' -e 'd' -e '}' -i $file
+                echo ""
+                echo "Top 20 lines of ${file} after replacement:"
+                head -n 20 "${file}"
+                echo "End of File"              
+              # check if file type is xml file  
+              elif [[ "${file}" == *.xml ]]; then
+                echo "$file is a xml file"
+                echo ""           
+                cat .github/workflows/copyright-headers/xml_file.txt $file > tmp.txt
+                echo ""
+                mv tmp.txt $file       
+                echo ""              
+                echo "Top 20 lines of ${file} after replacement:"
+                head -n 20 "${file}"
+                echo "End of File"
+              # check if file type is html file
+              elif [[ "${file}" == *.html ]]; then
+                echo "$file is a html file"
+                echo ""           
+                cat .github/workflows/copyright-headers/html_file.txt $file > tmp.txt
+                echo ""
+                mv tmp.txt $file       
+                echo "Top 20 lines of ${file} after replacement:"
+                head -n 20 "${file}"
+                echo "End of File"
+              # check if file type is yml or yaml file
+              elif [[ "${file}" == *.yml || "${file}" == *.yaml ]]; then
+                echo "$file is a yml/yaml file"
+                echo ""           
+                cat .github/workflows/copyright-headers/yml_file.txt $file > tmp.txt
+                echo ""
+                mv tmp.txt $file       
+                echo "Top 20 lines of ${file} after replacement:"
+                head -n 20 "${file}"
+                echo "End of File"
+              else
+                echo "$file is in other format"            
+              fi
+            else
+              echo "$file contains copyright info"
+              echo "Top 20 lines of ${file}:"
+              head -n 20 "${file}"
+              echo "End of File"
+            fi
+          done
+          
+      - name: Check files' Copyright Info year
+        run: |
+          current_year=$(date +'%Y')          
+          for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
+            # exclude all jsp files
+            if [[ "${file}" != *.jsp ]]; then
+              # check if file contain single year copyright info
+              if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
+                echo "$file: Single year Copyright"
+  
+                #Check if the existing year found is the current year          
+                year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
+                                
+                if [ "$year_in_file" != "$current_year" ]; then
+                  # Append current year to the existing copyright info in each file
+                  sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"
+                  echo "File that has been modified: ${file}"
+                  echo " "            
+                  head -n 10 "${file}"
+                  echo "End of File "
+                  echo ""
+                else
+                  echo ""                  
+                  echo "Skipping replacement in ${file} because the year is already the current year."            
+                  head -n 10 "${file}"
+                  echo "End of File "
+                  echo ""
+                fi
+              # check if file contain range year copyright info  
+              elif grep -qE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "$file"; then
+                echo "$file: Range year Copyright"
+                   
+                # Extract the second year from the copyright info
+                second_year=$(grep -oE 'Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "${file}" | sed -n 's/.*-\([0-9]\{4\}\) Norconex Inc\./\1/p')
+      
+                # Check if the second year is equal to the current year, if not, replace the 2nd year with the current year
+                if [ "${second_year}" != "$(date +'%Y')" ]; then
+                  sed -i "s/Copyright \([0-9]\{4\}\)-\([0-9]\{4\}\) Norconex Inc\./Copyright \1-$(date +'%Y') Norconex Inc./" "${file}"
+      
+                  # Display the top 10 lines of the modified file
+                  echo ""
+                  echo "File that has been modified: ${file}"
+                  echo ""
+                  echo "Top 10 lines of ${file} after replacement:"
+                  head -n 10 "${file}"
+                  echo "End of File"
+                else
+                  echo ""
+                  echo "Skipping replacement in ${file} because the second year is already the current year."
+                fi  
+              fi
+            fi 
+          done  
+
+      - name: Upload Modified Files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Apply Copyright year changes
