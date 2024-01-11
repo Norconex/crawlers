@@ -92,9 +92,9 @@ jobs:
               fi
             else
               echo "$file contains copyright info"
-              echo "Top 20 lines of ${file}:"
-              head -n 20 "${file}"
-              echo "End of File"
+              # echo "Top 20 lines of ${file}:"
+              # head -n 20 "${file}"
+              # echo "End of File"
             fi
           done
           
