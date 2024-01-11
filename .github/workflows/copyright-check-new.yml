@@ -108,9 +108,10 @@ jobs:
               if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
                 echo "$file: Single year Copyright"
   
-                #Check if the existing year found is the current year          
+                # get the year from the file's copyright info section
                 year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
                                 
+                # check if the year is a year place-holder, if so, replace it with current year
                 if [ "$year_in_file" == 2999 ]; then
                   echo ""
                   head -n 20 "${file}"
@@ -120,7 +121,8 @@ jobs:
                   echo "Year place-holder is updated!"
                   head -n 20 "${file}"
                   echo ""
-
+                  
+                #Check if the existing year found is the current year          
                 elif [ "$year_in_file" != "$current_year" ]; then
                   # Append current year to the existing copyright info in each file
                   sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"
@@ -162,7 +164,7 @@ jobs:
             fi 
           done  
 
-      # - name: Upload Modified Files
-      #   uses: stefanzweifel/git-auto-commit-action@v5
-      #   with:
-      #     commit_message: Apply Copyright year changes
+      - name: Upload Modified Files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Apply Copyright year changes
