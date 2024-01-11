@@ -111,7 +111,17 @@ jobs:
                 #Check if the existing year found is the current year          
                 year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
                                 
-                if [ "$year_in_file" != "$current_year" ]; then
+                if [ "$year_in_file" == "2999"] ; then
+                  echo ""
+                  head -n 20 "${file}"
+                  echo ""
+                  # change the year-place-holder to the current year
+                  sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $current_year Norconex Inc./g" "$file"
+                  echo "Year place-holder is updated!"
+                  head -n 20 "${file}"
+                  echo ""
+
+                elif [ "$year_in_file" != "$current_year" ]; then
                   # Append current year to the existing copyright info in each file
                   sed -i "s/Copyright $year_in_file Norconex Inc./Copyright $year_in_file-$current_year Norconex Inc./g" "$file"
                   echo "File that has been modified: ${file}"
