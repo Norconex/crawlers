@@ -111,7 +111,7 @@ jobs:
                 #Check if the existing year found is the current year          
                 year_in_file=$(grep -oP 'Copyright \K[0-9]{4}' "$file")
                                 
-                if [ "$year_in_file" == 2999] ; then
+                if [ "$year_in_file" == 2999 ]; then
                   echo ""
                   head -n 20 "${file}"
                   echo ""
