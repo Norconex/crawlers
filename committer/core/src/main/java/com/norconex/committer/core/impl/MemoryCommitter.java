@@ -26,6 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.AbstractCommitter;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
@@ -66,6 +67,7 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
 
     private int upsertCount = 0;
     private int deleteCount = 0;
+    @JsonIgnore
     @Getter @Setter
     private boolean closed;
 
@@ -86,15 +88,18 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
         return requests.remove(req);
     }
 
+    @JsonIgnore
     public List<CommitterRequest> getAllRequests() {
         return requests;
     }
+    @JsonIgnore
     public List<UpsertRequest> getUpsertRequests() {
         return requests.stream()
                 .filter(UpsertRequest.class::isInstance)
                 .map(UpsertRequest.class::cast)
                 .toList();
     }
+    @JsonIgnore
     public List<DeleteRequest> getDeleteRequests() {
         return requests.stream()
                 .filter(DeleteRequest.class::isInstance)
@@ -102,12 +107,15 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
                 .toList();
     }
 
+    @JsonIgnore
     public int getUpsertCount() {
         return upsertCount;
     }
+    @JsonIgnore
     public int getDeleteCount() {
         return deleteCount;
     }
+    @JsonIgnore
     public int getRequestCount() {
         return requests.size();
     }
