@@ -220,6 +220,7 @@ public class CrawlerConfig {
      * @param id unique identifier
      * @return unique identifier
      */
+    @JsonProperty(required = true)
     private String id;
 
     private final List<String> startReferences = new ArrayList<>();

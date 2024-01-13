@@ -267,8 +267,8 @@ class ImporterTest {
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
                 "/validation/importer-full.yaml"))) {
             assertThatNoException().isThrownBy(() -> {
-                var importer =
-                        BeanMapper.DEFAULT.read(Importer.class, r, Format.YAML);
+                var importer = new Importer(BeanMapper.DEFAULT.read(
+                        ImporterConfig.class, r, Format.YAML));
                 BeanMapper.DEFAULT.assertWriteRead(importer);
             });
         }
