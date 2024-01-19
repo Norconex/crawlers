@@ -34,6 +34,8 @@ import com.norconex.crawler.web.link.Link;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.DocMetadata;
 
+// this is a comment
+
 class XmlFeedLinkExtractorTest {
 
     @Test
