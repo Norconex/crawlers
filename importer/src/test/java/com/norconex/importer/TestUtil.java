@@ -114,7 +114,8 @@ public final class TestUtil {
     public static Importer getTestConfigImporter() throws IOException {
         try (Reader r = new InputStreamReader(
                 TestUtil.class.getResourceAsStream("test-config.xml"))) {
-            return BeanMapper.DEFAULT.read(Importer.class, r, Format.XML);
+            return new Importer(BeanMapper.DEFAULT.read(
+                    ImporterConfig.class, r, Format.XML));
         }
     }
 
