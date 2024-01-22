@@ -42,7 +42,7 @@ class XmlFeedLinkExtractorTest {
     void testAtomLinkExtraction()  throws IOException {
         var baseURL = "http://www.example.com/";
         var baseDir = baseURL + "test/";
-        var docURL = baseDir + "XMLFeedLinkExtractorTest.atom";
+        var docURL = baseDir + "XmlFeedLinkExtractorTest.atom";
 
         var extractor = new XmlFeedLinkExtractor();
 
@@ -54,7 +54,7 @@ class XmlFeedLinkExtractorTest {
         };
 
         InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
-                "XMLFeedLinkExtractorTest.atom"));
+                "XmlFeedLinkExtractorTest.atom"));
 
         var ct = ContentTypeDetector.detect(is);
 
@@ -77,7 +77,7 @@ class XmlFeedLinkExtractorTest {
     void testRSSLinkExtraction()  throws IOException {
         var baseURL = "http://www.example.com/";
         var baseDir = baseURL + "test/";
-        var docURL = baseDir + "XMLFeedLinkExtractorTest.rss";
+        var docURL = baseDir + "XmlFeedLinkExtractorTest.rss";
 
         var extractor = new XmlFeedLinkExtractor();
 
@@ -89,7 +89,7 @@ class XmlFeedLinkExtractorTest {
         };
 
         InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
-                "XMLFeedLinkExtractorTest.rss"));
+                "XmlFeedLinkExtractorTest.rss"));
 
         var ct = ContentTypeDetector.detect(is);
 
