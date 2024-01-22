@@ -13,6 +13,8 @@ In the meantime, [please use the stable "master" branch](https://github.com/Norc
 
 ## Structure
 
+-- Delete me --
+
 All projects in this repository share the same Maven group id:
 
     com.norconex.crawler
