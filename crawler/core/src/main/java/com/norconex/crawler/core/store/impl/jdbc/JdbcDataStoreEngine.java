@@ -149,7 +149,7 @@ public class JdbcDataStoreEngine
         return TableAdapter.detect(StringUtils.firstNonBlank(
                 datasource.getJdbcUrl(), datasource.getDriverClassName()))
             .withIdType(configuration.getVarcharType())
-            .withModifiedType(configuration.getTimestapType())
+            .withModifiedType(configuration.getTimestampType())
             .withJsonType(configuration.getTextType());
     }
 
