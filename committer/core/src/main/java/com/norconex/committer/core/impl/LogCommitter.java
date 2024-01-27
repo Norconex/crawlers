@@ -30,6 +30,7 @@ import com.norconex.committer.core.AbstractCommitter;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
+import com.norconex.committer.core.impl.LogCommitterConfig.LogLevel;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.map.Properties;
 
@@ -168,13 +169,13 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
 
     private void log(String txt) {
         var lvl = Optional.ofNullable(configuration.getLogLevel())
-                .orElse("INFO").toUpperCase();
-        if ("STDERR".equals(lvl)) {
+                .orElse(LogLevel.INFO);
+        if (LogLevel.STDERR == lvl) {
             System.err.println(txt); //NOSONAR
-        } else if ("STDOUT".equals(lvl)) {
+        } else if (LogLevel.STDOUT == lvl) {
             System.out.println(txt); //NOSONAR
         } else {
-            SLF4JUtil.log(LOG, lvl, txt);
+            SLF4JUtil.log(LOG, lvl.toString(), txt);
         }
     }
 }

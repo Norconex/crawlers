@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
+import com.norconex.committer.core.impl.LogCommitterConfig.LogLevel;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
 
@@ -47,7 +48,7 @@ class LogCommitterTest  {
             c.getConfiguration()
                 .setFieldMatcher(TextMatcher.wildcard("pot?to"))
                 .setIgnoreContent(true)
-                .setLogLevel("ERROR");
+                .setLogLevel(LogLevel.ERROR);
             BeanMapper.DEFAULT.assertWriteRead(c);
         });
     }
