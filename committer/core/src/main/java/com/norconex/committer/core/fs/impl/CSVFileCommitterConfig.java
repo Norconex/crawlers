@@ -130,7 +130,22 @@ public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
 
     public static final int DEFAULT_TRUNCATE_AT = 5096;
 
-    private String format;
+    public enum Format {
+        DEFAULT,
+        EXCEL,
+        INFORMIX_UNLOAD1_3,
+        INFORMIX_UNLOAD_CSV1_3,
+        MONGO_CSV1_7,
+        MONGO_TSV1_7,
+        MYSQL,
+        ORACLE1_6,
+        POSTGRESSQL_CSV1_5,
+        POSTGRESSQL_TEXT1_5,
+        RFC_4180,
+        TDF,
+    }
+
+    private Format format;
     private Character delimiter;
     private Character quote;
     private boolean showHeaders;
