@@ -114,15 +114,15 @@ jobs:
           #     dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
           # fi
           # if [ -z "$dirs" ]; then
-          #     dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
+                dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
           # fi
-          # for dir in $dirs; do
-          #     echo "Analyzing ${dir}..."
-          #     (cd ${dir}; mvn sonar:sonar)
-          # done
+          for dir in $dirs; do
+              echo "Analyzing ${dir}..."
+              (cd ${dir}; mvn sonar:sonar)
+          done
 
           mvn sonar:sonar
-          
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
