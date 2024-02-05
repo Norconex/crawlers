@@ -105,10 +105,9 @@ jobs:
         
           dirs=""
           dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh")
-          
+          echo "pwd"
           for dir in $dirs; do
-              echo "Analyzing ${dir}..."
-              echo "current dir: ${dir}"
+              echo "Analyzing ${dir}..."              
               cd ${dir}
               mvn sonar:sonar
           done
