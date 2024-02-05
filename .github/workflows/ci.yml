@@ -105,7 +105,9 @@ jobs:
         
           for dir in $dirs; do
               echo "Analyzing ${dir}..."
-              (cd ${dir}; mvn sonar:sonar)
+              echo "current dir: ${dir}"
+              cd ${dir}
+              mvn sonar:sonar
           done
 
           #mvn sonar:sonar
