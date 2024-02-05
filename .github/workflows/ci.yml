@@ -103,6 +103,9 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
         
+          dirs=""
+          dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh")
+          
           for dir in $dirs; do
               echo "Analyzing ${dir}..."
               echo "current dir: ${dir}"
