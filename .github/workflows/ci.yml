@@ -90,18 +90,11 @@ jobs:
           mvn_cmd="install"
           mvn_skip=""
           projectsArg=""
-
-          # if [ -f .github/outputs/changed-module-artifacts.txt ]; then
-          #     projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
-          # fi
-          # if [ ! -z "$projectsArg" ]; then
-          #     projectsArg="--projects $projectsArg"
-          #     mvn_cmd="package"
-          # fi
           
           if [ ${{ github.event_name }} == 'pull_request' ]; then
               mvn_skip="-Dgpg.skip=true"
           fi
+
           mvn clean ${mvn_skip} ${mvn_cmd} ${projectsArg} -amd --batch-mode --threads=2
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
@@ -109,19 +102,13 @@ jobs:
       - name: Analyze
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          # dirs=""
-          # if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
-          #     dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
-          # fi
-          # if [ -z "$dirs" ]; then
-                dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
-          # fi
+        
           for dir in $dirs; do
               echo "Analyzing ${dir}..."
               (cd ${dir}; mvn sonar:sonar)
           done
 
-          mvn sonar:sonar
+          #mvn sonar:sonar
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
