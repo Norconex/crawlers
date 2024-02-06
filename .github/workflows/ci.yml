@@ -19,7 +19,7 @@ name: Maven Java CI
 on:
   push:
     branches:
-      - brian-simple-build-test
+      - upcoming-v4
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -121,15 +121,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # - name: Deploy (Push only)
-      #   if: >
-      #     github.repository == 'Norconex/collector-http' &&
-      #     github.event_name == 'push' &&
-      #     steps.changed-files.outputs.any_changed == 'true'
-      #   run: |
-      #     mvn jar:jar deploy:deploy --threads=2
-      #   env:
-      #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-      #     MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-      #     MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      - name: Deploy (Push only)
+        if: >
+          github.repository == 'Norconex/collector-http' &&
+          github.event_name == 'push' &&
+          steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          mvn jar:jar deploy:deploy --threads=2
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
