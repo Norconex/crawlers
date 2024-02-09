@@ -22,10 +22,9 @@ jobs:
         id: modified-files        
         uses: tj-actions/changed-files@v40
         with:
-          files_ignore: |
-            ./.github/workflows/*.*
-            .github/workflows/copyright-headers/bat_file.txt
-            #.github/workflows/copyright-headers/*.*
+          files_ignore: |            
+            .github/workflows/copyright-headers/*.txt
+            .github/workflows/*.yml
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
         run: |
