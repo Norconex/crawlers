@@ -23,7 +23,8 @@ jobs:
         uses: tj-actions/changed-files@v40
         with:
           files_ignore: |
-            ./github/*.*
+            ./github/workflows/*.*
+            ./github/workflows/copyright-headers/*.*
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
         run: |
