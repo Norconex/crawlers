@@ -23,7 +23,7 @@ jobs:
         uses: tj-actions/changed-files@v40
         with:
           files_ignore: |
-            .github/workflows/*.*
+            ./.github/workflows/*.*
             .github/workflows/copyright-headers/bat_file.txt
             #.github/workflows/copyright-headers/*.*
 
