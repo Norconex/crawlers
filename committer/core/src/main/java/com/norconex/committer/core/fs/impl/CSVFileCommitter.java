@@ -15,7 +15,6 @@
 package com.norconex.committer.core.fs.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.IOException;
@@ -147,10 +146,10 @@ public class CSVFileCommitter
     }
     @Override
     protected CSVPrinter createDocWriter(Writer writer) throws IOException {
-        var builder = Builder.create(isBlank(configuration.getFormat())
+        var builder = Builder.create(configuration.getFormat() == null
                 ? CSVFormat.newFormat(',')
                 : new EnumConverter().toType(
-                        configuration.getFormat(),
+                        configuration.getFormat().toString(),
                         CSVFormat.Predefined.class).getFormat());
 
         if (configuration.getDelimiter() != null) {

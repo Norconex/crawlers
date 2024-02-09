@@ -181,8 +181,7 @@ public class AmazonCloudSearchCommitter
         if (StringUtils.isBlank(configuration.getServiceEndpoint())) {
             throw new CommitterException("Service endpoint is undefined.");
         }
-        var b =
-                AmazonCloudSearchDomainClientBuilder.standard();
+        var b = AmazonCloudSearchDomainClientBuilder.standard();
         var clientConfig= new ClientConfiguration();
         if (configuration.getProxySettings().isSet()) {
             var proxy = configuration.getProxySettings();

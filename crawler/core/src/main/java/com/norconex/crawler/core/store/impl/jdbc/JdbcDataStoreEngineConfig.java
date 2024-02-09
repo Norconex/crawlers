@@ -93,42 +93,6 @@ public class JdbcDataStoreEngineConfig {
 
     private Properties properties = new Properties();
     private String varcharType;
-    private String timestapType;
+    private String timestampType;
     private String textType;
-
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        var nodes = xml.getXMLList("datasource/property");
-//        for (XML node : nodes) {
-//            var name = node.getString("@name");
-//            var value = node.getString(".");
-//            configProperties.add(name, value);
-//        }
-//        setTablePrefix(xml.getString("tablePrefix", getTablePrefix()));
-//        setVarcharType(
-//                xml.getString("dataTypes/varchar/@use", getVarcharType()));
-//        setTimestapType(
-//                xml.getString("dataTypes/timestamp/@use", getTimestapType()));
-//        setTextType(xml.getString("dataTypes/text/@use", getTextType()));
-//    }
-//
-//    @Override
-//    public void saveToXML(XML xml) {
-//        var xmlDatasource = xml.addElement("datasource");
-//        for (Entry<String, List<String>> entry : configProperties.entrySet()) {
-//            var values = entry.getValue();
-//            for (String value : values) {
-//                if (value != null) {
-//                    xmlDatasource.addElement("property", value)
-//                            .setAttribute("name", entry.getKey());
-//                }
-//            }
-//        }
-//        xml.addElement("tablePrefix", getTablePrefix());
-//        var dtXML = xml.addElement("dataTypes");
-//        dtXML.addElement("varchar").setAttribute("use", getVarcharType());
-//        dtXML.addElement("timestamp").setAttribute("use", getTimestapType());
-//        dtXML.addElement("text").setAttribute("use", getTextType());
-//    }
-
 }

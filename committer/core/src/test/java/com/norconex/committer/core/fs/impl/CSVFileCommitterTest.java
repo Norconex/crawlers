@@ -152,7 +152,7 @@ class CSVFileCommitterTest  {
                         .setHeader("My content")
                         .setTruncateAt(200)
             ))
-            .setFormat("EXCEL")
+            .setFormat(CSVFileCommitterConfig.Format.EXCEL)
             .setDelimiter('|')
             .setQuote('!')
             .setShowHeaders(true)
