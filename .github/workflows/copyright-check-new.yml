@@ -21,6 +21,9 @@ jobs:
       - name: Get modified files 
         id: modified-files        
         uses: tj-actions/changed-files@v40
+        with:
+          files_ignore: |
+            ./github
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
         run: |
@@ -82,6 +85,7 @@ jobs:
 
               # make sure the file exist
               touch /tmp/modified-file-list.txt
+
               # check if file contain single year copyright info
               if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
                 echo "$file: Single year Copyright"
