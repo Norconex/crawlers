@@ -22,9 +22,11 @@ jobs:
         id: modified-files        
         uses: tj-actions/changed-files@v40
         with:
-          files_ignore: |            
+          files_ignore: |     
+            # ignore the yml files and header files in the github folder       
             .github/workflows/copyright-headers/*.txt
             .github/workflows/*.yml
+            .github/*.yml
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
         run: |
