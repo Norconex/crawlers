@@ -24,6 +24,7 @@ jobs:
         with:
           files_ignore: |
             .github/workflows/*.*
+            .github/workflows/copyright-headers/*.txt
             #.github/workflows/copyright-headers/*.*
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
