@@ -81,13 +81,14 @@ jobs:
           
       - name: Verify Year on files' Copyright Info is up to date
         run: |
+          # make sure the file exist
+          touch /tmp/modified-file-list.txt
+
           current_year=$(date +'%Y')          
+          
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
             # exclude all jsp files
-            if [[ "${file}" != *.jsp ]]; then
-
-              # make sure the file exist
-              touch /tmp/modified-file-list.txt
+            if [[ "${file}" != *.jsp ]]; then            
 
               # check if file contain single year copyright info
               if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
