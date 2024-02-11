@@ -130,7 +130,7 @@ public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
 
     public static final int DEFAULT_TRUNCATE_AT = 5096;
 
-    public enum Format {
+    public enum CSVFormat {
         DEFAULT,
         EXCEL,
         INFORMIX_UNLOAD1_3,
@@ -145,7 +145,7 @@ public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
         TDF,
     }
 
-    private Format format;
+    private CSVFormat format;
     private Character delimiter;
     private Character quote;
     private boolean showHeaders;

@@ -23,7 +23,7 @@ import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.url.WebUrlNormalizer;
 import com.norconex.crawler.web.url.impl.GenericUrlNormalizerConfig.Normalization;
-import com.norconex.crawler.web.url.impl.GenericUrlNormalizerConfig.Replace;
+import com.norconex.crawler.web.url.impl.GenericUrlNormalizerConfig.NormalizationReplace;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -160,11 +160,11 @@ public class GenericUrlNormalizer implements
             n.getConsumer().accept(normalizer);
         }
         var normedURL = normalizer.toString();
-        for (Replace replace : configuration.getReplaces()) {
+        for (NormalizationReplace replace : configuration.getReplacements()) {
             if (replace == null || StringUtils.isBlank(replace.getMatch())) {
                 continue;
             }
-            var replacement = replace.getReplacement();
+            var replacement = replace.getValue();
             if (StringUtils.isBlank(replacement)) {
                 replacement = StringUtils.EMPTY;
             }
@@ -172,33 +172,4 @@ public class GenericUrlNormalizer implements
         }
         return normedURL;
     }
-
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        setNormalizations(xml.getDelimitedEnumList(
-//                "normalizations", Normalization.class, normalizations));
-//        var xmlReplaces = xml.getXMLList("replacements/replace");
-//        if (!xmlReplaces.isEmpty()) {
-//            replaces.clear();
-//        }
-//        for (XML xmlReplace : xmlReplaces) {
-//            var match = xmlReplace.getString("match", "");
-//            var replacement = xmlReplace.getString("replacement", "");
-//            replaces.add(new Replace(match, replacement));
-//        }
-//    }
-//
-//    @Override
-//    public void saveToXML(XML xml) {
-//        xml.addDelimitedElementList("normalizations", normalizations);
-//        if (!replaces.isEmpty()) {
-//            var xmlReplaces = xml.addElement("replacements");
-//            for (Replace replace : replaces) {
-//                var xmlReplace = xmlReplaces.addElement("replace");
-//                xmlReplace.addElement("match", replace.getMatch());
-//                xmlReplace.addElement("replacement", replace.getReplacement());
-//            }
-//        }
-//    }
-
 }
