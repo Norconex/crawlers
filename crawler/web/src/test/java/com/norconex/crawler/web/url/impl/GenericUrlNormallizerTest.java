@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.web.url.impl.GenericUrlNormalizerConfig.Normalization;
-import com.norconex.crawler.web.url.impl.GenericUrlNormalizerConfig.Replace;
+import com.norconex.crawler.web.url.impl.GenericUrlNormalizerConfig.NormalizationReplace;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,10 +82,10 @@ class GenericUrlNormallizerTest {
     @Test
     void testReplacements() {
         var n = new GenericUrlNormalizer();
-        n.getConfiguration().setReplaces(List.of(
-                new Replace("\\.htm$", ".html"),
-                new Replace("&debug=true"),
-                new Replace("(http://)(.*//)(www.example.com)", "$1$3")));
+        n.getConfiguration().setReplacements(List.of(
+                new NormalizationReplace("\\.htm$", ".html"),
+                new NormalizationReplace("&debug=true"),
+                new NormalizationReplace("(http://)(.*//)(www.example.com)", "$1$3")));
 
         s = "http://www.example.com//www.example.com/page1.html";
         t = "http://www.example.com/page1.html";
@@ -131,8 +131,8 @@ class GenericUrlNormallizerTest {
                 Normalization.UPPERCASE_ESCAPESEQUENCE,
                 Normalization.DECODE_UNRESERVED_CHARACTERS,
                 Normalization.REMOVE_DEFAULT_PORT));
-        n.getConfiguration().setReplaces(List.of(
-                new Replace("&view=print", "&view=html")));
+        n.getConfiguration().setReplacements(List.of(
+                new NormalizationReplace("&view=print", "&view=html")));
 
         s = "http://www.somehost.com/hook/";
         t = "http://www.somehost.com/hook/";
@@ -149,9 +149,9 @@ class GenericUrlNormallizerTest {
                 Normalization.REMOVE_DOT_SEGMENTS,
                 Normalization.REMOVE_DUPLICATE_SLASHES,
                 Normalization.REMOVE_SESSION_IDS));
-        n.getConfiguration().setReplaces(List.of(
-                new Replace("\\.htm", ".html"),
-                new Replace("&debug=true")));
+        n.getConfiguration().setReplacements(List.of(
+                new NormalizationReplace("\\.htm", ".html"),
+                new NormalizationReplace("&debug=true")));
         LOG.debug("Writing/Reading this: {}", n);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(n));

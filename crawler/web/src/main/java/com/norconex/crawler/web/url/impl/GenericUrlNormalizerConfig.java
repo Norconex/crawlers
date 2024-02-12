@@ -197,7 +197,7 @@ public class GenericUrlNormalizerConfig {
     }
 
     private final List<Normalization> normalizations = new ArrayList<>();
-    private final List<Replace> replaces = new ArrayList<>();
+    private final List<NormalizationReplace> replacements = new ArrayList<>();
 
     public GenericUrlNormalizerConfig() {
         setNormalizations(List.of(
@@ -218,30 +218,30 @@ public class GenericUrlNormalizerConfig {
         return this;
     }
 
-    public List<Replace> getReplaces() {
-        return Collections.unmodifiableList(replaces);
+    public List<NormalizationReplace> getReplacements() {
+        return Collections.unmodifiableList(replacements);
     }
-    public GenericUrlNormalizerConfig setReplaces(List<Replace> replaces) {
-        CollectionUtil.setAll(this.replaces, replaces);
+    public GenericUrlNormalizerConfig setReplacements(List<NormalizationReplace> replacements) {
+        CollectionUtil.setAll(this.replacements, replacements);
         return this;
     }
 
     @Data
-    public static class Replace {
+    public static class NormalizationReplace {
         private final String match;
-        private final String replacement;
-        public Replace(String match) {
+        private final String value;
+        public NormalizationReplace(String match) {
             this.match = match;
-            replacement = null;
+            value = null;
         }
         @JsonCreator
-        public Replace(
+        public NormalizationReplace(
                 @JsonProperty("match")
                 String match,
-                @JsonProperty("replacement")
+                @JsonProperty("value")
                 String replacement) {
             this.match = match;
-            this.replacement = replacement;
+            value = replacement;
         }
     }
 }
