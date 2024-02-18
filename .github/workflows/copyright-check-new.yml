@@ -22,9 +22,11 @@ jobs:
         id: modified-files        
         uses: tj-actions/changed-files@v40
         with:
-          files_ignore: |            
+          files_ignore: |     
+            # ignore the yml files and header files in the github folder       
             .github/workflows/copyright-headers/*.txt
             .github/workflows/*.yml
+            .github/*.yml
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
         run: |
@@ -79,13 +81,14 @@ jobs:
           
       - name: Verify Year on files' Copyright Info is up to date
         run: |
+          # make sure the file exist
+          touch /tmp/modified-file-list.txt
+
           current_year=$(date +'%Y')          
+          
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
             # exclude all jsp files
-            if [[ "${file}" != *.jsp ]]; then
-
-              # make sure the file exist
-              touch /tmp/modified-file-list.txt
+            if [[ "${file}" != *.jsp ]]; then            
 
               # check if file contain single year copyright info
               if grep -qE 'Copyright [0-9]{4} Norconex Inc\.' "$file"; then
