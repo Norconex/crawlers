@@ -16,6 +16,7 @@ package com.norconex.crawler.web.delay.impl;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.crawler.web.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 @Disabled
 class GenericDelayResolverTest {
 
@@ -35,14 +37,14 @@ class GenericDelayResolverTest {
                 "from Monday to Wednesday",
                 "from 1 to 15",
                 "from 1:00 to 2:00",
-                1000));
+                Duration.ofSeconds(1)));
 
         var r = new GenericDelayResolver();
         r.getConfiguration()
             .setSchedules(schedules)
-            .setDefaultDelay(10000)
+            .setDefaultDelay(Duration.ofSeconds(10))
             .setIgnoreRobotsCrawlDelay(true)
-            .setScope("thread");
+            .setScope(DelayResolverScope.THREAD);
 
         assertThatNoException().isThrownBy(() ->
                 BeanMapper.DEFAULT.assertWriteRead(r));
@@ -52,7 +54,7 @@ class GenericDelayResolverTest {
     void testDelayScheduleBoundaries() {
         //FYI: Jan 1, 2000 was a Saturday
         var schedule = new DelaySchedule(
-                "Mon to Wed", "1 to 15", "13:00 to 14:00", 0);
+                "Mon to Wed", "1 to 15", "13:00 to 14:00", Duration.ZERO);
 
         Assertions.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-03T13:30")));
@@ -60,12 +62,12 @@ class GenericDelayResolverTest {
                 LocalDateTime.parse("2000-01-03T01:30")));
 
         schedule = new DelaySchedule(
-                "Fri to Tue", "25 to 5", "22:00 to 6:00", 0);
+                "Fri to Tue", "25 to 5", "22:00 to 6:00", Duration.ZERO);
         Assertions.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-01T23:30")));
 
         schedule = new DelaySchedule(
-                "Sat to Tue", "25 to 1", "23:30 to 23:30", 0);
+                "Sat to Tue", "25 to 1", "23:30 to 23:30", Duration.ZERO);
         Assertions.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-01T23:30")));
     }
@@ -73,11 +75,11 @@ class GenericDelayResolverTest {
     @Test
     void testDelay() {
         var r = new GenericDelayResolver();
-        r.getConfiguration().setDefaultDelay(0);
+        r.getConfiguration().setDefaultDelay(Duration.ZERO);
         assertThatNoException().isThrownBy(
                 () -> r.delay(null, "http://somewhere.com"));
 
-        r.getConfiguration().setDefaultDelay(50);
+        r.getConfiguration().setDefaultDelay(Duration.ofMillis(50));
         assertThatNoException().isThrownBy(
                 () -> r.delay(null, "http://somewhere.com"));
         // doing twice in a row to trigger within elapsed time

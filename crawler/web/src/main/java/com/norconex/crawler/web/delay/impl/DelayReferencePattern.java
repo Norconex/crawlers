@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
+import java.time.Duration;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,12 +25,12 @@ import lombok.Data;
 @Data
 public class DelayReferencePattern {
     private final String pattern;
-    private final long delay;
+    private final Duration delay;
 
     @JsonCreator
     public DelayReferencePattern(
             @JsonProperty("pattern") String pattern,
-            @JsonProperty("delay") long delay) {
+            @JsonProperty("delay") Duration delay) {
         this.pattern = pattern;
         this.delay = delay;
     }

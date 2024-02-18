@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
+import java.time.Duration;
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -69,19 +71,19 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 public class BaseDelayResolverConfig {
 
-    public static final String SCOPE_CRAWLER = "crawler";
-    public static final String SCOPE_SITE = "site";
-    public static final String SCOPE_THREAD = "thread";
+    public enum DelayResolverScope { CRAWLER, SITE, THREAD }
 
     /** Default delay is 3 seconds. */
-    public static final long DEFAULT_DELAY = 3000;
+    public static final Duration DEFAULT_DELAY = Duration.ofSeconds(3);
+    public static final DelayResolverScope DEFAULT_SCOPE =
+            DelayResolverScope.CRAWLER;
 
     /**
      * The default delay in milliseconds.
      * @param defaultDelay default deleay
      * @return default delay
      */
-    private long defaultDelay = DEFAULT_DELAY;
+    private Duration defaultDelay = DEFAULT_DELAY;
 
     /**
      * Whether to ignore crawl delays specified in a site robots.txt
@@ -97,44 +99,5 @@ public class BaseDelayResolverConfig {
      * @param scope one of "crawler", "site", or "thread".
      * @return delay scope
      */
-    private String scope = SCOPE_CRAWLER;
-
-
-//
-//    @Override
-//    public final void loadFromXML(XML xml) {
-//        defaultDelay = xml.getDurationMillis("@default", defaultDelay);
-//        ignoreRobotsCrawlDelay = xml.getBoolean(
-//                "@ignoreRobotsCrawlDelay", ignoreRobotsCrawlDelay);
-//        scope = xml.getString("@scope", SCOPE_CRAWLER);
-//        loadDelaysFromXML(xml);
-//    }
-//
-//    /**
-//     * Loads explicit configuration of delays form XML.  Implementors should
-//     * override this method if they wish to add extra configurable elements.
-//     * Default implementation does nothing.
-//     * @param xml configuration
-//     */
-//    protected void loadDelaysFromXML(XML xml) {
-//        //noop
-//    }
-//
-//    @Override
-//    public final void saveToXML(XML xml) {
-//        xml.setAttribute("default", Long.toString(defaultDelay));
-//        xml.setAttribute("scope", scope);
-//        xml.setAttribute("ignoreRobotsCrawlDelay", ignoreRobotsCrawlDelay);
-//        saveDelaysToXML(xml);
-//    }
-//
-//    /**
-//     * Saves explicit configuration of delays to XML.  Implementors should
-//     * override this method if they wish to add extra configurable elements.
-//     * Default implementation does nothing.
-//     * @param xml XML
-//     */
-//    protected void saveDelaysToXML(XML xml) {
-//        //noop
-//    }
+    private DelayResolverScope scope = DEFAULT_SCOPE;
 }

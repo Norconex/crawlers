@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -63,6 +64,7 @@ import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.delay.DelayResolver;
+import com.norconex.crawler.web.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 import com.norconex.crawler.web.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -75,10 +77,6 @@ import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.crawler.web.sitemap.SitemapResolver;
-//import com.norconex.crawler.core.store.DataStore;
-//import com.norconex.crawler.core.store.DataStoreEngine;
-//import com.norconex.crawler.core.store.MockDataStore;
-//import com.norconex.crawler.core.store.MockDataStoreEngine;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.DocMetadata;
 
@@ -141,7 +139,7 @@ public final class WebStubber {
                 new StringRandomizer(20).getRandomValue()))
         .randomize(DelayResolver.class, () -> {
             var resolv = new GenericDelayResolver();
-            resolv.getConfiguration().setScope("crawler");
+            resolv.getConfiguration().setScope(DelayResolverScope.CRAWLER);
             return resolv;
         })
         .randomize(DomLinkExtractor.class, () -> {
@@ -264,8 +262,8 @@ public final class WebStubber {
         var crawlerConfig = new WebCrawlerConfig();
         crawlerConfig.setId(MOCK_CRAWLER_ID);
         crawlerConfig.setNumThreads(1);
-        ((GenericDelayResolver) crawlerConfig
-                .getDelayResolver()).getConfiguration().setDefaultDelay(0);
+        ((GenericDelayResolver) crawlerConfig.getDelayResolver())
+            .getConfiguration().setDefaultDelay(Duration.ZERO);
         crawlerConfig.setCommitters(List.of(new MemoryCommitter()));
         return crawlerConfig;
     }

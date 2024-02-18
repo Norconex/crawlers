@@ -53,7 +53,8 @@ public class WebCrawlSession {
                 args);
     }
 
-    public static CrawlSession createSession(CrawlSessionConfig sessionConfig) {
+    public static CrawlSession createSession(
+            CrawlSessionConfig sessionConfig) {
         return initCrawlSessionBuilder(
                 CrawlSession.builder(),
                 Optional.ofNullable(sessionConfig)

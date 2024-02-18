@@ -14,17 +14,16 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
-import static com.norconex.crawler.web.delay.impl.BaseDelayResolverConfig.SCOPE_CRAWLER;
-import static com.norconex.crawler.web.delay.impl.BaseDelayResolverConfig.SCOPE_SITE;
-import static com.norconex.crawler.web.delay.impl.BaseDelayResolverConfig.SCOPE_THREAD;
-
-import java.util.HashMap;
+import java.time.Duration;
+import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.web.delay.DelayResolver;
+import com.norconex.crawler.web.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 import com.norconex.crawler.web.robot.RobotsTxt;
 
 import lombok.EqualsAndHashCode;
@@ -85,12 +84,13 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
         implements DelayResolver, Configurable<T> {
 
     @JsonIgnore
-    private final Map<String, AbstractDelay> delays = new HashMap<>();
+    private final Map<DelayResolverScope, AbstractDelay> delays =
+            new EnumMap<>(DelayResolverScope.class);
 
     protected AbstractDelayResolver() {
-        delays.put(SCOPE_CRAWLER, new CrawlerDelay());
-        delays.put(SCOPE_SITE, new SiteDelay());
-        delays.put(SCOPE_THREAD, new ThreadDelay());
+        delays.put(DelayResolverScope.CRAWLER, new CrawlerDelay());
+        delays.put(DelayResolverScope.SITE, new SiteDelay());
+        delays.put(DelayResolverScope.THREAD, new ThreadDelay());
     }
 
     @Override
@@ -101,24 +101,28 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
         }
         var delay = delays.get(getConfiguration().getScope());
         if (delay == null) {
-            LOG.warn("Unspecified or unsupported delay scope: "
-                    + getConfiguration().getScope()
-                    + ".  Using 'crawler' scope.");
-            delay = delays.get(BaseDelayResolverConfig.SCOPE_CRAWLER);
+            LOG.warn("Unspecified or unsupported delay scope: {}. "
+                    + "Using {} scope.",
+                    getConfiguration().getScope(),
+                    BaseDelayResolverConfig.DEFAULT_SCOPE);
+            delay = delays.get(BaseDelayResolverConfig.DEFAULT_SCOPE);
         }
         delay.delay(expectedDelayNanos, url);
     }
 
     private long getExpectedDelayNanos(
             RobotsTxt robotsTxt, String url) {
-        var delayNanos = millisToNanos(getConfiguration().getDefaultDelay());
+        var delayNanos = Optional
+                .ofNullable(getConfiguration().getDefaultDelay())
+                .orElse(BaseDelayResolverConfig.DEFAULT_DELAY)
+                .toNanos();
         if (isUsingRobotsTxtCrawlDelay(robotsTxt)) {
             delayNanos = TimeUnit.SECONDS.toNanos(
                     (long)(robotsTxt.getCrawlDelay()));
         } else {
             var explicitDelay = resolveExplicitDelay(url);
-            if (explicitDelay > -1) {
-                delayNanos = millisToNanos(explicitDelay);
+            if (explicitDelay != null) {
+                delayNanos = explicitDelay.toNanos();
             }
         }
         return delayNanos;
@@ -132,53 +136,11 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
      * @param url URL for which to resolve delay
      * @return delay in millisecond, or -1
      */
-    protected abstract long resolveExplicitDelay(String url);
+    protected abstract Duration resolveExplicitDelay(String url);
 
     private boolean isUsingRobotsTxtCrawlDelay(RobotsTxt robotsTxt) {
         return robotsTxt != null
                 && !getConfiguration().isIgnoreRobotsCrawlDelay()
                 && robotsTxt.getCrawlDelay() >= 0;
     }
-
-    private long millisToNanos(long millis) {
-        return TimeUnit.MILLISECONDS.toNanos(millis);
-    }
-
-
-//    @Override
-//    public final void loadFromXML(XML xml) {
-//        defaultDelay = xml.getDurationMillis("@default", defaultDelay);
-//        ignoreRobotsCrawlDelay = xml.getBoolean(
-//                "@ignoreRobotsCrawlDelay", ignoreRobotsCrawlDelay);
-//        scope = xml.getString("@scope", SCOPE_CRAWLER);
-//        loadDelaysFromXML(xml);
-//    }
-//
-//    /**
-//     * Loads explicit configuration of delays form XML.  Implementors should
-//     * override this method if they wish to add extra configurable elements.
-//     * Default implementation does nothing.
-//     * @param xml configuration
-//     */
-//    protected void loadDelaysFromXML(XML xml) {
-//        //noop
-//    }
-//
-//    @Override
-//    public final void saveToXML(XML xml) {
-//        xml.setAttribute("default", Long.toString(defaultDelay));
-//        xml.setAttribute("scope", scope);
-//        xml.setAttribute("ignoreRobotsCrawlDelay", ignoreRobotsCrawlDelay);
-//        saveDelaysToXML(xml);
-//    }
-//
-//    /**
-//     * Saves explicit configuration of delays to XML.  Implementors should
-//     * override this method if they wish to add extra configurable elements.
-//     * Default implementation does nothing.
-//     * @param xml XML
-//     */
-//    protected void saveDelaysToXML(XML xml) {
-//        //noop
-//    }
 }

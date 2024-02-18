@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
+import java.time.Duration;
+
 import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.EqualsAndHashCode;
@@ -95,8 +97,8 @@ public class ReferenceDelayResolver
             new ReferenceDelayResolverConfig();
 
     @Override
-    protected long resolveExplicitDelay(String url) {
-        long delay = -1;
+    protected Duration resolveExplicitDelay(String url) {
+        Duration delay = null;
         for (DelayReferencePattern delayPattern :
                 configuration.getDelayReferencePatterns()) {
             if (delayPattern.matches(url)) {
@@ -106,22 +108,5 @@ public class ReferenceDelayResolver
         }
         return delay;
     }
-
-//    @Override
-//    protected void loadDelaysFromXML(XML xml) {
-//        for (XML pxml : xml.getXMLList("pattern")) {
-//            delayReferencePatterns.add(new DelayReferencePattern(
-//                    pxml.getString(".", ""),
-//                    pxml.getDurationMillis("@delay", DEFAULT_DELAY)));
-//        }
-//    }
-//
-//    @Override
-//    protected void saveDelaysToXML(XML xml) {
-//        for (DelayReferencePattern delayPattern : delayReferencePatterns) {
-//            xml.addElement("pattern", delayPattern.getPattern())
-//                    .setAttribute("delay", delayPattern.getDelay());
-//        }
-//    }
 }
 

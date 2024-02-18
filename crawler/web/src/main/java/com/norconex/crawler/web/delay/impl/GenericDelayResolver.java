@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
+import java.time.Duration;
+
 import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.EqualsAndHashCode;
@@ -101,8 +103,8 @@ public class GenericDelayResolver
             new GenericDelayResolverConfig();
 
     @Override
-    protected long resolveExplicitDelay(String url) {
-        long delay = -1;
+    protected Duration resolveExplicitDelay(String url) {
+        Duration delay = null;
         for (DelaySchedule schedule : configuration.getSchedules()) {
             if (schedule.isCurrentTimeInSchedule()) {
                 delay = schedule.getDelay();
@@ -111,43 +113,4 @@ public class GenericDelayResolver
         }
         return delay;
     }
-//
-//    @Override
-//    protected void loadDelaysFromXML(XML xml) {
-//        for (XML sxml : xml.getXMLList("schedule")) {
-//            schedules.add(new DelaySchedule(
-//                    sxml.getString("@dayOfWeek", null),
-//                    sxml.getString("@dayOfMonth", null),
-//                    sxml.getString("@time", null),
-//                    sxml.getDurationMillis(".", DEFAULT_DELAY)
-//            ));
-//        }
-//    }
-//
-//    @Override
-//    protected void saveDelaysToXML(XML xml) {
-//        var from = "from ";
-//        var to = " to ";
-//        for (DelaySchedule schedule : schedules) {
-//            var sxml = xml.addElement("schedule", schedule.getDelay());
-//            if (schedule.getDayOfWeekRange() != null) {
-//                sxml.setAttribute("dayOfWeek",
-//                        from + schedule.getDayOfWeekRange().getMinimum()
-//                      + to + schedule.getDayOfWeekRange().getMaximum());
-//            }
-//            if (schedule.getDayOfMonthRange() != null) {
-//                sxml.setAttribute("dayOfMonth",
-//                        from + schedule.getDayOfMonthRange().getMinimum()
-//                      + to + schedule.getDayOfMonthRange().getMaximum());
-//            }
-//            if (schedule.getTimeRange() != null) {
-//                int min = schedule.getTimeRange().getMinimum();
-//                int max = schedule.getTimeRange().getMaximum();
-//                sxml.setAttribute("time",
-//                        from + (min / 100) + ":" + (min % 100)
-//                      + to + (max / 100) + ":" + (max % 100));
-//            }
-//        }
-//    }
-
 }

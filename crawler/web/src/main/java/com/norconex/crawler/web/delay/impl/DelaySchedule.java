@@ -14,7 +14,9 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,7 +38,7 @@ public class DelaySchedule {
     // time is 4 digits. E.g., 16:34 is 1634
     //MAYBE: use LocalTime (and make this class top-level)?
     private final CircularRange<Integer> timeRange;
-    private final long delay;
+    private final Duration delay;
     public enum DOW {MON,TUE,WED,THU,FRI,SAT,SUN}
 
     @JsonCreator
@@ -44,11 +46,11 @@ public class DelaySchedule {
             @JsonProperty("dayOfWeekRange") String dow,
             @JsonProperty("dayOfMonthRange") String dom,
             @JsonProperty("timeRange") String time,
-            @JsonProperty("delay") long delay) {
+            @JsonProperty("delay") Duration delay) {
         dayOfWeekRange = parseDayOfWeekRange(dow);
         dayOfMonthRange = parseDayOfMonthRange(dom);
         timeRange = parseTime(time);
-        this.delay = delay;
+        this.delay = Optional.ofNullable(delay).orElse(Duration.ZERO);
     }
     public boolean isCurrentTimeInSchedule() {
         return isDateTimeInSchedule(LocalDateTime.now());
@@ -76,7 +78,7 @@ public class DelaySchedule {
         return timeRange;
     }
 
-    public long getDelay() {
+    public Duration getDelay() {
         return delay;
     }
     private CircularRange<Integer> parseTime(String time) {

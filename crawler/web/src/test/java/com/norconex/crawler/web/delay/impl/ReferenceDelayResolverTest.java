@@ -17,6 +17,7 @@ package com.norconex.crawler.web.delay.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.web.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 @Disabled
 class ReferenceDelayResolverTest {
 
@@ -33,14 +35,14 @@ class ReferenceDelayResolverTest {
     void testWriteRead() {
         List<DelayReferencePattern> delayPatterns = new ArrayList<>();
         delayPatterns.add(new DelayReferencePattern(
-                "http://example\\.com/.*", 1000));
+                "http://example\\.com/.*", Duration.ofSeconds(1)));
 
         var r = new ReferenceDelayResolver();
         r.getConfiguration()
             .setDelayReferencePatterns(delayPatterns)
-            .setDefaultDelay(10000)
+            .setDefaultDelay(Duration.ofSeconds(10))
             .setIgnoreRobotsCrawlDelay(true)
-            .setScope("thread");
+            .setScope(DelayResolverScope.THREAD);
 
         assertThatNoException().isThrownBy(() ->
                 BeanMapper.DEFAULT.assertWriteRead(r));
@@ -57,8 +59,8 @@ class ReferenceDelayResolverTest {
     void testResolveExplicitDelay() {
         var r = new ReferenceDelayResolver();
         r.getConfiguration().setDelayReferencePatterns(List.of(
-                new DelayReferencePattern(".*abc.*", 123),
-                new DelayReferencePattern(".*def.*", 456)));
+                new DelayReferencePattern(".*abc.*", Duration.ofMillis(123)),
+                new DelayReferencePattern(".*def.*", Duration.ofMillis(456))));
 
         assertThat(r.resolveExplicitDelay("http://abc.com")).isEqualTo(123);
         assertThat(r.resolveExplicitDelay("http://def.com")).isEqualTo(456);
