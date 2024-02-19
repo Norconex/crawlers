@@ -52,6 +52,7 @@ public class DelaySchedule {
         timeRange = parseTime(time);
         this.delay = Optional.ofNullable(delay).orElse(Duration.ZERO);
     }
+    @JsonIgnore
     public boolean isCurrentTimeInSchedule() {
         return isDateTimeInSchedule(LocalDateTime.now());
     }
