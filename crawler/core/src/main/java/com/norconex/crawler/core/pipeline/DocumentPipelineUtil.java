@@ -79,7 +79,7 @@ public final class DocumentPipelineUtil {
         return false;
     }
 
-    public static boolean shouldAbortOnBadStatus(
+    public static boolean continueOnBadStatus(
             @NonNull DocumentPipelineContext ctx,
             CrawlDocState originalCrawlDocState,
             @NonNull FetchDirective fetchDirective) {

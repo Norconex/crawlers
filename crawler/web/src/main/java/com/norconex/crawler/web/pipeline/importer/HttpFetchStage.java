@@ -136,7 +136,7 @@ class HttpFetchStage extends AbstractImporterStage {
         // At this stage, the URL is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning
         // false or true) depends on the fetch directives supported.
-        return DocumentPipelineUtil.shouldAbortOnBadStatus(
+        return DocumentPipelineUtil.continueOnBadStatus(
                 ctx, originalCrawlDocState, getFetchDirective());
     }
 }

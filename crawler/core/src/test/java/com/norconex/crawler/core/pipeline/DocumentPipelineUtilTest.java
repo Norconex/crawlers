@@ -125,7 +125,7 @@ class DocumentPipelineUtilTest {
         cfg.setMetadataFetchSupport(metaSupport);
         cfg.setDocumentFetchSupport(docSupport);
 
-        assertThat(DocumentPipelineUtil.shouldAbortOnBadStatus(
+        assertThat(DocumentPipelineUtil.continueOnBadStatus(
                 new DocumentPipelineContext(crawler, doc),
                 originalDocState,
                 currentDirective)).isEqualTo(expected);

@@ -120,7 +120,7 @@ class FileFetchStage extends AbstractImporterStage {
         // At this stage, the ref is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning
         // false or true) depends on http fetch methods supported.
-        return DocumentPipelineUtil.shouldAbortOnBadStatus(
+        return DocumentPipelineUtil.continueOnBadStatus(
                 ctx, originalCrawlDocState, getFetchDirective());
     }
 
