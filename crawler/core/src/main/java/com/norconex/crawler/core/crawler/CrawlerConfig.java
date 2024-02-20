@@ -451,7 +451,7 @@ public class CrawlerConfig {
      * @param fetchersRetryDelay retry delay
      * @return retry delay
      */
-    private long fetchersRetryDelay;
+    private Duration fetchersRetryDelay;
 
     //--- List Accessors -------------------------------------------------------
 

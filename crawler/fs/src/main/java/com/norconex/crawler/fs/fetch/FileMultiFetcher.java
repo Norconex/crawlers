@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.fs.fetch;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +49,7 @@ public class FileMultiFetcher
             @NonNull
             UnsuccessfulResponseFactory
                     <FileFetchResponse> unsuccessfulResponseAdaptor,
-            int maxRetries, long retryDelay) {
+            int maxRetries, Duration retryDelay) {
         super(fetchers,
                 multiResponseWrapper,
                 unsuccessfulResponseAdaptor,

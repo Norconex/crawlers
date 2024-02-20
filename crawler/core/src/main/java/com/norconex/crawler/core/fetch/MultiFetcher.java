@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.core.fetch;
 
+import static java.util.Optional.ofNullable;
+
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +51,7 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
     @Getter
     private final int maxRetries;
     @Getter
-    private final long retryDelay;
+    private final Duration retryDelay;
 //
 //    @FunctionalInterface
 //    public interface MultiResponseFactory
@@ -85,7 +88,7 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
             @NonNull ResponseListAdapter<R> responseListAdapter,
             @NonNull UnsuccessfulResponseFactory<R> unsuccessfulResponseAdaptor,
             int maxRetries,
-            long retryDelay) {
+            Duration retryDelay) {
         if (CollectionUtils.isEmpty(fetchers)) {
             throw new IllegalArgumentException("Need at least 1 fetcher.");
         }
@@ -169,7 +172,8 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
             Fetcher<T, R> fetcher, T fetchRequest, int retryCount) {
 
         if (retryCount > 0) {
-            Sleeper.sleepMillis(retryDelay);
+            Sleeper.sleepMillis(
+                    ofNullable(retryDelay).orElse(Duration.ZERO).toMillis());
             LOG.debug("Retry attempt #{} to fetch '{}' using '{}'.",
                     retryCount,
                     fetchRequest.getDoc().getReference(),

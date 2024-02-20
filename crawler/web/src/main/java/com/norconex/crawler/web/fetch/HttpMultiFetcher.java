@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.fetch;
 
+import java.time.Duration;
 import java.util.List;
 
 import com.norconex.crawler.core.fetch.Fetcher;
@@ -42,7 +43,7 @@ public class HttpMultiFetcher
             @NonNull
             UnsuccessfulResponseFactory
                     <HttpFetchResponse> unsuccessfulResponseAdaptor,
-            int maxRetries, long retryDelay) {
+            int maxRetries, Duration retryDelay) {
         super(fetchers,
                 multiResponseWrapper,
                 unsuccessfulResponseAdaptor,

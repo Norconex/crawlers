@@ -16,6 +16,7 @@ package com.norconex.crawler.core.fetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,7 @@ class MultiFetcherTest {
                         .setReasonPhrase(msg)
                         .setException(ex))
             .maxRetries(1)
-            .retryDelay(2)
+            .retryDelay(Duration.ofMillis(2))
             .build();
     }
 
