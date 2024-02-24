@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.spi;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.apache.commons.collections4.MultiMapUtils;
@@ -34,6 +35,8 @@ import com.norconex.crawler.core.processor.DocumentProcessor;
 import com.norconex.crawler.web.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.delay.DelayResolver;
+import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher;
 import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsMetaProvider;
@@ -57,7 +60,6 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, MetadataChecksummer.class, "checksum.impl");
         addPolyType(map, EventListener.class, "crawler.event.impl");
         addPolyType(map, DelayResolver.class);
-        addPolyType(map, Fetcher.class, "fetch.impl");
         addPolyType(map, DocumentFilter.class, "filter.impl"); //NOSONAR
         addPolyType(map, MetadataFilter.class, "filter.impl");
         addPolyType(map, ReferenceFilter.class, "filter.impl");
@@ -71,6 +73,9 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, WebUrlNormalizer.class);
 
         map.put(CrawlerConfig.class, WebCrawlerConfig.class);
+        map.putAll(Fetcher.class, List.of(
+                GenericHttpFetcher.class,
+                WebDriverHttpFetcher.class));
 
         // For unit test
         addPolyType(map, EventListener.class, "session.recovery");
