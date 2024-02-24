@@ -9,7 +9,7 @@ https://opensource.norconex.com/collectors/http/
 
 This branch holds version 4 code, which is still in development.
 
-**For the latest stable release of Norconex Web Crawler, use the [version 3 branch](https://github.com/Norconex/collector-http/tree/3.x-branch).**
+**For the latest stable release of Norconex Web Crawler, use the [version 3 branch](https://github.com/Norconex/crawlers/tree/3.x-branch).**
 
 # UPCOMING: Crawler V4 Stack
 
