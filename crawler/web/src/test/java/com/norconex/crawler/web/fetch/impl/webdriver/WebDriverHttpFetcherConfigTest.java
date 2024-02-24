@@ -56,8 +56,10 @@ class WebDriverHttpFetcherConfigTest  {
         c.setWaitForElementTimeout(1234);
         c.setWaitForElementType(WaitElementType.ID);
         c.setWindowSize(new Dimension(666, 999));
-        c.getCapabilities().setCapability("cap1", "val1");
-        c.getCapabilities().setCapability("cap2", "val2");
+        c.setCapabilities(MapUtil.toMap(
+            "cap1", "val1",
+            "cap2", "val2"
+        ));
 
         var snif = new HttpSniffer();
         snif.getConfiguration()

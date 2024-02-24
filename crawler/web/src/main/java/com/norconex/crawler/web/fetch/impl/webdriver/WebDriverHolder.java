@@ -45,7 +45,7 @@ class WebDriverHolder {
                         cfg.getRemoteURL()),
                 o -> {
                     o.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
-                    o.merge(cfg.getCapabilities());
+                    o.merge(new MutableCapabilities(cfg.getCapabilities()));
                     options.setValue(o);
                 }
         );
