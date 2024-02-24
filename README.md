@@ -1,6 +1,6 @@
-# Norconex HTTP Collector
+# Norconex Crawlers
 
-Norconex HTTP Collector is a full-featured web crawler (or spider) that can manipulate and store collected data in a repository of your choice (e.g., a search engine). It is very flexible, powerful, easy to extend, and portable. It can be used command-line with file-based configuration on any OS or embedded into Java applications using well-documented APIs.
+Norconex web and filesystem crawlers are full-featured crawlers (or spider) that can manipulate and store collected data in a repository of your choice (e.g., a search engine). They are very flexible, powerful, easy to extend, and portable. They can be used command-line with file-based configuration on any OS or embedded into Java applications using well-documented APIs.
 
 Visit the website for binary downloads and documentation:
 https://opensource.norconex.com/collectors/http/
@@ -9,7 +9,7 @@ https://opensource.norconex.com/collectors/http/
 
 This branch holds version 4 code, which is still in development.
 
-**For the latest stable release, use the [version 3 branch](https://github.com/Norconex/collector-http/tree/3.x-branch).**
+**For the latest stable release of Norconex Web Crawler, use the [version 3 branch](https://github.com/Norconex/collector-http/tree/3.x-branch).**
 
 # UPCOMING: Crawler V4 Stack
 
