@@ -29,7 +29,7 @@
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
       
-    <graalvm-js.version>22.3.2</graalvm-js.version>
+    <graalvm-js.version>23.0.3</graalvm-js.version>
     <jpeg2000-imageio.version>1.4.0</jpeg2000-imageio.version>
     <jython.version>2.7.3</jython.version>
     <luaj-jse.version>3.0.1</luaj-jse.version>
