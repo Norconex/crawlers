@@ -30,7 +30,7 @@
   <properties>
     <bc.version>1.69</bc.version>
     <browsermob.version>2.1.5</browsermob.version>
-    <guava.version>32.0.0-jre</guava.version>
+    <guava.version>31.0.1-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
     <jetty.version>9.4.51.v20230217</jetty.version>
     <netty.version>4.1.72.Final</netty.version>
