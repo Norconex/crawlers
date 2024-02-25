@@ -129,7 +129,7 @@ public class BaseCommitterConfig {
     /**
      * Gets all restrictions
      * @return the restrictions
-         */
+     */
     public PropertyMatchers getRestrictions() {
         return restrictions;
     }
