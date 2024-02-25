@@ -57,7 +57,7 @@
     <ant.version>1.10.13</ant.version>
     <httpclient5.version>5.2.1</httpclient5.version>
     <jackson.version>2.15.2</jackson.version>
-    <jakarta-activation.version>2.1.1</jakarta-activation.version>
+    <jakarta-activation.version>2.1.2</jakarta-activation.version>
     <jakarta-el-api.version>5.0.1</jakarta-el-api.version>
     <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
     <java-cup.version>10k</java-cup.version>
