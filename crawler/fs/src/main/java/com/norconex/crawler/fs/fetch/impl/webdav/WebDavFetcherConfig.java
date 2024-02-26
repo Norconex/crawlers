@@ -99,25 +99,4 @@ public class WebDavFetcherConfig extends BaseAuthVfsFetcherConfig {
     private String keyStorePassToString() {
         return "********";
     }
-
-//
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        super.loadFetcherFromXML(xml);
-//        xml.ifXML(Fields.proxySettings, proxyXML -> {
-//            proxySettings.loadFromXML(proxyXML);
-//            setProxyDomain(proxyXML.getString(Fields.proxyDomain, proxyDomain));
-//        });
-//        setKeyStorePassKey(EncryptionKey.loadFromXML(
-//                xml.getXML(Fields.keyStorePassKey), keyStorePassKey));
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        super.saveFetcherToXML(xml);
-//        var proxyXML = xml.addElement(Fields.proxySettings);
-//        proxySettings.saveToXML(proxyXML);
-//        proxyXML.addElement(Fields.proxyDomain, proxyDomain);
-//        EncryptionKey.saveToXML(
-//                xml.addElement(Fields.keyStorePassKey), keyStorePassKey);
-//    }
 }

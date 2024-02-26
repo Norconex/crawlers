@@ -14,10 +14,13 @@
  */
 package com.norconex.crawler.fs.fetch.impl.webdav;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -62,5 +65,13 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
         var host = webdavContainer.getHost();
         var port = webdavContainer.getFirstMappedPort();
         webdavUrl = "webdav://%s:%s".formatted(host, port);
+    }
+
+    @Test
+    void testKeyStorePassToString() {
+        // toString shall not show password
+        assertThat(
+            new WebDavFetcherConfig().setKeyStorePass("abc123").toString()
+        ).contains("password=********");
     }
 }
