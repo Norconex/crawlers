@@ -64,7 +64,7 @@
     <jetty.version>11.0.15</jetty.version>
     <json.version>1.8</json.version>
     <jsoup.version>1.15.4</jsoup.version>
-    <log4j.version>2.20.0</log4j.version>
+    <log4j.version>2.23.0</log4j.version>
     <picocli.version>4.7.3</picocli.version>
     <slf4j.version>2.0.7</slf4j.version>
     <tomcat-embed-el.version>10.1.12</tomcat-embed-el.version>
