@@ -36,7 +36,7 @@ jobs:
     steps:
 
       - name: Source checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # depth 0 means checkout all commits... we need that 
           # in case there are many commits in a push/PR
