@@ -865,11 +865,11 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public void setStartURLsAsync(boolean asyncStartURLs) {
-        this.startURLsAsync = asyncStartURLs;
+        startURLsAsync = asyncStartURLs;
     }
 
     public void setMaxDepth(int depth) {
-        this.maxDepth = depth;
+        maxDepth = depth;
     }
     public int getMaxDepth() {
         return maxDepth;
@@ -1241,7 +1241,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public void setPostImportLinks(TextMatcher fieldMatcher) {
-        this.postImportLinks.copyFrom(fieldMatcher);
+        postImportLinks.copyFrom(fieldMatcher);
     }
     /**
      * Gets whether to keep the importer-generated field holding URLs to
@@ -1271,7 +1271,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         xml.addElement("fetchHttpHead", fetchHttpHead);
         xml.addElement("fetchHttpGet", fetchHttpGet);
 
-		XML startXML = xml.addElement("startURLs")
+		var startXML = xml.addElement("startURLs")
 		        .setAttribute("stayOnProtocol",
 		                urlCrawlScopeStrategy.isStayOnProtocol())
                 .setAttribute("stayOnDomain",
@@ -1404,13 +1404,13 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         setMaxDepth(xml.getInteger("maxDepth", maxDepth));
         setKeepDownloads(xml.getBoolean("keepDownloads", keepDownloads));
 
-        String fetchHttpHeadValue = xml.getString("fetchHttpHead", null);
+        var fetchHttpHeadValue = xml.getString("fetchHttpHead", null);
         if (StringUtils.equalsAnyIgnoreCase(
                 fetchHttpHeadValue, "true", "false")) {
             LOG.warn("Configuring 'fetchHttpHead' with a boolean value has "
                     + "been deprecated. It now expects one of "
                     + "DISABLED, OPTIONAL, or REQUIRED.");
-            setFetchHttpHead(Boolean.valueOf(fetchHttpHeadValue));
+            setFetchHttpHead(Boolean.parseBoolean(fetchHttpHeadValue));
         }
         setFetchHttpHead(xml.getEnum(
                 "fetchHttpHead", HttpMethodSupport.class, fetchHttpHead));
@@ -1446,7 +1446,43 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
     @Override
     public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
+        if ((other == null) || (this.getClass() != other.getClass())) {
+            return false;
+        }
+        var that = (HttpCrawlerConfig) other;
+        return new EqualsBuilder()
+                .appendSuper(true)
+                .append(canonicalLinkDetector, that.canonicalLinkDetector)
+                .append(delayResolver, that.delayResolver)
+                .append(fetchHttpGet, that.fetchHttpGet)
+                .append(fetchHttpHead, that.fetchHttpHead)
+                .append(httpFetchers, that.httpFetchers)
+                .append(httpFetchersMaxRetries, that.httpFetchersMaxRetries)
+                .append(httpFetchersRetryDelay, that.httpFetchersRetryDelay)
+                .append(ignoreCanonicalLinks, that.ignoreCanonicalLinks)
+                .append(ignoreRobotsMeta, that.ignoreRobotsMeta)
+                .append(ignoreRobotsTxt, that.ignoreRobotsTxt)
+                .append(ignoreSitemap, that.ignoreSitemap)
+                .append(keepDownloads, that.keepDownloads)
+                .append(keepReferencedLinks, that.keepReferencedLinks)
+                .append(linkExtractors, that.linkExtractors)
+                .append(maxDepth, that.maxDepth)
+                .append(postImportLinks, that.postImportLinks)
+                .append(postImportLinksKeep, that.postImportLinksKeep)
+                .append(postImportProcessors, that.postImportProcessors)
+                .append(preImportProcessors, that.preImportProcessors)
+                .append(recrawlableResolver, that.recrawlableResolver)
+                .append(robotsMetaProvider, that.robotsMetaProvider)
+                .append(robotsTxtProvider, that.robotsTxtProvider)
+                .append(sitemapResolver, that.sitemapResolver)
+                .append(startSitemapURLs, that.startSitemapURLs)
+                .append(startURLs, that.startURLs)
+                .append(startURLsAsync, that.startURLsAsync)
+                .append(startURLsFiles, that.startURLsFiles)
+                .append(startURLsProviders, that.startURLsProviders)
+                .append(urlCrawlScopeStrategy, that.urlCrawlScopeStrategy)
+                .append(urlNormalizer, that.urlNormalizer)
+                .build();
     }
     @Override
     public int hashCode() {
