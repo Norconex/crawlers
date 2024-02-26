@@ -29,7 +29,7 @@
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
       
     <cxf.version>3.4.5</cxf.version>
-    <h2.version>2.2.220</h2.version>
+    <h2.version>2.2.224</h2.version>
     <hikaricp.version>4.0.3</hikaricp.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <mongodb.version>4.3.2</mongodb.version>
