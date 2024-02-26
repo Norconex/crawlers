@@ -2,7 +2,7 @@ name: Check CopyRight Info on Files
 
 on:  
   pull_request:
-    branches: [ upcoming-v4 ]
+    branches: [ main ]
 
 
 jobs:
