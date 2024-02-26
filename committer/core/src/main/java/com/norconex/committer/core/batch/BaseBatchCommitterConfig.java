@@ -24,5 +24,6 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class BaseBatchCommitterConfig extends BaseCommitterConfig {
+
     private CommitterQueue queue = new FSQueue();
 }
