@@ -30,10 +30,10 @@
   <properties>
     <bc.version>1.69</bc.version>
     <browsermob.version>2.1.5</browsermob.version>
-    <guava.version>32.0.0-jre</guava.version>
+    <guava.version>33.0.0-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
-    <jetty.version>9.4.52.v20230823</jetty.version>
-    <netty.version>4.1.72.Final</netty.version>
+    <jetty.version>9.4.54.v20240208</jetty.version>
+    <netty.version>4.1.96.Final</netty.version>
     <selenium.version>4.12.0</selenium.version>
     <okhttp.version>3.14.9</okhttp.version>
     
@@ -126,14 +126,14 @@
       <version>${imgscalr.version}</version>
     </dependency>  
     <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
-        <version>${jetty.version}</version>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-webapp</artifactId>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-proxy</artifactId>
-        <version>${jetty.version}</version>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-proxy</artifactId>
+      <version>${jetty.version}</version>
     </dependency>
     
     <!-- About Web Driver Dependencies:

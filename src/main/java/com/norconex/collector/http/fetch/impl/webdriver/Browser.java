@@ -15,10 +15,10 @@
 package com.norconex.collector.http.fetch.impl.webdriver;
 
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.openqa.selenium.chrome.ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY;
 import static org.openqa.selenium.edge.EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY;
 import static org.openqa.selenium.firefox.GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY;
-import static org.openqa.selenium.opera.OperaDriverService.OPERA_DRIVER_EXE_PROPERTY;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -35,8 +35,6 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.opera.OperaDriver;
-import org.openqa.selenium.opera.OperaOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
@@ -58,7 +56,7 @@ public enum Browser {
                 WebDriverLocation location,
                 Consumer<MutableCapabilities> optionsConsumer) {
             ChromeOptions options = new ChromeOptions();
-            options.setHeadless(true);
+            options.addArguments("--headless=new");
             ofNullable(location.getBrowserPath()).ifPresent(
                     p -> options.setBinary(p.toFile()));
             optionsConsumer.accept(options);
@@ -85,17 +83,26 @@ public enum Browser {
                 WebDriverLocation location,
                 Consumer<MutableCapabilities> optionsConsumer) {
             FirefoxOptions options = new FirefoxOptions();
-            options.setHeadless(true);
+            options.addArguments("-headless");
             ofNullable(location.getBrowserPath()).ifPresent(options::setBinary);
             //TODO consider making page load strategy configurable (with
             //different defaults).
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
-            FirefoxProfile profile = new FirefoxProfile();
+            FirefoxProfile profile = options.getProfile();
             profile.setAcceptUntrustedCertificates(true);
-            profile.setAssumeUntrustedCertificateIssuer(true);
+            profile.setAssumeUntrustedCertificateIssuer(false);
             profile.setPreference("devtools.console.stdout.content", true);
-            options.setCapability(FirefoxDriver.PROFILE, profile);
+            profile.setPreference("browser.privatebrowsing.autostart", true);
+            profile.setPreference("browser.aboutHomeSnippets.updateUrl", "");
+            profile.setPreference("services.settings.server", EMPTY);
+            profile.setPreference("location.services.mozilla.com", EMPTY);
+            profile.setPreference("shavar.services.mozilla.com", EMPTY);
+            profile.setPreference("app.normandy.enabled", false);
+            profile.setPreference("app.update.service.enabled", false);
+            profile.setPreference("app.update.staging.enabled", false);
+
+            options.setProfile(profile);
             optionsConsumer.accept(options);
             return new WebDriverSupplier(new WebDriverBuilder()
                     .driverClass(FirefoxDriver.class)
@@ -137,10 +144,12 @@ public enum Browser {
         WebDriverSupplier driverSupplier(
                 WebDriverLocation location,
                 Consumer<MutableCapabilities> optionsConsumer) {
-            OperaOptions options = new OperaOptions();
+            ChromeOptions options = new ChromeOptions();
+            options.setExperimentalOption("w3c", true);
+            options.addArguments("--headless=new");
             optionsConsumer.accept(options);
             return new WebDriverSupplier(new WebDriverBuilder()
-                    .driverClass(OperaDriver.class)
+                    .driverClass(ChromeDriver.class)
                     .driverSystemProperty(OPERA_DRIVER_EXE_PROPERTY)
                     .location(location)
                     .options(options));
@@ -154,7 +163,8 @@ public enum Browser {
     ;
 
     private static final Logger LOG = LoggerFactory.getLogger(Browser.class);
-
+    private static final String OPERA_DRIVER_EXE_PROPERTY =
+            "webdriver.opera.driver";
 
     abstract WebDriverSupplier driverSupplier(
             WebDriverLocation driverLocation,
@@ -173,7 +183,6 @@ public enum Browser {
     static class WebDriverSupplier implements Supplier<WebDriver> {
         private final WebDriverBuilder builder;
         public WebDriverSupplier(WebDriverBuilder builder) {
-            super();
             this.builder = Objects.requireNonNull(builder);
         }
         @Override
@@ -187,15 +196,12 @@ public enum Browser {
         private String driverSystemProperty;
         private MutableCapabilities options;
         private Class<? extends WebDriver> driverClass;
-        public WebDriverBuilder() {
-            super();
-        }
         WebDriverBuilder location(WebDriverLocation location) {
             this.location = location;
             return this;
         }
         WebDriverBuilder driverSystemProperty(String propertyName) {
-            this.driverSystemProperty = propertyName;
+            driverSystemProperty = propertyName;
             return this;
         }
         WebDriverBuilder options(MutableCapabilities options) {
@@ -226,12 +232,11 @@ public enum Browser {
                                 driverClass.getSimpleName());
                         return new RemoteWebDriver(
                                 location.getRemoteURL(), options);
-                    } else {
-                        LOG.info("Creating local \"{}\" web driver.",
-                                driverClass.getSimpleName());
-                        return ConstructorUtils.invokeExactConstructor(
-                                driverClass, options);
                     }
+                    LOG.info("Creating local \"{}\" web driver.",
+                            driverClass.getSimpleName());
+                    return ConstructorUtils.invokeExactConstructor(
+                            driverClass, options);
                 });
             } catch (Exception e) {
                 throw new CollectorException("Could not build web driver", e);

@@ -25,10 +25,8 @@ import org.littleshoot.proxy.HttpFiltersSource;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.opera.OperaOptions;
 import org.openqa.selenium.remote.CapabilityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,23 +103,25 @@ class HttpSniffer {
 
         mobProxy = new BrowserMobProxyServer();
         mobProxy.setTrustAllServers(true);
+        mobProxy.setTrustSource(null);
+        mobProxy.setMitmDisabled(true);
 
         // maximum content length (#751)
-        if (config.getMaxBufferSize() > 0 ) {
+        if (cfg.getMaxBufferSize() > 0 ) {
             mobProxy.addFirstHttpFilterFactory(new HttpFiltersSourceAdapter() {
                 @Override
                 public int getMaximumRequestBufferSizeInBytes() {
-                    return config.getMaxBufferSize();
+                    return cfg.getMaxBufferSize();
                 }
                 @Override
                 public int getMaximumResponseBufferSizeInBytes() {
-                    return config.getMaxBufferSize();
+                    return cfg.getMaxBufferSize();
                 }
             });
         }
 
         // request headers
-        config.getRequestHeaders().entrySet().forEach(
+        cfg.getRequestHeaders().entrySet().forEach(
                 en -> mobProxy.addHeader(en.getKey(), en.getValue()));
 
         // User agent
@@ -140,7 +140,7 @@ class HttpSniffer {
         if (options instanceof FirefoxOptions) {
             //TODO Shall we prevent calls to firefox browser addons?
 
-            FirefoxProfile profile = new FirefoxProfile();
+            FirefoxProfile profile = ((FirefoxOptions) options).getProfile();
             profile.setAcceptUntrustedCertificates(true);
             profile.setAssumeUntrustedCertificateIssuer(true);
             profile.setPreference("network.proxy.http", "localhost");
@@ -154,7 +154,8 @@ class HttpSniffer {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1535581
             profile.setPreference(
                     "network.proxy.allow_hijacking_localhost", true);
-            options.setCapability(FirefoxDriver.PROFILE, profile);
+            ((FirefoxOptions) options).setProfile(profile);
+
         } else if (options instanceof ChromeOptions) {
             ChromeOptions chromeOptions = (ChromeOptions) options;
             // Required since Chrome v72 to enable a localhost proxy:
@@ -163,9 +164,6 @@ class HttpSniffer {
             if  (LOG.isDebugEnabled()) {
                 System.setProperty("webdriver.chrome.verboseLogging", "true");
             }
-        } else if (options instanceof OperaOptions) {
-            OperaOptions operaOptions = (OperaOptions) options;
-            operaOptions.addArguments("--proxy-bypass-list=<-loopback>");
         }
         options.setCapability(CapabilityType.PROXY,
                 ClientUtil.createSeleniumProxy(mobProxy));

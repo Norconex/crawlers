@@ -38,12 +38,17 @@ public class TestServerBuilder {
 
     private final WebAppContext webAppContext;
     private final HandlerList handlers = new HandlerList();
+    private boolean enableHttps;
 
     public TestServerBuilder() {
-        this.webAppContext = new WebAppContext();
-        this.webAppContext.setResourceBase("/");
+        webAppContext = new WebAppContext();
+        webAppContext.setResourceBase("/");
     }
 
+    public TestServerBuilder setEnableHttps(boolean enableHttps) {
+        this.enableHttps = enableHttps;
+        return this;
+    }
 
     /* Adds a static file server using a local directory as root. */
     public TestServerBuilder addDirectory(String path) {
@@ -82,7 +87,7 @@ public class TestServerBuilder {
         return this;
     }
     public TestServerBuilder addHandler(Handler handler) {
-        this.handlers.addHandler(handler);
+        handlers.addHandler(handler);
         return this;
     }
 
@@ -94,6 +99,6 @@ public class TestServerBuilder {
 
     public TestServer build() {
         handlers.addHandler(webAppContext);
-        return new TestServer(handlers);
+        return new TestServer(handlers, enableHttps);
     }
 }

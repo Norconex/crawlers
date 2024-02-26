@@ -62,19 +62,23 @@ public class WebDriverHttpFetcherTest  {
     private static final Logger LOG =
             LoggerFactory.getLogger(WebDriverHttpFetcherTest.class);
 
-//  https://sites.google.com/chromium.org/driver/downloads
+//  https://googlechromelabs.github.io/chrome-for-testing/
+
+
     private static final Path chromeDriverPath = new OSResource<Path>()
-            .win(WebFile.create("https://chromedriver.storage.googleapis.com/"
-                    + "96.0.4664.45/chromedriver_win32.zip!/chromedriver.exe",
-                    "chromedriver-96.0.4664.45"))
+            .win(WebFile.create("https://storage.googleapis.com/"
+                    + "chrome-for-testing-public/122.0.6261.69/win64/"
+                    + "chromedriver-win64.zip!/chromedriver-win64/"
+                    + "chromedriver.exe",
+                    "chromedriver-122.0.6261.69.exe"))
             .get();
 
 //  https://github.com/mozilla/geckodriver/releases/
     private static final Path firefoxDriverPath = new OSResource<Path>()
             .win(WebFile.create(
                     "https://github.com/mozilla/geckodriver/releases/download/"
-                  + "v0.30.0/geckodriver-v0.30.0-win64.zip!/geckodriver.exe",
-                    "geckodriver-0.30.0.exe"))
+                  + "v0.34.0/geckodriver-v0.34.0-win64.zip!/geckodriver.exe",
+                    "geckodriver-0.34.0.exe"))
             .get();
 
 //  https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
@@ -87,10 +91,10 @@ public class WebDriverHttpFetcherTest  {
 //  https://github.com/operasoftware/operachromiumdriver/releases
     private static final Path operaDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://github.com/operasoftware/"
-                    + "operachromiumdriver/releases/download/v.96.0.4664.45/"
+                    + "operachromiumdriver/releases/download/v.121.0.6167.140/"
                     + "operadriver_win64.zip!/operadriver_win64/"
                     + "operadriver.exe",
-                    "operadriver-96.0.4664.45.exe"))
+                    "operadriver-121.0.6167.140.exe"))
             .get();
 
     static Stream<WebDriverHttpFetcher> browsersProvider() {
@@ -106,6 +110,7 @@ public class WebDriverHttpFetcherTest  {
 
     private static TestServer server = new TestServerBuilder()
             .addPackage("server/js-rendered")
+            .setEnableHttps(true)
             .addServlet(new HttpServlet() {
                 private static final long serialVersionUID = 1L;
                 @Override
@@ -154,7 +159,7 @@ public class WebDriverHttpFetcherTest  {
         });
     }
 
-    // Remove ignore to manually test that screenshots are generated
+    // Remove "@Disabled" to manually test that screenshots are generated
     @Disabled
     @BrowserTest
     public void testTakeScreenshots(
@@ -253,6 +258,11 @@ public class WebDriverHttpFetcherTest  {
         WebDriverHttpFetcher fetcher = new WebDriverHttpFetcher();
         fetcher.getConfig().setBrowser(browser);
         fetcher.getConfig().setDriverPath(driverPath);
+        fetcher.getConfig().setPageLoadTimeout(5 * 1000);
+        fetcher.getConfig().setScriptTimeout(5 * 1000);
+        fetcher.getConfig().setThreadWait(5 * 1000);
+        fetcher.getConfig().setImplicitlyWait(5 * 1000);
+        fetcher.getConfig().setWaitForElementTimeout(5 * 1000);
         return fetcher;
     }
     private static boolean isDriverPresent(Path driverPath) {
@@ -270,7 +280,7 @@ public class WebDriverHttpFetcherTest  {
         CrawlDoc doc = new CrawlDoc(new HttpDocInfo(
                 "http://localhost:" + server.getPort() + urlPath),
                 new CachedStreamFactory(10000, 10000).newInputStream());
-        /*IHttpFetchResponse response = */ fetcher.fetch(doc, HttpMethod.GET);
+        fetcher.fetch(doc, HttpMethod.GET);
         return doc;
     }
 

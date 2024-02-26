@@ -16,8 +16,8 @@ package com.norconex.collector.http.fetch.impl.webdriver;
 
 import static com.norconex.collector.http.fetch.HttpMethod.GET;
 import static com.norconex.collector.http.fetch.HttpMethod.HEAD;
+import static java.time.Duration.ofMillis;
 import static java.util.Optional.ofNullable;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -196,8 +196,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         this(new WebDriverHttpFetcherConfig());
     }
     public WebDriverHttpFetcher(WebDriverHttpFetcherConfig config) {
-        super();
-        this.cfg = Objects.requireNonNull(config, "'config' must not be null.");
+        cfg = Objects.requireNonNull(config, "'config' must not be null.");
     }
 
     public WebDriverHttpFetcherConfig getConfig() {
@@ -230,7 +229,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             streamFactory = new CachedStreamFactory();
         }
 
-        this.driverHolder = new WebDriverHolder(cfg);
+        driverHolder = new WebDriverHolder(cfg);
 
         if (cfg.getHttpSnifferConfig() != null) {
             LOG.info("Starting {} HTTP sniffer...", cfg.getBrowser());
@@ -281,7 +280,6 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             return HttpFetchResponseBuilder.unsupported().setReasonPhrase(
                   reason).create();
         }
-
 	    LOG.debug("Fetching document: {}", doc.getReference());
 
 	    if (httpSniffer != null) {
@@ -331,13 +329,13 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
         Timeouts timeouts = driver.manage().timeouts();
         if (cfg.getPageLoadTimeout() != 0) {
-            timeouts.pageLoadTimeout(cfg.getPageLoadTimeout(),  MILLISECONDS);
+            timeouts.pageLoadTimeout(ofMillis(cfg.getPageLoadTimeout()));
         }
         if (cfg.getImplicitlyWait() != 0) {
-            timeouts.implicitlyWait(cfg.getImplicitlyWait(), MILLISECONDS);
+            timeouts.implicitlyWait(ofMillis(cfg.getImplicitlyWait()));
         }
         if (cfg.getScriptTimeout() != 0) {
-            timeouts.setScriptTimeout(cfg.getScriptTimeout(), MILLISECONDS);
+            timeouts.scriptTimeout(ofMillis(cfg.getScriptTimeout()));
         }
 
         if (cfg.getWaitForElementTimeout() != 0
@@ -348,7 +346,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                     cfg.getWaitForElementSelector(), elType, url);
 
             WebDriverWait wait = new WebDriverWait(
-                    driver, cfg.getWaitForElementTimeout() / 1000);
+                    driver, ofMillis(cfg.getWaitForElementTimeout()));
             wait.until(ExpectedConditions.presenceOfElementLocated(
                     elType.getBy(cfg.getWaitForElementSelector())));
 
@@ -366,6 +364,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         }
 
         String pageSource = driver.getPageSource();
+
         LOG.debug("Fetched page source length: {}", pageSource.length());
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
