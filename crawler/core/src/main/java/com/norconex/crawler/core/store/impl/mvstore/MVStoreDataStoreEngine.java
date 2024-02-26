@@ -163,7 +163,8 @@ public class MVStoreDataStoreEngine
         if (mvstore != null && !mvstore.isClosed()) {
             LOG.info("Compacting data store...");
             mvstore.commit();
-            mvstore.compactMoveChunks();
+            //TODO method dropped from MVStore. Any replacemetn?
+            //mvstore.compactMoveChunks();
             mvstore.close();
         }
         mvstore = null;
