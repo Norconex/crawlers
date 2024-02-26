@@ -19,7 +19,7 @@ name: Maven Java CI
 on:
   push:
     branches:
-      - upcoming-v4
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
 
