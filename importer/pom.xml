@@ -34,7 +34,7 @@
     <jython.version>2.7.3</jython.version>
     <luaj-jse.version>3.0.1</luaj-jse.version>
     <opencsv.version>5.8</opencsv.version>
-    <tika.version>2.7.0</tika.version>
+    <tika.version>2.9.1</tika.version>
     <ucar-jj2000.version>5.4</ucar-jj2000.version>
     <webp-imageio.version>0.1.6</webp-imageio.version>
     
