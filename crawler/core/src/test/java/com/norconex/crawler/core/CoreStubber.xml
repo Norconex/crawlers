@@ -25,9 +25,9 @@
       <numThreads>1</numThreads>
       <referenceFilters>
         <!-- Short name -->
-<!--        <filter class="ExtensionReferenceFilter">
-          html,htm,php,asp
-        </filter>-->        
+        <filter class="ExtensionReferenceFilter">
+          <extensions>html,htm,php,asp</extensions>
+        </filter>  
       </referenceFilters>
       <committers>
         <!-- Fully qualified name -->
