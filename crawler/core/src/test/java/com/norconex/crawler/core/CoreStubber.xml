@@ -27,7 +27,7 @@
         <!-- Short name -->
         <filter class="ExtensionReferenceFilter">
           <extensions>html,htm,php,asp</extensions>
-        </filter>  
+        </filter>
       </referenceFilters>
       <committers>
         <!-- Fully qualified name -->

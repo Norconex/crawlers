@@ -31,7 +31,7 @@ final class LinkUtil {
     static String extractHttpEquivRefreshContentUrl(String contentAttrib) {
         return Optional.ofNullable(contentAttrib)
             .map(attr -> attr.trim().replaceFirst("^\\d+;", ""))
-            .map(url -> url.trim().replaceFirst("^URL\\s*=(.*)$", "$1"))
+            .map(url -> url.trim().replaceFirst("^url\\s*=(.*)$", "$1"))
             .map(url -> StringUtils.strip(url, "\"'"))
             .orElse(null);
     }

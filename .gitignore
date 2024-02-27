@@ -25,3 +25,7 @@ hs_err_pid*
 /target/
 /.classpath
 /.factorypath
+
+# IntelliJ IDE 
+/.idea/
+*.iml

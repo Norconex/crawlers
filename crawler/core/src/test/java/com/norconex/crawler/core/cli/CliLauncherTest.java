@@ -40,9 +40,6 @@ import picocli.CommandLine.PicocliException;
 @Slf4j
 class CliLauncherTest {
 
-    //TODO migrate these:
-
-
     // Maybe a class for each crawler action/test?
 
     @TempDir
