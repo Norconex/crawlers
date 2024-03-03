@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2010-2023 Norconex Inc.
+   Copyright 2010-2024 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,14 +17,10 @@
 -->
 <importer>
 
-  <postParseHandlers>
-     <handler class="ConstantTagger">
-       <constant name="SITE">Norconex Test Site</constant>
-     </handler>
-     <handler class="DeleteTagger">
-       <fieldMatcher method="regex">
-         ${fieldsToDelete}
-       </fieldMatcher>
-     </handler>
-  </postParseHandlers>
-</importer>           
+    <preParseHandlers>
+      <handler class="com.norconex.importer.handler.tagger.impl.ConstantTagger">
+        <constant name="docType">Book</constant>
+      </handler>
+    </preParseHandlers>
+
+</importer>
