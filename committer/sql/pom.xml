@@ -146,13 +146,5 @@
   </distributionManagement>
 
   <url>https://opensource.norconex.com/committers/sql</url>
-  <scm>
-    <url>https://github.com/Norconex/committer-sql</url>
-    <connection>scm:git:git@github.com:Norconex/committer-sql.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-sql.git</developerConnection>
-  </scm>
-  <issueManagement>
-    <url>https://github.com/Norconex/committer-sql/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
+
 </project>

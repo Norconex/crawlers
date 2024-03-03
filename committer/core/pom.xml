@@ -154,14 +154,5 @@
   
   <url>https://opensource.norconex.com/committers/core</url>
   <description>Norconex Committer is a java library and command line application used to route content to local or remote target repositories, such as a search engine index.   </description>
-  <issueManagement>
-  	<url>https://github.com/Norconex/committer-core/issues</url>
-  	<system>GitHub</system>
-  </issueManagement>
-  <scm>
-    <url>https://github.com/Norconex/committer-core</url>
-    <connection>scm:git:git@github.com:Norconex/committer-core.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-core.git</developerConnection>
-  </scm>
 
 </project>

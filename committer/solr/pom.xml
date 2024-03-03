@@ -172,13 +172,5 @@
     Solr implementation of Norconex Committer. Should also work with any 
     Solr-based products, such as LucidWorks.
   </description>
-  <issueManagement>
-    <url>https://github.com/Norconex/committer-solr/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
-  <scm>
-    <url>https://github.com/Norconex/committer-solr</url>
-    <connection>scm:git:git@github.com:Norconex/committer-solr.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-solr.git</developerConnection>
-  </scm>
+
 </project>

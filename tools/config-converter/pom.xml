@@ -206,16 +206,4 @@
     Project used to convert Norconex crawler configurations from older XML to new 
    V4 XML version, as well as V4 XML to V4 Yaml/JSON.
   </description>
-<!--
-  TODO: Can those be inherited from parent?
-  <issueManagement>
-  	<system>GitHub</system>
-  	<url>https://github.com/Norconex/crawler/issues</url>
-  </issueManagement>
-  <scm>
-    <url>https://github.com/Norconex/crawler</url>
-    <connection>scm:git:git@github.com:Norconex/importer.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/crawler.git</developerConnection>
-  </scm>
--->
 </project>

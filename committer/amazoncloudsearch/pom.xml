@@ -1,160 +1,151 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.norconex.crawler</groupId>
-        <artifactId>nx-crawler-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
-        <relativePath>../..</relativePath>
-    </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.norconex.crawler</groupId>
+    <artifactId>nx-crawler-parent</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+    <relativePath>../..</relativePath>
+  </parent>
 
-    <artifactId>nx-committer-amazoncloudsearch</artifactId>
-    <name>Norconex Committer Amazon CloudSearch</name>
-    <description>Amazon CloudSearch implementation of Norconex Committer</description>
+  <artifactId>nx-committer-amazoncloudsearch</artifactId>
+  <name>Norconex Committer Amazon CloudSearch</name>
+  <description>Amazon CloudSearch implementation of Norconex Committer</description>
 
-    <inceptionYear>2009</inceptionYear>
+  <inceptionYear>2009</inceptionYear>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.norconex.commons</groupId>
-            <artifactId>norconex-commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.norconex.crawler</groupId>
-            <artifactId>nx-committer-core</artifactId>
-        </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-committer-core</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-cloudsearch</artifactId>
-            <version>${aws-java-sdk.version}</version>
-        </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-cloudsearch</artifactId>
+      <version>${aws-java-sdk.version}</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j2-impl</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.20.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.assertj</groupId>
-          <artifactId>assertj-core</artifactId>
-          <scope>test</scope>
-        </dependency>        
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.20.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>    
 
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-	        <groupId>org.testcontainers</groupId>
-	        <artifactId>junit-jupiter</artifactId>
-	        <scope>test</scope>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+	    <groupId>org.testcontainers</groupId>
+	    <artifactId>junit-jupiter</artifactId>
+	    <scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.testcontainers</groupId>
-		    <artifactId>testcontainers</artifactId>
-		    <version>${testcontainers.version}</version>
-		    <scope>test</scope>
+		  <groupId>org.testcontainers</groupId>
+		  <artifactId>testcontainers</artifactId>
+		  <version>${testcontainers.version}</version>
+		  <scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>com.norconex.commons</groupId>
-            <artifactId>norconex-commons-lang</artifactId>
-            <classifier>resources</classifier>
-            <type>zip</type>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+      <classifier>resources</classifier>
+      <type>zip</type>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <!-- We are referencing doc from importer with @nx.include so
-               we need to include that dependency here. -->
-                    <tagletArtifacts combine.children="append">
-                        <tagletArtifact>
-                            <groupId>com.norconex.collectors</groupId>
-                            <artifactId>norconex-committer-core</artifactId>
-                            <version>${norconex-committer-core.version}</version>
-                        </tagletArtifact>
-                    </tagletArtifacts>
-                </configuration>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- We are referencing doc from importer with @nx.include so
+         we need to include that dependency here. -->
+          <tagletArtifacts combine.children="append">
+            <tagletArtifact>
+              <groupId>com.norconex.collectors</groupId>
+              <artifactId>norconex-committer-core</artifactId>
+              <version>${norconex-committer-core.version}</version>
+            </tagletArtifact>
+          </tagletArtifacts>
+        </configuration>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
 
-            <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-            </plugin>
+      <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+      </plugin>
 
 <!-- TODO ADD BACK WHEN READY: 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-shared-resources</id>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <classifier>resources</classifier>
-                            <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-                            <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
-                            <includeGroupIds>com.norconex.commons</includeGroupIds>
-                            <excludeTransitive>true</excludeTransitive>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-shared-resources</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <classifier>resources</classifier>
+              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
+              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
+              <includeGroupIds>com.norconex.commons</includeGroupIds>
+              <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 -->
-        </plugins>
-    </build>
+    </plugins>
+  </build>
 
-    <distributionManagement>
-        <site>
-            <id>norconex-site-deployment</id>
-            <url>${site.baseurl}/committers/amazoncloudsearch/v4</url>
-        </site>
-    </distributionManagement>
+  <distributionManagement>
+    <site>
+      <id>norconex-site-deployment</id>
+      <url>${site.baseurl}/committers/amazoncloudsearch/v4</url>
+    </site>
+  </distributionManagement>
 
-    <url>https://opensource.norconex.com/committers/amazoncloudsearch/</url>
-    <scm>
-        <url>https://github.com/Norconex/committer-amazoncloudsearch</url>
-        <connection>scm:git:git@github.com:Norconex/committer-amazoncloudsearch.git</connection>
-        <developerConnection>scm:git:git@github.com:Norconex/committer-amazoncloudsearch.git</developerConnection>
-    </scm>
-    <issueManagement>
-        <url>https://github.com/Norconex/committer-amazoncloudsearch/issues</url>
-        <system>GitHub</system>
-    </issueManagement>
+  <url>https://opensource.norconex.com/committers/amazoncloudsearch/</url>
 </project>

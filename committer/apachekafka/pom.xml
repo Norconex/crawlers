@@ -164,13 +164,4 @@
   </distributionManagement>
 
   <url>https://opensource.norconex.com/committers/apachekafka</url>
-  <scm>
-    <url>https://github.com/Norconex/committer-apachekafka</url>
-    <connection>scm:git:git@github.com:Norconex/committer-apachekafka.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-apachekafka.git</developerConnection>
-  </scm>
-  <issueManagement>
-    <url>https://github.com/Norconex/committer-apachekafka/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
 </project>

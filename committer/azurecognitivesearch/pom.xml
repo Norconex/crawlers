@@ -150,13 +150,4 @@
   </distributionManagement>
 
   <url>https://opensource.norconex.com/committers/azuresearch</url>
-  <scm>
-    <url>https://github.com/Norconex/committer-azuresearch</url>
-    <connection>scm:git:git@github.com:Norconex/committer-azuresearch.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-azuresearch.git</developerConnection>
-  </scm>
-  <issueManagement>
-    <url>https://github.com/Norconex/committer-azuresearch/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
 </project>

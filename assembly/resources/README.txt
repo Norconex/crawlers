@@ -1,14 +1,13 @@
-Norconex Committer Core
-Copyright 2008 Norconex Inc.
+Copyright 2008-2024 Norconex Inc.
 
 General Information:
 ====================
 
-For any inquiries about Norconex Committer Core, 
-please contact Norconex Inc. at info@norconex.com.
+For any inquiries about this Norconex open-source product, please contact 
+Norconex Inc. at info@norconex.com.
 
 This product website and documentation is located at:
-https://opensource.norconex.com/committers/core/
+https://opensource.norconex.com/crawlers
 
 Norconex licenses:
 ==================

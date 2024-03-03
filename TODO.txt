@@ -1,4 +1,6 @@
 
+* Update all project READMEs.
+
 * When serializing, check if source property declaration is an interface
   and whether the written type is declared as a subtype already. If not,
   write "class" with fully qualified name.

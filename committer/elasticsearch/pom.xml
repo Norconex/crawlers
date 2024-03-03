@@ -167,13 +167,5 @@
   </distributionManagement>
 
   <url>https://opensource.norconex.com/committers/elasticsearch</url>
-  <scm>
-    <url>https://github.com/Norconex/committer-elasticsearch</url>
-    <connection>scm:git:git@github.com:Norconex/committer-elasticsearch.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-elasticsearch.git</developerConnection>
-  </scm>
-  <issueManagement>
-    <url>https://github.com/Norconex/committer-elasticsearch/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
+
 </project>

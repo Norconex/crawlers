@@ -23,4 +23,4 @@ REM
 REM     -DenableJMX=true
 
 
-java -Dlog4j2.configurationFile="file:///%ROOT_DIR%log4j2.xml" -Dfile.encoding=UTF8 -cp "./lib/*;./classes" com.norconex.crawler.web.WebCrawlSession %*
+java -Dlog4j2.configurationFile="file:///%ROOT_DIR%log4j2.xml" -Dfile.encoding=UTF8 -cp "./lib/*" com.norconex.crawler.web.WebCrawlSession %*

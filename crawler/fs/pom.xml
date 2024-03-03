@@ -585,14 +585,4 @@
   <url>https://opensource.norconex.com/crawlers/filesystem</url>
   <description>Norconex File System Crawler. Walks through directories and files and extracts their content for integration into any target repository.  It aims to be very flexible, easy to extend, and portable</description>
   
-  <!-- TODO: UPDATE TO NEW LOCATION: -->
-  <issueManagement>
-    <system>GitHub</system>
-    <url>https://github.com/Norconex/collector-filesystem/issues</url>
-  </issueManagement>
-  <scm>
-    <url>https://github.com/Norconex/collector-filesystem</url>
-    <connection>scm:git:git@github.com:Norconex/collector-filesystem.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/collector-filesystem.git</developerConnection>
-  </scm>
 </project>
