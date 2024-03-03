@@ -55,7 +55,7 @@ import com.norconex.importer.handler.parser.ParseState;
 public final class TestUtil {
 
     private static final String BASE_PATH =
-         "src/site/resources/examples/books/alice-in-wonderland-book-chapter-1";
+         "src/main/assembly/examples/books/alice-in-wonderland-book-chapter-1";
 
     private TestUtil() {
     }
