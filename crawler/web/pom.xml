@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2013-2023 Norconex Inc.
+   Copyright 2013-2024 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -208,7 +208,7 @@
       <artifactId>selenium</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <!-- TODO: Implement using this, or remove:
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
@@ -216,19 +216,17 @@
         <type>zip</type>
         <scope>provided</scope>
     </dependency>
-    
+    -->
     
     <!-- TODO: TO FIGURE OUT HOW BEST TO INCLUDE (here vs in -core, etc.) -->    
     <dependency>
       <groupId>jakarta.el</groupId>
       <artifactId>jakarta.el-api</artifactId>
-<!--      <version>5.0.1</version>-->
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-el</artifactId>
-<!--      <version>10.1.12</version>-->       
       <scope>compile</scope>
     </dependency>
     
@@ -239,30 +237,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <!-- If we need fat jars
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>
-                    com.norconex.crawler.web.WebCrawlSession
-                  </mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-            </configuration>
-          </execution>
-        </executions>
-        -->
       </plugin>
 
+      <!-- TODO: implement using Nx custom taglets or remove. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -270,7 +247,7 @@
           <!-- We are referencing doc from other projects with @nx.include so
                we need to include those dependencies here to avoid
                getting a ClassNotFoundException. -->
-<!-- Uncomment when importer V4 exists
+          <!-- Uncomment when importer V4 exists
           <tagletArtifacts combine.children="append">
             <tagletArtifact>
               <groupId>com.norconex.collectors</groupId>
@@ -283,7 +260,7 @@
               <version>${norconex-collector-core.version}</version>
             </tagletArtifact>
           </tagletArtifacts>
- -->
+          -->
         </configuration>
       </plugin>
 
@@ -308,7 +285,12 @@
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
       
-      <!-- Uncomment when ready:
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+      </plugin>      
+      
+      <!-- TODO: Uncomment when ready (or inherit):
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -335,6 +317,8 @@
   
   <!-- Only used to publish javadoc with "site:deploy", 
        after they were generated -->
+  <!-- TODO: do we still generate this way or is there another way
+       from CI/CD and generated Jar or else. -->
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
@@ -347,14 +331,4 @@
     Norconex Web Crawler is use for in-depth crawling of web sites of any size. 
     It aims to be very flexible, easy to extend, and portable
   </description>
-  <!-- TODO: UPDATE TO NEW LOCATION: -->
-  <issueManagement>
-    <system>GitHub</system>
-    <url>https://github.com/Norconex/collector-http/issues</url>
-  </issueManagement>
-  <scm>
-    <url>https://github.com/Norconex/collector-http</url>
-    <connection>scm:git:git@github.com:Norconex/collector-http.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/collector-http.git</developerConnection>
-  </scm>
 </project>

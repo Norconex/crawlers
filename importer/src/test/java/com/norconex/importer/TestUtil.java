@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import com.norconex.importer.handler.parser.ParseState;
 public final class TestUtil {
 
     private static final String BASE_PATH =
-         "src/site/resources/examples/books/alice-in-wonderland-book-chapter-1";
+         "src/main/assembly/examples/books/alice-in-wonderland-book-chapter-1";
 
     private TestUtil() {
     }

@@ -89,7 +89,7 @@ public class ImporterConfig {
     //TODO make a list, even if one or more entries can be Consumers
     @JsonFlow(builder = ImporterFlowConfigBuilder.class)
     @JsonProperty("handlers")
-    private Consumer<DocContext> handler = new DefaultParser();
+    private Consumer<DocContext> handler = Consumers.of(new DefaultParser());
 
     public ImporterConfig setHandler(Consumer<DocContext> handler) {
         this.handler = handler;

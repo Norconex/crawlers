@@ -95,9 +95,11 @@ class ElasticsearchCommitterConfigTest {
 
     @Test
     void testMisc(@TempDir Path tempDir) throws CommitterException {
-        Assertions.assertThrows(CommitterException.class, () -> {
-            new ElasticsearchCommitter().initBatchCommitter();
-        });
+        Assertions.assertThrows(
+                CommitterException.class, () ->
+                        { new ElasticsearchCommitter().initBatchCommitter(); }
+                )
+                .getMessage().equals("Index name is undefined.");
 
         @SuppressWarnings("resource")
         var c = new ElasticsearchCommitter();

@@ -27,6 +27,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.net.Host;
+import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.text.TextMatcher;
 
 class AzureSearchCommitterConfigTest {
@@ -43,6 +44,8 @@ class AzureSearchCommitterConfigTest {
             .setSourceKeyField("sourceKeyField")
             .setTargetKeyField("targetKeyField")
             .setTargetContentField("targetContentField")
+            .setProxySettings(new ProxySettings()
+                    .setHost(new Host("there.com", 123)))
             .setEndpoint("endpoint")
             .setApiVersion("apiVersion")
             .setApiKey("apiKey")
@@ -61,9 +64,6 @@ class AzureSearchCommitterConfigTest {
             .addRestriction(new PropertyMatcher(
                     TextMatcher.basic("title"),
                     TextMatcher.wildcard("Nah!")));
-
-        c.getConfiguration().getProxySettings()
-            .setHost(new Host("example.com", 1234));
 
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(c));
