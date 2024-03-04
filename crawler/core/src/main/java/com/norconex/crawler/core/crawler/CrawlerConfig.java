@@ -372,6 +372,7 @@ public class CrawlerConfig {
      * @param importerConfig Importer module configuration
      * @return Importer module configuration
      */
+    @JsonProperty("importer")
     private ImporterConfig importerConfig = new ImporterConfig();
 
     @JsonProperty("committers")
