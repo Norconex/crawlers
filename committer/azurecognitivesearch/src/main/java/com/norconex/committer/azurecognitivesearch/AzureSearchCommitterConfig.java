@@ -173,7 +173,7 @@ public class AzureSearchCommitterConfig
      * Sets the proxy settings.
      * @param proxySettings proxy settings
      */
-    public AzureSearchCommitterConfig getProxySettings(
+    public AzureSearchCommitterConfig setProxySettings(
             @NonNull ProxySettings proxySettings) {
         this.proxySettings.copyFrom(proxySettings);
         return this;

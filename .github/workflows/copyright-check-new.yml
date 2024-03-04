@@ -27,6 +27,7 @@ jobs:
             .github/workflows/copyright-headers/*.txt
             .github/workflows/*.yml
             .github/*.yml
+            **/assembly/**
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
         run: |

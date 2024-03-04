@@ -27,6 +27,7 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.SystemUtil;
@@ -39,7 +40,6 @@ import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.core.session.CrawlSessionConfigMapperFactory;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -57,22 +57,21 @@ public final class TestUtil {
         }
     }
 
-    private static final BeanMapper beanMapper =
-            CrawlSessionConfigMapperFactory.create(CrawlerConfig.class);
+    private static final BeanMapper BEAN_MAPPER = BeanMapper.builder()
+            .unboundPropertyMapping("crawler", CrawlerMixIn.class)
+            .build();
 
-//    private static final CrawlSessionConfigMapper configMapper =
-//            new CrawlSessionConfigMapper(CrawlerConfig.class);
-//
-
-    private TestUtil() {}
-
-//    public static CrawlSessionConfigMapper configMapper() {
-//        return configMapper;
-//    }
+    private static class CrawlerMixIn {
+        @JsonDeserialize(as = CrawlerConfig.class)
+        private CrawlerConfig configuration;
+    }
 
     public static BeanMapper beanMapper() {
-        return beanMapper;
+        return BEAN_MAPPER;
     }
+
+
+    private TestUtil() {}
 
     /**
      * Gets the {@link MemoryCommitter} from first committer of the first
@@ -171,6 +170,7 @@ public final class TestUtil {
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(() ->
                 CliLauncher.launch(
                     CrawlSession.builder()
+                        .crawlerConfigClass(CrawlerConfig.class)
                         .crawlerFactory((sess, cfg) -> Crawler.builder()
                             .crawlSession(sess)
                             .crawlerConfig(cfg)

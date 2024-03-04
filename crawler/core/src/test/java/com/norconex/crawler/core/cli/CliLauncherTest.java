@@ -14,12 +14,31 @@
  */
 package com.norconex.crawler.core.cli;
 
-//@Slf4j
+import static com.norconex.crawler.core.TestUtil.testLaunch;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.norconex.committer.core.CommitterEvent;
+import com.norconex.committer.core.service.CommitterServiceEvent;
+import com.norconex.commons.lang.SystemUtil;
+import com.norconex.crawler.core.CoreStubber;
+import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionEvent;
+
+import lombok.extern.slf4j.Slf4j;
+import picocli.CommandLine.PicocliException;
+
+@Slf4j
 class CliLauncherTest {
-
-    //TODO migrate these:
-
-    /*
 
     // Maybe a class for each crawler action/test?
 
@@ -84,9 +103,8 @@ class CliLauncherTest {
         var exit3 = testLaunch(tempDir, "configcheck", "-config=" + configFile);
         assertThat(exit3.ok()).isFalse();
         assertThat(exit3.getStdErr()).contains(
-            "2 XML configuration errors detected",
-            "Attribute 'badAttr' is not allowed",
-            "The content of element 'crawlers' is not complete."
+            "no String-argument constructor/factory",
+            "method to deserialize from String value ('badAttr')"
         );
     }
 
@@ -273,8 +291,8 @@ class CliLauncherTest {
         assertThat(exit1.ok()).isTrue();
         // check that some entries not explicitely configured are present:
         assertThat(exit1.getStdOut()).contains(
-            "<defaultParser ",
-            ".impl.GenericSpoiledReferenceStrategizer"
+            "<handlers><handler><class>DefaultParser</class>",
+            "GenericSpoiledReferenceStrategizer"
         );
 
         var renderedFile = tempDir.resolve("configrender.xml");
@@ -286,7 +304,6 @@ class CliLauncherTest {
         assertThat(Files.readString(renderedFile).trim()).isEqualTo(
                 exit1.getStdOut().trim());
     }
-*/
 
     //TODO write unit tests for <app> help command
     //TODO test with .variables and .properties and system env/props

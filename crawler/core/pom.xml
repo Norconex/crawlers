@@ -276,14 +276,5 @@
 
   <url>https://opensource.norconex.com/crawlers/core</url>
   <description>Norconex Collector Core contains core functionalities shared between collectors.</description>
-  <issueManagement>
-    <system>GitHub</system>
-    <url>https://github.com/Norconex/collector-core/issues</url>
-  </issueManagement>
-  <scm>
-    <url>https://github.com/Norconex/collector-core</url>
-    <connection>scm:git:git@github.com:Norconex/collector-core.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/collector-core.git</developerConnection>
-  </scm>
 
 </project>

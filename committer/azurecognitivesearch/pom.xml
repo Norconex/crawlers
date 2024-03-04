@@ -1,5 +1,5 @@
 <!--
-   Copyright 2017-2023 Norconex Inc.
+   Copyright 2017-2024 Norconex Inc.
    
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -150,13 +150,4 @@
   </distributionManagement>
 
   <url>https://opensource.norconex.com/committers/azuresearch</url>
-  <scm>
-    <url>https://github.com/Norconex/committer-azuresearch</url>
-    <connection>scm:git:git@github.com:Norconex/committer-azuresearch.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-azuresearch.git</developerConnection>
-  </scm>
-  <issueManagement>
-    <url>https://github.com/Norconex/committer-azuresearch/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
 </project>
