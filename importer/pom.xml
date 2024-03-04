@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2010-2023 Norconex Inc.
+   Copyright 2010-2024 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -427,14 +427,5 @@
   
   <url>https://opensource.norconex.com/importer</url>
   <description>Norconex Importer is a Java library and command-line application meant to &quot;parse&quot; and &quot;extract&quot; content out of a computer file as plain text, whatever its format (HTML, PDF, Word, etc). In addition, it allows you to perform any manipulation on the extracted text before importing/using it in your own service or application.</description>
-  <issueManagement>
-  	<system>GitHub</system>
-  	<url>https://github.com/Norconex/importer/issues</url>
-  </issueManagement>
-  <scm>
-    <url>https://github.com/Norconex/importer</url>
-    <connection>scm:git:git@github.com:Norconex/importer.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/importer.git</developerConnection>
-  </scm>
 
 </project>

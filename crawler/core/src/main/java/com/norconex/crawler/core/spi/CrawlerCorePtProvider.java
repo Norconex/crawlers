@@ -25,7 +25,6 @@ import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
@@ -46,7 +45,11 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        addPolyType(map, CrawlerConfig.class);
+        //NOTE: We do not register CrawlerConfig.class as a poly-type,
+        // since using the crawler session-specific launcher dictates
+        // with crawler confirm impl to use. If one day we make
+        // all crawlers configurable in same crawl session, this is
+        // where we would add it.
         addPolyType(map, CrawlSessionStopper.class);
         addPolyType(map, DataStoreEngine.class);
         addPolyType(map, DocumentChecksummer.class);

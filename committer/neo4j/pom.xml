@@ -166,13 +166,5 @@
   </distributionManagement>
 
   <url>https://opensource.norconex.com/committers/neo4j</url>
-  <scm>
-    <url>https://github.com/Norconex/committer-neo4j</url>
-    <connection>scm:git:git@github.com:Norconex/committer-neo4j.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-neo4j.git</developerConnection>
-  </scm>
-  <issueManagement>
-    <url>https://github.com/Norconex/committer-neo4j/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
+
 </project>

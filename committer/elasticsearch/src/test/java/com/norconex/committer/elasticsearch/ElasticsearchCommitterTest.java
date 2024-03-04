@@ -14,18 +14,11 @@
  */
 package com.norconex.committer.elasticsearch;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.io.IOUtils.toInputStream;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.norconex.committer.core.*;
+import com.norconex.commons.lang.ExceptionUtil;
+import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.map.Properties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -36,11 +29,7 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 import org.json.JSONObject;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +38,17 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import com.norconex.committer.core.CommitterContext;
-import com.norconex.committer.core.CommitterException;
-import com.norconex.committer.core.DeleteRequest;
-import com.norconex.committer.core.UpsertRequest;
-import com.norconex.commons.lang.ExceptionUtil;
-import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.io.IOUtil;
-import com.norconex.commons.lang.map.Properties;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers(disabledWithoutDocker = true)
 class ElasticsearchCommitterTest {
@@ -294,6 +286,33 @@ class ElasticsearchCommitterTest {
                     ExceptionUtil.getFormattedMessages(e),
                     "\"error\":"), "Wrong error count.");
         }
+    }
+
+    @Test
+    void testUpsertWithBadId_idIsFixed() throws CommitterException, IOException {
+        //setup
+        String expectdId = StringUtils.repeat("a", 501) + "!0626151616";
+        Properties props = new Properties();
+        props.add("homer", "simpson");
+
+        UpsertRequest upsertReq = new UpsertRequest(
+                StringUtils.repeat("a", 513),
+                props,
+                InputStream.nullInputStream()
+        );
+
+        List<CommitterRequest> upsert = new ArrayList<>();
+        upsert.add(upsertReq);
+
+        //execute
+        withinCommitterSession(c -> {
+            c.getConfiguration().setFixBadIds(true);
+            c.commitBatch(upsert.iterator());
+        });
+
+        //verify
+        JSONObject response = getDocument(expectdId);
+        assertThat(response.getBoolean("found")).isTrue();
     }
 
     private boolean hasTestContent(JSONObject doc) {
