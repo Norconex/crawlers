@@ -1,5 +1,5 @@
 <!--
-   Copyright 2013-2023 Norconex Inc.
+   Copyright 2013-2024 Norconex Inc.
    
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -164,13 +164,4 @@
   </distributionManagement>
 
   <url>https://opensource.norconex.com/committers/apachekafka</url>
-  <scm>
-    <url>https://github.com/Norconex/committer-apachekafka</url>
-    <connection>scm:git:git@github.com:Norconex/committer-apachekafka.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-apachekafka.git</developerConnection>
-  </scm>
-  <issueManagement>
-    <url>https://github.com/Norconex/committer-apachekafka/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
 </project>

@@ -1,5 +1,5 @@
 <!--
-   Copyright 2013-2023 Norconex Inc.
+   Copyright 2013-2024 Norconex Inc.
    
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -178,13 +178,5 @@
     </distributionManagement>
 
     <url>https://opensource.norconex.com/committers/idol/</url>
-    <scm>
-        <url>https://github.com/Norconex/committer-idol</url>
-        <connection>scm:git:git@github.com:Norconex/committer-idol.git</connection>
-        <developerConnection>scm:git:git@github.com:Norconex/committer-idol.git</developerConnection>
-    </scm>
-    <issueManagement>
-        <system>GitHub</system>
-        <url>https://github.com/Norconex/committer-idol/issues</url>
-    </issueManagement>
+
 </project>

@@ -14,6 +14,8 @@
  */
 package com.norconex.committer.solr;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -78,7 +80,16 @@ class SolrCommitterConfigTest {
     void testValidation() {
         Assertions.assertDoesNotThrow(() -> {
             try (var r = ResourceLoader.getXmlReader(this.getClass())) {
-                BeanMapper.DEFAULT.read(SolrCommitter.class, r, Format.XML);
+                var committer = BeanMapper.DEFAULT.read(
+                        SolrCommitter.class, r, Format.XML);
+                assertThat(committer
+                        .getConfiguration()
+                        .getUpdateUrlParam("param1"))
+                            .contains("value1");
+                assertThat(committer
+                        .getConfiguration()
+                        .getUpdateUrlParamNames())
+                            .contains("param1", "param2");
             }
         });
     }
