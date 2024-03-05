@@ -28,7 +28,7 @@
   
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
-    
+
     <java-diff-utils.version>4.12</java-diff-utils.version>      
 <!--
     <graalvm-js.version>22.3.2</graalvm-js.version>
