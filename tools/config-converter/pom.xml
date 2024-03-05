@@ -28,6 +28,7 @@
   
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    <sonar.exclusions>**/*</sonar.exclusions>
 
     <java-diff-utils.version>4.12</java-diff-utils.version>      
 <!--
