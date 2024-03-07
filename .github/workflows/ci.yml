@@ -100,7 +100,9 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
       - name: Analyze
-        if: steps.changed-files.outputs.any_changed == 'true'
+        if: >
+          steps.changed-files.outputs.any_changed == 'true' &&
+          ${{ github.actor != 'dependabot[bot]' }}
         run: |
         
           dirs=""
@@ -123,7 +125,7 @@ jobs:
 
       - name: Deploy (Push only)
         if: >
-          github.repository == 'Norconex/collector-http' &&
+          github.repository == 'Norconex/crawlers' &&
           github.event_name == 'push' &&
           steps.changed-files.outputs.any_changed == 'true'
         run: |
