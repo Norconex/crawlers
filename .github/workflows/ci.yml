@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright 2023 Norconex Inc.
+# Copyright 2023-2024 Norconex Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -75,14 +75,15 @@ jobs:
             **/README.md
             **/TODO.txt
 
-      - name: Get changed modules (PR only)
-        id: changed-modules
-        if: >
-          github.event_name == 'pull_request' &&
-          steps.changed-files.outputs.any_changed == 'true'
-        run: |
-          bash .github/workflows/scripts/changed-modules.sh
-          echo "any_changed=$(cat .github/outputs/any-module-changed.txt)" >> $GITHUB_OUTPUT
+# Disabled to always do full builds (P.E.)
+#      - name: Get changed modules (PR only)
+#        id: changed-modules
+#        if: >
+#          github.event_name == 'pull_request' &&
+#          steps.changed-files.outputs.any_changed == 'true'
+#        run: |
+#          bash .github/workflows/scripts/changed-modules.sh
+#          echo "any_changed=$(cat .github/outputs/any-module-changed.txt)" >> $GITHUB_OUTPUT
 
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -103,21 +104,23 @@ jobs:
         if: >
           steps.changed-files.outputs.any_changed == 'true' &&
           ${{ github.actor != 'dependabot[bot]' }}
+
+# Disabled to always do full builds (P.E.)
+#        run: |
+#          dirs=""
+#          if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
+#              dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
+#          fi
+#          if [ -z "$dirs" ]; then
+#              dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
+#          fi
+#          for dir in $dirs; do
+#              echo "Analyzing ${dir}..."
+#              (cd ${dir}; mvn sonar:sonar)
+#          done
+# Instead:
         run: |
-        
-          dirs=""
-          if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
-              dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
-          fi
-          if [ -z "$dirs" ]; then
-              dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
-          fi
-          for dir in $dirs; do
-              echo "Analyzing ${dir}..."
-              (cd ${dir}; mvn sonar:sonar)
-          done
-          
-          #mvn sonar:sonar
+          mvn sonar:sonar
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
