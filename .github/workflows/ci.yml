@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright 2023 Norconex Inc.
+# Copyright 2023-2024 Norconex Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -75,6 +75,8 @@ jobs:
             **/README.md
             **/TODO.txt
 
+       # We get changed Maven module so we only analyze those when dealing
+       # with pull requets.
       - name: Get changed modules (PR only)
         id: changed-modules
         if: >
@@ -102,9 +104,10 @@ jobs:
       - name: Analyze
         if: >
           steps.changed-files.outputs.any_changed == 'true' &&
-          ${{ github.actor != 'dependabot[bot]' }}
+          github.actor != 'dependabot[bot]'
+        # Note: For SonarCloud to work with monorepos, each projects must be 
+        # analyzed separately
         run: |
-        
           dirs=""
           if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
               dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
@@ -116,8 +119,8 @@ jobs:
               echo "Analyzing ${dir}..."
               (cd ${dir}; mvn sonar:sonar)
           done
-          
-          #mvn sonar:sonar
+#        run: |
+#          mvn sonar:sonar
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
