@@ -108,7 +108,7 @@ jobs:
         # Note: For SonarCloud to work with monorepos, each projects must be 
         # analyzed separately
         run: |
-          run: echo "'github.actor' is '${{ github.actor }}'"
+          echo "'github.actor' is '${{ github.actor }}'"
           dirs=""
           if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
               dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
