@@ -104,7 +104,7 @@ jobs:
       - name: Analyze
         if: >
           steps.changed-files.outputs.any_changed == 'true' &&
-          ${{ github.actor != 'dependabot[bot]' }}
+          github.actor != 'dependabot[bot]'
         # Note: For SonarCloud to work with monorepos, each projects must be 
         # analyzed separately
         run: |
