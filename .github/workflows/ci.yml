@@ -105,10 +105,7 @@ jobs:
         if: >
           steps.changed-files.outputs.any_changed == 'true' &&
           github.actor != 'dependabot[bot]'
-        # Note: For SonarCloud to work with monorepos, each projects must be 
-        # analyzed separately
         run: |
-          echo "'github.actor' is '${{ github.actor }}'"
           dirs=""
           if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
               dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
@@ -116,12 +113,12 @@ jobs:
           if [ -z "$dirs" ]; then
               dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
           fi
+          # Note: For SonarCloud to work with monorepos, each projects must be 
+          # analyzed separately
           for dir in $dirs; do
               echo "Analyzing ${dir}..."
               (cd ${dir}; mvn sonar:sonar)
           done
-#        run: |
-#          mvn sonar:sonar
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -133,7 +130,7 @@ jobs:
           github.event_name == 'push' &&
           steps.changed-files.outputs.any_changed == 'true'
         run: |
-          mvn jar:jar deploy:deploy --threads=2
+          mvn deploy:deploy --threads=2
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
