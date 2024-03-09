@@ -63,7 +63,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v42.0.5
+        uses: tj-actions/changed-files@v42.0.7
         with:
           dir_names: true
           dir_names_max_depth: 2
@@ -108,6 +108,7 @@ jobs:
         # Note: For SonarCloud to work with monorepos, each projects must be 
         # analyzed separately
         run: |
+          echo "'github.actor' is '${{ github.actor }}'"
           dirs=""
           if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
               dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
