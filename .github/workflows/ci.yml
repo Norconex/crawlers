@@ -63,7 +63,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v42.0.7
+        uses: tj-actions/changed-files@v42.0.5
         with:
           dir_names: true
           dir_names_max_depth: 2
@@ -75,8 +75,30 @@ jobs:
             **/README.md
             **/TODO.txt
 
-       # We get changed Maven module so we only analyze those when dealing
-       # with pull requets.
+#      - name: Build
+#        if: steps.changed-files.outputs.any_changed == 'true'
+#        run: |
+#          mvn_args="install"
+#          if [ ${{ github.event_name }} == 'pull_request' ]; then
+#              mvn_args="-Dgpg.skip=true install"
+#          fi
+#          if [ ${{ github.event_name }} == 'push' ] && [ ${{ github.repository }} == 'Norconex/crawlers' ]; then
+#              mvn_args="install sonar:sonar"
+#          fi
+#          if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
+#              mvn_args="-Dgpg.skip=true -Dmaven.javadoc.skip=true package"
+#          fi
+#          echo "Maven args: clean ${mvn_args}"
+#          mvn clean ${mvn_args} -amd --batch-mode --threads=1
+#        env:
+#          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+#          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+#          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # We get changed Maven module so we only analyze those when dealing
+      # with pull requets.
       - name: Get changed modules (PR only)
         id: changed-modules
         if: >
@@ -104,7 +126,9 @@ jobs:
       - name: Analyze
         if: >
           steps.changed-files.outputs.any_changed == 'true' &&
-          github.actor != 'dependabot[bot]'
+          ${{ github.actor != 'dependabot[bot]' }}
+        # Note: For SonarCloud to work with monorepos, each projects must be 
+        # analyzed separately
         run: |
           dirs=""
           if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
@@ -113,12 +137,12 @@ jobs:
           if [ -z "$dirs" ]; then
               dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
           fi
-          # Note: For SonarCloud to work with monorepos, each projects must be 
-          # analyzed separately
           for dir in $dirs; do
               echo "Analyzing ${dir}..."
               (cd ${dir}; mvn sonar:sonar)
           done
+#        run: |
+#          mvn sonar:sonar
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -129,8 +153,10 @@ jobs:
           github.repository == 'Norconex/crawlers' &&
           github.event_name == 'push' &&
           steps.changed-files.outputs.any_changed == 'true'
+#        run: |
+#          mvn jar:jar deploy:deploy --threads=2
         run: |
-          mvn deploy:deploy --threads=2
+          mvn deploy
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
