@@ -41,6 +41,7 @@
     
     <!-- TEST START -->
     <sonar.version>3.10.0.2594</sonar.version>
+    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <!-- /TEST END -->
 
 
