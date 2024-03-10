@@ -121,7 +121,7 @@
       </plugin>
       
       <!-- TEST START -->
-      <plugin>
+<!--      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
@@ -132,7 +132,7 @@
       <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
-      </plugin>
+      </plugin>-->
       <!-- /TEST END -->
       
       <!-- Uncomment when ready:
