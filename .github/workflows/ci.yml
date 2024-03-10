@@ -92,7 +92,7 @@ jobs:
           if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
               mvn_args="-Dgpg.skip=true -Dmaven.javadoc.skip=true package"
           fi
-          echo "Maven args: clean ${mvn_args}"
+          echo "Maven args\: clean ${mvn_args}"
           mvn clean ${mvn_args} -amd --batch-mode --threads=1
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
