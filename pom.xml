@@ -38,6 +38,12 @@
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait> 
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
 
+    
+    <!-- TEST START -->
+    <sonar.version>3.10.0.2594</sonar.version>
+    <!-- /TEST END -->
+
+
     <!-- === Dependencies ================================================== -->
 
     <!-- Norconex dependencies -->
@@ -994,6 +1000,23 @@
           <inherited>true</inherited>
         </plugin>
  
+        <!-- TEST START --> 
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>${sonar.version}</version>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>sonar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- /TEST END --> 
+ 
+ 
       </plugins>
     </pluginManagement>
 
@@ -1033,6 +1056,17 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>            
+
+      <!-- TEST START --> 
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>            
+      <!-- /TEST END --> 
+
 
     </plugins>
 
@@ -1078,6 +1112,7 @@
   <modules>
     <module>committer/core</module> 
     <module>committer/solr</module>
+<!-- TEST START:
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
     <module>committer/amazoncloudsearch</module>
@@ -1090,6 +1125,7 @@
     <module>crawler/web</module>
     <module>crawler/fs</module>
     <module>tools/config-converter</module>
+/TEST END -->
 <!--     <module>javadoc-resources</module>
  -->
   </modules>

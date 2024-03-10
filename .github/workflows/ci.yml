@@ -101,9 +101,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-# ORIGINAL:
-#       # We get changed Maven module so we only analyze those when dealing
-#       # with pull requets.
+#      # We get changed Maven module so we only analyze those when dealing
+#      # with pull requets.
 #      - name: Get changed modules (PR only)
 #        id: changed-modules
 #        if: >
