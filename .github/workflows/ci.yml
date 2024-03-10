@@ -78,22 +78,22 @@ jobs:
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          mvn_goal="install"
-          mvn_skip=""
-          projectsArg="-Dorg.slf4j.simpleLogger.defaultLogLevel=warn -Dorg.apache.logging.log4j.level=warn"
+           mvn_args="install"
+#          mvn_goal="install"
+#          mvn_skip=""
+#          projectsArg="-Dorg.slf4j.simpleLogger.defaultLogLevel=warn -Dorg.apache.logging.log4j.level=warn"
           
           if [ ${{ github.event_name }} == 'pull_request' ]; then
-              mvn_skip="-Dgpg.skip=true"
+              mvn_args="-Dgpg.skip=true install"
           fi
           if [ ${{ github.event_name }} == 'push' ] && [ ${{ github.repository }} == 'Norconex/crawlers' ]; then
-              mvn_goal="deploy"
+              mvn_args="install sonar:sonar deploy:deploy"
           fi
           if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
-              mvn_skip="-Dgpg.skip=true -Dmaven.javadoc.skip=true"
-              mvn_goal="package"
+              mvn_args="-Dgpg.skip=true -Dmaven.javadoc.skip=true package"
           fi
-          echo "Maven command: mvn clean ${mvn_skip} ${mvn_goal} ${projectsArg} -amd --batch-mode --threads=2"
-          mvn clean ${mvn_skip} ${mvn_goal} ${projectsArg} -amd --batch-mode --threads=2
+          echo "Maven command: mvn clean ${mvn_ars} -amd --batch-mode --threads=1"
+          mvn clean ${mvn_ars} -amd --batch-mode --threads=1
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
