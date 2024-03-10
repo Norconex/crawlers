@@ -78,7 +78,7 @@ jobs:
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-           mvn_args="install"
+          mvn_args="install"
 #          mvn_goal="install"
 #          mvn_skip=""
 #          projectsArg="-Dorg.slf4j.simpleLogger.defaultLogLevel=warn -Dorg.apache.logging.log4j.level=warn"
@@ -92,8 +92,8 @@ jobs:
           if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
               mvn_args="-Dgpg.skip=true -Dmaven.javadoc.skip=true package"
           fi
-          echo "Maven command: mvn clean ${mvn_ars} -amd --batch-mode --threads=1"
-          mvn clean ${mvn_ars} -amd --batch-mode --threads=1
+          echo "Maven command: mvn clean ${mvn_args} -amd --batch-mode --threads=1"
+          mvn clean ${mvn_args} -amd --batch-mode --threads=1
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
