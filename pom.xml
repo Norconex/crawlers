@@ -1061,9 +1061,9 @@
       <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
-        <configuration>
+<!--        <configuration>
           <skip>true</skip>
-        </configuration>
+        </configuration>-->
       </plugin>            
       <!-- /TEST END --> 
 
