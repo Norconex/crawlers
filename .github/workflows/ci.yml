@@ -83,7 +83,7 @@ jobs:
               mvn_args="-Dgpg.skip=true install"
           fi
           if [ ${{ github.event_name }} == 'push' ] && [ ${{ github.repository }} == 'Norconex/crawlers' ]; then
-              mvn_args="install sonar:sonar
+              mvn_args="install sonar:sonar"
           fi
           if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
               mvn_args="-Dgpg.skip=true -Dmaven.javadoc.skip=true package"
