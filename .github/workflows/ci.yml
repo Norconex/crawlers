@@ -85,9 +85,7 @@ jobs:
           if [ ${{ github.event_name }} == 'pull_request' ]; then
               mvn_skip="-Dgpg.skip=true"
           fi
-          if [ ${{ github.event_name }} == 'push' &&
-               ${{ github.repository }} == 'Norconex/crawlers'
-          ]; then
+          if [ ${{ github.event_name }} == 'push' && ${{ github.repository }} == 'Norconex/crawlers' ]; then
               mvn_goal="deploy"
           fi
           if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
