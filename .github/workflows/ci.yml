@@ -80,7 +80,7 @@ jobs:
         run: |
           mvn_goal="install"
           mvn_skip=""
-          projectsArg="-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"
+          projectsArg="-Dorg.slf4j.simpleLogger.defaultLogLevel=warn -Dorg.apache.logging.log4j.level=warn"
           
           if [ ${{ github.event_name }} == 'pull_request' ]; then
               mvn_skip="-Dgpg.skip=true"
