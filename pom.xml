@@ -37,6 +37,10 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait> 
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    
+    <!-- TEST START -->
+    <sonar.version>3.10.0.2594</sonar.version>
+    <!-- /TEST END -->
 
     <!-- === Dependencies ================================================== -->
 
@@ -785,11 +789,10 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>${maven-deploy-plugin.version}</version>
-          <!--
           <configuration>
-            <allowIncompleteProjects>true</allowIncompleteProjects>
+<!--            <allowIncompleteProjects>true</allowIncompleteProjects>-->
+            <deployAtEnd>true</deployAtEnd>
           </configuration>
-          -->          
           <inherited>true</inherited>
         </plugin>
         
@@ -993,6 +996,23 @@
           </executions>
           <inherited>true</inherited>
         </plugin>
+
+        <!-- TEST START --> 
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>${sonar.version}</version>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>sonar</goal>
+              </goals>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+        <!-- /TEST END --> 
  
       </plugins>
     </pluginManagement>
@@ -1033,6 +1053,23 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>            
+
+      <!-- TEST START -->
+      <!-- disable scanning of parent --> 
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>none</phase>
+            <goals>
+              <goal>sonar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- /TEST END --> 
+
 
     </plugins>
 
