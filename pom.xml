@@ -1115,7 +1115,6 @@
   <modules>
     <module>committer/core</module> 
     <module>committer/solr</module>
-<!-- TEST START:
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
     <module>committer/amazoncloudsearch</module>
@@ -1128,6 +1127,7 @@
     <module>crawler/web</module>
     <module>crawler/fs</module>
     <module>tools/config-converter</module>
+<!-- TEST START:
 /TEST END -->
 <!--     <module>javadoc-resources</module>
  -->
