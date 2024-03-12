@@ -111,15 +111,18 @@ jobs:
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          mvn_cmd="install"
-          mvn_skip=""
-          projectsArg=""
-          
+          mvn_args="install"
           if [ ${{ github.event_name }} == 'pull_request' ]; then
-              mvn_skip="-Dgpg.skip=true"
+              mvn_args="-Dgpg.skip=true -Dmaven.javadoc.skip=true install"
           fi
-
-          mvn clean ${mvn_skip} ${mvn_cmd} ${projectsArg} -amd --batch-mode --threads=2
+          if [ ${{ github.event_name }} == 'push' ] && [ ${{ github.repository }} == 'Norconex/crawlers' ]; then
+              mvn_args="-Dmaven.javadoc.skip=true install"
+          fi
+          if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
+              mvn_args="-Dgpg.skip=true -Dmaven.javadoc.skip=true package"
+          fi
+          echo "Maven args: clean ${mvn_args}"
+          mvn clean ${mvn_args} -amd --batch-mode --threads=2
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
@@ -127,8 +130,8 @@ jobs:
         if: >
           steps.changed-files.outputs.any_changed == 'true' &&
           ${{ github.actor != 'dependabot[bot]' }}
-        # Note: For SonarCloud to work with monorepos, each projects must be 
-        # analyzed separately
+        # Note: As of this writing, for SonarCloud to work with monorepos, 
+        # each projects must be analyzed separately.
         run: |
           dirs=""
           if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
