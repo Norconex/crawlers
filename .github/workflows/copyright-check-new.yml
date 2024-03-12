@@ -20,7 +20,7 @@ jobs:
       
       - name: Get modified files 
         id: modified-files        
-        uses: tj-actions/changed-files@v42.0.7
+        uses: tj-actions/changed-files@v42.1.0
         with:
           files_ignore: |     
             # ignore the yml files and header files in the github folder       
