@@ -118,7 +118,7 @@ jobs:
           if [ ${{ github.event_name }} == 'push' ] && [ ${{ github.repository }} == 'Norconex/crawlers' ]; then
               mvn_args="-Dmaven.javadoc.skip=true install"
           fi
-          if [ ${{ github.actor }} == 'dependabot[bot]' ]; then
+          if [[ "$GITHUB_ACTOR" == dependabot* ]]; then
               mvn_args="-Dgpg.skip=true -Dmaven.javadoc.skip=true package"
           fi
           echo "Maven args: clean ${mvn_args}"
@@ -129,7 +129,7 @@ jobs:
       - name: Analyze
         if: >
           steps.changed-files.outputs.any_changed == 'true' &&
-          ${{ github.actor != 'dependabot[bot]' }}
+          startsWith(github.actor, 'dependabot') == false
         # Note: As of this writing, for SonarCloud to work with monorepos, 
         # each projects must be analyzed separately.
         run: |
