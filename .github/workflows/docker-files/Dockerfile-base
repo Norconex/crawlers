@@ -1,0 +1,46 @@
+From ubuntu:22.04 AS base
+ARG build_version
+ARG dl_path
+ARG dl_filename
+
+WORKDIR /nxer
+
+RUN echo "build_version is: $build_version"
+
+RUN apt-get -y update && \
+    apt-get install -y nano && \
+    apt-get install -y curl && \
+    apt-get install -y unzip && \
+    apt-get install -y iputils-ping && \
+    apt install bash-completion && \
+    curl -LO https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.deb && \
+    dpkg -i jdk-17_linux-x64_bin.deb && \    
+    rm *.deb
+
+
+FROM base AS regular
+WORKDIR /nxer
+
+RUN echo "this is regular build"
+RUN echo "s_version: ${build_version}"
+
+RUN curl -LO https://oss.sonatype.org/content/repositories/releases/com/norconex/collectors/norconex-collector-http/${build_version}/norconex-collector-http-${build_version}.zip && \
+    unzip norconex-collector-http-${build_version}.zip && \
+    chmod +x norconex-collector-http-${build_version}/collector-http.* && \
+    rm *.zip
+
+
+FROM base AS snapshot
+WORKDIR /nxer
+
+RUN echo "this is snapshot build"
+RUN echo "s_version: ${build_version}"
+RUN echo "dl_path: ${dl_path}"
+RUN echo "dl_filename: ${dl_filename}"
+
+
+RUN curl -LO ${dl_path}
+RUN unzip ${dl_filename}
+RUN mv norconex-collector-http-${build_version}-SNAPSHOT norconex-collector-http-${build_version}
+RUN chmod +x norconex-collector-http-${build_version}/collector-http.*
+RUN rm *.zip
