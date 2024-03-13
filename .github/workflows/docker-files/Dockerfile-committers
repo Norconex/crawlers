@@ -1,0 +1,15 @@
+FROM replace-this-with-real-version-crawler-base
+ARG committer_type
+ARG dl_path
+ARG committer_version
+ARG build_version
+
+RUN echo "committer type is: $committer_type"
+RUN echo "build_version is: $build_version"
+
+WORKDIR /nxer
+
+RUN curl -LO ${dl_path}
+RUN unzip norconex-committer-${committer_type}-${committer_version}.zip
+RUN cp norconex-committer-${committer_type}-${committer_version}/lib/* norconex-collector-http-${build_version}/lib/
+RUN rm *.zip
