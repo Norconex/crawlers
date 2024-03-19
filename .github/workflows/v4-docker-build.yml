@@ -6,10 +6,10 @@ on:
       - feature/86871vpux-v4-docker-image-build
       
   #define the workflow that will trigger this workflow to run
-  workflow_run:
-    workflows: []
-    types:
-      - completed
+  # workflow_run:
+  #   workflows: []
+  #   types:
+  #     - completed
 
   #allow the workflow to run manually with version as input
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: feature/86871vpux-v4-docker-image-build
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
