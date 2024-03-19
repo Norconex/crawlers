@@ -1,12 +1,9 @@
 FROM ubuntu:22.04 AS base
 ARG crawler_type
 ARG build_version
-ARG dl_path
 ARG dl_filename
 
 WORKDIR /nxer
-
-RUN echo "build_version is: $build_version"
 
 RUN apt-get -y update && \
     apt-get install -y nano && \
@@ -22,30 +19,16 @@ RUN apt-get -y update && \
 FROM base AS regular
 WORKDIR /nxer
 
-RUN echo "this is regular build"
-RUN echo "s_version: ${build_version}"
-
-RUN curl -LO https://oss.sonatype.org/content/repositories/releases/com/norconex/collectors/norconex-collector-http/${build_version}/norconex-collector-http-${build_version}.zip && \
-    unzip norconex-collector-http-${build_version}.zip && \
-    chmod +x norconex-collector-http-${build_version}/collector-http.* && \
-    rm *.zip
+COPY downloaded/$crawler_type/*.zip /nxer/
+RUN unzip ${dl_filename}
+RUN chmod +x nx-crawler-${crawler_type}-${build_version}/crawl-${crawler_type}.*
+RUN rm *.zip
 
 
 FROM base AS snapshot
 WORKDIR /nxer
 
-RUN echo "this is snapshot build"
-RUN echo "s_version: ${build_version}"
-RUN echo "dl_path: ${dl_path}"
-RUN echo "dl_filename: ${dl_filename}"
-RUN echo "crawler type: $crawler_type"
-
-RUN ls -la
-RUN pwd
 COPY downloaded/$crawler_type/*.zip /nxer/
-RUN ls -la /nxer
-
-#RUN curl -LO ${dl_path}
 RUN unzip ${dl_filename}
 RUN mv nx-crawler-${crawler_type}-${build_version}-SNAPSHOT nx-crawler-${crawler_type}-${build_version}
 RUN chmod +x nx-crawler-${crawler_type}-${build_version}/crawl-${crawler_type}.*
