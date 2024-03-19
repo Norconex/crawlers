@@ -1,0 +1,30 @@
+FROM replace-this-with-real-version
+ARG committer_type
+#ARG dl_path
+ARG dl_filename
+ARG committer_version
+ARG build_version
+ARG crawler_type
+
+WORKDIR /nxer
+
+COPY downloaded/$committer_type/*.zip .
+
+
+RUN unzip ${dl_filename}
+
+RUN echo "committer type is: $committer_type"
+RUN echo "committer version is: $committer_version"
+RUN echo "crawler_type: ${crawler_type}"
+RUN echo "dl filename: ${dl_filename}"
+RUN echo "build_version is: $build_version"
+
+
+RUN cp nx-committer-${committer_type}-${committer_version}/lib/* nx-crawler-${crawler_type}-${build_version}/lib/
+RUN rm *.zip
+
+
+#RUN curl -LO ${dl_path}
+#RUN unzip nx-committer-elasticsearch-4.0.0-20240313.161608-38.zip
+#RUN unzip nx-committer-${committer_type}-${committer_version}.zip
+#RUN cp norconex-committer-${committer_type}-${committer_version}/lib/* norconex-collector-http-${build_version}/lib/
