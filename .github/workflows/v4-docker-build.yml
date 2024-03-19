@@ -1,10 +1,10 @@
 name: V4 Build Docker Image
 
-on:
-  # push:    
-  #   branches:
-  #     - feature/docker-image
-
+on:  
+  push:
+    branches:
+      - feature/86871vpux-v4-docker-image-build
+      
   #define the workflow that will trigger this workflow to run
   workflow_run:
     workflows: []
@@ -59,7 +59,6 @@ jobs:
           echo "input-version: ${{ inputs.manual_build_version }}"
           #echo "input-version: $manual_build_version"
           echo "GITHUB_ENV_TMP_Version: ${{ env.tmp_version }}"
-
          
       
       # convert the string to lower case for SNAPSHOT build    
@@ -69,26 +68,17 @@ jobs:
         with:
           string: ${{ env.tmp_version }}
       
+        
       # assign the lowercase value back to an variable for later use
       - run: |
           echo "version_lowercase=${{ steps.string.outputs.lowercase }}" >> $GITHUB_ENV  
           echo "version_uppercase=${{ steps.string.outputs.uppercase }}" >> $GITHUB_ENV          
           
-      # debug use only    
-    #   - run: |
-    #       echo "GITHUB_ENV_Version: ${{ env.version_lowercase }}"
-    #       echo "lowercase: ${{ steps.string.outputs.lowercase }}"
-    #       echo "uppercase: ${{ steps.string.outputs.uppercase}}"
-
-      
+          
       # extract version number from value and assign it to different variables for tagging use
       - name: Extract version numbers for tagging use
         run: |  
-          #if [[ "${{env.version_lowercase}}" == *"-snapshot"* ]]; then
-          
-          #echo "snapshot_image=${{env.version_lowercase}}" >> $GITHUB_ENV
-          
-          #else
+       
           # Extract major version
           echo "major=$(echo ${{env.version_lowercase}} | cut -d '.' -f 1)" >> $GITHUB_ENV
 
@@ -97,40 +87,8 @@ jobs:
 
           # Extract major_minor_revis version
           echo "major_minor_revis=$(echo ${{env.version_lowercase}} | cut -d '-' -f 1)" >> $GITHUB_ENV
-          #fi
 
-      # debug use only    
-    #   - name: print extracted version numbers   
-    #     run: |
-    #       # Print extracted version numbers
-    #       echo "Major: ${{env.major}}"
-    #       echo "Major_Minor: ${{env.major_minor}}"
-    #       echo "Major_Minor_Revis: ${{env.major_minor_revis}}"
-
-    #   - name: Find and download latest snapshot zip file
-    #     run: |
-    #       # Define URL of the page containing the list of zip files
-    #       URL="https://oss.sonatype.org/content/repositories/snapshots/com/norconex/crawler/nx-crawler-web/${{env.version_uppercase}}/"
-      
-    #       echo "URL: $URL"
-
-    #       # Extract the list of zip file URLs from the page
-    #       all_zip_files=$(curl -s "$URL" | grep -oP '(?<=href=")[^"]+\.zip' | sort)
-     
-    #       # Get the latest zip file URL
-    #       local_latest_file=$(echo "$all_zip_files" | tail -n 1)
-    #       echo "latest_file=$(echo "$all_zip_files" | tail -n 1)" >> $GITHUB_ENV
-
-    #       # Extract just the filename from the URL
-    #       echo "dl_filename=$(basename "$local_latest_file")" >> $GITHUB_ENV
-
-    #       echo "latestfile: $local_latest_file"
-
-    #   - name: Print Env Variable
-    #     run: |
-    #       echo "env latestfile: ${{env.latest_file}}" 
-    #       echo "env dl_filename: ${{env.dl_filename}}"
-      
+          
       - name: Setup Java
         uses: actions/setup-java@v2
         with:
@@ -223,12 +181,6 @@ jobs:
             
               # copy the zip files over to the downloaded folder where docker has access to
               cp /home/runner/.m2/repository/com/norconex/crawler/nx-committer-$com_type/${{env.version_uppercase}}/*.zip ./downloaded/$com_type
-
-              # debug
-            #   ls -la /home/runner/.m2/repository/com/norconex/crawler/nx-committer-$com_type/${{env.version_uppercase}}
-            #   ls -la downloaded/$com_type
-            #   more .github/workflows/docker-files/Dockerfile-committers
-
             
               #Extract Filename
               com_zip_filename=$(basename /home/runner/.m2/repository/com/norconex/crawler/nx-committer-$com_type/${{env.version_uppercase}}/*.zip)
@@ -238,8 +190,6 @@ jobs:
               
             done
           done
-      
-        #   docker image ls
 
 
       # login to Dockerhub
