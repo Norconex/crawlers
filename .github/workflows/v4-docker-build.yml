@@ -37,7 +37,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-    #check which version value should be used
+      #check which version value should be used
       - name: check condition - version value
         uses: haya14busa/action-cond@v1
         id: version_value_check
@@ -46,19 +46,11 @@ jobs:
           if_true: $(cat pom.xml | grep -m1 "version" | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g')
           if_false: ${{ inputs.manual_build_version }}
 
+
       # assign version value into GITHUB env variable
       - name: Use conditional value        
         run: |
           echo "tmp_version=${{ steps.version_value_check.outputs.value }}" >> $GITHUB_ENV
-          #echo "final_committer_type=${{ steps.committer_value_check.outputs.value}}" >> $GITHUB_ENV
-
-      # print the value of the env version variable for debugging use  
-      - name: print the value of GITHUB_ENV:version
-        run: |
-          #echo "read-data-version:$(cat pom.xml | grep -m1 "version" | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g')"
-          echo "input-version: ${{ inputs.manual_build_version }}"
-          #echo "input-version: $manual_build_version"
-          echo "GITHUB_ENV_TMP_Version: ${{ env.tmp_version }}"
          
       
       # convert the string to lower case for SNAPSHOT build    
@@ -141,10 +133,6 @@ jobs:
         
               # copy the zip files over to the downloaded folder where docker has access to
               cp /home/runner/.m2/repository/com/norconex/crawler/nx-crawler-$type/${{env.version_uppercase}}/*.zip ./downloaded/$type
-
-            # debug
-            #   ls -la /home/runner/.m2/repository/com/norconex/crawler/nx-crawler-$type/${{env.version_uppercase}}
-            #   ls -la downloaded/$type
           
               #Extract Filename
               zip_filename=$(basename /home/runner/.m2/repository/com/norconex/crawler/nx-crawler-$type/${{ env.version_uppercase}}/*.zip)
