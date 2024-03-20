@@ -1,15 +1,15 @@
 name: V4 Build Docker Image
 
 on:  
-  push:
-    branches:
-      - feature/86871vpux-v4-docker-image-build
+  # push:
+  #   branches:
+  #     - feature/86871vpux-v4-docker-image-build
       
   #define the workflow that will trigger this workflow to run
-  # workflow_run:
-  #   workflows: []
-  #   types:
-  #     - completed
+  workflow_run:
+    workflows: [Maven Java CI]
+    types:
+      - completed
 
   #allow the workflow to run manually with version as input
   workflow_dispatch:
