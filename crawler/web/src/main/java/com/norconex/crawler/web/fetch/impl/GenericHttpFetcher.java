@@ -18,6 +18,7 @@ import static com.norconex.crawler.web.fetch.HttpMethod.GET;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.hc.core5.util.TimeValue.ofMilliseconds;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -34,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -82,6 +84,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.time.DurationParser;
@@ -529,8 +532,8 @@ public class GenericHttpFetcher
         builder.setDefaultCredentialsProvider(createCredentialsProvider());
         builder.setUserAgent(configuration.getUserAgent());
         builder.evictExpiredConnections();
-        builder.evictIdleConnections(
-                TimeValue.ofMilliseconds(configuration.getMaxConnectionIdleTime()));
+        ofNullable(configuration.getMaxConnectionIdleTime()).ifPresent(
+            d -> builder.evictIdleConnections(ofMilliseconds(d.toMillis())));
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
         builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
@@ -545,8 +548,11 @@ public class GenericHttpFetcher
         final var sslContext = createSSLContext();
         final var sslSocketFactory = createSSLSocketFactory(sslContext);
 
-        var tlsBuilder = TlsConfig.custom()
-                .setHandshakeTimeout(configuration.getSocketTimeout(), TimeUnit.MINUTES);
+        var tlsBuilder = TlsConfig.custom();
+
+        ofNullable(configuration.getSocketTimeout()).ifPresent(
+                d -> tlsBuilder.setHandshakeTimeout(
+                        d.toMillis(), TimeUnit.MINUTES));
         if (!configuration.getSSLProtocols().isEmpty()) {
             tlsBuilder.setSupportedProtocols(
                     configuration.getSSLProtocols().toArray(EMPTY_STRING_ARRAY));
@@ -660,13 +666,15 @@ public class GenericHttpFetcher
         return SCHEME_PORT_RESOLVER;
     }
     protected RequestConfig createRequestConfig() {
-        var builder = RequestConfig.custom()
-                .setConnectionRequestTimeout(
-                        configuration.getConnectionRequestTimeout(),
-                        TimeUnit.MILLISECONDS)
-                .setMaxRedirects(configuration.getMaxRedirects())
-                .setExpectContinueEnabled(configuration.isExpectContinueEnabled())
-                .setCookieSpec(configuration.getCookieSpec());
+        var builder = RequestConfig.custom();
+
+        ofNullable(configuration.getConnectionRequestTimeout()).ifPresent(
+                d -> builder.setConnectionRequestTimeout(
+                        d.toMillis(), TimeUnit.MILLISECONDS));
+        builder.setMaxRedirects(configuration.getMaxRedirects())
+            .setExpectContinueEnabled(configuration.isExpectContinueEnabled())
+            .setCookieSpec(Objects.toString(
+                    configuration.getCookieSpec(), null));
         if (configuration.getMaxRedirects() <= 0) {
             builder.setRedirectsEnabled(false);
         }
@@ -737,14 +745,17 @@ public class GenericHttpFetcher
         return credsProvider;
     }
     protected ConnectionConfig createConnectionConfig() {
-        return ConnectionConfig
-                .custom()
-                .setConnectTimeout(
-                        configuration.getConnectionTimeout(), TimeUnit.MILLISECONDS)
-                .setSocketTimeout(configuration.getSocketTimeout(), TimeUnit.MILLISECONDS)
-                .setValidateAfterInactivity(TimeValue.ofMilliseconds(
-                        configuration.getMaxConnectionInactiveTime()))
-                .build();
+        var builder = ConnectionConfig.custom();
+        ofNullable(configuration.getConnectionTimeout()).ifPresent(
+                d -> builder.setConnectTimeout(
+                        d.toMillis(), TimeUnit.MILLISECONDS));
+        ofNullable(configuration.getSocketTimeout()).ifPresent(
+                d -> builder.setSocketTimeout(
+                        Timeout.ofMilliseconds(d.toMillis())));
+        ofNullable(configuration.getMaxConnectionInactiveTime()).ifPresent(
+                d -> builder.setValidateAfterInactivity(
+                        TimeValue.ofMilliseconds(d.toMillis())));
+        return builder.build();
     }
 
     protected SSLConnectionSocketFactory createSSLSocketFactory(
