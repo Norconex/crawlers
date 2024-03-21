@@ -195,7 +195,6 @@ import lombok.extern.slf4j.Slf4j;
  *   <connectionTimeout>(milliseconds)</connectionTimeout>
  *   <socketTimeout>(milliseconds)</socketTimeout>
  *   <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
- *   <connectionCharset>...</connectionCharset>
  *   <expectContinueEnabled>[false|true]</expectContinueEnabled>
  *   <maxRedirects>...</maxRedirects>
  *   <redirectURLProvider>(implementation handling redirects)</redirectURLProvider>

@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.web.fetch.impl;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -130,16 +129,6 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @return connection request timeout
      */
     private int connectionRequestTimeout = DEFAULT_TIMEOUT;
-
-    /**
-     * The connection character set. The HTTP protocol specification
-     * mandates the use of ASCII for HTTP message headers.  Sites do not always
-     * respect this and it may be necessary to force a non-standard character
-     * set.
-     * @param connectionCharset connection character set
-     * @return connection character set
-     */
-    private Charset connectionCharset;
 
     /**
      * The local address, which may be useful when working with multiple
