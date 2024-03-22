@@ -15,6 +15,7 @@
 package com.norconex.crawler.web.session.feature;
 
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -49,9 +50,10 @@ class TimeoutTest {
                 .forStartReferences(serverUrl(client, homePath))
                 .crawlerSetup(cfg -> {
                     var f = new GenericHttpFetcher();
-                    f.getConfiguration().setConnectionTimeout(1000);
-                    f.getConfiguration().setSocketTimeout(1000);
-                    f.getConfiguration().setConnectionRequestTimeout(1000);
+                    f.getConfiguration().setConnectionTimeout(ofSeconds(1));
+                    f.getConfiguration().setSocketTimeout(ofSeconds(1));
+                    f.getConfiguration().setConnectionRequestTimeout(
+                            ofSeconds(1));
                     cfg.setFetchers(List.of(f));
                 })
                 .crawlSession();

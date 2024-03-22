@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl;
 
-import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.core5.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -47,16 +46,18 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class GenericHttpFetcherConfig extends BaseFetcherConfig {
 
-    public static final int DEFAULT_TIMEOUT = 30 * 1000;
+    public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
     public static final int DEFAULT_MAX_REDIRECT = 50;
     public static final int DEFAULT_MAX_CONNECTIONS = 200;
     public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 20;
-    public static final int DEFAULT_MAX_IDLE_TIME = 10 * 1000;
+    public static final Duration DEFAULT_MAX_IDLE_TIME = Duration.ofSeconds(10);
 
     public static final List<Integer> DEFAULT_VALID_STATUS_CODES =
             CollectionUtil.unmodifiableList(HttpStatus.SC_OK);
     public static final List<Integer> DEFAULT_NOT_FOUND_STATUS_CODES =
             CollectionUtil.unmodifiableList(HttpStatus.SC_NOT_FOUND);
+
+    public enum CookieSpec { RELAXED, STRICT, IGNORE }
 
     private final List<Integer> validStatusCodes =
             new ArrayList<>(DEFAULT_VALID_STATUS_CODES);
@@ -96,50 +97,38 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     private HttpAuthConfig authConfig;
 
     /**
-     * Cookie specification to use when fetching documents, as per
-     * {@link StandardCookieSpec}. Defaults to
-     * {@link StandardCookieSpec#RELAXED}.
+     * Cookie specification to use when fetching documents. Default is relaxed.
      * @param cookieSpec cookie specification name
      * @return the cookieSpec cookie specification name
      */
-    private String cookieSpec = StandardCookieSpec.RELAXED;
+    private CookieSpec cookieSpec = CookieSpec.RELAXED;
 
     private final ProxySettings proxySettings = new ProxySettings();
 
     /**
-     * The connection timeout for a connection to be established,
-     * in milliseconds. Default is {@link #DEFAULT_TIMEOUT}.
+     * The connection timeout for a connection to be established.
+     * Default is {@link #DEFAULT_TIMEOUT}.
      * @param connectionTimeout connection timeout
      * @return connection timeout
      */
-    private int connectionTimeout = DEFAULT_TIMEOUT;
+    private Duration connectionTimeout = DEFAULT_TIMEOUT;
 
     /**
      * Gets the maximum period of inactivity between two consecutive data
-     * packets, in milliseconds.
+     * packets.
      * Default is {@link #DEFAULT_TIMEOUT}.
      * @param socketTimeout socket timeout
      * @return socket timeout
      */
-    private int socketTimeout = DEFAULT_TIMEOUT;
+    private Duration socketTimeout = DEFAULT_TIMEOUT;
 
     /**
-     * Gets the timeout when requesting a connection, in milliseconds.
+     * Gets the timeout when requesting a connection.
      * Default is {@link #DEFAULT_TIMEOUT}.
      * @param connectionRequestTimeout connection request timeout
      * @return connection request timeout
      */
-    private int connectionRequestTimeout = DEFAULT_TIMEOUT;
-
-    /**
-     * The connection character set. The HTTP protocol specification
-     * mandates the use of ASCII for HTTP message headers.  Sites do not always
-     * respect this and it may be necessary to force a non-standard character
-     * set.
-     * @param connectionCharset connection character set
-     * @return connection character set
-     */
-    private Charset connectionCharset;
+    private Duration connectionRequestTimeout = DEFAULT_TIMEOUT;
 
     /**
      * The local address, which may be useful when working with multiple
@@ -184,23 +173,23 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
 
     /**
-     * Sets the period of time in milliseconds after which to evict idle
+     * Sets the period of time after which to evict idle
      * connections from the connection pool.
      * Default is {@link #DEFAULT_MAX_IDLE_TIME}.
      * @param maxConnectionIdleTime amount of time after which to evict idle
      *         connections
      * @return amount of time after which to evict idle connections
      */
-    private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
+    private Duration maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
 
     /**
-     * Sets the period of time in milliseconds a connection must be inactive
-     * to be checked in case it became stalled. Default is 0 (not proactively
+     * Sets the period of time a connection must be inactive
+     * to be checked in case it became stalled. Default is 0 (not pro-actively
      * checked).
      * @param maxConnectionInactiveTime period of time in milliseconds
      * @return period of time in milliseconds
      */
-    private int maxConnectionInactiveTime;
+    private Duration maxConnectionInactiveTime;
 
     private final Map<String, String> requestHeaders = new HashMap<>();
 
