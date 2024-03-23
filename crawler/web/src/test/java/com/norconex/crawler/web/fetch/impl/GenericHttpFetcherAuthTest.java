@@ -67,7 +67,7 @@ class GenericHttpFetcherAuthTest {
                 .forStartReferences(protectedUrl)
                 .crawlerSetup(cfg -> {
                     var authCfg = new HttpAuthConfig();
-                    authCfg.setMethod(HttpAuthConfig.METHOD_BASIC);
+                    authCfg.setMethod(HttpAuthMethod.BASIC);
                     authCfg.setPreemptive(true);
                     authCfg.setCredentials(
                             new Credentials("gooduser", "goodpassword"));
@@ -90,7 +90,7 @@ class GenericHttpFetcherAuthTest {
                 .forStartReferences(protectedUrl)
                 .crawlerSetup(cfg -> {
                     var authCfg = new HttpAuthConfig();
-                    authCfg.setMethod(HttpAuthConfig.METHOD_BASIC);
+                    authCfg.setMethod(HttpAuthMethod.BASIC);
                     authCfg.setPreemptive(true);
                     authCfg.setCredentials(
                             new Credentials("baduser", "badpassword"));
@@ -168,7 +168,7 @@ class GenericHttpFetcherAuthTest {
         authCfg.setFormSelector("#thisOne");
         authCfg.setFormUsernameField("THEusername");
         authCfg.setFormPasswordField("THEpassword");
-        authCfg.setMethod(HttpAuthConfig.METHOD_FORM);
+        authCfg.setMethod(HttpAuthMethod.FORM);
         authCfg.setUrl(formUrl);
         return authCfg;
     }
