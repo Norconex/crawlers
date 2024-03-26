@@ -69,7 +69,9 @@ import com.norconex.crawler.web.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig.CookieSpec;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
+import com.norconex.crawler.web.fetch.impl.HttpAuthMethod;
 import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.crawler.web.link.impl.DomLinkExtractor;
 import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor;
@@ -152,17 +154,12 @@ public final class WebStubber {
             extractor.getConfiguration().addLinkSelector("text");
             return extractor;
         })
-        .randomize(f -> "cookieSpec".equals(f.getName()), () -> "strict")
+        .randomize(f -> "cookieSpec".equals(
+                f.getName()), () -> CookieSpec.STRICT)
         .randomize(named(HttpAuthConfig.Fields.method)
-                .and(ofType(String.class))
+                .and(ofType(HttpAuthMethod.class))
                 .and(inClass(HttpAuthConfig.class)),
-                randomizerOneOf(
-                        HttpAuthConfig.METHOD_FORM,
-                        HttpAuthConfig.METHOD_BASIC,
-                        HttpAuthConfig.METHOD_DIGEST,
-                        HttpAuthConfig.METHOD_NTLM,
-                        HttpAuthConfig.METHOD_SPNEGO,
-                        HttpAuthConfig.METHOD_KERBEROS))
+                randomizerOneOf(HttpAuthMethod.values()))
     );
 
     private WebStubber() {}
