@@ -92,21 +92,6 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 public class HttpAuthConfig {
 
-    //TODO consider using factory for auth configs and mechanisms.
-
-    /** Form-based authentication method. */
-    public static final String METHOD_FORM = "form";
-    /** BASIC authentication method. */
-    public static final String METHOD_BASIC = "basic";
-    /** DIGEST authentication method. */
-    public static final String METHOD_DIGEST = "digest";
-    /** NTLM authentication method. */
-    public static final String METHOD_NTLM = "ntlm";
-    /** Experimental: SPNEGO authentication method. */
-    public static final String METHOD_SPNEGO = "SPNEGO";
-    /** Experimental: Kerberos authentication method. */
-    public static final String METHOD_KERBEROS = "Kerberos";
-
     /**
      * <p>
      * The authentication method. Valid values are (case insensitive):
@@ -122,7 +107,7 @@ public class HttpAuthConfig {
      * @return authentication method
      * @param method authentication method
      */
-    private String method;
+    private HttpAuthMethod method;
 
     /**
      * The URL for "form" authentication.
@@ -268,46 +253,4 @@ public class HttpAuthConfig {
         return Collections.unmodifiableList(
                 new ArrayList<>(formParams.keySet()));
     }
-//
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        method = xml.getString("method", method);
-//        formUsernameField =
-//                xml.getString("formUsernameField", formUsernameField);
-//        formPasswordField =
-//                xml.getString("formPasswordField", formPasswordField);
-//        xml.ifXML("credentials", x -> x.populate(credentials));
-//        url = xml.getString("url", url);
-//        host = Host.loadFromXML(xml.getXML("host"), host);
-//        realm = xml.getString("realm", realm);
-//        formCharset = xml.getCharset("formCharset", formCharset);
-//        workstation = xml.getString("workstation", workstation);
-//        domain = xml.getString("domain", domain);
-//        preemptive = xml.getBoolean("preemptive", preemptive);
-//        formSelector = xml.getString("formSelector", formSelector);
-//        setFormParams(xml.getStringMap(
-//                "formParams/param", "@name", ".", formParams));
-//    }
-//
-//    @Override
-//    public void saveToXML(XML xml) {
-//        xml.addElement("method", method);
-//        credentials.saveToXML(xml.addElement("credentials"));
-//        xml.addElement("formUsernameField", formUsernameField);
-//        xml.addElement("formPasswordField", formPasswordField);
-//        xml.addElement("url", url);
-//        Host.saveToXML(xml.addElement("host"), host);
-//        xml.addElement("formCharset", formCharset);
-//        xml.addElement("workstation", workstation);
-//        xml.addElement("domain", domain);
-//        xml.addElement("realm", realm);
-//        xml.addElement("preemptive", preemptive);
-//        xml.addElement("formSelector", formSelector);
-//
-//        var xmlAuthFormParams = xml.addXML("formParams");
-//        for (Entry<String, String> entry : formParams.entrySet()) {
-//            xmlAuthFormParams.addXML("param").setAttribute(
-//                    "name", entry.getKey()).setTextContent(entry.getValue());
-//        }
-//    }
 }
