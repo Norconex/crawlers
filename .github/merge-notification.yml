@@ -1,7 +1,3 @@
-# This workflow will run whenever the main branch is updated. It will try to merge main into
-# each sub-branch in a sandbox environment and see if there is any conflicts, then email the committers of the branch
-# about the result. The conflict details will be attached in the email if test-merge failed.
-
 name: Proactive notification of branch conflict
 
 on:
