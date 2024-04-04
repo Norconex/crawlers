@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - feature/8687e6e2x/test-merge-notification
-      - main
 
   workflow_dispatch:
 
