@@ -3,9 +3,7 @@ name: Proactive notification of branch conflict
 on:
   push:
     branches:
-      - feature/8687e6e2x/test-merge-notification
-
-  workflow_dispatch:
+      - main
 
 jobs:
   test-merge:
