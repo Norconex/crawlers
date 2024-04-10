@@ -1,10 +1,6 @@
 name: V4 Build Docker Image
 
 on:  
-  # push:
-  #   branches:
-  #     - feature/86871vpux-v4-docker-image-build
-      
   #define the workflow that will trigger this workflow to run
   workflow_run:
     workflows: [Maven Java CI]
@@ -32,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: feature/86871vpux-v4-docker-image-build
+          ref: main
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
