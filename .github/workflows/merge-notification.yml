@@ -1,0 +1,90 @@
+name: Proactive notification of branch conflict
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+     
+      - name: Install Git
+        run: sudo apt-get install git -y
+      
+      - name: setup mail service
+        run: sudo apt install mailutils -y
+
+      # Clone the branch, setup user information, and checkout main branch for later files checking  
+      - name: Fetch all branches and setup user information
+        run: |
+          git clone https://github.com/Norconex/crawlers.git /home/runner/work/crawlers/crawlers
+          cd /home/runner/work/crawlers/crawlers            
+          git config user.name "GitHub Action"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          git checkout main
+
+      # check if core files are being modified
+      - name: Get modified files           
+        id: modified-files        
+        uses: tj-actions/changed-files@v42.0.5
+        with:
+          files_ignore: |     
+            **/.github/**
+            **/assembly/**
+            **/**.txt
+            **/**.md
+            .gitignore
+
+      # start testing main branch into each sub-branches, only run if core files are modified
+      - name: Test merge main into branches
+        if: steps.modified-files.outputs.any_changed == 'true'
+        run: |          
+          for branch in $(git branch -r | grep -v 'origin/main' | cut -d '/' -f 2-); do
+            # only test branches that does not contains "snyk, dependabot, 3.x, 2.x, bugfix/unknown-properties in branch name
+            if [[ $branch != *"snyk"* && $branch != *"dependabot"* && $branch != *".x-branch"* ]]; then
+                                                      
+              git checkout -b temp-merge-$branch origin/$branch
+
+              # Extract the branch name from the format xxxx/branch-name
+              branch_name=$(echo "$branch" | cut -d '/' -f 2-)
+
+              # Get the last commit author of all the committers on the branch, only committers who has a valid norconex or gmail email will be emailed. 
+              COMMIT_AUTHORS=$(git log remotes/origin/$branch --format='%ae' | sort -u | grep 'gmail\|norconex')
+                                         
+              # start merging the main branch into sub-branch
+              if git merge --no-commit --no-ff origin/main; then
+                
+                # notify branch committers merge succeeded
+                echo "Merging main into $branch succeeded"
+                                
+                for author in $COMMIT_AUTHORS; do
+                  echo "Commit author: $author"   
+                  # email committers changes in main can be merged into his/her branch without conflicts
+                  echo "There are updates to the main branch, and test merge to your branch succeeded. Please update your branch. Thanks" | mail -s "Test Merge succeeded - Branch: $branch_name" $author                                 
+                done
+                                             
+                git merge --abort
+
+              else
+                # notify branch committers merge failed
+                echo "Merging main into $branch failed"
+
+                # Save the result of the merge command to a file
+                touch failed-report-$branch_name.diff
+
+                git diff > failed-report-$branch_name.diff
+                more failed-report-$branch_name.diff
+                
+                for author in $COMMIT_AUTHORS; do
+                  echo "Commit author: $author"                  
+                  # email committers that changes in main has conflicts with his/her branch, and attached the details for review.
+                  echo "There are updates to the main branch, but test merge failed, attached is the details of the conflicts. Please resolve the conflicts and keep your branch up to date. Thanks" | mail -s "Test Merge FAILED - Branch: $branch_name" -A failed-report-$branch_name.diff $author
+                done
+                
+                git merge --abort
+              fi               
+            fi
+          done

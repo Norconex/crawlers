@@ -1,0 +1,35 @@
+FROM ubuntu:22.04 AS base
+ARG crawler_type
+ARG build_version
+ARG dl_filename
+
+WORKDIR /nxer
+
+RUN apt-get -y update && \
+    apt-get install -y nano && \
+    apt-get install -y curl && \
+    apt-get install -y unzip && \
+    apt-get install -y iputils-ping && \
+    apt install bash-completion && \
+    curl -LO https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.deb && \
+    dpkg -i jdk-17_linux-x64_bin.deb && \    
+    rm *.deb
+
+
+FROM base AS regular
+WORKDIR /nxer
+
+COPY downloaded/$crawler_type/*.zip /nxer/
+RUN unzip ${dl_filename}
+RUN chmod +x nx-crawler-${crawler_type}-${build_version}/crawl-${crawler_type}.*
+RUN rm *.zip
+
+
+FROM base AS snapshot
+WORKDIR /nxer
+
+COPY downloaded/$crawler_type/*.zip /nxer/
+RUN unzip ${dl_filename}
+RUN mv nx-crawler-${crawler_type}-${build_version}-SNAPSHOT nx-crawler-${crawler_type}-${build_version}
+RUN chmod +x nx-crawler-${crawler_type}-${build_version}/crawl-${crawler_type}.*
+RUN rm *.zip

@@ -14,11 +14,19 @@ jobs:
       contents: write
 
     steps:
+      - name: Check if PR is from Dependabot
+        id: check_dependabot
+        run: |
+          echo "check=$(jq -r '.pull_request.user.login' "$GITHUB_EVENT_PATH" | grep -c dependabot)" >> $GITHUB_OUTPUT
+                  
+
       - uses: actions/checkout@v4
+        if: steps.check_dependabot.outputs.check == '0'
         with:
           fetch-depth: 0
       
       - name: Get modified files 
+        if: steps.check_dependabot.outputs.check == '0'
         id: modified-files        
         uses: tj-actions/changed-files@v42.1.0
         with:
@@ -30,6 +38,7 @@ jobs:
             **/assembly/**
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
+        if: steps.check_dependabot.outputs.check == '0'
         run: |
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
             if ! grep -qE 'Copyright [0-9]{4} Norconex Inc\.|Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "$file"; then
@@ -81,6 +90,7 @@ jobs:
           done
           
       - name: Verify Year on files' Copyright Info is up to date
+        if: steps.check_dependabot.outputs.check == '0'
         run: |
           # make sure the file exist
           touch /tmp/modified-file-list.txt
@@ -150,6 +160,7 @@ jobs:
 
 
       - name: Upload Modified Files
+        if: steps.check_dependabot.outputs.check == '0'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Apply Copyright year changes

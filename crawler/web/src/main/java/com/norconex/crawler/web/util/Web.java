@@ -49,6 +49,7 @@ public final class Web {
     private Web() {}
 
     private static final BeanMapper BEAN_MAPPER = BeanMapper.builder()
+            .defaultPolymorphicType(CrawlerConfig.class, WebCrawlerConfig.class)
             .unboundPropertyMapping("crawler", WebCrawlerMixIn.class)
             .build();
     private static class WebCrawlerMixIn {
