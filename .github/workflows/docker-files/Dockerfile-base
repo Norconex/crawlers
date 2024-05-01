@@ -12,7 +12,7 @@ ENV COLLECTOR_HOME=/nxer/collector \
 
 WORKDIR $NORCONEX_HOME
 
-COPY .github/workflows/scripts/docker-RUN ./docker-scripts/
+COPY .github/workflows/scripts/docker-run ./docker-scripts/
 
 RUN set -x ; \
     sed -i -e 's/\r$//' "$NORCONEX_HOME"/docker-scripts/docker-run ; \
