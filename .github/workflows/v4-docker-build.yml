@@ -1,10 +1,6 @@
 name: V4 Build Docker Image
 
 on:  
-  # push:
-  #   branches:
-  #     - feature/86871vpux-v4-docker-image-build
-      
   #define the workflow that will trigger this workflow to run
   workflow_run:
     workflows: [Maven Java CI]
@@ -21,7 +17,7 @@ on:
 
 env:
   # define the types of committers
-  committer_types: "solr idol elasticsearch sql amazoncloudsearch neo4j azurecognitivesearch apachekafka"     
+  committer_types: "solr elasticsearch"     
   crawler_types: "web fs"
 
 jobs:
@@ -32,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: feature/86871vpux-v4-docker-image-build
+          ref: main
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -91,6 +87,10 @@ jobs:
       # build the crawler base docker image
       - name: Build docker base image
         run: |
+          echo "############################################"
+          echo "# Start building normal docker images!!    #"
+          echo "############################################"
+
           for type in $crawler_types; do
             
             # create folder for the downloaded files
@@ -116,12 +116,12 @@ jobs:
               #Extract Filename
               zip_filename=$(basename /home/runner/.m2/repository/com/norconex/crawler/nx-crawler-$type/${{env.version_lowercase}}/*.zip)
               
-              docker build . --file .github/workflows/docker-files/Dockerfile-base --build-arg crawler_type=$type --build-arg build_version=${{env.version_lowercase}} --build-arg dl_filename=$zip_filename --target regular --tag ${{env.version_lowercase}}-crawler-$type-base            
-            
+              docker build . --file .github/workflows/docker-files/Dockerfile-base --build-arg crawler_type=$type --build-arg build_version=${{env.version_lowercase}} --build-arg dl_filename=$zip_filename --target regular --tag ${{env.version_lowercase}}-crawler-$type-base
+                         
             else 
-            
-              # start building Snapshot Base Image
-              echo "Snapshot image build start"              
+              echo "############################################"
+              echo "# Start building Snapshot docker images!!  #"
+              echo "############################################"
               
               # download the latest zip file from meven central
               mvn dependency:get -DgroupId=com.norconex.crawler \
@@ -138,6 +138,7 @@ jobs:
               zip_filename=$(basename /home/runner/.m2/repository/com/norconex/crawler/nx-crawler-$type/${{ env.version_uppercase}}/*.zip)
                             
               docker build . --file .github/workflows/docker-files/Dockerfile-base --build-arg crawler_type=$type --build-arg build_version=${{env.major_minor_revis}} --build-arg dl_filename=$zip_filename --target snapshot --tag ${{env.version_lowercase}}-crawler-$type-base         
+            
             fi                        
             
             # update the committer docker file with the right crawler base image
@@ -153,6 +154,10 @@ jobs:
               more .github/workflows/docker-files/Dockerfile-committers
             fi
 
+            echo "#############################################"
+            echo "# Start building committers docker images!! #"
+            echo "#############################################"
+            
             # Start the committer image build process
             for com_type in $committer_types; do
             
