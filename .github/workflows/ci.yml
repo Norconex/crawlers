@@ -159,7 +159,7 @@ jobs:
 #        run: |
 #          mvn jar:jar deploy:deploy --threads=2
         run: |
-          mvn deploy
+          mvn deploy:deploy --threads=2
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
