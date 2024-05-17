@@ -60,6 +60,7 @@ public final class CrawlSessionConfigMapperFactory {
             Consumer<BeanMapper.BeanMapperBuilder> builderModifier) {
         var beanMapperBuilder = BeanMapper.builder()
             .ignoredProperty("crawlerDefaults")
+            .defaultPolymorphicType(CrawlerConfig.class, crawlerConfigClass)
             .unboundPropertyMapping("crawler", crawlerConfigClass)
             .unboundPropertyMapping("importer", Importer.class);
 //        beanMapperBuilder.mapperBuilderCustomizer(mb -> customizeObjectMapper(
