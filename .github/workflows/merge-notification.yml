@@ -3,8 +3,7 @@ name: Proactive notification of branch conflict
 on:
   push:
     branches:
-      #- main
-      - feature/8687e6e2x/test-merge-notification
+      - main
 
 jobs:
   test-merge:
@@ -44,12 +43,9 @@ jobs:
         if: steps.modified-files.outputs.any_changed == 'true'
         run: |          
           for branch in $(git branch -r | grep -v 'origin/main' | cut -d '/' -f 2-); do
-            # only test branches that contains "feature", "bugfix", "hotfix" and "release" in branch name
-            if [[ $branch == *"feature"* || $branch == *"bugfix"* || $branch == *"hotfix"* || $branch == *"release"* ]]; then
-              
-              # show the current branch name
-              echo "branch name is: $branch"
-
+            # only test branches that does not contains "snyk, dependabot, 3.x, 2.x, bugfix/unknown-properties in branch name
+            if [[ $branch != *"snyk"* && $branch != *"dependabot"* && $branch != *".x-branch"* ]]; then
+                                                      
               git checkout -b temp-merge-$branch origin/$branch
 
               # Extract the branch name from the format xxxx/branch-name

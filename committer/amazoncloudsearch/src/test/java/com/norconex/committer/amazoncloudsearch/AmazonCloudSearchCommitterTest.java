@@ -17,6 +17,7 @@ package com.norconex.committer.amazoncloudsearch;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -219,6 +220,26 @@ class AmazonCloudSearchCommitterTest {
                 "Multi-value not saved properly.");
     }
 
+    @Test
+    void testCommitAdd_emptyServiceEndpoint_throwsException() throws Exception {
+        //setup
+        Exception expectedException = null;
+
+        //execute
+        try {
+            withinCommitterSessionEmptyServiceEndpoint(c -> {
+                c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+            });
+        } catch(CommitterException e) {
+            expectedException = e;
+        }
+
+        //verify
+        assertThat(expectedException)
+                .isNotNull()
+                .hasMessage("Service endpoint is undefined.");
+    }
+
     private UpsertRequest upsertRequest(String id, String content) {
         return upsertRequest(id, content, null);
     }
@@ -262,10 +283,41 @@ class AmazonCloudSearchCommitterTest {
         return committer;
     }
 
+    private AmazonCloudSearchCommitter createCloudSearchCommitterWithEmptyServiceEndpoint()
+            throws CommitterException {
+        var ctx = CommitterContext.builder()
+                .setWorkDir(new File(tempDir,
+                        "" + TimeIdGenerator.next()).toPath())
+                .build();
+        var committer = new AmazonCloudSearchCommitter();
+        committer.getConfiguration()
+                .setServiceEndpoint("")
+                .setSecretKey("dummySecretKey")
+                .setAccessKey("dummyAccessKey")
+                .setFixBadIds(true);
+        committer.init(ctx);
+        return committer;
+    }
+
     private AmazonCloudSearchCommitter withinCommitterSession(
             CommitterConsumer c)
             throws CommitterException {
     	var committer = createCloudSearchCommitter();
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+
+    private AmazonCloudSearchCommitter withinCommitterSessionEmptyServiceEndpoint(
+            CommitterConsumer c)
+            throws CommitterException {
+        var committer = createCloudSearchCommitterWithEmptyServiceEndpoint();
         try {
             c.accept(committer);
         } catch (CommitterException e) {

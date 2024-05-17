@@ -5,11 +5,9 @@ ARG committer_version
 ARG build_version
 ARG crawler_type
 
-WORKDIR $NORCONEX_HOME
+WORKDIR /nxer
 
 COPY downloaded/$committer_type/*.zip .
-
-RUN unzip ${dl_filename} ; \
-    cp nx-committer-${committer_type}-${committer_version}/lib/* ${COLLECTOR_HOME}/lib/ ; \
-    rm *.zip
-
+RUN unzip ${dl_filename}
+RUN cp nx-committer-${committer_type}-${committer_version}/lib/* nx-crawler-${crawler_type}-${build_version}/lib/
+RUN rm *.zip
