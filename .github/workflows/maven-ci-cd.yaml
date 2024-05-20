@@ -71,8 +71,12 @@ jobs:
       uses: actions/checkout@v2
       
     - name: Merge main|release into PR branch
-      if: github.event_name == 'pull_request' && (github.head_ref == 'main' || startsWith(github.head_ref, 'release/'))
-      run: git merge --ff-only "origin/${{ github.head_ref }}"
+      if: >
+        github.event_name == 'pull_request' && (
+          github.event.pull_request.base.ref == 'main' ||
+          startsWith(github.event.pull_request.base.ref, 'release/')
+        )
+      run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
 
     - name: Generate cache keys
       id: generate-key
