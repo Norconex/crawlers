@@ -40,7 +40,7 @@ on:
     - '*'
     types: [opened, synchronize, reopened]
     # Unfortunately GitHub actions does not yet support Yaml anchors and aliases
-    # so we have to the paths-ignore here.
+    # so we have to repeat the paths-ignore here.
     paths-ignore:
     - ./V4_MIGRATION.md
     - '**/README.md'
