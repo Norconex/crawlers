@@ -31,8 +31,8 @@ _paths: &paths
     - '**'
   paths-ignore:
     - ./V4_MIGRATION.md
-    - **/README.md
-    - **/TODO.txt
+    - '**/README.md'
+    - '**/TODO.txt'
 on:
   push:
     branches:
