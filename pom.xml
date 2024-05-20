@@ -1105,10 +1105,10 @@
     <module>crawler/core</module>
     <module>crawler/web</module>
     <module>crawler/fs</module>
+<!--
+  TODO: when ready, add these:
     <module>tools/config-converter</module>
-<!-- TEST START:
-/TEST END -->
-<!--     <module>javadoc-resources</module>
+    <module>javadoc-resources</module>
  -->
   </modules>
 </project>
