@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public final class ChecksumUtil {
 
     public static String checksumMD5(InputStream is) throws IOException {
         try (var stream = is) {
-            var checksum = DigestUtils.md5Hex(stream);
+            var checksum = DigestUtils.md5Hex(stream); //NOSONAR not sensitive
             LOG.debug("MD5 checksum from input stream: {}", checksum);
             return checksum;
         }
@@ -54,7 +54,7 @@ public final class ChecksumUtil {
         if (text == null) {
             return null;
         }
-        var checksum = DigestUtils.md5Hex(text);
+        var checksum = DigestUtils.md5Hex(text);  //NOSONAR not sensitive
         LOG.debug("MD5 checksum from string: {}", checksum);
         return checksum;
     }

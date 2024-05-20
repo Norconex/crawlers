@@ -27,7 +27,6 @@
   <!-- Change anything in this comment to trigger a full build. -->
   
   <properties>
-    <lifecycle-mapping-artifactId>lifecycle-mapping</lifecycle-mapping-artifactId>
     <java.version>17</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -35,19 +34,19 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    <sonar.qualitygate.wait>true</sonar.qualitygate.wait> 
-    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+    <!-- Note: do not assign sonar.projectKey to this parent pom. --> 
     
     <!-- Optional, to also scan non-JVM files -->
-    <!-- 
-    <sonar.maven.scanAll>true</sonar.maven.scanAll>
-    -->
+    <!-- <sonar.maven.scanAll>true</sonar.maven.scanAll> -->
     
     <!-- TEST START -->
-<!--    <sonar.version>3.10.0.2594</sonar.version>-->
+    <sonar.version>3.11.0.3922</sonar.version>
 <!--    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
 <!--    <sonar.modules>committer/core,committer/solr</sonar.modules>-->
     <!-- /TEST END -->
+
+
 
 
     <!-- === Dependencies ================================================== -->
@@ -103,7 +102,7 @@
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
-    <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
     <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
@@ -548,39 +547,6 @@
     <pluginManagement>
       <plugins>
 
-        <!-- This is only required to avoid false warnings in Eclipse:
-             https://stackoverflow.com/questions/23908837/
-             apache-camel-maven-remote-resources-plugin-goal-process-is-
-             ignored-by-m2e
-           -->
-        <!-- TODO: make use of this plugin (e.g., install scripts?) 
-             or remove: -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>${lifecycle-mapping.version}</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-remote-resources-plugin</artifactId>
-                    <versionRange>[1.0,)</versionRange>
-                    <goals>
-                        <goal>process</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore>
-                    </ignore>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -1014,19 +980,20 @@
         </plugin>
  
         <!-- TEST START --> 
-<!--        <plugin>
+<!-- -->
+        <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${sonar.version}</version>
-          <executions>
+<!--          <executions>
             <execution>
               <phase>verify</phase>
               <goals>
                 <goal>sonar</goal>
               </goals>
             </execution>
-          </executions>
-        </plugin>-->
+          </executions>-->
+        </plugin>
         <!-- /TEST END --> 
  
  
@@ -1071,13 +1038,13 @@
       </plugin>            
 
       <!-- TEST START --> 
-<!--      <plugin>
+      <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
-        <artifactId>sonar-maven-plugin</artifactId>-->
+        <artifactId>sonar-maven-plugin</artifactId>
 <!--        <configuration>
           <skip>true</skip>
         </configuration>-->
-<!--      </plugin>-->            
+      </plugin>            
       <!-- /TEST END --> 
 
 

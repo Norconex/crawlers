@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,16 +46,19 @@ public final class DataStoreImporter extends CrawlerException {
     public static void importDataStore(Crawler crawler, Path inFile)
             throws IOException {
 
+
+        // Export/Import is normally executed in a controlled environment
+        // so not susceptible to Zip Bomb attacks.
         try (var zipIn = new ZipInputStream(
                 IOUtils.buffer(Files.newInputStream(inFile)))) {
-            var zipEntry = zipIn.getNextEntry();
+            var zipEntry = zipIn.getNextEntry(); //NOSONAR
             while (zipEntry != null) {
                 if (!importStore(crawler, zipIn)) {
                     LOG.debug("Input file \"{}\" not matching crawler "
                             + "\"{}\". Skipping.", inFile, crawler.getId());
                 }
                 zipIn.closeEntry();
-                zipEntry = zipIn.getNextEntry();
+                zipEntry = zipIn.getNextEntry(); //NOSONAR
             }
             zipIn.closeEntry();
         }

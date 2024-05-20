@@ -14,36 +14,37 @@
 # limitations under the License.
 #-------------------------------------------------------------------------------
 
+# This workflow automates the continuous integration (CI) and
+# continuous delivery (CD) process for the Maven project. It includes
+# building, testing, and analyzing changes in pull requests, as well
+# as deploying snapshot releases to artifact repositories upon
+# pushes to the main branch. The workflow ensures that code changes
+# are validated and deployed efficiently, maintaining the project's
+# quality and reliability.
+
 name: Maven CI/CD Workflow
-description: |
-  This workflow automates the continuous integration (CI) and
-  continuous delivery (CD) process for the Maven project. It includes
-  building, testing, and analyzing changes in pull requests, as well
-  as deploying snapshot releases to artifact repositories upon
-  pushes to the main branch. The workflow ensures that code changes
-  are validated and deployed efficiently, maintaining the project's
-  quality and reliability.
-  
-# Only run this workflow if one or more files were changed and not part of 
-# 'paths-ignore'.
-_paths: &paths
-  paths:
-    - '**'
-  paths-ignore:
-    - ./V4_MIGRATION.md
-    - **/README.md
-    - **/TODO.txt
+
 on:
   push:
     branches:
       - main
       - release/*
-    <<: *paths
+    # Only run this workflow if one or more files were changed and not part of 
+    # 'paths-ignore'.
+    paths-ignore:
+    - ./V4_MIGRATION.md
+    - '**/README.md'
+    - '**/TODO.txt'
   pull_request:
     branches:
-      - '*'
+    - '*'
     types: [opened, synchronize, reopened]
-    <<: *paths
+    # Unfortunately GitHub actions does not yet support Yaml anchors and aliases
+    # so we have to the paths-ignore here.
+    paths-ignore:
+    - ./V4_MIGRATION.md
+    - '**/README.md'
+    - '**/TODO.txt'
 
 jobs:
   build:
@@ -70,8 +71,12 @@ jobs:
       uses: actions/checkout@v2
       
     - name: Merge main|release into PR branch
-      if: github.event_name == 'pull_request' && (github.head_ref == 'main' || startsWith(github.head_ref, 'release/'))
-      run: git merge --ff-only "origin/${{ github.head_ref }}"
+      if: >
+        github.event_name == 'pull_request' && (
+          github.event.pull_request.base.ref == 'main' ||
+          startsWith(github.event.pull_request.base.ref, 'release/')
+        )
+      run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
 
     - name: Generate cache keys
       id: generate-key
@@ -102,7 +107,7 @@ jobs:
           ${{ runner.os }}-sonar-
 
     - name: Build, test, and analyze
-      run: mvn -B verify sonar:sonar
+      run: mvn -B verify sonar:sonar -Dgpg.skip=true
 
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
