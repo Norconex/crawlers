@@ -24,24 +24,27 @@
 
 name: Maven CI/CD Workflow
 
-# Only run this workflow if one or more files were changed and not part of 
-# 'paths-ignore'.
-paths_ignore: &paths_ignore
-  paths-ignore:
-    - ./V4_MIGRATION.md
-    - '**/README.md'
-    - '**/TODO.txt'
 on:
   push:
     branches:
       - main
       - release/*
-    <<: *paths_ignore
+    # Only run this workflow if one or more files were changed and not part of 
+    # 'paths-ignore'.
+    paths-ignore:
+    - ./V4_MIGRATION.md
+    - '**/README.md'
+    - '**/TODO.txt'
   pull_request:
     branches:
-      - '*'
+    - '*'
     types: [opened, synchronize, reopened]
-    <<: *paths_ignore
+    # Unfortunately GitHub actions does not yet support Yaml anchors and aliases
+    # so we have to the paths-ignore here.
+    paths-ignore:
+    - ./V4_MIGRATION.md
+    - '**/README.md'
+    - '**/TODO.txt'
 
 jobs:
   build:
