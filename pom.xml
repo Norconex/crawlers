@@ -987,6 +987,10 @@
           <executions>
             <execution>
               <id>sonar-analysis</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>sonar</goal>
+              </goals>
               <!-- Execute only for child modules -->
               <configuration>
                 <skip>${project.parent.basedir == null}</skip>
