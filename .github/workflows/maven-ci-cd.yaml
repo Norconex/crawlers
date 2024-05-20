@@ -103,7 +103,7 @@ jobs:
           ${{ runner.os }}-sonar-
 
     - name: Build, test, and analyze
-      run: mvn -B verify sonar:sonar
+      run: mvn -B verify sonar:sonar -Dgpg.skip=true
 
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
