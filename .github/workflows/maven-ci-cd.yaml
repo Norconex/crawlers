@@ -14,19 +14,19 @@
 # limitations under the License.
 #-------------------------------------------------------------------------------
 
+# This workflow automates the continuous integration (CI) and
+# continuous delivery (CD) process for the Maven project. It includes
+# building, testing, and analyzing changes in pull requests, as well
+# as deploying snapshot releases to artifact repositories upon
+# pushes to the main branch. The workflow ensures that code changes
+# are validated and deployed efficiently, maintaining the project's
+# quality and reliability.
+
 name: Maven CI/CD Workflow
-description: |
-  This workflow automates the continuous integration (CI) and
-  continuous delivery (CD) process for the Maven project. It includes
-  building, testing, and analyzing changes in pull requests, as well
-  as deploying snapshot releases to artifact repositories upon
-  pushes to the main branch. The workflow ensures that code changes
-  are validated and deployed efficiently, maintaining the project's
-  quality and reliability.
-  
+
 # Only run this workflow if one or more files were changed and not part of 
 # 'paths-ignore'.
-_paths_ignore: &paths_ignore
+paths_ignore: &paths_ignore
   paths-ignore:
     - ./V4_MIGRATION.md
     - '**/README.md'
