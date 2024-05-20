@@ -68,7 +68,11 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+      with:
+        # depth 0 means checkout all commits... we need that 
+        # in case there are many commits in a push/PR
+        fetch-depth: 0      
       
     - name: Merge main|release into PR branch
       if: >
