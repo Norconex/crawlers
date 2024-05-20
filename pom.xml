@@ -979,23 +979,21 @@
           <inherited>true</inherited>
         </plugin>
  
-        <!-- TEST START --> 
-<!-- -->
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${sonar.version}</version>
-<!--          <executions>
+          <inherited>true</inherited>
+          <executions>
             <execution>
-              <phase>verify</phase>
-              <goals>
-                <goal>sonar</goal>
-              </goals>
+              <id>sonar-analysis</id>
+              <!-- Execute only for child modules -->
+              <configuration>
+                <skip>${project.parent.basedir == null}</skip>
+              </configuration>
             </execution>
-          </executions>-->
+          </executions>
         </plugin>
-        <!-- /TEST END --> 
- 
  
       </plugins>
     </pluginManagement>
