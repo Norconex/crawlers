@@ -26,7 +26,7 @@ description: |
   
 # Only run this workflow if one or more files were changed and not part of 
 # 'paths-ignore'.
-_paths: &paths_ignore
+_paths_ignore: &paths_ignore
   paths-ignore:
     - ./V4_MIGRATION.md
     - '**/README.md'
@@ -36,12 +36,12 @@ on:
     branches:
       - main
       - release/*
-    <<: *paths-ignore
+    <<: *paths_ignore
   pull_request:
     branches:
       - '*'
     types: [opened, synchronize, reopened]
-    <<: *paths-ignore
+    <<: *paths_ignore
 
 jobs:
   build:
