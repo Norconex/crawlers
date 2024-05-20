@@ -42,10 +42,12 @@
     <!-- <sonar.maven.scanAll>true</sonar.maven.scanAll> -->
     
     <!-- TEST START -->
-<!--    <sonar.version>3.10.0.2594</sonar.version>-->
+    <sonar.version>3.11.0.3922</sonar.version>
 <!--    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
 <!--    <sonar.modules>committer/core,committer/solr</sonar.modules>-->
     <!-- /TEST END -->
+
+
 
 
     <!-- === Dependencies ================================================== -->
@@ -1012,19 +1014,20 @@
         </plugin>
  
         <!-- TEST START --> 
-<!--        <plugin>
+<!-- -->
+        <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${sonar.version}</version>
-          <executions>
+<!--          <executions>
             <execution>
               <phase>verify</phase>
               <goals>
                 <goal>sonar</goal>
               </goals>
             </execution>
-          </executions>
-        </plugin>-->
+          </executions>-->
+        </plugin>
         <!-- /TEST END --> 
  
  
@@ -1069,13 +1072,13 @@
       </plugin>            
 
       <!-- TEST START --> 
-<!--      <plugin>
+      <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
-        <artifactId>sonar-maven-plugin</artifactId>-->
+        <artifactId>sonar-maven-plugin</artifactId>
 <!--        <configuration>
           <skip>true</skip>
         </configuration>-->
-<!--      </plugin>-->            
+      </plugin>            
       <!-- /TEST END --> 
 
 

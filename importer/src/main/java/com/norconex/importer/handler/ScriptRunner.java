@@ -28,6 +28,8 @@ import javax.script.ScriptException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.EqualsUtil;
+import com.norconex.importer.handler.condition.impl.ScriptCondition;
+import com.norconex.importer.handler.transformer.impl.ScriptTransformer;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -154,8 +156,7 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  *
  * @param <T> The evaluation response type.
- * @see ScriptFilter
- * @see ScriptTagger
+ * @see ScriptCondition
  * @see ScriptTransformer
  */
 @EqualsAndHashCode
@@ -240,9 +241,7 @@ public class ScriptRunner<T> {
         engine = new ScriptEngineManager().getEngineByName(engineName);
         if (engine == null) {
             throwInvalidEngine(engineName);
-        }
-
-        if (JAVASCRIPT_ENGINE.equalsIgnoreCase(engineName)) {
+        } else if (JAVASCRIPT_ENGINE.equalsIgnoreCase(engineName)) {
             // Setting bindings here is a GraalVM hack for being able to set
             // configuration options on the ScriptEngine. The options below
             // need to be set once before compile happens to avoid

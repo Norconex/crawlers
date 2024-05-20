@@ -46,16 +46,19 @@ public final class DataStoreImporter extends CrawlerException {
     public static void importDataStore(Crawler crawler, Path inFile)
             throws IOException {
 
+
+        // Export/Import is normally executed in a controlled environment
+        // so not susceptible to Zip Bomb attacks.
         try (var zipIn = new ZipInputStream(
                 IOUtils.buffer(Files.newInputStream(inFile)))) {
-            var zipEntry = zipIn.getNextEntry();
+            var zipEntry = zipIn.getNextEntry(); //NOSONAR
             while (zipEntry != null) {
                 if (!importStore(crawler, zipIn)) {
                     LOG.debug("Input file \"{}\" not matching crawler "
                             + "\"{}\". Skipping.", inFile, crawler.getId());
                 }
                 zipIn.closeEntry();
-                zipEntry = zipIn.getNextEntry();
+                zipEntry = zipIn.getNextEntry(); //NOSONAR
             }
             zipIn.closeEntry();
         }
