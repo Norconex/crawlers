@@ -120,10 +120,10 @@ jobs:
       uses: advanced-security/maven-dependency-submission-action@v3
 
     - name: Import GPG key
-      if: env.SHOULD_DEPLOY == 'true'
+      if: ${{ env.SHOULD_DEPLOY == 'true' }}
       run: |
         echo "$GPG_KEY" | base64 --decode | gpg --batch --import
 
     - name: Deploy snapshots
-      if: env.SHOULD_DEPLOY == 'true'
+      if: ${{ env.SHOULD_DEPLOY == 'true' }}
       run: mvn deploy -DskipTests -Dskip.sonar=true -s .github/maven-settings.xml
