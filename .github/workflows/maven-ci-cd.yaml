@@ -94,7 +94,10 @@ jobs:
         server-password: ${{ secrets.OSSRH_TOKEN }}
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
         gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-        maven-settings-encrypt-passwords: false
+
+    # Step required to satisfy maven even if we don't deal with encrypted keys
+    - name: Create empty settings-security.xml
+      run: echo "<settingsSecurity></settingsSecurity>" > ~/.m2/settings-security.xml
  
     - name: Cache Maven repository
       uses: actions/cache@v4
