@@ -57,10 +57,7 @@ jobs:
       OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
       OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SHOULD_DEPLOY: >
-        ${{ github.repository == 'Norconex/crawlers' &&
-        github.event_name == 'push' &&
-        github.ref == 'refs/heads/main' }}      
+      SHOULD_DEPLOY: ${{ github.repository == 'Norconex/crawlers' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
     permissions:
       id-token: write
