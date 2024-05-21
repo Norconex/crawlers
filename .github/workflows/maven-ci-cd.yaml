@@ -52,11 +52,6 @@ jobs:
 
     # Env. vars. defined here are available to all steps. 
     env:
-      GPG_KEY: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-      GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-      OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-      OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SHOULD_DEPLOY: ${{ github.repository == 'Norconex/crawlers' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
     permissions:
@@ -91,7 +86,15 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-
+        # The following are predefiend properties of this action. The action 
+        # knows what to do with each (store as private key, define as env. 
+        # variable for other steps, etc.)
+        server-id: ossrh
+        server-username: ${{ secrets.OSSRH_USERNAME }}
+        server-password: ${{ secrets.OSSRH_TOKEN }}
+        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+        gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+ 
     - name: Cache Maven repository
       uses: actions/cache@v4
       with:
@@ -110,16 +113,13 @@ jobs:
 
     - name: Build, test, and analyze
       run: mvn -B verify -Dgpg.skip=true
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
     - name: Update Maven dependency graph
       uses: advanced-security/maven-dependency-submission-action@v3
-
-    - name: Import GPG key
-      if: ${{ env.SHOULD_DEPLOY == 'true' }}
-      run: |
-        echo "$GPG_KEY" | base64 --decode | gpg --batch --import
 
     - name: Deploy snapshots
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
