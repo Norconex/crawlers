@@ -86,19 +86,17 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-        # The following are predefiend properties of this action. The action 
-        # knows what to do with each (store as private key, define as env. 
-        # variable for other steps, etc.)
+        # Server ID as in the pom.xml (distributionManagement + sonatype plugin)
         server-id: ossrh
-        server-username: ${{ secrets.OSSRH_USERNAME }}
-        server-password: ${{ secrets.OSSRH_TOKEN }}
+        # Env variable name for username in deploy
+        server-username: OSSRH_USERNAME
+        # Env variable name for token in deploy
+        server-password: OSSRH_TOKEN
+        # Value of the GPG private key to import
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-        gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-
-    # Step required to satisfy maven even if we don't deal with encrypted keys
-    - name: Create empty settings-security.xml
-      run: echo "<settingsSecurity></settingsSecurity>" > ~/.m2/settings-security.xml
- 
+        # Env variable name for GPG private key passphrase
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+        
     - name: Cache Maven repository
       uses: actions/cache@v4
       with:
@@ -123,8 +121,13 @@ jobs:
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
     - name: Update Maven dependency graph
+      if: ${{ env.SHOULD_DEPLOY == 'true' }}
       uses: advanced-security/maven-dependency-submission-action@v3
 
-    - name: Deploy snapshots
+    - name: Deploy snapshots to Sonatype
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
       run: mvn deploy -DskipTests -Dskip.sonar=true
+      env:
+        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
