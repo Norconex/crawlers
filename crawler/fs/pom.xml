@@ -25,7 +25,7 @@
   </parent>  
   <artifactId>nx-crawler-fs</artifactId>
   <name>Norconex File System Crawler</name>
-
+ 
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
     <sonar.exclusions>/src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
