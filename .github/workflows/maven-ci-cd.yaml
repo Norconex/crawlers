@@ -123,4 +123,4 @@ jobs:
 
     - name: Deploy snapshots
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
-      run: mvn deploy -DskipTests -Dskip.sonar=true -s .github/maven-settings.xml
+      run: mvn deploy -DskipTests -Dskip.sonar=true
