@@ -112,8 +112,7 @@ jobs:
           ${{ runner.os }}-sonar-
 
     - name: Build, test, and analyze
-      #TEMPORARY skipping test is temporary.............................................
-      run: mvn -B verify -Dgpg.skip=true -DskipTests
+      run: mvn -B verify -Dgpg.skip=true
 
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
