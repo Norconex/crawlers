@@ -126,7 +126,7 @@ jobs:
 
     - name: Deploy snapshots to Sonatype
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
-      run: mvn deploy -DskipTests -Dskip.sonar=true
+      run: mvn deploy -DskipTests -Dskip.sonar=true -X
       env:
         OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
