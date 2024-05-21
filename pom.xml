@@ -23,7 +23,7 @@
   <version>4.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Norconex Crawler Parent</name>
-  
+
   <!-- Change anything in this comment to trigger a full build. -->
   
   <properties>
