@@ -53,6 +53,7 @@ jobs:
     # Env. vars. defined here are available to all steps. 
     env:
       SHOULD_DEPLOY: ${{ github.repository == 'Norconex/crawlers' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     permissions:
       id-token: write
@@ -107,8 +108,6 @@ jobs:
 
     - name: Build, test, and analyze
       run: mvn -B verify -Dgpg.skip=true
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
