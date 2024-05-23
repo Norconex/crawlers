@@ -30,7 +30,7 @@ jobs:
       # check if core files are being modified
       - name: Get modified files           
         id: modified-files        
-        uses: tj-actions/changed-files@v42.0.5
+        uses: tj-actions/changed-files@v44.5.0
         with:
           files_ignore: |     
             **/.github/**
