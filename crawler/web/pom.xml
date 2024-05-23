@@ -128,7 +128,7 @@
 
     <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
 
-
+<!--
     <dependency>
       <groupId>org.imgscalr</groupId>
       <artifactId>imgscalr-lib</artifactId>
@@ -142,7 +142,7 @@
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-proxy</artifactId>
     </dependency>
-    
+    -->
     <!-- About Web Driver Dependencies:
          You could download drivers separately instead, with
          just the "selenimum-support" artifact if you are not using many 
@@ -169,7 +169,7 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
-      <scope>test</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

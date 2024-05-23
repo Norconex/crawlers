@@ -1,4 +1,4 @@
-/* Copyright 2016-2023 Norconex Inc.
+/* Copyright 2016-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,11 @@ class ReferenceDelayResolverTest {
                 new DelayReferencePattern(".*abc.*", Duration.ofMillis(123)),
                 new DelayReferencePattern(".*def.*", Duration.ofMillis(456))));
 
-        assertThat(r.resolveExplicitDelay("http://abc.com")).isEqualTo(123);
-        assertThat(r.resolveExplicitDelay("http://def.com")).isEqualTo(456);
-        assertThat(r.resolveExplicitDelay("http://ghi.com")).isEqualTo(-1);
+        assertThat(r.resolveExplicitDelay("http://abc.com")).isEqualTo(
+                Duration.ofMillis(123));
+        assertThat(r.resolveExplicitDelay("http://def.com")).isEqualTo(
+                Duration.ofMillis(456));
+        assertThat(r.resolveExplicitDelay("http://ghi.com")).isEqualTo(
+                Duration.ofMillis(-1));
     }
 }

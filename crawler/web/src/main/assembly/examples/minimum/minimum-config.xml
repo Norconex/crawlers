@@ -18,51 +18,26 @@
 <!-- This configuration shows the minimum required and basic recommendations
      to run a crawler.  
      -->
-<httpcollector id="Minimum Config Web Crawler">
-
-  <!-- Decide where to store generated files. -->
-  <workDir>./examples-output/complex</workDir>
-
+<crawlSession id="s1">
+  <workDir>./examples-output/minimum</workDir>
   <crawlers>
-    <crawler id="Norconex Minimum Test Page">
+    <crawler id="myCrawler1" class="WebCrawlerConfig">
+    <startReferences>
+      <ref>https://opensource.norconex.com/crawlers/web/v3/configuration</ref>
+      <ref>https://opensource.norconex.com/committers/elasticsearch/</ref>
+    </startReferences>
+    <maxDepth>0</maxDepth>
+    <numThreads>1</numThreads>
+    <maxDocuments>2</maxDocuments>
+	<fetchersRetryDelay>100</fetchersRetryDelay>
 
-      <!-- Requires at least one start URL (or urlsFile). 
-           Optionally limit crawling to same protocol/domain/port as 
-           start URLs. -->
-      <start stayOnDomain="true" stayOnPort="true" stayOnProtocol="true">
-        <ref>https://opensource.norconex.com/collectors/http/test/minimum</ref>
-      </start>
-
-      <!-- === Recommendations: ============================================ -->
-
-      <!-- Put a maximum depth to avoid infinite crawling (e.g. calendars). -->
-      <maxDepth>0</maxDepth>
-
-      <!-- We know we don't want to crawl the entire site, so ignore sitemap. -->
-      <sitemapResolver ignore="true" />
-
-      <!-- Be as nice as you can to sites you crawl. -->
-      <delay default="5 seconds" />
-      
-      <!-- Document importing -->
-      <importer>
-        <postParseHandlers>
-          <!-- If your target repository does not support arbitrary fields,
-               make sure you only keep the fields you need. -->
-          <handler class="KeepOnlyTagger">
-            <fieldMatcher method="csv">title,keywords,description,document.reference</fieldMatcher>      
-          </handler>
-        </postParseHandlers>
-      </importer> 
-      
-      <!-- Decide what to do with your files by specifying a Committer. -->
-      <committers>
-        <committer class="XMLFileCommitter">
-          <indent>4</indent>
-        </committer>
-      </committers>
+    <committers>
+      <committer class="XMLFileCommitter">
+      </committer>
+    </committers>
 
     </crawler>
-  </crawlers>
+ </crawlers>
 
-</httpcollector>
+
+</crawlSession>

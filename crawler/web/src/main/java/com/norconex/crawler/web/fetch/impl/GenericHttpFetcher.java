@@ -18,6 +18,7 @@ import static com.norconex.crawler.web.fetch.HttpMethod.GET;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.hc.core5.util.TimeValue.ofMilliseconds;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -34,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -82,6 +84,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.time.DurationParser;
@@ -195,7 +198,6 @@ import lombok.extern.slf4j.Slf4j;
  *   <connectionTimeout>(milliseconds)</connectionTimeout>
  *   <socketTimeout>(milliseconds)</socketTimeout>
  *   <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
- *   <connectionCharset>...</connectionCharset>
  *   <expectContinueEnabled>[false|true]</expectContinueEnabled>
  *   <maxRedirects>...</maxRedirects>
  *   <redirectURLProvider>(implementation handling redirects)</redirectURLProvider>
@@ -288,19 +290,6 @@ public class GenericHttpFetcher
         extends AbstractFetcher<
                 HttpFetchRequest, HttpFetchResponse, GenericHttpFetcherConfig>
         implements HttpFetcher {
-
-    /** Form-based authentication method. */
-    public static final String AUTH_METHOD_FORM = "form";
-    /** BASIC authentication method. */
-    public static final String AUTH_METHOD_BASIC = "basic";
-    /** DIGEST authentication method. */
-    public static final String AUTH_METHOD_DIGEST = "digest";
-    /** NTLM authentication method. */
-    public static final String AUTH_METHOD_NTLM = "ntlm";
-    /** Experimental: SPNEGO authentication method. */
-    public static final String AUTH_METHOD_SPNEGO = "SPNEGO";
-    /** Experimental: Kerberos authentication method. */
-    public static final String AUTH_METHOD_KERBEROS = "Kerberos";
 
     private static final int FTP_PORT = 80;
 
@@ -467,8 +456,9 @@ public class GenericHttpFetcher
             LOG.info("User-Agent: {}", userAgent);
         }
 
-        if (configuration.getAuthConfig() != null && AUTH_METHOD_FORM.equalsIgnoreCase(
-                configuration.getAuthConfig().getMethod())) {
+        if (configuration.getAuthConfig() != null
+                && HttpAuthMethod.FORM ==
+                        configuration.getAuthConfig().getMethod()) {
             authenticateUsingForm(httpClient);
         }
     }
@@ -530,8 +520,8 @@ public class GenericHttpFetcher
         builder.setDefaultCredentialsProvider(createCredentialsProvider());
         builder.setUserAgent(configuration.getUserAgent());
         builder.evictExpiredConnections();
-        builder.evictIdleConnections(
-                TimeValue.ofMilliseconds(configuration.getMaxConnectionIdleTime()));
+        ofNullable(configuration.getMaxConnectionIdleTime()).ifPresent(
+            d -> builder.evictIdleConnections(ofMilliseconds(d.toMillis())));
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
         builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
@@ -546,8 +536,11 @@ public class GenericHttpFetcher
         final var sslContext = createSSLContext();
         final var sslSocketFactory = createSSLSocketFactory(sslContext);
 
-        var tlsBuilder = TlsConfig.custom()
-                .setHandshakeTimeout(configuration.getSocketTimeout(), TimeUnit.MINUTES);
+        var tlsBuilder = TlsConfig.custom();
+
+        ofNullable(configuration.getSocketTimeout()).ifPresent(
+                d -> tlsBuilder.setHandshakeTimeout(
+                        d.toMillis(), TimeUnit.MINUTES));
         if (!configuration.getSSLProtocols().isEmpty()) {
             tlsBuilder.setSupportedProtocols(
                     configuration.getSSLProtocols().toArray(EMPTY_STRING_ARRAY));
@@ -639,7 +632,7 @@ public class GenericHttpFetcher
                         + "username was provided.");
                 return headers;
             }
-            if (!AUTH_METHOD_BASIC.equalsIgnoreCase(authConfig.getMethod())) {
+            if (HttpAuthMethod.BASIC != authConfig.getMethod()) {
                 LOG.warn("""
                     Using preemptive authentication with a\s\
                     method other than "Basic" may not produce the\s\
@@ -661,13 +654,15 @@ public class GenericHttpFetcher
         return SCHEME_PORT_RESOLVER;
     }
     protected RequestConfig createRequestConfig() {
-        var builder = RequestConfig.custom()
-                .setConnectionRequestTimeout(
-                        configuration.getConnectionRequestTimeout(),
-                        TimeUnit.MILLISECONDS)
-                .setMaxRedirects(configuration.getMaxRedirects())
-                .setExpectContinueEnabled(configuration.isExpectContinueEnabled())
-                .setCookieSpec(configuration.getCookieSpec());
+        var builder = RequestConfig.custom();
+
+        ofNullable(configuration.getConnectionRequestTimeout()).ifPresent(
+                d -> builder.setConnectionRequestTimeout(
+                        d.toMillis(), TimeUnit.MILLISECONDS));
+        builder.setMaxRedirects(configuration.getMaxRedirects())
+            .setExpectContinueEnabled(configuration.isExpectContinueEnabled())
+            .setCookieSpec(Objects.toString(
+                    configuration.getCookieSpec(), null));
         if (configuration.getMaxRedirects() <= 0) {
             builder.setRedirectsEnabled(false);
         }
@@ -707,7 +702,7 @@ public class GenericHttpFetcher
         var authConfig = configuration.getAuthConfig();
         if (authConfig != null
                 && authConfig.getCredentials().isSet()
-                && !AUTH_METHOD_FORM.equalsIgnoreCase(authConfig.getMethod())
+                && HttpAuthMethod.FORM != authConfig.getMethod()
                 && authConfig.getHost() != null) {
             if (credsProvider == null) {
                 credsProvider = new BasicCredentialsProvider();
@@ -715,7 +710,7 @@ public class GenericHttpFetcher
             Credentials creds = null;
             var password = EncryptionUtil.decryptPassword(
                     authConfig.getCredentials());
-            if (AUTH_METHOD_NTLM.equalsIgnoreCase(authConfig.getMethod())) {
+            if (HttpAuthMethod.NTLM == authConfig.getMethod()) {
                 creds = new NTCredentials(
                         authConfig.getCredentials().getUsername(),
                         trimToEmpty(password).toCharArray(),
@@ -730,22 +725,27 @@ public class GenericHttpFetcher
                     new AuthScope(
                         new HttpHost(
                             authConfig.getHost().getName(),
-                            authConfig.getHost().getPort()),
-                    authConfig.getRealm(),
-                    authConfig.getMethod()),
+                            authConfig.getHost().getPort()
+                        ),
+                        authConfig.getRealm(),
+                        Objects.toString(authConfig.getMethod(), null)
+                    ),
                     creds);
         }
         return credsProvider;
     }
     protected ConnectionConfig createConnectionConfig() {
-        return ConnectionConfig
-                .custom()
-                .setConnectTimeout(
-                        configuration.getConnectionTimeout(), TimeUnit.MILLISECONDS)
-                .setSocketTimeout(configuration.getSocketTimeout(), TimeUnit.MILLISECONDS)
-                .setValidateAfterInactivity(TimeValue.ofMilliseconds(
-                        configuration.getMaxConnectionInactiveTime()))
-                .build();
+        var builder = ConnectionConfig.custom();
+        ofNullable(configuration.getConnectionTimeout()).ifPresent(
+                d -> builder.setConnectTimeout(
+                        d.toMillis(), TimeUnit.MILLISECONDS));
+        ofNullable(configuration.getSocketTimeout()).ifPresent(
+                d -> builder.setSocketTimeout(
+                        Timeout.ofMilliseconds(d.toMillis())));
+        ofNullable(configuration.getMaxConnectionInactiveTime()).ifPresent(
+                d -> builder.setValidateAfterInactivity(
+                        TimeValue.ofMilliseconds(d.toMillis())));
+        return builder.build();
     }
 
     protected SSLConnectionSocketFactory createSSLSocketFactory(
@@ -858,13 +858,4 @@ public class GenericHttpFetcher
                     + "setting 'trustAllSSLCertificates' to true.");
         }
     }
-
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        xml.populate(cfg);
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        configuration.saveToXML(xml);
-//    }
 }
