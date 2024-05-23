@@ -42,6 +42,9 @@
     
     <!-- TEST START -->
     <sonar.version>3.11.0.3922</sonar.version>
+    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+
+<!--<sonar.coverage.jacoco.xmlReportPaths>${session.executionRootDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
 <!--    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
 <!--    <sonar.modules>committer/core,committer/solr</sonar.modules>-->
     <!-- /TEST END -->
@@ -960,8 +963,8 @@
               <id>report</id>
               <phase>verify</phase>
               <goals>
-                <goal>report</goal>
-<!--                <goal>report-aggregate</goal>-->
+<!--                <goal>report</goal>-->
+                <goal>report-aggregate</goal>
               </goals>
               <configuration>
                 <formats>
