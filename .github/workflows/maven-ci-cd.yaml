@@ -1,0 +1,124 @@
+#-------------------------------------------------------------------------------
+# Copyright 2023-2024 Norconex Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+
+# This workflow automates the continuous integration (CI) and
+# continuous delivery (CD) process for the Maven project. It includes
+# building, testing, and analyzing changes in pull requests, as well
+# as deploying snapshot releases to artifact repositories upon
+# pushes to the main branch. The workflow ensures that code changes
+# are validated and deployed efficiently, maintaining the project's
+# quality and reliability.
+
+name: Maven CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+    # Only run this workflow if one or more files were changed and not part of 
+    # 'paths-ignore'.
+    paths-ignore:
+    - ./V4_MIGRATION.md
+    - '**/README.md'
+    - '**/TODO.txt'
+  pull_request:
+    branches:
+    - '*'
+    types: [opened, synchronize, reopened]
+    # Unfortunately GitHub actions does not yet support Yaml anchors and aliases
+    # so we have to repeat the paths-ignore here.
+    paths-ignore:
+    - ./V4_MIGRATION.md
+    - '**/README.md'
+    - '**/TODO.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Env. vars. defined here are available to all steps. 
+    env:
+      SHOULD_DEPLOY: ${{ github.repository == 'Norconex/crawlers' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    permissions:
+      id-token: write
+      # write is required to publish the dependency graph
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        # depth 0 means checkout all commits... we need that 
+        # in case there are many commits in a push/PR
+        fetch-depth: 0      
+      
+    - name: Merge main|release into PR branch
+      if: >
+        github.event_name == 'pull_request' && (
+          github.event.pull_request.base.ref == 'main' ||
+          startsWith(github.event.pull_request.base.ref, 'release/')
+        )
+      run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        # Server ID as in the pom.xml (distributionManagement + sonatype plugin)
+        server-id: ossrh
+        # Env variable name for username in deploy
+        server-username: OSSRH_USERNAME
+        # Env variable name for token in deploy
+        server-password: OSSRH_TOKEN
+        # Value of the GPG private key to import
+        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+        # Env variable name for GPG private key passphrase
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+        
+    - name: Cache Maven repository
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven-
+
+    - name: Cache SonarCloud analysis
+      uses: actions/cache@v4
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+
+    - name: Build, test, and analyze
+      run: mvn -B verify -Dgpg.skip=true
+
+    # Uploads the full dependency graph to GitHub to improve the quality 
+    # of Dependabot alerts this repository can receive
+    - name: Update Maven dependency graph
+      if: ${{ env.SHOULD_DEPLOY == 'true' }}
+      uses: advanced-security/maven-dependency-submission-action@v3
+
+    - name: Deploy snapshots to Sonatype
+      if: ${{ env.SHOULD_DEPLOY == 'true' }}
+      run: mvn deploy -DskipTests -Dskip.sonar=true -X
+      env:
+        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
