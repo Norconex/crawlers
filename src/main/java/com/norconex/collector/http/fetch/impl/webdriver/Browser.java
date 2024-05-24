@@ -57,6 +57,7 @@ public enum Browser {
                 Consumer<MutableCapabilities> optionsConsumer) {
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
             ofNullable(location.getBrowserPath()).ifPresent(
                     p -> options.setBinary(p.toFile()));
             optionsConsumer.accept(options);
