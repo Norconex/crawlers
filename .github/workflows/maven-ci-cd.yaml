@@ -77,7 +77,7 @@ jobs:
       run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
