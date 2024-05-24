@@ -27,7 +27,15 @@
   <name>Norconex Configuration Converter</name>  
   
   <properties>
+    <!-- 
+      TODO: currently not defined as a module in parent pom. Do so when ready. 
+      Uncomment the following line and do so when ready.
+      -->
+    <!--
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    -->
+    
+    
     <sonar.exclusions>**/*</sonar.exclusions>
 
     <java-diff-utils.version>4.12</java-diff-utils.version>      

@@ -13,12 +13,3 @@ RUN unzip ${dl_filename} ; \
     cp nx-committer-${committer_type}-${committer_version}/lib/* ${COLLECTOR_HOME}/lib/ ; \
     rm *.zip
 
-# temp fix for the solr jetty library conflict issue, should be removed in the future
-RUN if [ "$committer_type" = "solr" ]; then \
-        if [ "$crawler_type" = "web" ]; then \
-            rm ${COLLECTOR_HOME}/lib/jetty-alpn-client-11.0.15.jar ; \                
-            rm ${COLLECTOR_HOME}/lib/jetty-client-11.0.15.jar ; \
-            rm ${COLLECTOR_HOME}/lib/jetty-http-11.0.15.jar ; \
-            rm ${COLLECTOR_HOME}/lib/jetty-io-11.0.15.jar ; \            
-        fi ; \
-    fi

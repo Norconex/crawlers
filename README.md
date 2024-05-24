@@ -5,7 +5,7 @@ Norconex web and filesystem crawlers are full-featured crawlers (or spider) that
 Visit the website for binary downloads and documentation:
 https://opensource.norconex.com/crawlers/
 
-# Are you on the right branch?
+## Are you on the right branch?
 
 This branch holds version 4 code, which is still in development.
 
@@ -13,7 +13,7 @@ This branch holds version 4 code, which is still in development.
 
 # UPCOMING: Crawler V4 Stack
 
-As of Feb 24, 2024, the default `main` branch holds code for the upcoming version 4 crawler stack. It is now a mono-repo containing all Norconex crawler-related projects previously maintained in their own repos. All projects in this mono report will now be released simultaneously and share the same version number.
+As of Feb 24, 2024, the default `main` branch holds code for the upcoming version 4 crawler stack. It is now a mono-repo containing all Norconex crawler-related projects previously maintained in separate repos. All projects in this mono report will now be released simultaneously and share the same version number.
 
 Until v4 is officially released, this branch should not be considered stable.  
 

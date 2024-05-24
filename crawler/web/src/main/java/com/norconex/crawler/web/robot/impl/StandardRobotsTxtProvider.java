@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,7 +254,7 @@ public class StandardRobotsTxtProvider
         private final List<String> sitemaps = new ArrayList<>();
         private String crawlDelay;
         private void clear() {
-            sitemaps.clear();
+            rules.clear();
             crawlDelay = null;
         }
         private RobotsTxt toRobotsTxt(String baseURL) {
