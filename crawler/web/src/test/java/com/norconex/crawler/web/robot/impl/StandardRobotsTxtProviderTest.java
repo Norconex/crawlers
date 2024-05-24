@@ -79,8 +79,7 @@ class StandardRobotsTxtProviderTest {
 
     @Test
     void testParseRobotsTxt() throws IOException {
-        var robotTxt1 =
-                """
+        var robotTxt1 = """
         	User-agent: *
         	Disallow: /dontgo/there/
         	User-agent: mister-crawler
@@ -95,15 +94,13 @@ class StandardRobotsTxtProviderTest {
         	   User-agent : *\s
         	    Disallow : /dontgo/there/\s
         	""";
-        var robotTxt3 =
-                """
+        var robotTxt3 = """
         	User-agent: miss-crawler
         	Disallow: /tvremote/
         	User-agent: *
         	Disallow: /dontgo/there/
         	""";
-        var robotTxt4 =
-                """
+        var robotTxt4 = """
         	User-agent: miss-crawler
         	Disallow: /tvremote/
         	User-agent: *
@@ -111,8 +108,7 @@ class StandardRobotsTxtProviderTest {
         	User-agent: mister-crawler
         	Disallow: /bathroom/
         	""";
-        var robotTxt5 =
-                """
+        var robotTxt5 = """
         	# robots.txt
         	User-agent: *
         	Disallow: /some/fake/ # Spiders, keep out!\s
@@ -123,24 +119,25 @@ class StandardRobotsTxtProviderTest {
         // An empty Disallow means allow all.
         // Test made for https://github.com/Norconex/collector-http/issues/129
         // Standard: https://en.wikipedia.org/wiki/Robots_exclusion_standard
-        var robotTxt6 =
-                "User-agent: *\n\n"
-              + "Disallow: \n\n";
+        var robotTxt6 = """
+                User-agent: *
+                Disallow:
+                """;
 
         // Make sure trailing comments do not throw it off.
-        var robotTxt7 =
-                "User-agent: *\n\n"
-              + "Disallow: # allow all\n\n";
-
+        var robotTxt7 = """
+                User-agent: *
+                Disallow: # allow all
+                """;
 
         assertStartsWith("Robots.txt -> Disallow: /bathroom/",
-                parseRobotRule("mister-crawler", robotTxt1).get(1));
+                parseRobotRule("mister-crawler", robotTxt1).get(0));
         assertStartsWith("Robots.txt -> Disallow: /bathroom/",
                 parseRobotRule("mister-crawler", robotTxt2).get(0));
         assertStartsWith("Robots.txt -> Disallow: /dontgo/there/",
                 parseRobotRule("mister-crawler", robotTxt3).get(0));
         assertStartsWith("Robots.txt -> Disallow: /bathroom/",
-                parseRobotRule("mister-crawler", robotTxt4).get(1));
+                parseRobotRule("mister-crawler", robotTxt4).get(0));
 
         assertStartsWith("Robots.txt -> Disallow: /some/fake/",
                 parseRobotRule("mister-crawler", robotTxt5).get(0));
