@@ -254,7 +254,7 @@ public class StandardRobotsTxtProvider
         private final List<String> sitemaps = new ArrayList<>();
         private String crawlDelay;
         private void clear() {
-            sitemaps.clear();
+            rules.clear();
             crawlDelay = null;
         }
         private RobotsTxt toRobotsTxt(String baseURL) {
