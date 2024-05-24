@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,13 +94,14 @@ public final class ContentTypeDetector {
         InputStream is, String fileName) throws IOException {
         var tikaStream = TikaInputStream.get(is);
         var meta = new Metadata();
-        var extension = EXTENSION_PATTERN.matcher(
-                fileName).replaceFirst("$1");
+        var extension = StringUtils.isBlank(fileName)
+                ? ""
+                : EXTENSION_PATTERN.matcher(fileName).replaceFirst("$1");
         meta.set(TikaCoreProperties.RESOURCE_NAME_KEY,
                 "file:///detect" + extension);
         var media = TIKA.getDetector().detect(tikaStream, meta);
 
-        LOG.debug("Detected \"{}\" content-type for: {}", media, fileName);
+        LOG.debug("Detected \"{}\" content-type for file: {}", media, fileName);
         return ContentType.valueOf(media.toString());
     }
 }

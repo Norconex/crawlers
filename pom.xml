@@ -42,6 +42,10 @@
     
     <!-- TEST START -->
     <sonar.version>3.11.0.3922</sonar.version>
+    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    <!--
+-->
+<!--<sonar.coverage.jacoco.xmlReportPaths>${session.executionRootDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
 <!--    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
 <!--    <sonar.modules>committer/core,committer/solr</sonar.modules>-->
     <!-- /TEST END -->
@@ -961,7 +965,7 @@
               <phase>verify</phase>
               <goals>
                 <goal>report</goal>
-<!--                <goal>report-aggregate</goal>-->
+<!--                <goal>report-aggregate</goal> -->
               </goals>
               <configuration>
                 <formats>
@@ -976,7 +980,9 @@
               </configuration>
             </execution>
           </executions>
+          <!--
           <inherited>true</inherited>
+          -->
         </plugin>
  
         <plugin>
@@ -991,10 +997,11 @@
               <goals>
                 <goal>sonar</goal>
               </goals>
-              <!-- Execute only for child modules -->
+              <!-- Execute only for child modules
               <configuration>
                 <skip>${project.parent.basedir == null}</skip>
               </configuration>
+               -->
             </execution>
           </executions>
         </plugin>
