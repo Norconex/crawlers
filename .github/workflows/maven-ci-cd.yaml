@@ -106,8 +106,19 @@ jobs:
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
 
-    - name: Build, test, and analyze
+    - name: Build and test
       run: mvn -B verify -Dgpg.skip=true
+
+    - name: Sonar Analysis
+      if: ${{ startsWith(github.actor, 'dependabot') == false }}
+      # Note: As of this writing, for SonarCloud to work with monorepos, 
+      # each projects must be analyzed separately.
+      run: |
+        dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
+        for dir in $dirs; do
+            echo "Analyzing ${dir}..."
+            (cd ${dir}; mvn sonar:sonar)
+        done
 
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive

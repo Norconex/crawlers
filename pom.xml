@@ -965,24 +965,15 @@
               <phase>verify</phase>
               <goals>
                 <goal>report</goal>
-<!--                <goal>report-aggregate</goal> -->
               </goals>
               <configuration>
                 <formats>
                   <format>XML</format>
                 </formats>
-                <!-- Sets the VM argument line used when unit tests are run.
-                     See: https://stackoverflow.com/questions/33293930/
-                          jacoco-not-generating-jacoco-exec-until-after-
-                          skipping-jacoco-execution
-                <propertyName>surefireArgLine</propertyName>
-                  -->
               </configuration>
             </execution>
           </executions>
-          <!--
           <inherited>true</inherited>
-          -->
         </plugin>
  
         <plugin>
@@ -990,20 +981,6 @@
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${sonar.version}</version>
           <inherited>true</inherited>
-          <executions>
-            <execution>
-              <id>sonar-analysis</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>sonar</goal>
-              </goals>
-              <!-- Execute only for child modules
-              <configuration>
-                <skip>${project.parent.basedir == null}</skip>
-              </configuration>
-               -->
-            </execution>
-          </executions>
         </plugin>
  
       </plugins>
