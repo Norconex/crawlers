@@ -95,7 +95,7 @@
     <easy-random.version>5.0.0</easy-random.version>
     <junit-jupiter.version>5.10.2</junit-jupiter.version>
     <lombok.version>1.18.30</lombok.version>
-    <mockito.version>5.3.1</mockito.version>
+    <mockito.version>5.12.0</mockito.version>
     <mockserver.version>5.15.0</mockserver.version>
     <testcontainers.version>1.19.7</testcontainers.version>
     
