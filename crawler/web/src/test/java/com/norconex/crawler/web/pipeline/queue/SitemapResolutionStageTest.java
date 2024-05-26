@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,8 @@ class SitemapResolutionStageTest {
                 cfg.setMaxDocuments(10);
                 cfg.setSitemapLocator(new GenericSitemapLocator());
                 cfg.setSitemapResolver(new GenericSitemapResolver());
-                cfg.setStayOnSitemap(true);
+                cfg.getUrlCrawlScopeStrategy()
+                        .getConfiguration().setStayOnSitemap(true);
             })
             .crawl();
         assertThat(mem.getRequestCount()).isEqualTo(3);
@@ -110,7 +111,8 @@ class SitemapResolutionStageTest {
                 cfg.setMaxDocuments(10);
                 cfg.setSitemapLocator(new GenericSitemapLocator());
                 cfg.setSitemapResolver(new GenericSitemapResolver());
-                cfg.setStayOnSitemap(true);
+                cfg.getUrlCrawlScopeStrategy()
+                    .getConfiguration().setStayOnSitemap(true);
             })
             .crawl();
         assertThat(mem.getRequestCount()).isEqualTo(3);
