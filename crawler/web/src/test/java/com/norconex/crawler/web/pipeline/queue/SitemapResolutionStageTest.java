@@ -80,7 +80,8 @@ class SitemapResolutionStageTest {
                 cfg.setMaxDocuments(10);
                 cfg.setSitemapLocator(new GenericSitemapLocator());
                 cfg.setSitemapResolver(new GenericSitemapResolver());
-                cfg.setStayOnSitemap(true);
+                cfg.getUrlCrawlScopeStrategy()
+                        .getConfiguration().setStayOnSitemap(true);
             })
             .crawl();
         assertThat(mem.getRequestCount()).isEqualTo(3);
@@ -110,7 +111,8 @@ class SitemapResolutionStageTest {
                 cfg.setMaxDocuments(10);
                 cfg.setSitemapLocator(new GenericSitemapLocator());
                 cfg.setSitemapResolver(new GenericSitemapResolver());
-                cfg.setStayOnSitemap(true);
+                cfg.getUrlCrawlScopeStrategy()
+                    .getConfiguration().setStayOnSitemap(true);
             })
             .crawl();
         assertThat(mem.getRequestCount()).isEqualTo(3);

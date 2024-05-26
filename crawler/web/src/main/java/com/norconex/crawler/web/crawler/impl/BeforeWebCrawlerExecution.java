@@ -34,30 +34,44 @@ class BeforeWebCrawlerExecution implements BiConsumer<Crawler, Boolean> {
 
     private static void logCrawlerInformation(Crawler crawler) {
         var cfg = Web.config(crawler);
+        var scope = cfg.getUrlCrawlScopeStrategy().getConfiguration();
         LOG.info("""
             Enabled features:
 
-            RobotsTxt:         %s
-            RobotsMeta:        %s
-            Sitemap discovery: %s
-            Canonical links:   %s
+            RobotsTxt:          %s
+            RobotsMeta:         %s
+            Sitemap discovery:  %s
+            Sitemap resolution: %s
+            Canonical links:    %s
             Metadata:
-              Checksummer:     %s
-              Deduplication:   %s
+              Checksummer:      %s
+              Deduplication:    %s
             Document:
-              Checksummer:     %s
-              Deduplication:   %s
+              Checksummer:      %s
+              Deduplication:    %s
+            Crawl scope limit:
+              Domain:           %s
+              Sub-domain:       %s
+              Protocol:         %s
+              Port:             %s
+              Sitemap:          %s
             """.formatted(
                     yn(cfg.getRobotsTxtProvider() != null),
                     yn(cfg.getRobotsMetaProvider() != null),
                     yn(cfg.getSitemapLocator() != null),
+                    yn(cfg.getSitemapResolver() != null),
                     yn(cfg.getCanonicalLinkDetector() != null),
                     yn(cfg.getMetadataChecksummer() != null),
                     yn(cfg.isMetadataDeduplicate()
                             && cfg.getMetadataChecksummer() != null),
                     yn(cfg.getDocumentChecksummer() != null),
                     yn(cfg.isDocumentDeduplicate()
-                            && cfg.getDocumentChecksummer() != null)
+                            && cfg.getDocumentChecksummer() != null),
+                    yn(scope.isStayOnDomain()),
+                    yn(scope.isIncludeSubdomains()),
+                    yn(scope.isStayOnProtocol()),
+                    yn(scope.isStayOnPort()),
+                    yn(scope.isStayOnSitemap())
             ));
     }
     private static String yn(boolean value) {

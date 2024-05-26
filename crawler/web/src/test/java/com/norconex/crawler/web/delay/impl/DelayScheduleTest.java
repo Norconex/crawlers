@@ -1,28 +1,28 @@
 package com.norconex.crawler.web.delay.impl;
 
-import com.norconex.crawler.core.crawler.CrawlerException;
-import org.junit.jupiter.api.Test;
+import static java.time.Duration.ofMillis;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Month;
 
-import static java.time.Duration.ofMillis;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+
+import com.norconex.crawler.core.crawler.CrawlerException;
 class DelayScheduleTest {
 
     @Test
     void testIsDateTimeInSchedule_isInSchedule_returnsTrue() {
         //setup
-        final DelaySchedule schedule = new DelaySchedule(
+        final var schedule = new DelaySchedule(
                 "from Monday to Tuesday",
                 "from 22 to 23",
                 "from 14:00 to 18:00",
                 ofMillis(100));
-        LocalDateTime myDateTime = LocalDateTime.of(2024, Month.JANUARY, 22, 16, 44);
+        var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 22, 16, 44);
 
         //execute
-        boolean actual = schedule.isDateTimeInSchedule(myDateTime);
+        var actual = schedule.isDateTimeInSchedule(myDateTime);
 
         //verify
         assertThat(actual).isTrue();
@@ -31,15 +31,15 @@ class DelayScheduleTest {
     @Test
     void testIsDateTimeInSchedule_inSchedule_returnsTrue() {
         //setup
-        final DelaySchedule schedule = new DelaySchedule(
+        final var schedule = new DelaySchedule(
                 "from Wednesday to Thursday",
                 "from 24 to 25",
                 "from 14:00 to 18:00",
                 ofMillis(100));
-        LocalDateTime myDateTime = LocalDateTime.of(2024, Month.JANUARY, 24, 16, 00);
+        var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 24, 16, 00);
 
         //execute
-        boolean actual = schedule.isDateTimeInSchedule(myDateTime);
+        var actual = schedule.isDateTimeInSchedule(myDateTime);
 
         //verify
         assertThat(actual).isTrue();
@@ -54,10 +54,10 @@ class DelayScheduleTest {
                 null,
                 ofMillis(100));
 
-        LocalDateTime myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);
+        var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);
 
         //execute
-        boolean actual = fixtureNoTime.isDateTimeInSchedule(myDateTime);
+        var actual = fixtureNoTime.isDateTimeInSchedule(myDateTime);
 
         //verify
         assertThat(actual).isFalse();
@@ -72,10 +72,10 @@ class DelayScheduleTest {
                 "from 14:00 to 18:00",
                 ofMillis(100));
 
-        LocalDateTime myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);
+        var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);
 
         //execute
-        boolean actual = fixtureNoTime.isDateTimeInSchedule(myDateTime);
+        var actual = fixtureNoTime.isDateTimeInSchedule(myDateTime);
 
         //verify
         assertThat(actual).isFalse();
@@ -90,10 +90,10 @@ class DelayScheduleTest {
                 "from 14:00 to 18:00",
                 ofMillis(100));
 
-        LocalDateTime myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);
+        var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);
 
         //execute
-        boolean actual = fixtureNoTime.isDateTimeInSchedule(myDateTime);
+        var actual = fixtureNoTime.isDateTimeInSchedule(myDateTime);
 
         //verify
         assertThat(actual).isFalse();
@@ -101,13 +101,11 @@ class DelayScheduleTest {
 
     @Test
     void testConstructorWithInvalidDomRange_throwsException() {
-        //setup
-        DelaySchedule fixtureNoTime = null;
         Exception expectedException = null;
 
         //execute
         try {
-            fixtureNoTime = new DelaySchedule(
+            new DelaySchedule(
                     "from Monday to Tuesday",
                     "22 : 23",
                     "from 14:00 to 18:00",

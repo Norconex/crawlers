@@ -18,6 +18,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
+import com.norconex.crawler.web.crawler.WebCrawlerContext.SitemapPresence;
+import com.norconex.crawler.web.util.Web;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -43,18 +47,27 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @Slf4j
-public class UrlCrawlScopeStrategy implements
+public class UrlCrawlScopeStrategy extends CrawlerLifeCycleListener implements
         Configurable<UrlCrawlScopeStrategyConfig> {
 
     @Getter
     private final UrlCrawlScopeStrategyConfig configuration =
             new UrlCrawlScopeStrategyConfig();
 
+    private WebCrawlerContext crawlerContext;
+
+    @Override
+    protected void onCrawlerRunBegin(CrawlerEvent event) {
+        LOG.debug("UrlCrawlScopeStrategy initialized with crawler context.");
+        crawlerContext = Web.crawlerContext(event.getSource());
+    }
+
     public boolean isInScope(String inScopeURL, String candidateURL) {
         // if not specifying any scope, candidate URL is good
         if (!configuration.isStayOnProtocol()
                 && !configuration.isStayOnDomain()
-                && !configuration.isStayOnPort()) {
+                && !configuration.isStayOnPort()
+                && !configuration.isStayOnSitemap()) {
             return true;
         }
 
@@ -70,19 +83,25 @@ public class UrlCrawlScopeStrategy implements
             if (configuration.isStayOnProtocol()
                     && !inScope.getProtocol().equalsIgnoreCase(
                     candidate.getProtocol())) {
-                LOG.debug("Rejected protocol for: {}", candidateURL);
+                LOG.debug("URL out-of-scope (protocol): {}", candidateURL);
                 return false;
             }
             if (configuration.isStayOnDomain()
                     && !isOnDomain(inScope.getHost(), candidate.getHost())) {
-                LOG.debug("Rejected domain for: {}", candidateURL);
+                LOG.debug("URL out-of-scope (domain): {}", candidateURL);
                 return false;
             }
             if (configuration.isStayOnPort()
                     && inScope.getPort() != candidate.getPort()) {
-                LOG.debug("Rejected port for: {}", candidateURL);
+                LOG.debug("URL out-of-scope (port): {}", candidateURL);
                 return false;
             }
+
+            if (configuration.isStayOnSitemap() && siteHasSitemap(inScopeURL)) {
+                LOG.debug("URL out-of-scope (sitemap): {}", candidateURL);
+                return false;
+            }
+
             return true;
         } catch (Exception e) {
             LOG.debug("Unsupported URL \"{}\".", candidateURL, e);
@@ -99,5 +118,17 @@ public class UrlCrawlScopeStrategy implements
         // if accepting sub-domains, check if it ends the same.
         return configuration.isIncludeSubdomains()
                 && StringUtils.endsWithIgnoreCase(candidate, "." + inScope);
+    }
+
+    private boolean siteHasSitemap(String inScope) {
+        var urlRoot = HttpURL.getRoot(inScope);
+        var sitemapPresence =
+                crawlerContext.getResolvedWebsites().get(urlRoot);
+        // At this point, the sitemap should never be "RESOLVING"
+        // If there is a sitemap for the URL in scope, we always reject, since
+        // having to determine the scope should not occur when the URL is
+        // coming from the sitemap. Thus no URLs should be extracted/accepted.
+        return sitemapPresence == SitemapPresence.PRESENT;
+
     }
 }

@@ -45,13 +45,5 @@ public final class WebQueuePipeline implements QueuePipeline {
     public void accept(DocRecordPipelineContext ctx) {
         STAGES.test(ctx);
     }
-
-//    static RobotsTxt getRobotsTxt(DocRecordPipelineContext ctx) {
-//        var cfg = Web.config(ctx);
-//        return Optional.ofNullable(cfg.getRobotsTxtProvider())
-//            .map(rb -> rb.getRobotsTxt(
-//                    (HttpFetcher) ctx.getCrawler().getFetcher(),
-//                    ctx.getDocRecord().getReference())).orElse(null);
-//    }
 }
 
