@@ -124,7 +124,7 @@ jobs:
     # of Dependabot alerts this repository can receive
     - name: Update Maven dependency graph
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
-      uses: advanced-security/maven-dependency-submission-action@v3
+      uses: advanced-security/maven-dependency-submission-action@v4
 
     - name: Deploy snapshots to Sonatype
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
