@@ -26,7 +26,7 @@
   <name>Norconex Committer Solr</name>
 
   <properties>
-    <solr.version>9.5.0</solr.version>
+    <solr.version>9.6.0</solr.version>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>  
   </properties>
   <inceptionYear>2009</inceptionYear>
