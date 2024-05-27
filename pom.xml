@@ -95,7 +95,7 @@
     <easy-random.version>5.0.0</easy-random.version>
     <junit-jupiter.version>5.10.2</junit-jupiter.version>
     <lombok.version>1.18.30</lombok.version>
-    <mockito.version>5.3.1</mockito.version>
+    <mockito.version>5.12.0</mockito.version>
     <mockserver.version>5.15.0</mockserver.version>
     <testcontainers.version>1.19.7</testcontainers.version>
     
@@ -114,7 +114,7 @@
     <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
     <maven-remote-resources-plugin.version>3.0.0</maven-remote-resources-plugin.version>
-    <maven-site-plugin.version>4.0.0-M13</maven-site-plugin.version>
+    <maven-site-plugin.version>4.0.0-M14</maven-site-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
     <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
@@ -965,24 +965,15 @@
               <phase>verify</phase>
               <goals>
                 <goal>report</goal>
-<!--                <goal>report-aggregate</goal> -->
               </goals>
               <configuration>
                 <formats>
                   <format>XML</format>
                 </formats>
-                <!-- Sets the VM argument line used when unit tests are run.
-                     See: https://stackoverflow.com/questions/33293930/
-                          jacoco-not-generating-jacoco-exec-until-after-
-                          skipping-jacoco-execution
-                <propertyName>surefireArgLine</propertyName>
-                  -->
               </configuration>
             </execution>
           </executions>
-          <!--
           <inherited>true</inherited>
-          -->
         </plugin>
  
         <plugin>
@@ -990,20 +981,6 @@
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${sonar.version}</version>
           <inherited>true</inherited>
-          <executions>
-            <execution>
-              <id>sonar-analysis</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>sonar</goal>
-              </goals>
-              <!-- Execute only for child modules
-              <configuration>
-                <skip>${project.parent.basedir == null}</skip>
-              </configuration>
-               -->
-            </execution>
-          </executions>
         </plugin>
  
       </plugins>

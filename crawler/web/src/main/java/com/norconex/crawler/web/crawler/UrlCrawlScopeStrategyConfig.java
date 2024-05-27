@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
  * When you have multiple URLs defined as start URLs, it can be tricky to
  * perform global filtering that apply to each URLs without causing
  * URL filtering conflicts.  This class offers an easy way to address
- * a frequent URL filtering need: to "stay on site". That is,
+ * a frequent URL filtering need: to "stay on target". That is,
  * when following a page and extracting URLs found in it, make sure to
  * only keep URLs that are on the same site as the page URL we are on.
  * </p>
@@ -77,4 +77,22 @@ public class UrlCrawlScopeStrategyConfig {
      * @return <code>true</code> if the crawler should stay on protocol
      */
     private boolean stayOnProtocol = false;
+
+
+    /**
+     * Whether to limit crawling to entries found in an existing website
+     * sitemap (do not go deeper). Only applies if a sitemap is present
+     * for a website.
+     * This option is similar to specifying a sitemap start URL with a
+     * <code>maxDepth</code> of <code>1</code> with the difference that when
+     * used with regular start URLs and no sitemap is detected, it will crawl
+     * the corresponding website as if this option was set to
+     * <code>false</code>.
+     * Does not apply if sitemap resolution has been disabled in your
+     * configuration.
+     * Note that if <code>async</code> is <code>true</code>, you may get
+     * a few soft rejections until they are identified in the sitemap.
+     */
+    private boolean stayOnSitemap;
+
 }

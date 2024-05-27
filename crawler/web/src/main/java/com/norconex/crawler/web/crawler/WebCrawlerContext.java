@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,15 @@ import lombok.Data;
 
 /**
  * Crawler implementation-specific contextual data. Useful for keeping state
- * between components that existing for specific crawler implementations only.
+ * between components that exist for specific crawler implementations only.
  */
 @Data
 public class WebCrawlerContext extends CrawlerImplContext {
 
-    // <root_url, sitemap_exists>
-    private final Map<String, Boolean> resolvedWebsites =
+    public enum SitemapPresence { RESOLVING, PRESENT, NONE }
+
+    // key = root url
+    private final Map<String, SitemapPresence> resolvedWebsites =
             Collections.synchronizedMap(new LRUMap<>(10_000));
 
 }

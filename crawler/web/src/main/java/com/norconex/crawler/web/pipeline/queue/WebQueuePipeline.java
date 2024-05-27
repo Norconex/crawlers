@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,13 +45,5 @@ public final class WebQueuePipeline implements QueuePipeline {
     public void accept(DocRecordPipelineContext ctx) {
         STAGES.test(ctx);
     }
-
-//    static RobotsTxt getRobotsTxt(DocRecordPipelineContext ctx) {
-//        var cfg = Web.config(ctx);
-//        return Optional.ofNullable(cfg.getRobotsTxtProvider())
-//            .map(rb -> rb.getRobotsTxt(
-//                    (HttpFetcher) ctx.getCrawler().getFetcher(),
-//                    ctx.getDocRecord().getReference())).orElse(null);
-//    }
 }
 
