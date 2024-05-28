@@ -40,7 +40,7 @@ jobs:
 
       # start testing main branch into each sub-branches, only run if core files are modified
       - name: Test merge main into branches
-        # if: steps.modified-files.outputs.any_changed == 'true'
+        if: steps.modified-files.outputs.any_changed == 'true'
         run: |          
           for branch in $(git branch -r | grep -v 'origin/main' | cut -d '/' -f 2-); do
             # only test branches that does not contains "snyk, dependabot, 3.x, 2.x, bugfix/unknown-properties in branch name
