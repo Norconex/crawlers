@@ -53,6 +53,7 @@ jobs:
     # Env. vars. defined here are available to all steps. 
     env:
       SHOULD_DEPLOY: ${{ github.repository == 'Norconex/crawlers' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     permissions:
       id-token: write
@@ -75,14 +76,8 @@ jobs:
         )
       run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
 
-    - name: Generate cache keys
-      id: generate-key
-      run: |
-        echo "MAVEN_CACHE_KEY=${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}" >> $GITHUB_ENV
-        echo "SONAR_CACHE_KEY=${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml') }}" >> $GITHUB_ENV
-
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -101,28 +96,35 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.m2/repository
-        key: ${{ env.MAVEN_CACHE_KEY }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven-
 
     - name: Cache SonarCloud analysis
       uses: actions/cache@v4
       with:
-        path: .sonar/cache
-        key: ${{ env.SONAR_CACHE_KEY }}
-        restore-keys: |
-          ${{ runner.os }}-sonar-
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
 
-    - name: Build, test, and analyze
+    - name: Build and test
       run: mvn -B verify -Dgpg.skip=true
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    - name: Sonar Analysis
+      if: ${{ startsWith(github.actor, 'dependabot') == false }}
+      # Note: As of this writing, for SonarCloud to work with monorepos, 
+      # each projects must be analyzed separately.
+      run: |
+        dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
+        for dir in $dirs; do
+            echo "Analyzing ${dir}..."
+            (cd ${dir}; mvn sonar:sonar)
+        done
 
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
     - name: Update Maven dependency graph
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
-      uses: advanced-security/maven-dependency-submission-action@v3
+      uses: advanced-security/maven-dependency-submission-action@v4
 
     - name: Deploy snapshots to Sonatype
       if: ${{ env.SHOULD_DEPLOY == 'true' }}

@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public enum Browser {
                 WebDriverLocation location,
                 Consumer<MutableCapabilities> optionsConsumer) {
             var options = new ChromeOptions();
-            options.addArguments("--headless");
+            options.addArguments("--headless","--no-sandbox");
             ofNullable(location.getBrowserPath()).ifPresent(
                     p -> options.setBinary(p.toFile()));
             optionsConsumer.accept(options);

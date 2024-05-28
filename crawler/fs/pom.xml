@@ -28,7 +28,7 @@
  
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
-    <sonar.exclusions>src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
+    <sonar.exclusions>${project.basedir}/src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
       
     <commons-net.version>3.9.0</commons-net.version>
     <commons-vfs.version>2.9.0</commons-vfs.version>
@@ -245,6 +245,7 @@
         <scope>test</scope>
     </dependency>
 
+    <!-- TODO: Assess if still needed:
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
@@ -252,6 +253,7 @@
         <type>zip</type>
         <scope>provided</scope>
     </dependency>
+    -->
 
   </dependencies>
   
@@ -306,6 +308,11 @@
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
+      
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+      </plugin>      
       
       <!-- Uncomment when ready:
       <plugin>

@@ -74,7 +74,7 @@ public final class DataStoreImporter extends CrawlerException {
         String storeName = null;
 
         while (parser.nextToken() != JsonToken.END_OBJECT) {
-            var key = parser.getCurrentName();
+            var key = parser.currentName();
             if ("crawler".equals(key)) {
                 crawlerId = parser.nextTextValue();
                 if (!crawler.getId().equals(crawlerId)) {

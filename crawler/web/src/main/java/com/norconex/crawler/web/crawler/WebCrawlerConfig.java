@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -613,23 +613,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @see #setPostImportLinks(TextMatcher)
      */
     private boolean postImportLinksKeep;
-
-    /**
-     * Whether to limit crawling to entries found in an existing website
-     * sitemap (do not go deeper). Only applies if a sitemap is present
-     * for a website.
-     * This option is similar to specifying a sitemap start URL with a
-     * <code>maxDepth</code> of <code>1</code> with the difference that when
-     * used with regular start URLs and no sitemap is detected, it will crawl
-     * the corresponding website as if this option was set to
-     * <code>false</code>.
-     * Does not apply if sitemap support has been disabled in your
-     * configuration.
-     * Note that if <code>async</code> is <code>true</code>, you may get
-     * a few false rejection events until for documents not yet encountered
-     * in the sitemap.
-     */
-    private boolean stayOnSitemap;
 
     /**
      * The provider of robots.txt rules for a site (if applicable).

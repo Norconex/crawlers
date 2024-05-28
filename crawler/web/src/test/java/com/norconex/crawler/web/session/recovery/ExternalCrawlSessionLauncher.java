@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.apache.tools.ant.taskdefs.Java;
 import org.apache.tools.ant.types.Environment;
 
 import com.norconex.committer.core.Committer;
+import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
@@ -78,6 +79,11 @@ public class ExternalCrawlSessionLauncher {
         var c = new TestCommitter(
                 sessionConfig.getWorkDir().resolve(committerDir));
         c.fillMemoryCommitters(outcome, now);
+        try {
+            c.close();
+        } catch (CommitterException e) {
+            throw new RuntimeException(e);
+        }
         return outcome;
     }
 
