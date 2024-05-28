@@ -106,11 +106,14 @@ jobs:
             echo "failed_branches=${failed_branches}" >> $GITHUB_ENV
           done
 
-      - name: printout failed branches
-        run: |
-          echo "failed branches are: ${{ env.failed_branches }}"
+      # Enable for debug use    
+      # - name: printout failed branches
+      #   run: |
+      #     echo "failed branches are: ${{ env.failed_branches }}"
 
+      # send failed alert to slack/github-builds channels
       - name: Slack Notification
+        if: steps.modified-files.outputs.any_changed == 'true'
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
