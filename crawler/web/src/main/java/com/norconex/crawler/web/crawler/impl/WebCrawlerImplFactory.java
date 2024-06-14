@@ -26,6 +26,9 @@ import com.norconex.crawler.web.pipeline.importer.WebImporterPipeline;
 import com.norconex.crawler.web.pipeline.queue.WebQueuePipeline;
 
 public class WebCrawlerImplFactory {
+
+    private WebCrawlerImplFactory() {}
+
     public static CrawlerImpl create() {
         return CrawlerImpl.builder()
                 //TODO make fetcher*s* part of crawler-core CONFIG instead?

@@ -42,14 +42,14 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
     @Override
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
+        //NOTE:
+        // CrawlSessionConfig and CrawlerConfig are not registered here.
+        // We leave it to crawler implementation to register them as/if
+        // required. If one day we make all crawlers configurable in same
+        // crawl session, this is likely where we would add it.
 
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        //NOTE: We do not register CrawlerConfig.class as a poly-type,
-        // since using the crawler session-specific launcher dictates
-        // with crawler confirm impl to use. If one day we make
-        // all crawlers configurable in same crawl session, this is
-        // where we would add it.
         addPolyType(map, CrawlSessionStopper.class);
         addPolyType(map, DataStoreEngine.class);
         addPolyType(map, DocumentChecksummer.class);
@@ -60,7 +60,6 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
         addPolyType(map, ReferenceFilter.class);
         addPolyType(map, SpoiledReferenceStrategizer.class);
         map.put(EventListener.class, StopCrawlerOnMaxEventListener.class);
-
         return map;
     }
 
