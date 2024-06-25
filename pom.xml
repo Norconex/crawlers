@@ -72,7 +72,7 @@
     <commons-text.version>1.12.0</commons-text.version>
     
     <!-- Other dependencies -->
-    <aws-java-sdk.version>1.12.748</aws-java-sdk.version>
+    <aws-java-sdk.version>1.12.749</aws-java-sdk.version>
     <ant.version>1.10.14</ant.version>
     <httpclient5.version>5.2.1</httpclient5.version>
     <jackson.version>2.17.1</jackson.version>
