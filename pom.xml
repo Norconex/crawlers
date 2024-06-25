@@ -35,7 +35,9 @@
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+    <!--
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    -->
     
     <!-- Optional, to also scan non-JVM files -->
     <!-- <sonar.maven.scanAll>true</sonar.maven.scanAll> -->
