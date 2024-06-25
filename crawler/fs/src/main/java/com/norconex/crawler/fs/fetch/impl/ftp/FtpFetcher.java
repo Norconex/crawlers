@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
         Optional.ofNullable(cfg.getProxySettings().toProxy()).ifPresent(
                 p -> ftp.setProxy(opts, p));
         ftp.setRecentDateFormat(opts, cfg.getRecentDateFormat());
-        ftp.setRemoteVerification(opts, cfg.isRemoteVerification());
+        ftp.setRemoteVerification(opts, !cfg.isRemoteVerificationDisabled());
         ftp.setServerLanguageCode(opts, cfg.getServerLanguageCode());
         ftp.setServerTimeZoneId(opts, cfg.getServerTimeZoneId());
         ftp.setShortMonthNames(opts,
