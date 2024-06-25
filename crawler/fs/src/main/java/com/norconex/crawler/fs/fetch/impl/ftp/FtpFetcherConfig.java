@@ -117,7 +117,7 @@ public class FtpFetcherConfig extends BaseAuthVfsFetcherConfig {
     @XmlTransient
     private final ProxySettings proxySettings = new ProxySettings();
     private String recentDateFormat;
-    private boolean remoteVerification;
+    private boolean remoteVerificationDisabled;
     private String serverLanguageCode;
     private String serverTimeZoneId;
     @XmlTransient
@@ -150,24 +150,4 @@ public class FtpFetcherConfig extends BaseAuthVfsFetcherConfig {
         CollectionUtil.setAll(this.shortMonthNames, shortMonthNames);
         return this;
     }
-
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        super.loadFetcherFromXML(xml);
-//        xml.ifXML(Fields.proxySettings, proxySettings::loadFromXML);
-//        setShortMonthNames(xml.getDelimitedList(
-//                Fields.shortMonthNames, String.class, shortMonthNames));
-//        setTransferAbortedOkReplyCodes(xml.getDelimitedList(
-//                Fields.transferAbortedOkReplyCodes,
-//                Integer.class,
-//                transferAbortedOkReplyCodes));
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        super.saveFetcherToXML(xml);
-//        proxySettings.saveToXML(xml.addElement(Fields.proxySettings));
-//        xml.addDelimitedElementList(Fields.shortMonthNames, shortMonthNames);
-//        xml.addDelimitedElementList(Fields.transferAbortedOkReplyCodes,
-//                transferAbortedOkReplyCodes);
-//    }
 }

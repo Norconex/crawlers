@@ -125,7 +125,7 @@ public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
         Optional.ofNullable(cfg.getProxySettings().toProxy()).ifPresent(
                 p -> ftp.setProxy(opts, p));
         ftp.setRecentDateFormat(opts, cfg.getRecentDateFormat());
-        ftp.setRemoteVerification(opts, cfg.isRemoteVerification());
+        ftp.setRemoteVerification(opts, !cfg.isRemoteVerificationDisabled());
         ftp.setServerLanguageCode(opts, cfg.getServerLanguageCode());
         ftp.setServerTimeZoneId(opts, cfg.getServerTimeZoneId());
         ftp.setShortMonthNames(opts,
