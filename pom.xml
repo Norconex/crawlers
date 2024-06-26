@@ -35,25 +35,15 @@
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
-    <!--
-    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
-    -->
+
+    <!-- If we ever want to scan the parent: -->
+    <!-- <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey> -->
     
     <!-- Optional, to also scan non-JVM files -->
     <!-- <sonar.maven.scanAll>true</sonar.maven.scanAll> -->
     
-    <!-- TEST START -->
     <sonar.version>3.11.0.3922</sonar.version>
     <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-    <!--
--->
-<!--<sonar.coverage.jacoco.xmlReportPaths>${session.executionRootDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
-<!--    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
-<!--    <sonar.modules>committer/core,committer/solr</sonar.modules>-->
-    <!-- /TEST END -->
-
-
-
 
     <!-- === Dependencies ================================================== -->
 
@@ -72,7 +62,7 @@
     <commons-text.version>1.12.0</commons-text.version>
     
     <!-- Other dependencies -->
-    <aws-java-sdk.version>1.12.749</aws-java-sdk.version>
+    <aws-java-sdk.version>1.12.750</aws-java-sdk.version>
     <ant.version>1.10.14</ant.version>
     <httpclient5.version>5.2.1</httpclient5.version>
     <jackson.version>2.17.1</jackson.version>

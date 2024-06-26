@@ -89,6 +89,7 @@ public class SftpFetcher extends AbstractAuthVfsFetcher<SftpFetcherConfig> {
         sftp.setCompression(opts, configuration.getCompression());
         sftp.setConnectTimeout(opts, configuration.getConnectTimeout());
         sftp.setKnownHosts(opts, configuration.getKnownHosts());
+        sftp.setFileNameEncoding(opts, configuration.getFileNameEncoding());
         sftp.setPreferredAuthentications(
                 opts, configuration.getPreferredAuthentications());
         try {
