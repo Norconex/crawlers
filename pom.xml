@@ -35,23 +35,15 @@
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
-    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+
+    <!-- If we ever want to scan the parent: -->
+    <!-- <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey> -->
     
     <!-- Optional, to also scan non-JVM files -->
     <!-- <sonar.maven.scanAll>true</sonar.maven.scanAll> -->
     
-    <!-- TEST START -->
     <sonar.version>3.11.0.3922</sonar.version>
     <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-    <!--
--->
-<!--<sonar.coverage.jacoco.xmlReportPaths>${session.executionRootDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
-<!--    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>-->
-<!--    <sonar.modules>committer/core,committer/solr</sonar.modules>-->
-    <!-- /TEST END -->
-
-
-
 
     <!-- === Dependencies ================================================== -->
 
@@ -59,30 +51,30 @@
     <norconex-commons-lang.version>3.0.0-SNAPSHOT</norconex-commons-lang.version>
 
     <!-- Apache Commons dependencies -->
-    <commons-cli.version>1.5.0</commons-cli.version>
-    <commons-codec.version>1.16.1</commons-codec.version>
+    <commons-cli.version>1.8.0</commons-cli.version>
+    <commons-codec.version>1.17.0</commons-codec.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-compress.version>1.26.0</commons-compress.version>
-    <commons-csv.version>1.10.0</commons-csv.version>
-    <commons-io.version>2.13.0</commons-io.version>
+    <commons-compress.version>1.26.2</commons-compress.version>
+    <commons-csv.version>1.11.0</commons-csv.version>
+    <commons-io.version>2.16.1</commons-io.version>
     <commons-lang3.version>3.14.0</commons-lang3.version>
-    <commons-logging.version>1.2</commons-logging.version>
+    <commons-logging.version>1.3.2</commons-logging.version>
     <commons-text.version>1.12.0</commons-text.version>
     
     <!-- Other dependencies -->
-    <aws-java-sdk.version>1.12.457</aws-java-sdk.version>
-    <ant.version>1.10.13</ant.version>
+    <aws-java-sdk.version>1.12.750</aws-java-sdk.version>
+    <ant.version>1.10.14</ant.version>
     <httpclient5.version>5.2.1</httpclient5.version>
-    <jackson.version>2.17.0</jackson.version>
-    <jakarta-activation.version>2.1.2</jakarta-activation.version>
-    <jakarta-el-api.version>5.0.1</jakarta-el-api.version>
+    <jackson.version>2.17.1</jackson.version>
+    <jakarta-activation.version>2.1.3</jakarta-activation.version>
+    <jakarta-el-api.version>6.0.0</jakarta-el-api.version>
     <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
     <java-cup.version>10k</java-cup.version>
     <jetty.version>11.0.15</jetty.version>
     <json.version>1.8</json.version>
     <jsoup.version>1.15.4</jsoup.version>
     <log4j.version>2.23.0</log4j.version>
-    <picocli.version>4.7.3</picocli.version>
+    <picocli.version>4.7.6</picocli.version>
     <slf4j.version>2.0.12</slf4j.version>
     <tomcat-embed-el.version>10.1.19</tomcat-embed-el.version>
     <velocity-engine.version>2.3</velocity-engine.version>
