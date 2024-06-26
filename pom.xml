@@ -89,7 +89,7 @@
     <lombok.version>1.18.30</lombok.version>
     <mockito.version>5.12.0</mockito.version>
     <mockserver.version>5.15.0</mockserver.version>
-    <testcontainers.version>1.19.7</testcontainers.version>
+    <testcontainers.version>1.19.8</testcontainers.version>
     
     <!-- === Maven plugins ================================================= -->
     
