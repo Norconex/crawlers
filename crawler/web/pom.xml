@@ -33,9 +33,9 @@
       
     <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
       
-    <bc.version>1.69</bc.version>
+    <bc.version>1.70</bc.version>
     <browsermob.version>2.1.5</browsermob.version>
-    <guava.version>33.0.0-jre</guava.version>
+    <guava.version>33.2.1-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
     <netty.version>4.1.110.Final</netty.version>
     <selenium.version>4.21.0</selenium.version>
