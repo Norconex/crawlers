@@ -105,7 +105,7 @@
     <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
     <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
-    <maven-remote-resources-plugin.version>3.0.0</maven-remote-resources-plugin.version>
+    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
     <maven-site-plugin.version>4.0.0-M14</maven-site-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
