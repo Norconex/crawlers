@@ -24,6 +24,7 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateHttp2SolrClient;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.LBHttp2SolrClient;
 import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
@@ -75,6 +76,13 @@ public enum SolrClientType {
     CONCURRENT_UPDATE_HTTP2("ConcurrentUpdateHttp2SolrClient", url ->
             new ConcurrentUpdateHttp2SolrClient.Builder(
                     url, new Http2SolrClient.Builder().build()).build()),
+
+    /**
+     * A client using the JDK’s built-in Http Client. Supports both Http/2
+     * and Http/1.1. Supports async.
+     */
+    HTTP_JDK("HttpJdkSolrClient",
+            url -> new HttpJdkSolrClient.Builder(url).build()),
 
     // Keep these deprecations for a while, for backward compatibility
 
