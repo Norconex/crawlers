@@ -3,6 +3,8 @@ name: Check CopyRight Info on Files
 on:  
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ test/copyright-check ]
 
 
 jobs:
