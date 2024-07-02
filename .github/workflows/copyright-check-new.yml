@@ -160,6 +160,8 @@ jobs:
           echo ""
           echo ""
 
+      - name: Check git status
+        run: git status
 
       - name: Upload Modified Files
         if: steps.check_dependabot.outputs.check == '0'
