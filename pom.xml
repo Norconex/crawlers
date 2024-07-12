@@ -76,7 +76,7 @@
     <log4j.version>2.23.0</log4j.version>
     <picocli.version>4.7.6</picocli.version>
     <slf4j.version>2.0.12</slf4j.version>
-    <tomcat-embed-el.version>10.1.19</tomcat-embed-el.version>
+    <tomcat-embed-el.version>10.1.26</tomcat-embed-el.version>
     <velocity-engine.version>2.3</velocity-engine.version>
     <xerces.version>2.12.2</xerces.version>
     <xml-bind-api.version>4.0.2</xml-bind-api.version>
