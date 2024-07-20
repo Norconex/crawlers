@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.handler.transformer.impl.Constant;
@@ -29,7 +28,7 @@ class ImporterConfigTest {
         var config = new ImporterConfig()
             .setMaxMemoryInstance(123L)
             .setMaxMemoryPool(456L)
-            .setHandler(Consumers.of(
+            .setHandlers(List.of(
                 configure(new ConstantTransformer(), cfg ->
                     cfg.setConstants(List.of(Constant.of("test1", "abc")))),
                 configure(new DefaultParser(), cfg -> {

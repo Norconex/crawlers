@@ -62,11 +62,11 @@ class RejectedRefsDeletionTest {
                         CrawlerEvent.REJECTED_NOTFOUND
                         + ", " + CrawlerEvent.REJECTED_BAD_STATUS));
                 cfg.addEventListeners(List.of(drel));
-                cfg.getImporterConfig().setHandler(docCtx -> {
+                cfg.getImporterConfig().setHandlers(List.of(docCtx -> {
                     if (docCtx.reference().endsWith("page=6-REJECTED_IMPORT")) {
                         docCtx.rejectedBy("Rejected by ME");
                     }
-                });
+                }));
             })
             .crawl();
 

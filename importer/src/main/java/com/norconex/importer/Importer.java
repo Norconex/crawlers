@@ -30,6 +30,7 @@ import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentFamily;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.charset.CharsetDetector;
@@ -215,7 +216,7 @@ public class Importer {
 
     private synchronized void initializeHandlersOnce() {
         BeanUtil.visitAll(
-                configuration.getHandler(),
+                configuration.getHandlers(),
                 t -> {
                     try {
                         t.init();
@@ -228,7 +229,7 @@ public class Importer {
     }
     private synchronized void destroyHandlersOnce() {
         BeanUtil.visitAll(
-                configuration.getHandler(),
+                configuration.getHandlers(),
                 t -> {
                     try {
                         t.destroy();
@@ -397,7 +398,7 @@ public class Importer {
                 .setDoc(doc)
                 .setReference(doc.getReference());
 
-        if (configuration.getHandler() == null) {
+        if (configuration.getHandlers() == null) {
             return resp.setStatus(Status.SUCCESS);
         }
         var ctx = DocContext.builder()
@@ -405,7 +406,7 @@ public class Importer {
             .eventManager(eventManager)
             .build();
         try {
-            configuration.getHandler().accept(ctx);
+            new Consumers<>(configuration.getHandlers()).accept(ctx);
         } catch (Exception e) {
             throw new DocumentHandlerException(e.getCause());
         } finally {

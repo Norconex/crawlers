@@ -476,7 +476,7 @@ class DefaultParserEmbeddedTest {
             throws IOException {
         var config = new ImporterConfig();
         var parser = new DefaultParser();
-        config.setHandler(parser);
+        config.setHandlers(List.of(parser));
         c.accept(parser.getConfiguration().getEmbeddedConfig());
         var importer = new Importer(config);
         return importer.importDocument(

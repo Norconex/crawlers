@@ -73,9 +73,10 @@ public class ParseAssertions {
         Properties metadata;
         var config = new ImporterConfig();
         if (split) {
-            config.setHandler(Configurable.configure(new DefaultParser(),
+            config.setHandlers(
+                    List.of(Configurable.configure(new DefaultParser(),
                     cfg -> cfg.getEmbeddedConfig().setSplitContentTypes(List.of(
-                               TextMatcher.regex(".*")))));
+                               TextMatcher.regex(".*"))))));
         }
 
         // File-based parse
