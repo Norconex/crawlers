@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +40,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.doc.Doc;
@@ -56,7 +56,7 @@ class ImporterTest {
     void setUp() throws Exception {
         var config = new ImporterConfig();
 
-        config.setHandler(Consumers.of(
+        config.setHandlers(List.of(
                 Configurable.configure(new DefaultParser(), cfg -> {
                     cfg.getEmbeddedConfig()
                         .setSplitContentTypes(List.of(
@@ -117,8 +117,8 @@ class ImporterTest {
     @Test
     void testGetters() {
         Assertions.assertSame(importer, Importer.get());
-        Assertions.assertNotNull(
-                importer.getConfiguration().getHandler());
+        Assertions.assertTrue(CollectionUtils.isNotEmpty(
+                importer.getConfiguration().getHandlers()));
         Assertions.assertNotNull(importer.getEventManager());
     }
 
