@@ -63,8 +63,31 @@ public class JdbcDataStore<T> implements DataStore<T> {
         return tableName;
     }
 
+
     @Override
     public void save(String id, T object) {
+        // mod the query to support mysql
+        // TODO: 2024-07-23  Universal Database query Compatibility support
+        // Calls the executeWrite method with a SQL INSERT ... ON DUPLICATE KEY UPDATE statement and a lambda expression for setting parameters.
+        executeWrite("""
+            INSERT INTO <table> (id, modified, json)
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+              modified = VALUES(modified),
+              json = VALUES(json)
+            """,
+                stmt -> {
+                    // Sets the first parameter (id) to a serializable version of the id.
+                    stmt.setString(1, adapter.serializableId(id));
+                    // Sets the second parameter (modified) to the current timestamp.
+                    stmt.setTimestamp(2, new Timestamp(currentTimeMillis()));
+                    // Sets the third parameter (json) to a JSON representation of the object.
+                    stmt.setClob(3, SerialUtil.toJsonReader(object));
+                });
+    }
+
+
+    public void save_org(String id, T object) {
         executeWrite("""
                 MERGE INTO <table> AS t
                 USING (
@@ -225,7 +248,9 @@ public class JdbcDataStore<T> implements DataStore<T> {
 
     private Optional<T> firstObject(ResultSet rs) {
         try {
-            if (rs.first()) {
+
+//            if (rs.first()) {
+            if (rs.next()) {
                 return toObject(rs.getClob(2).getCharacterStream());
             }
             return Optional.empty();
@@ -236,7 +261,9 @@ public class JdbcDataStore<T> implements DataStore<T> {
     }
     private Record<T> firstRecord(ResultSet rs) {
         try {
-            if (rs.first()) {
+
+//            if (rs.first()) {
+            if (rs.next()) {
                 return toRecord(rs);
             }
             return new Record<>();
