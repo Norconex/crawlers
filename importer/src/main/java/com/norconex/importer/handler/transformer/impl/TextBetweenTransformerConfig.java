@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.norconex.commons.lang.bean.module.JsonXmlCollection;
+import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.PropertySetter;

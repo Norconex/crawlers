@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.norconex.commons.lang.bean.module.JsonXmlCollection;
+import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.time.DurationParser;
