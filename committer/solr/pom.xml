@@ -83,12 +83,6 @@
       <artifactId>jakarta.el-api</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-el</artifactId>
-      <scope>test</scope>
-    </dependency>
-    
     <!-- 
       When testing Solr it seems to run on glassfish/jersey and 
       it needs it as a dependency somehow.

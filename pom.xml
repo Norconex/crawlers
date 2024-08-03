@@ -76,7 +76,9 @@
     <log4j.version>2.23.0</log4j.version>
     <picocli.version>4.7.6</picocli.version>
     <slf4j.version>2.0.12</slf4j.version>
-    <tomcat-embed-el.version>10.1.19</tomcat-embed-el.version>
+    <!--
+    <tomcat-embed-el.version>10.1.26</tomcat-embed-el.version>
+    -->
     <velocity-engine.version>2.3</velocity-engine.version>
     <xerces.version>2.12.2</xerces.version>
     <xml-bind-api.version>4.0.2</xml-bind-api.version>
@@ -99,13 +101,13 @@
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
-    <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
+    <maven-dependency-plugin.version>3.7.1</maven-dependency-plugin.version>
     <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
     <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
     <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
     <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
-    <maven-remote-resources-plugin.version>3.0.0</maven-remote-resources-plugin.version>
+    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
     <maven-site-plugin.version>4.0.0-M14</maven-site-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
@@ -453,13 +455,14 @@
         <version>${jakarta-el-api.version}</version>
         <scope>test</scope>
       </dependency>
+      <!--
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-el</artifactId>
         <version>${tomcat-embed-el.version}</version>    
         <scope>test</scope>
       </dependency>
-
+-->
 
 
     </dependencies>

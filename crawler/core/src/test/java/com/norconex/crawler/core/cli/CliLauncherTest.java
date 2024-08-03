@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,11 +289,9 @@ class CliLauncherTest {
         var exit1 = testLaunch(
                 tempDir, "configrender", "-config=" + configFile);
         assertThat(exit1.ok()).isTrue();
-        // check that some entries not explicitely configured are present:
-        assertThat(exit1.getStdOut()).contains(
-            "<handlers><handler><class>DefaultParser</class>",
-            "GenericSpoiledReferenceStrategizer"
-        );
+        // check that some entries not explicitely configured are NOT present
+        // (with V4, "default" values are not exported):
+        assertThat(exit1.getStdOut()).doesNotContain("<importer");
 
         var renderedFile = tempDir.resolve("configrender.xml");
         var exit2 = testLaunch(tempDir,

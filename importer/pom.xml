@@ -261,12 +261,6 @@
 <!--      <version>5.0.1</version>-->
       <!-- <scope>test</scope>-->
     </dependency>
-    <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-el</artifactId>
-<!--      <version>10.1.12</version>-->    
-      <!-- <scope>test</scope> -->
-    </dependency>
 
     <!-- Logging dependencies: -->
 

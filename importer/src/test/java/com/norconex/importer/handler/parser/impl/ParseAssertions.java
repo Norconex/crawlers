@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,9 +73,10 @@ public class ParseAssertions {
         Properties metadata;
         var config = new ImporterConfig();
         if (split) {
-            config.setHandler(Configurable.configure(new DefaultParser(),
+            config.setHandlers(
+                    List.of(Configurable.configure(new DefaultParser(),
                     cfg -> cfg.getEmbeddedConfig().setSplitContentTypes(List.of(
-                               TextMatcher.regex(".*")))));
+                               TextMatcher.regex(".*"))))));
         }
 
         // File-based parse
