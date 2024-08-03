@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,10 @@ import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 /**
@@ -86,73 +89,25 @@ public class ImporterConfig {
             DataUnit.GB.toBytes(1).intValue();
 
 
-    //TODO make a list, even if one or more entries can be Consumers
+    //NOTE: Using Customer here and private methods instead of List so
+    // JsonFlow can pick it up.
     @JsonFlow(builder = ImporterFlowConfigBuilder.class)
     @JsonProperty("handlers")
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private Consumer<DocContext> handler = Consumers.of(new DefaultParser());
 
-    public ImporterConfig setHandler(Consumer<DocContext> handler) {
-        this.handler = handler;
-        return this;
-    }
-    public Consumer<DocContext> getHandler() {
-        return handler;
-    }
     @JsonIgnore
     public ImporterConfig setHandlers(List<Consumer<DocContext>> handlers) {
-        handler = handlers == null
-                ? Consumers.of() : new Consumers<>(handlers);
+        CollectionUtil.setAll((Consumers<DocContext>) handler, handlers);
+        CollectionUtil.removeNulls((Consumers<DocContext>) handler);
         return this;
     }
-    @SuppressWarnings("unchecked")
     @JsonIgnore
     public List<Consumer<DocContext>> getHandlers() {
-        if (handler instanceof List) {
-            return (List<Consumer<DocContext>>) handler;
-        }
-        return Consumers.of(handler);
+        return Collections.unmodifiableList(
+                (Consumers<DocContext>) handler);
     }
-
-//    /**
-//     * <p>
-//     * The {@link Consumer} to be executed on documents before
-//     * their parsing has occurred. While not mandatory, it is strongly
-//     * recommended you consumer implements {@link BaseDocumentHandler}
-//     * or is decorated with either
-//     * {@link BaseDocumentHandler#decorate(Consumer)} or
-//     * {@link BaseDocumentHandler#decorate(FailableConsumer)}
-//     * </p>
-//     * <p>
-//     * Be careful that your pre-par consumers can deal with the expected
-//     * document types. To consume a document once its plain text has been
-//     * extracted, use {@link #postParseConsumer} instead.
-//     * </p>
-//     * <p>
-//     * To programmatically set multiple consumers or take advantage of the
-//     * handlers defined by the Importer, you can use {@link Consumers}
-//     * to wrap them.
-//     * </p>
-//     * @param consumer the pre-parse document consumer
-//     * @return pre-parse document consumer
-//     */
-//    @JsonFlow
-//    private Consumer<DocContext> preParseConsumer;
-//
-//    /**
-//     * <p>
-//     * The {@link Consumer} to be executed on documents after
-//     * their parsing has occurred.
-//     * </p>
-//     * <p>
-//     * <p>
-//     * To programmatically set multiple consumers or take advantage of the
-//     * handlers defined by the Importer, you can use {@link Consumers}
-//     * to wrap them.
-//     * </p>
-//     * @param consumer the document consumer
-//     */
-//    @JsonFlow
-//    private Consumer<DocContext> postParseConsumer;
 
     /**
      * Processors of importer response. Invoked when a document has

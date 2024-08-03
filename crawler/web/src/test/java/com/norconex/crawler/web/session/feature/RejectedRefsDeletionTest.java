@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,11 +62,11 @@ class RejectedRefsDeletionTest {
                         CrawlerEvent.REJECTED_NOTFOUND
                         + ", " + CrawlerEvent.REJECTED_BAD_STATUS));
                 cfg.addEventListeners(List.of(drel));
-                cfg.getImporterConfig().setHandler(docCtx -> {
+                cfg.getImporterConfig().setHandlers(List.of(docCtx -> {
                     if (docCtx.reference().endsWith("page=6-REJECTED_IMPORT")) {
                         docCtx.rejectedBy("Rejected by ME");
                     }
-                });
+                }));
             })
             .crawl();
 

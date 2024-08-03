@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -476,7 +476,7 @@ class DefaultParserEmbeddedTest {
             throws IOException {
         var config = new ImporterConfig();
         var parser = new DefaultParser();
-        config.setHandler(parser);
+        config.setHandlers(List.of(parser));
         c.accept(parser.getConfiguration().getEmbeddedConfig());
         var importer = new Importer(config);
         return importer.importDocument(
