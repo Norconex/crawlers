@@ -224,12 +224,6 @@
       <artifactId>jakarta.el-api</artifactId>
       <scope>compile</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-el</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    
   </dependencies>
   
   <build>

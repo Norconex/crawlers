@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,12 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +30,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
@@ -84,6 +88,62 @@ class LanguageTransformerTest {
             Assertions.assertEquals(lang, meta.getString(DocMetadata.LANGUAGE));
         }
     }
+
+    @Test
+    void testWrite() {
+        var t = new LanguageTransformer();
+        t.getConfiguration()
+            .setKeepProbabilities(true)
+            .setFallbackLanguage("fr");
+
+        var sw = new StringWriter();
+        BeanMapper.DEFAULT.write(t, sw, Format.XML);
+        assertThat(sw.toString()).doesNotContain("<languages");
+
+        t.getConfiguration().setLanguages(Arrays.asList("it", "br", "en"));
+        sw = new StringWriter();
+        BeanMapper.DEFAULT.write(t, sw, Format.XML);
+        assertThat(sw.toString()).contains("""
+            <languages>\
+            <language>it</language>\
+            <language>br</language>\
+            <language>en</language>\
+            </languages>""");
+    }
+
+    @Test
+    void testRead() {
+        var xml1 = """
+                <LanguageTransformer>
+                  <class>LanguageTransformer</class>
+                  <keepProbabilities>true</keepProbabilities>
+                  <fallbackLanguage>fr</fallbackLanguage>
+                </LanguageTransformer>
+                """;
+        var xml2 = """
+                <LanguageTransformer>
+                  <class>LanguageTransformer</class>
+                  <keepProbabilities>true</keepProbabilities>
+                  <languages>
+                    <language>it</language>
+                    <language>br</language>
+                    <language>en</language>
+                  </languages>
+                  <fallbackLanguage>fr</fallbackLanguage>
+                </LanguageTransformer>
+                """;
+
+
+        var t1 = BeanMapper.DEFAULT.read(
+                LanguageTransformer.class, new StringReader(xml1), Format.XML);
+        assertThat(t1.getConfiguration().getLanguages()).isEmpty();
+
+        var t2 = BeanMapper.DEFAULT.read(
+                LanguageTransformer.class, new StringReader(xml2), Format.XML);
+        assertThat(t2.getConfiguration().getLanguages()).contains(
+                "it", "br", "en");
+    }
+
 
     @Test
     void testWriteRead() {
