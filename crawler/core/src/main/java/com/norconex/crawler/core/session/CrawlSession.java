@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -51,6 +52,7 @@ import com.norconex.crawler.core.monitor.MdcUtil;
 import com.norconex.crawler.core.stop.CrawlSessionStopper;
 import com.norconex.crawler.core.stop.impl.FileBasedStopper;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -97,6 +99,9 @@ public class CrawlSession {
 
     private final CrawlSessionStopper stopper;
 
+    @Getter
+    private final String instanceId;
+
 
     public static CrawlSessionBuilder builder() {
         return new CrawlSessionBuilder();
@@ -104,6 +109,8 @@ public class CrawlSession {
 
 
     protected CrawlSession(CrawlSessionBuilder builder) {
+
+        instanceId = UUID.randomUUID().toString();
 
         //TODO clone config so modifications no longer apply?
         crawlSessionConfig = Objects.requireNonNull(builder.crawlSessionConfig,

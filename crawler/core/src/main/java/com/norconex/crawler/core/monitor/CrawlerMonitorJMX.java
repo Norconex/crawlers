@@ -63,7 +63,7 @@ public final class CrawlerMonitorJMX {
             throws MalformedObjectNameException {
         return new ObjectName(crawler.getClass().getName()
                 + ":type=Metrics"
-                + ",collector=" + quote(crawler.getCrawlSession().getId())
+                + ",session=" + quote(crawler.getCrawlSession().getId())
                 + ",crawler=" + quote(crawler.getId()));
     }
 }
