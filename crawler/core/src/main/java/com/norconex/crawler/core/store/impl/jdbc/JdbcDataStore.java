@@ -17,7 +17,7 @@ package com.norconex.crawler.core.store.impl.jdbc;
 import static java.lang.System.currentTimeMillis;
 
 import java.io.IOException;
-import java.io.Reader;
+import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -65,31 +65,13 @@ public class JdbcDataStore<T> implements DataStore<T> {
 
     @Override
     public void save(String id, T object) {
-        executeWrite("""
-                MERGE INTO <table> AS t
-                USING (
-                  SELECT
-                    CAST(? AS %s) AS id,
-                    CAST(? AS %s) AS modified,
-                    CAST(? AS %s) AS json
-                  FROM DUAL
-                ) AS s
-                  ON t.id = s.id
-                WHEN NOT MATCHED THEN
-                  INSERT (id, modified, json)
-                  VALUES (s.id, s.modified, s.json)
-                WHEN MATCHED THEN
-                  UPDATE SET
-                    t.modified = s.modified,
-                    t.json = s.json
-                """.formatted(
-                        adapter.idType(),
-                        adapter.modifiedType(),
-                        adapter.jsonType()),
+        executeWrite(
+                adapter.upsertSql(tableName),
                 stmt -> {
                     stmt.setString(1, adapter.serializableId(id));
                     stmt.setTimestamp(2, new Timestamp(currentTimeMillis()));
-                    stmt.setClob(3, SerialUtil.toJsonReader(object));
+                    stmt.setObject(3, SerialUtil.toJsonString(object));
+//                    stmt.setClob(3, SerialUtil.toJsonReader(object));
         });
     }
 
@@ -225,8 +207,8 @@ public class JdbcDataStore<T> implements DataStore<T> {
 
     private Optional<T> firstObject(ResultSet rs) {
         try {
-            if (rs.first()) {
-                return toObject(rs.getClob(2).getCharacterStream());
+            if (rs.next()) {
+                return toTypedObject(rs.getObject(2));
             }
             return Optional.empty();
         } catch (IOException | SQLException e) {
@@ -236,7 +218,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
     }
     private Record<T> firstRecord(ResultSet rs) {
         try {
-            if (rs.first()) {
+            if (rs.next()) {
                 return toRecord(rs);
             }
             return new Record<>();
@@ -248,10 +230,19 @@ public class JdbcDataStore<T> implements DataStore<T> {
     private Record<T> toRecord(ResultSet rs) throws IOException, SQLException {
         var rec = new Record<T>();
         rec.id = rs.getString(1);
-        rec.object = toObject(rs.getClob(2).getCharacterStream());
+        rec.object = toTypedObject(rs.getObject(2));
         return rec;
     }
-    private Optional<T> toObject(Reader reader) throws IOException {
+    private Optional<T> toTypedObject(Object rsObject)
+            throws IOException, SQLException {
+        if (rsObject == null) {
+            return Optional.empty();
+        }
+        if (rsObject instanceof String str) {
+            return Optional.ofNullable(SerialUtil.fromJson(str, type));
+        }
+        // Else, we assume CLOB
+        var reader = ((Clob) rsObject).getCharacterStream();
         try (var r = reader) {
             return Optional.ofNullable(SerialUtil.fromJson(r, type));
         }
@@ -265,9 +256,9 @@ public class JdbcDataStore<T> implements DataStore<T> {
             String sql,
             PreparedStatementConsumer psc,
             ResultSetFunction<R> rsc) {
+        var resolvedSql = sql.replace("<table>", tableName);
         try (var conn = engine.getConnection()) {
-            try (var stmt = conn.prepareStatement(
-                    sql.replace("<table>", tableName))) {
+            try (var stmt = conn.prepareStatement(resolvedSql)) {
                 psc.accept(stmt);
                 try (var rs = stmt.executeQuery()) {
                     return rsc.accept(rs);
@@ -275,13 +266,14 @@ public class JdbcDataStore<T> implements DataStore<T> {
             }
         } catch (SQLException | IOException e) {
             throw new DataStoreException(
-                    "Could not read from table '" + tableName + "'.", e);
+                    "Could not read from table '%s' with SQL:\n%s"
+                    .formatted(tableName, resolvedSql), e);
         }
     }
     private int executeWrite(String sql, PreparedStatementConsumer c) {
+        var resolvedSql = sql.replace("<table>", tableName);
         try (var conn = engine.getConnection()) {
-            try (var stmt = conn.prepareStatement(
-                    sql.replace("<table>", tableName))) {
+            try (var stmt = conn.prepareStatement(resolvedSql)) {
                 c.accept(stmt);
                 var val = stmt.executeUpdate();
                 if (!conn.getAutoCommit()) {
@@ -291,7 +283,8 @@ public class JdbcDataStore<T> implements DataStore<T> {
             }
         } catch (SQLException e) {
             throw new DataStoreException(
-                    "Could not write to table '" + tableName + "'.", e);
+                    "Could not write to table '%s' with SQL:\n%s"
+                    .formatted(tableName, resolvedSql), e);
         }
     }
 

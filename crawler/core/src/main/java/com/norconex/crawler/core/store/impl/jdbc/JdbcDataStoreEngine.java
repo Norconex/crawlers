@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.store.impl.jdbc;
 
+import static com.norconex.commons.lang.text.StringUtil.ifNotBlank;
+import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.removeStartIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
@@ -25,7 +27,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
@@ -146,11 +147,13 @@ public class JdbcDataStoreEngine
     }
 
     private TableAdapter resolveTableAdapter() {
-        return TableAdapter.detect(StringUtils.firstNonBlank(
-                datasource.getJdbcUrl(), datasource.getDriverClassName()))
-            .withIdType(configuration.getVarcharType())
-            .withModifiedType(configuration.getTimestampType())
-            .withJsonType(configuration.getTextType());
+        var b = TableAdapter.builder(firstNonBlank(
+                datasource.getJdbcUrl(),
+                datasource.getDataSourceClassName()));
+        ifNotBlank(configuration.getVarcharType(), b::idType);
+        ifNotBlank(configuration.getTimestampType(), b::modifiedType);
+        ifNotBlank(configuration.getTextType(), b::jsonType);
+        return b.build();
     }
 
     @Override
@@ -285,6 +288,8 @@ public class JdbcDataStoreEngine
     }
 
     boolean tableExist(String tableName) {
+        //TODO check cluster if initializing... and if so, return true
+        // since the one that does the init will take care of creating if not there
         try (var conn = datasource.getConnection()) {
             try (var rs = conn.getMetaData().getTables(
                     null, null, "%", new String[]{"TABLE"})) {
