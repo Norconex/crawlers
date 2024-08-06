@@ -20,8 +20,8 @@ import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSessionBuilder;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 import com.norconex.crawler.fs.crawler.impl.FsCrawlerImplFactory;
 
 public class FsCrawlSession {
@@ -43,33 +43,30 @@ public class FsCrawlSession {
 
     public static int launch(String... args) {
         return CliLauncher.launch(
-                initCrawlSessionBuilder(
-                        CrawlSession.builder(),
-                        new CrawlSessionConfig()),
+                initCrawlSessionImpl(new CrawlSessionConfig()),
                 args);
     }
 
     public static CrawlSession createSession(CrawlSessionConfig sessionConfig) {
-        return initCrawlSessionBuilder(
-                CrawlSession.builder(),
+        return new CrawlSession(initCrawlSessionImpl(
                 Optional.ofNullable(sessionConfig)
-                    .orElseGet(CrawlSessionConfig::new))
-                .build();
+                    .orElseGet(CrawlSessionConfig::new)));
     }
 
     // Return same builder, for chaining
-    static CrawlSessionBuilder initCrawlSessionBuilder(
-            CrawlSessionBuilder builder, CrawlSessionConfig sessionConfig) {
-        builder
-            .crawlerConfigClass(CrawlerConfig.class)
-            .crawlerFactory(
-                (sess, cfg) -> Crawler.builder()
-                    .crawlSession(sess)
-                    .crawlerConfig(cfg)
-                    .crawlerImpl(FsCrawlerImplFactory.create())
-                    .build()
-            )
-            .crawlSessionConfig(sessionConfig);
-        return builder;
+    static CrawlSessionImpl initCrawlSessionImpl(
+            CrawlSessionConfig sessionConfig) {
+        return CrawlSessionImpl
+                .builder()
+                .crawlerConfigClass(CrawlerConfig.class)
+                .crawlerFactory(
+                    (sess, cfg) -> Crawler.builder()
+                        .crawlSession(sess)
+                        .crawlerConfig(cfg)
+                        .crawlerImpl(FsCrawlerImplFactory.create())
+                        .build()
+                )
+                .crawlSessionConfig(sessionConfig)
+                .build();
     }
 }

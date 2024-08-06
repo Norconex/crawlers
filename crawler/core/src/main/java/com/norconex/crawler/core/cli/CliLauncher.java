@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.session.CrawlSessionBuilder;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 
 import lombok.NonNull;
 import picocli.CommandLine;
@@ -28,8 +28,8 @@ public final class CliLauncher {
     private CliLauncher() {}
 
     public static int launch(
-            @NonNull CrawlSessionBuilder crawlSessionBuilder, String... args) {
-        var cmd = new MainCommand(crawlSessionBuilder);
+            @NonNull CrawlSessionImpl crawlSessionImpl, String... args) {
+        var cmd = new MainCommand(crawlSessionImpl);
         var cmdLine = new CommandLine(cmd);
 
         cmdLine.setExecutionExceptionHandler(cmd);

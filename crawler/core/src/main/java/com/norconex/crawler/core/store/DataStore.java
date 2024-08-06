@@ -50,8 +50,10 @@ public interface DataStore<T> extends Closeable {
      * for the object itself to contain the said id.
      * @param id unique identifier for an object (record).
      * @param object the object to save
+     * @return <code>true</code> if saving the object modified the store
+     *     (by adding a new record, or modifying an existing one).
      */
-    void save(String id, T object);
+    boolean save(String id, T object);
 
     /**
      * Retrieve an object previously stored with the given id.

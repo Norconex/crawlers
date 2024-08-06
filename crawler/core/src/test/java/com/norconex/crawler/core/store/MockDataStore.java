@@ -28,7 +28,8 @@ public class MockDataStore<T> implements DataStore<T> {
         return null;
     }
     @Override
-    public void save(String id, T object) {
+    public boolean save(String id, T object) {
+        return false;
     }
     @Override
     public Optional<T> find(String id) {

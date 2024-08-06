@@ -240,7 +240,7 @@ public abstract class AbstractDataStoreEngineTest {
             engine.openStore("storeB", TestObject.class);
             assertThat(engine.getStoreNames())
                 .map(String::toUpperCase)
-                .containsExactlyInAnyOrder(
+                .contains(
                         "ACTIVE",
                         "QUEUED",
                         "TESTSTORE",

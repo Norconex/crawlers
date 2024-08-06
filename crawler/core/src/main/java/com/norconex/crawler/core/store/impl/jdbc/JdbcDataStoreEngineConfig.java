@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.store.impl.jdbc;
 
-import com.norconex.commons.lang.map.Properties;
+import java.util.Properties;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -91,8 +91,13 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class JdbcDataStoreEngineConfig {
 
+    private String tablePrefix;
+    private JdbcDialect dialect;
+    private String createTableSql;
+    private String upsertSql;
+
     private Properties properties = new Properties();
-    private String varcharType;
-    private String timestampType;
-    private String textType;
+//    private String varcharType;
+//    private String timestampType;
+//    private String textType;
 }

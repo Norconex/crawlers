@@ -18,8 +18,8 @@ import java.util.concurrent.Callable;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSessionBuilder;
-import com.norconex.crawler.core.session.CrawlSessionConfigMapperFactory;
+import com.norconex.crawler.core.session.CrawlSessionBeanMapperFactory;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -71,12 +71,10 @@ public class MainCommand
         implements Callable<Integer>, IExecutionExceptionHandler {
 
     @NonNull
-    private final CrawlSessionBuilder crawlSessionBuilder;
+    private final CrawlSessionImpl crawlSessionImpl;
 
     @NonNull
     private final BeanMapper beanMapper;
-
-    // CrawlSessionMapperProvider<BeanMapper>  // or part of session builder?
 
     @Option(
         names = {"-h", "-help"},
@@ -93,17 +91,18 @@ public class MainCommand
     @Spec
     private CommandSpec spec;
 
-    public MainCommand(@NonNull CrawlSessionBuilder crawlSessionBuilder) {
-        this.crawlSessionBuilder = crawlSessionBuilder;
-//        beanMapper = crawlSessionBuilder.mapperBuilderFactory().apply(
-//                crawlSessionBuilder.crawlerConfigClass()).build();
-        beanMapper = CrawlSessionConfigMapperFactory.create(
-                crawlSessionBuilder.crawlerConfigClass());
-
+    public MainCommand(@NonNull CrawlSessionImpl crawlSessionImpl) {
+        this.crawlSessionImpl = crawlSessionImpl;
+        var mapper = crawlSessionImpl.beanMapper();
+        if (mapper == null) {
+            mapper = CrawlSessionBeanMapperFactory.create(
+                    crawlSessionImpl.crawlerConfigClass());
+        }
+        beanMapper = mapper;
     }
 
-    CrawlSessionBuilder getCrawlSessionBuilder() {
-        return crawlSessionBuilder;
+    CrawlSessionImpl getCrawlSessionImpl() {
+        return crawlSessionImpl;
     }
     BeanMapper getBeanMapper() {
         return beanMapper;
@@ -114,7 +113,7 @@ public class MainCommand
         if (version) {
             spec.commandLine().getOut().println(
                     CrawlSession.getReleaseInfo(
-                            crawlSessionBuilder.crawlSessionConfig()));
+                            crawlSessionImpl.crawlSessionConfig()));
         }
         return 0;
     }

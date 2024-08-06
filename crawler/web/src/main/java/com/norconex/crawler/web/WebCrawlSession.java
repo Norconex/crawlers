@@ -19,10 +19,11 @@ import java.util.Optional;
 import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSessionBuilder;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.crawler.impl.WebCrawlerImplFactory;
+import com.norconex.crawler.web.util.Web;
 
 public class WebCrawlSession {
 
@@ -47,25 +48,21 @@ public class WebCrawlSession {
 
     public static int launch(String... args) {
         return CliLauncher.launch(
-                initCrawlSessionBuilder(
-                        CrawlSession.builder(),
-                        new CrawlSessionConfig()),
+                initCrawlSessionImpl(new CrawlSessionConfig()),
                 args);
     }
 
     public static CrawlSession createSession(
             CrawlSessionConfig sessionConfig) {
-        return initCrawlSessionBuilder(
-                CrawlSession.builder(),
+        return new CrawlSession(initCrawlSessionImpl(
                 Optional.ofNullable(sessionConfig)
-                    .orElseGet(CrawlSessionConfig::new))
-                .build();
+                    .orElseGet(CrawlSessionConfig::new)));
     }
 
-    // Return same builder, for chaining
-    static CrawlSessionBuilder initCrawlSessionBuilder(
-            CrawlSessionBuilder builder, CrawlSessionConfig sessionConfig) {
-        builder
+    static CrawlSessionImpl initCrawlSessionImpl(
+            CrawlSessionConfig sessionConfig) {
+        return CrawlSessionImpl
+            .builder()
             .crawlerConfigClass(WebCrawlerConfig.class)
             .crawlerFactory(
                 (sess, cfg) -> Crawler.builder()
@@ -74,9 +71,8 @@ public class WebCrawlSession {
                     .crawlerImpl(WebCrawlerImplFactory.create())
                     .build()
             )
+            .beanMapper(Web.beanMapper())
             .crawlSessionConfig(sessionConfig)
-            ;
-//            .mapperBuilderFactory(new WebBeanMapperBuilderFactory());
-        return builder;
+            .build();
     }
 }

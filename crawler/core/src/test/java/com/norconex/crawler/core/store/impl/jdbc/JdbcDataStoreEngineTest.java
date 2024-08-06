@@ -15,11 +15,11 @@
 package com.norconex.crawler.core.store.impl.jdbc;
 
 import java.net.MalformedURLException;
+import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.store.AbstractDataStoreEngineTest;
 import com.norconex.crawler.core.store.DataStoreEngine;
 
@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class JdbcDataStoreEngineTest extends AbstractDataStoreEngineTest {
-
 
     @Override
     protected DataStoreEngine createEngine() {
@@ -42,7 +41,7 @@ class JdbcDataStoreEngineTest extends AbstractDataStoreEngineTest {
             LOG.info("Creating new JDBC data store engine using: {}", connStr);
             var engine = new JdbcDataStoreEngine();
             var cfg = new Properties();
-            cfg.add("jdbcUrl", connStr);
+            cfg.setProperty("jdbcUrl", connStr);
             engine.getConfiguration().setProperties(cfg);
             return engine;
         } catch (MalformedURLException e) {

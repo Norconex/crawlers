@@ -17,8 +17,8 @@ package com.norconex.crawler.core.session;
 //Mainly exists to provide access to internal methods/properties
 public class MockCrawlSession extends CrawlSession {
 
-    public MockCrawlSession(CrawlSessionBuilder builder) {
-        super(builder);
+    public MockCrawlSession(CrawlSessionImpl impl) {
+        super(impl);
     }
 
     public void sneakyInitCrawlSession() {

@@ -357,7 +357,7 @@ public class Crawler {
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
 
             //TODO ------ Queuing Start URLs --------------
-
+            clusterService.initQueue(null);
 
 
             //--- Queue initial references ---------------------------------

@@ -35,6 +35,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.pipeline.AbstractPipelineContext;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
+import com.norconex.crawler.core.session.CrawlSessionBeanMapperFactory;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.crawler.WebCrawlerContext;
 import com.norconex.crawler.web.doc.WebDocRecord;
@@ -48,10 +49,11 @@ public final class Web {
 
     private Web() {}
 
-    private static final BeanMapper BEAN_MAPPER = BeanMapper.builder()
-            .defaultPolymorphicType(CrawlerConfig.class, WebCrawlerConfig.class)
-            .unboundPropertyMapping("crawler", WebCrawlerMixIn.class)
-            .build();
+    private static final BeanMapper BEAN_MAPPER =
+            CrawlSessionBeanMapperFactory.create(
+                    WebCrawlerConfig.class, b ->
+                        b.unboundPropertyMapping(
+                                "crawler", WebCrawlerMixIn.class));
     private static class WebCrawlerMixIn {
         @JsonDeserialize(as = WebCrawlerConfig.class)
         private CrawlerConfig configuration;

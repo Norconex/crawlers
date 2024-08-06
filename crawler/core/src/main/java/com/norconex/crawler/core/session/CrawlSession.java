@@ -53,6 +53,7 @@ import com.norconex.crawler.core.stop.CrawlSessionStopper;
 import com.norconex.crawler.core.stop.impl.FileBasedStopper;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -102,23 +103,16 @@ public class CrawlSession {
     @Getter
     private final String instanceId;
 
-
-    public static CrawlSessionBuilder builder() {
-        return new CrawlSessionBuilder();
-    }
-
-
-    protected CrawlSession(CrawlSessionBuilder builder) {
+    public CrawlSession(@NonNull CrawlSessionImpl crawlSessionImpl) {
 
         instanceId = UUID.randomUUID().toString();
 
         //TODO clone config so modifications no longer apply?
-        crawlSessionConfig = Objects.requireNonNull(builder.crawlSessionConfig,
-                "'crawlSessionConfig' must not be null.");
-        eventManager = new EventManager(builder.eventManager);
-        crawlerFactory = Objects.requireNonNull(builder.crawlerFactory,
+        crawlSessionConfig = crawlSessionImpl.crawlSessionConfig;
+        eventManager = new EventManager(crawlSessionImpl.eventManager);
+        crawlerFactory = Objects.requireNonNull(crawlSessionImpl.crawlerFactory,
                 "'crawlerFactory' must not be null.");
-        stopper = Optional.ofNullable(builder.crawlSessionStopper)
+        stopper = Optional.ofNullable(crawlSessionImpl.crawlSessionStopper)
                 .orElseGet(FileBasedStopper::new);
 
         //TODO create crawlers from configs, same place it was done before (in initCrawlSession)

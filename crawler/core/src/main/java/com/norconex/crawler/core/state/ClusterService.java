@@ -29,7 +29,7 @@ import lombok.NonNull;
 
 public class ClusterService implements Closeable {
 
-    // just the state
+    // Only the cluster state.
     private static final String STATE_RECORD = "state";
     // when it last started, last ended, etc.
     private static final String META_RECORD = "meta";
@@ -40,8 +40,7 @@ public class ClusterService implements Closeable {
     private final Crawler crawler;
     private boolean open;
     // each row of global store is a different type of records
-    private DataStore<String> globalStore;
-    private DataStore<String> crawlersStore;
+    private DataStore<String> store;
 
     //TODO Do we instead wait for it to be requested with a min time buffer
     // instead of scheduling?
@@ -68,20 +67,31 @@ public class ClusterService implements Closeable {
             throw new IllegalStateException("Already open.");
         }
         var storeEngine = crawler.getDataStoreEngine();
-        globalStore = storeEngine.openStore(
+        store = storeEngine.openStore(
                 "cluster_global_state", String.class);
-        crawlersStore = storeEngine.openStore(
-                "cluster_crawlers_state", String.class);
 
         executor.scheduleAtFixedRate(() -> {
-            state = ClusterState.of(
-                    globalStore.find(STATE_RECORD).orElse(null));
+            state = ClusterState.of(store.find(STATE_RECORD).orElse(null));
             //TODO record an "alive" ping as the same time.
         }, 0, PING_INTERVAL, TimeUnit.MILLISECONDS);
 
     }
 
-    public ClusterState queueInit(Runnable runnable) {
+    /**
+     * Changes the state to {@link ClusterState#INIT_QUEUE} and
+     * start adding start references to the queue. If the state was already
+     * set by another crawler (in a cluster), do not process the start
+     * references and wait for the state to change before proceeding with
+     * the next state (crawling or stopping).
+     * @param runnable executed to initialize the queue
+     * @return the state after queue initialization was done by this
+     *     crawler or another one (in a cluster)
+     */
+    public ClusterState initQueue(Runnable runnable) {
+        //TODO check for expiry as well (part of wellness checks)
+        //TODO check current state first and act accordingly
+        store.save(STATE_RECORD, ClusterState.INIT_QUEUE.name());
+
 
         //TODO, hold the current thread until queue init is done
         // (which may be right away if async).

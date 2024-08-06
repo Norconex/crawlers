@@ -48,13 +48,13 @@ class CrawlSessionTest {
         sesCfg.setCrawlerConfigs(List.of(cc));
 
 
-        var ses = CrawlSession.builder()
+        var ses = new CrawlSession(CrawlSessionImpl.builder()
                 .crawlSessionConfig(sesCfg)
                 .crawlerFactory((session, cfg) -> Crawler.builder()
                         .crawlSession(session)
                         .crawlerConfig(cfg)
                         .build())
-                .build();
+                .build());
 
         ses.stop();
 

@@ -78,7 +78,6 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
     private final List<String> crawlers = new ArrayList<>();
 
     private CrawlSession crawlSession;
-//    private BeanMapper beanMapper;
 
     protected void printOut() {
         commandLine().getOut().println();
@@ -102,11 +101,8 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
         return parent.getBeanMapper();
      }
     protected CrawlSessionConfig getCrawlSessionConfig() {
-        return parent.getCrawlSessionBuilder().crawlSessionConfig();
+        return parent.getCrawlSessionImpl().crawlSessionConfig();
     }
-//    protected BeanMapper getBeanMapper() {
-//        return beanMapper;
-//    }
 
     protected abstract void runCommand();
 
@@ -116,15 +112,13 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
                     + getConfigFile().toFile().getAbsolutePath());
             return -1;
         }
-//
-//        beanMapper = beanMapper();
 
-        var returnValue = configLoader();
+        var returnValue = loadConfiguration();
         if (returnValue != 0) {
             return returnValue;
         }
 
-        crawlSession = parent.getCrawlSessionBuilder().build();
+        crawlSession = new CrawlSession(parent.getCrawlSessionImpl());
 
         return 0;
     }
@@ -139,7 +133,7 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
         return 0;
     }
 
-    private int configLoader() {
+    private int loadConfiguration() {
         var cfg = getCrawlSessionConfig();
         try {
             ConfigurationLoader.builder()

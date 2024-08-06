@@ -17,6 +17,7 @@ package com.norconex.crawler.core.store.impl.mvstore;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
@@ -57,8 +58,9 @@ public class MVStoreDataStore<T> implements DataStore<T> {
     }
 
     @Override
-    public void save(String id, @NonNull T object) {
-        map.put(id, SerialUtil.toJsonString(object));
+    public boolean save(String id, @NonNull T object) {
+        var newEntry = SerialUtil.toJsonString(object);
+        return !Objects.equals(newEntry, map.put(id, newEntry));
     }
 
     @Override

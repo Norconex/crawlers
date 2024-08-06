@@ -29,7 +29,7 @@ public enum ClusterState {
      * In a cluster, performed by at most one crawler while others are waiting
      * for the next actionable state.
      */
-    QUEUE_INIT,
+    INIT_QUEUE,
     /**
      * Processing URLs from the queue.
      * In a cluster, performed by any number of crawlers.

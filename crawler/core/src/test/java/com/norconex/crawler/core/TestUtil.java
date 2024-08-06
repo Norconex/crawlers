@@ -40,6 +40,7 @@ import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -169,14 +170,15 @@ public final class TestUtil {
 
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(() ->
                 CliLauncher.launch(
-                    CrawlSession.builder()
+                    CrawlSessionImpl.builder()
                         .crawlerConfigClass(CrawlerConfig.class)
                         .crawlerFactory((sess, cfg) -> Crawler.builder()
                             .crawlSession(sess)
                             .crawlerConfig(cfg)
                             .crawlerImpl(CoreStubber.crawlerImpl(cfg, refs))
                             .build())
-                        .crawlSessionConfig(crawlSessionConfig),
+                        .crawlSessionConfig(crawlSessionConfig)
+                        .build(),
                     cmdArgs));
         exit.setCode(captured.getReturnValue());
         exit.setStdOut(captured.getStdOut());
