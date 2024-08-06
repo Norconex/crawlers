@@ -4,7 +4,6 @@ on:
   pull_request:
     branches: [ main ]
 
-
 jobs:
   update-author:
     name: check copyright info
@@ -159,6 +158,7 @@ jobs:
           echo ""
 
       - name: Check git status
+        if: steps.check_dependabot.outputs.check == '0'
         run: git status
 
       - name: Upload Modified Files
