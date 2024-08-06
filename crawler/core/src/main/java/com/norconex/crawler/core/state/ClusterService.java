@@ -67,8 +67,7 @@ public class ClusterService implements Closeable {
             throw new IllegalStateException("Already open.");
         }
         var storeEngine = crawler.getDataStoreEngine();
-        store = storeEngine.openStore(
-                "cluster_global_state", String.class);
+        store = storeEngine.openStore("cluster", String.class);
 
         executor.scheduleAtFixedRate(() -> {
             state = ClusterState.of(store.find(STATE_RECORD).orElse(null));
@@ -80,9 +79,8 @@ public class ClusterService implements Closeable {
     /**
      * Changes the state to {@link ClusterState#INIT_QUEUE} and
      * start adding start references to the queue. If the state was already
-     * set by another crawler (in a cluster), do not process the start
-     * references and wait for the state to change before proceeding with
-     * the next state (crawling or stopping).
+     * set by another crawler (in a cluster), skip this step
+     * and wait for the state to change (or expire) before proceeding.
      * @param runnable executed to initialize the queue
      * @return the state after queue initialization was done by this
      *     crawler or another one (in a cluster)
@@ -90,7 +88,8 @@ public class ClusterService implements Closeable {
     public ClusterState initQueue(Runnable runnable) {
         //TODO check for expiry as well (part of wellness checks)
         //TODO check current state first and act accordingly
-        store.save(STATE_RECORD, ClusterState.INIT_QUEUE.name());
+        var modified = store.save(STATE_RECORD, ClusterState.INIT_QUEUE.name());
+        System.err.println("XXX modified: " + modified);
 
 
         //TODO, hold the current thread until queue init is done

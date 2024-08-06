@@ -244,11 +244,11 @@ public class JdbcDataStore<T> implements DataStore<T> {
         sqls.count = tabled("SELECT count(*) FROM <table>");
         sqls.createTable = tabled(settings.createTableSqlTemplate);
         sqls.delete = tabled("DELETE FROM <table> WHERE id = ?");
-        sqls.deleteFirst = tabled("SELECT id, json FROM <table> ORDER BY seq");
+        sqls.deleteFirst = tabled("SELECT id, data FROM <table> ORDER BY seq");
         sqls.exists = tabled("SELECT 1 FROM <table> WHERE id = ?");
-        sqls.find = tabled("SELECT id, json FROM <table> WHERE id = ?");
-        sqls.findFirst = tabled("SELECT id, json FROM <table> ORDER BY seq");
-        sqls.forEach = tabled("SELECT id, json FROM <table>");
+        sqls.find = tabled("SELECT id, data FROM <table> WHERE id = ?");
+        sqls.findFirst = tabled("SELECT id, data FROM <table> ORDER BY seq");
+        sqls.forEach = tabled("SELECT id, data FROM <table>");
         sqls.isEmpty = tabled("SELECT * FROM <table>");
         sqls.save = tabled(settings.upsertSqlTemplate);
     }
