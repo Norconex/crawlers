@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,19 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.session;
+package com.norconex.crawler.core.state;
 
-//Mainly exists to provide access to internal methods/properties
-public class MockCrawlSession extends CrawlSession {
+/**
+ * Represents the state of a crawler at any given type, along with related
+ * information.
+ */
+public class ClusterSnapshot {
 
-    public MockCrawlSession(CrawlSessionImpl impl) {
-        super(impl);
-    }
-
-    public void sneakyInitCrawlSession() {
-        initCrawlSession();
-    }
-    public void sneakyDestroyCrawlSession() {
-        destroyCrawlSession();
-    }
 }

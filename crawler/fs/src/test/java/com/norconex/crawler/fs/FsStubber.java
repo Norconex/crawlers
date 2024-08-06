@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import com.norconex.crawler.core.filter.OnMatch;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStore;
@@ -129,7 +130,7 @@ public final class FsStubber {
             FsTestUtil.getFirstCrawlerConfig(
                     sessionConfig).setStartReferences(List.of(startPaths));
         }
-        return CrawlSession.builder()
+        return new CrawlSession(CrawlSessionImpl.builder()
             .crawlerFactory((crawlSess, crawlerCfg) ->
                 Crawler.builder()
                     .crawlerConfig(crawlerCfg)
@@ -138,7 +139,7 @@ public final class FsStubber {
                     .build()
             )
             .crawlSessionConfig(sessionConfig)
-            .build();
+            .build());
     }
 
 

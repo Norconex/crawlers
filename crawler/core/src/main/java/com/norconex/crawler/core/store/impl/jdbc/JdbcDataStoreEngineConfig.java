@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.store.impl.jdbc;
 
-import com.norconex.commons.lang.map.Properties;
+import java.util.Properties;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -91,8 +91,13 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class JdbcDataStoreEngineConfig {
 
+    private String tablePrefix;
+    private JdbcDialect dialect;
+    private String createTableSql;
+    private String upsertSql;
+
     private Properties properties = new Properties();
-    private String varcharType;
-    private String timestampType;
-    private String textType;
+//    private String varcharType;
+//    private String timestampType;
+//    private String textType;
 }

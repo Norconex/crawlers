@@ -16,6 +16,7 @@ package com.norconex.crawler.web.crawler;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
@@ -50,10 +51,13 @@ import lombok.extern.slf4j.Slf4j;
 public class UrlCrawlScopeStrategy extends CrawlerLifeCycleListener implements
         Configurable<UrlCrawlScopeStrategyConfig> {
 
+
     @Getter
-    private final UrlCrawlScopeStrategyConfig configuration =
+    private UrlCrawlScopeStrategyConfig configuration =
             new UrlCrawlScopeStrategyConfig();
 
+
+    @JsonIgnore
     private WebCrawlerContext crawlerContext;
 
     @Override
