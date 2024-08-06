@@ -160,11 +160,11 @@ jobs:
           echo ""
 
       - name: Check git status
-        if: steps.check_dependabot.outputs.check == '1'
+        if: steps.check_dependabot.outputs.check == '0'
         run: git status
 
       - name: Upload Modified Files
-        if: steps.check_dependabot.outputs.check == '0'
+        if: steps.check_dependabot.outputs.check == '1'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Apply Copyright year changes
