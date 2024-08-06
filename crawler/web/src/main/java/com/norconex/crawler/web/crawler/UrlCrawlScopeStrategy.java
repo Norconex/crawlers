@@ -135,12 +135,4 @@ public class UrlCrawlScopeStrategy extends CrawlerLifeCycleListener implements
         return sitemapPresence == SitemapPresence.PRESENT;
 
     }
-
-    public WebCrawlerContext getCrawlerContext() {
-        return crawlerContext;
-    }
-
-    public void setCrawlerContext(WebCrawlerContext crawlerContext) {
-        this.crawlerContext = crawlerContext;
-    }
 }
