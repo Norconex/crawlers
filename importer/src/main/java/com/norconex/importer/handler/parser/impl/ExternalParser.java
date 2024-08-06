@@ -16,6 +16,7 @@ package com.norconex.importer.handler.parser.impl;
 
 import java.io.IOException;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.DocContext;
@@ -109,6 +110,7 @@ public class ExternalParser
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private final ExternalTransformer t = new ExternalTransformer();
     private final ExternalTransformerConfig configuration =
             t.getConfiguration();
