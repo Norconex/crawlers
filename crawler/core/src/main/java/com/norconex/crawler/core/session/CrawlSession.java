@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -51,6 +52,8 @@ import com.norconex.crawler.core.monitor.MdcUtil;
 import com.norconex.crawler.core.stop.CrawlSessionStopper;
 import com.norconex.crawler.core.stop.impl.FileBasedStopper;
 
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -97,21 +100,19 @@ public class CrawlSession {
 
     private final CrawlSessionStopper stopper;
 
+    @Getter
+    private final String instanceId;
 
-    public static CrawlSessionBuilder builder() {
-        return new CrawlSessionBuilder();
-    }
+    public CrawlSession(@NonNull CrawlSessionImpl crawlSessionImpl) {
 
-
-    protected CrawlSession(CrawlSessionBuilder builder) {
+        instanceId = UUID.randomUUID().toString();
 
         //TODO clone config so modifications no longer apply?
-        crawlSessionConfig = Objects.requireNonNull(builder.crawlSessionConfig,
-                "'crawlSessionConfig' must not be null.");
-        eventManager = new EventManager(builder.eventManager);
-        crawlerFactory = Objects.requireNonNull(builder.crawlerFactory,
+        crawlSessionConfig = crawlSessionImpl.crawlSessionConfig;
+        eventManager = new EventManager(crawlSessionImpl.eventManager);
+        crawlerFactory = Objects.requireNonNull(crawlSessionImpl.crawlerFactory,
                 "'crawlerFactory' must not be null.");
-        stopper = Optional.ofNullable(builder.crawlSessionStopper)
+        stopper = Optional.ofNullable(crawlSessionImpl.crawlSessionStopper)
                 .orElseGet(FileBasedStopper::new);
 
         //TODO create crawlers from configs, same place it was done before (in initCrawlSession)

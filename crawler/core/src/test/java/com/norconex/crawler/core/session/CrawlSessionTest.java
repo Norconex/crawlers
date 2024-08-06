@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,13 +48,13 @@ class CrawlSessionTest {
         sesCfg.setCrawlerConfigs(List.of(cc));
 
 
-        var ses = CrawlSession.builder()
+        var ses = new CrawlSession(CrawlSessionImpl.builder()
                 .crawlSessionConfig(sesCfg)
                 .crawlerFactory((session, cfg) -> Crawler.builder()
                         .crawlSession(session)
                         .crawlerConfig(cfg)
                         .build())
-                .build();
+                .build());
 
         ses.stop();
 

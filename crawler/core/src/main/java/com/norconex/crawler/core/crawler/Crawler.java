@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionException;
+import com.norconex.crawler.core.state.ClusterService;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreExporter;
@@ -147,6 +148,9 @@ public class Crawler {
 
     @Getter
     private CrawlDocRecordService docRecordService;
+
+    @Getter
+    private ClusterService clusterService;
 
 
     //--- Properties set on Start ----------------------------------------------
@@ -280,6 +284,7 @@ public class Crawler {
         //--- Store engine ---
         dataStoreEngine = configuration.getDataStoreEngine();
         dataStoreEngine.init(this);
+        clusterService = new ClusterService(this);
         docRecordService = new CrawlDocRecordService(
                 this, crawlerImpl.crawlDocRecordType());
 
@@ -293,6 +298,8 @@ public class Crawler {
                 .build();
         committerService.init(committerContext);
 
+        //--- Open Services ---
+        clusterService.open();
         var resuming = docRecordService.open();
 
         if (initAction != null) {
@@ -348,6 +355,10 @@ public class Crawler {
             });
 
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
+
+            //TODO ------ Queuing Start URLs --------------
+            clusterService.initQueue(null);
+
 
             //--- Queue initial references ---------------------------------
             //TODO if we resume, shall we not queue again? What if it stopped
@@ -574,6 +585,8 @@ public class Crawler {
     void destroyCrawler() {
         ofNullable(docRecordService).ifPresent(
                 CrawlDocRecordService::close);
+        ofNullable(clusterService).ifPresent(
+                ClusterService::close);
         ofNullable(dataStoreEngine).ifPresent(DataStoreEngine::close);
 
         //TODO shall we clear crawler listeners, or leave to collector impl

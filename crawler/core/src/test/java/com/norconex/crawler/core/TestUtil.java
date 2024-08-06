@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -169,14 +170,15 @@ public final class TestUtil {
 
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(() ->
                 CliLauncher.launch(
-                    CrawlSession.builder()
+                    CrawlSessionImpl.builder()
                         .crawlerConfigClass(CrawlerConfig.class)
                         .crawlerFactory((sess, cfg) -> Crawler.builder()
                             .crawlSession(sess)
                             .crawlerConfig(cfg)
                             .crawlerImpl(CoreStubber.crawlerImpl(cfg, refs))
                             .build())
-                        .crawlSessionConfig(crawlSessionConfig),
+                        .crawlSessionConfig(crawlSessionConfig)
+                        .build(),
                     cmdArgs));
         exit.setCode(captured.getReturnValue());
         exit.setStdOut(captured.getStdOut());

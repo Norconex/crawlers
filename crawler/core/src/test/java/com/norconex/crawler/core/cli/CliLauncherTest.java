@@ -30,9 +30,9 @@ import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.core.session.CrawlSessionEvent;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine.PicocliException;
@@ -82,11 +82,11 @@ class CliLauncherTest {
 
         // Simulate Picocli Exception
         var captured = SystemUtil.callAndCaptureOutput(() -> CliLauncher.launch(
-                CrawlSession.builder()
+                CrawlSessionImpl.builder()
                     .crawlSessionConfig(new CrawlSessionConfig())
                     .crawlerFactory((s, c) -> {
                             throw new PicocliException("Fake exception.");
-                    }),
+                    }).build(),
                 "clean", "-config=" + configFile));
         assertThat(captured.getReturnValue()).isNotZero();
         assertThat(captured.getStdErr()).contains(

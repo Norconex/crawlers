@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,8 @@ import com.norconex.crawler.core.pipeline.importer.MockImporterPipeline;
 import com.norconex.crawler.core.pipeline.queue.MockQueueInitializer;
 import com.norconex.crawler.core.pipeline.queue.MockQueuePipeline;
 import com.norconex.crawler.core.processor.DocumentProcessor;
-import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionImpl;
 import com.norconex.crawler.core.session.MockCrawlSession;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
@@ -247,7 +247,8 @@ public final class CoreStubber {
             String... startReferences) {
 
         return new MockCrawlSession(
-                CrawlSession.builder()
+                CrawlSessionImpl
+                .builder()
                 .crawlerFactory((crawlSess, crawlerCfg) -> Crawler.builder()
                         .crawlSession(crawlSess)
                         .crawlerConfig(crawlerCfg)
@@ -257,6 +258,7 @@ public final class CoreStubber {
                                 startReferences))
                         .build())
                 .crawlSessionConfig(crawlSessionConfig(workDir))
+                .build()
         );
     }
 
