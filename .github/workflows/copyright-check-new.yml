@@ -2,9 +2,7 @@ name: Check CopyRight Info on Files
 
 on:  
   pull_request:
-    branches: [ bug/not-git-repo ]
-  push:
-    branches: [ bug/not-git-repo ]
+    branches: [ main ]
 
 
 jobs:
