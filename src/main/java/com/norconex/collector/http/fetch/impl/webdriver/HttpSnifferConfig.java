@@ -24,6 +24,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.commons.lang.EqualsUtil;
+import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
@@ -35,6 +36,7 @@ import com.norconex.commons.lang.xml.XML;
  *
  * {@nx.xml.usage
  * <port>(default is 0 = random free port)</port>
+ * <host>(default is "localhost")</host>
  * <userAgent>(optionally overwrite browser user agent)</userAgent>
  * <maxBufferSize>
  *   (Maximum byte size before a request/response content is considered
@@ -45,6 +47,10 @@ import com.norconex.commons.lang.xml.XML;
  *   <!-- You can repeat this header tag as needed. -->
  *   <header name="(header name)">(header value)</header>
  * </headers>
+ * <!-- Optional chained proxy -->
+ * <chainedProxy>
+ *   {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
+ * </chainedProxy>
  * }
  *
  * <p>
@@ -63,15 +69,34 @@ public class HttpSnifferConfig implements IXMLConfigurable {
             DataUnit.MB.toBytes(10).intValue();
 
     private int port;
+    private String host;
     private String userAgent;
     private final Map<String, String> requestHeaders = new HashMap<>();
     private int maxBufferSize = DEFAULT_MAX_BUFFER_SIZE;
+    private final ProxySettings chainedProxy = new ProxySettings();
 
     public int getPort() {
         return port;
     }
     public void setPort(int port) {
         this.port = port;
+    }
+    /**
+     * Gets the host name passed to the browser pointing to the sniffer proxy.
+     * Defaults to "localhost".
+     * @return host name
+     * @since 3.1.0
+     */
+    public String getHost() {
+        return host;
+    }
+    /**
+     * Sets the host name passed to the browser pointing to the sniffer proxy.
+     * @param host host name
+     * @since 3.1.0
+     */
+    public void setHost(String host) {
+        this.host = host;
     }
     public String getUserAgent() {
         return userAgent;
@@ -94,25 +119,48 @@ public class HttpSnifferConfig implements IXMLConfigurable {
         this.maxBufferSize = maxBufferSize;
     }
 
+    /**
+     * Gets chained proxy settings, if any. That is, when the sniffer proxy
+     * has to itself use a proxy.
+     * @return chained proxy settings
+     * @since 3.1.0
+     */
+    public ProxySettings getChainedProxy() {
+        return chainedProxy;
+    }
+    /**
+     * Sets chained proxy settings, if any. That is, when the sniffer proxy
+     * has to itself use a proxy.
+     * @param chainedProxy chained proxy settings
+     * @since 3.1.0
+     */
+    public void setChainedProxy(ProxySettings chainedProxy) {
+        this.chainedProxy.copyFrom(chainedProxy);
+    }
+
     @Override
     public void loadFromXML(XML xml) {
         setPort(xml.getInteger("port", getPort()));
+        setHost(xml.getString("host", getHost()));
         setUserAgent(xml.getString("userAgent", getUserAgent()));
         setMaxBufferSize(xml.getDataSize(
                 "maxBufferSize", (long) getMaxBufferSize()).intValue());
         setRequestHeaders(xml.getStringMap(
                 "headers/header", "@name", ".", requestHeaders));
+        xml.ifXML("chainedProxy", x -> chainedProxy.loadFromXML(x));
     }
     @Override
     public void saveToXML(XML xml) {
         xml.addElement("port", port);
+        xml.addElement("host", host);
         xml.addElement("userAgent", userAgent);
         xml.addElement("maxBufferSize", maxBufferSize);
-        XML xmlHeaders = xml.addXML("headers");
+        var xmlHeaders = xml.addXML("headers");
         for (Entry<String, String> entry : requestHeaders.entrySet()) {
             xmlHeaders.addXML("header").setAttribute(
                     "name", entry.getKey()).setTextContent(entry.getValue());
         }
+        chainedProxy.saveToXML(xml.addElement("chainedProxy"));
     }
 
     @Override
@@ -120,7 +168,7 @@ public class HttpSnifferConfig implements IXMLConfigurable {
         if (!(obj instanceof HttpSnifferConfig)) {
             return false;
         }
-        HttpSnifferConfig other = (HttpSnifferConfig) obj;
+        var other = (HttpSnifferConfig) obj;
         return EqualsBuilder.reflectionEquals(
                 this, other, "requestHeaders")
                 && EqualsUtil.equalsMap(requestHeaders, other.requestHeaders);
