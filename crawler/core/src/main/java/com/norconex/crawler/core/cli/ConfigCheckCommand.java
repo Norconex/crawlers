@@ -28,6 +28,6 @@ public class ConfigCheckCommand extends AbstractSubCommand {
     public void runCommand() {
         // Reaching this method means no errors were found. Simply state so.
         printOut();
-        printOut("No XML configuration errors detected.");
+        printOut("No configuration errors detected.");
     }
 }

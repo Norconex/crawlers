@@ -93,7 +93,8 @@ class CrawlerThread implements Runnable {
                 .orphan(orphan);
         try {
             if (isMaxDocsReached()) {
-                crawler.stop();
+//                crawler.stop();
+                crawler.getService().stop();
                 return false;
             }
 
@@ -122,7 +123,8 @@ class CrawlerThread implements Runnable {
                             crawler, ctx.doc()));
         } catch (RuntimeException e) {
             if (handleExceptionAndCheckIfStopCrawler(ctx, e)) {
-                crawler.stop();
+//                crawler.stop();
+                crawler.getService().stop();
                 return false;
             }
         } finally {

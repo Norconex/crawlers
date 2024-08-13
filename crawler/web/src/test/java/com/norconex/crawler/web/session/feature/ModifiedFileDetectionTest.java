@@ -58,7 +58,7 @@ class ModifiedFileDetectionTest {
 
         // First run is all new, so 4 docs
         whenLastModified(client, 0);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isEqualTo(4);
         mem.clean();
 
@@ -78,11 +78,11 @@ class ModifiedFileDetectionTest {
         //     content, and since content has also changed, we flag it
         //     as modified.
         whenLastModified(client, 1);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isEqualTo(1);
         mem.clean();
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 
     private void whenLastModified(

@@ -41,6 +41,6 @@ public class StoreExportCommand extends AbstractSubCommand {
 
     @Override
     public void runCommand() {
-        getCrawlSession().exportDataStore(dir);
+        getCrawlSessionService().exportDataStore(dir);
     }
 }

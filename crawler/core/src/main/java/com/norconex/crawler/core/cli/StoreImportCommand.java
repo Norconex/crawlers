@@ -40,6 +40,6 @@ public class StoreImportCommand extends AbstractSubCommand {
 
     @Override
     public void runCommand() {
-        getCrawlSession().importDataStore(inFiles);
+        getCrawlSessionService().importDataStore(inFiles);
     }
 }

@@ -90,8 +90,8 @@ public class TestFsCrawlSession {
     public MemoryCommitter crawl() {
         var crawlSession = crawlSession();
         try {
-            crawlSession.start();
-            while (crawlSession.isRunning()) {
+            crawlSession.getService().start();
+            while (crawlSession.isInstanceRunning()) {
                 Sleeper.sleepSeconds(1);
             }
             return FsTestUtil.getFirstMemoryCommitter(crawlSession);

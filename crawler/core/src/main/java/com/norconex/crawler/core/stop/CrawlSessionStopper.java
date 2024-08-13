@@ -19,12 +19,13 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * <p>
  * Responsible for shutting down a crawl session upon explicit invocation
- * of {@link #fireStopRequest(CrawlSession)} or when specific conditions are met.
+ * of {@link #fireStopRequest(CrawlSession)} or when specific conditions are
+ * met.
  * See concrete implementation for what those conditions could be.
  * </p>
  * <p>
- * A stop request can typically be triggered from another JVM (see concrete
- * implementation details).
+ * Stop requests are typically triggered from another JVM (see concrete
+ * implementation details) and possibly from a different server (in a cluster).
  * </p>
  */
 public interface CrawlSessionStopper {

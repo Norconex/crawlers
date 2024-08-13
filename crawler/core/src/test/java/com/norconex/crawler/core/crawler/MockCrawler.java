@@ -33,10 +33,15 @@ public class MockCrawler extends Crawler {
     }
 
     public void sneakyInitCrawler() {
-        initCrawler(null);
+        getService().initCrawlerStores();
+        initCrawler();
+
+        // Make default access scope if needed:
+        // initCrawlerForStart(false);
     }
     public void sneakyDestroyCrawler() {
         destroyCrawler();
+        getService().destroy();
     }
 
     @Override

@@ -61,7 +61,7 @@ class JavaScriptProtocolURLTest {
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
         assertThatNoException().isThrownBy(() -> {
-            crawlSession.start();
+            crawlSession.getService().start();
         });
 
         assertThat(mem.getUpsertRequests())
@@ -70,6 +70,6 @@ class JavaScriptProtocolURLTest {
                     serverUrl(client, firstPath),
                     serverUrl(client, secondPath));
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 }

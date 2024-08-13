@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -56,11 +57,7 @@ import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionException;
-import com.norconex.crawler.core.state.ClusterService;
 import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.core.store.DataStoreExporter;
-import com.norconex.crawler.core.store.DataStoreImporter;
 import com.norconex.importer.Importer;
 import com.norconex.importer.response.ImporterResponse;
 
@@ -70,6 +67,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * <p>Abstract crawler implementation providing a common base to building
@@ -144,13 +142,13 @@ public class Crawler {
     private Object crawlerContext;
 
     @Getter
-    private DataStoreEngine dataStoreEngine;
+    private CrawlerDataStoreEngine crawlerDataStoreEngine;
 
     @Getter
     private CrawlDocRecordService docRecordService;
 
     @Getter
-    private ClusterService clusterService;
+    private CrawlerService service;
 
 
     //--- Properties set on Start ----------------------------------------------
@@ -186,8 +184,12 @@ public class Crawler {
     //
     private final MutableInt resumableMaxDocuments = new MutableInt();
 
+    @Getter
+    private String instanceId;
+
     //--- Properties set on Stop -----------------------------------------------
 
+    private boolean stopping;
     private boolean stopped;
 
     @Builder
@@ -195,14 +197,25 @@ public class Crawler {
             @NonNull CrawlSession crawlSession,
             @NonNull CrawlerConfig crawlerConfig,
             @NonNull CrawlerImpl crawlerImpl) {
+        instanceId = UUID.randomUUID().toString();
         this.crawlSession = crawlSession;
         configuration = crawlerConfig;
         this.crawlerImpl = crawlerImpl;
+        stopping = false;
+        stopped = false;
+
 
         if (StringUtils.isBlank(getId())) {
             throw new CrawlerException("Crawler must be given "
                     + "a unique identifier (id).");
         }
+
+        workDir = crawlSession.getWorkDir().resolve(
+                FileUtil.toSafeFileName(getId()));
+        tempDir = workDir.resolve("temp");
+
+        crawlerDataStoreEngine = new CrawlerDataStoreEngine(this);
+        service = new CrawlerService(this);
 
         committerService = CommitterService.<CrawlDoc>builder()
                 .committers(crawlerConfig.getCommitters())
@@ -216,9 +229,10 @@ public class Crawler {
                         doc.getMetadata()))
                 .build();
 
-        workDir = crawlSession.getWorkDir().resolve(
-                FileUtil.toSafeFileName(getId()));
-        tempDir = workDir.resolve("temp");
+        importer = new Importer(
+                configuration.getImporterConfig(),
+                getEventManager());
+
     }
 
     //--- Set at construction --------------------------------------------------
@@ -266,8 +280,8 @@ public class Crawler {
     }
 
     // invoked as the first thing for every commands.
-    boolean initCrawler(Runnable initAction) {
-        // Ensure clean slate by either replacing or clearing and adding back
+    boolean initCrawler() {
+        // Ensure1 clean slate by either replacing or clearing and adding back
 
         Thread.currentThread().setName(getId());
         MdcUtil.setCrawlerId(getId());
@@ -279,12 +293,11 @@ public class Crawler {
         //--- Crawler implementation-specific context ---
         crawlerContext = crawlerImpl.crawlerImplContext().get();
 
-        fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+//        fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
 
         //--- Store engine ---
-        dataStoreEngine = configuration.getDataStoreEngine();
-        dataStoreEngine.init(this);
-        clusterService = new ClusterService(this);
+//        dataStoreEngine = configuration.getDataStoreEngine();
+//        dataStoreEngine.init(this);
         docRecordService = new CrawlDocRecordService(
                 this, crawlerImpl.crawlDocRecordType());
 
@@ -298,99 +311,64 @@ public class Crawler {
                 .build();
         committerService.init(committerContext);
 
-        //--- Open Services ---
-        clusterService.open();
-        var resuming = docRecordService.open();
 
-        if (initAction != null) {
-            initAction.run();
-        }
 
-        fire(CrawlerEvent.CRAWLER_INIT_END);
-        return resuming;
+//        if (initAction != null) {
+//            initAction.run();
+//        }
+
+//        fire(CrawlerEvent.CRAWLER_INIT_END);
+        return docRecordService.open();
     }
 
+    //--- Life-cycle/action methods --------------------------------------------
+    // Not public. Invoked from CrawlerService public equivalent.
+
     /**
-     * Starts crawling.
+     * START:
+     * Do not invoked directly, use {@link CrawlerService#start()}.
      */
-    public void start() {
-        var resume = new MutableBoolean();
+    void start() {
         try {
-            initCrawler(() -> {
-                resume.setValue(docRecordService.prepareForCrawlerStart());
-                importer = new Importer(
-                        getConfiguration().getImporterConfig(),
-                        getEventManager());
-                monitor = new CrawlerMonitor(this);
-                //TODO make general logging messages verbosity configurable
-                progressLogger = new CrawlProgressLogger(monitor,
-                        getConfiguration().getMinProgressLoggingInterval());
-                progressLogger.startTracking();
-                if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
-                    CrawlerMonitorJMX.register(this);
-                }
+            //TODO check current state first and act accordingly (e.g., join
+            // an already crawling cluster?)
 
-                logContextInfo();
 
-                fetcher = crawlerImpl.fetcherProvider().apply(this);
-                dedupMetadataStore = resolveMetaDedupStore();
-                dedupDocumentStore = resolveDocumentDedupStore();
+            //--- Initialize ---
+            fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+            var resume = initCrawler();
 
-                Optional.ofNullable(crawlerImpl.beforeCrawlerExecution)
-                        .ifPresent(c -> c.accept(this, resume.getValue()));
+            service.onSingleInstance(
+                    CrawlerState.INIT_DOC_STORES,
+                    () -> docRecordService.reset(resume));
+            if (stopping) {
+                return;
+            }
 
-                // max documents
-                var cfgMaxDocs = getConfiguration().getMaxDocuments();
-                var resumeMaxDocs = cfgMaxDocs;
-                if (cfgMaxDocs > -1 && resume.booleanValue()) {
-                    resumeMaxDocs += monitor.getProcessedCount();
-                    LOG.info("""
-                        Adding configured maximum documents ({})\s\
-                        to this resumed session. The combined maximum\s\
-                        documents for this run before stopping: {}
-                        """,
-                        cfgMaxDocs, resumeMaxDocs);
-                }
-                resumableMaxDocuments.setValue(resumeMaxDocs);
-            });
+            initCrawlerForStart(resume);
+            service.onSingleInstance(
+                    CrawlerState.INIT_QUEUE,
+                    () -> initReferenceQueue(resume));
+            if (stopping) {
+                return;
+            }
+
+            fire(CrawlerEvent.CRAWLER_INIT_END);
+
+            //--- Ready to crawl ---
 
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
 
-            //TODO ------ Queuing Start URLs --------------
-            clusterService.initQueue(null);
+            service.onAllInstances(CrawlerState.CRAWLING, () -> crawl(resume));
 
-
-            //--- Queue initial references ---------------------------------
-            //TODO if we resume, shall we not queue again? What if it stopped
-            // in the middle of initial queuing, then to be safe we have to
-            // queue again and expect that those that were already processed
-            // will simply be ignored (default behavior).
-            // Consider persisting a flag that would tell us if we are resuming
-            // with an incomplete queue initialization, or make initialization
-            // more sophisticated so we can resume in the middle of it
-            // (this last option would likely be very impractical).
-            LOG.info("Queueing initial references...");
-            queueInitialized = ofNullable(crawlerImpl.queueInitializer())
-                .map(qizer -> qizer.apply(new CrawlerImpl.QueueInitContext(
-                        Crawler.this, resume.getValue(), rec ->
-                                crawlerImpl.queuePipeline().accept(
-                                        new DocRecordPipelineContext(
-                                                Crawler.this, rec)))))
-                .orElse(new MutableBoolean(true));
-
-            //--- Process start/queued references ------------------------------
-
-            LOG.info("Crawling references...");
-            processReferences(new ProcessFlags());
-
-            if (!isStopped()) {
-                handleOrphans();
+            if (stopping) {
+                stopped = true;
+                fire(CrawlerEvent.CRAWLER_STOP_END);
             }
-
-            fire((isStopped()
-                    ? CrawlerEvent.CRAWLER_STOP_END
-                    : CrawlerEvent.CRAWLER_RUN_END));
+            fire(CrawlerEvent.CRAWLER_RUN_END);
             LOG.info("Crawler {}", (isStopped() ? "stopped." : "completed."));
+
+            //TODO maybe do onSingleInstance finalize store or else?
         } finally {
             try {
                 Optional.ofNullable(crawlerImpl.afterCrawlerExecution)
@@ -408,6 +386,96 @@ public class Crawler {
             }
             // Note: unregistering of JMX monitor bean is done in CrawlSession.
         }
+    }
+
+    //--- Misc. ----------------------------------------------------------------
+
+    private void initCrawlerForStart(boolean resume) {
+//        importer = new Importer(
+//                getConfiguration().getImporterConfig(),
+//                getEventManager());
+        monitor = new CrawlerMonitor(this);
+        //TODO make general logging messages verbosity configurable
+        progressLogger = new CrawlProgressLogger(monitor,
+                getConfiguration().getMinProgressLoggingInterval());
+        progressLogger.startTracking();
+        if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
+            CrawlerMonitorJMX.register(this);
+        }
+
+        logContextInfo();
+
+        fetcher = crawlerImpl.fetcherProvider().apply(this);
+        dedupMetadataStore = resolveMetaDedupStore();
+        dedupDocumentStore = resolveDocumentDedupStore();
+
+        Optional.ofNullable(crawlerImpl.beforeCrawlerExecution)
+                .ifPresent(c -> c.accept(this, resume));
+
+        // max documents
+        var cfgMaxDocs = getConfiguration().getMaxDocuments();
+        var resumeMaxDocs = cfgMaxDocs;
+        if (cfgMaxDocs > -1 && resume) {
+            resumeMaxDocs += monitor.getProcessedCount();
+            LOG.info("""
+                Adding configured maximum documents ({})\s\
+                to this resumed session. The combined maximum\s\
+                documents for this run before stopping: {}
+                """,
+                cfgMaxDocs, resumeMaxDocs);
+        }
+        resumableMaxDocuments.setValue(resumeMaxDocs);
+    }
+
+
+    private void initReferenceQueue(boolean resume) {
+        //--- Queue initial references ---------------------------------
+        //TODO if we resume, shall we not queue again? What if it stopped
+        // in the middle of initial queuing, then to be safe we have to
+        // queue again and expect that those that were already processed
+        // will simply be ignored (default behavior).
+        // Consider persisting a flag that would tell us if we are resuming
+        // with an incomplete queue initialization, or make initialization
+        // more sophisticated so we can resume in the middle of it
+        // (this last option would likely be very impractical).
+        LOG.info("Queueing initial references...");
+        queueInitialized = ofNullable(crawlerImpl.queueInitializer())
+            .map(qizer -> qizer.apply(new CrawlerImpl.QueueInitContext(
+                    Crawler.this, resume, rec ->
+                            crawlerImpl.queuePipeline().accept(
+                                    new DocRecordPipelineContext(
+                                            Crawler.this, rec)))))
+            .orElse(new MutableBoolean(true));
+    }
+
+    private void crawl(boolean resume) {
+
+
+//        fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
+
+//        System.err.println("GLOBAL STATE: " + clusterService.getGlobalState());
+//        System.err.println("LOCAL STATE: " + clusterService.getLocalState());
+        //TODO for stopping, remove where we have the boolean instance
+        // and rely on cluster state instead that we can obtained pretty
+        // much anywhere.
+
+
+
+        //--- Process start/queued references ------------------------------
+
+        LOG.info("Crawling references...");
+        processReferences(new ProcessFlags());
+
+//        if (!service.isInstanceStopped()) { // how about stopping?
+        if (!stopping) {
+            handleOrphans();
+        }
+
+//        if (stopping || stopped) { //TODO do we have a use for "stopped"?
+//            fire(CrawlerEvent.CRAWLER_STOP_END);
+//        }
+//        fire(CrawlerEvent.CRAWLER_RUN_END);
+//        LOG.info("Crawler {}", (isStopped() ? "stopped." : "completed."));
     }
 
     void processReferences(final ProcessFlags flags) {
@@ -443,8 +511,16 @@ public class Crawler {
         }
     }
 
+//    /**
+//     * Whether this crawler instance is stopping.
+//     * @return <code>true</code> if stopping
+//     */
+//    public boolean isStopping() {
+//        return stopping;
+//    }
+    // needed?
     /**
-     * Whether the crawler job was stopped.
+     * Whether this crawler instance has stopped.
      * @return <code>true</code> if stopped
      */
     public boolean isStopped() {
@@ -454,9 +530,12 @@ public class Crawler {
     /**
      * Stops a running crawler.
      */
-    public void stop() {
+    void stop() {
+//        fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+//        initCrawler();  // why? don't do this here.
+//        fire(CrawlerEvent.CRAWLER_INIT_END);
         fire(CrawlerEvent.CRAWLER_STOP_BEGIN);
-        stopped = true;
+        stopping = true;
         LOG.info("Stopping the crawler.");
     }
 
@@ -465,7 +544,9 @@ public class Crawler {
      * being as if the crawler was run for the first time.
      */
     public void clean() {
-        initCrawler(null);
+        fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+        initCrawler();
+        fire(CrawlerEvent.CRAWLER_INIT_END);
         getEventManager().fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CLEAN_BEGIN)
                 .source(this)
@@ -473,7 +554,7 @@ public class Crawler {
                 .build());
         try {
             committerService.clean();
-            dataStoreEngine.clean();
+//            dataStoreEngine.clean();
             destroyCrawler();
             FileUtils.deleteDirectory(getWorkDir().toFile());
             getEventManager().fire(CrawlerEvent.builder()
@@ -561,33 +642,12 @@ public class Crawler {
         return isMax;
     }
 
-    public void importDataStore(Path inFile) {
-        initCrawler(null);
-        try {
-            DataStoreImporter.importDataStore(this, inFile);
-        } catch (IOException e) {
-            throw new CrawlerException("Could not import data store.", e);
-        } finally {
-            destroyCrawler();
-        }
-    }
-    public Path exportDataStore(Path dir) {
-        initCrawler(null);
-        try {
-            return DataStoreExporter.exportDataStore(this, dir);
-        } catch (IOException e) {
-            throw new CrawlerException("Could not export data store.", e);
-        } finally {
-            destroyCrawler();
-        }
-    }
-
     void destroyCrawler() {
         ofNullable(docRecordService).ifPresent(
                 CrawlDocRecordService::close);
-        ofNullable(clusterService).ifPresent(
-                ClusterService::close);
-        ofNullable(dataStoreEngine).ifPresent(DataStoreEngine::close);
+//        ofNullable(service).ifPresent(
+//                CrawlerService::close);
+//        ofNullable(crawlerDataStoreEngine).ifPresent(DataStoreEngine::close);
 
         //TODO shall we clear crawler listeners, or leave to collector impl
         // to clean all?
@@ -599,7 +659,7 @@ public class Crawler {
     private DataStore<String> resolveMetaDedupStore() {
         if (configuration.isMetadataDeduplicate()
                 && configuration.getMetadataChecksummer() != null) {
-            return getDataStoreEngine().openStore(
+            return crawlerDataStoreEngine.openCrawlerStore(
                     "dedup-metadata", String.class);
         }
         return null;
@@ -608,7 +668,7 @@ public class Crawler {
     private DataStore<String> resolveDocumentDedupStore() {
         if (configuration.isDocumentDeduplicate()
                 && configuration.getDocumentChecksummer() != null) {
-            return getDataStoreEngine().openStore(
+            return crawlerDataStoreEngine.openCrawlerStore(
                     "dedup-document", String.class);
         }
         return null;

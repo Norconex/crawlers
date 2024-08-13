@@ -30,7 +30,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CoreStubber;
+import com.norconex.crawler.core.CoreStubber2;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
 import com.norconex.crawler.core.filter.OnMatch;
@@ -62,15 +62,30 @@ class StopCrawlerOnMaxEventListenerTest {
             int expectedUpserts) {
         // prefixing with number to ensure they are retreived in same order
         //MAYBE: ensure crawl store behave like a FIFO queue?
-        var crawlSession = CoreStubber.crawlSession(tempDir,
+//        var crawlSession = CoreStubber.crawlSession(tempDir,
+//                "1-mock:reject-1",
+//                "2-mock:upsert-1",
+//                "3-mock:reject-2",
+//                "4-mock:upsert-2",
+//                "5-mock:upsert-3",
+//                "6-mock:reject-3",
+//                "7-mock:upsert-4");
+
+
+        var sessionCfg = CoreStubber2.crawlSessionConfig(tempDir);
+        var crawlerCfg = sessionCfg.getCrawlerConfigs().get(0);
+        crawlerCfg.setStartReferences(List.of(
                 "1-mock:reject-1",
                 "2-mock:upsert-1",
                 "3-mock:reject-2",
                 "4-mock:upsert-2",
                 "5-mock:upsert-3",
                 "6-mock:reject-3",
-                "7-mock:upsert-4");
-        var crawlerCfg = TestUtil.getFirstCrawlerConfig(crawlSession);
+                "7-mock:upsert-4"
+        ));
+
+
+        var crawlSession = CoreStubber2.crawlSession(tempDir, sessionCfg);
 
         var listener = new StopCrawlerOnMaxEventListener();
         listener.getConfiguration()
@@ -85,7 +100,7 @@ class StopCrawlerOnMaxEventListenerTest {
             .setOnMatch(OnMatch.EXCLUDE);
         crawlerCfg.setDocumentFilters(List.of(filter));
 
-        crawlSession.start();
+        crawlSession.getService().start();
 
         var mem = TestUtil.getFirstMemoryCommitter(crawlSession);
 

@@ -108,7 +108,7 @@ class StayOnSitemapTest {
 
 
         mockServer(client);
-        crawlSession.start();
+        crawlSession.getService().start();
 
         referrers.forEach(ref -> System.out.println("ref: " + ref));
 

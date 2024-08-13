@@ -14,24 +14,27 @@
  */
 package com.norconex.crawler.core.crawler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.crawler.CrawlerImpl.CrawlerImplBuilder;
+import com.norconex.crawler.core.crawler.CrawlerImpl.QueueInitContext;
+import com.norconex.crawler.core.doc.CrawlDocRecord;
 
 class CrawlerImplTest {
 
     @TempDir
     private Path tempDir;
 
-    //TODO Migrate this:
-
-    /*
     @Test
     void testQueueInitContext() {
         var docRec1 = CoreStubber.crawlDocRecord("ref1");
@@ -50,7 +53,7 @@ class CrawlerImplTest {
 
         assertThat(actual).containsExactly(expected);
     }
-*/
+
     @Test
     void testConstructor() {
         assertThatNoException().isThrownBy(CrawlerImplBuilder::new);

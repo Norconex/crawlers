@@ -36,7 +36,7 @@ public class DocumentFiltersStage
         var atLeastOneIncludeMatch = false;
         for (DocumentFilter filter : filters) {
             var accepted = filter.acceptDocument(ctx.getDocument());
-
+System.err.println(ctx.getDocument().getReference() + " -> " + accepted);
             // Deal with includes
             if (isIncludeFilter(filter)) {
                 hasIncludes = true;

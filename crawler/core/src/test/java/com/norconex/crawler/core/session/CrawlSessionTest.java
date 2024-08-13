@@ -56,7 +56,7 @@ class CrawlSessionTest {
                         .build())
                 .build());
 
-        ses.stop();
+        ses.getService().stop();
 
         assertThat(ses.getId()).isEqualTo("sessionId");
         assertThat(CrawlSession.get()).isSameAs(ses);
@@ -103,7 +103,7 @@ class CrawlSessionTest {
 
         // Export
         var exportDir = tempDir.resolve("exportdir");
-        var exportFile = exportDir.resolve("test-crawler.zip");
+        var exportFile = exportDir.resolve(CoreStubber.MOCK_CRAWL_SESSION_ID + ".zip");
         crawlSession.exportDataStore(exportDir);
 
         // Clean

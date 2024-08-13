@@ -37,7 +37,7 @@ import com.mongodb.client.MongoDatabase;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.text.StringUtil;
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
@@ -76,11 +76,17 @@ public class MongoDataStoreEngine
     @Getter
     private MongoDataStoreEngineConfig configuration =
             new MongoDataStoreEngineConfig();
+
     @Override
-    public void init(Crawler crawler) {
+    public boolean clusterFriendly() {
+        return true;
+    }
+
+    @Override
+    public void init(CrawlSession crawlSession) {
         LOG.info("Initializing MongoDB data store engine...");
         // create a clean db name
-        var dbName = crawler.getCrawlSession().getId() + "_" + crawler.getId();
+        var dbName = crawlSession.getId();
         dbName = FileUtil.toSafeFileName(dbName);
         dbName = StringUtil.truncateWithHash(dbName, 63);
 

@@ -20,6 +20,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -99,6 +101,7 @@ public final class CoreStubber {
                             new StringRandomizer(100).getRandomValue(),
                             new Properties()))
             .randomize(Committer.class, MemoryCommitter::new)
+            .randomize(Charset.class, () -> StandardCharsets.UTF_8)
             .randomize(SpoiledReferenceStrategizer.class,
                     GenericSpoiledReferenceStrategizer::new)
             .randomize(AtomicBoolean.class, () -> new AtomicBoolean(

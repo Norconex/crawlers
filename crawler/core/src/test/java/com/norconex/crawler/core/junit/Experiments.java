@@ -12,12 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.state;
+package com.norconex.crawler.core.junit;
 
-/**
- * Represents the state of a crawler at any given type, along with related
- * information.
- */
-public class ClusterSnapshot {
+import com.norconex.committer.core.impl.MemoryCommitter;
+
+class Experiments {
+
+    @WithinCrawlSessionTest
+    void testAnnotations(MemoryCommitter mem) {
+        System.err.println("Hello mem: " + mem);
+    }
+
+
+    @AfterCrawlSessionTest
+    void testAfterAnnotations(MemoryCommitter mem) {
+        System.err.println("Hello mem: " + mem);
+    }
 
 }
+

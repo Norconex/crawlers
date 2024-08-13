@@ -45,7 +45,7 @@ class ImportModuleStageTest {
                 throw new UncheckedIOException(e);
             }
         }));
-        crawler.start();
+        crawler.getCrawlSession().getService().start();
         var ctx = new ImporterPipelineContext(crawler, doc);
         var stage = new ImportModuleStage();
         stage.test(ctx);

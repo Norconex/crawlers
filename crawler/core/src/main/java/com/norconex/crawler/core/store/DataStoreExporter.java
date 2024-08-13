@@ -25,35 +25,33 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.store.impl.SerialUtil;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Exports data stores to a format that can be imported back to the same
  * or different store implementation.
  */
+@Slf4j
 public final class DataStoreExporter extends CrawlerException {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DataStoreExporter.class);
+    private DataStoreExporter() {}
 
-    private DataStoreExporter() {
-    }
-
-    public static Path exportDataStore(Crawler crawler, Path exportDir)
+    public static Path exportDataStore(
+            CrawlSession crawlSession, Path exportDir)
             throws IOException {
-        var storeEngine = crawler.getDataStoreEngine();
+        var storeEngine = crawlSession.getDataStoreEngine();
         Files.createDirectories(exportDir);
 
         var outFile = exportDir.resolve(
-                FileUtil.toSafeFileName(crawler.getId() + ".zip"));
+                FileUtil.toSafeFileName(crawlSession.getId() + ".zip"));
 
         try (var zipOS = new ZipOutputStream(
                 IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
@@ -65,7 +63,7 @@ public final class DataStoreExporter extends CrawlerException {
                             FileUtil.toSafeFileName(name) + ".json"));
                     try (DataStore<?> store =
                             storeEngine.openStore(name, type.get())) {
-                        exportStore(crawler, store, zipOS, type.get());
+                        exportStore(crawlSession, store, zipOS, type.get());
                     }
                     zipOS.flush();
                     zipOS.closeEntry();
@@ -78,8 +76,11 @@ public final class DataStoreExporter extends CrawlerException {
         }
         return outFile;
     }
-    private static void exportStore(Crawler crawler, DataStore<?> store,
-            OutputStream out, Class<?> type) throws IOException {
+    private static void exportStore(
+            CrawlSession crawlSession,
+            DataStore<?> store,
+            OutputStream out,
+            Class<?> type) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);
         //TODO add "nice" option?
@@ -91,9 +92,7 @@ public final class DataStoreExporter extends CrawlerException {
         var cnt = new MutableLong();
         var lastPercent = new MutableLong();
         writer.writeStartObject();
-        writer.writeStringField(
-                "crawlsession", crawler.getCrawlSession().getId());
-        writer.writeStringField("crawler", crawler.getId());
+        writer.writeStringField("crawlsession", crawlSession.getId());
         writer.writeStringField("store", store.getName());
         writer.writeStringField("type", type.getName());
         writer.writeFieldName("records");

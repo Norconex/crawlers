@@ -19,11 +19,16 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.session.CrawlSession;
 
 public interface DataStoreEngine extends Closeable {
 
-    void init(Crawler crawler);
+    //NOTE: useful for cluster actions vs local actions.
+    // like notifying that we need to stop from another JVM.
+    // use file-based or store-based.
+    boolean clusterFriendly();
+
+    void init(CrawlSession crawlSession);
     boolean clean();
     @Override
     void close();

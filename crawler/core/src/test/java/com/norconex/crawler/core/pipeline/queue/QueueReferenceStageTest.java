@@ -16,38 +16,29 @@ package com.norconex.crawler.core.pipeline.queue;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.norconex.crawler.core.CoreStubber;
-import com.norconex.crawler.core.TestUtil;
+import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
+import com.norconex.crawler.core.junit.WithinCrawlSessionTest;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 
 class QueueReferenceStageTest {
 
-    @TempDir
-    private Path tempDir;
+    @WithinCrawlSessionTest
+    void testQueueReferenceStage(Crawler crawler) {
+        var docRecord = CoreStubber.crawlDocRecord("ref");
+        var stage = new QueueReferenceStage();
 
-    @Test
-    void testQueueReferenceStage() {
-        TestUtil.withinInitializedCrawler(tempDir, crawler -> {
-            var docRecord = CoreStubber.crawlDocRecord("ref");
-            var stage = new QueueReferenceStage();
+        var ctx1 = new DocRecordPipelineContext(crawler, docRecord);
+        assertThat(stage.test(ctx1)).isTrue();
 
-            var ctx1 = new DocRecordPipelineContext(crawler, docRecord);
-            assertThat(stage.test(ctx1)).isTrue();
+        // testing a second time with same ref should not fail.
+        var ctx2 = new DocRecordPipelineContext(crawler, docRecord);
+        assertThat(stage.test(ctx2)).isTrue();
 
-            // testing a second time with same ref should not fail.
-            var ctx2 = new DocRecordPipelineContext(crawler, docRecord);
-            assertThat(stage.test(ctx2)).isTrue();
-
-            // a null reference should not fail
-            var ctx3 = new DocRecordPipelineContext(
-                    crawler, new CrawlDocRecord());
-            assertThat(stage.test(ctx3)).isTrue();
-        });
+        // a null reference should not fail
+        var ctx3 = new DocRecordPipelineContext(
+                crawler, new CrawlDocRecord());
+        assertThat(stage.test(ctx3)).isTrue();
     }
 }

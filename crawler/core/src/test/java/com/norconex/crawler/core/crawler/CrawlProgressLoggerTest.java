@@ -22,6 +22,7 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.SingleCrawlerTestContext;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.pipeline.queue.MockQueueInitializer;
 
@@ -33,17 +34,19 @@ class CrawlProgressLoggerTest {
     @Test
     void testProgressLogger() {
         var mem = TestUtil.runSingleCrawler(
-                tempDir,
-                cfg -> {
+                SingleCrawlerTestContext
+                .builder(tempDir)
+                .crawlerConfigModifier(cfg -> {
                     cfg.setNumThreads(2);
                     cfg.setMinProgressLoggingInterval(Duration.ofMillis(10));
-                },
-                implBuilder -> {
+                })
+                .crawlerImplBuilderModifier(implBuilder -> {
                     var mqi = new MockQueueInitializer("ref1", "ref2", "ref3");
                     mqi.setAsync(true);
                     mqi.setDelay(1000);
                     implBuilder.queueInitializer(mqi);
-                });
+                })
+                .build());
         assertThat(mem.getUpsertCount()).isEqualTo(3);
     }
 }

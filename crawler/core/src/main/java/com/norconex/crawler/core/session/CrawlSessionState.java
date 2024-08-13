@@ -12,48 +12,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.state;
+package com.norconex.crawler.core.session;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+
+import lombok.Getter;
+
 /**
- * Represents a crawler current state. In a cluster, the state is shared
- * and the same between crawlers.
+ * Represents a crawl session current state. In a cluster, the state is
+ * shared/synchronized appropriately between instances.
  */
-public enum ClusterState {
+public enum CrawlSessionState {
     /** Never started or crawl store was reset. Ready to be started. */
-    UNDEFINED,
+    UNDEFINED(false),
+//    /** Waiting for the next actionable state. */
+//    IDLE(false),
+//    /** The instance or cluster state expired. */
+//    EXPIRED,
     /**
-     * Queues the initial start references. If start references are async,
-     * then this state won't last for long before crawling starts.
-     * In a cluster, performed by at most one crawler while others are waiting
-     * for the next actionable state.
+     * The crawl session started and has not yet completed nor stopped
+     * (or stopping)
      */
-    INIT_QUEUE,
-    /**
-     * Processing URLs from the queue.
-     * In a cluster, performed by any number of crawlers.
-     */
-    CRAWLING,
+    RUNNING(false),
     /**
      * An event causing a stop or an explicit request for stopping the crawl
      * session triggers this state for each crawler in the session.
      * In a cluster, all crawlers will stop their execution cleanly
      * upon seeing this status.
      */
-    STOPPING,
+    STOPPING(true),
     /**
      * Indicates the crawler was stopped, as opposed to have completed normally.
      */
-    STOPPED,
+    STOPPED(true),
     /**
      * Indicates the crawler completed normally.
      */
-    COMPLETED,
+    COMPLETED(true),
     ;
 
-    public static ClusterState of(String state) {
-        return Stream.of(ClusterState.values())
+    @Getter
+    private final boolean doneRunning;
+
+    CrawlSessionState(boolean doneRunning) {
+        this.doneRunning = doneRunning;
+    }
+
+    public static CrawlSessionState of(Optional<String> state) {
+        return of(state.orElse(null));
+    }
+    public static CrawlSessionState of(String state) {
+        if (StringUtils.isBlank(state)) {
+            return UNDEFINED;
+        }
+        return Stream.of(CrawlSessionState.values())
         .filter(v -> v.name().equalsIgnoreCase(state))
         .findFirst()
         .orElse(UNDEFINED);

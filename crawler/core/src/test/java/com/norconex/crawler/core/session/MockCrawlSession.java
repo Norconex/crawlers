@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.session;
 
+import com.norconex.crawler.core.crawler.MockCrawler;
+
 //Mainly exists to provide access to internal methods/properties
 public class MockCrawlSession extends CrawlSession {
 
@@ -22,9 +24,16 @@ public class MockCrawlSession extends CrawlSession {
     }
 
     public void sneakyInitCrawlSession() {
+        getService().initSessionStores();
         initCrawlSession();
+        getCrawlers().forEach(
+                crawler -> ((MockCrawler) crawler).sneakyInitCrawler());
     }
     public void sneakyDestroyCrawlSession() {
+        getCrawlers().forEach(
+                crawler -> ((MockCrawler) crawler).sneakyDestroyCrawler());
         destroyCrawlSession();
+        getService().destroy();
     }
 }
+

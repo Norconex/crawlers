@@ -48,7 +48,11 @@ public class CrawlSessionStopper
             count++;
             if (count % stopAt == 0) {
                 LOG.info("{} documents fetched. STOP!", count);
-                ((CrawlerEvent) e).getSource().getCrawlSession().stop();
+                ((CrawlerEvent) e)
+                .getSource()
+                .getCrawlSession()
+                .getService()
+                .stop();
             }
         }
     }

@@ -138,8 +138,8 @@ public class DeleteRejectedEventListener implements
     private void init(Crawler crawler) {
         // Delete any previously created store. We do it here instead
         // of on completion in case users want to keep a record.
-        crawler.getDataStoreEngine().dropStore("rejected-refs");
-        refStore = crawler.getDataStoreEngine().openStore(
+        crawler.getCrawlerDataStoreEngine().dropCrawlerStore("rejected-refs");
+        refStore = crawler.getCrawlerDataStoreEngine().openCrawlerStore(
                 "rejected-refs", Boolean.class);
 
     }

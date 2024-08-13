@@ -26,6 +26,6 @@ import picocli.CommandLine.Command;
 public class CleanCommand extends AbstractSubCommand {
     @Override
     public void runCommand() {
-        getCrawlSession().clean();
+        getCrawlSessionService().clean();
     }
 }

@@ -97,12 +97,12 @@ class CanonicalLinkTest {
                 canCount.increment();
             }
         });
-        crawlSession.start();
+        crawlSession.getService().start();
 
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
         assertThat(mem.getUpsertRequests()).hasSize(1);
         assertThat(canCount.intValue()).isEqualTo(2);
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 }

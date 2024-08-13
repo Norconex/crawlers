@@ -80,12 +80,12 @@ public class CrawlDocRecordService implements Closeable {
             throw new IllegalStateException("Already open.");
         }
 
-        var storeEngine = crawler.getDataStoreEngine();
+        var storeEngine = crawler.getCrawlerDataStoreEngine();
 
-        queue = storeEngine.openStore("queued", type);
-        active = storeEngine.openStore("active", type);
-        processed = storeEngine.openStore("processed", type);
-        cached = storeEngine.openStore("cached", type);
+        queue = storeEngine.openCrawlerStore("queued", type);
+        active = storeEngine.openCrawlerStore("active", type);
+        processed = storeEngine.openCrawlerStore("processed", type);
+        cached = storeEngine.openCrawlerStore("cached", type);
 
         return !isQueueEmpty() || !isActiveEmpty();
 
@@ -109,9 +109,11 @@ public class CrawlDocRecordService implements Closeable {
     }
 
     //MAYBE: Move elsewhere since only used once, when starting crawler?
-    public boolean prepareForCrawlerStart() {
 
-        var resuming = !isQueueEmpty() || !isActiveEmpty();
+    // prepare for processing start
+    public void /*boolean*/ reset(boolean resuming) {
+
+//        var resuming = !isQueueEmpty() || !isActiveEmpty();
 
         if (resuming) {
 
@@ -136,7 +138,7 @@ public class CrawlDocRecordService implements Closeable {
                         processedCount, totalCount);
             }
         } else {
-            var storeEngine = crawler.getDataStoreEngine();
+            var storeEngine = crawler.getCrawlerDataStoreEngine();
             //TODO really clear cache or keep to have longer history of
             // each items?
             cached.clear();
@@ -149,15 +151,15 @@ public class CrawlDocRecordService implements Closeable {
             //TODO make swap a method on store engine?
 
             // cached -> swap
-            storeEngine.renameStore(cached, "swap");
+            storeEngine.renameCrawlerStore(cached, "swap");
             var swap = cached;
 
             // processed -> cached
-            storeEngine.renameStore(processed, "cached");
+            storeEngine.renameCrawlerStore(processed, "cached");
             cached = processed;
 
             // swap -> processed
-            storeEngine.renameStore(swap, "processed");
+            storeEngine.renameCrawlerStore(swap, "processed");
             processed = swap;
 
 
@@ -173,7 +175,7 @@ public class CrawlDocRecordService implements Closeable {
         }
 
         open = true;
-        return resuming;
+//        return resuming;
     }
 
     public Stage getProcessingStage(String id) {

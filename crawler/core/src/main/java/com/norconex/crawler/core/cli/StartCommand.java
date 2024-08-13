@@ -31,17 +31,18 @@ import picocli.CommandLine.Option;
 public class StartCommand extends AbstractSubCommand {
 
     @Option(names = { "-clean" },
-            description = "Clean stored data from previous crawl sessions "
-                    + "before start. Same as invoking the \"clean\" and "
-                    + "\"start\" commands one after the other.",
+            description = """
+                Clean stored data from previous crawl sessions \
+                before start. Same as invoking the "clean" and \
+                "start" commands one after the other.""",
             required = false)
     private boolean clean;
 
     @Override
     public void runCommand() {
         if (clean) {
-            getCrawlSession().clean();
+            getCrawlSessionService().clean();
         }
-        getCrawlSession().start();
+        getCrawlSessionService().start();
     }
 }

@@ -65,19 +65,19 @@ class IfNoneMatchTest {
 
         // First run is new
         whenETag(client, "etag-A");
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same ETag, so not modified
         whenETag(client, "etag-A");
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different Etag, so modified
         whenETag(client, "etag-B");
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
@@ -85,11 +85,11 @@ class IfNoneMatchTest {
         whenETag(client, "etag-B");
         WebTestUtil.getFirstHttpFetcher(crawlSession)
                 .getConfiguration().setETagDisabled(true);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 
     private void whenETag(ClientAndServer client, String serverEtag) {

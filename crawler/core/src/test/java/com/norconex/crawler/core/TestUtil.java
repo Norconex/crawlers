@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core;
 
+import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,11 +35,11 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
-import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.core.session.CrawlSessionImpl;
@@ -74,6 +76,19 @@ public final class TestUtil {
 
     private TestUtil() {}
 
+    //TODO move to BeanMapper if deemed reliable enough:
+    public static Format detectConfigFormat(@NonNull String config) {
+        var cfg = config.stripLeading();
+        if (cfg.startsWith("{")) {
+            return Format.JSON;
+        }
+        if (cfg.startsWith("<")) {
+            return Format.XML;
+        }
+        return Format.YAML;
+    }
+
+
     /**
      * Gets the {@link MemoryCommitter} from first committer of the first
      * crawler from a crawl session (assuming the first committer is
@@ -107,40 +122,26 @@ public final class TestUtil {
 
     // One crawler, one committer
     public static MemoryCommitter runSingleCrawler(
-            @NonNull Path workDir,
-            Consumer<CrawlerConfig> c,
-            String... startReferences) {
-
-        var sess = CoreStubber.crawlSession(workDir, startReferences);
-        var cfg = TestUtil.getFirstCrawlerConfig(sess);
-        if (c != null) {
-            c.accept(cfg);
-        }
-        sess.start();
-        waitForIt(sess);
-        return TestUtil.getFirstMemoryCommitter(sess);
-    }
-    // One crawler, one committer
-    public static MemoryCommitter runSingleCrawler(
-            @NonNull Path workDir,
-            Consumer<CrawlerConfig> c,
-            Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
-            String... startReferences) {
-
+            @NonNull SingleCrawlerTestContext ctx) {
         var sess = CoreStubber.crawlSession(
-                workDir, crawlerImplBuilderModifier, startReferences);
+                ctx.getWorkDir(),
+                ctx.getCrawlerImplBuilderModifier(),
+                ctx.getStartReferences().toArray(EMPTY_STRING_ARRAY));
         var cfg = TestUtil.getFirstCrawlerConfig(sess);
-        if (c != null) {
-            c.accept(cfg);
+        if (ctx.getSessionConfigModifier() != null) {
+            ctx.getSessionConfigModifier().accept(sess.getCrawlSessionConfig());
         }
-        sess.start();
+        if (ctx.getCrawlerConfigModifier() != null) {
+            ctx.getCrawlerConfigModifier().accept(cfg);
+        }
+        sess.getService().start();
         waitForIt(sess);
         return TestUtil.getFirstMemoryCommitter(sess);
     }
 
     private static void waitForIt(CrawlSession sess) {
         var cnt = 0;
-        while (sess.isRunning()) {
+        while (sess.isInstanceRunning()) {
             Sleeper.sleepMillis(100);
             cnt++;
             if (cnt == 100) {

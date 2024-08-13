@@ -28,8 +28,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
@@ -56,12 +56,17 @@ public class MVStoreDataStoreEngine
     private MVMap<String, Class<?>> storeTypes;
 
     @Override
+    public boolean clusterFriendly() {
+        return false;
+    }
+
+    @Override
     public MVStoreDataStoreEngineConfig getConfiguration() {
         return cfg;
     }
 
     @Override
-    public void init(Crawler crawler) {
+    public void init(CrawlSession crawlSession) {
 
         var builder = new MVStore.Builder();
         if (cfg.getPageSplitSize() != null) {
@@ -97,7 +102,7 @@ public class MVStoreDataStoreEngine
         if (cfg.isEphemeral()) {
             builder.fileName(null);
         } else {
-            engineDir = crawler.getWorkDir().resolve("datastore");
+            engineDir = crawlSession.getWorkDir().resolve("datastore");
             try {
                 FileUtils.forceMkdir(engineDir.toFile());
             } catch (IOException e) {

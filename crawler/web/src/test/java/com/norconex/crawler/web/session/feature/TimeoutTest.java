@@ -60,7 +60,7 @@ class TimeoutTest {
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
 
         whenDelayed(client, 0);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertRequests())
             .map(UpsertRequest::getReference)
             .containsExactlyInAnyOrder(
@@ -72,7 +72,7 @@ class TimeoutTest {
         // First page should be skipped (timeout) but not children... even
         // if we could not go through parent to get to them
         whenDelayed(client, 2000);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertRequests())
             .map(UpsertRequest::getReference)
             .containsExactlyInAnyOrder(
@@ -80,7 +80,7 @@ class TimeoutTest {
                     serverUrl(client, basePath + "/child2.html"));
         mem.clean();
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 
     private void whenDelayed(ClientAndServer client, long delay) {

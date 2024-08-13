@@ -26,9 +26,6 @@ import picocli.CommandLine.Command;
 public class StopCommand extends AbstractSubCommand {
     @Override
     public void runCommand() {
-        // Because the collector we stop may be running in a separate JVM
-        // instance, we do not call "close()" directly.  We issue the request
-        // instead and the running Collector will react to the request.
-        getCrawlSession().fireStopRequest();
+        getCrawlSessionService().stop();
     }
 }

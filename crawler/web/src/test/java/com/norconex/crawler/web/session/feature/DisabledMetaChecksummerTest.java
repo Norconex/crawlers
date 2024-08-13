@@ -54,23 +54,23 @@ class DisabledMetaChecksummerTest {
 
         // first time, 1 new doc
         whenMetaChanges(client, 10, "abc");
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // second time, meta changes but not body
         whenMetaChanges(client, 8, "def");
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // third time, meta changes but not body
         whenMetaChanges(client, 4, "ghi");
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 
     private void whenMetaChanges(

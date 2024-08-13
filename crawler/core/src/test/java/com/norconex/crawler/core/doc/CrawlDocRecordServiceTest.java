@@ -34,7 +34,7 @@ class CrawlDocRecordServiceTest {
     void testCleanCrawl() {
         TestUtil.withinInitializedCrawler(tempDir, crawler -> {
             var service = crawler.getDocRecordService();
-            service.prepareForCrawlerStart();
+            service.reset(false);
             // forEachXXX returns true by default when there are no matches
             // we use this here to figure out emptiness for all stages
             assertThat(service.forEachActive((s, r) -> false)).isTrue();
@@ -49,12 +49,12 @@ class CrawlDocRecordServiceTest {
     void testIncrementalCrawl() {
         TestUtil.withinInitializedCrawler(tempDir, crawler -> {
             var service = crawler.getDocRecordService();
-            service.prepareForCrawlerStart();
+            service.reset(false);
             service.processed(CoreStubber.crawlDocRecord("ref1"));
             service.close();
 
             service.open();
-            service.prepareForCrawlerStart();
+            service.reset(false);
 
             assertThat(service.getActiveCount()).isZero();
             assertThat(service.getProcessedCount()).isZero();
@@ -68,13 +68,13 @@ class CrawlDocRecordServiceTest {
     void testResumeCrawl() {
         TestUtil.withinInitializedCrawler(tempDir, crawler -> {
             var service = crawler.getDocRecordService();
-            service.prepareForCrawlerStart();
+            service.reset(false);
             service.queue(CoreStubber.crawlDocRecord("q-ref"));
             service.processed(CoreStubber.crawlDocRecord("p-ref"));
             service.close();
 
             service.open();
-            service.prepareForCrawlerStart();
+            service.reset(true);
 
             assertThat(service.getActiveCount()).isZero();
             assertThat(service.getProcessedCount()).isOne();

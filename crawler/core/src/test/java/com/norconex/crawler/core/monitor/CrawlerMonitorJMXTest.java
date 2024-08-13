@@ -32,7 +32,7 @@ class CrawlerMonitorJMXTest {
     void testCrawlerMonitorJMX() {
         assertThatNoException().isThrownBy(() -> {
             var crawler = CoreStubber.crawler(tempDir);
-            crawler.start();
+            crawler.getService().start();
             CrawlerMonitorJMX.register(crawler);
             CrawlerMonitorJMX.unregister(crawler);
         });

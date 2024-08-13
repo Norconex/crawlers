@@ -58,26 +58,26 @@ class FileNotFoundDeletionTest {
 
         // First run: 2 new docs
         whenPageFound(client);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isEqualTo(2);
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
         // Second run: 0 new doc (unmodified) and 1 delete (not found)
         whenPageNotFound(client);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isZero();
         assertThat(mem.getDeleteCount()).isOne();
         mem.clean();
 
         // Third run: 1 new doc (1 unmodified + 1 resurrected) and zero delete
         whenPageFound(client);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isOne();
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 
     private void whenPageFound(ClientAndServer client) {

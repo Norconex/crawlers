@@ -14,9 +14,20 @@
  */
 package com.norconex.crawler.core.crawler;
 
-import java.nio.file.Path;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.nio.file.Path;
+import java.util.List;
+
+import org.assertj.core.api.Condition;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import com.norconex.committer.core.CommitterRequest;
+import com.norconex.crawler.core.CoreStubber;
+import com.norconex.crawler.core.TestUtil;
+import com.norconex.crawler.core.crawler.CrawlerConfig.OrphansStrategy;
 
 class CrawlerTest {
 
@@ -25,7 +36,6 @@ class CrawlerTest {
 
     //TODO Migrate this:
 
-    /*
     @Test
     void testLifeCycle() {
 
@@ -33,7 +43,7 @@ class CrawlerTest {
                 "mock:ref1", "mock:ref2", "mock:ref3", "mock:ref4");
 
         // Start
-        crawlSession.start();
+        crawlSession.getService().start();
         // All 4 docs must be committed and not be found in cache
         assertThat(TestUtil
                 .getFirstMemoryCommitter(crawlSession)
@@ -44,21 +54,22 @@ class CrawlerTest {
 
         // Export
         var exportDir = tempDir.resolve("exportdir");
-        var exportFile = exportDir.resolve("test-crawler.zip");
-        crawlSession.exportDataStore(exportDir);
+        var exportFile = exportDir.resolve(
+                CoreStubber.MOCK_CRAWL_SESSION_ID + ".zip");
+        crawlSession.getService().exportDataStore(exportDir);
 
         // Clean
-        crawlSession.clean();
+        crawlSession.getService().clean();
 
         // Import
-        crawlSession.importDataStore(List.of(exportFile));
+        crawlSession.getService().importDataStore(List.of(exportFile));
 
         // New session with 1 new 2 modified, and 1 orphan
         crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5");
 
         // Start
-        crawlSession.start();
+        crawlSession.getService().start();
         // 5 docs must be committed:
         //    1 new
         //    3 modified (also cached)
@@ -83,7 +94,7 @@ class CrawlerTest {
         var sess = CoreStubber.crawlSession(tempDir);
         TestUtil.getFirstCrawlerConfig(sess).setId(null);
         assertThatExceptionOfType(CrawlerException.class).isThrownBy(() ->
-            sess.start());
+            sess.getService().start());
     }
 
     @Test
@@ -91,14 +102,14 @@ class CrawlerTest {
 
         var crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref1", "mock:ref2", "mock:ref3", "mock:ref4");
-        crawlSession.start();
+        crawlSession.getService().start();
 
         // New session with 1 new 2 modified, and 1 orphan
         crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5");
         TestUtil.getFirstCrawlerConfig(
                 crawlSession).setOrphansStrategy(OrphansStrategy.DELETE);
-        crawlSession.start();
+        crawlSession.getService().start();
 
         var mem = TestUtil.getFirstMemoryCommitter(crawlSession);
 
@@ -111,5 +122,4 @@ class CrawlerTest {
         assertThat(mem.getDeleteRequests().get(0).getReference())
             .isEqualTo("mock:ref1");
     }
-    */
 }

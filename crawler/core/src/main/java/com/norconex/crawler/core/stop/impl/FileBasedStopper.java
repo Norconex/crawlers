@@ -45,13 +45,14 @@ public class FileBasedStopper implements CrawlSessionStopper {
     private boolean monitoring;
 
     @Override
-    public void listenForStopRequest(CrawlSession startedSession)
+    public void listenForStopRequest(CrawlSession crawlSession)
             throws CrawlSessionStopperException {
-        monitoredStopFile = stopFile(startedSession);
+        monitoredStopFile = stopFile(crawlSession);
 
         // If there is already a stop file and the crawl session is not running,
         // delete it
-        if (Files.exists(monitoredStopFile) && !startedSession.isRunning()) {
+        if (Files.exists(monitoredStopFile)
+                && !crawlSession.isInstanceRunning()) {
             LOG.info("Old stop file found, deleting it.");
             try {
                 FileUtils.forceDelete(monitoredStopFile.toFile());
@@ -64,13 +65,13 @@ public class FileBasedStopper implements CrawlSessionStopper {
         var scheduler = Executors.newScheduledThreadPool(1);
         monitoring = true;
         scheduler.scheduleAtFixedRate(() -> {
-            MdcUtil.setCrawlSessionId(startedSession.getId());
+            MdcUtil.setCrawlSessionId(crawlSession.getId());
             Thread.currentThread().setName(
-                    startedSession.getId() + "-stop-file-monitor");
+                    crawlSession.getId() + "-stop-file-monitor");
             if (monitoring && Files.exists(monitoredStopFile)) {
                 stopMonitoring();
                 LOG.info("STOP request received.");
-                startedSession.stop();
+                crawlSession.getService().stop();
                 scheduler.shutdownNow();
             } else if (!monitoring && !scheduler.isShutdown()) {
                 scheduler.shutdownNow();
@@ -102,13 +103,14 @@ public class FileBasedStopper implements CrawlSessionStopper {
             throws CrawlSessionStopperException {
         final var stopFile = stopFile(crawlSession);
 
-        if (!crawlSession.isRunning()) {
-            LOG.info("CANNOT STOP: The Collector is not running.");
+        if (!crawlSession.isInstanceRunning()) {
+            LOG.info("Cannot stop local instance: No crawl session running.");
             return false;
         }
 
         if (stopFile.toFile().exists()) {
-            LOG.info("CANNOT STOP: Stop already requested. Stop file: {}",
+            LOG.info("Cannot stop local instance: "
+                    + "Stop already requested. Stop file: {}",
                     stopFile.toAbsolutePath());
             return false;
         }

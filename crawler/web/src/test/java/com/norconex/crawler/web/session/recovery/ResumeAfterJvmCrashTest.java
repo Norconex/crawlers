@@ -54,16 +54,18 @@ class ResumeAfterJvmCrashTest {
 
         var crawlSessionConfig = TestWebCrawlSession
                 .forStartReferences(serverUrl(client, path + "/0000"))
-                .crawlSessionSetup(cfg -> cfg.setWorkDir(tempDir))
+                .crawlSessionSetup(cfg -> {
+                    cfg.setWorkDir(tempDir);
+                    var storeCfg = ((MVStoreDataStoreEngine)
+                            cfg.getDataStoreEngine()).getConfiguration();
+                    storeCfg.setAutoCommitDelay(1L);
+                })
                 .crawlerSetup(cfg -> {
                     cfg.setNumThreads(1);
                     cfg.setMaxDepth(-1);
                     cfg.setMaxDocuments(10);
                     cfg.setMetadataChecksummer(null);
                     cfg.setDocumentChecksummer(null);
-                    var storeCfg = ((MVStoreDataStoreEngine)
-                            cfg.getDataStoreEngine()).getConfiguration();
-                    storeCfg.setAutoCommitDelay(1L);
                 })
                 .crawlSessionConfig();
         // First run should crash with 6 commits only (0-5)

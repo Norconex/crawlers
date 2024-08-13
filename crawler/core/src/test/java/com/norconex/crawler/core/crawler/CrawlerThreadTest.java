@@ -25,6 +25,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.SingleCrawlerTestContext;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.pipeline.queue.MockQueueInitializer;
 import com.norconex.crawler.core.store.DataStore;
@@ -39,20 +40,19 @@ class CrawlerThreadTest {
 
     @Test
     void testNormalRun() {
-        var mem = TestUtil.runSingleCrawler(
-                tempDir,
-                cfg -> cfg.setNumThreads(2),
-                "ref1", "ref2", "ref3");
+        var mem = TestUtil.runSingleCrawler(SingleCrawlerTestContext
+                .builder(tempDir, "ref1", "ref2", "ref3")
+                .crawlerConfigModifier(cfg -> cfg.setNumThreads(2))
+                .build());
         assertThat(mem.getUpsertCount()).isEqualTo(3);
     }
 
     @Test
     void testCrawlerError() {
         var exception = new MutableObject<Throwable>();
-        var mem = TestUtil.runSingleCrawler(
-                tempDir,
-                cfg -> {
-                    cfg.setNumThreads(2);
+        var mem = TestUtil.runSingleCrawler(SingleCrawlerTestContext
+                .builder(tempDir, "ref1", "ref2", "ref3")
+                .sessionConfigModifier(cfg -> {
                     cfg.setDataStoreEngine(new MVStoreDataStoreEngine() {
                         @Override
                         public <T> DataStore<T> openStore(
@@ -66,13 +66,18 @@ class CrawlerThreadTest {
                             };
                         }
                     });
+                })
+                .crawlerConfigModifier(
+                    cfg -> {
+                    cfg.setNumThreads(2);
                     cfg.addEventListener(evt -> {
                         if (evt.is(CrawlerEvent.CRAWLER_ERROR)) {
                             exception.setValue(evt.getException());
                         }
                     });
-                },
-                "ref1", "ref2", "ref3");
+                })
+                .build());
+
         assertThat(mem.getUpsertCount()).isZero();
         assertThat(exception.getValue()).isInstanceOf(
                 UnsupportedOperationException.class);
@@ -83,9 +88,9 @@ class CrawlerThreadTest {
     void testDocumenetError() {
         var exception = new MutableObject<Throwable>();
         var stopped = new MutableObject<Boolean>();
-        var mem = TestUtil.runSingleCrawler(
-                tempDir,
-                cfg -> {
+        var mem = TestUtil.runSingleCrawler(SingleCrawlerTestContext
+                .builder(tempDir, "ref1", "ref2", "ref3")
+                .crawlerConfigModifier(cfg -> {
                     cfg.setNumThreads(2);
                     cfg.setStopOnExceptions(
                             List.of(IllegalStateException.class));
@@ -100,8 +105,8 @@ class CrawlerThreadTest {
                             stopped.setValue(true);
                         }
                     });
-                },
-                "ref1", "ref2", "ref3");
+                })
+                .build());
         assertThat(mem.getUpsertCount()).isLessThan(3);
         assertThat(exception.getValue()).isInstanceOf(
                 IllegalStateException.class);
@@ -112,9 +117,9 @@ class CrawlerThreadTest {
     @Test
     void testMaxDocReached() {
         var stopped = new MutableObject<Boolean>();
-        var mem = TestUtil.runSingleCrawler(
-                tempDir,
-                cfg -> {
+        var mem = TestUtil.runSingleCrawler(SingleCrawlerTestContext
+                .builder(tempDir, "ref1", "ref2", "ref3")
+                .crawlerConfigModifier(cfg -> {
                     cfg.setNumThreads(2);
                     cfg.setMaxDocuments(1);
                     cfg.addEventListener(evt -> {
@@ -122,8 +127,8 @@ class CrawlerThreadTest {
                             stopped.setValue(true);
                         }
                     });
-                },
-                "ref1", "ref2", "ref3");
+                })
+                .build());
         assertThat(mem.getUpsertCount()).isLessThan(3);
         assertThat(stopped.getValue()).isTrue();
     }
@@ -131,39 +136,43 @@ class CrawlerThreadTest {
     @Test
     void testAsyncQueueInit() {
         String[] refs = { "ref1", "ref2", "ref3", "ref4", "ref5", "ref6" };
-        var mem = TestUtil.runSingleCrawler(
-                tempDir,
-                cfg -> {
+        var mem = TestUtil.runSingleCrawler(SingleCrawlerTestContext
+                .builder(tempDir)
+                .crawlerConfigModifier(cfg -> {
                     cfg.setNumThreads(2);
-                },
-                implBuilder -> {
+                })
+                .crawlerImplBuilderModifier(implBuilder -> {
                     var mqi = new MockQueueInitializer(refs);
                     mqi.setAsync(true);
                     mqi.setDelay(150);
                     implBuilder.queueInitializer(mqi);
-                });
+                })
+                .build());
         assertThat(mem.getUpsertCount()).isEqualTo(6);
     }
 
     @Test
     void testActiveTimeout() {
-        var mem = TestUtil.runSingleCrawler(
-                tempDir,
-                cfg -> {
-                    cfg.setNumThreads(2);
+        var mem = TestUtil.runSingleCrawler(SingleCrawlerTestContext
+                .builder(tempDir)
+                .sessionConfigModifier(cfg -> {
                     // The mock datastore engine always return false
                     // for "isEmpty" so it means the "active" store and
                     // "queue" store both return false for isEmpty, causing
                     // it to loop forever.
                     cfg.setDataStoreEngine(new MockDataStoreEngine());
+                })
+                .crawlerConfigModifier(cfg -> {
+                    cfg.setNumThreads(2);
                     cfg.setIdleTimeout(Duration.ofMillis(100));
-                },
-                implBuilder -> {
+                })
+                .crawlerImplBuilderModifier(implBuilder -> {
                     var mqi = new MockQueueInitializer("ref1", "ref2", "ref3");
                     mqi.setAsync(true);
                     mqi.setDelay(500);
                     implBuilder.queueInitializer(mqi);
-                });
+                })
+                .build());
         assertThat(mem.getUpsertCount()).isZero();
     }
 }

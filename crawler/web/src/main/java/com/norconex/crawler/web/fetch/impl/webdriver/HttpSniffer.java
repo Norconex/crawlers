@@ -106,6 +106,9 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
         mobProxy = new BrowserMobProxyServer();
         mobProxy.setTrustAllServers(true);
+        //DEBUG: those two lines were in V3 and not here for some reason:
+        //mobProxy.setTrustSource(null);
+        //mobProxy.setMitmDisabled(true);
 
         // maximum content length (#751)
         if (cfg.getMaxBufferSize() > 0 ) {
@@ -137,7 +140,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                 + "for HTTP response header capture.", actualPort);
 
 
-
+//TODO check for webdriver manage autodownload driver.
 
         var proxy = new Proxy();
         var proxyStr = cfg.getHost() + ":" + actualPort;

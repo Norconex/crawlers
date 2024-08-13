@@ -145,14 +145,15 @@ class CliLauncherTest {
     void testConfigCheck() throws IOException {
         var exit = testLaunch(tempDir, "configcheck", "-config=" + configFile);
         assertThat(exit.ok()).isTrue();
-        assertThat(exit.getStdOut()).contains(
-                "No XML configuration errors detected.");
+        assertThat(exit.getStdOut()).containsIgnoringWhitespaces(
+                "No configuration errors detected.");
     }
 
     @Test
     void testStoreExportImport() throws IOException {
         var exportDir = tempDir.resolve("exportdir");
-        var exportFile = exportDir.resolve("test-crawler.zip");
+        var exportFile = exportDir.resolve(
+                CoreStubber.MOCK_CRAWL_SESSION_ID + ".zip");
 
         // Export
         var exit1 = testLaunch(tempDir,

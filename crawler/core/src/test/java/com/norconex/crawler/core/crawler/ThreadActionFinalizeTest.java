@@ -39,14 +39,14 @@ class ThreadActionFinalizeTest {
     @Test
     void testThreadActionFinalize() {
         var crawler = CoreStubber.crawler(tempDir);
-        var strategy = new MutableObject<SpoiledReferenceStrategy>(
+        var strategy = new MutableObject<>(
                 SpoiledReferenceStrategy.IGNORE);
         SpoiledReferenceStrategizer spoiledHandler =
                 (ref, state) -> strategy.getValue();
 
         crawler.getConfiguration().setSpoiledReferenceStrategizer(
                 spoiledHandler);
-        crawler.initCrawler(null);
+        crawler.initCrawler();
         var ctx = new ThreadActionContext();
 
         // no doc record set, exits right away

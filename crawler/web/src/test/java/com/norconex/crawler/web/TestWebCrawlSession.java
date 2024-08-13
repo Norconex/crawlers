@@ -90,7 +90,7 @@ public class TestWebCrawlSession {
     public MemoryCommitter crawl() {
         var crawlSession = crawlSession();
         try {
-            crawlSession.start();
+            crawlSession.getService().start();
             return WebTestUtil.getFirstMemoryCommitter(crawlSession);
         } finally {
             try {

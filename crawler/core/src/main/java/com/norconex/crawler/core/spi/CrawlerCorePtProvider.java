@@ -50,7 +50,7 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        addPolyType(map, CrawlSessionStopper.class);
+        addPolyType(map, CrawlSessionStopper.class); //TODO really want it configurable? maybe default choses between file-based and store-based.
         addPolyType(map, DataStoreEngine.class);
         addPolyType(map, DocumentChecksummer.class);
         addPolyType(map, DocumentFilter.class);

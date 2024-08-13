@@ -25,6 +25,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.core.session.CrawlSessionService;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.EqualsAndHashCode;
@@ -97,6 +98,9 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
     protected CrawlSession getCrawlSession() {
        return crawlSession;
     }
+    protected CrawlSessionService getCrawlSessionService() {
+        return crawlSession.getService();
+     }
     protected BeanMapper getBeanMapper() {
         return parent.getBeanMapper();
      }

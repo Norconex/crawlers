@@ -17,7 +17,7 @@ package com.norconex.crawler.core.store;
 import java.util.Optional;
 import java.util.Set;
 
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -33,7 +33,11 @@ public class MockDataStoreEngine implements DataStoreEngine {
     }
 
     @Override
-    public void init(Crawler crawler) {
+    public void init(CrawlSession crawlSession) {
+    }
+    @Override
+    public boolean clusterFriendly() {
+        return true;
     }
     @Override
     public boolean clean() {

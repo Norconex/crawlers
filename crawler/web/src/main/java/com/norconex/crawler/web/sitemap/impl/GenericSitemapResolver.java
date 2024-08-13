@@ -194,8 +194,9 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     }
     @Override
     protected void onCrawlerRunBegin(CrawlerEvent event) {
-        sitemapStore = event.getSource().getDataStoreEngine().openStore(
-                SITEMAP_STORE_NAME, SitemapRecord.class);
+        sitemapStore = event.getSource()
+                .getCrawlerDataStoreEngine().openCrawlerStore(
+                        SITEMAP_STORE_NAME, SitemapRecord.class);
     }
     @Override
     protected void onCrawlerStopBegin(CrawlerEvent event) {

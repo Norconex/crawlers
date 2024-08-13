@@ -119,7 +119,7 @@ class MaxConcurrentCrawlersTest {
             })
             .crawlSession();
         WebTestUtil.ignoreAllIgnorables(crawlSession);
-        crawlSession.start();
+        crawlSession.getService().start();
 
         if (maxConcurrentCrawlers <= 0) {
             // if not limiting concurrent crawler, it should match total
@@ -134,6 +134,6 @@ class MaxConcurrentCrawlersTest {
             assertThat(mem.getRequestCount()).isEqualTo(maxDocs);
         }
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 }

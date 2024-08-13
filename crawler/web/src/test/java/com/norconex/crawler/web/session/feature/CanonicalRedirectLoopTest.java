@@ -88,7 +88,7 @@ class CanonicalRedirectLoopTest {
         WebTestUtil.ignoreAllIgnorables(crawlSession);
         var cfg = WebTestUtil.getFirstCrawlerConfig(crawlSession);
         cfg.setCanonicalLinkDetector(new GenericCanonicalLinkDetector());
-        crawlSession.start();
+        crawlSession.getService().start();
 
         //--- Assertions ---
 
@@ -104,6 +104,6 @@ class CanonicalRedirectLoopTest {
         assertThat(doc.getMetadata().getStrings(WebDocMetadata.REDIRECT_TRAIL))
                 .containsExactly(serverUrl(client, REDIRECT_PATH));
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 }

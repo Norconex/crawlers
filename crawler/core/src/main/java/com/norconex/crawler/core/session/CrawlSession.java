@@ -47,10 +47,14 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.monitor.CrawlerMonitorJMX;
 import com.norconex.crawler.core.monitor.MdcUtil;
 import com.norconex.crawler.core.stop.CrawlSessionStopper;
-import com.norconex.crawler.core.stop.impl.FileBasedStopper;
+import com.norconex.crawler.core.stop.impl.ContextBasedStopper;
+import com.norconex.crawler.core.store.DataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreExporter;
+import com.norconex.crawler.core.store.DataStoreImporter;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -67,6 +71,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class CrawlSession {
+
+    //NOTE: only concerns itself with the local running instance.
+    // CrawlSessionService is handling cluster-related operations.
 
     /** Simple ASCI art of Norconex. */
     public static final String NORCONEX_ASCII =
@@ -98,27 +105,35 @@ public class CrawlSession {
     private Path tempDir;
     private FileLocker lock;
 
+    //TODO delete me...?
     private final CrawlSessionStopper stopper;
 
     @Getter
+    private final CrawlSessionService service;
+    @Getter
     private final String instanceId;
+    @Getter
+    private DataStoreEngine dataStoreEngine;
 
     public CrawlSession(@NonNull CrawlSessionImpl crawlSessionImpl) {
 
         instanceId = UUID.randomUUID().toString();
-
         //TODO clone config so modifications no longer apply?
         crawlSessionConfig = crawlSessionImpl.crawlSessionConfig;
+        dataStoreEngine = crawlSessionConfig.getDataStoreEngine();
+        service = new CrawlSessionService(this);
         eventManager = new EventManager(crawlSessionImpl.eventManager);
         crawlerFactory = Objects.requireNonNull(crawlSessionImpl.crawlerFactory,
                 "'crawlerFactory' must not be null.");
         stopper = Optional.ofNullable(crawlSessionImpl.crawlSessionStopper)
-                .orElseGet(FileBasedStopper::new);
+                .orElseGet(ContextBasedStopper::new);
 
         //TODO create crawlers from configs, same place it was done before (in initCrawlSession)
 
         INSTANCE.set(this);
     }
+
+    //--- Public Getters -------------------------------------------------------
 
     public static CrawlSession get() {
         var cs = INSTANCE.get();
@@ -184,36 +199,14 @@ public class CrawlSession {
     }
 
 
-    protected void initCrawlSession() {
-        // Ensure clean slate by either replacing or clearing and adding back
-
-        //--- (Re)create crawlers
-        crawlers.clear();
-        createCrawlers();
-
-        //--- (Re)register event listeners ---
-        eventManager.clearListeners();
-        eventManager.addListenersFromScan(crawlSessionConfig);
-
-        //--- Stream Cache Factory ---
-        streamFactory = new CachedStreamFactory(
-                (int) crawlSessionConfig.getMaxStreamCachePoolSize(),
-                (int) crawlSessionConfig.getMaxStreamCacheSize(),
-                tempDir);
-
-        //TODO move this code to a config validator class?
-        //--- Ensure good state/config ---
-        if (StringUtils.isBlank(crawlSessionConfig.getId())) {
-            throw new CrawlSessionException("CrawlSession must be given "
-                    + "a unique identifier (id).");
-        }
-
-    }
+    //--- Life-cycle/action methods --------------------------------------------
+    // Not public. Invoked from CrawlSessionService public equivalent.
 
     /**
-     * Starts all crawlers defined in configuration.
+     * START:
+     * Do not invoked directly, use {@link CrawlSessionService#start()}.
      */
-    public void start() {
+    void start() {
         MdcUtil.setCrawlSessionId(getId());
         Thread.currentThread().setName(getId());
 
@@ -239,7 +232,7 @@ public class CrawlSession {
 
             if (crawlerList.size() == 1) {
                 // no concurrent crawlers, just start
-                crawlerList.forEach(Crawler::start);
+                crawlerList.forEach(crawler -> crawler.getService().start());
             } else {
                 // Multilpe crawlers, run concurrently
                 startConcurrentCrawlers(maxConcurrent);
@@ -248,6 +241,158 @@ public class CrawlSession {
             orderlyShutdown();
         }
     }
+
+
+    /**
+     * CLEAN:
+     * Do not invoked directly, use {@link CrawlSessionService#clean()}.
+     */
+    void clean() {
+        MdcUtil.setCrawlSessionId(getId());
+        Thread.currentThread().setName(getId() + "/CLEAN");
+        lock();
+        try {
+            initCrawlSession();
+            eventManager.fire(CrawlSessionEvent.builder()
+                    .name(CrawlSessionEvent.CRAWLSESSION_CLEAN_BEGIN)
+                    .source(this)
+                    .message("Cleaning cached CrawlSession data (does not "
+                            + "impact previously committed data)...")
+                    .build());
+
+            crawlers.forEach(Crawler::clean);
+            eventManager.fire(CrawlSessionEvent.builder()
+                    .name(CrawlSessionEvent.CRAWLSESSION_CLEAN_END)
+                    .source(this)
+                    .message("Done cleaning CrawlSession.")
+                    .build());
+            destroyCrawlSession();
+        } finally {
+            eventManager.clearListeners();
+            unlock();
+        }
+    }
+
+    /**
+     * STOP:
+     * Do not invoked directly, use {@link CrawlSessionService#stop()}
+     */
+    void stop() {
+        if (!isInstanceRunning()) {
+            LOG.info("CANNOT STOP: the targetted crawl session is not "
+                    + "running on on this host.");
+            return;
+        }
+        MdcUtil.setCrawlSessionId(getId());
+        Thread.currentThread().setName(getId() + "/STOP");
+        eventManager.fire(CrawlSessionEvent.builder()
+                .name(CrawlSessionEvent.CRAWLSESSION_STOP_BEGIN)
+                .source(this)
+                .build());
+        try {
+            getCrawlers().forEach(crawler -> crawler.getService().stop());
+        } finally {
+            try {
+                eventManager.fire(CrawlSessionEvent.builder()
+                        .name(CrawlSessionEvent.CRAWLSESSION_STOP_END)
+                        .source(this)
+                        .build());
+                destroyCrawlSession();
+            } finally {
+                stopper.destroy();
+            }
+        }
+    }
+
+    /**
+     * IMPORT DATA STORE:
+     * Do not invoked directly, use
+     * {@link CrawlSessionService#importDataStore(Collection)}.
+     */
+    void importDataStore(Collection<Path> inFiles) {
+        MdcUtil.setCrawlSessionId(getId());
+        Thread.currentThread().setName(getId() + "/IMPORT");
+        lock();
+        try {
+            initCrawlSession();
+            eventManager.fire(CrawlSessionEvent.builder()
+                    .name(CrawlSessionEvent.CRAWLSESSION_STORE_IMPORT_BEGIN)
+                    .source(this)
+                    .build());
+            for (Path f : inFiles) {
+                DataStoreImporter.importDataStore(this, f);
+            }
+            eventManager.fire(CrawlSessionEvent.builder()
+                    .name(CrawlSessionEvent.CRAWLSESSION_STORE_IMPORT_END)
+                    .source(this)
+                    .build());
+            destroyCrawlSession();
+        } catch (IOException e) {
+            throw new CrawlerException(
+                    "Could not import data store.", e);
+        } finally {
+            eventManager.clearListeners();
+            unlock();
+        }
+    }
+
+    /**
+     * EXPORT DATA STORE:
+     * Do not invoked directly, use
+     * {@link CrawlSessionService#exportDataStore(Path)}.
+     */
+    void exportDataStore(Path dir) {
+        MdcUtil.setCrawlSessionId(getId());
+        Thread.currentThread().setName(getId() + "/EXPORT");
+        lock();
+        try {
+            initCrawlSession();
+            eventManager.fire(CrawlSessionEvent.builder()
+                    .name(CrawlSessionEvent.CRAWLSESSION_STORE_EXPORT_BEGIN)
+                    .source(this)
+                    .build());
+            DataStoreExporter.exportDataStore(this, dir);
+            eventManager.fire(CrawlSessionEvent.builder()
+                    .name(CrawlSessionEvent.CRAWLSESSION_STORE_EXPORT_END)
+                    .source(this)
+                    .build());
+            destroyCrawlSession();
+        } catch (IOException e) {
+            throw new CrawlerException("Could not export data store.", e);
+        } finally {
+            eventManager.clearListeners();
+            unlock();
+        }
+    }
+
+
+    //--- Misc. ----------------------------------------------------------------
+
+
+    // Ensure clean slate by either replacing or clearing and adding back
+    protected void initCrawlSession() {
+        //TODO move this code to a config validator class?
+        //--- Ensure good state/config ---
+        if (StringUtils.isBlank(crawlSessionConfig.getId())) {
+            throw new CrawlSessionException("CrawlSession must be given "
+                    + "a unique identifier (id).");
+        }
+
+        //--- (Re)create crawlers
+        crawlers.clear();
+        createCrawlers();
+
+        //--- (Re)register event listeners ---
+        eventManager.clearListeners();
+        eventManager.addListenersFromScan(crawlSessionConfig);
+
+        //--- Stream Cache Factory ---
+        streamFactory = new CachedStreamFactory(
+                (int) crawlSessionConfig.getMaxStreamCachePoolSize(),
+                (int) crawlSessionConfig.getMaxStreamCacheSize(),
+                tempDir);
+    }
+
 
     private void orderlyShutdown() {
         try {
@@ -307,7 +452,7 @@ public class CrawlSession {
         var pool = poolSupplier.apply(poolSize);
         try {
             getCrawlers().forEach(c -> crawlerExecuter.accept(pool, () -> {
-                c.start();
+                c.getService().start();
                 latch.countDown();
             }));
             latch.await();
@@ -325,77 +470,6 @@ public class CrawlSession {
         }
     }
 
-    public void clean() {
-        MdcUtil.setCrawlSessionId(getId());
-        Thread.currentThread().setName(getId() + "/CLEAN");
-        lock();
-        try {
-            initCrawlSession();
-            eventManager.fire(CrawlSessionEvent.builder()
-                    .name(CrawlSessionEvent.CRAWLSESSION_CLEAN_BEGIN)
-                    .source(this)
-                    .message("Cleaning cached CrawlSession data (does not "
-                            + "impact previously committed data)...")
-                    .build());
-
-            crawlers.forEach(Crawler::clean);
-            eventManager.fire(CrawlSessionEvent.builder()
-                    .name(CrawlSessionEvent.CRAWLSESSION_CLEAN_END)
-                    .source(this)
-                    .message("Done cleaning CrawlSession.")
-                    .build());
-            destroyCrawlSession();
-        } finally {
-            eventManager.clearListeners();
-            unlock();
-        }
-    }
-
-    public void importDataStore(Collection<Path> inFiles) {
-        MdcUtil.setCrawlSessionId(getId());
-        Thread.currentThread().setName(getId() + "/IMPORT");
-        lock();
-        try {
-            initCrawlSession();
-            eventManager.fire(CrawlSessionEvent.builder()
-                    .name(CrawlSessionEvent.CRAWLSESSION_STORE_IMPORT_BEGIN)
-                    .source(this)
-                    .build());
-            inFiles.forEach(
-                    f -> getCrawlers().forEach(c -> c.importDataStore(f)));
-            eventManager.fire(CrawlSessionEvent.builder()
-                    .name(CrawlSessionEvent.CRAWLSESSION_STORE_IMPORT_END)
-                    .source(this)
-                    .build());
-            destroyCrawlSession();
-        } finally {
-            eventManager.clearListeners();
-            unlock();
-        }
-    }
-    public void exportDataStore(Path dir) {
-        MdcUtil.setCrawlSessionId(getId());
-        Thread.currentThread().setName(getId() + "/EXPORT");
-        lock();
-        try {
-            initCrawlSession();
-            eventManager.fire(CrawlSessionEvent.builder()
-                    .name(CrawlSessionEvent.CRAWLSESSION_STORE_EXPORT_BEGIN)
-                    .source(this)
-                    .build());
-            //TODO zip all exported data stores in a single file?
-            getCrawlers().forEach(c -> c.exportDataStore(dir));
-            eventManager.fire(CrawlSessionEvent.builder()
-                    .name(CrawlSessionEvent.CRAWLSESSION_STORE_EXPORT_END)
-                    .source(this)
-                    .build());
-            destroyCrawlSession();
-        } finally {
-            eventManager.clearListeners();
-            unlock();
-        }
-    }
-
     protected void destroyCrawlSession() {
         try {
             FileUtil.delete(getTempDir().toFile());
@@ -406,40 +480,6 @@ public class CrawlSession {
             unlock();
         }
         MDC.clear();
-    }
-
-    public void fireStopRequest() {
-        stopper.fireStopRequest(this);
-    }
-
-    /**
-     * Stops a running instance of this CrawlSession. The caller can be a
-     * different JVM instance than the instance we want to stop.
-     */
-    public void stop() {
-        if (!isRunning()) {
-            LOG.info("CANNOT STOP: CrawlSession is not running.");
-            return;
-        }
-        MdcUtil.setCrawlSessionId(getId());
-        Thread.currentThread().setName(getId() + "/STOP");
-        eventManager.fire(CrawlSessionEvent.builder()
-                .name(CrawlSessionEvent.CRAWLSESSION_STOP_BEGIN)
-                .source(this)
-                .build());
-        try {
-            getCrawlers().forEach(Crawler::stop);
-        } finally {
-            try {
-                eventManager.fire(CrawlSessionEvent.builder()
-                        .name(CrawlSessionEvent.CRAWLSESSION_STOP_END)
-                        .source(this)
-                        .build());
-                destroyCrawlSession();
-            } finally {
-                stopper.destroy();
-            }
-        }
     }
 
     /**
@@ -492,20 +532,21 @@ public class CrawlSession {
     }
 
     protected synchronized void lock() {
-        LOG.debug("Locking CrawlSession execution...");
+        LOG.debug("Locking local crawl session execution...");
         lock = new FileLocker(getWorkDir().resolve(".CrawlSession-lock"));
         try {
             lock.lock();
         } catch (FileAlreadyLockedException e) {
             throw new CrawlSessionException("""
-                    The CrawlSession you are attempting to run is already\s\
-                    running or executing a command. Wait for\s\
+                    The crawl session instance you are attempting to run is\s\
+                    already running or executing a command. Wait for\s\
                     it to complete or stop it and try again.""");
         } catch (IOException e) {
             throw new CrawlSessionException(
-                    "Could not create a CrawlSession execution lock.", e);
+                    "Could not create instance crawl session execution lock.",
+                    e);
         }
-        LOG.debug("CrawlSession execution locked");
+        LOG.debug("Crawl session execution locked");
     }
 
     protected synchronized void unlock() {
@@ -521,7 +562,7 @@ public class CrawlSession {
         lock = null;
     }
 
-    public boolean isRunning() {
+    public boolean isInstanceRunning() {
         return lock != null && lock.isLocked();
     }
 

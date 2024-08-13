@@ -128,7 +128,7 @@ public class MockWebCrawlSessionExtension implements
         });
 
         new Thread(() -> {
-            crawlSession.start();
+            crawlSession.getService().start();
         }).start();
     }
     @Override

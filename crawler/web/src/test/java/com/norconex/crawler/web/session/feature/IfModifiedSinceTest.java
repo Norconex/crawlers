@@ -87,18 +87,18 @@ class IfModifiedSinceTest {
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
 
         // First run is new
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same date, so not modified
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different date, so modified
         serverDate = today;
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
@@ -106,11 +106,11 @@ class IfModifiedSinceTest {
         // so modified
         WebTestUtil.getFirstHttpFetcher(crawlSession)
                 .getConfiguration().setIfModifiedSinceDisabled(true);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 
     public static class Callback implements ExpectationResponseCallback {

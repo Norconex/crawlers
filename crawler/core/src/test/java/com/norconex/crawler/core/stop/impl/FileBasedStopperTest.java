@@ -49,9 +49,9 @@ class FileBasedStopperTest {
         var receiver = new FileBasedStopper();
         receiver.listenForStopRequest(sess);
 
-        var isRunning = new MutableObject<Boolean>(Boolean.FALSE);
-        var gotStopBegin = new MutableObject<Boolean>(Boolean.FALSE);
-        var gotStopEnd = new MutableObject<Boolean>(Boolean.FALSE);
+        var isRunning = new MutableObject<>(Boolean.FALSE);
+        var gotStopBegin = new MutableObject<>(Boolean.FALSE);
+        var gotStopEnd = new MutableObject<>(Boolean.FALSE);
         TestUtil.getFirstCrawlerConfig(sess).setNumThreads(1);
         sess.getCrawlSessionConfig().addEventListener(
                 ev -> {
@@ -66,7 +66,8 @@ class FileBasedStopperTest {
                         gotStopEnd.setValue(true);
                     }
                 });
-        sess.start();
+        sess.getService().start();
+
 
         receiver.destroy();
         assertThat(gotStopBegin.getValue()).isTrue();

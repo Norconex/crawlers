@@ -94,7 +94,7 @@ class SitemapURLDeletionTest {
 
         // First time, 3 upserts and 0 deletes
         whenSitemap(client, true);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertRequests())
             .map(UpsertRequest::getReference)
             .containsExactlyInAnyOrder(
@@ -106,7 +106,7 @@ class SitemapURLDeletionTest {
 
         // Second time, 1 add and 1 delete (2 unmodified)
         whenSitemap(client, false);
-        crawlSession.start();
+        crawlSession.getService().start();
         assertThat(mem.getUpsertRequests())
             .map(UpsertRequest::getReference)
             .containsExactlyInAnyOrder(
@@ -117,7 +117,7 @@ class SitemapURLDeletionTest {
                     serverUrl(client, page3Path));
         mem.clean();
 
-        crawlSession.clean();
+        crawlSession.getService().clean();
     }
 
     private void whenSitemap(ClientAndServer client, boolean firstTime) {

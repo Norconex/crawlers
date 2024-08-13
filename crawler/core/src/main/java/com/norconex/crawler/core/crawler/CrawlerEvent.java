@@ -47,6 +47,15 @@ public class CrawlerEvent extends Event {
      */
     public static final String CRAWLER_INIT_END = "CRAWLER_INIT_END";
 
+//    /**
+//     * The crawler began preparing the document store before starting.
+//     */
+//    public static final String CRAWLER_PREPARE_BEGIN = "CRAWLER_PREPARE_BEGIN";
+//    /**
+//     * The crawler is done preparing the document store and can begin.
+//     */
+//    public static final String CRAWLER_PREPARE_END = "CRAWLER_PREPARE_END";
+
     /**
      * The crawler is about to begin crawling.
      */
