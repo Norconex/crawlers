@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.norconex.commons.lang.EqualsUtil;
 
 import net.lightbody.bmp.BrowserMobProxyServer;
+import net.lightbody.bmp.filters.ResponseFilterAdapter;
 
 /**
  * <p>
@@ -81,19 +82,21 @@ class HttpSniffer {
         //NOTE we use to have `mobProxy.setMitmDisabled(true)` here, but
         // that made it fail to invoke the response filter set below.
         // We can make that option configurable if it causes issues for some.
-        mobProxy.addResponseFilter((response, contents, messageInfo) -> {
+
+        mobProxy.addLastHttpFilterFactory(
+                new ResponseFilterAdapter.FilterSource(
+                        (response, contents, messageInfo) -> {
             // sniff only if original URL is being tracked
             var trackedResponse =
                     trackedUrlResponses.get(messageInfo.getOriginalUrl());
 
             if (trackedResponse != null) {
-                response.headers().forEach(en -> {
-                    trackedResponse.headers.put(en.getKey(), en.getValue());
-                });
+                response.headers().forEach(en ->
+                    trackedResponse.headers.put(en.getKey(), en.getValue()));
                 trackedResponse.statusCode = response.status().code();
                 trackedResponse.reasonPhrase = response.status().reasonPhrase();
             }
-        });
+        }, cfg.getMaxBufferSize()));
 
         mobProxy.start(cfg.getPort());
 
