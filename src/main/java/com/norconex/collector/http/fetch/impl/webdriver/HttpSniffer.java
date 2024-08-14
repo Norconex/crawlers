@@ -23,6 +23,7 @@ import java.util.Optional;
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.collections4.map.ReferenceMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -78,10 +79,19 @@ class HttpSniffer {
         mobProxy = new BrowserMobProxyServer();
         mobProxy.setTrustAllServers(true);
         mobProxy.setTrustSource(null);
-
         //NOTE we use to have `mobProxy.setMitmDisabled(true)` here, but
         // that made it fail to invoke the response filter set below.
         // We can make that option configurable if it causes issues for some.
+
+
+        // request headers
+        cfg.getRequestHeaders().entrySet().forEach(
+                en -> mobProxy.addHeader(en.getKey(), en.getValue()));
+
+        // User agent
+        if (StringUtils.isNotBlank(cfg.getUserAgent())) {
+            mobProxy.addHeader("User-Agent", cfg.getUserAgent());
+        }
 
         mobProxy.addLastHttpFilterFactory(
                 new ResponseFilterAdapter.FilterSource(
