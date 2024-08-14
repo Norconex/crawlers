@@ -17,6 +17,7 @@ package com.norconex.collector.http.fetch.impl.webdriver;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Optional;
 
@@ -79,6 +80,23 @@ class HttpSniffer {
         mobProxy.setTrustAllServers(true);
         mobProxy.setTrustSource(null);
 
+
+        if (cfg.getChainedProxy() != null &&
+                cfg.getChainedProxy().getHost() != null &&
+                cfg.getChainedProxy().getHost().getName() != null
+        ) {
+
+            InetSocketAddress proxyAddress = new InetSocketAddress(
+                    cfg.getChainedProxy().getHost().getName(),
+                    cfg.getChainedProxy().getHost().getPort()
+            );
+
+            mobProxy.setChainedProxy(proxyAddress);
+            LOG.info("Chained Proxy set on browser as: {}.", proxyAddress);
+        }
+
+        LOG.info("-----Request Headers: {}.",cfg.getRequestHeaders());
+
         //NOTE we use to have `mobProxy.setMitmDisabled(true)` here, but
         // that made it fail to invoke the response filter set below.
         // We can make that option configurable if it causes issues for some.
@@ -98,27 +116,32 @@ class HttpSniffer {
             }
         }, cfg.getMaxBufferSize()));
 
+
+
         mobProxy.start(cfg.getPort());
 
         var actualPort = mobProxy.getPort();
         LOG.info("Proxy started on port {} "
                 + "for HTTP response header capture.", actualPort);
 
-        var proxyStr = ofNullable(cfg.getHost()).orElse("localhost")
-                + ":" + actualPort;
+        var proxyHost = ofNullable(cfg.getHost()).orElse("localhost");
+        var proxyStr = proxyHost + ":" + actualPort;
 
         LOG.info("Proxy set on browser as: {}.", proxyStr);
+
 
         // Fix bug with firefox where request/response filters are not
         // triggered properly unless dealing with firefox profile
         if (options instanceof FirefoxOptions) {
             //TODO Shall we prevent calls to firefox browser addons?
             var profile = ((FirefoxOptions) options).getProfile();
-            profile.setAcceptUntrustedCertificates(true);
+                        profile.setAcceptUntrustedCertificates(true);
             profile.setAssumeUntrustedCertificateIssuer(true);
-            profile.setPreference("network.proxy.http", "localhost");
+//            profile.setPreference("network.proxy.http", "localhost");
+            profile.setPreference("network.proxy.http", proxyHost);
             profile.setPreference("network.proxy.http_port", actualPort);
-            profile.setPreference("network.proxy.ssl", "localhost");
+//            profile.setPreference("network.proxy.ssl", "localhost");
+            profile.setPreference("network.proxy.ssl", proxyHost);
             profile.setPreference("network.proxy.ssl_port", actualPort);
             profile.setPreference("network.proxy.type", 1);
             profile.setPreference("network.proxy.no_proxies_on", "");
