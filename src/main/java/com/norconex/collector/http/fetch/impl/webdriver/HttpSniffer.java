@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Optional;
 
+import net.lightbody.bmp.proxy.auth.AuthType;
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -78,11 +79,30 @@ class HttpSniffer {
     void start(MutableCapabilities options, HttpSnifferConfig config) {
         var cfg = Optional.ofNullable(config).orElseGet(HttpSnifferConfig::new);
         mobProxy = new BrowserMobProxyServer();
+
+
+        // TODO: 2024-08-14: flipping doesnt seems making any diff
         mobProxy.setTrustAllServers(true);
         mobProxy.setTrustSource(null);
+
         //NOTE we use to have `mobProxy.setMitmDisabled(true)` here, but
         // that made it fail to invoke the response filter set below.
         // We can make that option configurable if it causes issues for some.
+
+
+        if (cfg != null &&
+                cfg.getChainedProxy() != null &&
+                cfg.getChainedProxy().getCredentials() != null &&
+                cfg.getChainedProxy().getCredentials().getUsername() != null &&
+                cfg.getChainedProxy().getCredentials().getPassword() != null &&
+                cfg.getChainedProxy().getRealm() != null) {
+
+            mobProxy.chainedProxyAuthorization(
+                    cfg.getChainedProxy().getCredentials().getUsername(),
+                    cfg.getChainedProxy().getCredentials().getPassword(),
+                    AuthType.valueOf(cfg.getChainedProxy().getRealm())
+            );
+        }
 
         if (cfg.getChainedProxy() != null &&
                 cfg.getChainedProxy().getHost() != null &&
@@ -139,9 +159,10 @@ class HttpSniffer {
         // Fix bug with firefox where request/response filters are not
         // triggered properly unless dealing with firefox profile
         if (options instanceof FirefoxOptions) {
+//            ((FirefoxOptions) options).setAcceptInsecureCerts(true);
             //TODO Shall we prevent calls to firefox browser addons?
             var profile = ((FirefoxOptions) options).getProfile();
-                        profile.setAcceptUntrustedCertificates(true);
+            profile.setAcceptUntrustedCertificates(true);
             profile.setAssumeUntrustedCertificateIssuer(true);
 //            profile.setPreference("network.proxy.http", "localhost");
             profile.setPreference("network.proxy.http", proxyHost);
