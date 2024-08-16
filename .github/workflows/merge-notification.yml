@@ -44,7 +44,7 @@ jobs:
         run: |          
           for branch in $(git branch -r | grep -v 'origin/main' | cut -d '/' -f 2-); do
             # only test branches that does not contains "snyk, dependabot, 3.x, 2.x, bugfix/unknown-properties in branch name
-            if [[ $branch != *"snyk"* && $branch != *"dependabot"* && $branch != *".x-branch"* ]]; then
+            if [[ $branch != *"snyk"* && $branch != *"dependabot"* && $branch != *".x-branch"* && $branch != *"branch-v3"*]]; then
                                                       
               git checkout -b temp-merge-$branch origin/$branch
 
