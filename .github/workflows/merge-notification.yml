@@ -113,7 +113,7 @@ jobs:
 
       # send failed alert to slack/github-builds channels
       - name: Slack Notification
-        if: env.failed_branches != 'null'
+        if: steps.modified-files.outputs.any_changed == 'true' && env.failed_branches != 'null'
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
