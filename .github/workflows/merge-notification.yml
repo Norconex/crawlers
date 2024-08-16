@@ -3,7 +3,7 @@ name: Proactive notification of branch conflict
 on:
   push:
     branches:
-      - bugfix/slack-notification-issue
+      - main
 
 jobs:
   test-merge:
