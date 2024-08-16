@@ -107,13 +107,10 @@ jobs:
           done
 
       # Enable for debug use    
-      # - name: printout failed branches
-      #   run: |
-      #     echo "failed branches are: ${{ env.failed_branches }}"
+      - name: printout failed branches
+        run: |
+          echo "failed branches are: ${{ env.failed_branches }}"
 
-      - name: check failed_branches value
-        run: echo "env_failed_branches:" ${{ env.failed_branches }}
-        
       # send failed alert to slack/github-builds channels
       - name: Slack Notification
         if: steps.modified-files.outputs.any_changed == 'true' && env.failed_branches != 'null'
