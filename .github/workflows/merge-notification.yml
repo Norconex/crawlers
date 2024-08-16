@@ -3,7 +3,7 @@ name: Proactive notification of branch conflict
 on:
   push:
     branches:
-      - main
+      - bugfix/slack-notification-issue
 
 jobs:
   test-merge:
@@ -113,7 +113,7 @@ jobs:
 
       # send failed alert to slack/github-builds channels
       - name: Slack Notification
-        if: steps.modified-files.outputs.any_changed == 'true'
+        if: env.failed_branches != 'null'
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
