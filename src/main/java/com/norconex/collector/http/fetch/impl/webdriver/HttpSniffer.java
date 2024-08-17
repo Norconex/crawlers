@@ -89,7 +89,6 @@ class HttpSniffer {
         // that made it fail to invoke the response filter set below.
         // We can make that option configurable if it causes issues for some.
 
-
         if (cfg != null &&
                 cfg.getChainedProxy() != null &&
                 cfg.getChainedProxy().getCredentials() != null &&
@@ -123,8 +122,17 @@ class HttpSniffer {
                 en -> mobProxy.addHeader(en.getKey(), en.getValue()));
 
         // User agent
+//        if (StringUtils.isNotBlank(cfg.getUserAgent())) {
+//            mobProxy.addHeader("User-Agent", cfg.getUserAgent());
+//        }
+
         if (StringUtils.isNotBlank(cfg.getUserAgent())) {
-            mobProxy.addHeader("User-Agent", cfg.getUserAgent());
+            mobProxy.addRequestFilter((request, contents, messageInfo) -> {
+                request.headers().remove("User-Agent");
+                request.headers().add("User-Agent", cfg.getUserAgent());
+
+                return null; // Return null to continue with the modified request
+            });
         }
 
         mobProxy.addLastHttpFilterFactory(
