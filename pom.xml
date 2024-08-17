@@ -212,27 +212,27 @@
         <artifactId>maven-assembly-plugin</artifactId>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <!-- We are referencing doc from other projects with @nx.include so
-               we need to include those dependencies here to avoid
-               getting a ClassNotFoundException. -->
-          <tagletArtifacts combine.children="append">
-            <tagletArtifact>
-              <groupId>com.norconex.collectors</groupId>
-              <artifactId>norconex-importer</artifactId>
-              <version>${norconex-importer.version}</version>
-            </tagletArtifact>
-            <tagletArtifact>
-              <groupId>com.norconex.collectors</groupId>
-              <artifactId>norconex-collector-core</artifactId>
-              <version>${norconex-collector-core.version}</version>
-            </tagletArtifact>
-          </tagletArtifacts>
-        </configuration>
-      </plugin>
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-javadoc-plugin</artifactId>-->
+<!--        <configuration>-->
+<!--          &lt;!&ndash; We are referencing doc from other projects with @nx.include so-->
+<!--               we need to include those dependencies here to avoid-->
+<!--               getting a ClassNotFoundException. &ndash;&gt;-->
+<!--          <tagletArtifacts combine.children="append">-->
+<!--            <tagletArtifact>-->
+<!--              <groupId>com.norconex.collectors</groupId>-->
+<!--              <artifactId>norconex-importer</artifactId>-->
+<!--              <version>${norconex-importer.version}</version>-->
+<!--            </tagletArtifact>-->
+<!--            <tagletArtifact>-->
+<!--              <groupId>com.norconex.collectors</groupId>-->
+<!--              <artifactId>norconex-collector-core</artifactId>-->
+<!--              <version>${norconex-collector-core.version}</version>-->
+<!--            </tagletArtifact>-->
+<!--          </tagletArtifacts>-->
+<!--        </configuration>-->
+<!--      </plugin>-->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<!-- 
+   Copyright 2010-2020 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<!-- This configuration shows the minimum required and basic recommendations
+     to run a crawler.  
+     -->
+<httpcollector id="Minimum Config HTTP Collector">
+	<!-- Decide where to store generated files. -->
+	<workDir>./examples-output/complex</workDir>
+	<crawlers>
+		<crawler id="Norconex Minimum Test Page">
+			<!-- Requires at least one start URL (or urlsFile). 
+           Optionally limit crawling to same protocol/domain/port as 
+           start URLs. -->
+			<startURLs stayOnDomain="true" stayOnPort="true" stayOnProtocol="true">
+<!--				<url>https://webhook.site/26c7383e-8921-41d1-83da-7125f78c5ad6</url>-->
+<!--				<url>https://check.torproject.org/</url>-->
+<!--				<url>https://httpbin.org/ip</url>-->
+				<url>https://ifconfig.io/all</url>
+<!--				<url>https://www.toggo.de/</url>-->
+<!--				<url>https://expired.badssl.com/</url>-->
+<!--				<url>https://untrusted-root.badssl.com</url>-->
+			</startURLs>
+			<numThreads>1</numThreads>
+			<maxDocuments>1</maxDocuments>
+			<robotsTxt ignore="true"/>
+			<keepDownloads>true</keepDownloads>
+			<maxDepth>1</maxDepth>
+			<sitemapResolver ignore="true"/>
+			<delay default="5 seconds"/>
+			<httpFetchers>
+
+<!--Regular fetch to compare result-->
+<!--				<fetcher class="GenericHttpFetcher">-->
+<!--					<trustAllSSLCertificates>false</trustAllSSLCertificates>-->
+<!--					<userAgent>NorconexWebCrawlerTest</userAgent>-->
+<!--				</fetcher>-->
+
+				<fetcher class="com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcher">
+
+					<!--Docker selenium/standalone-firefox-->
+<!--					<browser>firefox</browser>-->
+<!--					<remoteURL>http://localhost:4445</remoteURL>-->
+
+					<!--Docker selenium/standalone-chrome-->
+<!--					<browser>chrome</browser>-->
+<!--					<remoteURL>http://localhost:4444</remoteURL>-->
+
+
+					<!--local browsers-->
+										<browser>chrome</browser>
+										<driverPath>C:\workspace\ClientProject\WebDriver\crawlers\src\main\resources\chromedriver-win64\chromedriver.exe</driverPath>
+<!--										<browser>firefox</browser>-->
+<!--										<driverPath>C:\workspace\ClientProject\WebDriver\crawlers\src\main\resources\firefox-webdriver\geckodriver.exe</driverPath>-->
+
+					<!-- Hidding the popup window for screenshoot -->
+<!--					<latePageScript>-->
+<!--						const modalEl = document.querySelector('#sp_message_container_954110');-->
+<!--						if (modalEl) {-->
+<!--						modalEl.style.display = "none";-->
+<!--						}-->
+<!--					</latePageScript>-->
+
+<!--					 waiting for a specific DOM element-->
+<!--					<waitForElement-->
+<!--							type="cssSelector"-->
+<!--							selector="[data-name=sliderWrapper]">-->
+<!--						20 seconds-->
+<!--					</waitForElement>-->
+
+<!--					<threadWait>15s</threadWait>-->
+					<screenshot>
+						<targetDir>./examples-output/test/crawler-screenshots</targetDir>
+					</screenshot>
+					<windowSize>1024x768</windowSize>
+					<httpSniffer>
+						<port>8888</port>
+						<!-- 172.21.32.1 is the local IPv4 Address-->
+						<host>172.21.32.1</host>
+						<userAgent>NorconexWebCrawlerTest</userAgent>
+						<chainedProxy>
+								<!--testing a local docker tor-privoxy proxy-->
+<!--								<host>-->
+<!--									<name>127.0.0.1</name>-->
+<!--									<port>8119</port>-->
+<!--								</host>-->
+
+								<!--testing a external proxy with Auth-->
+								<host>
+<!--									<name>45.127.248.127</name>-->
+<!--									<port>5128</port>-->
+									<name>127.0.0.1</name>
+									<port>8119</port>
+								</host>
+							<realm>BASIC</realm>
+							<credentials>
+								<username>ygcqdvex</username>
+								<password>8yxg2cv1355e</password>
+							</credentials>
+						</chainedProxy>
+						<headers>
+							<header name="key1">val1</header>
+							<header name="key2">val2</header>
+						</headers>
+					</httpSniffer>
+				</fetcher>
+
+
+
+			</httpFetchers>
+			<!-- Decide what to do with your files by specifying a Committer. -->
+			<committers>
+				<committer class="JSONFileCommitter">
+				</committer>
+			</committers>
+		</crawler>
+	</crawlers>
+</httpcollector>

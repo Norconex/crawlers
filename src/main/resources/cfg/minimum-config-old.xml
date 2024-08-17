@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<httpcollector id="Minimum Config HTTP Collector">
+    <!-- Decide where to store generated files. -->
+    <workDir>./examples-output/test</workDir>
+    <crawlers>
+        <crawler id="Norconex Minimum Test Page">
+            <startURLs stayOnDomain="true" stayOnPort="true" stayOnProtocol="true">
+                <url>https://webhook.site/a70ff6b7-efea-4776-a930-c916c85010db</url>
+            </startURLs>
+            <numThreads>2</numThreads>
+            <maxDocuments>1</maxDocuments>
+            <robotsTxt ignore="true"/>
+            <keepDownloads>true</keepDownloads>
+            <maxDepth>0</maxDepth>
+            <sitemapResolver ignore="true"/>
+            <delay default="5 seconds"/>
+            <httpFetchers>
+                <fetcher class="com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcher">
+                    <browser>chrome</browser>
+                    <driverPath>C:\workspace\ClientProject\WebDriver\crawlers\src\main\resources\chromedriver-win64\chromedriver.exe</driverPath>
+                    <screenshot>
+                        <targetDir>./examples-output/test/crawler-screenshots</targetDir>
+                    </screenshot>
+                    <windowSize>1080x1920</windowSize>
+                    <httpSniffer>
+                        <port>8118</port>
+                    </httpSniffer>
+                </fetcher>
+            </httpFetchers>
+            <committers>
+                <committer class="JSONFileCommitter">
+                </committer>
+            </committers>
+        </crawler>
+    </crawlers>
+</httpcollector>
