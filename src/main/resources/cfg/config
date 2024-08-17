@@ -1,3 +1,0 @@
-enable-proxy-authentication 1
-proxy-authentication-realm "Privoxy authentication"
-proxy-authentication-required "blah:blah"
