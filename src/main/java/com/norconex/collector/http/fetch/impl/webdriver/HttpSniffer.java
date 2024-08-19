@@ -89,43 +89,39 @@ class HttpSniffer {
         // that made it fail to invoke the response filter set below.
         // We can make that option configurable if it causes issues for some.
 
-        if (cfg != null &&
-                cfg.getChainedProxy() != null &&
-                cfg.getChainedProxy().getCredentials() != null &&
-                cfg.getChainedProxy().getCredentials().getUsername() != null &&
-                cfg.getChainedProxy().getCredentials().getPassword() != null &&
-                cfg.getChainedProxy().getRealm() != null) {
 
-            mobProxy.chainedProxyAuthorization(
-                    cfg.getChainedProxy().getCredentials().getUsername(),
-                    cfg.getChainedProxy().getCredentials().getPassword(),
-                    AuthType.valueOf(cfg.getChainedProxy().getRealm())
-            );
-        }
+        //Chained Proxy Host and IP
+        Optional.ofNullable(cfg.getChainedProxy())
+                .flatMap(proxy -> Optional.ofNullable(proxy.getHost()))
+                .flatMap(host -> Optional.ofNullable(host.getName())
+                        .map(name -> new InetSocketAddress(name, host.getPort())))
+                .ifPresent(proxyAddress -> {
+                    mobProxy.setChainedProxy(proxyAddress);
+                    LOG.info("Chained Proxy set on browser as: {}.", proxyAddress);
+                });
 
-        if (cfg.getChainedProxy() != null &&
-                cfg.getChainedProxy().getHost() != null &&
-                cfg.getChainedProxy().getHost().getName() != null
-        ) {
+//        Chained Proxy credentials
+        Optional.ofNullable(cfg.getChainedProxy())
+                .flatMap(proxy -> Optional.ofNullable(proxy.getCredentials()))
+                .flatMap(credentials -> Optional.ofNullable(credentials.getUsername())
+                        .flatMap(username -> Optional.ofNullable(credentials.getPassword())
+                                .flatMap(password -> Optional.ofNullable(cfg.getChainedProxy().getRealm())
+                                        .map(realm -> {
+                                            mobProxy.chainedProxyAuthorization(
+                                                    username,
+                                                    password,
+                                                    AuthType.valueOf(realm)
+                                            );
+                                            return true; // Returning any value to fulfill the `map` operation
+                                        }))))
+                .ifPresent(result -> LOG.info("Chained Proxy Authorization is set."));
 
-            InetSocketAddress proxyAddress = new InetSocketAddress(
-                    cfg.getChainedProxy().getHost().getName(),
-                    cfg.getChainedProxy().getHost().getPort()
-            );
-
-            mobProxy.setChainedProxy(proxyAddress);
-            LOG.info("Chained Proxy set on browser as: {}.", proxyAddress);
-        }
 
         // request headers
         cfg.getRequestHeaders().entrySet().forEach(
                 en -> mobProxy.addHeader(en.getKey(), en.getValue()));
 
         // User agent
-//        if (StringUtils.isNotBlank(cfg.getUserAgent())) {
-//            mobProxy.addHeader("User-Agent", cfg.getUserAgent());
-//        }
-
         if (StringUtils.isNotBlank(cfg.getUserAgent())) {
             mobProxy.addRequestFilter((request, contents, messageInfo) -> {
                 request.headers().remove("User-Agent");
@@ -135,6 +131,7 @@ class HttpSniffer {
             });
         }
 
+        //Fix response too long in HttpSniffer
         mobProxy.addLastHttpFilterFactory(
                 new ResponseFilterAdapter.FilterSource(
                         (response, contents, messageInfo) -> {
@@ -167,15 +164,12 @@ class HttpSniffer {
         // Fix bug with firefox where request/response filters are not
         // triggered properly unless dealing with firefox profile
         if (options instanceof FirefoxOptions) {
-//            ((FirefoxOptions) options).setAcceptInsecureCerts(true);
             //TODO Shall we prevent calls to firefox browser addons?
             var profile = ((FirefoxOptions) options).getProfile();
             profile.setAcceptUntrustedCertificates(true);
             profile.setAssumeUntrustedCertificateIssuer(true);
-//            profile.setPreference("network.proxy.http", "localhost");
             profile.setPreference("network.proxy.http", proxyHost);
             profile.setPreference("network.proxy.http_port", actualPort);
-//            profile.setPreference("network.proxy.ssl", "localhost");
             profile.setPreference("network.proxy.ssl", proxyHost);
             profile.setPreference("network.proxy.ssl_port", actualPort);
             profile.setPreference("network.proxy.type", 1);
