@@ -18,6 +18,7 @@ import static java.util.Optional.ofNullable;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -89,33 +90,34 @@ class HttpSniffer {
         // that made it fail to invoke the response filter set below.
         // We can make that option configurable if it causes issues for some.
 
+        ofNullable(cfg.getChainedProxy()).ifPresent(proxy -> {
+            // Set Chained Proxy Host and IP
+            ofNullable(proxy.getHost())
+                    .flatMap(host -> ofNullable(host.getName())
+                            .flatMap(name -> ofNullable(host.getPort())
+                                    .map(port -> new InetSocketAddress(name, port))))
+                    .ifPresentOrElse(pAddr -> {
+                        mobProxy.setChainedProxy(pAddr);
+                        LOG.info("Chained Proxy set on browser as: {}.", pAddr);
 
-        //Chained Proxy Host and IP
-        Optional.ofNullable(cfg.getChainedProxy())
-                .flatMap(proxy -> Optional.ofNullable(proxy.getHost()))
-                .flatMap(host -> Optional.ofNullable(host.getName())
-                        .map(name -> new InetSocketAddress(name, host.getPort())))
-                .ifPresent(proxyAddress -> {
-                    mobProxy.setChainedProxy(proxyAddress);
-                    LOG.info("Chained Proxy set on browser as: {}.", proxyAddress);
-                });
-
-//        Chained Proxy credentials
-        Optional.ofNullable(cfg.getChainedProxy())
-                .flatMap(proxy -> Optional.ofNullable(proxy.getCredentials()))
-                .flatMap(credentials -> Optional.ofNullable(credentials.getUsername())
-                        .flatMap(username -> Optional.ofNullable(credentials.getPassword())
-                                .flatMap(password -> Optional.ofNullable(cfg.getChainedProxy().getRealm())
-                                        .map(realm -> {
-                                            mobProxy.chainedProxyAuthorization(
-                                                    username,
-                                                    password,
-                                                    AuthType.valueOf(realm)
-                                            );
-                                            return true; // Returning any value to fulfill the `map` operation
-                                        }))))
-                .ifPresent(result -> LOG.info("Chained Proxy Authorization is set."));
-
+                        // Set Chained Proxy Credentials
+                        ofNullable(proxy.getCredentials())
+                                .flatMap(creds -> ofNullable(creds.getUsername())
+                                        .flatMap(uname -> ofNullable(creds.getPassword())
+                                                .flatMap(pw -> ofNullable(proxy.getRealm())
+                                                        .map(rlm -> {
+                                                            mobProxy.chainedProxyAuthorization(
+                                                                    uname,
+                                                                    pw,
+                                                                    AuthType.valueOf(rlm)
+                                                            );
+                                                            LOG.info("Chained Proxy Authorization is set.");
+                                                            return null;
+                                                        }))));
+                    },() -> {
+                        LOG.info("Chained Proxy not configured");
+                    });
+        });
 
         // request headers
         cfg.getRequestHeaders().entrySet().forEach(
@@ -147,18 +149,12 @@ class HttpSniffer {
             }
         }, cfg.getMaxBufferSize()));
 
-
-
         mobProxy.start(cfg.getPort());
 
         var actualPort = mobProxy.getPort();
-        LOG.info("Proxy started on port {} "
-                + "for HTTP response header capture.", actualPort);
-
         var proxyHost = ofNullable(cfg.getHost()).orElse("localhost");
-        var proxyStr = proxyHost + ":" + actualPort;
-
-        LOG.info("Proxy set on browser as: {}.", proxyStr);
+        LOG.info("Proxy started and set on browser as: {}.",
+                proxyHost + ":" + actualPort);
 
 
         // Fix bug with firefox where request/response filters are not
@@ -187,7 +183,7 @@ class HttpSniffer {
             // https://bugs.chromium.org/p/chromium/issues/detail?id=899126#c15
             chromeOptions.addArguments(
                     "--proxy-bypass-list=<-loopback>",
-                    "--proxy-server=" + proxyStr,
+                    "--proxy-server=" +  proxyHost + ":" + actualPort,
                     "--disable-popup-blocking",
                     "--disable-extensions",
                     "--disable-dev-shm-usage",
