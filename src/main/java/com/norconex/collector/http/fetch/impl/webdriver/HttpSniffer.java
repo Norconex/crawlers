@@ -98,7 +98,7 @@ class HttpSniffer {
                                     .map(port -> new InetSocketAddress(name, port))))
                     .ifPresentOrElse(pAddr -> {
                         mobProxy.setChainedProxy(pAddr);
-                        LOG.info("Chained Proxy set on browser as: {}.", pAddr);
+                        LOG.info("Chained Proxy set on httpSniffer as: {}.", pAddr);
 
                         // Set Chained Proxy Credentials
                         ofNullable(proxy.getCredentials())
@@ -153,8 +153,7 @@ class HttpSniffer {
 
         var actualPort = mobProxy.getPort();
         var proxyHost = ofNullable(cfg.getHost()).orElse("localhost");
-        LOG.info("Proxy started and set on browser as: {}.",
-                proxyHost + ":" + actualPort);
+        LOG.info("Proxy set on browser as: {}.", proxyHost + ":" + actualPort);
 
 
         // Fix bug with firefox where request/response filters are not
