@@ -26,7 +26,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
-import com.norconex.crawler.core.Crawler.CommandExecution;
+import com.norconex.crawler.core.CrawlerCommandExecuter.CommandExecution;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
@@ -51,10 +51,11 @@ public final class CrawlerTestUtil {
     private CrawlerTestUtil() {}
 
     public static void initCrawler(Crawler crawler) {
-        crawler.init(new CommandExecution("TEST"));
+        CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
     }
     public static void destroyCrawler(Crawler crawler) {
-        crawler.orderlyShutdown(new CommandExecution("TEST"));
+        CrawlerCommandExecuter.orderlyShutdown(
+                new CommandExecution(crawler, "TEST"));
     }
 
     public static MemoryCommitter firstCommitter(

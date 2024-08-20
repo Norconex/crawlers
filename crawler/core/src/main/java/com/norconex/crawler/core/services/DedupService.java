@@ -52,9 +52,7 @@ public class DedupService implements Closeable {
     //TODO merge with DocTrackerService if we can query by checksum
     // at no extra cost?
 
-//    @Getter
     private DataStore<String> dedupMetadataStore; // checksum -> ref
-//    @Getter
     private DataStore<String> dedupDocumentStore; // checksum -> ref
 
     private boolean initialized;
