@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.crawler.core.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

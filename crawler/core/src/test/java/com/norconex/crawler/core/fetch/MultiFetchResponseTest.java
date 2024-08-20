@@ -47,27 +47,12 @@ class MultiFetchResponseTest {
         }
     }
 
-//    @Data
-//    static class TestFetcher
-//            implements Fetcher<MockFetchRequest, TestResponse> {
-//        private final String salt;
-//        @Override
-//        public boolean accept(MockFetchRequest fetchRequest) {
-//            return true;
-//        }
-//        @Override
-//        public TestResponse fetch(MockFetchRequest fetchRequest)
-//                throws FetchException {
-//            return null;
-//        }
-//    }
-
     @Test
     void testGenericMultiFetchResponse() {
         var resp1 = new TestResponse("resp1");
         var resp2 = new TestResponse("resp2");
 
-        var gmfr = new MultiFetchResponse<TestResponse>(List.of(
+        var gmfr = new MultiFetchResponse<>(List.of(
                 resp1, resp2));
 
         assertThat(gmfr.getStatusCode()).isEqualTo(123);

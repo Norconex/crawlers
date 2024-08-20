@@ -32,7 +32,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RequiredArgsConstructor
 @Slf4j
-//MAYBE: if used in a few places, consider moving to Nx Commons
+//TODO used at all?
+//MAYBE: consider moving to Nx Commons
 public class IntervalTaskRunner {
 
     private final ScheduledExecutorService scheduler =

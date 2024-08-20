@@ -28,8 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.crawler.core.crawler.CrawlerException;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
@@ -66,7 +65,7 @@ public class MVStoreDataStoreEngine
     }
 
     @Override
-    public void init(CrawlSession crawlSession) {
+    public void init(Crawler crawler) {
 
         var builder = new MVStore.Builder();
         if (cfg.getPageSplitSize() != null) {
@@ -102,7 +101,7 @@ public class MVStoreDataStoreEngine
         if (cfg.isEphemeral()) {
             builder.fileName(null);
         } else {
-            engineDir = crawlSession.getWorkDir().resolve("datastore");
+            engineDir = crawler.getWorkDir().resolve("datastore");
             try {
                 FileUtils.forceMkdir(engineDir.toFile());
             } catch (IOException e) {
@@ -157,7 +156,7 @@ public class MVStoreDataStoreEngine
         try {
             FileUtils.deleteDirectory(dirToDelete);
         } catch (IOException e) {
-            throw new CrawlerException(
+            throw new DataStoreException(
                     "Could not delete data store directory.", e);
         }
         return hadStores;

@@ -1,0 +1,7 @@
+workDir: ${tempDir|"./workdir"}
+numThreads: 1
+maxDocuments: 10
+
+#  dataStoreEngine: ''
+committers:
+  - class: MemoryCommitter

@@ -20,12 +20,10 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.filter.FilterGroupResolver;
-import com.norconex.crawler.core.filter.ReferenceFilter;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSessionEvent;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.importer.doc.Doc;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -120,13 +118,16 @@ public abstract class AbstractFetcher <
 
     @Override
     public final void accept(Event event) {
+
+        //TODO create init/destroy methods instead?
+
     	// Here we rely on session startup instead of
     	// crawler startup to avoid being invoked multiple
     	// times (once for each crawler)
-    	if (event.is(CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN)) {
-    		fetcherStartup((CrawlSession) event.getSource());
-    	} else if (event.is(CrawlSessionEvent.CRAWLSESSION_RUN_END)) {
-    		fetcherShutdown((CrawlSession) event.getSource());
+    	if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
+    		fetcherStartup((Crawler) event.getSource());
+    	} else if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
+    		fetcherShutdown((Crawler) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
@@ -140,19 +141,19 @@ public abstract class AbstractFetcher <
 
 
     /**
-     * Invoked once per fetcher instance, when the collector starts.
+     * Invoked once per fetcher instance, when the crawler starts.
      * Default implementation does nothing.
-     * @param collector collector
+     * @param crawler crawler
      */
-	protected void fetcherStartup(CrawlSession collector) {
+	protected void fetcherStartup(Crawler crawler) {
         //NOOP
     }
     /**
-     * Invoked once per fetcher when the collector ends.
+     * Invoked once per fetcher when the crawler ends.
      * Default implementation does nothing.
-     * @param collector collector
+     * @param crawler crawler
      */
-	protected void fetcherShutdown(CrawlSession collector) {
+	protected void fetcherShutdown(Crawler crawler) {
         //NOOP
     }
 

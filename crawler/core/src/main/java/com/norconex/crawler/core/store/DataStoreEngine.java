@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.Crawler;
 
 public interface DataStoreEngine extends Closeable {
 
@@ -28,7 +28,7 @@ public interface DataStoreEngine extends Closeable {
     // use file-based or store-based.
     boolean clusterFriendly();
 
-    void init(CrawlSession crawlSession);
+    void init(Crawler crawler);
     boolean clean();
     @Override
     void close();

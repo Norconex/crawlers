@@ -1,16 +1,15 @@
 package com.norconex.crawler.core.store;
 
-import com.norconex.crawler.core.doc.CrawlDocRecord;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 
 // Adds a few extra field types for testing
-class TestObject extends CrawlDocRecord {
+class TestObject extends CrawlDocContext {
 
     private static final long serialVersionUID = 1L;
     private int count;
     private boolean valid;
 
     TestObject() {
-        super();
     }
     TestObject(String reference, int count, String checksum,
             String parentReference) {

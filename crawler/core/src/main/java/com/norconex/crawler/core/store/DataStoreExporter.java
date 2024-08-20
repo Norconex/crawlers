@@ -27,8 +27,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core.crawler.CrawlerException;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -38,20 +37,18 @@ import lombok.extern.slf4j.Slf4j;
  * or different store implementation.
  */
 @Slf4j
-public final class DataStoreExporter extends CrawlerException {
-
-    private static final long serialVersionUID = 1L;
+public final class DataStoreExporter {
 
     private DataStoreExporter() {}
 
     public static Path exportDataStore(
-            CrawlSession crawlSession, Path exportDir)
+            Crawler crawler, Path exportDir)
             throws IOException {
-        var storeEngine = crawlSession.getDataStoreEngine();
+        var storeEngine = crawler.getDataStoreEngine();
         Files.createDirectories(exportDir);
 
         var outFile = exportDir.resolve(
-                FileUtil.toSafeFileName(crawlSession.getId() + ".zip"));
+                FileUtil.toSafeFileName(crawler.getId() + ".zip"));
 
         try (var zipOS = new ZipOutputStream(
                 IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
@@ -63,7 +60,7 @@ public final class DataStoreExporter extends CrawlerException {
                             FileUtil.toSafeFileName(name) + ".json"));
                     try (DataStore<?> store =
                             storeEngine.openStore(name, type.get())) {
-                        exportStore(crawlSession, store, zipOS, type.get());
+                        exportStore(crawler, store, zipOS, type.get());
                     }
                     zipOS.flush();
                     zipOS.closeEntry();
@@ -77,7 +74,7 @@ public final class DataStoreExporter extends CrawlerException {
         return outFile;
     }
     private static void exportStore(
-            CrawlSession crawlSession,
+            Crawler crawler,
             DataStore<?> store,
             OutputStream out,
             Class<?> type) throws IOException {
@@ -92,7 +89,6 @@ public final class DataStoreExporter extends CrawlerException {
         var cnt = new MutableLong();
         var lastPercent = new MutableLong();
         writer.writeStartObject();
-        writer.writeStringField("crawlsession", crawlSession.getId());
         writer.writeStringField("store", store.getName());
         writer.writeStringField("type", type.getName());
         writer.writeFieldName("records");

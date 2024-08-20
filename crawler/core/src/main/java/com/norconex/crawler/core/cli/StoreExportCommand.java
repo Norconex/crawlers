@@ -16,6 +16,8 @@ package com.norconex.crawler.core.cli;
 
 import java.nio.file.Path;
 
+import com.norconex.crawler.core.Crawler;
+
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import picocli.CommandLine.Command;
@@ -30,7 +32,7 @@ import picocli.CommandLine.Option;
 )
 @EqualsAndHashCode
 @ToString
-public class StoreExportCommand extends AbstractSubCommand {
+public class StoreExportCommand extends CliSubCommandBase {
 
     @Option(names = { "-d", "-dir" },
             description = "Export directory",
@@ -40,7 +42,7 @@ public class StoreExportCommand extends AbstractSubCommand {
     //TODO add compress?
 
     @Override
-    public void runCommand() {
-        getCrawlSessionService().exportDataStore(dir);
+    protected void runCommand(Crawler crawler) {
+        crawler.exportDataStore(dir);
     }
 }

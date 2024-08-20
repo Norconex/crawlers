@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
@@ -134,10 +134,10 @@ public class JdbcDataStoreEngine
     }
 
     @Override
-    public void init(CrawlSession crawlSession) {
+    public void init(Crawler crawler) {
         tableSessionPrefix = safeTableName(isBlank(
                 configuration.getTablePrefix())
-            ? crawlSession.getId() + "_"
+            ? crawler.getId() + "_"
             : configuration.getTablePrefix());
 
         // create data source

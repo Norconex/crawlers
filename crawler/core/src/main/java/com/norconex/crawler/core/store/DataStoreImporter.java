@@ -27,23 +27,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonToken;
-import com.norconex.crawler.core.crawler.CrawlerException;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
 /**
  * Imports from a previously exported data store.
  */
-public final class DataStoreImporter extends CrawlerException {
-
-    private static final long serialVersionUID = 1L;
+public final class DataStoreImporter {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(DataStoreImporter.class);
 
     private DataStoreImporter() {}
 
-    public static void importDataStore(CrawlSession crawlSession, Path inFile)
+    public static void importDataStore(Crawler crawler, Path inFile)
             throws IOException {
 
 
@@ -53,10 +50,10 @@ public final class DataStoreImporter extends CrawlerException {
                 IOUtils.buffer(Files.newInputStream(inFile)))) {
             var zipEntry = zipIn.getNextEntry(); //NOSONAR
             while (zipEntry != null) {
-                if (!importStore(crawlSession, zipIn)) {
+                if (!importStore(crawler, zipIn)) {
                     LOG.debug("Input file \"{}\" not matching crawler "
                             + "\"{}\". Skipping.",
-                            inFile, crawlSession.getId());
+                            inFile, crawler.getId());
                 }
                 zipIn.closeEntry();
                 zipEntry = zipIn.getNextEntry(); //NOSONAR
@@ -66,25 +63,22 @@ public final class DataStoreImporter extends CrawlerException {
     }
 
     private static boolean importStore(
-            CrawlSession crawlSession, InputStream in) throws IOException {
+            Crawler crawler, InputStream in) throws IOException {
 
         var parser = SerialUtil.jsonParser(in);
 
         String typeStr = null;
-        String crawlerId = null;
         String storeName = null;
 
         while (parser.nextToken() != JsonToken.END_OBJECT) {
             var key = parser.currentName();
             if ("store".equals(key)) {
-                storeName = parser.nextTextValue();
+                storeName = parser.getValueAsString();
             } else if ("type".equals(key)) {
-                typeStr = parser.nextTextValue();
+                typeStr = parser.getValueAsString();
             } else if ("records".equals(key)) {
-                // check if we got crawler first and it matched, else
-                // there is something wrong (records should only exist
-                // after expected fields.
-                if (StringUtils.isAnyBlank(typeStr, crawlerId, storeName)) {
+                // check that we first got the store and type.
+                if (StringUtils.isAnyBlank(typeStr, storeName)) {
                     LOG.error("Invalid import file encountered.");
                     return false;
                 }
@@ -97,7 +91,7 @@ public final class DataStoreImporter extends CrawlerException {
                 }
 
                 LOG.info("Importing \"{}\".", storeName);
-                var storeEngine = crawlSession.getDataStoreEngine();
+                var storeEngine = crawler.getDataStoreEngine();
                 DataStore<Object> store =
                         storeEngine.openStore(storeName, type);
 
@@ -115,7 +109,7 @@ public final class DataStoreImporter extends CrawlerException {
                 }
                 logProgress(cnt, true);
             } else {
-                parser.nextValue();
+                parser.nextToken();
             }
 
         }

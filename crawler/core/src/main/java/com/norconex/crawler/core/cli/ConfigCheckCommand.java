@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.cli;
 
+import com.norconex.crawler.core.Crawler;
+
 import picocli.CommandLine.Command;
 
 /**
@@ -23,11 +25,11 @@ import picocli.CommandLine.Command;
     name = "configcheck",
     description = "Validate configuration file syntax"
 )
-public class ConfigCheckCommand extends AbstractSubCommand {
+public class ConfigCheckCommand extends CliSubCommandBase {
     @Override
-    public void runCommand() {
+    public void runCommand(Crawler crawler) {
         // Reaching this method means no errors were found. Simply state so.
-        printOut();
-        printOut("No configuration errors detected.");
+        out().println();
+        out().println("No configuration errors detected.");
     }
 }

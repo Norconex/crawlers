@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.cli;
 
+import com.norconex.crawler.core.Crawler;
+
 import picocli.CommandLine.Command;
 
 /**
@@ -23,9 +25,10 @@ import picocli.CommandLine.Command;
     name = "clean",
     description = "Clean the Collector crawling history (to start fresh)"
 )
-public class CleanCommand extends AbstractSubCommand {
+public class CleanCommand extends CliSubCommandBase {
+
     @Override
-    public void runCommand() {
-        getCrawlSessionService().clean();
+    protected void runCommand(Crawler crawler) {
+        crawler.clean();
     }
 }
