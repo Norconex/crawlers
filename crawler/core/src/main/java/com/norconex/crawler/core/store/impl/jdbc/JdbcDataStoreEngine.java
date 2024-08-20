@@ -129,11 +129,6 @@ public class JdbcDataStoreEngine
             new JdbcDataStoreEngineConfig();
 
     @Override
-    public boolean clusterFriendly() { // MAYBE: rename "clusterFriendly"?
-        return true; //MAYBE check if JDBC URL points to filesystem?
-    }
-
-    @Override
     public void init(Crawler crawler) {
         tableSessionPrefix = safeTableName(isBlank(
                 configuration.getTablePrefix())

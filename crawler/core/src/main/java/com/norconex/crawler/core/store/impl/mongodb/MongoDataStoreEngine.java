@@ -78,11 +78,6 @@ public class MongoDataStoreEngine
             new MongoDataStoreEngineConfig();
 
     @Override
-    public boolean clusterFriendly() {
-        return true;
-    }
-
-    @Override
     public void init(Crawler crawler) {
         LOG.info("Initializing MongoDB data store engine...");
         // create a clean db name

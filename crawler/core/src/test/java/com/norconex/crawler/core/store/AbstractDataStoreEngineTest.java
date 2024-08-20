@@ -268,7 +268,9 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     private void inNewStoreEngineSession(Consumer<DataStoreEngine> c) {
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
+            cfg.setDataStoreEngine(createEngine());
+        });
         CrawlerTestUtil.initCrawler(crawler);
         LOG.debug("Start data store engine test...");
         c.accept(crawler.getDataStoreEngine());
@@ -277,7 +279,9 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     private void inNewStoreSession(Consumer<DataStore<TestObject>> c) {
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
+            cfg.setDataStoreEngine(createEngine());
+        });
         CrawlerTestUtil.initCrawler(crawler);
         LOG.debug("Start data store test...");
         c.accept(crawler.getDataStoreEngine().openStore(

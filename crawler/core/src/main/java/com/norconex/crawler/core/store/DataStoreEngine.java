@@ -23,11 +23,6 @@ import com.norconex.crawler.core.Crawler;
 
 public interface DataStoreEngine extends Closeable {
 
-    //NOTE: useful for cluster actions vs local actions.
-    // like notifying that we need to stop from another JVM.
-    // use file-based or store-based.
-    boolean clusterFriendly();
-
     void init(Crawler crawler);
     boolean clean();
     @Override

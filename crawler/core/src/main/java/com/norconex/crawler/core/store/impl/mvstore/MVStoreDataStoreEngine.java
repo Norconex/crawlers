@@ -55,11 +55,6 @@ public class MVStoreDataStoreEngine
     private MVMap<String, Class<?>> storeTypes;
 
     @Override
-    public boolean clusterFriendly() {
-        return false;
-    }
-
-    @Override
     public MVStoreDataStoreEngineConfig getConfiguration() {
         return cfg;
     }

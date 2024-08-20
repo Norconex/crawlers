@@ -39,10 +39,7 @@ public class MockNoopDataStoreEngine implements DataStoreEngine {
 
     @Override
     public void init(Crawler crawler) {
-    }
-    @Override
-    public boolean clusterFriendly() {
-        return true;
+        //NOOP
     }
     @Override
     public boolean clean() {
@@ -50,6 +47,7 @@ public class MockNoopDataStoreEngine implements DataStoreEngine {
     }
     @Override
     public void close() {
+        //NOOP
     }
     @SuppressWarnings("unchecked")
     @Override
