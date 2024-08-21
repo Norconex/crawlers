@@ -38,10 +38,10 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
+import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.doc.DocRecord;
-import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.DocumentHandlerException;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 
 import lombok.AccessLevel;
@@ -250,7 +250,7 @@ public class TranslatorSplitter
 
 
     @Override
-    public void split(DocContext docCtx) throws DocumentHandlerException {
+    public void split(HandlerContext docCtx) throws DocumentHandlerException {
 
         // Do not re-translate a document already translated
         if (docCtx.metadata().containsKey(DocMetadata.TRANSLATED_FROM)) {
@@ -296,7 +296,9 @@ public class TranslatorSplitter
     }
 
     private Doc translateDocumentFromStream(
-            DocContext docCtx, CachedInputStream cachedInput, String targetLang)
+            HandlerContext docCtx,
+            CachedInputStream cachedInput,
+            String targetLang)
                     throws DocumentHandlerException {
         if (Objects.equals(configuration.getSourceLanguage(), targetLang)) {
             return null;
@@ -324,7 +326,7 @@ public class TranslatorSplitter
     }
 
     private Doc translateDocumentFromReader(
-            DocContext docCtx, String targetLang, TextReader reader)
+            HandlerContext docCtx, String targetLang, TextReader reader)
                     throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
@@ -351,7 +353,7 @@ public class TranslatorSplitter
         var childEmbedRef = "translation-" + targetLang;
         var childDocRef = docCtx.reference() + "!" + childEmbedRef;
 
-        var childInfo = new DocRecord(childDocRef);
+        var childInfo = new DocContext(childDocRef);
 
         childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
 
@@ -364,7 +366,7 @@ public class TranslatorSplitter
     }
 
     private Properties translateFields(
-            DocContext docCtx, String targetLang) throws Exception {
+            HandlerContext docCtx, String targetLang) throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
         var sourceLang = getResolvedSourceLanguage(docCtx);
@@ -420,7 +422,7 @@ public class TranslatorSplitter
         return strategy;
     }
 
-    private void validateProperties(DocContext doc)
+    private void validateProperties(HandlerContext doc)
             throws DocumentHandlerException {
         if (StringUtils.isBlank(configuration.getApi())) {
             throw new DocumentHandlerException(
@@ -445,7 +447,7 @@ public class TranslatorSplitter
         getTranslatorStrategy().validateProperties();
     }
 
-    private String getResolvedSourceLanguage(DocContext docCtx) {
+    private String getResolvedSourceLanguage(HandlerContext docCtx) {
         var lang = docCtx.metadata().getString(
                 configuration.getSourceLanguageField());
         if (StringUtils.isBlank(lang)) {

@@ -24,7 +24,7 @@ import org.apache.commons.io.IOUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -78,7 +78,7 @@ public class CopyTransformer
             new CopyTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         for (CopyOperation op : configuration.getOperations()) {
             List<String> sourceValues;
             if (op.getFieldMatcher().isSet()) {

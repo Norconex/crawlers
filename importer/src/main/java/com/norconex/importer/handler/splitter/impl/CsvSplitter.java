@@ -35,7 +35,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.opencsv.CSVParserBuilder;
@@ -94,7 +94,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     private final CsvSplitterConfig configuration = new CsvSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws IOException {
+    public void split(HandlerContext docCtx) throws IOException {
         try {
             var count = new MutableInt();
             // Body
@@ -119,7 +119,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     }
 
     private List<Doc> doSplitDocument(
-            DocContext doc, InputStream input, MutableInt count) {
+            HandlerContext doc, InputStream input, MutableInt count) {
 
         List<Doc> rows = new ArrayList<>();
 
@@ -157,7 +157,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
         return rows;
     }
 
-    private Doc parseRow(DocContext docCtx, String[] rowColumns,
+    private Doc parseRow(HandlerContext docCtx, String[] rowColumns,
             String[] colNames,
             String childEmbedRef) {
         var contentStr = new StringBuilder();
@@ -199,7 +199,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
             content = docCtx.streamFactory().newInputStream();
         }
         var childDoc = new Doc(childDocRef, content, childMeta);
-        var childInfo = childDoc.getDocRecord();
+        var childInfo = childDoc.getDocContext();
         childInfo.setReference(childDocRef);
         childInfo.addEmbeddedParentReference(docCtx.reference());
 

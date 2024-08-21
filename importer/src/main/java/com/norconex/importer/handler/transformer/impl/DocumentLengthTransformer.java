@@ -25,7 +25,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -77,7 +77,7 @@ public class DocumentLengthTransformer
             new DocumentLengthTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         if (StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException("\"toField\" cannot be empty.");

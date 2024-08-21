@@ -34,7 +34,7 @@ import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.EqualsAndHashCode;
@@ -68,7 +68,7 @@ public class TikaParser
     }
 
     @Override
-    public void handle(DocContext ctx) throws IOException {
+    public void handle(HandlerContext ctx) throws IOException {
         try (var input = ctx.input().asInputStream();
                 var output = ctx.output().asWriter(UTF_8)) {
             var tikaMetadata = new Metadata();

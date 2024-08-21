@@ -36,15 +36,15 @@ class DocTest {
     void testDoc() {
         var doc = new Doc("ref.html", toCachedInputStream("a test"));
         assertThat(doc.getReference()).isEqualTo(
-                doc.getDocRecord().getReference());
+                doc.getDocContext().getReference());
         assertThat(TestUtil.contentAsString(doc)).isEqualTo("a test");
 
-        doc = new Doc(new DocRecord("ref.html"), toCachedInputStream("a test"));
+        doc = new Doc(new DocContext("ref.html"), toCachedInputStream("a test"));
         assertThat(doc.getReference()).isEqualTo("ref.html");
 
         var props = new Properties();
         props.add("test", "value");
-        doc = new Doc(new DocRecord("ref.html"),
+        doc = new Doc(new DocContext("ref.html"),
                 CachedInputStream.cache(InputStream.nullInputStream()),
                 props);
         assertThat(doc.getMetadata().size()).isOne();

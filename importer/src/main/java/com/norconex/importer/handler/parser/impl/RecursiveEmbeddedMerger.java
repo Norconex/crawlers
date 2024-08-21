@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.doc.ContentTypeDetector;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 class RecursiveEmbeddedMerger extends ParserDecorator {
     private static final long serialVersionUID = 1L;
 
-    private final transient DocContext docCtx;
+    private final transient HandlerContext docCtx;
     private final transient Writer writer;
     private final EmbeddedConfig embeddedConfig;
     private boolean isMasterDoc = true;
@@ -50,7 +50,7 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
     public RecursiveEmbeddedMerger(
             Parser parser,
             Writer writer,
-            DocContext docCtx,
+            HandlerContext docCtx,
             EmbeddedConfig embeddedConfig) {
         super(parser);
         this.writer = writer;

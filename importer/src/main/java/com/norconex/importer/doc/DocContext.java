@@ -40,7 +40,7 @@ import lombok.NonNull;
 //    getterVisibility = JsonAutoDetect.Visibility.NONE,
 //    isGetterVisibility = JsonAutoDetect.Visibility.NONE
 //)
-public class DocRecord implements Serializable {
+public class DocContext implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -78,20 +78,20 @@ public class DocRecord implements Serializable {
     /**
      * Constructor.
      */
-    public DocRecord() {}
+    public DocContext() {}
 
     /**
      * Constructor.
      * @param reference document reference
      */
-    public DocRecord(String reference) {
+    public DocContext(String reference) {
         setReference(reference);
     }
     /**
      * Copy constructor.
      * @param docRecord document details to copy
      */
-    public DocRecord(@NonNull DocRecord docRecord) {
+    public DocContext(@NonNull DocContext docRecord) {
         copyFrom(docRecord);
     }
 
@@ -109,16 +109,16 @@ public class DocRecord implements Serializable {
 
     //MAYBE: use this new method instead of having clone functional
     //  interface on Crawler class.
-    public DocRecord withReference(String reference, DocRecord docRecord) {
-        var newDocInfo = new DocRecord(docRecord);
+    public DocContext withReference(String reference, DocContext docRecord) {
+        var newDocInfo = new DocContext(docRecord);
         newDocInfo.setReference(reference);
         return newDocInfo;
     }
 
-    public void copyTo(DocRecord target) {
+    public void copyTo(DocContext target) {
         BeanUtil.copyProperties(target, this);
     }
-    public void copyFrom(DocRecord source) {
+    public void copyFrom(DocContext source) {
         BeanUtil.copyProperties(this, source);
     }
 }

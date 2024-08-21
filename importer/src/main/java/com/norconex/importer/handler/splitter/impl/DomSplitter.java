@@ -26,7 +26,7 @@ import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.DomUtil;
@@ -106,7 +106,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
     private final DomSplitterConfig configuration = new DomSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws DocumentHandlerException {
+    public void split(HandlerContext docCtx) throws DocumentHandlerException {
 
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docRecord())) {
@@ -142,7 +142,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
         }
     }
 
-    private void parse(DocContext docCtx, Document soupDoc) {
+    private void parse(HandlerContext docCtx, Document soupDoc) {
         var elms = soupDoc.select(configuration.getSelector());
 
         // if there only 1 element matched, make sure it is not the same as
@@ -172,7 +172,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
                 content = docCtx.streamFactory().newInputStream();
             }
             var childDoc = new Doc(childRef, content, childMeta);
-            var childInfo = childDoc.getDocRecord();
+            var childInfo = childDoc.getDocContext();
             childInfo.addEmbeddedParentReference(docCtx.reference());
             childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
             docs.add(childDoc);

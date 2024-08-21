@@ -27,7 +27,7 @@ import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.util.MatchUtil;
 
 import lombok.Data;
@@ -101,7 +101,7 @@ public class ImageTransformer
             new ImageTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!MatchUtil.matchesContentType(

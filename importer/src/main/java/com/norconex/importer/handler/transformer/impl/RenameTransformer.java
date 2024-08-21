@@ -22,7 +22,7 @@ import java.util.Objects;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -82,7 +82,7 @@ public class RenameTransformer
             new RenameTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         for (RenameOperation op : configuration.getOperations()) {
             for (Entry<String, List<String>> en :
                     docCtx.metadata().matchKeys(

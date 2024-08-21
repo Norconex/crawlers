@@ -60,16 +60,14 @@ public class ImporterResponse {
     @Setter(value = AccessLevel.NONE)
     private ImporterResponse parentResponse;
 
-//    public ImporterResponse(String reference, ImporterStatus status) {
-//        this.reference = reference;
-//        this.status = status;
-//        doc = null;
-//    }
-//    public ImporterResponse(Doc doc) {
-//        reference = doc.getReference();
-//        this.doc = doc;
-//        status = new ImporterStatus();
-//    }
+    public ImporterResponse(String reference, Status status) {
+        this.reference = reference;
+        this.status = status;
+    }
+    public ImporterResponse(Doc doc) {
+        reference = doc.getReference();
+        this.doc = doc;
+    }
 //
 //    public Doc getDocument() {
 //        return doc;

@@ -28,7 +28,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.Data;
@@ -105,7 +105,7 @@ public class TextBetweenTransformer
             new TextBetweenTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         for (TextBetweenOperation op : configuration.getOperations()) {
             ListValuedMap<String, String> opExtractions =

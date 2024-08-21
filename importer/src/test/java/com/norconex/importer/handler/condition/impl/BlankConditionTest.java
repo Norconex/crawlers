@@ -28,13 +28,13 @@ import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 
 class BlankConditionTest {
 
     private CachedInputStream emptyInput = toCachedInputStream("");
-    private DocContext docCtx;
+    private HandlerContext docCtx;
     private BlankCondition c;
 
     @BeforeEach
@@ -97,10 +97,10 @@ class BlankConditionTest {
     }
 
 
-    private DocContext newDocContext() {
+    private HandlerContext newDocContext() {
         return newDocContext(null);
     }
-    private DocContext newDocContext(String body) {
+    private HandlerContext newDocContext(String body) {
         var props = TestUtil.newMetadata();
         props.add("field4.1", "");
         props.add("field4.2", "    ");
@@ -110,7 +110,7 @@ class BlankConditionTest {
         props.add("field4.4", "value4.4");
         props.add("field4.4", "");
 
-        return DocContext.builder()
+        return HandlerContext.builder()
                 .doc(TestUtil.newDoc("ref",
                     body == null
                     ? emptyInput

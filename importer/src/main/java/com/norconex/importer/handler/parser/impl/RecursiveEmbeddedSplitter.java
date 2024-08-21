@@ -38,8 +38,8 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocRecord;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 class RecursiveEmbeddedSplitter extends ParserDecorator {
     private static final long serialVersionUID = 1L;
 
-    private final transient DocContext docCtx;
+    private final transient HandlerContext docCtx;
     private boolean isMasterDoc = true;
     private int embedCount;
     private final transient List<Doc> embeddedDocs;
@@ -55,7 +55,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
 
     public RecursiveEmbeddedSplitter(
             Parser parser,
-            DocContext docCtx,
+            HandlerContext docCtx,
             List<Doc> embeddedDocs,
             EmbeddedConfig embeddedConfig) {
         super(parser);
@@ -139,10 +139,10 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         }
     }
 
-    private DocRecord resolveEmbeddedResourceName(
+    private DocContext resolveEmbeddedResourceName(
             Metadata tikaMeta, Properties embedMeta, int embedCount) {
 
-        new DocRecord();
+        new DocContext();
         docCtx.reference();
         String name;
 
@@ -180,9 +180,9 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
                 embedMeta,
                 "unknown");
     }
-    private DocRecord docRecord(
+    private DocContext docRecord(
             String embedRef, Properties embedMeta, String embedType) {
-        var docRecord = new DocRecord();
+        var docRecord = new DocContext();
         docRecord.setReference(docCtx.reference() + "!" + embedRef);
         embedMeta.set(EMBEDDED_REFERENCE, embedRef);
         embedMeta.set(EMBEDDED_TYPE, embedType);

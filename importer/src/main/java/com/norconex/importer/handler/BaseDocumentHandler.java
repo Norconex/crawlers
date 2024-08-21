@@ -37,7 +37,7 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
     // filtering on content type or reference. Humm... that looks like restrictTo
 
     @Override
-    public final void accept(DocContext ctx) {
+    public final void accept(HandlerContext ctx) {
         fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_BEGIN);
         try {
 //            if (handler instanceof DocumentTagger t) {
@@ -64,14 +64,14 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
         fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
     }
 
-    protected abstract void handle(DocContext ctx) throws IOException;
+    protected abstract void handle(HandlerContext ctx) throws IOException;
 
 
-    private void fireEvent(DocContext ctx, String eventName) {
+    private void fireEvent(HandlerContext ctx, String eventName) {
         fireEvent(ctx, eventName, null);
     }
     private void fireEvent(
-            DocContext ctx, String eventName, Exception e) {
+            HandlerContext ctx, String eventName, Exception e) {
         ctx.eventManager().fire(
                 ImporterEvent.builder()
                     .name(eventName)

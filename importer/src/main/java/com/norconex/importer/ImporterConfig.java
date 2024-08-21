@@ -29,7 +29,7 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.flow.JsonFlow;
 import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
@@ -95,18 +95,18 @@ public class ImporterConfig {
     @JsonProperty("handlers")
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private Consumer<DocContext> handler = Consumers.of(new DefaultParser());
+    private Consumer<HandlerContext> handler = Consumers.of(new DefaultParser());
 
     @JsonIgnore
-    public ImporterConfig setHandlers(List<Consumer<DocContext>> handlers) {
-        CollectionUtil.setAll((Consumers<DocContext>) handler, handlers);
-        CollectionUtil.removeNulls((Consumers<DocContext>) handler);
+    public ImporterConfig setHandlers(List<Consumer<HandlerContext>> handlers) {
+        CollectionUtil.setAll((Consumers<HandlerContext>) handler, handlers);
+        CollectionUtil.removeNulls((Consumers<HandlerContext>) handler);
         return this;
     }
     @JsonIgnore
-    public List<Consumer<DocContext>> getHandlers() {
+    public List<Consumer<HandlerContext>> getHandlers() {
         return Collections.unmodifiableList(
-                (Consumers<DocContext>) handler);
+                (Consumers<HandlerContext>) handler);
     }
 
     /**

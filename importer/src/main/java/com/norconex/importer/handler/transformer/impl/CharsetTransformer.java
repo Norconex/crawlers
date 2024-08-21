@@ -31,7 +31,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +99,7 @@ public class CharsetTransformer
             new CharsetTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
@@ -126,7 +126,7 @@ public class CharsetTransformer
 
     // returns final charset
     private Charset doTransform(
-            DocContext docCtx, InputStream in, OutputStream out)
+            HandlerContext docCtx, InputStream in, OutputStream out)
                     throws IOException {
 
         var inputCharset = detectCharsetIfNull(in);

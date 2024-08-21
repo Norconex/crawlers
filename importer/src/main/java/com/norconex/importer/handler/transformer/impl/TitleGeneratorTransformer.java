@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.AccessLevel;
@@ -151,7 +151,7 @@ public class TitleGeneratorTransformer
             "^([^\\n\\r]+)[\\n\\r]", Pattern.DOTALL);
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
             // The first chunk already did the title generation.

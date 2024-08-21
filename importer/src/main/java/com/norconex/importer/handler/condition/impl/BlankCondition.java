@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.IOUtil;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.Data;
@@ -84,7 +84,7 @@ public class BlankCondition
             new BlankConditionConfig();
 
     @Override
-    public boolean evaluate(DocContext docCtx) throws IOException {
+    public boolean evaluate(HandlerContext docCtx) throws IOException {
         // do content
         if (configuration.getFieldMatcher().getPattern() == null) {
             return IOUtil.isEmpty(docCtx.input().asInputStream());

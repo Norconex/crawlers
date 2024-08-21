@@ -24,13 +24,13 @@ import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.doc.DocRecord;
+import com.norconex.importer.doc.DocContext;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * Detects common document attributes and set them as both {@link DocRecord}
+ * Detects common document attributes and set them as both {@link HandlerContext}
  * properties and document metadata fields. The attributes are only
  * detected and set if it is not already present, unless overwrite is
  * <code>true</code>.
@@ -74,7 +74,7 @@ public final class CommonAttributesResolver {
     }
 
     private static void resolveContenTypeAndFamily(Doc doc, boolean overwrite) {
-        var docRecord = doc.getDocRecord();
+        var docRecord = doc.getDocContext();
         var meta = doc.getMetadata();
 
         // DocRecord Content-Type
@@ -101,7 +101,7 @@ public final class CommonAttributesResolver {
     }
 
     private static void resolveContentEncoding(Doc doc, boolean overwrite) {
-        var docRecord = doc.getDocRecord();
+        var docRecord = doc.getDocContext();
         var meta = doc.getMetadata();
 
         // Doc Record character encoding

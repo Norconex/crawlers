@@ -26,7 +26,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocRecord;
+import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.util.ReadAdapter;
@@ -47,7 +47,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(fluent = true)
 @Getter
-public class DocContext {
+public class HandlerContext {
 
     private final List<Doc> childDocs = new ArrayList<>();
 
@@ -78,8 +78,8 @@ public class DocContext {
 
     private Object rejectedBy;
 
-    public DocRecord docRecord() {
-        return doc.getDocRecord();
+    public DocContext docRecord() {
+        return doc.getDocContext();
     }
     public Properties metadata() {
         return doc.getMetadata();

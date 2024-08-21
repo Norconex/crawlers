@@ -28,7 +28,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.Regex;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -112,7 +112,7 @@ public class URLExtractorTransformer
             new URLExtractorTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         if (StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException("\"toField\" cannot be blank.");

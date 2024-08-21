@@ -46,7 +46,7 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -268,7 +268,7 @@ public class ExternalTransformer
 
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         //TODO eliminate output an set it back on doc???
 
         var input = docCtx.input().asInputStream();

@@ -23,26 +23,26 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
 
-class DocRecordTest {
+class DocContextTest {
 
     @Test
     void testDocInfo() {
-        var di1 = new DocRecord();
+        var di1 = new DocContext();
         di1.setReference("ref");
         di1.setContentType(ContentType.BMP);
         di1.setEmbeddedParentReferences(List.of("parentRef"));
         di1.addEmbeddedParentReference("parentRef2");
         di1.setCharset(StandardCharsets.US_ASCII);
 
-        var di2 = new DocRecord("I will be replaced.");
+        var di2 = new DocContext("I will be replaced.");
         di2.copyFrom(di1);
         assertThat(di1).isEqualTo(di2);
 
-        var di3 = new DocRecord();
+        var di3 = new DocContext();
         di1.copyTo(di3);
         assertThat(di1).isEqualTo(di3);
 
-        var di4 = new DocRecord(di1);
+        var di4 = new DocContext(di1);
         assertThat(di1).isEqualTo(di4);
 
         di4 = di4.withReference("ref2", di1);

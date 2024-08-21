@@ -36,7 +36,7 @@ public class Reject implements DocumentHandler, Configurable<RejectConfig> {
     private final RejectConfig configuration = new RejectConfig();
 
     @Override
-    public void accept(DocContext ctx) {
+    public void accept(HandlerContext ctx) {
         Object by = null;
         if (StringUtils.isNotBlank(configuration.getMessage())) {
             by = configuration.getMessage();

@@ -24,10 +24,10 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
+import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.doc.DocRecord;
-import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.DocumentHandlerException;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
 
@@ -97,7 +97,7 @@ public class PDFPageSplitter
             new PDFPageSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws DocumentHandlerException {
+    public void split(HandlerContext docCtx) throws DocumentHandlerException {
 
         // Make sure we are not splitting a page that was already split
         if (!MatchUtil.matchesContentType(
@@ -131,7 +131,7 @@ public class PDFPageSplitter
                 var pageMeta = new Properties();
                 pageMeta.loadFromMap(docCtx.metadata());
 
-                var pageInfo = new DocRecord(pageRef);
+                var pageInfo = new DocContext(pageRef);
 
                 pageMeta.set(DocMetadata.EMBEDDED_REFERENCE,
                         Integer.toString(pageNo));

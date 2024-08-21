@@ -32,9 +32,9 @@ class CommonAttributesResolverTest {
 
         CommonAttributesResolver.resolve(doc);
 
-        assertThat(doc.getDocRecord().getCharset()).isEqualTo(
+        assertThat(doc.getDocContext().getCharset()).isEqualTo(
                 Charset.forName("UTF-16LE"));
-        assertThat(doc.getDocRecord().getContentType()).isEqualTo(
+        assertThat(doc.getDocContext().getContentType()).isEqualTo(
                 ContentType.PDF);
 
         assertThat(doc.getMetadata().getString(

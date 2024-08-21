@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +73,7 @@ public class KeepOnlyTransformer
             new KeepOnlyTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         for (String field : new HashSet<>(docCtx.metadata().keySet())) {
             if (!configuration.getFieldMatcher().matches(field)) {
                 docCtx.metadata().remove(field);

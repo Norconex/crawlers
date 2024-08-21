@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.AccessLevel;
@@ -216,7 +216,7 @@ public class LanguageTransformer
             Comparator.comparing(LanguageResult::getRawScore).reversed();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         ensureDetectorInitialization();
 
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {

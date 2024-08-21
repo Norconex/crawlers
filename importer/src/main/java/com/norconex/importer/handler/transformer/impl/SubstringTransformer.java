@@ -27,7 +27,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -75,7 +75,7 @@ public class SubstringTransformer
             new SubstringTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         if (configuration.getFieldMatcher().isSet()) {
             // Fields

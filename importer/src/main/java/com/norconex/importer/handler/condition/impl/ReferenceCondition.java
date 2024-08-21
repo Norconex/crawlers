@@ -18,7 +18,7 @@ import java.io.IOException;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.EqualsAndHashCode;
@@ -66,7 +66,7 @@ public class ReferenceCondition
     }
 
     @Override
-    public boolean evaluate(DocContext docCtx) throws IOException {
+    public boolean evaluate(HandlerContext docCtx) throws IOException {
         return configuration.getValueMatcher().matches(docCtx.reference());
     }
 }

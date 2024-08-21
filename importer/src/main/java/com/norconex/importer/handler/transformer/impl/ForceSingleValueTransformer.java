@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 /**
@@ -75,7 +75,7 @@ public class ForceSingleValueTransformer
             new ForceSingleValueTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         var action = configuration.getAction();
         for (Entry<String, List<String>> en :
             docCtx.metadata().matchKeys(

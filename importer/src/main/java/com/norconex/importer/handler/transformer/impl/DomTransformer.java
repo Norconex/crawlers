@@ -29,7 +29,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.util.DomUtil;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
@@ -203,7 +203,7 @@ public class DomTransformer
             new DomTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
@@ -224,7 +224,7 @@ public class DomTransformer
 
     //NOTE: each operation are ran in isolation, the result being passed
     // to the next operation (updated Document or Metadata).
-    private void applyOperations(DocContext docCtx, TextChunk chunk)
+    private void applyOperations(HandlerContext docCtx, TextChunk chunk)
             throws IOException {
 
         if (StringUtils.isBlank(chunk.getText())) {

@@ -17,7 +17,7 @@ package com.norconex.importer.handler.condition;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,7 +31,7 @@ import lombok.ToString;
 public abstract class BaseCondition implements Condition {
 
     @Override
-    public final boolean test(DocContext ctx) {
+    public final boolean test(HandlerContext ctx) {
         // Fire events?
 //        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_BEGIN);
         try {
@@ -45,7 +45,7 @@ public abstract class BaseCondition implements Condition {
 //        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
     }
 
-    protected abstract boolean evaluate(DocContext docCtx) throws IOException;
+    protected abstract boolean evaluate(HandlerContext docCtx) throws IOException;
 
 
 

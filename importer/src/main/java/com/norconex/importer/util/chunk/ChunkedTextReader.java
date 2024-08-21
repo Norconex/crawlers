@@ -24,7 +24,7 @@ import org.apache.commons.lang3.function.FailableFunction;
 
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.util.ReadAdapter;
 import com.norconex.importer.util.ReadAdapter.ChunkedReadOptions;
 
@@ -72,7 +72,7 @@ public class ChunkedTextReader {
      */
     public boolean read(
             @NonNull
-            DocContext docCtx,
+            HandlerContext docCtx,
             @NonNull
             FailableFunction<TextChunk, Boolean, IOException> textConsumer)
                     throws IOException {

@@ -40,7 +40,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.EqualsAndHashCode;
@@ -82,7 +82,7 @@ public class DefaultParser
 
 
     @Override
-    public void handle(DocContext ctx) throws IOException {
+    public void handle(HandlerContext ctx) throws IOException {
 
         var tikaMetadata = new Metadata();
         var contentType = ctx.docRecord().getContentType();
@@ -133,7 +133,7 @@ public class DefaultParser
     }
 
     protected Parser createRecursiveParser(
-            DocContext docCtx, Writer output, List<Doc> embeddedDocs) {
+            HandlerContext docCtx, Writer output, List<Doc> embeddedDocs) {
         // if the current file (container) matches, we extract (split)
         // its embedded documents (else, we merge).
         if (TextMatcher.anyMatches(

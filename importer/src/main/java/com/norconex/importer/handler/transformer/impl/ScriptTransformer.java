@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
 import com.norconex.importer.handler.parser.ParseState;
@@ -129,7 +129,7 @@ public class ScriptTransformer
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
             var originalContent = chunk.getText();
             try {

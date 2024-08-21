@@ -18,7 +18,7 @@ import java.io.IOException;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,13 +31,13 @@ public abstract class AbstractDocumentSplitter
                 implements Configurable<T> {
 
     @Override
-    public final void handle(DocContext docCtx) throws IOException {
+    public final void handle(HandlerContext docCtx) throws IOException {
         split(docCtx);
         if (!docCtx.childDocs().isEmpty()
                 && getConfiguration().isDiscardOriginal()) {
             docCtx.rejectedBy(this);
         }
     }
-    public abstract void split(DocContext docCtx)
+    public abstract void split(HandlerContext docCtx)
             throws IOException;
 }

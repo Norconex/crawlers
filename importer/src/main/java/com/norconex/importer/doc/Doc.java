@@ -38,7 +38,7 @@ public class Doc {
     //MAYBE: still allow String reference in constructor and create?
     //MAYBE: add parent reference info here?
 
-    private final DocRecord docRecord;
+    private final DocContext docContext;
     @ToString.Exclude
     private final Properties metadata;
     @ToString.Exclude
@@ -49,29 +49,31 @@ public class Doc {
     }
     public Doc(@NonNull String reference, CachedInputStream content,
             Properties metadata) {
-        this(new DocRecord(reference), content, metadata);
+        this(new DocContext(reference), content, metadata);
     }
 
     /**
      * Creates a blank importer document using the supplied input stream
      * to handle content.
      * The document reference automatically gets added to the metadata.
-     * @param docRecord document details
+     * @param docContext document details
      * @param content content input stream
      */
-    public Doc(DocRecord docRecord, CachedInputStream content) {
-        this(docRecord, content, null);
+    public Doc(DocContext docContext, CachedInputStream content) {
+        this(docContext, content, null);
     }
     /**
      * Creates a blank importer document using the supplied input stream
      * to handle content.
-     * @param docRecord document details
+     * @param docContext document details
      * @param content content input stream
      * @param metadata importer document metadata
      */
-    public Doc(@NonNull DocRecord docRecord, @NonNull CachedInputStream content,
+    public Doc(
+            @NonNull DocContext docContext,
+            @NonNull CachedInputStream content,
             Properties metadata) {
-        this.docRecord = docRecord;
+        this.docContext = docContext;
         this.content = content;
         if (metadata == null) {
             this.metadata = new Properties();
@@ -118,8 +120,8 @@ public class Doc {
         return content.getStreamFactory();
     }
 
-    public DocRecord getDocRecord() {
-        return docRecord;
+    public DocContext getDocContext() {
+        return docContext;
     }
 
     public Properties getMetadata() {
@@ -130,9 +132,9 @@ public class Doc {
      * Gets the document reference. Same as
      * invoking <code>getDocInfo().getReference()</code>.
      * @return reference
-     * @see #getDocRecord()
+     * @see #getDocContext()
      */
     public String getReference() {
-        return docRecord.getReference();
+        return docContext.getReference();
     }
 }

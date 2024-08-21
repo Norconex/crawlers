@@ -26,7 +26,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 
 class TruncateTransformerTest {
@@ -112,7 +112,7 @@ class TruncateTransformerTest {
     @Test
     void testBodyWithSuffixAndHash()
             throws IOException, IOException {
-        DocContext docCtx;
+        HandlerContext docCtx;
         var t = new TruncateTransformer();
 
         // hash + suffix

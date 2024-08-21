@@ -18,7 +18,7 @@ import java.io.IOException;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
 import lombok.Data;
@@ -67,7 +67,7 @@ public class StripAfterTransformer
             new StripAfterTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         if (!configuration.getStripAfterMatcher().isSet()) {
             LOG.error("No matcher pattern provided.");
             return;
