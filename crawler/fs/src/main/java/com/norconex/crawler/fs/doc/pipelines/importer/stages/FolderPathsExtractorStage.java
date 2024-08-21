@@ -12,20 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.pipeline.importer;
+package com.norconex.crawler.fs.doc.pipelines.importer.stages;
 
 import java.util.Set;
 
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
+import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
-import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.crawler.fs.doc.FsDocRecord;
+import com.norconex.crawler.fs.doc.FsCrawlDocContext;
+import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.path.FsPath;
-import com.norconex.crawler.fs.util.Fs;
 
-class FolderPathsExtractorStage extends AbstractImporterStage {
+public class FolderPathsExtractorStage extends AbstractImporterStage {
 
     public FolderPathsExtractorStage(FetchDirective fetchDirective) {
         super(fetchDirective);
@@ -39,29 +40,32 @@ class FolderPathsExtractorStage extends AbstractImporterStage {
             return true;
         }
 
-        var fetcher = Fs.fetcher(ctx);
+        var fetcher = (FileFetcher) ctx.getCrawler().getFetcher();
 
-        var rec = (FsDocRecord) ctx.getDocRecord();
-        if (rec.isFolder()) {
+        var docContext = (FsCrawlDocContext) ctx.getDoc().getDocContext();
+        if (docContext.isFolder()) {
             Set<FsPath> paths;
             try {
-                paths = fetcher.fetchChildPaths(
-                        ctx.getDocRecord().getReference());
+                paths = fetcher.fetchChildPaths(docContext.getReference());
             } catch (FetchException e) {
                 throw new CrawlerException("Could not fetch child paths of: "
-                        + ctx.getDocRecord().getReference(), e);
+                        + docContext.getReference(), e);
             }
             for (FsPath fsPath : paths) {
-                var newPath = new FsDocRecord(
-                        fsPath.getUri(), ctx.getDocRecord().getDepth() +1 );
+                var newPath = new FsCrawlDocContext(
+                        fsPath.getUri(), docContext.getDepth() +1 );
                 newPath.setFile(fsPath.isFile());
                 newPath.setFolder(fsPath.isFolder());
-                ctx.getCrawler().queueDocRecord(newPath);
+                ctx.getCrawler()
+                    .getDocPipelines()
+                    .getQueuePipeline()
+                    .accept(new QueuePipelineContext(
+                            ctx.getCrawler(), newPath));
             }
         }
 
         // On some file system, a folder could also be a file, so we
         // continue if it is a file, regardless of folder logic above.
-        return rec.isFile();
+        return docContext.isFile();
     }
 }

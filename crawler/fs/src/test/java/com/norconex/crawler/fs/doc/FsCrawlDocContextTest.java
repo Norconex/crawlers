@@ -20,23 +20,23 @@ import java.io.File;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.importer.doc.DocRecord;
+import com.norconex.importer.doc.DocContext;
 
-class FsDocRecordTest {
+class FsCrawlDocContextTest {
 
     @Test
     void test() {
         // Should make absolute
-        var rec = new FsDocRecord("ref");
+        var rec = new FsCrawlDocContext("ref");
         assertThat(rec.getReference()).isEqualTo(
                 new File("ref").getAbsolutePath());
 
         // Already absolute on windows, do not change
-        rec = new FsDocRecord(new DocRecord("c:\\ref"));
+        rec = new FsCrawlDocContext(new DocContext("c:\\ref"));
         assertThat(rec.getReference()).isEqualTo("c:\\ref");
 
         // Not a local file, do not change
-        rec = new FsDocRecord("cmis:http://blah.com");
+        rec = new FsCrawlDocContext("cmis:http://blah.com");
         assertThat(rec.getReference()).isEqualTo("cmis:http://blah.com");
     }
 }

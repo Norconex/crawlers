@@ -12,18 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.checksum.impl;
+package com.norconex.crawler.fs.doc.operations.checksum;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.checksum.AbstractMetadataChecksummer;
-import com.norconex.crawler.core.checksum.BaseChecksummerConfig;
-import com.norconex.crawler.core.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
+import com.norconex.crawler.core.doc.operations.checksum.AbstractMetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.BaseChecksummerConfig;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 
 import lombok.Data;

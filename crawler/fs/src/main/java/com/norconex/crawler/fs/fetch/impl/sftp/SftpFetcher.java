@@ -21,7 +21,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
 
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
 

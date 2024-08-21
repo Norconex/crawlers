@@ -16,8 +16,8 @@ package com.norconex.crawler.fs.doc;
 
 import java.io.File;
 
-import com.norconex.crawler.core.doc.CrawlDocRecord;
-import com.norconex.importer.doc.DocRecord;
+import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.importer.doc.DocContext;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -26,19 +26,19 @@ import lombok.NonNull;
  * A path being crawled holding relevant crawl information.
  */
 @Data
-public class FsDocRecord extends CrawlDocRecord {
+public class FsCrawlDocContext extends CrawlDocContext {
 
     private static final long serialVersionUID = 1L;
 
     private boolean file;
     private boolean folder;
 
-    public FsDocRecord() {
+    public FsCrawlDocContext() {
     }
-    public FsDocRecord(String reference) {
+    public FsCrawlDocContext(String reference) {
         super(reference);
     }
-    public FsDocRecord(String reference, int depth) {
+    public FsCrawlDocContext(String reference, int depth) {
         super(reference);
         setDepth(depth);
     }
@@ -46,7 +46,7 @@ public class FsDocRecord extends CrawlDocRecord {
      * Copy constructor.
      * @param docRecord document record to copy
      */
-    public FsDocRecord(DocRecord docRecord) {
+    public FsCrawlDocContext(DocContext docRecord) {
         super(docRecord);
     }
 

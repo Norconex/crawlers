@@ -106,7 +106,7 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
             fetchRequest,
             "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
             "tar:", "tgz:", "tbz2:", "zip:", "mime:"
-        ) || fetchRequest.getDoc().getDocRecord().getReference().matches(
+        ) || fetchRequest.getDoc().getDocContext().getReference().matches(
                 "(?i)^[a-z]{1,2}:[/\\\\].*");
     }
 

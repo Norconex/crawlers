@@ -14,15 +14,18 @@
  */
 package com.norconex.crawler.fs.fetch;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.fetch.impl.GenericFileFetchResponse;
 import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
-import com.norconex.crawler.fs.util.Fs;
 
-//TODO make default and move where crawlsession is constructed?
+import lombok.NonNull;
+
+//TODO make default and move where crawler is constructed?
 public class FileFetcherProvider
         implements Function<Crawler, FileMultiFetcher> {
 
@@ -31,7 +34,7 @@ public class FileFetcherProvider
 
         var cfg = crawler.getConfiguration();
 
-        var fetchers = Fs.toFileFetchers(cfg.getFetchers());
+        var fetchers = toFileFetchers(cfg.getFetchers());
         if (fetchers.isEmpty()) {
             fetchers = List.of(new LocalFetcher());
         }
@@ -46,5 +49,12 @@ public class FileFetcherProvider
                         .build(),
                 cfg.getFetchersMaxRetries(),
                 cfg.getFetchersRetryDelay());
+    }
+
+    public static List<FileFetcher> toFileFetchers(
+            @NonNull Collection<Fetcher<?, ?>> fetchers) {
+        return fetchers.stream()
+            .map(FileFetcher.class::cast)
+            .toList();
     }
 }

@@ -16,16 +16,20 @@ package com.norconex.crawler.fs.fetch.impl.cmis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.fs.TestFsCrawlSession;
+import com.norconex.crawler.fs.FsTestUtil;
 
 class CmisAtomFileSystemTest {
+
+    @TempDir
+    private Path tempDir;
 
     private static CmisTestServer cmisServer;
 
@@ -43,23 +47,23 @@ class CmisAtomFileSystemTest {
     }
 
     @Test
-    void testAtom_1_0() throws IOException {
+    void testAtom_1_0() {
         testCmisFileSystem(CmisTestServer.ATOM_1_0, 21);
     }
     @Test
-    void testAtom_1_1() throws IOException {
+    void testAtom_1_1() {
         testCmisFileSystem(CmisTestServer.ATOM_1_1, 21);
     }
 
-    void testCmisFileSystem(
-            String path, int expectedQty) throws IOException {
+
+    void testCmisFileSystem(String path, int expectedQty) {
 
         var ref = cmisEndpointUrl(path);
-        var mem = TestFsCrawlSession.forStartPaths(ref)
-                .crawlerSetup(cfg -> {
-                    cfg.setFetchers(List.of(new CmisFetcher()));
-                })
-                .crawl();
+        var mem = FsTestUtil.runWithConfig(
+                tempDir,
+                cfg -> cfg
+                .setStartReferences(List.of(ref))
+                .setFetchers(List.of(new CmisFetcher())));
         assertThat(mem.getUpsertCount()).isEqualTo(expectedQty);
     }
 

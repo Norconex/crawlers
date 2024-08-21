@@ -27,7 +27,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import com.norconex.crawler.fs.FsStubber;
+import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
@@ -40,7 +40,7 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
                 "mwader/webdav:update-to-go-1.12"))
             .withExposedPorts(8080)
             .withFileSystemBind(
-                    new File(FsStubber.MOCK_FS_PATH).getAbsolutePath(),
+                    new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
                     "/webdav", BindMode.READ_ONLY)
             ;
 

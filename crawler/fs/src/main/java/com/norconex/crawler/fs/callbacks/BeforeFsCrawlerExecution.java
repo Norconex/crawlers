@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.crawler.impl;
+package com.norconex.crawler.fs.callbacks;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,16 +24,14 @@ import lombok.extern.slf4j.Slf4j;
  * Web crawler-specific initialization before the crawler starts.
  */
 @Slf4j
-class BeforeFsCrawlerExecution implements BiConsumer<Crawler, Boolean> {
+public class BeforeFsCrawlerExecution implements Consumer<Crawler> {
 
     @Override
-    public void accept(Crawler crawler, Boolean resume) {
-        logCrawlerInformation(crawler);
-    }
-
-    private static void logCrawlerInformation(Crawler crawler) {
+    public void accept(Crawler crawler) {
         var cfg = crawler.getConfiguration();
         LOG.info("""
+            Resuming:         %s
+
             Enabled features:
 
             Metadata:
@@ -43,6 +41,7 @@ class BeforeFsCrawlerExecution implements BiConsumer<Crawler, Boolean> {
               Checksummer:    %s
               Deduplication:  %s
             """.formatted(
+                    yn(crawler.getState().isResuming()),
                     yn(cfg.getMetadataChecksummer() != null),
                     yn(cfg.isMetadataDeduplicate()
                             && cfg.getMetadataChecksummer() != null),

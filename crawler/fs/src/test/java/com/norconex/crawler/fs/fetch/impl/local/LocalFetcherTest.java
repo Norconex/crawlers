@@ -18,7 +18,7 @@ import java.nio.file.Path;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.fs.FsStubber;
+import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
@@ -35,7 +35,7 @@ class LocalFetcherTest extends AbstractFileFetcherTest {
 
     @Override
     protected String getStartPath() {
-        return StringUtils.removeEnd(Path.of(FsStubber.MOCK_FS_PATH)
+        return StringUtils.removeEnd(Path.of(FsTestUtil.TEST_FS_PATH)
                 .toAbsolutePath().toUri().toString(), "/");
     }
 }

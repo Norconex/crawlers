@@ -24,7 +24,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.norconex.crawler.fs.FsStubber;
+import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
@@ -36,7 +36,7 @@ class SftpFetcherTest extends AbstractFileFetcherTest {
             new GenericContainer<>("atmoz/sftp:latest")
         .withExposedPorts(22)
         .withFileSystemBind(
-                new File(FsStubber.MOCK_FS_PATH).getAbsolutePath(),
+                new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
                 "/home/user/download",
                 BindMode.READ_ONLY)
         .withCommand("user:unsecure:1001::::::download");

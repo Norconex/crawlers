@@ -22,7 +22,7 @@ import java.util.Set;
 import com.norconex.commons.lang.exec.RetriableException;
 import com.norconex.commons.lang.exec.Retrier;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocRecord;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.Fetcher;
@@ -67,7 +67,7 @@ public class FileMultiFetcher
 
             // Fetch request is fake here, just so we can invoke "accept"
             var req = new FileFetchRequest(
-                    new CrawlDoc(new CrawlDocRecord(parentPath)),
+                    new CrawlDoc(new CrawlDocContext(parentPath)),
                     FetchDirective.DOCUMENT);
             if (!fetcher.accept(req)) {
                 continue;

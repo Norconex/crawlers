@@ -27,14 +27,14 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
@@ -72,7 +72,7 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
     private FileSystemOptions fsOptions;
 
     @Override
-    protected void fetcherStartup(CrawlSession crawlSession) {
+    protected void fetcherStartup(Crawler crawler) {
         try {
             fsManager = new StandardFileSystemManager();
             fsManager.setClassLoader(getClass().getClassLoader());
@@ -87,7 +87,7 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
     }
 
     @Override
-    protected void fetcherShutdown(CrawlSession collector) {
+    protected void fetcherShutdown(Crawler crawler) {
         if (fsManager != null) {
             fsManager.close();
         }

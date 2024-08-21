@@ -22,18 +22,22 @@ import static com.norconex.importer.doc.DocMetadata.CONTENT_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.fs.FsStubber;
-import com.norconex.crawler.fs.TestFsCrawlSession;
+import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 
 public abstract class AbstractFileFetcherTest {
+
+    @TempDir
+    private Path tempDir;
 
     protected abstract FileFetcher fetcher();
 
@@ -41,11 +45,12 @@ public abstract class AbstractFileFetcherTest {
     void testFetchFiles() {
         var fetcher = fetcher();
         var basePath = getStartPath();
-        var mem = TestFsCrawlSession.forStartPaths(basePath)
-            .crawlerSetup(cfg -> {
-                cfg.setFetchers(List.of(fetcher));
-            })
-            .crawl();
+
+        var mem = FsTestUtil.runWithConfig(
+                tempDir,
+                cfg -> cfg
+                .setStartReferences(List.of(basePath))
+                .setFetchers(List.of(fetcher)));
 
         assertThat(mem.getUpsertCount()).isEqualTo(8);
         assertThat(mem.getUpsertRequests())
@@ -97,7 +102,7 @@ public abstract class AbstractFileFetcherTest {
 
         assertThatNoException().isThrownBy(() ->
                 BeanMapper.DEFAULT.assertWriteRead(
-                        FsStubber.randomize(fetcher.getClass())));
+                        FsTestUtil.randomize(fetcher.getClass())));
         // Assert ACLs
 
         //TODO extract ACL, possibly making it a flag if costly?

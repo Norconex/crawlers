@@ -20,7 +20,7 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.util.EncryptUtil;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -62,8 +62,8 @@ public abstract class AbstractAuthVfsFetcher<C extends BaseAuthVfsFetcherConfig>
         extends AbstractVfsFetcher<C> {
 
     @Override
-    protected void fetcherStartup(CrawlSession crawlSession) {
-        super.fetcherStartup(crawlSession);
+    protected void fetcherStartup(Crawler crawler) {
+        super.fetcherStartup(crawler);
         applyAuthenticationOptions(getFsOptions());
     }
 
