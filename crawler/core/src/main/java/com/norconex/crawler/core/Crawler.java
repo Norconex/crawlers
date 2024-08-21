@@ -91,7 +91,7 @@ public class Crawler {
     // the above class?
     private final Fetcher<
             ? extends FetchRequest, ? extends FetchResponse> fetcher;
-    private final Class<CrawlDocContext> docContextType;
+    private final Class<? extends CrawlDocContext> docContextType;
     private CrawlerState state;
     //TODO remove stopper listener when we are fully using a table?
     private CrawlerStopper stopper = new FileBasedStopper();

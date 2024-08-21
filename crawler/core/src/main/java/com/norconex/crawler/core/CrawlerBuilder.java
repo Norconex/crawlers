@@ -48,7 +48,8 @@ public class CrawlerBuilder {
      * @param docContextType crawl doc brief class
      * @return doc brief class
      */
-    private Class<CrawlDocContext> docContextType = CrawlDocContext.class;
+    private Class<? extends CrawlDocContext> docContextType =
+            CrawlDocContext.class;
 
 //      private CrawlerServices services;
     private BeanMapper beanMapper = BeanMapper.DEFAULT;// TODO OK with lang

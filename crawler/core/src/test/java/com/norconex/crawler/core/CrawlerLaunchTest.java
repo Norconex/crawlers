@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -34,12 +36,7 @@ class CrawlerLaunchTest {
         var exitVal = CliCrawlerLauncher.launch(
                 crawlerBuilder,
                 "start",
-//                "-clean",
                 "-config=./src/test/resources/memoryCrawler.yaml");
-
-        System.out.println("EXIT VALUE: " + exitVal);
-
-//        System.out.println("CRAWLER: " + crawler);
+        assertThat(exitVal).isZero();
     }
-
 }

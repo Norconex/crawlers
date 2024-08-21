@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.function.FailableRunnable;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
@@ -88,6 +89,21 @@ public final class CrawlerTestUtil {
             });
         });
         destroyCrawler(crawler);
+    }
+
+    public static MemoryCommitter withinInitializedCrawler(
+            @NonNull Path workDir,
+            Consumer<CrawlerConfig> configModifier,
+            @NonNull FailableRunnable<Exception> runnable) {
+        var crawler = CrawlerStubs.memoryCrawler(workDir, configModifier);
+        initCrawler(crawler);
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            throw new CrawlerException("Exception during test.", e);
+        }
+        destroyCrawler(crawler);
+        return CrawlerTestUtil.firstCommitter(crawler);
     }
 
     public static Exit cliLaunch(
