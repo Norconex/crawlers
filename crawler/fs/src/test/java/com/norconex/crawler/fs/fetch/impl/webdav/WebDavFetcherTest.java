@@ -34,6 +34,7 @@ import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 @Testcontainers(disabledWithoutDocker = true)
 class WebDavFetcherTest extends AbstractFileFetcherTest {
 
+    @SuppressWarnings("resource")
     @Container
     public GenericContainer<?> webdavContainer =
         new GenericContainer<>(DockerImageName.parse(

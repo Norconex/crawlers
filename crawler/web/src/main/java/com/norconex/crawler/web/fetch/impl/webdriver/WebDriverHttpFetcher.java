@@ -35,11 +35,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -259,7 +258,7 @@ public class WebDriverHttpFetcher
 //    }
 
     @Override
-    protected void fetcherStartup(CrawlSession c) {
+    protected void fetcherStartup(Crawler c) {
         if (c != null) {
             streamFactory = c.getStreamFactory();
         } else {
@@ -294,7 +293,7 @@ public class WebDriverHttpFetcher
     }
 
     @Override
-    protected void fetcherShutdown(CrawlSession c) {
+    protected void fetcherShutdown(Crawler c) {
         if (configuration.getHttpSniffer() != null) {
             LOG.info("Shutting down {} HTTP sniffer...",
                     configuration.getBrowser());
@@ -380,7 +379,7 @@ public class WebDriverHttpFetcher
                     // Content-Type + Content Encoding (Charset)
                     if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
                         ApacheHttpUtil.applyContentTypeAndCharset(
-                                value, doc.getDocRecord());
+                                value, doc.getDocContext());
                     }
                     doc.getMetadata().add(name, value);
                 }
@@ -390,8 +389,8 @@ public class WebDriverHttpFetcher
 
         //TODO we assume text/html as default until WebDriver expands its API
         // to obtain different types of files.
-        if (doc.getDocRecord().getContentType() == null) {
-            doc.getDocRecord().setContentType(ContentType.HTML);
+        if (doc.getDocContext().getContentType() == null) {
+            doc.getDocContext().setContentType(ContentType.HTML);
         }
 
         return response;

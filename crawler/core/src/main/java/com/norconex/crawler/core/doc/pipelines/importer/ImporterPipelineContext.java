@@ -25,6 +25,9 @@ import lombok.Data;
 /**
  * A context object for crawler pipelines dealing
  * with {@link ImporterResponse}.
+ * This context is short-lived and can be redeclared in a pipeline
+ * chain (i.e., the original context instance may be replaced
+ * by one of the pipeline stages).
  */
 @Data
 public class ImporterPipelineContext {

@@ -22,6 +22,9 @@ import lombok.Data;
 /**
  * Hold necessary objects to a specific pipeline execution over a
  * {@link CrawlDocContext}.
+ * This context is short-lived and can be redeclared in a pipeline
+ * chain (i.e., the original context instance may be replaced
+ * by one of the pipeline stages).
  */
 @Data
 public class QueuePipelineContext  {

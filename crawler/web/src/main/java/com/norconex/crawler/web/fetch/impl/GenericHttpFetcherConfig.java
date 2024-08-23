@@ -91,10 +91,10 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     /**
      * Authentication configuration for sites requiring it. Default
      * is <code>null</code>.
-     * @param authConfig authentication configuration
+     * @param authentication authentication configuration
      * @return authentication configuration
      */
-    private HttpAuthConfig authConfig;
+    private HttpAuthConfig authentication;
 
     /**
      * Cookie specification to use when fetching documents. Default is relaxed.
@@ -370,7 +370,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * platform.
      * @return SSL/TLS protocols
      */
-    public List<String> getSSLProtocols() {
+    public List<String> getSslProtocols() {
         return Collections.unmodifiableList(sslProtocols);
     }
     /**
@@ -379,7 +379,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * your underlying Java platform will not work.
      * @param sslProtocols SSL/TLS protocols supported
      */
-    public GenericHttpFetcherConfig setSSLProtocols(
+    public GenericHttpFetcherConfig setSslProtocols(
             List<String> sslProtocols) {
         CollectionUtil.setAll(this.sslProtocols, sslProtocols);
         return this;

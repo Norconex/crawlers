@@ -38,9 +38,11 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 public class CrawlerBuilder {
     private CrawlerConfig configuration = new CrawlerConfig();
-//    private CrawlerCommands commands;
     private DocPipelines docPipelines;
     private CrawlerCallbacks callbacks = CrawlerCallbacks.builder().build();
+    private BeanMapper beanMapper = BeanMapper.DEFAULT;
+    private EventManager eventManager;
+    private CrawlerContext context = new CrawlerContext();
 
     /**
      * The exact type of {@link CrawlDocContext} if your crawler is subclassing
@@ -51,10 +53,6 @@ public class CrawlerBuilder {
     private Class<? extends CrawlDocContext> docContextType =
             CrawlDocContext.class;
 
-//      private CrawlerServices services;
-    private BeanMapper beanMapper = BeanMapper.DEFAULT;// TODO OK with lang
-                                                       // default ?
-    private EventManager eventManager;
     /**
      * Provides a required fetcher implementation, responsible for obtaining
      * resources being crawled.

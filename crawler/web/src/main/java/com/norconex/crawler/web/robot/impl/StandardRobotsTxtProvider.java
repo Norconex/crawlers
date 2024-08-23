@@ -35,14 +35,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.filter.OnMatch;
-import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
-import com.norconex.crawler.web.crawler.WebCrawlerEvent;
-import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.core.doc.operations.filter.OnMatch;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
+import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.HttpMethod;
@@ -107,7 +107,7 @@ public class StandardRobotsTxtProvider
         CrawlDoc doc = null;
         try {
             // Try once
-            doc = new CrawlDoc(new WebDocRecord(robotsURL),
+            doc = new CrawlDoc(new WebCrawlDocContext(robotsURL),
                     CachedInputStream.nullInputStream());
             var response = fetcher.fetch(
                     new HttpFetchRequest(doc, HttpMethod.GET));
@@ -120,7 +120,7 @@ public class StandardRobotsTxtProvider
             if (StringUtils.isNotBlank(redirURL)) {
                 LOG.debug("Fetching 'robots.txt' from redirect URL: {}",
                         redirURL);
-                doc = new CrawlDoc(new WebDocRecord(redirURL),
+                doc = new CrawlDoc(new WebCrawlDocContext(redirURL),
                         CachedInputStream.nullInputStream());
                 response = fetcher.fetch(
                         new HttpFetchRequest(doc, HttpMethod.GET));
@@ -131,9 +131,9 @@ public class StandardRobotsTxtProvider
                         response.getUserAgent());
                 LOG.debug("Fetched and parsed robots.txt: {}", robotsURL);
                 if (crawler != null) {
-                    crawler.getEventManager().fire(CrawlerEvent.builder()
+                    crawler.fire(CrawlerEvent.builder()
                             .name(WebCrawlerEvent.FETCHED_ROBOTS_TXT)
-                            .crawlDocRecord(doc.getDocRecord())
+                            .docContext(doc.getDocContext())
                             .source(crawler)
                             .subject(robotsTxt)
                             .build());

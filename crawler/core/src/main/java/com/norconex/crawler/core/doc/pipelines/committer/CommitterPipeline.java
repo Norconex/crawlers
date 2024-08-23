@@ -15,22 +15,34 @@
 package com.norconex.crawler.core.doc.pipelines.committer;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.norconex.commons.lang.function.Predicates;
 
 import lombok.Builder;
+import lombok.Getter;
 
 public class CommitterPipeline implements Consumer<CommitterPipelineContext> {
 
     private final Predicates<CommitterPipelineContext> stages;
+    @Getter
+    private final Function<CommitterPipelineContext,
+            ? extends CommitterPipelineContext> contextAdapter;
 
     @Builder
-    private CommitterPipeline(Predicates<CommitterPipelineContext> stages) {
+    private CommitterPipeline(
+            Predicates<CommitterPipelineContext> stages,
+            Function<CommitterPipelineContext,
+                    ? extends CommitterPipelineContext> contextAdapter) {
         this.stages = stages;
+        this.contextAdapter = contextAdapter;
     }
 
     @Override
-    public void accept(CommitterPipelineContext ctx) {
+    public void accept(CommitterPipelineContext context) {
+        var ctx = contextAdapter != null
+                ? contextAdapter.apply(context)
+                : context;
         stages.test(ctx);
     }
 }

@@ -16,7 +16,7 @@ package com.norconex.crawler.web.sitemap;
 
 import java.util.List;
 
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.Crawler;
 
 /**
  * <p>

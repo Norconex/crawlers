@@ -21,28 +21,25 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.net.URISyntaxException;
 
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.http.conn.UnsupportedSchemeException;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanUtil;
-import com.norconex.crawler.web.WebStubber;
-import com.norconex.crawler.web.util.Web;
+import com.norconex.crawler.web.WebTestUtil;
 
 class GenericHttpFetcherTest {
 
     @Test
     void testWriteRead() {
-        var cfg = WebStubber.randomize(GenericHttpFetcherConfig.class);
+        var cfg = WebTestUtil.randomize(GenericHttpFetcherConfig.class);
         var f = new GenericHttpFetcher();
         BeanUtil.copyProperties(f.getConfiguration(), cfg);
-
         assertThatNoException().isThrownBy(() ->
-                Web.beanMapper().assertWriteRead(f));
+                BeanMapper.DEFAULT.assertWriteRead(f));
     }
 
     @Test
-    void testShemePortResolver()
-            throws UnsupportedSchemeException, URISyntaxException {
+    void testShemePortResolver() throws URISyntaxException {
         assertThat(SCHEME_PORT_RESOLVER.resolve(
                 HttpHost.create("http://blah.com"))).isEqualTo(80);
         assertThat(SCHEME_PORT_RESOLVER.resolve(

@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.SystemUtil;
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
 
 /**
  * @since 3.0.0

@@ -17,6 +17,7 @@ package com.norconex.crawler.core.doc.pipelines.queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
@@ -37,15 +38,22 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
 
     private final QueueInitializer initializer;
     private final Predicates<QueuePipelineContext> stages;
+    @Getter
+    private final Function<QueuePipelineContext, ? extends QueuePipelineContext>
+            contextAdapter;
 
     private MutableBoolean queueInitialized;
 
     @Builder
     private QueuePipeline(
             @NonNull Predicates<QueuePipelineContext> stages,
-            QueueInitializer initializer) {
-        this.initializer = initializer;
+            Function<QueuePipelineContext, ? extends QueuePipelineContext>
+                    contextAdapter,
+            QueueInitializer initializer
+            ) {
         this.stages = stages;
+        this.contextAdapter = contextAdapter;
+        this.initializer = initializer;
     }
 
     public boolean isQueueInitialized() {
@@ -91,7 +99,10 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
     }
 
     @Override
-    public void accept(QueuePipelineContext ctx) {
+    public void accept(QueuePipelineContext context) {
+        var ctx = contextAdapter != null
+                ? contextAdapter.apply(context)
+                : context;
         stages.test(ctx);
     }
 

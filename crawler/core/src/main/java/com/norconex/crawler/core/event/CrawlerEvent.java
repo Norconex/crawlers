@@ -199,7 +199,6 @@ public class CrawlerEvent extends Event {
      * Gets the crawl data holding contextual information about the
      * crawled reference.  CRAWLER_* events will return a <code>null</code>
      * crawl data.
-     * @return crawl data
      */
     private final CrawlDocContext docContext;
     private final Object subject;

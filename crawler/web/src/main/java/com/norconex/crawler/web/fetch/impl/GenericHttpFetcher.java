@@ -88,12 +88,13 @@ import org.apache.hc.core5.util.Timeout;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -101,7 +102,6 @@ import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.crawler.web.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
-import com.norconex.crawler.web.url.impl.GenericUrlNormalizer;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
@@ -333,7 +333,7 @@ public class GenericHttpFetcher
             //--- HSTS Policy --------------------------------------------------
             if (!configuration.isHstsDisabled()) {
                 HstsResolver.resolve(
-                        httpClient, (WebDocRecord) doc.getDocRecord());
+                        httpClient, (WebCrawlDocContext) doc.getDocContext());
             }
 
             //--- Prepare the request ------------------------------------------
@@ -361,8 +361,7 @@ public class GenericHttpFetcher
 
             // Execute the method.
             return httpClient.execute(request, ctx, response -> {
-
-                //--- Process the response -----------------------------------------
+                //--- Process the response -------------------------------------
 
                 var statusCode = response.getCode();
                 var reason = response.getReasonPhrase();
@@ -391,7 +390,7 @@ public class GenericHttpFetcher
                     }
                 }
 
-                //--- VALID http response handling ---------------------------------
+                //--- VALID http response handling -----------------------------
                 if (configuration.getValidStatusCodes().contains(statusCode)) {
                     userToken = ctx.getUserToken();
 
@@ -407,7 +406,7 @@ public class GenericHttpFetcher
                             .build();
                 }
 
-                //--- INVALID http response handling -------------------------------
+                //--- INVALID http response handling ---------------------------
 
                 // NOT_FOUND
                 if (configuration.getNotFoundStatusCodes().contains(statusCode)) {
@@ -443,7 +442,7 @@ public class GenericHttpFetcher
     }
 
     @Override
-    protected void fetcherStartup(CrawlSession crawlSession) {
+    protected void fetcherStartup(Crawler crawlSession) {
         httpClient = createHttpClient();
         var userAgent = configuration.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
@@ -456,14 +455,14 @@ public class GenericHttpFetcher
             LOG.info("User-Agent: {}", userAgent);
         }
 
-        if (configuration.getAuthConfig() != null
+        if (configuration.getAuthentication() != null
                 && HttpAuthMethod.FORM ==
-                        configuration.getAuthConfig().getMethod()) {
+                        configuration.getAuthentication().getMethod()) {
             authenticateUsingForm(httpClient);
         }
     }
     @Override
-    protected void fetcherShutdown(CrawlSession c) {
+    protected void fetcherShutdown(Crawler c) {
         if (httpClient instanceof CloseableHttpClient hc) {
             try {
                 hc.close();
@@ -482,7 +481,7 @@ public class GenericHttpFetcher
     // getting those values from HTTP headers or other fetcher-specific
     // ways of doing it.
     private void performDetection(Doc doc) {
-        var docRecord = doc.getDocRecord();
+        var docRecord = doc.getDocContext();
         try {
             if (configuration.isForceContentTypeDetection()
                     || docRecord.getContentType() == null) {
@@ -541,9 +540,11 @@ public class GenericHttpFetcher
         ofNullable(configuration.getSocketTimeout()).ifPresent(
                 d -> tlsBuilder.setHandshakeTimeout(
                         d.toMillis(), TimeUnit.MINUTES));
-        if (!configuration.getSSLProtocols().isEmpty()) {
+        if (!configuration.getSslProtocols().isEmpty()) {
             tlsBuilder.setSupportedProtocols(
-                    configuration.getSSLProtocols().toArray(EMPTY_STRING_ARRAY));
+                    configuration
+                    .getSslProtocols()
+                    .toArray(EMPTY_STRING_ARRAY));
         }
         return PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslSocketFactory)
@@ -564,7 +565,8 @@ public class GenericHttpFetcher
             protected InetAddress determineLocalAddress(HttpHost firstHop,
                     HttpContext context) throws HttpException {
                 try {
-                    return InetAddress.getByName(configuration.getLocalAddress());
+                    return InetAddress.getByName(
+                            configuration.getLocalAddress());
                 } catch (UnknownHostException e) {
                     throw new CrawlerException("Invalid local address: {}"
                             + configuration.getLocalAddress(), e);
@@ -584,7 +586,7 @@ public class GenericHttpFetcher
     protected void authenticateUsingForm(HttpClient httpClient) {
         try {
             ApacheHttpUtil.authenticateUsingForm(
-                    httpClient, configuration.getAuthConfig());
+                    httpClient, configuration.getAuthentication());
         } catch (IOException | URISyntaxException e) {
             analyseException(e);
             throw new CrawlerException(
@@ -615,7 +617,8 @@ public class GenericHttpFetcher
         //--- Configuration-defined headers
         List<Header> headers = new ArrayList<>();
         for (String name : configuration.getRequestHeaderNames()) {
-            headers.add(new BasicHeader(name, configuration.getRequestHeader(name)));
+            headers.add(new BasicHeader(
+                    name, configuration.getRequestHeader(name)));
         }
 
         //--- preemptive headers
@@ -624,8 +627,9 @@ public class GenericHttpFetcher
         // is not invoked from this class, we want to keep things
         // together and we add the preemptive authentication directly
         // in the default HTTP headers.
-        if (configuration.getAuthConfig() != null && configuration.getAuthConfig().isPreemptive()) {
-            var authConfig = configuration.getAuthConfig();
+        if (configuration.getAuthentication() != null
+                && configuration.getAuthentication().isPreemptive()) {
+            var authConfig = configuration.getAuthentication();
             if (StringUtils.isBlank(
                     authConfig.getCredentials().getUsername())) {
                 LOG.warn("Preemptive authentication is enabled while no "
@@ -699,7 +703,7 @@ public class GenericHttpFetcher
         }
 
         //--- Auth ---
-        var authConfig = configuration.getAuthConfig();
+        var authConfig = configuration.getAuthentication();
         if (authConfig != null
                 && authConfig.getCredentials().isSet()
                 && HttpAuthMethod.FORM != authConfig.getMethod()
@@ -751,7 +755,7 @@ public class GenericHttpFetcher
     protected SSLConnectionSocketFactory createSSLSocketFactory(
             SSLContext sslContext) {
         if (!configuration.isTrustAllSSLCertificates()
-                && configuration.getSSLProtocols().isEmpty()) {
+                && configuration.getSslProtocols().isEmpty()) {
             return null;
         }
 
@@ -802,13 +806,13 @@ public class GenericHttpFetcher
                 }
 
                 // Specify protocols
-                if (!configuration.getSSLProtocols().isEmpty()) {
+                if (!configuration.getSslProtocols().isEmpty()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("SSL: Protocols={}",
-                                StringUtils.join(configuration.getSSLProtocols(), ","));
+                        LOG.debug("SSL: Protocols={}", StringUtils.join(
+                                configuration.getSslProtocols(), ","));
                     }
-                    sslParams.setProtocols(configuration.getSSLProtocols().toArray(
-                            ArrayUtils.EMPTY_STRING_ARRAY));
+                    sslParams.setProtocols(configuration.getSslProtocols()
+                            .toArray(ArrayUtils.EMPTY_STRING_ARRAY));
                 }
 
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");

@@ -21,10 +21,10 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
-import java.awt.Dimension;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.ServerSocket;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -37,6 +37,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.openqa.selenium.Capabilities;
@@ -53,13 +54,12 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.web.TestWebCrawlSession;
-import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
+import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,6 +75,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
     private final Capabilities capabilities;
     private BrowserWebDriverContainer<?> browser;
     private Browser browserType;
+    @TempDir
+    private Path tempDir;
 
     public AbstractWebDriverHttpFetcherTest(Browser browserType) {
         if (browserType == Browser.CHROME) {
@@ -121,13 +123,11 @@ public abstract class AbstractWebDriverHttpFetcherTest
     void testFetchingJsGeneratedContent(ClientAndServer client) {
         WebsiteMock.whenJsRenderedWebsite(client);
 
-        var mem = TestWebCrawlSession
-            .forStartReferences(hostUrl(client, "/index.html"))
-            .crawlerSetup(cfg -> {
-                cfg.setFetchers(List.of(createWebDriverHttpFetcher()));
-                cfg.setMaxDepth(0);
-            })
-            .crawl();
+        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+            cfg.setFetchers(List.of(createWebDriverHttpFetcher()));
+            cfg.setMaxDepth(0);
+            cfg.setStartReferences(List.of(hostUrl(client, "/index.html")));
+        });
 
         assertThat(mem.getRequestCount()).isOne();
         assertThat(WebTestUtil.docText(mem.getUpsertRequests().get(0)))
@@ -139,21 +139,19 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
         WebsiteMock.whenJsRenderedWebsite(client);
 
-        var mem = TestWebCrawlSession
-            .forStartReferences(hostUrl(client, "/apple.html"))
-            .crawlerSetup(cfg -> {
-                var h = new ScreenshotHandler();
-                h.getConfiguration()
-                    .setCssSelector("#applePicture")
-                    .setTargets(List.of(Target.METADATA))
-                    .setTargetMetaField("myimage");
+        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+            var h = new ScreenshotHandler();
+            h.getConfiguration()
+                .setCssSelector("#applePicture")
+                .setTargets(List.of(Target.METADATA))
+                .setTargetMetaField("myimage");
 
-                var f = createWebDriverHttpFetcher();
-                f.getConfiguration().setScreenshotHandler(h);
-                cfg.setFetchers(List.of(f));
-                cfg.setMaxDepth(0);
-            })
-            .crawl();
+            var f = createWebDriverHttpFetcher();
+            f.getConfiguration().setScreenshotHandler(h);
+            cfg.setFetchers(List.of(f));
+            cfg.setMaxDepth(0);
+            cfg.setStartReferences(List.of(hostUrl(client, "/apple.html")));
+        });
 
         assertThat(mem.getUpsertCount()).isOne();
 
@@ -184,27 +182,23 @@ public abstract class AbstractWebDriverHttpFetcherTest
                             LARGE_CONTENT_MIN_SIZE))
                     .build()));
 
-        var mem = TestWebCrawlSession
-            // using serverUrl (localhost) here since it will be invoked
-            // by proxy, which resides locally.
-            .forStartReferences(serverUrl(client, path))
-            .crawlerSetup(cfg -> {
-                var sniffer = new HttpSniffer();
-                var snifCfg = sniffer.getConfiguration();
-                snifCfg.setHost("host.testcontainers.internal");
-                snifCfg.setPort(freePort());
-                // also test sniffer with large content
-                snifCfg.setMaxBufferSize(6 * 1024 * 1024);
-                LOG.debug("Random HTTP Sniffer proxy port: {}",
-                        snifCfg.getPort());
-                Testcontainers.exposeHostPorts(
-                        client.getPort(), snifCfg.getPort());
-                var f = createWebDriverHttpFetcher();
-                f.getConfiguration().setHttpSniffer(sniffer);
-                cfg.setFetchers(List.of(f));
-                cfg.setMaxDepth(0);
-            })
-            .crawl();
+        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+            var sniffer = new HttpSniffer();
+            var snifCfg = sniffer.getConfiguration();
+            snifCfg.setHost("host.testcontainers.internal");
+            snifCfg.setPort(freePort());
+            // also test sniffer with large content
+            snifCfg.setMaxBufferSize(6 * 1024 * 1024);
+            LOG.debug("Random HTTP Sniffer proxy port: {}",
+                    snifCfg.getPort());
+            Testcontainers.exposeHostPorts(
+                    client.getPort(), snifCfg.getPort());
+            var f = createWebDriverHttpFetcher();
+            f.getConfiguration().setHttpSniffer(sniffer);
+            cfg.setFetchers(List.of(f));
+            cfg.setMaxDepth(0);
+            cfg.setStartReferences(List.of(serverUrl(client, path)));
+        });
 
         assertThat(mem.getUpsertRequests()).hasSize(1);
         var meta = mem.getUpsertRequests().get(0).getMetadata();
@@ -233,19 +227,17 @@ public abstract class AbstractWebDriverHttpFetcherTest
                         .build(),
                     HTML_UTF_8));
 
-        var mem = TestWebCrawlSession
-            .forStartReferences(hostUrl(client, path))
-            .crawlerSetup(cfg -> {
-                var f = createWebDriverHttpFetcher();
-                f.getConfiguration().setEarlyPageScript(
-                        "document.title='Awesome!';");
-                f.getConfiguration().setLatePageScript("""
-                    document.getElementsByTagName('h1')[0].innerHTML='Melon';
-                    """);
-                cfg.setFetchers(List.of(f));
-                cfg.setMaxDepth(0);
-            })
-            .crawl();
+        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+            var f = createWebDriverHttpFetcher();
+            f.getConfiguration().setEarlyPageScript(
+                    "document.title='Awesome!';");
+            f.getConfiguration().setLatePageScript("""
+                document.getElementsByTagName('h1')[0].innerHTML='Melon';
+                """);
+            cfg.setFetchers(List.of(f));
+            cfg.setMaxDepth(0);
+            cfg.setStartReferences(List.of(hostUrl(client, path)));
+        });
 
         var doc = mem.getUpsertRequests().get(0);
         assertThat(doc.getMetadata().getString(
@@ -268,21 +260,19 @@ public abstract class AbstractWebDriverHttpFetcherTest
                     HTML_UTF_8));
 
         var fetcher = createWebDriverHttpFetcher();
-        TestWebCrawlSession
-                .forStartReferences(hostUrl(client, path))
-                .crawlerSetup(cfg -> {
-                    cfg.setFetchers(List.of(fetcher));
-                    cfg.setMaxDepth(0);
-                    // test setting a bunch of other params
-                    fetcher.getConfiguration()
-                        .setWindowSize(new Dimension(640, 480))
-                        .setPageLoadTimeout(10_1000)
-                        .setImplicitlyWait(1000)
-                        .setScriptTimeout(10_000)
-                        .setWaitForElementSelector("p")
-                        .setWaitForElementTimeout(10_000);
-                })
-                .crawl();
+        WebTestUtil.runWithConfig(tempDir, cfg -> {
+            cfg.setFetchers(List.of(fetcher));
+            cfg.setMaxDepth(0);
+            // test setting a bunch of other params
+            fetcher.getConfiguration()
+                .setWindowSize(new java.awt.Dimension(640, 480))
+                .setPageLoadTimeout(10_1000)
+                .setImplicitlyWait(1000)
+                .setScriptTimeout(10_000)
+                .setWaitForElementSelector("p")
+                .setWaitForElementTimeout(10_000);
+                cfg.setStartReferences(List.of(hostUrl(client, path)));
+        });
 
         assertThat(fetcher.getUserAgent()).isNotBlank();
         assertThat(fetcher.getUserAgent()).isNotBlank();
@@ -292,7 +282,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     void testUnsupportedHttpMethod() throws FetchException {
         var response = new WebDriverHttpFetcher().fetch(
                 new HttpFetchRequest(
-                        WebStubber.crawlDocHtml("http://example.com"),
+                        CrawlDocStubs.crawlDocHtml("http://example.com"),
                         HttpMethod.HEAD));
         assertThat(response.getReasonPhrase()).contains("To obtain headers");
         assertThat(response.getCrawlDocState()).isEqualTo(

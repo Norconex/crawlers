@@ -31,6 +31,7 @@ import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 @Testcontainers(disabledWithoutDocker = true)
 class SftpFetcherTest extends AbstractFileFetcherTest {
 
+    @SuppressWarnings("resource")
     @Container
     static final GenericContainer<?> SFTP =
             new GenericContainer<>("atmoz/sftp:latest")

@@ -58,7 +58,7 @@ import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferen
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.fs.stubs.FsCrawlerStubs;
+import com.norconex.crawler.fs.stubs.CrawlerStubs;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;
 
@@ -222,7 +222,7 @@ public final class FsTestUtil {
 
     public static MemoryCommitter runWithConfig(
             @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c) {
-        var crawlerBuilder = FsCrawlerStubs.memoryCrawlerBuilder(workDir);
+        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
         c.accept(crawlerBuilder.configuration());
         var crawler = crawlerBuilder.build();
         crawler.start();

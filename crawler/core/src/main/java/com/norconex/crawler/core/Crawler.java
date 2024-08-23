@@ -86,6 +86,7 @@ public class Crawler {
     private final DocPipelines docPipelines;
     private final CrawlerCallbacks callbacks;
     private final DataStoreEngine dataStoreEngine;
+    private final CrawlerContext context;
 
     //TODO really have the following ones here or make them part of one of
     // the above class?
@@ -104,6 +105,7 @@ public class Crawler {
     @SuppressWarnings("resource")
     Crawler(CrawlerBuilder b) {
         configuration = Objects.requireNonNull(b.configuration());
+        context = b.context();
         docContextType = b.docContextType();
         callbacks = b.callbacks();
         dataStoreEngine = configuration.getDataStoreEngine();

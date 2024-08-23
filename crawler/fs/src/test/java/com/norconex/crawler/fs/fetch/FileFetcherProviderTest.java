@@ -26,7 +26,7 @@ import com.norconex.crawler.fs.FsCrawler;
 import com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher;
 import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
 import com.norconex.crawler.fs.fetch.impl.smb.SmbFetcher;
-import com.norconex.crawler.fs.stubs.FsCrawlerConfigStubs;
+import com.norconex.crawler.fs.stubs.CrawlerConfigStubs;
 
 class FileFetcherProviderTest {
 
@@ -35,7 +35,7 @@ class FileFetcherProviderTest {
 
     @Test
     void test() {
-        var crawlerCfg = FsCrawlerConfigStubs
+        var crawlerCfg = CrawlerConfigStubs
                 .memoryCrawlerConfig(tempDir);
         var p = new FileFetcherProvider();
 

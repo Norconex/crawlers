@@ -16,8 +16,8 @@ package com.norconex.crawler.web.fetch;
 
 import java.util.function.Function;
 
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.util.Web;

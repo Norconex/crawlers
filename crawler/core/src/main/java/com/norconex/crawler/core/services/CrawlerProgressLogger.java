@@ -69,6 +69,7 @@ public class CrawlerProgressLogger {
     public void startTracking() {
         prevProcessedCount = monitor.getProcessedCount();
         prevQueuedCount = monitor.getQueuedCount();
+        stopWatch.reset();
         stopWatch.start();
     }
     public void stopTracking() {

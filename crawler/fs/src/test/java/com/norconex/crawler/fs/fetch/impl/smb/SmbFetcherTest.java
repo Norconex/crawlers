@@ -31,6 +31,7 @@ import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 @Testcontainers(disabledWithoutDocker = true)
 class SmbFetcherTest extends AbstractFileFetcherTest {
 
+    @SuppressWarnings("resource")
     @Container
     static final GenericContainer<?> SAMBA =
             new GenericContainer<>("adevur/easy-samba:latest")

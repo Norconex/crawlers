@@ -26,8 +26,6 @@ import com.norconex.importer.doc.DocMetadata;
  */
 public final class WebDocMetadata {
 
-// moved to core:
-//    public static final String DEPTH = PREFIX + "depth";
     public static final String SM_LASTMOD = PREFIX + "sitemap-lastmod";
     public static final String SM_CHANGE_FREQ = PREFIX + "sitemap-changefreq";
     public static final String SM_PRORITY = PREFIX + "sitemap-priority";

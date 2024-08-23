@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocRecord;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.web.sitemap.SitemapRecord;
 import com.norconex.crawler.web.util.Web;
 
@@ -78,7 +78,7 @@ final class SitemapUtil {
 
     static SitemapRecord toSitemapRecord(CrawlDoc doc) {
         var indexRec = new SitemapRecord();
-        var docRec = Web.docRecord(doc);
+        var docRec = Web.docContext(doc);
         indexRec.setLastModified(docRec.getLastModified());
         indexRec.setCrawlDate(ZonedDateTime.now(ZoneOffset.UTC));
         indexRec.setLocation(doc.getReference());
@@ -89,8 +89,8 @@ final class SitemapUtil {
             throws IOException {
         InputStream is = doc.getInputStream();
         Optional<String> contentType = Optional
-                .ofNullable(doc.getDocRecord())
-                .map(CrawlDocRecord::getContentType)
+                .ofNullable(doc.getDocContext())
+                .map(CrawlDocContext::getContentType)
                 .map(ContentType::toString);
         if (contentType.isPresent() && (contentType.get().endsWith("gzip")
                 || doc.getReference().endsWith(".gz"))) {

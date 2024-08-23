@@ -24,7 +24,7 @@ import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.fs.callbacks.BeforeFsCrawlerExecution;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
-import com.norconex.crawler.fs.doc.pipelines.FsPipelines;
+import com.norconex.crawler.fs.doc.pipelines.FsDocPipelines;
 import com.norconex.crawler.fs.fetch.FileFetcherProvider;
 
 public class FsCrawler {
@@ -38,7 +38,7 @@ public class FsCrawler {
                     .builder()
                     .beforeCrawlerExecution(new BeforeFsCrawlerExecution())
                     .build())
-            .docPipelines(FsPipelines.get())
+            .docPipelines(FsDocPipelines.get())
             .docContextType(FsCrawlDocContext.class);
 
     /**

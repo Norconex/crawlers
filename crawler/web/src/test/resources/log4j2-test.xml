@@ -19,10 +19,22 @@
     <Logger name="com.norconex" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.crawler.web" level="DEBUG" additivity="false">
+    <Logger name="com.norconex.crawler.web" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.commons.lang" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="WebCrawlerEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="ImporterEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 

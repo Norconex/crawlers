@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.norconex.committer.core.Committer;
+import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
@@ -226,8 +227,11 @@ public class CrawlerConfig {
     @JsonProperty(required = true)
     private String id;
 
+    @JsonXmlCollection(entryName = "ref")
     private final List<String> startReferences = new ArrayList<>();
+    @JsonXmlCollection(entryName = "file")
     private final List<Path> startReferencesFiles = new ArrayList<>();
+    @JsonXmlCollection(entryName = "provider")
     private final List<ReferencesProvider> startReferencesProviders =
             new ArrayList<>();
 
@@ -397,13 +401,6 @@ public class CrawlerConfig {
 
     private final List<Class<? extends Exception>> stopOnExceptions =
             new ArrayList<>();
-
-//    /**
-//     * The crawl data store factory.
-//     * @param dataStoreEngine crawl data store factory.
-//     * @return crawl data store factory.
-//     */
-//    private DataStoreEngine dataStoreEngine = new MVStoreDataStoreEngine();
 
     private final List<ReferenceFilter> referenceFilters = new ArrayList<>();
     private final List<MetadataFilter> metadataFilters = new ArrayList<>();

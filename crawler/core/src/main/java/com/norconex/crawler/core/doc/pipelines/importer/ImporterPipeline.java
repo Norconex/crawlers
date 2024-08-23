@@ -20,19 +20,30 @@ import com.norconex.commons.lang.function.Predicates;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Builder;
+import lombok.Getter;
 
 public class ImporterPipeline
         implements Function<ImporterPipelineContext, ImporterResponse> {
 
     private final Predicates<ImporterPipelineContext> stages;
+    @Getter
+    private final Function<ImporterPipelineContext,
+            ? extends ImporterPipelineContext> contextAdapter;
 
     @Builder
-    private ImporterPipeline(Predicates<ImporterPipelineContext> stages) {
+    private ImporterPipeline(
+            Predicates<ImporterPipelineContext> stages,
+            Function<ImporterPipelineContext,
+                    ? extends ImporterPipelineContext> contextAdapter) {
         this.stages = stages;
+        this.contextAdapter = contextAdapter;
     }
 
     @Override
-    public ImporterResponse apply(ImporterPipelineContext ctx) {
+    public ImporterResponse apply(ImporterPipelineContext context) {
+        var ctx = contextAdapter != null
+                ? contextAdapter.apply(context)
+                : context;
         stages.test(ctx);
         return ctx.getImporterResponse();
     }
