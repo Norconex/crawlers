@@ -22,22 +22,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.link.Link;
+import com.norconex.crawler.web.doc.operations.link.impl.RegexLinkExtractorConfig.ExtractionPattern;
 import com.norconex.importer.doc.DocMetadata;
 
-@Disabled
 class RegexLinkExtractorTest {
 
     //TODO add a post import test for PDF with links.
@@ -51,10 +51,13 @@ class RegexLinkExtractorTest {
 
         var extractor = new RegexLinkExtractor();
         extractor.getConfiguration()
-            .addPattern("\\[\\s*(.*?)\\s*\\]", "$1")
-            .addPattern("<link>\\s*(.*?)\\s*</link>", "$1")
-            .addPattern("<a href=\"javascript:;\"[^>]*?id=\"p_(\\d+)\">",
-                    "/page?id=$1");
+        .setPatterns(List.of(
+                new ExtractionPattern("\\[\\s*(.*?)\\s*\\]", "$1"),
+                new ExtractionPattern("<link>\\s*(.*?)\\s*</link>", "$1"),
+                new ExtractionPattern(
+                        "<a href=\"javascript:;\"[^>]*?id=\"p_(\\d+)\">",
+                        "/page?id=$1")
+        ));
 
         // All these must be found
         String[] expectedURLs = {
@@ -93,7 +96,7 @@ class RegexLinkExtractorTest {
         var extractor = new RegexLinkExtractor();
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
                 getClass().getSimpleName() + ".cfg.xml"))) {
-            new XML(r).populate(extractor);
+            BeanMapper.DEFAULT.read(extractor, r, Format.XML);
         }
         // All these must be found
         String[] expectedURLs = {
@@ -109,8 +112,7 @@ class RegexLinkExtractorTest {
         }
 
         for (String expectedURL : expectedURLs) {
-            assertTrue(
-                    contains(links, expectedURL),
+            assertTrue(contains(links, expectedURL),
                 "Could not find expected URL: " + expectedURL);
         }
 
@@ -123,8 +125,10 @@ class RegexLinkExtractorTest {
     void testGenericWriteRead() {
         var extractor = new RegexLinkExtractor();
         extractor.getConfiguration()
-            .addPattern("\\[(.*?)\\]", "$1")
-            .addPattern("<link>.*?</link>", "$1")
+            .setPatterns(List.of(
+                    new ExtractionPattern("\\[(.*?)\\]", "$1"),
+                    new ExtractionPattern("<link>.*?</link>", "$1")
+            ))
             .setCharset(UTF_8)
             .setMaxUrlLength(12345);
         assertThatNoException().isThrownBy(() ->

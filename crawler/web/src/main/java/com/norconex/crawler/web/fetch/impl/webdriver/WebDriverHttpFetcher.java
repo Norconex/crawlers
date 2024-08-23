@@ -32,6 +32,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -187,10 +188,12 @@ public class WebDriverHttpFetcher
     @Getter
     private final WebDriverHttpFetcherConfig configuration =
             new WebDriverHttpFetcherConfig();
+
+    @JsonIgnore
     private CachedStreamFactory streamFactory;
+    @JsonIgnore
     private String userAgent;
-//    private HttpSniffer httpSniffer;
-//    private ScreenshotHandler screenshotHandler;
+    @JsonIgnore
     private WebDriverHolder driverHolder;
 
     @Override
@@ -244,18 +247,9 @@ public class WebDriverHttpFetcher
                 .build();
     }
 
-//    @Override
     public String getUserAgent() {
         return userAgent;
     }
-
-//    public ScreenshotHandler getScreenshotHandler() {
-//        return screenshotHandler;
-//    }
-//    public void setScreenshotHandler(
-//            ScreenshotHandler screenshotHandler) {
-//        this.screenshotHandler = screenshotHandler;
-//    }
 
     @Override
     protected void fetcherStartup(Crawler c) {
@@ -416,23 +410,4 @@ public class WebDriverHttpFetcher
         }
         return response;
     }
-//
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        xml.populate(cfg);
-//        xml.ifXML("screenshot", x -> {
-//            var h =
-//                    new ScreenshotHandler(streamFactory);
-//            x.populate(h);
-//            setScreenshotHandler(h);
-//        });
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        configuration.saveToXML(xml);
-//        if (screenshotHandler != null) {
-//            screenshotHandler.saveToXML(xml.addElement("screenshot"));
-//        }
-//    }
-
 }

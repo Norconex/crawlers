@@ -14,46 +14,46 @@
  */
 package com.norconex.crawler.web.sitemap.impl;
 
-import java.nio.file.Path;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import org.junit.jupiter.api.Disabled;
+import java.nio.file.Path;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.util.Web;
+
 class GenericSitemapLocatorTest {
 
-    //TODO MIGRATE ME
-
     @Test
-    @Disabled
     void testGenericSitemapLocator(@TempDir Path tempDir) {
 
-//        var locator = new GenericSitemapLocator();
-//        assertThat(locator.getConfiguration().getPaths()).contains(
-//                "/sitemap.xml", "/sitemap_index.xml");
-//
-//        locator.getConfiguration().setPaths(List.of("abc.xml", "def.xml"));
-//        assertThatNoException().isThrownBy(
-//                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
-//
-//        var session = WebStubber.crawlSession(
-//                tempDir, "http://example.com/index.html");
-//        var crawler = Crawler.builder()
-//                .crawlSession(session)
-//                .crawlerImpl(WebCrawlerImplFactory.create())
-//                .crawlerConfig(session.getCrawlSessionConfig()
-//                        .getCrawlerConfigs().get(0))
-//                .build();
-//        Web.config(crawler).setRobotsTxtProvider(null);
-//        assertThat(locator.locations(
-//                "http://example.com/index.html", crawler))
-//            .containsExactly(
-//                    "http://example.com/abc.xml",
-//                    "http://example.com/def.xml");
-//
-//        // try with empty paths
-//        locator.getConfiguration().setPaths(null);
-//        assertThatNoException().isThrownBy(
-//                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
+        var locator = new GenericSitemapLocator();
+        assertThat(locator.getConfiguration().getPaths()).contains(
+                "/sitemap.xml", "/sitemap_index.xml");
+
+        locator.getConfiguration().setPaths(List.of("abc.xml", "def.xml"));
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
+
+        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
+            cfg.setStartReferences(List.of("http://example.com/index.html"));
+        });
+
+        Web.config(crawler).setRobotsTxtProvider(null);
+        assertThat(locator.locations(
+                "http://example.com/index.html", crawler))
+            .containsExactly(
+                    "http://example.com/abc.xml",
+                    "http://example.com/def.xml");
+
+        // try with empty paths
+        locator.getConfiguration().setPaths(null);
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
     }
 }

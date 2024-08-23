@@ -27,6 +27,7 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -71,10 +72,9 @@ public class ScreenshotHandler
     private final ScreenshotHandlerConfig configuration =
             new ScreenshotHandlerConfig();
 
-//    private final DocImageHandler imageHandler;
-
-//    @ToString.Exclude
-//    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private final CachedStreamFactory streamFactory;
 
     public ScreenshotHandler() {

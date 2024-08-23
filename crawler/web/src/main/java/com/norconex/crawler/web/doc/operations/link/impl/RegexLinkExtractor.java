@@ -19,7 +19,6 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -171,9 +170,9 @@ public class RegexLinkExtractor
 
     private void extractLinks(
             Set<Link> links, String content, String referrer) {
-        for (Entry<String, String> e: configuration.getPatterns().entrySet()) {
-            var pattern = e.getKey();
-            var repl = e.getValue();
+        configuration.getPatterns().forEach(p -> {
+            var pattern = p.getMatch();
+            var repl = p.getReplace();
             var matcher = Pattern.compile(pattern).matcher(content);
             while (matcher.find()) {
                 var url = matcher.group();
@@ -188,6 +187,6 @@ public class RegexLinkExtractor
                 link.setReferrer(referrer);
                 links.add(link);
             }
-        }
+        });
     }
 }

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -227,7 +228,8 @@ public class DomLinkExtractor
                             links, parser.parseInput(val, doc.getReference())));
         } else {
             // Body
-            try (var in = new InputStreamReader(doc.getInputStream())) {
+            try (var in = IOUtils.buffer(
+                    new InputStreamReader(doc.getInputStream()))) {
                 var jdoc = parser.parseInput(in, doc.getReference());
                 extractFromJsoupDocument(links, jdoc);
             }

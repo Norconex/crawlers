@@ -45,7 +45,7 @@ class WebCrawlerConfigTest {
         assertThatNoException().isThrownBy(() -> {
                 try (Reader r = new InputStreamReader(
                         getClass().getResourceAsStream(
-                                "/validation/web-crawl-session-full.xml"))) {
+                                "/validation/web-crawl-session-large.xml"))) {
                     var cfg = new WebCrawlerConfig();
                     BeanMapper.DEFAULT.read(cfg, r, Format.XML);
                     BeanMapper.DEFAULT.assertWriteRead(cfg);

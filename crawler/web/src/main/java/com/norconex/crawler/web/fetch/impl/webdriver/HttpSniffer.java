@@ -29,6 +29,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 
 import io.netty.handler.codec.http.HttpResponse;
@@ -64,7 +65,13 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
     //MAYBE If it gets stable enough, move the proxy setting to Browser class.
 
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private final ThreadLocal<FilterAndSource> tlocal = new ThreadLocal<>();
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private BrowserMobProxyServer mobProxy;
 
     @Getter

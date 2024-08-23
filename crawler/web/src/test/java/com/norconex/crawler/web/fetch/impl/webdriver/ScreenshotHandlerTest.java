@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -29,7 +28,6 @@ import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 class ScreenshotHandlerTest {
 
     @Test
-    @Disabled
     void testWriteRead() {
         var h = new ScreenshotHandler();
         h.getConfiguration()

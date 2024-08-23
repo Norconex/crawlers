@@ -111,7 +111,7 @@ class GenericHttpFetcherAuthTest {
         whenLoginRequired(client);
 
         // Fill and submit form with good credentials
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+        var mem = WebTestUtil.runWithConfig(tempDir.resolve("1"), cfg -> {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             fetchCfg.setAuthentication(authConfirm(
@@ -121,7 +121,7 @@ class GenericHttpFetcherAuthTest {
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
 
         // Fill and submit form with bad credentials
-        mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+        mem = WebTestUtil.runWithConfig(tempDir.resolve("2"), cfg -> {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             fetchCfg.setAuthentication(authConfirm(
@@ -130,7 +130,7 @@ class GenericHttpFetcherAuthTest {
         assertThat(mem.getUpsertCount()).isZero();
 
         // Invoke form action URL directly with good credentials
-        mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+        mem = WebTestUtil.runWithConfig(tempDir.resolve("3"), cfg -> {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             var authCfg = authConfirm(
@@ -138,11 +138,12 @@ class GenericHttpFetcherAuthTest {
             authCfg.setFormSelector(null);
             fetchCfg.setAuthentication(authCfg);
         });
+        assertThat(mem.getUpsertRequests()).isNotEmpty();
         doc = mem.getUpsertRequests().get(0);
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
 
         // Invoke form action URL directly with bad credentials
-        mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+        mem = WebTestUtil.runWithConfig(tempDir.resolve("4"), cfg -> {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             var authCfg = authConfirm(
