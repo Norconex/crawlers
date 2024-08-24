@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -37,34 +39,47 @@ import picocli.CommandLine.Option;
 )
 @EqualsAndHashCode
 @ToString
-public class ConfigRenderCommand extends AbstractSubCommand {
+public class ConfigRenderCommand extends CliSubCommandBase {
 
     @Option(names = { "-o", "-output" },
             description = "Render to a file",
             required = false)
     private Path output;
 
-    @Option(names = { "-i", "-indent" },
-            description = "Number of spaces used for indentation (default: 2).",
+    @Option(names = { "-format" },
+            description = "One of \"xml\", \"yaml\", or \"json\" (default)",
             required = false)
-    private int indent = 2;
+    private String format;
+
+
+//    @Option(names = { "-i", "-indent" },
+//            description = "Number of spaces used for indentation (default: 2).",
+//            required = false)
+//    private int indent = 2;
 
     @Override
-    public void runCommand() {
+    public void runCommand(Crawler crawler) {
         //TODO support different format, either explicit, on file extension
         // or default to XML
         try (var out = output != null
                 ? new FileWriter(output.toFile())
                 : new StringWriter()) {
-            getBeanMapper().write(
-                    getCrawlSession().getCrawlSessionConfig(),
+
+            var f = Stream
+                    .of(Format.values())
+                    .filter(v -> v.name().equalsIgnoreCase(format))
+                    .findFirst()
+                    .orElse(Format.JSON);
+
+            crawler.getServices().getBeanMapper().write(
+                    crawler.getConfiguration(),
                     out,
-                    Format.XML);
+                    f);
             if (output == null) {
-                printOut(((StringWriter) out).toString());
+                out().println(((StringWriter) out).toString());
             }
         } catch (IOException e) {
-            printErr("Could not render config: "
+            err().println("Could not render config: "
                     + ExceptionUtil.getFormattedMessages(e));
         }
     }

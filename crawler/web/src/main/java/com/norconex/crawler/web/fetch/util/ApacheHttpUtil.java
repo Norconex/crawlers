@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,10 +62,10 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
-import com.norconex.importer.doc.DocRecord;
+import com.norconex.importer.doc.DocContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -112,7 +112,7 @@ public final class ApacheHttpUtil {
      * <p>
      * Applies the HTTP response headers to a document. This method will
      * do its best to derive relevant information from the HTTP headers
-     * that can be set on the document {@link WebDocRecord}:
+     * that can be set on the document {@link WebCrawlDocContext}:
      * </p>
      * <ul>
      *   <li>Content type</li>
@@ -129,7 +129,7 @@ public final class ApacheHttpUtil {
      */
     public static void applyResponseHeaders(
             HttpResponse response, String prefix, CrawlDoc doc) {
-        var docRecord = (WebDocRecord) doc.getDocRecord();
+        var docRecord = (WebCrawlDocContext) doc.getDocContext();
         var it = response.headerIterator();
         while (it.hasNext()) {
             var header = it.next();
@@ -172,8 +172,8 @@ public final class ApacheHttpUtil {
      * Applies the <code>Content-Type</code> HTTP response header
      * on the supplied document info.  It does so by extracting both
      * the content type and charset from the value, and sets them by invoking
-     * {@link DocRecord#setContentType(ContentType)} and
-     * {@link DocRecord#setCharset(Charset)}.
+     * {@link DocContext#setContentType(ContentType)} and
+     * {@link DocContext#setCharset(Charset)}.
      * This method is automatically invoked by
      * {@link #applyResponseHeaders(HttpResponse, String, CrawlDoc)}
      * when encountering a content type header.
@@ -181,7 +181,7 @@ public final class ApacheHttpUtil {
      * @param docRecord document info
      */
     public static void applyContentTypeAndCharset(
-            String value, DocRecord docRecord) {
+            String value, DocContext docRecord) {
         if (StringUtils.isBlank(value) || docRecord == null) {
             return;
         }
@@ -214,8 +214,8 @@ public final class ApacheHttpUtil {
             // date but supports "If-Modified-Since" (odd), we try
             // with last crawl date if last modified is null.
             var zdt = ObjectUtils.firstNonNull(
-                doc.getCachedDocRecord().getLastModified(),
-                doc.getCachedDocRecord().getCrawlDate());
+                doc.getCachedDocContext().getLastModified(),
+                doc.getCachedDocContext().getCrawlDate());
             if (zdt != null) {
                 request.addHeader(HttpHeaders.IF_MODIFIED_SINCE,
                         zdt.format(DateTimeFormatter.RFC_1123_DATE_TIME));
@@ -232,7 +232,7 @@ public final class ApacheHttpUtil {
     public static void setRequestIfNoneMatch(
             HttpRequest request, CrawlDoc doc) {
         if (doc.hasCache()) {
-            var docRecord = (WebDocRecord) doc.getCachedDocRecord();
+            var docRecord = (WebCrawlDocContext) doc.getCachedDocContext();
             if (docRecord.getEtag() != null) {
                 request.addHeader(
                         HttpHeaders.IF_NONE_MATCH, docRecord.getEtag());

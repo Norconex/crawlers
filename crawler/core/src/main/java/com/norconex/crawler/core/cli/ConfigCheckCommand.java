@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.cli;
 
+import com.norconex.crawler.core.Crawler;
+
 import picocli.CommandLine.Command;
 
 /**
@@ -23,11 +25,11 @@ import picocli.CommandLine.Command;
     name = "configcheck",
     description = "Validate configuration file syntax"
 )
-public class ConfigCheckCommand extends AbstractSubCommand {
+public class ConfigCheckCommand extends CliSubCommandBase {
     @Override
-    public void runCommand() {
+    public void runCommand(Crawler crawler) {
         // Reaching this method means no errors were found. Simply state so.
-        printOut();
-        printOut("No XML configuration errors detected.");
+        out().println();
+        out().println("No configuration errors detected.");
     }
 }

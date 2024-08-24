@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
@@ -122,7 +122,7 @@ public class JdbcDataStoreEngine
     // table id field is store name
     private JdbcDataStore<String> storeTypes;
     private JdbcDialect dialect;
-    private String safeTablePrefix;
+    private String tableSessionPrefix;
 
     @Getter
     private JdbcDataStoreEngineConfig configuration =
@@ -130,9 +130,9 @@ public class JdbcDataStoreEngine
 
     @Override
     public void init(Crawler crawler) {
-        safeTablePrefix = safeTableName(isBlank(
+        tableSessionPrefix = safeTableName(isBlank(
                 configuration.getTablePrefix())
-            ? crawler.getCrawlSession().getId() + "_" + crawler.getId() + "_"
+            ? crawler.getId() + "_"
             : configuration.getTablePrefix());
 
         // create data source
@@ -231,10 +231,10 @@ public class JdbcDataStoreEngine
                 while (rs.next()) {
                     var tableName = rs.getString(3);
                     if (startsWithIgnoreCase(
-                            tableName, safeTablePrefix)) {
+                            tableName, tableSessionPrefix)) {
                         // only add if not the table holding store types
                         var storeName = removeStartIgnoreCase(
-                                tableName, safeTablePrefix);
+                                tableName, tableSessionPrefix);
                         if (!STORE_TYPES_NAME.equalsIgnoreCase(storeName)) {
                             names.add(storeName);
                         }
@@ -276,7 +276,7 @@ public class JdbcDataStoreEngine
     }
 
     String toTableName(String storeName) {
-        return safeTablePrefix + safeTableName(storeName);
+        return tableSessionPrefix + safeTableName(storeName);
     }
 
     boolean tableExist(String tableName) {

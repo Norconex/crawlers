@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
@@ -152,7 +151,7 @@ public class MVStoreDataStoreEngine
         try {
             FileUtils.deleteDirectory(dirToDelete);
         } catch (IOException e) {
-            throw new CrawlerException(
+            throw new DataStoreException(
                     "Could not delete data store directory.", e);
         }
         return hadStores;

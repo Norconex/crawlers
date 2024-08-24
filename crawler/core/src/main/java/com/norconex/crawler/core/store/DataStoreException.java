@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.store;
 
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
 
 import lombok.experimental.StandardException;
 

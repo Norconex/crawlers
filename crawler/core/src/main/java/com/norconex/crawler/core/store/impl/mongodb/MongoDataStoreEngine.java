@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import com.mongodb.client.MongoDatabase;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.text.StringUtil;
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
@@ -76,11 +76,12 @@ public class MongoDataStoreEngine
     @Getter
     private MongoDataStoreEngineConfig configuration =
             new MongoDataStoreEngineConfig();
+
     @Override
     public void init(Crawler crawler) {
         LOG.info("Initializing MongoDB data store engine...");
         // create a clean db name
-        var dbName = crawler.getCrawlSession().getId() + "_" + crawler.getId();
+        var dbName = crawler.getId();
         dbName = FileUtil.toSafeFileName(dbName);
         dbName = StringUtil.truncateWithHash(dbName, 63);
 

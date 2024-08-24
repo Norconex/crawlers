@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@ package com.norconex.importer.handler.condition;
 
 import java.util.function.Predicate;
 
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 /**
  * A condition usually used in flow creation when configuring
  * importer handlers.
  */
 @FunctionalInterface
-public interface Condition extends Predicate<DocContext> {
+public interface Condition extends Predicate<HandlerContext> {
 
     //TODO needed?
     //TODO extend Predicate and replace method or have a default one?

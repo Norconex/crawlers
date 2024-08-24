@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.apache.commons.collections4.ListUtils;
 
-import com.norconex.crawler.core.filter.OnMatch;
+import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

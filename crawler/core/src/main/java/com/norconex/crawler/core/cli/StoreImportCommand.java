@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 package com.norconex.crawler.core.cli;
 
 import java.nio.file.Path;
-import java.util.List;
+
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,15 +32,14 @@ import picocli.CommandLine.Option;
 )
 @EqualsAndHashCode
 @ToString
-public class StoreImportCommand extends AbstractSubCommand {
+public class StoreImportCommand extends CliSubCommandBase {
     @Option(names = { "-f", "-file" },
             description = "Data store files to import.",
-            required = true,
-            split = ",")
-    private List<Path> inFiles;
+            required = true)
+    private Path inFile;
 
     @Override
-    public void runCommand() {
-        getCrawlSession().importDataStore(inFiles);
+    protected void runCommand(Crawler crawler) {
+        crawler.importDataStore(inFile);
     }
 }

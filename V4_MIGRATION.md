@@ -69,6 +69,7 @@ Misc. Changes
   will now have a working directory named after their simple class name.
   In case there are more than one of the same class defined, they'll be 
   appended with a number (e.g., "XMLFileCommitter_2").
+* DataStoreEngine moved from crawler to crawl session.
 
 ### Importer
 

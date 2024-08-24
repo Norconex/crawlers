@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package com.norconex.importer.util;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.importer.doc.DocRecord;
+import com.norconex.importer.doc.DocContext;
 
 public final class MatchUtil {
 
@@ -30,7 +30,7 @@ public final class MatchUtil {
      *      type are <code>null</code>
      */
     public static boolean matchesContentType(
-            TextMatcher matcher, DocRecord docRecord) {
+            TextMatcher matcher, DocContext docRecord) {
         if (docRecord == null) {
             return true;
         }

@@ -108,17 +108,17 @@ public class ParseAssertions {
 
     public ParseAssertions hasContentType(String contentType) {
         return assertResponses(resp -> Assertions.assertThat(
-                resp.getDoc().getDocRecord().getContentType()).hasToString(
+                resp.getDoc().getDocContext().getContentType()).hasToString(
                         contentType));
     }
     public ParseAssertions hasContentFamily(String contentFamily) {
         return assertResponses(resp -> Assertions.assertThat(
-                resp.getDoc().getDocRecord().getContentType().getContentFamily()
+                resp.getDoc().getDocContext().getContentType().getContentFamily()
                         .getDisplayName(ENGLISH)).hasToString(contentFamily));
     }
     public ParseAssertions hasExtension(String extension) {
         return assertResponses(resp -> Assertions.assertThat(
-                resp.getDoc().getDocRecord().getContentType().getExtension())
+                resp.getDoc().getDocContext().getContentType().getExtension())
                         .hasToString(extension));
     }
     public ParseAssertions hasMetaValue(String field, String value) {

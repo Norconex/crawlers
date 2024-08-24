@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -29,7 +28,6 @@ import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 class ScreenshotHandlerTest {
 
     @Test
-    @Disabled
     void testWriteRead() {
         var h = new ScreenshotHandler();
         h.getConfiguration()

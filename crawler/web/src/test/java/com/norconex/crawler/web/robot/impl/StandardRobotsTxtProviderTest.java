@@ -32,20 +32,18 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.filter.ReferenceFilter;
-import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
-import com.norconex.crawler.web.MockWebCrawlSession;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.web.junit.WithCrawlerTest;
 import com.norconex.crawler.web.robot.RobotsTxtFilter;
 
 @MockServerSettings
 class StandardRobotsTxtProviderTest {
 
-    @MockWebCrawlSession
-    @Test
-    void testGetRobotsTxt(ClientAndServer client, Crawler crawler)
-            throws IOException {
+    @WithCrawlerTest
+    void testGetRobotsTxt(ClientAndServer client, Crawler crawler) {
 
         client
             .when(request()
@@ -68,6 +66,7 @@ class StandardRobotsTxtProviderTest {
         var robotsTxt = robotProvider.getRobotsTxt(
                 (HttpFetcher) crawler.getFetcher(),
                 serverUrl(client, "/index.html"));
+
         assertThat(robotsTxt.getAllowFilters()).isEmpty();
         assertThat(robotsTxt.getDisallowFilters()).hasSize(1);
         assertThat(robotsTxt.getDisallowFilters().get(0))

@@ -188,7 +188,7 @@ class DefaultParserEmbeddedTest {
 
         // the only content type must be zip
         Assertions.assertEquals(ZIP, zipResponse.getDoc()
-                .getDocRecord().getContentType().toString(),
+                .getDocContext().getContentType().toString(),
                         "Must be zip content type.");
 
         ParseAssertions.assertThat(zipResponse)
@@ -228,7 +228,7 @@ class DefaultParserEmbeddedTest {
         // the only content type must be zip
         Assertions.assertEquals(
                 ZIP, zipResponse.getDoc()
-                        .getDocRecord().getContentType().toString(),
+                        .getDocContext().getContentType().toString(),
                                 "Must be zip content type.");
 
         var content = IOUtils.toString(
@@ -440,7 +440,7 @@ class DefaultParserEmbeddedTest {
 
     private ImporterResponse findResponse(
             ImporterResponse response, String contentType) {
-        if (response.getDoc().getDocRecord()
+        if (response.getDoc().getDocContext()
                 .getContentType().toString().equals(contentType)) {
             return response;
         }

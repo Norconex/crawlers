@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,25 +25,26 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.doc.operations.DocumentConsumer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.filter.DocumentFilter;
-import com.norconex.crawler.core.filter.MetadataFilter;
-import com.norconex.crawler.core.filter.ReferenceFilter;
-import com.norconex.crawler.core.processor.DocumentProcessor;
-import com.norconex.crawler.web.canon.CanonicalLinkDetector;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig;
-import com.norconex.crawler.web.delay.DelayResolver;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
+import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
+import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
+import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
+import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher;
-import com.norconex.crawler.web.link.LinkExtractor;
-import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsMetaProvider;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.sitemap.SitemapLocator;
 import com.norconex.crawler.web.sitemap.SitemapResolver;
-import com.norconex.crawler.web.url.WebUrlNormalizer;
 
 /**
  * <p>
@@ -57,20 +58,22 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
         addPolyType(map, CanonicalLinkDetector.class);
-        addPolyType(map, MetadataChecksummer.class, "checksum.impl");
-        addPolyType(map, EventListener.class, "crawler.event.impl");
+        addPolyType(map, MetadataChecksummer.class, "doc.operations.checksum");
+        addPolyType(map, EventListener.class, "event.listeners");
         addPolyType(map, DelayResolver.class);
-        addPolyType(map, DocumentFilter.class, "filter.impl"); //NOSONAR
-        addPolyType(map, MetadataFilter.class, "filter.impl");
-        addPolyType(map, ReferenceFilter.class, "filter.impl");
+        addPolyType(map, DocumentFilter.class,
+                "doc.operations.filter"); //NOSONAR
+        addPolyType(map, MetadataFilter.class, "doc.operations.filter");
+        addPolyType(map, ReferenceFilter.class, "doc.operations.filter");
         addPolyType(map, LinkExtractor.class);
-        addPolyType(map, DocumentProcessor.class, "processor.impl");
+        addPolyType(map, DocumentConsumer.class, "doc.operations.image");
         addPolyType(map, RecrawlableResolver.class);
         addPolyType(map, RobotsTxtProvider.class);
         addPolyType(map, RobotsMetaProvider.class);
         addPolyType(map, SitemapLocator.class);
         addPolyType(map, SitemapResolver.class);
         addPolyType(map, WebUrlNormalizer.class);
+        addPolyType(map, UrlScopeResolver.class);
 
         map.put(CrawlerConfig.class, WebCrawlerConfig.class);
         map.putAll(Fetcher.class, List.of(

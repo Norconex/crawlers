@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,11 @@ import org.apache.hc.core5.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -85,7 +85,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
         // TODO Delete stored sitemaps that were not updated in session (orphans)
 
         List<SitemapRecord> childSitemaps = new ArrayList<>();
-        var sitemapDoc = new CrawlDoc(new WebDocRecord(location));
+        var sitemapDoc = new CrawlDoc(new WebCrawlDocContext(location));
         SitemapRecord sitemapRec = null;
 
         try {
@@ -177,9 +177,9 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             LOG.info("         Redirect: {} --> {}", location, redirectUrl);
 
             // fetch redirect target then store back original URL
-            doc.getDocRecord().setReference(redirectUrl);
+            doc.getDocContext().setReference(redirectUrl);
             var redirectResponse = httpGet(fetcher, doc, loop + 1);
-            doc.getDocRecord().setReference(location);
+            doc.getDocContext().setReference(location);
             return redirectResponse;
         }
         return response;
@@ -194,8 +194,9 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     }
     @Override
     protected void onCrawlerRunBegin(CrawlerEvent event) {
-        sitemapStore = event.getSource().getDataStoreEngine().openStore(
-                SITEMAP_STORE_NAME, SitemapRecord.class);
+        sitemapStore = event.getSource()
+                .getDataStoreEngine().openStore(
+                        SITEMAP_STORE_NAME, SitemapRecord.class);
     }
     @Override
     protected void onCrawlerStopBegin(CrawlerEvent event) {

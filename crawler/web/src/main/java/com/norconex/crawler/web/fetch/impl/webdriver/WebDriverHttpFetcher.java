@@ -1,4 +1,4 @@
-/* Copyright 2018-2023 Norconex Inc.
+/* Copyright 2018-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,41 +15,46 @@
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import static java.time.Duration.ofMillis;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static java.util.Optional.ofNullable;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Map.Entry;
-import java.util.Optional;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
-import com.norconex.crawler.web.fetch.impl.webdriver.HttpSniffer.DriverResponseFilter;
+import com.norconex.crawler.web.fetch.impl.webdriver.HttpSniffer.SniffedResponseHeader;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcherConfig.WaitElementType;
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
-import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -188,11 +193,94 @@ public class WebDriverHttpFetcher
     @Getter
     private final WebDriverHttpFetcherConfig configuration =
             new WebDriverHttpFetcherConfig();
+
+    //--- Set on fetcher start-up ---
+    @JsonIgnore
+    private Browser browser;
+    @JsonIgnore
     private CachedStreamFactory streamFactory;
+    @JsonIgnore
     private String userAgent;
-//    private HttpSniffer httpSniffer;
-//    private ScreenshotHandler screenshotHandler;
-    private WebDriverHolder driverHolder;
+    @JsonIgnore
+    private WebDriverLocation location;
+    // Resolved capabilities of configured browser. Reused by all driver
+    // instances created.
+    @JsonIgnore
+    private MutableCapabilities options;
+
+    //--- Set on fetcher request ---
+
+    // We need to make WebDrivers thread-safe
+    private static final ThreadLocal<WebDriver> THREADED_DRIVER =
+            new ThreadLocal<>();
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    @Override
+    protected void fetcherStartup(Crawler c) {
+        LOG.info("Starting WebDriver HTTP fetcher...");
+        browser = configuration.getBrowser();
+        if (c != null) {
+            streamFactory = c.getStreamFactory();
+        } else {
+            streamFactory = new CachedStreamFactory();
+        }
+
+        location = new WebDriverLocation(
+                configuration.getDriverPath(),
+                configuration.getBrowserPath(),
+                configuration.getRemoteURL());
+
+        options = browser.createOptions(location);
+        if (configuration.getHttpSniffer() != null) {
+            LOG.info("Starting {} HTTP sniffer...", browser);
+            configuration.getHttpSniffer().start(options);
+            userAgent = configuration
+                    .getHttpSniffer()
+                    .getConfiguration()
+                    .getUserAgent();
+        }
+        options.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
+        configuration.getCapabilities().forEach((k, v) -> {
+            options.setCapability(k, v);
+        });
+        // add arguments to drivers supporting it
+        if (options instanceof FirefoxOptions fireFoxOptions) {
+            fireFoxOptions.addArguments(configuration.getArguments());
+        } else if (options instanceof ChromeOptions chromeOptions) {
+            chromeOptions.addArguments(configuration.getArguments());
+        } else if (options instanceof EdgeOptions edgeOptions) {
+            edgeOptions.addArguments(configuration.getArguments());
+        }
+    }
+
+    @Override
+    protected void fetcherThreadBegin(Crawler crawler) {
+        LOG.info("Creating {} web driver.", browser);
+        THREADED_DRIVER.set(createWebDriver());
+    }
+
+    private WebDriver createWebDriver() {
+        LOG.info("Creating {} web driver.", browser);
+        WebDriver driver;
+        if (configuration.isUseHtmlUnit()) {
+            var v = browser.getHtmlUnitBrowser();
+            if (v == null) {
+                throw new CrawlerException(
+                        "Unsupported HtmlUnit browser version: " + v);
+            }
+            driver = new HtmlUnitDriver(v, true);
+        } else {
+            driver = browser.createDriver(location, options);
+        }
+        if (StringUtils.isBlank(userAgent)) {
+            userAgent = (String) ((JavascriptExecutor) driver).executeScript(
+                    "return navigator.userAgent;");
+        }
+        return driver;
+    }
 
     @Override
     protected boolean acceptRequest(@NonNull HttpFetchRequest req) {
@@ -200,10 +288,9 @@ public class WebDriverHttpFetcher
     }
 
     @Override
-    public HttpFetchResponse fetch(HttpFetchRequest req )
+    public HttpFetchResponse fetch(HttpFetchRequest req)
             throws FetchException {
-        var method = Optional.ofNullable(
-                req.getMethod()).orElse(HttpMethod.GET);
+        var method = ofNullable(req.getMethod()).orElse(HttpMethod.GET);
         var doc = req.getDoc();
         if (method != HttpMethod.GET) {
             var reason = "HTTP " + method + " method not supported.";
@@ -220,23 +307,31 @@ public class WebDriverHttpFetcher
 
         LOG.debug("Fetching document: {}", doc.getReference());
 
+        SniffedResponseHeader sniffedResponse = null;
         if (configuration.getHttpSniffer() != null) {
-            configuration.getHttpSniffer().bind(doc.getReference());
+            sniffedResponse = configuration
+                    .getHttpSniffer()
+                    .track(doc.getReference());
         }
 
         doc.setInputStream(fetchDocumentContent(doc.getReference()));
-        var response = resolveDriverResponse(doc);
+
+        var fetchResponse = resolveDriverResponse(doc, sniffedResponse);
+
+        if (configuration.getHttpSniffer() != null) {
+            configuration.getHttpSniffer().untrack(doc.getReference());
+        }
 
         if (configuration.getScreenshotHandler() != null) {
             configuration.getScreenshotHandler().takeScreenshot(
-                    driverHolder.getDriver(), doc);
+                    THREADED_DRIVER.get(), doc);
         }
 
-        if (response != null) {
-            return response;
+        if (fetchResponse != null) {
+            return fetchResponse;
         }
-
-        return GenericHttpFetchResponse.builder()
+        return GenericHttpFetchResponse
+                .builder()
                 .crawlDocState(CrawlDocState.NEW)
                 .statusCode(200)
                 .reasonPhrase("No exception thrown, but real status code "
@@ -245,72 +340,37 @@ public class WebDriverHttpFetcher
                 .build();
     }
 
-//    @Override
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-//    public ScreenshotHandler getScreenshotHandler() {
-//        return screenshotHandler;
-//    }
-//    public void setScreenshotHandler(
-//            ScreenshotHandler screenshotHandler) {
-//        this.screenshotHandler = screenshotHandler;
-//    }
-
-    @Override
-    protected void fetcherStartup(CrawlSession c) {
-        if (c != null) {
-            streamFactory = c.getStreamFactory();
-        } else {
-            streamFactory = new CachedStreamFactory();
-        }
-
-        driverHolder = new WebDriverHolder(configuration);
-
-        if (configuration.getHttpSniffer() != null) {
-            LOG.info("Starting {} HTTP sniffer...", configuration.getBrowser());
-            configuration.getHttpSniffer().start(
-                    driverHolder.getDriverOptions().getValue());
-            userAgent = configuration.getHttpSniffer()
-                    .getConfiguration().getUserAgent();
-        }
-    }
-
-    @Override
-    protected void fetcherThreadBegin(Crawler crawler) {
-        var driver = driverHolder.getDriver();
-        if (StringUtils.isBlank(userAgent)) {
-            userAgent = (String) ((JavascriptExecutor) driver).executeScript(
-                    "return navigator.userAgent;");
-        }
-    }
     @Override
     protected void fetcherThreadEnd(Crawler crawler) {
-        LOG.info("Shutting down {} web driver.", configuration.getBrowser());
-        if (driverHolder != null) {
-            driverHolder.releaseDriver();
+        LOG.info("Shutting down {} web driver.", browser);
+        var driver = THREADED_DRIVER.get();
+        if (driver != null) {
+            driver.quit();
         }
+        THREADED_DRIVER.remove();
     }
 
     @Override
-    protected void fetcherShutdown(CrawlSession c) {
+    protected void fetcherShutdown(Crawler c) {
         if (configuration.getHttpSniffer() != null) {
-            LOG.info("Shutting down {} HTTP sniffer...",
-                    configuration.getBrowser());
+            LOG.info("Shutting down {} HTTP sniffer...", browser);
             Sleeper.sleepSeconds(5);
             configuration.getHttpSniffer().stop();
         }
     }
 
+    /**
+     * Gets the web driver associated with the current thread (if any).
+     * @return web driver or <code>null</code>
+     */
     protected WebDriver getWebDriver() {
-        return driverHolder.getDriver();
+        return THREADED_DRIVER.get();
     }
 
     // Overwrite to perform more advanced configuration/manipulation.
     // thread-safe
     protected InputStream fetchDocumentContent(String url) {
-        var driver = driverHolder.getDriver();
+        var driver = THREADED_DRIVER.get();
         driver.get(url);
 
         if (StringUtils.isNotBlank(configuration.getEarlyPageScript())) {
@@ -335,18 +395,21 @@ public class WebDriverHttpFetcher
                     ofMillis(configuration.getImplicitlyWait()));
         }
         if (configuration.getScriptTimeout() != 0) {
-            timeouts.scriptTimeout(ofMillis(configuration.getScriptTimeout()));
+            timeouts.scriptTimeout(
+                    ofMillis(configuration.getScriptTimeout()));
         }
 
         if (configuration.getWaitForElementTimeout() != 0
-                && isNotBlank(configuration.getWaitForElementSelector())) {
-            var elType = defaultIfNull(configuration.getWaitForElementType(),
+                && StringUtils.isNotBlank(
+                        configuration.getWaitForElementSelector())) {
+            var elType = ObjectUtils.defaultIfNull(
+                    configuration.getWaitForElementType(),
                     WaitElementType.TAGNAME);
             LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",
                     configuration.getWaitForElementSelector(), elType, url);
 
-            var wait = new WebDriverWait(driver, Duration.ofMillis(
-                    configuration.getWaitForElementTimeout()));
+            var wait = new WebDriverWait(
+                    driver, ofMillis(configuration.getWaitForElementTimeout()));
             wait.until(ExpectedConditions.presenceOfElementLocated(
                     elType.getBy(configuration.getWaitForElementSelector())));
 
@@ -364,50 +427,32 @@ public class WebDriverHttpFetcher
         }
 
         var pageSource = driver.getPageSource();
+
         LOG.debug("Fetched page source length: {}", pageSource.length());
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
 
-    private HttpFetchResponse resolveDriverResponse(Doc doc) {
+    private HttpFetchResponse resolveDriverResponse(
+            CrawlDoc doc, SniffedResponseHeader sniffedResponse) {
+
         HttpFetchResponse response = null;
-        if (configuration.getHttpSniffer() != null) {
-            var driverResponseFilter = configuration.getHttpSniffer().unbind();
-            if (driverResponseFilter != null) {
-                for (Entry<String, String> en
-                        : driverResponseFilter.getHeaders()) {
-                    var name = en.getKey();
-                    var value = en.getValue();
-                    // Content-Type + Content Encoding (Charset)
-                    if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
-                        ApacheHttpUtil.applyContentTypeAndCharset(
-                                value, doc.getDocRecord());
-                    }
-                    doc.getMetadata().add(name, value);
+        if (sniffedResponse != null) {
+            sniffedResponse.getHeaders().asMap().forEach((k, v) -> {
+                var values = (List<String>) v;
+                // Content-Type + Content Encoding (Charset)
+                if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(k)
+                        && !values.isEmpty()) {
+                    ApacheHttpUtil.applyContentTypeAndCharset(
+                            values.get(0), doc.getDocContext());
                 }
-                response = toFetchResponse(driverResponseFilter);
-            }
-        }
+                doc.getMetadata().addList(k, values);
+            });
 
-        //TODO we assume text/html as default until WebDriver expands its API
-        // to obtain different types of files.
-        if (doc.getDocRecord().getContentType() == null) {
-            doc.getDocRecord().setContentType(ContentType.HTML);
-        }
-
-        return response;
-    }
-
-    private HttpFetchResponse toFetchResponse(
-            DriverResponseFilter driverResponseFilter) {
-        HttpFetchResponse response = null;
-        if (driverResponseFilter != null) {
-            //TODO validate status code
-            var statusCode = driverResponseFilter.getStatusCode();
-            var reason = driverResponseFilter.getReasonPhrase();
-
-            var b = GenericHttpFetchResponse.builder()
+            var statusCode = sniffedResponse.getStatusCode();
+            var b = GenericHttpFetchResponse
+                    .builder()
                     .statusCode(statusCode)
-                    .reasonPhrase(reason)
+                    .reasonPhrase(sniffedResponse.getReasonPhrase())
                     .userAgent(getUserAgent());
             if (statusCode >= 200 && statusCode < 300) {
                 response = b.crawlDocState(CrawlDocState.NEW).build();
@@ -415,25 +460,12 @@ public class WebDriverHttpFetcher
                 response = b.crawlDocState(CrawlDocState.BAD_STATUS).build();
             }
         }
+
+        //TODO we assume text/html as default until WebDriver expands its API
+        // to obtain different types of files.
+        if (doc.getDocContext().getContentType() == null) {
+            doc.getDocContext().setContentType(ContentType.HTML);
+        }
         return response;
     }
-//
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        xml.populate(cfg);
-//        xml.ifXML("screenshot", x -> {
-//            var h =
-//                    new ScreenshotHandler(streamFactory);
-//            x.populate(h);
-//            setScreenshotHandler(h);
-//        });
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        configuration.saveToXML(xml);
-//        if (screenshotHandler != null) {
-//            screenshotHandler.saveToXML(xml.addElement("screenshot"));
-//        }
-//    }
-
 }

@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.apache.ftpserver.ssl.SslConfigurationFactory;
 import org.apache.ftpserver.usermanager.PropertiesUserManagerFactory;
 import org.apache.ftpserver.usermanager.impl.BaseUser;
 
-import com.norconex.crawler.fs.FsStubber;
 import com.norconex.crawler.fs.FsTestUtil;
 
 import lombok.Getter;
@@ -54,7 +53,7 @@ class MockFtpServer {
         if (secure) {
             // SSL config
             var ssl = new SslConfigurationFactory();
-            ssl.setKeystoreFile(new File(FsStubber.MOCK_KEYSTORE_PATH));
+            ssl.setKeystoreFile(new File(FsTestUtil.TEST_KEYSTORE_PATH));
             ssl.setKeystorePassword("password");
             // set the SSL configuration for the listener
             factory.setSslConfiguration(ssl.createSslConfiguration());
@@ -71,7 +70,7 @@ class MockFtpServer {
         user.setName("testuser");
         user.setPassword("testpassword");
         user.setEnabled(true);
-        user.setHomeDirectory(FsStubber.MOCK_FS_PATH);
+        user.setHomeDirectory(FsTestUtil.TEST_FS_PATH);
         try {
             userManager.save(user);
             serverFactory.setUserManager(userManager);

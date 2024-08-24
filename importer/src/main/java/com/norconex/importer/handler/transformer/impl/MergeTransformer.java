@@ -1,4 +1,4 @@
-/* Copyright 2016-2023 Norconex Inc.
+/* Copyright 2016-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -108,7 +108,7 @@ public class MergeTransformer
             new MergeTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         for (MergeOperation op : configuration.getOperations()) {
 

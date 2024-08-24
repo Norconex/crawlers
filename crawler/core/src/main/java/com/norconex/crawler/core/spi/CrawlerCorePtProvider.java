@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.checksum.DocumentChecksummer;
-import com.norconex.crawler.core.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListener;
-import com.norconex.crawler.core.filter.DocumentFilter;
-import com.norconex.crawler.core.filter.MetadataFilter;
-import com.norconex.crawler.core.filter.ReferenceFilter;
-import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.stop.CrawlSessionStopper;
+import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
+import com.norconex.crawler.core.stop.CrawlerStopper;
 import com.norconex.crawler.core.store.DataStoreEngine;
 
 /**
@@ -50,11 +50,11 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        addPolyType(map, CrawlSessionStopper.class);
+        addPolyType(map, CrawlerStopper.class); //TODO really want it configurable? maybe default choses between file-based and store-based.
         addPolyType(map, DataStoreEngine.class);
         addPolyType(map, DocumentChecksummer.class);
         addPolyType(map, DocumentFilter.class);
-        addPolyType(map, EventListener.class, "crawler.event.impl");
+        addPolyType(map, EventListener.class, "event.listeners");
         addPolyType(map, MetadataChecksummer.class);
         addPolyType(map, MetadataFilter.class);
         addPolyType(map, ReferenceFilter.class);

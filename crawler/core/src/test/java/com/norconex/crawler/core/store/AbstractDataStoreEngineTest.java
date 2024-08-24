@@ -29,7 +29,8 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.core.TestUtil;
+import com.norconex.crawler.core.CrawlerTestUtil;
+import com.norconex.crawler.core.stubs.CrawlerStubs;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -267,28 +268,25 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     private void inNewStoreEngineSession(Consumer<DataStoreEngine> c) {
-        TestUtil.withinInitializedCrawler(
-                tempDir,
-                crawler -> {
-                    LOG.debug("Start data store engine test...");
-                    c.accept(crawler.getDataStoreEngine());
-                    LOG.debug("Data store test engine done.");
-                },
-                cfg -> cfg.setDataStoreEngine(createEngine()));
+        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
+            cfg.setDataStoreEngine(createEngine());
+        });
+        CrawlerTestUtil.initCrawler(crawler);
+        LOG.debug("Start data store engine test...");
+        c.accept(crawler.getDataStoreEngine());
+        LOG.debug("Data store test engine done.");
+        CrawlerTestUtil.destroyCrawler(crawler);
     }
 
     private void inNewStoreSession(Consumer<DataStore<TestObject>> c) {
-        TestUtil.withinInitializedCrawler(
-                tempDir,
-                crawler -> {
-                    LOG.debug("Start data store test...");
-                    try (DataStore<TestObject> store =
-                            crawler.getDataStoreEngine().openStore(
-                                    TEST_STORE_NAME, TestObject.class)) {
-                        c.accept(store);
-                    }
-                    LOG.debug("Data store test done.");
-                },
-                cfg -> cfg.setDataStoreEngine(createEngine()));
+        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
+            cfg.setDataStoreEngine(createEngine());
+        });
+        CrawlerTestUtil.initCrawler(crawler);
+        LOG.debug("Start data store test...");
+        c.accept(crawler.getDataStoreEngine().openStore(
+                TEST_STORE_NAME, TestObject.class));
+        LOG.debug("Data store test done.");
+        CrawlerTestUtil.destroyCrawler(crawler);
     }
 }

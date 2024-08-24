@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,10 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.web.MockWebCrawlSession;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.web.junit.WithCrawlerTest;
 import com.norconex.crawler.web.sitemap.SitemapContext;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 class GenericSitemapResolverTest {
 
     @Test
-    @MockWebCrawlSession
+    @WithCrawlerTest
     void testResolveSitemaps(ClientAndServer client, Crawler crawler)
             throws IOException {
 
@@ -86,8 +86,6 @@ class GenericSitemapResolverTest {
                     .withBody(compressSitemap(serverUrl(client, ""))));
 
         List<String> urls = new ArrayList<>();
-
-
         var resolver = ((WebCrawlerConfig)
                 crawler.getConfiguration()).getSitemapResolver();
         resolver.resolve(SitemapContext

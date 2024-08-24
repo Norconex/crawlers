@@ -38,7 +38,8 @@
     <guava.version>33.2.1-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
     <netty.version>4.1.110.Final</netty.version>
-    <selenium.version>4.21.0</selenium.version>
+    <selenium.version>4.23.1</selenium.version>
+    <selenium-htmlunit3.version>4.23.0</selenium-htmlunit3.version>
     <okhttp.version>3.14.9</okhttp.version>
     
     <commons-compress.version>1.26.0</commons-compress.version>
@@ -155,6 +156,11 @@
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
       <version>${selenium.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>htmlunit3-driver</artifactId>
+      <version>${selenium-htmlunit3.version}</version>
     </dependency>
 
     <!-- For capturing http headers: -->

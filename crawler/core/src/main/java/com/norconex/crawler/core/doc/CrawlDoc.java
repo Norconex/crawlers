@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,21 @@ package com.norconex.crawler.core.doc;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocRecord;
+import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * A crawl document, which holds an additional {@link DocRecord} from cache
+ * A crawl document, which holds an additional {@link HandlerContext} from cache
  * (if any).
  */
 @EqualsAndHashCode
 @ToString
 public class CrawlDoc extends Doc {
 
-    private final CrawlDocRecord cachedDocRecord;
+    private final CrawlDocContext cachedDocContext;
 
     // maybe move this to context or create new QueueDocType
     // (regular, orphans_delete, orphans_reprocess)?
@@ -40,45 +41,45 @@ public class CrawlDoc extends Doc {
 
     /**
      * Creates a new crawl document with an empty input stream.
-     * @param docRecord document record
+     * @param docContext document context
      * @since 4.0.0
      */
-    public CrawlDoc(DocRecord docRecord) {
-        this(docRecord, null, CachedInputStream.nullInputStream(), false);
+    public CrawlDoc(DocContext docContext) {
+        this(docContext, null, CachedInputStream.nullInputStream(), false);
     }
-    public CrawlDoc(DocRecord docRecord, CachedInputStream content) {
-        this(docRecord, null, content, false);
+    public CrawlDoc(DocContext docContext, CachedInputStream content) {
+        this(docContext, null, content, false);
     }
     public CrawlDoc(
-            DocRecord docRecord,
-            CrawlDocRecord cachedDocRecord,
+            DocContext docContext,
+            CrawlDocContext cachedDocContext,
             CachedInputStream content) {
-        this(docRecord, cachedDocRecord, content, false);
+        this(docContext, cachedDocContext, content, false);
     }
     public CrawlDoc(
-            DocRecord docRecord,
-            CrawlDocRecord cachedDocRecord,
+            DocContext docContext,
+            CrawlDocContext cachedDocContext,
             CachedInputStream content,
             boolean orphan) {
-        super(docRecord, content, null);
-        this.cachedDocRecord = cachedDocRecord;
+        super(docContext, content, null);
+        this.cachedDocContext = cachedDocContext;
         this.orphan = orphan;
     }
 
     @Override
-    public CrawlDocRecord getDocRecord() {
-        return (CrawlDocRecord) super.getDocRecord();
+    public CrawlDocContext getDocContext() {
+        return (CrawlDocContext) super.getDocContext();
     }
 
     public boolean isOrphan() {
         return orphan;
     }
 
-    public CrawlDocRecord getCachedDocRecord() {
-        return cachedDocRecord;
+    public CrawlDocContext getCachedDocContext() {
+        return cachedDocContext;
     }
 
     public boolean hasCache() {
-        return cachedDocRecord != null;
+        return cachedDocContext != null;
     }
 }

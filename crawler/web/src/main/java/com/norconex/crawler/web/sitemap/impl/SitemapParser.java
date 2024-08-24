@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLException;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.sitemap.SitemapRecord;
 
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ class SitemapParser {
     private final MutableBoolean stopping;
 
     List<SitemapRecord> parse(
-            CrawlDoc sitemapDoc, Consumer<WebDocRecord> urlConsumer) {
+            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer) {
 
         var location = sitemapDoc.getReference();
         List<SitemapRecord> children = new ArrayList<>();
@@ -93,7 +93,7 @@ class SitemapParser {
         return Optional.ofNullable(rec);
     }
 
-    private Optional<WebDocRecord> toDocRecord(
+    private Optional<WebCrawlDocContext> toDocRecord(
             XML xml, String sitemapLocationDir) {
         var url = xml.getString("loc");
 
@@ -106,7 +106,7 @@ class SitemapParser {
             return Optional.empty();
         }
 
-        var doc = new WebDocRecord(url);
+        var doc = new WebCrawlDocContext(url);
         doc.setSitemapLastMod(SitemapUtil.toDateTime(xml.getString("lastmod")));
         doc.setSitemapChangeFreq(xml.getString("changefreq"));
         var priority = xml.getString("priority");

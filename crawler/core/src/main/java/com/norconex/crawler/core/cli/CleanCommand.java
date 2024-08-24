@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.cli;
 
+import com.norconex.crawler.core.Crawler;
+
 import picocli.CommandLine.Command;
 
 /**
@@ -23,9 +25,10 @@ import picocli.CommandLine.Command;
     name = "clean",
     description = "Clean the Collector crawling history (to start fresh)"
 )
-public class CleanCommand extends AbstractSubCommand {
+public class CleanCommand extends CliSubCommandBase {
+
     @Override
-    public void runCommand() {
-        getCrawlSession().clean();
+    protected void runCommand(Crawler crawler) {
+        crawler.clean();
     }
 }

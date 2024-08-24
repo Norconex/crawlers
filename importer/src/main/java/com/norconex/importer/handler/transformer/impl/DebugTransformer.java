@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.slf4j.event.Level;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +82,7 @@ public class DebugTransformer
             new DebugTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         var level = Level.valueOf(ObjectUtils.defaultIfNull(
                 configuration.getLogLevel(), "debug").toUpperCase());

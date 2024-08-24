@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ class CrawlDocTest {
 
     @Test
     void testCrawlDoc() {
-        var rec = new CrawlDocRecord("ref");
+        var rec = new CrawlDocContext("ref");
         var doc = new CrawlDoc(rec);
         assertThat(doc.hasCache()).isFalse();
 
-        var cachedRec = new CrawlDocRecord("ref");
+        var cachedRec = new CrawlDocContext("ref");
         doc = new CrawlDoc(rec, cachedRec, CachedInputStream.nullInputStream());
         assertThat(doc.hasCache()).isTrue();
     }

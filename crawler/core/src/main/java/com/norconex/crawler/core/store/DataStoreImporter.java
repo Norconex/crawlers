@@ -27,16 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonToken;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
 /**
  * Imports from a previously exported data store.
  */
-public final class DataStoreImporter extends CrawlerException {
-
-    private static final long serialVersionUID = 1L;
+public final class DataStoreImporter {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(DataStoreImporter.class);
@@ -55,7 +52,8 @@ public final class DataStoreImporter extends CrawlerException {
             while (zipEntry != null) {
                 if (!importStore(crawler, zipIn)) {
                     LOG.debug("Input file \"{}\" not matching crawler "
-                            + "\"{}\". Skipping.", inFile, crawler.getId());
+                            + "\"{}\". Skipping.",
+                            inFile, crawler.getId());
                 }
                 zipIn.closeEntry();
                 zipEntry = zipIn.getNextEntry(); //NOSONAR
@@ -70,25 +68,17 @@ public final class DataStoreImporter extends CrawlerException {
         var parser = SerialUtil.jsonParser(in);
 
         String typeStr = null;
-        String crawlerId = null;
         String storeName = null;
 
         while (parser.nextToken() != JsonToken.END_OBJECT) {
             var key = parser.currentName();
-            if ("crawler".equals(key)) {
-                crawlerId = parser.nextTextValue();
-                if (!crawler.getId().equals(crawlerId)) {
-                    return false;
-                }
-            } else if ("store".equals(key)) {
-                storeName = parser.nextTextValue();
+            if ("store".equals(key)) {
+                storeName = parser.getValueAsString();
             } else if ("type".equals(key)) {
-                typeStr = parser.nextTextValue();
+                typeStr = parser.getValueAsString();
             } else if ("records".equals(key)) {
-                // check if we got crawler first and it matched, else
-                // there is something wrong (records should only exist
-                // after expected fields.
-                if (StringUtils.isAnyBlank(typeStr, crawlerId, storeName)) {
+                // check that we first got the store and type.
+                if (StringUtils.isAnyBlank(typeStr, storeName)) {
                     LOG.error("Invalid import file encountered.");
                     return false;
                 }
@@ -102,24 +92,24 @@ public final class DataStoreImporter extends CrawlerException {
 
                 LOG.info("Importing \"{}\".", storeName);
                 var storeEngine = crawler.getDataStoreEngine();
-                DataStore<Object> store =
-                        storeEngine.openStore(storeName, type);
-
-                var cnt = 0L;
-                parser.nextToken();
-                while (parser.nextToken() != JsonToken.END_ARRAY) {
-                    parser.nextToken(); // id:
-                    var id = parser.nextTextValue();
-                    parser.nextToken(); // object:
-                    parser.nextToken(); // { //NOSONAR
-                    store.save(id, SerialUtil.fromJson(parser, type));
-                    parser.nextToken(); // } //NOSONAR
-                    cnt++;
-                    logProgress(cnt, false);
+                try (DataStore<Object> store =
+                        storeEngine.openStore(storeName, type)) {
+                    var cnt = 0L;
+                    parser.nextToken();
+                    while (parser.nextToken() != JsonToken.END_ARRAY) {
+                        parser.nextToken(); // id:
+                        var id = parser.nextTextValue();
+                        parser.nextToken(); // object:
+                        parser.nextToken(); // { //NOSONAR
+                        store.save(id, SerialUtil.fromJson(parser, type));
+                        parser.nextToken(); // } //NOSONAR
+                        cnt++;
+                        logProgress(cnt, false);
+                    }
+                    logProgress(cnt, true);
                 }
-                logProgress(cnt, true);
             } else {
-                parser.nextValue();
+                parser.nextToken();
             }
 
         }

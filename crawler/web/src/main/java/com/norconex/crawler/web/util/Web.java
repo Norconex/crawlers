@@ -19,28 +19,21 @@ import static org.apache.commons.lang3.StringUtils.substring;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerConfig;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.crawler.CrawlerEvent.CrawlerEventBuilder;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.pipeline.AbstractPipelineContext;
-import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.crawler.core.session.CrawlSessionBeanMapperFactory;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig;
-import com.norconex.crawler.web.crawler.WebCrawlerContext;
-import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlerContext;
+import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.operations.scope.UrlScope;
+import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.pipeline.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.robot.RobotsTxt;
 
 import lombok.NonNull;
@@ -49,50 +42,67 @@ public final class Web {
 
     private Web() {}
 
-    private static final BeanMapper BEAN_MAPPER =
-            CrawlSessionBeanMapperFactory.create(
-                    WebCrawlerConfig.class, b ->
-                        b.unboundPropertyMapping(
-                                "crawler", WebCrawlerMixIn.class));
-    private static class WebCrawlerMixIn {
-        @JsonDeserialize(as = WebCrawlerConfig.class)
-        private CrawlerConfig configuration;
+    public static void fireIfUrlOutOfScope(
+            Crawler crawler,
+            WebCrawlDocContext docContext,
+            UrlScope urlScope) {
+        if (!urlScope.isInScope()) {
+            crawler.fire(CrawlerEvent
+                    .builder()
+                    .name(WebCrawlerEvent.REJECTED_OUT_OF_SCOPE)
+                    .source(crawler)
+                    .subject(Web.config(crawler).getUrlScopeResolver())
+                    .docContext(docContext)
+                    .message(urlScope.outOfScopeReason())
+                    .build());
+        }
     }
 
-    public static BeanMapper beanMapper() {
-        return BEAN_MAPPER;
-    }
 
-    public static WebCrawlerConfig config(CrawlerConfig cfg) {
-        return (WebCrawlerConfig) cfg;
-    }
-    public static WebCrawlerConfig config(AbstractPipelineContext ctx) {
-        return (WebCrawlerConfig) ctx.getConfig();
-    }
+//    private static final BeanMapper BEAN_MAPPER =
+//            CrawlSessionBeanMapperFactory.create(
+//                    WebCrawlerConfig.class, b ->
+//                        b.unboundPropertyMapping(
+//                                "crawler", WebCrawlerMixIn.class));
+//    private static class WebCrawlerMixIn {
+//        @JsonDeserialize(as = WebCrawlerConfig.class)
+//        private CrawlerConfig configuration;
+//    }
+
+//    public static BeanMapper beanMapper() {
+//        return BEAN_MAPPER;
+//    }
+
+//    public static WebCrawlerConfig config(CrawlerConfig cfg) {
+//        return (WebCrawlerConfig) cfg;
+//    }
+//    public static WebCrawlerConfig config(AbstractPipelineContext ctx) {
+//        return (WebCrawlerConfig) Web.config(ctx.getCrawler());
+//    }
     public static WebCrawlerConfig config(Crawler crawler) {
         return (WebCrawlerConfig) crawler.getConfiguration();
     }
 
     public static WebCrawlerContext crawlerContext(Crawler crawler) {
-        return (WebCrawlerContext) crawler.getCrawlerContext();
+        return (WebCrawlerContext) crawler.getContext();
     }
 
-    public static WebImporterPipelineContext importerContext(
-            AbstractPipelineContext ctx) {
-        return (WebImporterPipelineContext) ctx;
-    }
+//    public static WebImporterPipelineContext importerContext(
+//            AbstractPipelineContext ctx) {
+//        return (WebImporterPipelineContext) ctx;
+//    }
 
-    //TODO move this one to core?
-    public static void fire(
-            Crawler crawler,
-            @NonNull
-            Consumer<CrawlerEventBuilder<?, ?>> c) {
-        if (crawler != null) {
-            var builder = CrawlerEvent.builder();
-            c.accept(builder);
-            crawler.getEventManager().fire(builder.build());
-        }
-    }
+//    //TODO move this one to core?
+//    public static void fire(
+//            Crawler crawler,
+//            @NonNull
+//            Consumer<CrawlerEventBuilder<?, ?>> c) {
+//        if (crawler != null) {
+//            var builder = CrawlerEvent.builder();
+//            c.accept(builder);
+//            crawler.getEventManager().fire(builder.build());
+//        }
+//    }
 
     //TODO could probably move this where needed since generically,
     // we would get the fetcher wrapper directly from crawler.
@@ -107,16 +117,14 @@ public final class Web {
         return (HttpFetcher) crawler.getFetcher();
     }
 
-    public static WebDocRecord docRecord(@NonNull CrawlDoc crawlDoc) {
-        return (WebDocRecord) crawlDoc.getDocRecord();
+    public static WebCrawlDocContext docContext(@NonNull CrawlDoc crawlDoc) {
+        return (WebCrawlDocContext) crawlDoc.getDocContext();
     }
-    public static WebDocRecord cachedDocRecord(@NonNull CrawlDoc crawlDoc) {
-        return (WebDocRecord) crawlDoc.getCachedDocRecord();
+    public static WebCrawlDocContext cachedDocContext(
+            @NonNull CrawlDoc crawlDoc) {
+        return (WebCrawlDocContext) crawlDoc.getCachedDocContext();
     }
 
-    public static RobotsTxt robotsTxt(DocRecordPipelineContext ctx) {
-        return robotsTxt(ctx.getCrawler(), ctx.getDocRecord().getReference());
-    }
     public static RobotsTxt robotsTxt(Crawler crawler, String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())

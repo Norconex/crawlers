@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -137,7 +137,7 @@ public class TextStatisticsTransformer
             "\\w+\\-?\\w*", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             for (Entry<String, List<String>> en :
                     docCtx.metadata().matchKeys(

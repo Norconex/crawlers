@@ -1,4 +1,4 @@
-/* Copyright 2018-2023 Norconex Inc.
+/* Copyright 2018-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 package com.norconex.committer.core;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
 
@@ -100,15 +102,13 @@ public class CommitterEvent extends Event {
 
     @Override
     public String toString() {
-        if (request == null) {
-            return "";
-//            return CommitterEvent.class.getSimpleName();
+        var str = "";
+        if (getSource() instanceof Committer c) {
+            str += c.getClass().getSimpleName();
         }
-        //TODO show committer id (with reference if ref is not null
-
-        return request.getReference();
-//        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-//                .append("reference", request.getReference())
-//                .build();
+        if (request != null) {
+            str += " - " +  request.getReference();
+        }
+        return StringUtils.isNotBlank(str) ? str : super.toString();
     }
 }

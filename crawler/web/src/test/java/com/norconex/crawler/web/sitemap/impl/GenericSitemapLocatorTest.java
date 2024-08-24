@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,16 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.web.WebStubber;
-import com.norconex.crawler.web.crawler.impl.WebCrawlerImplFactory;
+import com.norconex.crawler.web.stubs.CrawlerStubs;
 import com.norconex.crawler.web.util.Web;
 
 class GenericSitemapLocatorTest {
 
     @Test
-    @Disabled
     void testGenericSitemapLocator(@TempDir Path tempDir) {
 
         var locator = new GenericSitemapLocator();
@@ -44,14 +40,10 @@ class GenericSitemapLocatorTest {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(locator));
 
-        var session = WebStubber.crawlSession(
-                tempDir, "http://example.com/index.html");
-        var crawler = Crawler.builder()
-                .crawlSession(session)
-                .crawlerImpl(WebCrawlerImplFactory.create())
-                .crawlerConfig(session.getCrawlSessionConfig()
-                        .getCrawlerConfigs().get(0))
-                .build();
+        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
+            cfg.setStartReferences(List.of("http://example.com/index.html"));
+        });
+
         Web.config(crawler).setRobotsTxtProvider(null);
         assertThat(locator.locations(
                 "http://example.com/index.html", crawler))

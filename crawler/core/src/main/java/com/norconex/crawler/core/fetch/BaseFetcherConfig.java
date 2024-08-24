@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.crawler.core.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

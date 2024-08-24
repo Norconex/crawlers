@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import java.util.function.Predicate;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.function.FailableFunction;
 
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.NonNull;
 
 /**
- * Utilities when dealing with {@link DocContext}.
+ * Utilities when dealing with {@link HandlerContext}.
  */
 public final class ChunkedTextUtil {
 
@@ -37,7 +37,7 @@ public final class ChunkedTextUtil {
             @NonNull
             ChunkedTextSupport cfg,
             @NonNull
-            DocContext docCtx,
+            HandlerContext docCtx,
             @NonNull
             FailableFunction<TextChunk, String, IOException> textConsumer)
                     throws IOException {
@@ -47,7 +47,7 @@ public final class ChunkedTextUtil {
             @NonNull
             ChunkedTextSupport cfg,
             @NonNull
-            DocContext docCtx,
+            HandlerContext docCtx,
             @NonNull
             FailableFunction<TextChunk, String, IOException> textConsumer,
             Predicate<TextChunk> keepReading)
@@ -63,7 +63,7 @@ public final class ChunkedTextUtil {
     }
 
     public static void writeBack(
-            @NonNull DocContext docCtx,
+            @NonNull HandlerContext docCtx,
             @NonNull TextChunk originalChunk,
             String newText)
                     throws IOException {
