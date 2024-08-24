@@ -24,6 +24,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.reflect.ConstructorUtils;
+import org.htmlunit.BrowserVersion;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
@@ -45,6 +46,9 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.crawler.core.CrawlerException;
+
+import lombok.AccessLevel;
+import lombok.Getter;
 
 /**
  * A web browser. Encapsulates browser-specific capabilities and driver
@@ -74,7 +78,8 @@ public enum Browser {
                     ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY)
             .location(location)
             .options(options)
-            .build()
+            .build(),
+        BrowserVersion.CHROME
     ),
 
     /* NOTE: Firefox (remote) driver seems to fail to return when page load
@@ -118,7 +123,8 @@ public enum Browser {
             .driverSystemProperty(GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY)
             .location(location)
             .options(options)
-            .build()
+            .build(),
+        BrowserVersion.FIREFOX
     ),
 
     EDGE(
@@ -130,7 +136,8 @@ public enum Browser {
             .driverSystemProperty(EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY)
             .location(location)
             .options(options)
-            .build()
+            .build(),
+            BrowserVersion.EDGE
     ),
 
     /* NOTE: Safari path is constant so it is ignored if supplied.
@@ -143,7 +150,8 @@ public enum Browser {
             .driverClass(SafariDriver.class)
             .location(location)
             .options(options)
-            .build()
+            .build(),
+        null
     ),
 
     OPERA(
@@ -157,7 +165,8 @@ public enum Browser {
             .driverSystemProperty(Browser.OPERA_DRIVER_EXE_PROPERTY)
             .location(location)
             .options(options)
-            .build()
+            .build(),
+        null
     ),
 
     CUSTOM(
@@ -167,18 +176,10 @@ public enum Browser {
         (location, options) -> new WebDriverBuilder()
             .location(location)
             .options(options)
-            .build()
-    ),
-
-    /*
-    HTMLUNIT
-    PHANTOMJS,
-    ANDROID,
-    IOS*/
+            .build(),
+        null
+    )
     ;
-
-
-
 
     private static final Logger LOG = LoggerFactory.getLogger(Browser.class);
     private static final String OPERA_DRIVER_EXE_PROPERTY =
@@ -189,15 +190,19 @@ public enum Browser {
             <WebDriverLocation, MutableCapabilities> optionsSupplier;
     private final BiFunction
             <WebDriverLocation, MutableCapabilities, WebDriver> driverFactory;
+    @Getter(value = AccessLevel.PACKAGE)
+    private final BrowserVersion htmlUnitBrowser;
 
     Browser(
             Function
                 <WebDriverLocation, MutableCapabilities> optionsSupplier,
             BiFunction
                 <WebDriverLocation, MutableCapabilities, WebDriver>
-                    driverFactory) {
+                    driverFactory,
+            BrowserVersion htmlUnitBrowser) {
         this.optionsSupplier = optionsSupplier;
         this.driverFactory = driverFactory;
+        this.htmlUnitBrowser = htmlUnitBrowser;
     }
 
     public MutableCapabilities createOptions(WebDriverLocation location) {

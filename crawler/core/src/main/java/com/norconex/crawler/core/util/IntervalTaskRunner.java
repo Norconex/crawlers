@@ -72,6 +72,7 @@ public class IntervalTaskRunner {
             try {
                 latch.await();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 LOG.error("Interrupted while waiting for scheduler to stop", e);
             }
         }

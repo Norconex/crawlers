@@ -68,6 +68,16 @@ public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
     private Path browserPath;
     private URL remoteURL;
 
+    /**
+     * <b>Experimental</b> feature where the selected {@link Browser} will be
+     * used to configure and use
+     * <a href="https://github.com/SeleniumHQ/htmlunit-driver">
+     * HtmlUnit WebDriver</a> as a wrapper instead of directly using the
+     * browser WebDriver.  Not all browsers are supported by HtmlUnit
+     * (Chrome, Firefox, and Edge are, as of this writing).
+     */
+    private boolean useHtmlUnit;
+
     private HttpSniffer httpSniffer;
     private ScreenshotHandler screenshotHandler;
 

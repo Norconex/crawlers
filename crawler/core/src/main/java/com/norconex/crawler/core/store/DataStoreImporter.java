@@ -92,22 +92,22 @@ public final class DataStoreImporter {
 
                 LOG.info("Importing \"{}\".", storeName);
                 var storeEngine = crawler.getDataStoreEngine();
-                DataStore<Object> store =
-                        storeEngine.openStore(storeName, type);
-
-                var cnt = 0L;
-                parser.nextToken();
-                while (parser.nextToken() != JsonToken.END_ARRAY) {
-                    parser.nextToken(); // id:
-                    var id = parser.nextTextValue();
-                    parser.nextToken(); // object:
-                    parser.nextToken(); // { //NOSONAR
-                    store.save(id, SerialUtil.fromJson(parser, type));
-                    parser.nextToken(); // } //NOSONAR
-                    cnt++;
-                    logProgress(cnt, false);
+                try (DataStore<Object> store =
+                        storeEngine.openStore(storeName, type)) {
+                    var cnt = 0L;
+                    parser.nextToken();
+                    while (parser.nextToken() != JsonToken.END_ARRAY) {
+                        parser.nextToken(); // id:
+                        var id = parser.nextTextValue();
+                        parser.nextToken(); // object:
+                        parser.nextToken(); // { //NOSONAR
+                        store.save(id, SerialUtil.fromJson(parser, type));
+                        parser.nextToken(); // } //NOSONAR
+                        cnt++;
+                        logProgress(cnt, false);
+                    }
+                    logProgress(cnt, true);
                 }
-                logProgress(cnt, true);
             } else {
                 parser.nextToken();
             }

@@ -31,6 +31,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -40,6 +41,7 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
@@ -257,12 +259,27 @@ public class WebDriverHttpFetcher
     @Override
     protected void fetcherThreadBegin(Crawler crawler) {
         LOG.info("Creating {} web driver.", browser);
-        var driver = browser.createDriver(location, options);
+        THREADED_DRIVER.set(createWebDriver());
+    }
+
+    private WebDriver createWebDriver() {
+        LOG.info("Creating {} web driver.", browser);
+        WebDriver driver;
+        if (configuration.isUseHtmlUnit()) {
+            var v = browser.getHtmlUnitBrowser();
+            if (v == null) {
+                throw new CrawlerException(
+                        "Unsupported HtmlUnit browser version: " + v);
+            }
+            driver = new HtmlUnitDriver(v, true);
+        } else {
+            driver = browser.createDriver(location, options);
+        }
         if (StringUtils.isBlank(userAgent)) {
             userAgent = (String) ((JavascriptExecutor) driver).executeScript(
                     "return navigator.userAgent;");
         }
-        THREADED_DRIVER.set(driver);
+        return driver;
     }
 
     @Override
