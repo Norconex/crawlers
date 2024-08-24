@@ -21,6 +21,7 @@ import static java.util.Optional.ofNullable;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
@@ -430,13 +431,16 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
         IHttpFetchResponse response = null;
         if (sniffedResponse != null) {
-            sniffedResponse.getHeaders().forEach((k, v) -> {
+            sniffedResponse.getHeaders().asMap().forEach((k, v) -> {
                 // Content-Type + Content Encoding (Charset)
-                if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(k)) {
+                var values = (List<String>) v;
+                // Content-Type + Content Encoding (Charset)
+                if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(k)
+                        && !values.isEmpty()) {
                     ApacheHttpUtil.applyContentTypeAndCharset(
-                            v, doc.getDocInfo());
+                            values.get(0), doc.getDocInfo());
                 }
-                doc.getMetadata().add(k, v);
+                doc.getMetadata().addList(k, values);
             });
 
             var statusCode = sniffedResponse.getStatusCode();
