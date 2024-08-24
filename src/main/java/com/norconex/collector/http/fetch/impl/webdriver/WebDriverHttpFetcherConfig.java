@@ -17,6 +17,8 @@ package com.norconex.collector.http.fetch.impl.webdriver;
 import java.awt.Dimension;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
@@ -66,6 +68,7 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
     private HttpSnifferConfig httpSnifferConfig;
 
     private final MutableCapabilities capabilities = new MutableCapabilities();
+    private final List<String> arguments = new ArrayList<>();
 
     private Dimension windowSize;
 
@@ -82,14 +85,13 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
     private long waitForElementTimeout;
 
     public WebDriverHttpFetcherConfig() {
-        super();
     }
 
     public Browser getBrowser() {
         return browser;
     }
     public void setBrowser(Browser driverName) {
-        this.browser = driverName;
+        browser = driverName;
     }
 
     // Default will try to detect driver installation on OS
@@ -105,7 +107,7 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         return browserPath;
     }
     public void setBrowserPath(Path binaryPath) {
-        this.browserPath = binaryPath;
+        browserPath = binaryPath;
     }
 
     public HttpSnifferConfig getHttpSnifferConfig() {
@@ -121,6 +123,15 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         return capabilities;
     }
 
+    /**
+     * Gets optional arguments passed to the browser if it supports arguments.
+     * @return arguments
+     * @since 3.1.0
+     */
+    public List<String> getArguments() {
+        return arguments;
+    }
+
     public Dimension getWindowSize() {
         return windowSize;
     }
@@ -132,14 +143,14 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         return earlyPageScript;
     }
     public void setEarlyPageScript(String initScript) {
-        this.earlyPageScript = initScript;
+        earlyPageScript = initScript;
     }
 
     public String getLatePageScript() {
         return latePageScript;
     }
     public void setLatePageScript(String pageScript) {
-        this.latePageScript = pageScript;
+        latePageScript = pageScript;
     }
 
     public long getPageLoadTimeout() {
@@ -206,9 +217,8 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         setRemoteURL(xml.getURL("remoteURL", remoteURL));
 
         xml.ifXML("httpSniffer", x -> {
-            HttpSnifferConfig cfg = new HttpSnifferConfig();
+            var cfg = new HttpSnifferConfig();
             cfg.loadFromXML(x);
-            //x.populate(cfg);
             setHttpSnifferConfig(cfg);
         });
 
@@ -216,6 +226,8 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
                 "capabilities/capability", "@name", ".").entrySet()) {
             getCapabilities().setCapability(en.getKey(), en.getValue());
         }
+        arguments.addAll(xml.getStringList(
+                "arguments/arg", getArguments()));
 
         setWindowSize(xml.getDimension("windowSize", windowSize));
         setEarlyPageScript(xml.getString("earlyPageScript", earlyPageScript));
@@ -245,12 +257,15 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
             httpSnifferConfig.saveToXML(xml.addElement("httpSniffer"));
         }
 
-        XML capabXml = xml.addElement("capabilities");
+        var capabXml = xml.addElement("capabilities");
         for (Entry<String, Object> en : capabilities.asMap().entrySet()) {
             capabXml.addElement("capability",
                     en.getValue()).setAttribute("name", en.getKey());
         }
-
+        var argumentsXml = xml.addElement("arguments");
+        for (String argument : arguments) {
+            argumentsXml.addElement("arg", argument);
+        }
         xml.addElement("windowSize", windowSize);
         xml.addElement("earlyPageScript", earlyPageScript);
         xml.addElement("latePageScript", latePageScript);

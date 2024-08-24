@@ -60,6 +60,13 @@
                 </xs:all>
               </xs:complexType>
             </xs:element>
+            <xs:element name="arguments" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element name="arg" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:all>
+              </xs:complexType>
+            </xs:element>
             <xs:element name="screenshot" type="ScreenshotHandlerType" minOccurs="0" maxOccurs="1"/>
             <xs:element name="windowSize" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="earlyPageScript" type="xs:string" minOccurs="0" maxOccurs="1"/>
