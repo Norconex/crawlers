@@ -17,8 +17,10 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import java.awt.Dimension;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -70,6 +72,7 @@ public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
     private ScreenshotHandler screenshotHandler;
 
     private final Map<String, String> capabilities = new HashMap<>();
+    private final List<String> arguments = new ArrayList<>();
 
     private Dimension windowSize;
 

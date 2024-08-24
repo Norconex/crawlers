@@ -28,6 +28,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -111,33 +112,14 @@ public class ScreenshotHandler
                 imageHandler.handleImage(in, doc);
             }
         } catch (Exception e) {
-            LOG.error("Could not take screenshot of: {}",
-                    doc.getReference(), e);
+            if (LOG.isDebugEnabled()) {
+                LOG.error("Could not take screenshot of: {}",
+                        doc.getReference(), e);
+            } else {
+                LOG.error("Could not take screenshot of: {}. Error:\n{}",
+                        doc.getReference(),
+                        ExceptionUtil.getFormattedMessages(e));
+            }
         }
     }
-
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        super.loadFromXML(xml);
-//        setCssSelector(xml.getString("cssSelector", cssSelector));
-//    }
-//    @Override
-//    public void saveToXML(XML xml) {
-//        super.saveToXML(xml);
-//        xml.addElement("cssSelector", cssSelector);
-//    }
-//
-//    @Override
-//    public boolean equals(final Object other) {
-//        return EqualsBuilder.reflectionEquals(this, other);
-//    }
-//    @Override
-//    public int hashCode() {
-//        return HashCodeBuilder.reflectionHashCode(this);
-//    }
-//    @Override
-//    public String toString() {
-//        return new ReflectionToStringBuilder(
-//                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
-//    }
 }

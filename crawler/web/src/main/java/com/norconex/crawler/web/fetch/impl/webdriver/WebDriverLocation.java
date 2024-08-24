@@ -17,30 +17,12 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import java.net.URL;
 import java.nio.file.Path;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 
-@EqualsAndHashCode
-@ToString
+@Data
 class WebDriverLocation {
 
     private final Path driverPath;
     private final Path browserPath;
     private final URL remoteURL;
-
-    WebDriverLocation(Path driverPath, Path browserPath, URL remoteURL) {
-        this.driverPath = driverPath;
-        this.browserPath = browserPath;
-        this.remoteURL = remoteURL;
-    }
-
-    Path getDriverPath() {
-        return driverPath;
-    }
-    Path getBrowserPath() {
-        return browserPath;
-    }
-    URL getRemoteURL() {
-        return remoteURL;
-    }
 }

@@ -108,15 +108,6 @@ class GenericUrlScopeResolverTest {
         assertThat(s.resolve(sub2, docCtx(sub2)).isInScope()).isTrue();
         assertThat(s.resolve(sub3, docCtx(sub3)).isInScope()).isTrue();
         assertThat(s.resolve(sub1, docCtx(sub1)).isInScope()).isTrue();
-
-
-//         Assertions.assertTrue(s.resolve(sub0, sub0));
-//         Assertions.assertTrue(s.resolve(sub1, sub1));
-//         Assertions.assertTrue(s.resolve(sub0, sub0));
-//         Assertions.assertTrue(s.resolve(sub1, sub1));
-//         Assertions.assertTrue(s.resolve(sub2, sub2));
-//        Assertions.assertFalse(s.resolve(sub3, sub3));
-//        Assertions.assertFalse(s.resolve(sub1, sub1));
     }
 
     private static WebCrawlDocContext docCtx(String ref) {

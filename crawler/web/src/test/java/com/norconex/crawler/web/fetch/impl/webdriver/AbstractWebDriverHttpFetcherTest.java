@@ -67,6 +67,7 @@ import lombok.extern.slf4j.Slf4j;
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
 @org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
+
 public abstract class AbstractWebDriverHttpFetcherTest
         implements ExecutionCondition {
 
@@ -91,7 +92,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     }
 
     @BeforeAll
-    void beforAll() {
+    void beforeAll() {
         browser = createWebDriverContainer(capabilities);
         browser.start();
     }
@@ -159,8 +160,11 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 mem.getUpsertRequests().get(0).getMetadata().getString(
                         "myimage"));
         assertThat(img).isNotNull();
-        assertThat(img.getWidth()).isEqualTo(350);
-        assertThat(img.getHeight()).isEqualTo(350);
+        // Chrome, and maybe others, may resize the image to make it smaller
+        // so that affects the max crop we can get. That's why we don't
+        // check for exact dimension.
+        assertThat(img.getWidth()).isLessThanOrEqualTo(350);
+        assertThat(img.getHeight()).isLessThanOrEqualTo(350);
     }
 
     // Test using sniffer for capturing HTTP response headers and
@@ -193,9 +197,9 @@ public abstract class AbstractWebDriverHttpFetcherTest
                     snifCfg.getPort());
             Testcontainers.exposeHostPorts(
                     client.getPort(), snifCfg.getPort());
-            var f = createWebDriverHttpFetcher();
-            f.getConfiguration().setHttpSniffer(sniffer);
-            cfg.setFetchers(List.of(f));
+            var fetcher = createWebDriverHttpFetcher();
+            fetcher.getConfiguration().setHttpSniffer(sniffer);
+            cfg.setFetchers(List.of(fetcher));
             cfg.setMaxDepth(0);
             cfg.setStartReferences(List.of(serverUrl(client, path)));
         });
@@ -274,7 +278,6 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 cfg.setStartReferences(List.of(hostUrl(client, path)));
         });
 
-        assertThat(fetcher.getUserAgent()).isNotBlank();
         assertThat(fetcher.getUserAgent()).isNotBlank();
     }
 

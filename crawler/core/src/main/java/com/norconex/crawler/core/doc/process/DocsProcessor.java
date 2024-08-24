@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.doc.process;
 
+import static com.norconex.crawler.core.event.CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN;
+import static com.norconex.crawler.core.event.CrawlerEvent.CRAWLER_RUN_THREAD_END;
 import static java.util.Optional.ofNullable;
 
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +28,7 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.services.CrawlerProgressLogger;
 import com.norconex.crawler.core.services.DocTrackerService;
 import com.norconex.crawler.core.state.CrawlerState;
+import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +88,22 @@ public class DocsProcessor implements Runnable {
     }
 
     public void execute() {
-        crawler.getDocPipelines().getQueuePipeline().initializeQueue(crawler);
+        try {
+            //TODO wrapping in thread stuff (BEGIN/END, etc.) is similar to
+            // DocProcessor#run(), consider making it a shared method.
+            LogUtil.setMdcCrawlerId(crawler.getId());
+            Thread.currentThread().setName(crawler.getId() + "#queue-init");
+            LOG.debug("Crawler thread 'init-queue' started.");
+                crawler.fire(CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
+                crawler
+                .getDocPipelines()
+                .getQueuePipeline()
+                .initializeQueue(crawler);
+
+        } finally {
+            crawler.fire(CRAWLER_RUN_THREAD_END, Thread.currentThread());
+            Thread.currentThread().setName(crawler.getId());
+        }
 
         if (state.isStopping() || state.isStopped()) {
             return;

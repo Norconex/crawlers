@@ -98,8 +98,6 @@ class SegmentCountUrlFilterTest {
                 "URL wrongfully rejected.");
     }
 
-//    private SegmentCountUrlFilter newFilter() {}
-
     @Test
     void testWriteRead() {
         var f = new SegmentCountUrlFilter();

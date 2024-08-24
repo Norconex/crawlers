@@ -14,12 +14,16 @@
  */
 package com.norconex.crawler.web.doc.operations.canon.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.DocMetadata;
@@ -136,12 +140,12 @@ class GenericCanonicalLinkDetectorTest {
         Assertions.assertEquals(targetUrl, extractedUrl);
     }
 
-
-//    @Test
-//    void testWriteRead() {
-//        var d = new GenericCanonicalLinkDetector();
-//        d.setContentTypes(List.of(ContentType.HTML, ContentType.TEXT));
-//        assertThatNoException().isThrownBy(() ->
-//                XML.assertWriteRead(d, "canonicalLinkDetector"));
-//    }
+    @Test
+    void testWriteRead() {
+        var d = new GenericCanonicalLinkDetector();
+        d.getConfiguration().setContentTypes(
+                List.of(ContentType.HTML, ContentType.TEXT));
+        assertThatNoException().isThrownBy(() ->
+                BeanMapper.DEFAULT.assertWriteRead(d));
+    }
 }

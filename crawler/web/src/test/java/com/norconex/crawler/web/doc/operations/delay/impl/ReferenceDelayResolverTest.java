@@ -21,14 +21,13 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
-@Disabled
+
 class ReferenceDelayResolverTest {
 
     @Test
@@ -66,7 +65,6 @@ class ReferenceDelayResolverTest {
                 Duration.ofMillis(123));
         assertThat(r.resolveExplicitDelay("http://def.com")).isEqualTo(
                 Duration.ofMillis(456));
-        assertThat(r.resolveExplicitDelay("http://ghi.com")).isEqualTo(
-                Duration.ofMillis(-1));
+        assertThat(r.resolveExplicitDelay("http://ghi.com")).isNull();
     }
 }

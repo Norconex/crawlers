@@ -23,13 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 import com.norconex.crawler.web.doc.operations.delay.impl.DelaySchedule.Range;
-@Disabled
+
 class GenericDelayResolverTest {
 
     @Test
@@ -83,7 +82,7 @@ class GenericDelayResolverTest {
                 .setDayOfMonthRange(new Range<>(25, 5))
                 .setTimeRange(new Range<>(
                         LocalTime.parse("22:00"),
-                        LocalTime.parse("6:00")))
+                        LocalTime.parse("06:00")))
                 .setDelay(Duration.ZERO);
         Assertions.assertTrue(GenericDelayResolver
                 .toCircularSchedule(schedule)
