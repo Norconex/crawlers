@@ -44,7 +44,7 @@ jobs:
         run: |          
           for branch in $(git branch -r | grep -v 'origin/main' | cut -d '/' -f 2-); do
             # only test branches that does not contains "snyk, dependabot, 3.x, 2.x, bugfix/unknown-properties in branch name
-            if [[ $branch != *"snyk"* && $branch != *"dependabot"* && $branch != *".x-branch"* ]]; then
+            if [[ $branch != *"snyk"* && $branch != *"dependabot"* && $branch != *".x-branch"* && $branch != *"branch-v3"*]]; then
                                                       
               git checkout -b temp-merge-$branch origin/$branch
 
@@ -113,7 +113,7 @@ jobs:
 
       # send failed alert to slack/github-builds channels
       - name: Slack Notification
-        if: steps.modified-files.outputs.any_changed == 'true'
+        if: ${{ steps.modified-files.outputs.any_changed == 'true' && (env.failed_branches == '' || env.failed_branches == null) }}
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
