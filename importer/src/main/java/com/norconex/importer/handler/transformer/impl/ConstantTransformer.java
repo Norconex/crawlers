@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import static java.util.Optional.ofNullable;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -69,7 +69,7 @@ public class ConstantTransformer extends BaseDocumentHandler
             new ConstantTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) {
+    public void handle(HandlerContext docCtx) {
         configuration.getConstants().forEach(c -> {
             if (c != null) {
                 var setter = ofNullable(

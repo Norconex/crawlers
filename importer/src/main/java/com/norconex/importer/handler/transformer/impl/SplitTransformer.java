@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 
@@ -93,7 +93,7 @@ public class SplitTransformer
             new SplitTransformerConfig();
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
         for (SplitOperation op : configuration.getOperations()) {
             if (op.getFieldMatcher().isSet()) {
                 splitMetadata(op, docCtx);
@@ -103,7 +103,7 @@ public class SplitTransformer
         }
     }
 
-    private void splitContent(SplitOperation op, DocContext docCtx)
+    private void splitContent(SplitOperation op, HandlerContext docCtx)
             throws IOException {
 
         var delim = op.getSeparator();
@@ -121,7 +121,7 @@ public class SplitTransformer
                 docCtx.metadata(), op.getToField(), targetValues);
     }
 
-    private void splitMetadata(SplitOperation split, DocContext docCtx) {
+    private void splitMetadata(SplitOperation split, HandlerContext docCtx) {
 
         List<String> allTargetValues = new ArrayList<>();
         for (Entry<String, List<String>> en :

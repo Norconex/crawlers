@@ -1,9 +1,0 @@
-<!DOCTYPE xml>
-<extractor class="com.norconex.crawler.web.link.impl.RegexLinkExtractor">
-  <linkExtractionPatterns>
-    <pattern>
-      <match><![CDATA[<a href="javascript:;"[^>]*?id="p_(\d+)">]]></match>
-      <replace>/page?id=$1</replace>
-    </pattern>
-  </linkExtractionPatterns>
-</extractor>

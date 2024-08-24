@@ -1,4 +1,4 @@
-/* Copyright 2020 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
@@ -125,7 +125,7 @@ public class XmlStreamSplitter
             new XmlStreamSplitterConfig();
 
     @Override
-    public void split(DocContext docCtx) throws IOException {
+    public void split(HandlerContext docCtx) throws IOException {
 
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docRecord())) {
@@ -145,7 +145,7 @@ public class XmlStreamSplitter
         }
     }
 
-    private void doSplit(DocContext docCtx, InputStream is) throws IOException {
+    private void doSplit(HandlerContext docCtx, InputStream is) throws IOException {
         try (is) {
             var h = new XmlHandler(docCtx, Arrays.asList(StringUtils.split(
                     configuration.getPath(), '/')), docCtx.childDocs());
@@ -160,13 +160,13 @@ public class XmlStreamSplitter
 
         private final List<String> splitPath;
         private final List<Doc> splitDocs;
-        private final DocContext xmlDoc;
+        private final HandlerContext xmlDoc;
         private final List<String> currentPath = new ArrayList<>();
         private PrintWriter w;
         private CachedOutputStream out;
 
         public XmlHandler(
-                DocContext xmlDoc,
+                HandlerContext xmlDoc,
                 List<String> splitPath,
                 List<Doc> splitDocs) {
             this.xmlDoc = xmlDoc;
@@ -224,7 +224,7 @@ public class XmlStreamSplitter
                         w.close();
                         out = null;
                         w = null;
-                        var childInfo = childDoc.getDocRecord();
+                        var childInfo = childDoc.getDocContext();
                         childInfo.addEmbeddedParentReference(
                                 xmlDoc.reference());
                         childMeta.set(

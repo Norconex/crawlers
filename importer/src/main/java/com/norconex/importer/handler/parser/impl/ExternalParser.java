@@ -19,7 +19,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformer;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig;
@@ -115,7 +115,7 @@ public class ExternalParser
     private final ExternalTransformerConfig configuration =
             t.getConfiguration();
     @Override
-    public void handle(DocContext ctx) throws IOException {
+    public void handle(HandlerContext ctx) throws IOException {
         t.accept(ctx);
         ctx.parseState(ParseState.POST);
     }

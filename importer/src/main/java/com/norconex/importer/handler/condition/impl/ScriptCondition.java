@@ -1,4 +1,4 @@
-/* Copyright 2021 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
 import com.norconex.importer.handler.condition.BaseCondition;
@@ -138,7 +138,7 @@ public class ScriptCondition
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    public boolean evaluate(DocContext docCtx) throws IOException {
+    public boolean evaluate(HandlerContext docCtx) throws IOException {
 
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()
@@ -160,7 +160,7 @@ public class ScriptCondition
         return matches.booleanValue();
     }
 
-    private boolean executeScript(DocContext docCtx, TextChunk chunk)
+    private boolean executeScript(HandlerContext docCtx, TextChunk chunk)
             throws DocumentHandlerException {
         var returnValue = scriptRunner().eval(b -> {
             b.put("reference", docCtx.reference());

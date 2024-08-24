@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.web.robot;
 
-import com.norconex.crawler.core.filter.OnMatch;
-import com.norconex.crawler.core.filter.OnMatchFilter;
-import com.norconex.crawler.core.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.OnMatch;
+import com.norconex.crawler.core.doc.operations.filter.OnMatchFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 
 /**
  * Holds a robots.txt rule. The {@link #getOnMatch()} method

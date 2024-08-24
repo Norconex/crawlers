@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,36 @@ package com.norconex.crawler.fs.fetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.fs.FsTestUtil;
-import com.norconex.crawler.fs.TestFsCrawlSession;
-import com.norconex.crawler.fs.crawler.impl.FsCrawlerImplFactory;
+import com.norconex.crawler.fs.FsCrawler;
 import com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher;
 import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
 import com.norconex.crawler.fs.fetch.impl.smb.SmbFetcher;
+import com.norconex.crawler.fs.stubs.CrawlerConfigStubs;
 
 class FileFetcherProviderTest {
 
+    @TempDir
+    private Path tempDir;
+
     @Test
     void test() {
-        var sess = TestFsCrawlSession.forStartPaths().crawlSession();
-        var crawlerCfg = FsTestUtil.getFirstCrawlerConfig(sess);
+        var crawlerCfg = CrawlerConfigStubs
+                .memoryCrawlerConfig(tempDir);
         var p = new FileFetcherProvider();
 
-        var crawler = Crawler.builder()
-                .crawlerConfig(crawlerCfg)
-                .crawlSession(sess)
-                .crawlerImpl(FsCrawlerImplFactory.create())
-                .build();
+        var crawler = FsCrawler.create(crawlerCfg);
 
         assertThat(p.apply(crawler).getFetchers())
             .containsExactly(new LocalFetcher()); // default fetcher
 
         crawlerCfg.setFetchers(List.of(new HdfsFetcher(), new SmbFetcher()));
-        crawler = Crawler.builder()
-                .crawlerConfig(crawlerCfg)
-                .crawlSession(sess)
-                .crawlerImpl(FsCrawlerImplFactory.create())
-                .build();
+        crawler = FsCrawler.create(crawlerCfg);
         assertThat(p.apply(crawler).getFetchers())
             .containsExactly(new HdfsFetcher(), new SmbFetcher());
     }

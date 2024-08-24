@@ -81,14 +81,17 @@
     <xml-bind-api.version>4.0.2</xml-bind-api.version>
     <xpath2.version>2.1.100</xpath2.version>
 
+    <!-- Compile-time annotation processors -->
+    <!--<dagger.version>2.52</dagger.version>-->
+    <lombok.version>1.18.30</lombok.version>
+
     <!-- Test/Provided dependencies -->
     <assertj.version>3.24.2</assertj.version>
     <easy-random.version>5.0.0</easy-random.version>
     <junit-jupiter.version>5.10.2</junit-jupiter.version>
-    <lombok.version>1.18.30</lombok.version>
     <mockito.version>5.12.0</mockito.version>
     <mockserver.version>5.15.0</mockserver.version>
-    <testcontainers.version>1.19.8</testcontainers.version>
+    <testcontainers.version>1.20.1</testcontainers.version>
     
     <!-- === Maven plugins ================================================= -->
     
@@ -348,7 +351,7 @@
       </dependency>
       
       <!-- xpath2 and java-cup are needed at runtime
-              for xercesImpl Schema 1.1 support with above dep. -->
+           for xercesImpl Schema 1.1 support with above dep. -->
       <dependency>
         <groupId>com.rackspace.eclipse.webtools.sourceediting</groupId>
         <artifactId>org.eclipse.wst.xml.xpath2.processor</artifactId>
@@ -472,6 +475,14 @@
       <version>${lombok.version}</version>
       <scope>provided</scope>
     </dependency>
+    <!--
+    <dependency>
+      <groupId>com.google.dagger</groupId>
+      <artifactId>dagger</artifactId>
+      <version>${dagger.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    -->
 
     <!-- Experiment, used by compiler plugin.
          TODO: Probably no need, should remove.
@@ -557,6 +568,13 @@
                 <artifactId>therapi-runtime-javadoc-scribe</artifactId>
                 <version>${therapi.version}</version>
               </path>
+              <!--
+              <path>
+                <groupId>com.google.dagger</groupId>
+                <artifactId>dagger-compiler</artifactId>
+                <version>${dagger.version}}</version>
+              </path>
+              -->
               <annotationProcessorPath>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>

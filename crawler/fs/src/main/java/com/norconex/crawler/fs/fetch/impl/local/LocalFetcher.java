@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
             fetchRequest,
             "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
             "tar:", "tgz:", "tbz2:", "zip:", "mime:"
-        ) || fetchRequest.getDoc().getDocRecord().getReference().matches(
+        ) || fetchRequest.getDoc().getDocContext().getReference().matches(
                 "(?i)^[a-z]{1,2}:[/\\\\].*");
     }
 

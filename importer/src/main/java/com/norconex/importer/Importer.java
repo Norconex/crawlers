@@ -36,11 +36,11 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
+import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.doc.DocRecord;
-import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.DocumentHandler;
 import com.norconex.importer.handler.DocumentHandlerException;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterResponse.Status;
 import com.norconex.importer.response.ImporterResponseProcessor;
@@ -140,9 +140,9 @@ public class Importer {
             return importDocument(toDocument(req));
         } catch (ImporterException e) {
             LOG.warn("Importer request failed: {}", req, e);
-            return new ImporterResponse()
-                    .setReference(req.getReference())
-                    .setStatus(ImporterResponse.Status.ERROR)
+            return new ImporterResponse(
+                    req.getReference(),
+                    ImporterResponse.Status.ERROR)
                     .setException(new ImporterException(
                             "Failed to import document for request: " + req, e))
                     .setDescription(e.getLocalizedMessage());
@@ -203,10 +203,8 @@ public class Importer {
             return response;
         } catch (IOException | ImporterRuntimeException e) {
             LOG.warn("Could not import document: {}", document, e);
-            return new ImporterResponse()
-                    .setStatus(Status.ERROR)
+            return new ImporterResponse(document.getReference(), Status.ERROR)
                     .setDoc(document)
-                    .setReference(document.getReference())
                     .setException(new ImporterException(
                             "Could not import document: " + document, e));
         } finally {
@@ -242,7 +240,7 @@ public class Importer {
     }
 
     private void prepareDocumentForImporting(Doc document) {
-        var docRecord = document.getDocRecord();
+        var docRecord = document.getDocContext();
 
         //--- Ensure non-null content Type on Doc ---
         var ct = docRecord.getContentType();
@@ -318,7 +316,7 @@ public class Importer {
             is = requestStreamFactory.newInputStream();
         }
 
-        var info = new DocRecord(ref);
+        var info = new DocContext(ref);
         info.setCharset(req.getCharset());
         info.setContentType(req.getContentType());
 
@@ -394,14 +392,12 @@ public class Importer {
     private ImporterResponse executeHandlers(
             Doc doc, List<Doc> childDocsHolder) throws ImporterException {
 
-        var resp = new ImporterResponse()
-                .setDoc(doc)
-                .setReference(doc.getReference());
+        var resp = new ImporterResponse(doc);
 
         if (configuration.getHandlers() == null) {
             return resp.setStatus(Status.SUCCESS);
         }
-        var ctx = DocContext.builder()
+        var ctx = HandlerContext.builder()
             .doc(doc)
             .eventManager(eventManager)
             .build();

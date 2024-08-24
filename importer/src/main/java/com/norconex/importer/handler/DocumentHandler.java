@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import lombok.NonNull;
  * Implementations are responsible for interacting with a document to
  * either parse it, transform it, decorate it, filter it, etc.
  */
-public interface DocumentHandler extends Consumer<DocContext> {
+public interface DocumentHandler extends Consumer<HandlerContext> {
 
     // THIS SHOULD BE DETECTABLE and be the base of doc consumers for
     // the importer.
@@ -48,27 +48,27 @@ public interface DocumentHandler extends Consumer<DocContext> {
     //--- Decorators -----------------------------------------------------------
 
     static DocumentHandler decorate(
-            @NonNull FailableConsumer<DocContext, IOException> consumer) {
+            @NonNull FailableConsumer<HandlerContext, IOException> consumer) {
         return new FailableConsumerWrapper(consumer);
     }
     static BaseDocumentHandler decorate(
-            @NonNull Consumer<DocContext> consumer) {
+            @NonNull Consumer<HandlerContext> consumer) {
         return new ConsumerWrapper(consumer);
     }
 
     @Data
     static class FailableConsumerWrapper extends BaseDocumentHandler {
-        private final FailableConsumer<DocContext, IOException> original;
+        private final FailableConsumer<HandlerContext, IOException> original;
         @Override
-        public void handle(DocContext d) throws IOException {
+        public void handle(HandlerContext d) throws IOException {
             original.accept(d);
         }
     }
     @Data
     static class ConsumerWrapper extends BaseDocumentHandler {
-        private final Consumer<DocContext> original;
+        private final Consumer<HandlerContext> original;
         @Override
-        public void handle(DocContext d) throws IOException {
+        public void handle(HandlerContext d) throws IOException {
             original.accept(d);
         }
     }

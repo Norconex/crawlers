@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ import com.norconex.importer.doc.DocMetadata;
  */
 public final class WebDocMetadata {
 
-// moved to core:
-//    public static final String DEPTH = PREFIX + "depth";
     public static final String SM_LASTMOD = PREFIX + "sitemap-lastmod";
     public static final String SM_CHANGE_FREQ = PREFIX + "sitemap-changefreq";
     public static final String SM_PRORITY = PREFIX + "sitemap-priority";

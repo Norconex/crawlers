@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,20 +27,21 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import com.norconex.crawler.fs.FsStubber;
+import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
 class WebDavFetcherTest extends AbstractFileFetcherTest {
 
+    @SuppressWarnings("resource")
     @Container
     public GenericContainer<?> webdavContainer =
         new GenericContainer<>(DockerImageName.parse(
                 "mwader/webdav:update-to-go-1.12"))
             .withExposedPorts(8080)
             .withFileSystemBind(
-                    new File(FsStubber.MOCK_FS_PATH).getAbsolutePath(),
+                    new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
                     "/webdav", BindMode.READ_ONLY)
             ;
 

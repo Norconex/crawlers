@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@ class CommonAttributesResolverTest {
 
         CommonAttributesResolver.resolve(doc);
 
-        assertThat(doc.getDocRecord().getCharset()).isEqualTo(
+        assertThat(doc.getDocContext().getCharset()).isEqualTo(
                 Charset.forName("UTF-16LE"));
-        assertThat(doc.getDocRecord().getContentType()).isEqualTo(
+        assertThat(doc.getDocContext().getContentType()).isEqualTo(
                 ContentType.PDF);
 
         assertThat(doc.getMetadata().getString(

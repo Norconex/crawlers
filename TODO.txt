@@ -1,9 +1,13 @@
 
+* Make sure that if there is a default value for a class that it is used
+  when none is provided (when reading).
+   
 * Update all project READMEs.
 
 * When serializing, check if source property declaration is an interface
   and whether the written type is declared as a subtype already. If not,
-  write "class" with fully qualified name.
+  write "class" with fully qualified name.  Make sure FQN are supported
+  on reading as well.
 
 * Do a swipe of all class/method names to apply case-sensitivity in 
   a consistent way when using acronyms (e.g., XmlBlah vs XMLBlah).

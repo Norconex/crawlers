@@ -48,7 +48,7 @@ import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.condition.BaseCondition;
 import com.norconex.importer.handler.parser.ParseState;
 
@@ -74,7 +74,7 @@ public final class TestUtil {
             throws IOException {
         return IOUtils.toString(doc.getInputStream(), StandardCharsets.UTF_8);
     }
-    public static String getContentAsString(DocContext docCtx)
+    public static String getContentAsString(HandlerContext docCtx)
             throws IOException {
         return IOUtils.toString(docCtx.input().asReader(UTF_8));
     }
@@ -130,12 +130,12 @@ public final class TestUtil {
         return cond.test(newDocContext(ref, input, metadata));
     }
 
-    public static void transform(Consumer<DocContext> t, String ref,
+    public static void transform(Consumer<HandlerContext> t, String ref,
             Properties metadata, ParseState parseState)
                     throws IOException {
         transform(t, ref, null, metadata, parseState);
     }
-    public static void transform(Consumer<DocContext> t, String ref,
+    public static void transform(Consumer<HandlerContext> t, String ref,
             InputStream is, Properties metadata, ParseState parseState)
                     throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
@@ -180,36 +180,36 @@ public final class TestUtil {
         }
         var ct = doc.getMetadata().getString(DocMetadata.CONTENT_TYPE);
         if (ct != null) {
-            doc.getDocRecord().setContentType(ContentType.valueOf(ct));
+            doc.getDocContext().setContentType(ContentType.valueOf(ct));
         }
 
         return doc;
     }
-    public static DocContext newDocContext() {
+    public static HandlerContext newDocContext() {
         return newDocContext("dummy-ref", null, new Properties());
     }
-    public static DocContext newDocContext(
+    public static HandlerContext newDocContext(
             String ref, InputStream in) {
         return newDocContext(ref, in, null, ParseState.PRE);
     }
-    public static DocContext newDocContext(
+    public static HandlerContext newDocContext(
             String ref, InputStream in, Properties meta) {
         return newDocContext(ref, in, meta, ParseState.PRE);
     }
-    public static DocContext newDocContext(
+    public static HandlerContext newDocContext(
             String ref, InputStream in,
             Properties meta, ParseState state) {
-        return DocContext.builder()
+        return HandlerContext.builder()
                 .doc(newDoc(ref, in, meta))
                 .parseState(state)
                 .eventManager(new EventManager())
                 .build();
     }
 
-    public static DocContext newDocContext(String ref, String body) {
+    public static HandlerContext newDocContext(String ref, String body) {
         return newDocContext(ref, new ByteArrayInputStream(body.getBytes()));
     }
-    public static DocContext newDocContext(String body) {
+    public static HandlerContext newDocContext(String body) {
         return newDocContext(
                 "dummy-ref", new ByteArrayInputStream(body.getBytes()));
     }

@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,29 +25,24 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.store.impl.SerialUtil;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Exports data stores to a format that can be imported back to the same
  * or different store implementation.
  */
-public final class DataStoreExporter extends CrawlerException {
+@Slf4j
+public final class DataStoreExporter {
 
-    private static final long serialVersionUID = 1L;
+    private DataStoreExporter() {}
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DataStoreExporter.class);
-
-    private DataStoreExporter() {
-    }
-
-    public static Path exportDataStore(Crawler crawler, Path exportDir)
+    public static Path exportDataStore(
+            Crawler crawler, Path exportDir)
             throws IOException {
         var storeEngine = crawler.getDataStoreEngine();
         Files.createDirectories(exportDir);
@@ -78,8 +73,11 @@ public final class DataStoreExporter extends CrawlerException {
         }
         return outFile;
     }
-    private static void exportStore(Crawler crawler, DataStore<?> store,
-            OutputStream out, Class<?> type) throws IOException {
+    private static void exportStore(
+            Crawler crawler,
+            DataStore<?> store,
+            OutputStream out,
+            Class<?> type) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);
         //TODO add "nice" option?
@@ -91,9 +89,6 @@ public final class DataStoreExporter extends CrawlerException {
         var cnt = new MutableLong();
         var lastPercent = new MutableLong();
         writer.writeStartObject();
-        writer.writeStringField(
-                "crawlsession", crawler.getCrawlSession().getId());
-        writer.writeStringField("crawler", crawler.getId());
         writer.writeStringField("store", store.getName());
         writer.writeStringField("type", type.getName());
         writer.writeFieldName("records");

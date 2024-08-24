@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,20 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
-import com.norconex.crawler.fs.FsStubber;
+import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
 class SmbFetcherTest extends AbstractFileFetcherTest {
 
+    @SuppressWarnings("resource")
     @Container
     static final GenericContainer<?> SAMBA =
             new GenericContainer<>("adevur/easy-samba:latest")
             .withExposedPorts(445)
             .withFileSystemBind(
-                    new File(FsStubber.MOCK_FS_PATH).getAbsolutePath(),
+                    new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
                     "/share/joefiles",
                     BindMode.READ_ONLY)
             .withCopyToContainer(

@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.apache.hc.client5.http.classic.methods.HttpHead;
 
 import com.google.common.net.InternetDomainName;
 import com.norconex.commons.lang.url.URLNormalizer;
-import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.web.doc.WebCrawlDocContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,7 +63,7 @@ public final class HstsResolver {
         DOMAIN_HSTS.clear();
     }
 
-    public static void resolve(HttpClient httpClient, WebDocRecord docRecord) {
+    public static void resolve(HttpClient httpClient, WebCrawlDocContext docRecord) {
 
         // The idea: "public" suffixes are "effective" top-level domains
         // under which new domains can be registered. When considering a root
@@ -102,7 +102,7 @@ public final class HstsResolver {
     }
 
     private static synchronized void applyHstsSupport(
-            WebDocRecord docRecord, String domain, boolean isSubdomain) {
+            WebCrawlDocContext docRecord, String domain, boolean isSubdomain) {
         var support = DOMAIN_HSTS.getOrDefault(domain, HstsSupport.NO);
         if (support == HstsSupport.INCLUDE_SUBDOMAINS
                 || (support == HstsSupport.DOMAIN_ONLY && !isSubdomain)) {

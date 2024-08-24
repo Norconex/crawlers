@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.mocks.MockFetchRequest;
+import com.norconex.crawler.core.mocks.MockFetchResponse;
+import com.norconex.crawler.core.mocks.MockFetchResponseImpl;
+import com.norconex.crawler.core.mocks.MockFetcher;
 
 class MultiFetcherTest {
 

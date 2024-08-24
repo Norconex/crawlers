@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
-import com.norconex.importer.doc.DocRecord;
+import com.norconex.importer.doc.DocContext;
 
 class HdfsFetcherTest {
 
@@ -63,9 +63,9 @@ class HdfsFetcherTest {
             .containsExactlyElementsOf(urls);
 
         assertThat(f.acceptRequest(new FileFetchRequest(new CrawlDoc(
-                new DocRecord("hdfs://blah")), DOCUMENT))).isTrue();
+                new DocContext("hdfs://blah")), DOCUMENT))).isTrue();
         assertThat(f.acceptRequest(new FileFetchRequest(new CrawlDoc(
-                new DocRecord("http://blah")), DOCUMENT))).isFalse();
+                new DocContext("http://blah")), DOCUMENT))).isFalse();
 
         var opts = new FileSystemOptions();
         f.applyFileSystemOptions(opts);

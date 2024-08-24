@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,22 @@ package com.norconex.crawler.core.fetch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.TestUtil;
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSessionEvent;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.junit.WithCrawlerTest;
+import com.norconex.crawler.core.mocks.MockFetchRequest;
+import com.norconex.crawler.core.mocks.MockFetcher;
 
 class AbstractFetcherTest {
-
-    @TempDir
-    private Path tempDir;
 
     @Test
     void testAbstractFetcher() {
@@ -49,16 +44,17 @@ class AbstractFetcherTest {
         assertThat(f.accept(new MockFetchRequest("potato"))).isFalse();
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();
     }
-    @Test
-    void testEvents() {
+
+    @WithCrawlerTest
+    void testEvents(Crawler crawler) {
         List<String> methodsCalled = new ArrayList<>();
         var f = new MockFetcher() {
             @Override
-            protected void fetcherStartup(CrawlSession collector) {
+            protected void fetcherStartup(Crawler crawler) {
                 methodsCalled.add("fetcherStartup");
             }
             @Override
-            protected void fetcherShutdown(CrawlSession collector) {
+            protected void fetcherShutdown(Crawler crawler) {
                 methodsCalled.add("fetcherShutdown");
             }
             @Override
@@ -70,26 +66,24 @@ class AbstractFetcherTest {
                 methodsCalled.add("fetcherThreadEnd");
             }
         };
-        TestUtil.withinInitializedSession(tempDir, session -> {
-            f.accept(CrawlSessionEvent.builder()
-                    .name(CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN)
-                    .source(session)
-                    .build());
-            f.accept(CrawlSessionEvent.builder()
-                    .name(CrawlSessionEvent.CRAWLSESSION_RUN_END)
-                    .source(session)
-                    .build());
-            f.accept(CrawlerEvent.builder()
-                    .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
-                    .source(TestUtil.getFirstCrawler(session))
-                    .subject(Thread.currentThread())
-                    .build());
-            f.accept(CrawlerEvent.builder()
-                    .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
-                    .source(TestUtil.getFirstCrawler(session))
-                    .subject(Thread.currentThread())
-                    .build());
-        });
+        f.accept(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
+                .source(crawler)
+                .build());
+        f.accept(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_RUN_END)
+                .source(crawler)
+                .build());
+        f.accept(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
+                .source(crawler)
+                .subject(Thread.currentThread())
+                .build());
+        f.accept(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
+                .source(crawler)
+                .subject(Thread.currentThread())
+                .build());
         assertThat(methodsCalled).containsExactly(
                 "fetcherStartup",
                 "fetcherShutdown",

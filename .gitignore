@@ -29,3 +29,4 @@ hs_err_pid*
 # IntelliJ IDE 
 /.idea/
 *.iml
+crawler/core/src/main/resources/log4j2-local.xml

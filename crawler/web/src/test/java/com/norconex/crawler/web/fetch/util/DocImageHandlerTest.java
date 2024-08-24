@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.crawler.web.TestResource;
-import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
+import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 class DocImageHandlerTest {
 
@@ -66,7 +66,7 @@ class DocImageHandlerTest {
             .setTargetDirStructure(DirStructure.DATE)
             .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
-        var doc = WebStubber.crawlDoc(
+        var doc = CrawlDocStubs.crawlDoc(
                 "http://site.com/page.html",
                 ContentType.HTML,
                 InputStream.nullInputStream());

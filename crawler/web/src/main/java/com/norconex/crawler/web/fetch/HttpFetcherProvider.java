@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package com.norconex.crawler.web.fetch;
 
 import java.util.function.Function;
 
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.util.Web;

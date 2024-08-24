@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,16 +60,14 @@ public class ImporterResponse {
     @Setter(value = AccessLevel.NONE)
     private ImporterResponse parentResponse;
 
-//    public ImporterResponse(String reference, ImporterStatus status) {
-//        this.reference = reference;
-//        this.status = status;
-//        doc = null;
-//    }
-//    public ImporterResponse(Doc doc) {
-//        reference = doc.getReference();
-//        this.doc = doc;
-//        status = new ImporterStatus();
-//    }
+    public ImporterResponse(String reference, Status status) {
+        this.reference = reference;
+        this.status = status;
+    }
+    public ImporterResponse(Doc doc) {
+        reference = doc.getReference();
+        this.doc = doc;
+    }
 //
 //    public Doc getDocument() {
 //        return doc;

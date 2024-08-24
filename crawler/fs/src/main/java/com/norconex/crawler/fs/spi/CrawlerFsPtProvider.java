@@ -23,13 +23,8 @@ import org.apache.commons.collections4.MultiValuedMap;
 import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
-import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.filter.DocumentFilter;
-import com.norconex.crawler.core.filter.MetadataFilter;
-import com.norconex.crawler.core.filter.ReferenceFilter;
-import com.norconex.crawler.core.processor.DocumentProcessor;
 import com.norconex.crawler.fs.fetch.impl.cmis.CmisFetcher;
 import com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher;
 import com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher;
@@ -49,12 +44,13 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        addPolyType(map, MetadataChecksummer.class, "checksum.impl");
-        addPolyType(map, EventListener.class, "crawler.event.impl");
-        addPolyType(map, DocumentFilter.class, "filter.impl"); //NOSONAR
-        addPolyType(map, MetadataFilter.class, "filter.impl");
-        addPolyType(map, ReferenceFilter.class, "filter.impl");
-        addPolyType(map, DocumentProcessor.class, "processor.impl");
+
+        addPolyType(map, MetadataChecksummer.class, "doc.operations");
+//        addPolyType(map, EventListener.class, "crawler.event.impl");
+//        addPolyType(map, DocumentFilter.class, "filter.impl"); //NOSONAR
+//        addPolyType(map, MetadataFilter.class, "filter.impl");
+//        addPolyType(map, ReferenceFilter.class, "filter.impl");
+//        addPolyType(map, DocumentConsumer.class, "processor.impl");
 
 //        map.put(CrawlerConfig.class, WebCrawlerConfig.class);
         map.putAll(Fetcher.class, List.of(

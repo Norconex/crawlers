@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -95,7 +95,7 @@ public class SaveDocumentTransformer
     private static boolean warned = false;
 
     @Override
-    public void handle(DocContext docCtx) throws IOException {
+    public void handle(HandlerContext docCtx) throws IOException {
 
         // create relative path by splitting into directories and maybe escaping
         var rawRelativePath = StringUtils.strip(String.join("/",
@@ -122,7 +122,7 @@ public class SaveDocumentTransformer
     // dealing with default file names vs directory.  A file could be
     // renamed/written while saving occurs in another thread.
     private synchronized void saveFile(
-            DocContext docCtx, Path file) throws IOException {
+            HandlerContext docCtx, Path file) throws IOException {
         // if file already exists as a directory, give it a default file name,
         // within that directory
         if (Files.isDirectory(file)) {

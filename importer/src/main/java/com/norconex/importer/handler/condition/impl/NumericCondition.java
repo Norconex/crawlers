@@ -1,4 +1,4 @@
-/* Copyright 2021 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.io.IOException;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.condition.BaseCondition;
 
 import lombok.Data;
@@ -95,7 +95,7 @@ public class NumericCondition
             new NumericConditionConfig();
 
     @Override
-    public boolean evaluate(DocContext docCtx) throws IOException {
+    public boolean evaluate(HandlerContext docCtx) throws IOException {
         for (String valueStr : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).valueList()) {
             if (!NumberUtils.isCreatable(valueStr)) {
