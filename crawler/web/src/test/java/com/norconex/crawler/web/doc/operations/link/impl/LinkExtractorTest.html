@@ -1,66 +1,67 @@
-<!--
-Copyright 2010-2024 Norconex Inc.
+<!-- 
+   Copyright 2010-2024 Norconex Inc.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+       http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
 <html lang="en">
-    <head>
-        <title>ILinkExtractor tests</title>
-        <meta charset="UTF-8">
-        <meta http-equiv="refresh" content="10;URL='/meta-redirect.html'">
-        <meta name="description" content="a test page">
-        <!-- Empty base href should not throw it off. -->
-        <base href="">
-    </head>
-    <body>
-        This is a sample document used to test URL extraction.
-        <script><!---
-document.write('<img src="/dont/process/scripts/'+variable+'"  border="0">');
+<head>
+  <title>ILinkExtractor tests</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="10;URL='/meta-redirect.html'" />
+  <meta name="description" content="a test page">
+  <!-- Empty base href should not throw it off. -->
+  <base href=""/>
+</head>
+<body>
+This is a sample document used to test URL extraction.
+<script><!--- 
+ document.write('<img src="/dont/process/scripts/'+variable+'"  border="0">');
 // --->
 </script>
-        <script language="javascript"><!---
-document.write('<a href="/dont/process/a/'+inscript+'">' + 'blah' + '</a>');
+<script language="javascript"><!--- 
+ document.write('<a href="/dont/process/a/'+inscript+'">' + 'blah' + '</a>');
 // --->
 </script>
-        <a href="//www.example.com/startWithDoubleslash.html">Double Leading Slash</a>
-        <a href="?startWith=questionmark">Starting with question mark</a>
-        <a href="#startWithHashMark">Starting with hash mark</a>
-        <a href="/startWithSlash.html">Starting with a leading slash</a>
-        <a href="relativeToLastSegment.html">Relative to last URL segment</a>
-        <a href="http://www.sample.com/blah.html">Absolute URL</a>
-        <a href="http://www.example.com/htmlEntities">HTML-encoded URL</a>
-        <a alt="foo" href="/onTwoLines.html">HREF is on two lines, starting new line</a>
-        <a xhref="/badhref.html">xhref is a bad pattern</a>
-        <a title="MyTitle" href="titleTarget.html" target="TOP">This title</a>
-        <div data-url="/dataURL.html"></div>
-        <img src="/imageSlash.gif">
-        <img src="/imageNoSlash.gif">
-        <object data="/objectData.html"></object>
-        <applet archive="/applet1.jar /applet2.jar /applet3.jar">
-            blah
-        </applet>
-        <a href="/nofollow.html" rel=" nofollow ">No follow</a>
-        <a href="" class="logo" title="homepage">Empty href, should not be picked.</a>
-        <a href="/?p1=v1&amp;p2=v2&amp;p3=v3">Ampersands should be unescaped.</a>
-        <link>
-        /addedTagNoAttribUrlInBody.html
-        <link attr="should be ignored">
-        /addedTagAttribUrlInBody.html
-        <a href="tel:123">Phone Number</a>
-        <a href="mailto:blah@blah.com">Email</a>
-        <!--
+<a href="//www.example.com/startWithDoubleslash.html">Double Leading Slash</a>
+<a href="?startWith=questionmark">Starting with question mark</a>
+<a href="#startWithHashMark">Starting with hash mark</a>
+<a href="/startWithSlash.html">Starting with a leading slash</a>
+<a href="relativeToLastSegment.html">Relative to last URL segment</a>
+<a href="http://www.sample.com/blah.html">Absolute URL</a>
+<a href="http&#x3a;&#x2f;&#x2f;www&#x2e;example&#x2e;com&#x2f;htmlEntities">HTML-encoded URL</a>
+<a alt="foo"
+href="/onTwoLines.html">HREF is on two lines, starting new line</a>
+<a xhref="/badhref.html">xhref is a bad pattern</a>
+<a title="MyTitle" href="titleTarget.html" target="TOP">This title</a>
+<div data-url="/dataURL.html" ></div>
+<img src="/imageSlash.gif" />
+<img src="/imageNoSlash.gif" >
+<object data="/objectData.html"></object>
+<applet archive="/applet1.jar /applet2.jar /applet3.jar">blah</applet>
+<a href = "/nofollow.html" rel = " nofollow ">No follow</a>
+<a href="" class="logo" title="homepage">Empty href, should not be picked.</a>
+<a href="/?p1=v1&amp;p2=v2&amp;p3=v3">Ampersands should be unescaped.</a>
+<link>/addedTagNoAttribUrlInBody.html</link>
+<link attr="should be ignored">/addedTagAttribUrlInBody.html</link>
+
+<a href="tel:123">Phone Number</a>
+<a href="mailto:blah@blah.com">Email</a>
+
+<!--
 <a href="/comment.html">Comments must not be picked up.</a>
 -->
-        <a href="/contains two spaces.html">URL with spaces</a>
-    </body>
+
+<a href="/contains two spaces.html">URL with spaces</a>
+
+</body>
 </html>
