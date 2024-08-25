@@ -17,11 +17,10 @@ package com.norconex.committer.sql;
 import static org.apache.commons.lang3.StringUtils.join;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +29,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
@@ -42,12 +40,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
+import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.CommitterUtil;
 import com.norconex.committer.core.DeleteRequest;
-import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.map.Properties;
 
 /**
  * <p>
@@ -70,8 +67,7 @@ class SQLClient {
     //--- INIT -----------------------------------------------------------------
 
     public SQLClient(SQLCommitterConfig config) throws CommitterException {
-        super();
-        this.cfg = config;
+        cfg = config;
         if (StringUtils.isBlank(cfg.getDriverClass())) {
             throw new CommitterException("No driver class specified.");
         }
@@ -84,28 +80,27 @@ class SQLClient {
         if (StringUtils.isBlank(cfg.getPrimaryKey())) {
             throw new CommitterException("No primary key specified.");
         }
-        this.datasource = createDataSource();
-        this.queryRunner = new QueryRunner(datasource);
+        datasource = createDataSource();
+        queryRunner = new QueryRunner(datasource);
         ensureTable();
     }
 
     private BasicDataSource createDataSource() throws CommitterException {
-        BasicDataSource ds = new BasicDataSource(); //NOSONAR. closed in close()
+        var ds = new BasicDataSource(); //NOSONAR. closed in close()
         // if path is blank, we assume it is already in classpath
         if (StringUtils.isNotBlank(cfg.getDriverPath())) {
             try {
-                ds.setDriverClassLoader(
-                        new URLClassLoader(
-                                new URL[] {
-                                        new File(cfg.getDriverPath()).toURI()
-                                                .toURL() },
-                                getClass().getClassLoader()
-                        )
-                );
-            } catch (MalformedURLException e) {
+                var file = new File(cfg.getDriverPath());
+                if (!file.exists()) {
+                    throw new FileNotFoundException(
+                            "Driver file not found: " + file);
+                }
+                ds.setDriverClassLoader(new URLClassLoader(
+                        new URL[] { file.toURI().toURL() },
+                        getClass().getClassLoader()));
+            } catch (MalformedURLException | FileNotFoundException e) {
                 throw new CommitterException(
-                        "Invalid driver path: " + cfg.getDriverPath(), e
-                );
+                        "Invalid driver path: " + cfg.getDriverPath(), e);
             }
         }
         ds.setDriverClassName(cfg.getDriverClass());
@@ -116,14 +111,11 @@ class SQLClient {
             ds.setPassword(
                     EncryptionUtil.decrypt(
                             cfg.getCredentials().getPassword(),
-                            cfg.getCredentials().getPasswordKey()
-                    )
-            );
+                            cfg.getCredentials().getPasswordKey()));
         }
         for (Entry<String, List<String>> en : cfg.getProperties().entrySet()) {
             en.getValue().forEach(
-                    v -> ds.addConnectionProperty(en.getKey(), v)
-            );
+                    v -> ds.addConnectionProperty(en.getKey(), v));
         }
         return ds;
     }
@@ -140,9 +132,8 @@ class SQLClient {
                 LOG.info(
                         "Table \"{}\" does not exist. "
                                 + "Attempting to create it...",
-                        cfg.getTableName()
-                );
-                String sql = interpolate(cfg.getCreateTableSQL(), null);
+                        cfg.getTableName());
+                var sql = interpolate(cfg.getCreateTableSQL(), null);
                 LOG.debug(sql);
                 queryRunner.update(sql);
                 LOG.info("Table \"{}\" created.", cfg.getTableName());
@@ -152,8 +143,7 @@ class SQLClient {
             loadFieldsMetadata();
         } catch (SQLException e) {
             throw new CommitterException(
-                    "Could not create table \"" + cfg.getTableName() + "\"."
-            );
+                    "Could not create table \"" + cfg.getTableName() + "\".");
         }
     }
 
@@ -172,34 +162,28 @@ class SQLClient {
         // Add existing field info
         queryRunner.query(
                 "SELECT * FROM " + cfg.getTableName(),
-                new ResultSetHandler<Void>() {
-                    @Override
-                    public Void handle(ResultSet rs) throws SQLException {
-                        ResultSetMetaData metadata = rs.getMetaData();
-                        for (int i = 1; i <= metadata.getColumnCount(); i++) {
-                            existingFields.put(
-                                    StringUtils.lowerCase(
-                                            metadata.getColumnLabel(i),
-                                            Locale.ENGLISH
-                                    ),
-                                    metadata.getColumnDisplaySize(i)
-                            );
-                        }
-                        return null;
+                (ResultSetHandler<Void>) rs -> {
+                    var metadata = rs.getMetaData();
+                    for (var i = 1; i <= metadata.getColumnCount(); i++) {
+                        existingFields.put(
+                                StringUtils.lowerCase(
+                                        metadata.getColumnLabel(i),
+                                        Locale.ENGLISH),
+                                metadata.getColumnDisplaySize(i));
                     }
-                }
-        );
+                    return null;
+                });
     }
 
     //--- POST -----------------------------------------------------------------
 
     public void post(Iterator<CommitterRequest> it) throws CommitterException {
 
-        int upsertCount = 0;
-        int deleteCount = 0;
+        var upsertCount = 0;
+        var deleteCount = 0;
         try {
             while (it.hasNext()) {
-                CommitterRequest req = it.next();
+                var req = it.next();
                 if (req instanceof UpsertRequest upsert) {
                     dbUpsert(upsert);
                     upsertCount++;
@@ -212,48 +196,44 @@ class SQLClient {
             }
             LOG.info(
                     "Sent {} upserts and {} deletes to database.",
-                    upsertCount, deleteCount
-            );
+                    upsertCount, deleteCount);
         } catch (CommitterException e) {
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Could not commit batch to database.", e
-            );
+                    "Could not commit batch to database.", e);
         }
     }
 
     private void dbUpsert(UpsertRequest req)
             throws SQLException, CommitterException {
 
-        Properties meta = req.getMetadata();
+        var meta = req.getMetadata();
 
         // For doc content stream, if target field is already set,
         // the doc content is ignored.
         if (StringUtils.isNotBlank(cfg.getTargetContentField())
                 && !isTargetFieldAlreadySet(
-                        req, "content", cfg.getTargetContentField()
-                )) {
+                        req, "content", cfg.getTargetContentField())) {
             meta.set(
                     cfg.getTargetContentField(),
-                    CommitterUtil.getContentAsString(req)
-            );
+                    CommitterUtil.getContentAsString(req));
         }
 
         // resolved must be called before creating SQL query fields/values
-        String pkValue = resolvePkValue(req);
+        var pkValue = resolvePkValue(req);
 
         List<String> fields = new ArrayList<>();
         List<String> values = new ArrayList<>();
 
         for (Entry<String, List<String>> entry : meta.entrySet()) {
-            String field = entry.getKey();
-            String value = join(entry.getValue(), cfg.getMultiValuesJoiner());
+            var field = entry.getKey();
+            var value = join(entry.getValue(), cfg.getMultiValuesJoiner());
             fields.add(fixFieldName(field));
             values.add(value);
         }
 
-        String sql = "INSERT INTO " + cfg.getTableName() + "("
+        var sql = "INSERT INTO " + cfg.getTableName() + "("
                 + StringUtils.join(fields, ",")
                 + ") VALUES (" + StringUtils.repeat("?", ", ", values.size())
                 + ")";
@@ -268,7 +248,7 @@ class SQLClient {
     }
 
     private String resolvePkValue(CommitterRequest req) {
-        Properties meta = req.getMetadata();
+        var meta = req.getMetadata();
 
         // For doc reference, if primary key field is already set,
         // the doc reference is ignored.
@@ -301,19 +281,18 @@ class SQLClient {
 
     private boolean runExists(String where, Object... values)
             throws SQLException {
-        String sql = "SELECT 1 FROM " + cfg.getTableName();
+        var sql = "SELECT 1 FROM " + cfg.getTableName();
         if (StringUtils.isNotBlank(where)) {
             sql += " WHERE " + where;
         }
         LOG.debug(sql);
-        Number val = (Number) queryRunner.query(
-                sql, new ScalarHandler<>(), values
-        );
+        var val = (Number) queryRunner.query(
+                sql, new ScalarHandler<>(), values);
         return val != null && val.longValue() == 1;
     }
 
     private void runDelete(String docId) throws SQLException {
-        String deleteSQL = "DELETE FROM " + cfg.getTableName()
+        var deleteSQL = "DELETE FROM " + cfg.getTableName()
                 + " WHERE " + fixFieldName(cfg.getPrimaryKey()) + " = ?";
         LOG.trace(deleteSQL);
         queryRunner.update(deleteSQL, docId);
@@ -321,11 +300,10 @@ class SQLClient {
 
     private void sqlInsertDoc(
             String sql, String pkValue,
-            List<String> fields, List<String> values
-    ) throws SQLException {
+            List<String> fields, List<String> values) throws SQLException {
         ensureFields(fields);
-        Object[] args = new Object[values.size()];
-        int i = 0;
+        var args = new Object[values.size()];
+        var i = 0;
         for (String value : values) {
             args[i] = fixFieldValue(fields.get(i), value);
             i++;
@@ -343,7 +321,7 @@ class SQLClient {
         if (!cfg.isFixFieldNames()) {
             return fieldName;
         }
-        String newName = fieldName.replaceAll("\\W+", "_");
+        var newName = fieldName.replaceAll("\\W+", "_");
         newName = newName.replaceFirst("^[\\d_]+", "");
         if (LOG.isDebugEnabled() && !newName.equals(fieldName)) {
             LOG.debug("Field name modified: {} -> {}", fieldName, newName);
@@ -362,21 +340,19 @@ class SQLClient {
     }
 
     private boolean isTargetFieldAlreadySet(
-            CommitterRequest req, String refOrContent, String field
-    ) {
-        List<String> vals = req.getMetadata().getStrings(field);
+            CommitterRequest req, String refOrContent, String field) {
+        var vals = req.getMetadata().getStrings(field);
         if (!vals.isEmpty() && LOG.isDebugEnabled()) {
             LOG.debug(
                     "Target {} field \"{}\" is already set. Document {} will "
                             + "be ignored. Existing value(s): {}.",
-                    refOrContent, field, refOrContent, toLogMsg(vals)
-            );
+                    refOrContent, field, refOrContent, toLogMsg(vals));
         }
         return !vals.isEmpty();
     }
 
     private String toLogMsg(List<String> values) {
-        String val = "\"" + StringUtils.join(values, "\", \"") + "\"";
+        var val = "\"" + StringUtils.join(values, "\", \"") + "\"";
         if (val.length() > 512) {
             val = StringUtils.truncate(val, 512) + "[...truncated]";
         }
@@ -390,12 +366,11 @@ class SQLClient {
             return;
         }
 
-        Set<String> currentFields = existingFields.keySet();
-        boolean hasNew = false;
+        var currentFields = existingFields.keySet();
+        var hasNew = false;
         for (String field : fields) {
             if (!currentFields.contains(
-                    StringUtils.lowerCase(field, Locale.ENGLISH)
-            )) {
+                    StringUtils.lowerCase(field, Locale.ENGLISH))) {
                 // Create field
                 createField(field);
                 hasNew = true;
@@ -410,7 +385,7 @@ class SQLClient {
 
     private void createField(String field) throws SQLException {
         try {
-            String sql = interpolate(cfg.getCreateFieldSQL(), field);
+            var sql = interpolate(cfg.getCreateFieldSQL(), field);
             LOG.trace(sql);
             queryRunner.update(sql);
             LOG.info("New field \"{}\" created.", field);
@@ -424,13 +399,12 @@ class SQLClient {
         if (!cfg.isFixFieldValues()) {
             return value;
         }
-        Integer size = existingFields.get(
-                StringUtils.lowerCase(fieldName, Locale.ENGLISH)
-        );
+        var size = existingFields.get(
+                StringUtils.lowerCase(fieldName, Locale.ENGLISH));
         if (size == null) {
             return value;
         }
-        String newValue = StringUtils.truncate(value, size);
+        var newValue = StringUtils.truncate(value, size);
         if (LOG.isDebugEnabled() && !newValue.equals(value)) {
             LOG.debug("Value truncated: {} -> {}", value, newValue);
         }
