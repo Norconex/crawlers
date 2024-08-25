@@ -17,10 +17,12 @@ package com.norconex.committer.azurecognitivesearch;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +43,6 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.exec.RetriableException;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
@@ -368,6 +369,22 @@ class AzureSearchCommitterTest {
                 .hasMessage(("Index name is undefined."));
     }
 
+    @Test
+    void testMiscConfigSettings() {
+        //execute
+        assertThatNoException().isThrownBy(() -> {
+            withinCommitterSession(
+                    cfg -> cfg.setUseWindowsAuth(true)
+                    .setDisableDocKeyEncoding(false)
+                    .setArrayFields("array_.*")
+                    .setArrayFieldsRegex(true)
+                    ,
+                    c -> {
+                c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
+            });
+        });
+    }
+
     private UpsertRequest upsertRequest(String id, String content) {
         return upsertRequest(id, content, null);
     }
@@ -383,7 +400,7 @@ class AzureSearchCommitterTest {
         );
     }
 
-    private void assertTestDoc(Doc doc) throws RetriableException {
+    private void assertTestDoc(Doc doc) {
         assertEquals(TEST_ID, doc.getKey());
         assertEquals(TEST_CONTENT, doc.getFieldValue("content"));
     }
@@ -399,8 +416,7 @@ class AzureSearchCommitterTest {
                 .build();
     }
 
-    private AzureSearchCommitter createAzureSearchCommitter()
-            throws CommitterException {
+    private AzureSearchCommitter createAzureSearchCommitter()  {
         var committer = new AzureSearchCommitter();
         var config = committer.getConfiguration();
         config.setApiKey(AzureSearchMocker.MOCK_API_KEY);
@@ -467,6 +483,30 @@ class AzureSearchCommitterTest {
 
         try {
             c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+
+    private AzureSearchCommitter withinCommitterSession(
+            Consumer<AzureSearchCommitterConfig> configConsumer,
+            CommitterConsumer initializedCommitterConsumer
+    ) throws CommitterException {
+        var committer = createAzureSearchCommitter();
+
+        if (configConsumer != null) {
+            configConsumer.accept(committer.getConfiguration());
+        }
+        committer.init(createCommitterContext());
+
+        try {
+            if (initializedCommitterConsumer != null) {
+                initializedCommitterConsumer.accept(committer);
+            }
         } catch (CommitterException e) {
             throw e;
         } catch (Exception e) {
