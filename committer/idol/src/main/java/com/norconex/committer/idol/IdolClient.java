@@ -37,7 +37,6 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.url.QueryString;
 
 class IdolClient {
 
@@ -57,11 +56,11 @@ class IdolClient {
             );
         }
         if (config.isCfs()) {
-            this.upsertAction = new CfsIngestAddsAction(config);
-            this.deleteAction = new CfsIngestRemovesAction(config);
+            upsertAction = new CfsIngestAddsAction(config);
+            deleteAction = new CfsIngestRemovesAction(config);
         } else {
-            this.upsertAction = new DreAddDataAction(config);
-            this.deleteAction = new DreDeleteRefAction(config);
+            upsertAction = new DreAddDataAction(config);
+            deleteAction = new DreDeleteRefAction(config);
         }
     }
 
@@ -74,11 +73,11 @@ class IdolClient {
         // always match the desired batch size (would be smaller).
 
         Class<? extends CommitterRequest> prevType = null;
-        int docCount = 0;
+        var docCount = 0;
         final List<CommitterRequest> batch = new ArrayList<>();
 
         while (iterator.hasNext()) {
-            CommitterRequest r = iterator.next();
+            var r = iterator.next();
             if (typeChanged(prevType, r)) {
                 doPost(batch, prevType);
                 batch.clear();
@@ -114,16 +113,16 @@ class IdolClient {
         if (batch.isEmpty() || reqType == null) {
             return;
         }
-        IIdolIndexAction indexAction = actionForType(reqType);
-        HttpURL url = new HttpURL(config.getUrl());
-        QueryString qs = url.getQueryString();
+        var indexAction = actionForType(reqType);
+        var url = new HttpURL(config.getUrl());
+        var qs = url.getQueryString();
         if (UpsertRequest.class.isAssignableFrom(reqType)) {
             config.getDreAddDataParams().forEach(qs::add);
         } else {
             config.getDreDeleteRefParams().forEach(qs::add);
         }
 
-        HttpURLConnection con = openConnection(indexAction.url(batch, url));
+        var con = openConnection(indexAction.url(batch, url));
         try (Writer w = new BufferedWriter(
                 new OutputStreamWriter(
                         con.getOutputStream(), StandardCharsets.UTF_8
@@ -133,13 +132,13 @@ class IdolClient {
             w.flush();
 
             // Get the response
-            int responseCode = con.getResponseCode();
+            var responseCode = con.getResponseCode();
             LOG.debug(
                     "Sending {} {} to URL: {}",
                     batch.size(), reqType.getSimpleName(), config.getUrl()
             );
             LOG.debug("Server Response Code: {}", responseCode);
-            String response = IOUtils.toString(
+            var response = IOUtils.toString(
                     con.getInputStream(), StandardCharsets.UTF_8
             );
             LOG.debug("Server Response Text: {}", response);
@@ -161,7 +160,7 @@ class IdolClient {
     private HttpURLConnection openConnection(URL url)
             throws CommitterException {
         try {
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            var con = (HttpURLConnection) url.openConnection();
             con.setDoInput(true);
             con.setDoOutput(true);
             con.setUseCaches(false);
