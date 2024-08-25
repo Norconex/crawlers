@@ -108,7 +108,8 @@ public class RegexTransformer
             RegexFieldValueExtractor.extractFieldValues(
                     docCtx.metadata(),
                     chunk.getText(),
-                    configuration.getPatterns());
+                    configuration.getPatterns()
+            );
             return true;
         });
     }

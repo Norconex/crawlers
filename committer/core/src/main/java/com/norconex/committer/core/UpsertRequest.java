@@ -38,14 +38,16 @@ public class UpsertRequest implements CommitterRequest {
     public UpsertRequest(
             @NonNull String reference,
             Properties metadata,
-            InputStream content) {
+            InputStream content
+    ) {
 
         this.reference = reference;
         if (metadata != null) {
             this.metadata.putAll(metadata);
         }
         this.content = content != null
-                ? content : InputStream.nullInputStream();
+                ? content
+                : InputStream.nullInputStream();
     }
 
     @Override

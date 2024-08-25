@@ -62,7 +62,8 @@ class BlankConditionTest {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
         assertThat(c.evaluate(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(
-                TextMatcher.regex("field4\\.[123]"));
+                TextMatcher.regex("field4\\.[123]")
+        );
         assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
         assertThat(c.evaluate(docCtx)).isFalse();
@@ -79,7 +80,8 @@ class BlankConditionTest {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
         assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(
-                TextMatcher.regex("field4\\.[123]"));
+                TextMatcher.regex("field4\\.[123]")
+        );
         assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
         assertThat(c.evaluate(docCtx)).isTrue();
@@ -93,13 +95,14 @@ class BlankConditionTest {
 
         // Test write read
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c));
+                () -> BeanMapper.DEFAULT.assertWriteRead(c)
+        );
     }
-
 
     private HandlerContext newDocContext() {
         return newDocContext(null);
     }
+
     private HandlerContext newDocContext(String body) {
         var props = TestUtil.newMetadata();
         props.add("field4.1", "");
@@ -111,10 +114,15 @@ class BlankConditionTest {
         props.add("field4.4", "");
 
         return HandlerContext.builder()
-                .doc(TestUtil.newDoc("ref",
-                    body == null
-                    ? emptyInput
-                    : toCachedInputStream(body), props))
+                .doc(
+                        TestUtil.newDoc(
+                                "ref",
+                                body == null
+                                        ? emptyInput
+                                        : toCachedInputStream(body),
+                                props
+                        )
+                )
                 .parseState(ParseState.PRE)
                 .eventManager(new EventManager())
                 .build();

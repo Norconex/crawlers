@@ -81,15 +81,19 @@ public class HandlerContext {
     public DocContext docRecord() {
         return doc.getDocContext();
     }
+
     public Properties metadata() {
         return doc.getMetadata();
     }
+
     public String reference() {
         return doc.getReference();
     }
+
     public CachedStreamFactory streamFactory() {
         return doc.getStreamFactory();
     }
+
     public boolean isRejected() {
         return rejectedBy != null;
     }
@@ -112,7 +116,8 @@ public class HandlerContext {
                 parseState,
                 charset,
                 docRecord().getCharset(),
-                StandardCharsets.UTF_8);
+                StandardCharsets.UTF_8
+        );
     }
 
     /**
@@ -123,16 +128,11 @@ public class HandlerContext {
      */
     public synchronized void flush() throws IOException {
 
-
-
-
         // PROBLEM: when Cached output stream is wrapped in a writer,
         // the writer won't call the write method on it if we are
         // writing an empty string.  That way we can't rely on
         // "isCacheEmpty" to find out if the content was intentionally
         // blanked out.
-
-
 
         if (out != null && !out.isCacheEmpty()) {
             doc.setInputStream(out.getInputStream());
@@ -151,8 +151,11 @@ public class HandlerContext {
         return new ReadAdapter(
                 doc::getInputStream,
                 CharsetUtil.firstNonNullOrUTF8(
-                        parseState, docRecord().getCharset()));
+                        parseState, docRecord().getCharset()
+                )
+        );
     }
+
     /**
      * Make sure to close the stream when done or explictely flush the stream.
      * @return output adapter

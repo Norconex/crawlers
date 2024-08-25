@@ -53,29 +53,29 @@ class SitemapURLDeletionTest {
     private final String page33Path = "/sitemapUrlDeletion/page33.html";
 
     private static final String SITEMAP_XML = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE xml>
-        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-           <url>
-              <loc>%s</loc>
-              <lastmod>2005-01-01</lastmod>
-              <changefreq>monthly</changefreq>
-              <priority>0.8</priority>
-           </url>
-           <url>
-              <loc>%s</loc>
-              <lastmod>2005-01-01</lastmod>
-              <changefreq>monthly</changefreq>
-              <priority>0.8</priority>
-           </url>
-           <url>
-              <loc>%s</loc>
-              <lastmod>2005-01-01</lastmod>
-              <changefreq>monthly</changefreq>
-              <priority>0.8</priority>
-           </url>
-        </urlset>
-        """;
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE xml>
+            <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+               <url>
+                  <loc>%s</loc>
+                  <lastmod>2005-01-01</lastmod>
+                  <changefreq>monthly</changefreq>
+                  <priority>0.8</priority>
+               </url>
+               <url>
+                  <loc>%s</loc>
+                  <lastmod>2005-01-01</lastmod>
+                  <changefreq>monthly</changefreq>
+                  <priority>0.8</priority>
+               </url>
+               <url>
+                  <loc>%s</loc>
+                  <lastmod>2005-01-01</lastmod>
+                  <changefreq>monthly</changefreq>
+                  <priority>0.8</priority>
+               </url>
+            </urlset>
+            """;
 
     @TempDir
     private Path tempDir;
@@ -84,22 +84,26 @@ class SitemapURLDeletionTest {
     void testSitemapURLDeletion(ClientAndServer client)
             throws CommitterException {
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> cfg
-                .setSitemapResolver(new GenericSitemapResolver())
-                .setStartReferencesSitemaps(
-                        List.of(serverUrl(client, sitemapPath)))
-                .setOrphansStrategy(OrphansStrategy.PROCESS));
+        var crawler = CrawlerStubs.memoryCrawler(
+                tempDir, cfg -> cfg
+                        .setSitemapResolver(new GenericSitemapResolver())
+                        .setStartReferencesSitemaps(
+                                List.of(serverUrl(client, sitemapPath))
+                        )
+                        .setOrphansStrategy(OrphansStrategy.PROCESS)
+        );
         var mem = WebTestUtil.firstCommitter(crawler);
 
         // First time, 3 upserts and 0 deletes
         whenSitemap(client, true);
         crawler.start();
         assertThat(mem.getUpsertRequests())
-            .map(UpsertRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    serverUrl(client, page1Path),
-                    serverUrl(client, page2Path),
-                    serverUrl(client, page3Path));
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, page1Path),
+                        serverUrl(client, page2Path),
+                        serverUrl(client, page3Path)
+                );
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
@@ -107,13 +111,15 @@ class SitemapURLDeletionTest {
         whenSitemap(client, false);
         crawler.start();
         assertThat(mem.getUpsertRequests())
-            .map(UpsertRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    serverUrl(client, page33Path));
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, page33Path)
+                );
         assertThat(mem.getDeleteRequests())
-            .map(DeleteRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    serverUrl(client, page3Path));
+                .map(DeleteRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, page3Path)
+                );
         mem.clean();
 
         crawler.clean();
@@ -122,33 +128,57 @@ class SitemapURLDeletionTest {
     private void whenSitemap(ClientAndServer client, boolean firstTime) {
         client.reset();
         client
-            .when(request(sitemapPath))
-            .respond(response().withBody(
-                    SITEMAP_XML.formatted(
-                            serverUrl(client, page1Path),
-                            serverUrl(client, page2Path),
-                            serverUrl(client,
-                                    firstTime ? page3Path : page33Path)),
-                    MediaType.XML_UTF_8));
+                .when(request(sitemapPath))
+                .respond(
+                        response().withBody(
+                                SITEMAP_XML.formatted(
+                                        serverUrl(client, page1Path),
+                                        serverUrl(client, page2Path),
+                                        serverUrl(
+                                                client,
+                                                firstTime ? page3Path
+                                                        : page33Path
+                                        )
+                                ),
+                                MediaType.XML_UTF_8
+                        )
+                );
         client
-            .when(request(page1Path))
-            .respond(response().withBody("Page 1 always there.", HTML_UTF_8));
+                .when(request(page1Path))
+                .respond(
+                        response().withBody(
+                                "Page 1 always there.",
+                                HTML_UTF_8
+                        )
+                );
         client
-            .when(request(page2Path))
-            .respond(response().withBody("Page 2 always there.", HTML_UTF_8));
+                .when(request(page2Path))
+                .respond(
+                        response().withBody(
+                                "Page 2 always there.",
+                                HTML_UTF_8
+                        )
+                );
         if (firstTime) {
             client
-                .when(request(page3Path))
-                .respond(response().withBody(
-                        "Page 3 there first time only.", HTML_UTF_8));
+                    .when(request(page3Path))
+                    .respond(
+                            response().withBody(
+                                    "Page 3 there first time only.", HTML_UTF_8
+                            )
+                    );
         } else {
             client
-                .when(request(page3Path))
-                .respond(HttpResponse.notFoundResponse());
+                    .when(request(page3Path))
+                    .respond(HttpResponse.notFoundResponse());
             client
-                .when(request(page33Path))
-                .respond(response().withBody(
-                        "Page 33 there second time only.", HTML_UTF_8));
+                    .when(request(page33Path))
+                    .respond(
+                            response().withBody(
+                                    "Page 33 there second time only.",
+                                    HTML_UTF_8
+                            )
+                    );
         }
     }
 }

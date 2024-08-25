@@ -186,12 +186,13 @@ public class AmazonCloudSearchCommitterConfig
      */
     private String targetContentField = DEFAULT_COULDSEARCH_CONTENT_FIELD;
 
-
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
+
     public AmazonCloudSearchCommitterConfig setProxySettings(
-            ProxySettings proxy) {
+            ProxySettings proxy
+    ) {
         proxySettings.copyFrom(proxy);
         return this;
     }

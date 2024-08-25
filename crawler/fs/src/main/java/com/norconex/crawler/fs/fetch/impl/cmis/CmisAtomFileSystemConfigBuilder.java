@@ -33,6 +33,7 @@ public class CmisAtomFileSystemConfigBuilder extends FileSystemConfigBuilder {
     public void setXmlTargetField(FileSystemOptions opts, String field) {
         setParam(opts, PARAM_XML_TARGET_FIELD, field);
     }
+
     public String getXmlTargetField(FileSystemOptions opts) {
         return (String) getParam(opts, PARAM_XML_TARGET_FIELD);
     }
@@ -40,6 +41,7 @@ public class CmisAtomFileSystemConfigBuilder extends FileSystemConfigBuilder {
     public void setRepositoryId(FileSystemOptions opts, String repositoryId) {
         setParam(opts, PARAM_RESPOSITORY_ID, repositoryId);
     }
+
     public String getRepositoryId(FileSystemOptions opts) {
         return (String) getParam(opts, PARAM_RESPOSITORY_ID);
     }

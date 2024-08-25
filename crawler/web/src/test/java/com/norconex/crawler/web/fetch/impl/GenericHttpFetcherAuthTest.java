@@ -53,17 +53,29 @@ class GenericHttpFetcherAuthTest {
         var protectedUrl = serverUrl(client, protectedPath);
 
         client
-            .when(request(protectedPath)
-                .withHeader("Authorization",
-                        "Basic Z29vZHVzZXI6Z29vZHBhc3N3b3Jk"))
-            .respond(response()
-                .withBody("You got it!"));
+                .when(
+                        request(protectedPath)
+                                .withHeader(
+                                        "Authorization",
+                                        "Basic Z29vZHVzZXI6Z29vZHBhc3N3b3Jk"
+                                )
+                )
+                .respond(
+                        response()
+                                .withBody("You got it!")
+                );
         client
-            .when(request(protectedPath))
-            .respond(response()
-                .withStatusCode(HttpStatusCode.UNAUTHORIZED_401.code())
-                .withHeader("WWW-Authenticate",
-                        "realm=\"Test Realm\", charset=\"UTF-8\""));
+                .when(request(protectedPath))
+                .respond(
+                        response()
+                                .withStatusCode(
+                                        HttpStatusCode.UNAUTHORIZED_401.code()
+                                )
+                                .withHeader(
+                                        "WWW-Authenticate",
+                                        "realm=\"Test Realm\", charset=\"UTF-8\""
+                                )
+                );
 
         // Good creds
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
@@ -72,7 +84,8 @@ class GenericHttpFetcherAuthTest {
             authCfg.setMethod(HttpAuthMethod.BASIC);
             authCfg.setPreemptive(true);
             authCfg.setCredentials(
-                    new Credentials("gooduser", "goodpassword"));
+                    new Credentials("gooduser", "goodpassword")
+            );
             fetchCfg.setAuthentication(authCfg);
             // Misc. unaffecting params that should not break
             fetchCfg.setSslProtocols(List.of("TLS 1.3"));
@@ -92,7 +105,8 @@ class GenericHttpFetcherAuthTest {
             authCfg.setMethod(HttpAuthMethod.BASIC);
             authCfg.setPreemptive(true);
             authCfg.setCredentials(
-                    new Credentials("baduser", "badpassword"));
+                    new Credentials("baduser", "badpassword")
+            );
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             fetchCfg.setAuthentication(authCfg);
             cfg.setStartReferences(List.of(protectedUrl));
@@ -114,8 +128,11 @@ class GenericHttpFetcherAuthTest {
         var mem = WebTestUtil.runWithConfig(tempDir.resolve("1"), cfg -> {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-            fetchCfg.setAuthentication(authConfirm(
-                    loginFormUrl, "gooduser", "goodpassword"));
+            fetchCfg.setAuthentication(
+                    authConfirm(
+                            loginFormUrl, "gooduser", "goodpassword"
+                    )
+            );
         });
         var doc = mem.getUpsertRequests().get(0);
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
@@ -124,8 +141,11 @@ class GenericHttpFetcherAuthTest {
         mem = WebTestUtil.runWithConfig(tempDir.resolve("2"), cfg -> {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-            fetchCfg.setAuthentication(authConfirm(
-                    loginFormUrl, "baduser", "badpassword"));
+            fetchCfg.setAuthentication(
+                    authConfirm(
+                            loginFormUrl, "baduser", "badpassword"
+                    )
+            );
         });
         assertThat(mem.getUpsertCount()).isZero();
 
@@ -134,7 +154,8 @@ class GenericHttpFetcherAuthTest {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             var authCfg = authConfirm(
-                    loginFormActionUrl, "gooduser", "goodpassword");
+                    loginFormActionUrl, "gooduser", "goodpassword"
+            );
             authCfg.setFormSelector(null);
             fetchCfg.setAuthentication(authCfg);
         });
@@ -147,7 +168,8 @@ class GenericHttpFetcherAuthTest {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             var authCfg = authConfirm(
-                    loginFormActionUrl, "baduser", "badpassword");
+                    loginFormActionUrl, "baduser", "badpassword"
+            );
             authCfg.setFormSelector(null);
             fetchCfg.setAuthentication(authCfg);
         });
@@ -155,7 +177,8 @@ class GenericHttpFetcherAuthTest {
     }
 
     private HttpAuthConfig authConfirm(
-            String formUrl, String username, String password) {
+            String formUrl, String username, String password
+    ) {
         var authCfg = new HttpAuthConfig();
         authCfg.setCredentials(new Credentials(username, password));
         authCfg.setFormSelector("#thisOne");
@@ -168,54 +191,105 @@ class GenericHttpFetcherAuthTest {
 
     private void whenLoginRequired(ClientAndServer client) {
         client
-            .when(request(loginFormPath))
-            .respond(response()
-                .withBody(WebsiteMock.htmlPage()
-                    .body("""
-                    <form id="notThisOne" action="%s">Not this one</form>
-                    <form id="thisOne" action="%s" method="POST">
-                      Username: <input type="text=" name="THEusername"><br>
-                      Password: <input type="password=" name="THEpassword"><br>
-                      <input type="submit" value="Login"><br>
-                    </form>
-                    """.formatted(wrongFormActionPath, loginFormActionPath))
-                    .build(), HTML_UTF_8));
+                .when(request(loginFormPath))
+                .respond(
+                        response()
+                                .withBody(
+                                        WebsiteMock.htmlPage()
+                                                .body(
+                                                        """
+                                                                <form id="notThisOne" action="%s">Not this one</form>
+                                                                <form id="thisOne" action="%s" method="POST">
+                                                                  Username: <input type="text=" name="THEusername"><br>
+                                                                  Password: <input type="password=" name="THEpassword"><br>
+                                                                  <input type="submit" value="Login"><br>
+                                                                </form>
+                                                                """
+                                                                .formatted(
+                                                                        wrongFormActionPath,
+                                                                        loginFormActionPath
+                                                                )
+                                                )
+                                                .build(),
+                                        HTML_UTF_8
+                                )
+                );
         client
-            .when(request(wrongFormActionPath)
-                .withMethod("POST"))
-            .respond(HttpResponse.notFoundResponse());
+                .when(
+                        request(wrongFormActionPath)
+                                .withMethod("POST")
+                )
+                .respond(HttpResponse.notFoundResponse());
         client
-            .when(request(loginFormActionPath)
-                .withMethod("POST")
-                .withBody(params(
-                        param("THEusername", "gooduser"),
-                        param("THEpassword", "goodpassword")
-                 )))
-            .respond(response()
-                .withStatusCode(HttpStatusCode.ACCEPTED_202.code())
-                .withBody("LOGIN SUCCESS")
-                .withCookie("userToken", "joe"));
+                .when(
+                        request(loginFormActionPath)
+                                .withMethod("POST")
+                                .withBody(
+                                        params(
+                                                param(
+                                                        "THEusername",
+                                                        "gooduser"
+                                                ),
+                                                param(
+                                                        "THEpassword",
+                                                        "goodpassword"
+                                                )
+                                        )
+                                )
+                )
+                .respond(
+                        response()
+                                .withStatusCode(
+                                        HttpStatusCode.ACCEPTED_202.code()
+                                )
+                                .withBody("LOGIN SUCCESS")
+                                .withCookie("userToken", "joe")
+                );
 
         client
-            .when(request(loginFormActionPath)
-                .withMethod("POST")
-                .withBody(not(params(
-                        param("THEusername", "gooduser"),
-                        param("THEpassword", "goodpassword"))
-                 )))
-            .respond(response()
-                .withStatusCode(HttpStatusCode.FORBIDDEN_403.code())
-                .withBody("LOGIN FAILED"));
+                .when(
+                        request(loginFormActionPath)
+                                .withMethod("POST")
+                                .withBody(
+                                        not(
+                                                params(
+                                                        param(
+                                                                "THEusername",
+                                                                "gooduser"
+                                                        ),
+                                                        param(
+                                                                "THEpassword",
+                                                                "goodpassword"
+                                                        )
+                                                )
+                                        )
+                                )
+                )
+                .respond(
+                        response()
+                                .withStatusCode(
+                                        HttpStatusCode.FORBIDDEN_403.code()
+                                )
+                                .withBody("LOGIN FAILED")
+                );
 
         client
-            .when(request(protectedPath)
-                .withCookie("userToken", "joe"))
-            .respond(response()
-                .withBody("You got it!"));
+                .when(
+                        request(protectedPath)
+                                .withCookie("userToken", "joe")
+                )
+                .respond(
+                        response()
+                                .withBody("You got it!")
+                );
         client
-            .when(request(protectedPath))
-            .respond(response()
-                .withStatusCode(HttpStatusCode.FORBIDDEN_403.code())
-                .withBody("DENIED"));
+                .when(request(protectedPath))
+                .respond(
+                        response()
+                                .withStatusCode(
+                                        HttpStatusCode.FORBIDDEN_403.code()
+                                )
+                                .withBody("DENIED")
+                );
     }
 }

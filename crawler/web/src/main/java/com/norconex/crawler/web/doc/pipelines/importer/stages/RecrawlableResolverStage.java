@@ -35,7 +35,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
     protected boolean executeStage(ImporterPipelineContext ctx) {
         // skip if doc is an orphan
         if (ctx.getDoc().isOrphan()) {
-//        if (ctx.isOrphan()) {
+            //        if (ctx.isOrphan()) {
             return true;
         }
 
@@ -56,16 +56,19 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
         var isRecrawlable = rr.isRecrawlable((WebCrawlDocContext) cachedInfo);
         if (!isRecrawlable) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} is not ready to be recrawled, skipping it.",
-                        cachedInfo.getReference());
+                LOG.debug(
+                        "{} is not ready to be recrawled, skipping it.",
+                        cachedInfo.getReference()
+                );
             }
             ctx.getCrawler().fire(
                     CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_PREMATURE)
-                    .source(ctx.getCrawler())
-                    .subject(rr)
-                    .docContext(ctx.getDoc().getDocContext())
-                    .build());
+                            .name(CrawlerEvent.REJECTED_PREMATURE)
+                            .source(ctx.getCrawler())
+                            .subject(rr)
+                            .docContext(ctx.getDoc().getDocContext())
+                            .build()
+            );
             currentData.setState(CrawlDocState.PREMATURE);
         }
         return isRecrawlable;

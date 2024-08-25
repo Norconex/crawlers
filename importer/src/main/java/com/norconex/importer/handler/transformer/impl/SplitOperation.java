@@ -52,6 +52,7 @@ public class SplitOperation {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the field matcher for fields to split.
      * @param fieldMatcher field matcher

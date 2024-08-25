@@ -57,6 +57,7 @@ public class ReferenceConditionConfig {
     public TextMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     /**
      * Sets the text matcher for field values. Copies it.
      * @param valueMatcher text matcher

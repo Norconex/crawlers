@@ -30,7 +30,7 @@ public enum SitemapChangeFrequency {
     MONTHLY,
     YEARLY,
     NEVER;
-    
+
     /**
      * Gets the sitemap change frequency matching the supplied string.
      * Has the same effect as {@link #valueOf(String)} except that it will

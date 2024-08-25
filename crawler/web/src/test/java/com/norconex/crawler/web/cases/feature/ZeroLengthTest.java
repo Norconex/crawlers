@@ -34,7 +34,7 @@ import com.norconex.crawler.web.WebTestUtil;
  */
 // Test case for https://github.com/Norconex/collector-http/issues/313
 @MockServerSettings
-class ZeroLengthTest  {
+class ZeroLengthTest {
 
     @TempDir
     private Path tempDir;
@@ -44,8 +44,8 @@ class ZeroLengthTest  {
         var path = "/zeroLength";
 
         client
-            .when(request(path))
-            .respond(response().withBody(""));
+                .when(request(path))
+                .respond(response().withBody(""));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, path)));

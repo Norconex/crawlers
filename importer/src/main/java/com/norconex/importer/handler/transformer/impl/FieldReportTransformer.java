@@ -99,7 +99,8 @@ public class FieldReportTransformer
             new FieldReportTransformerConfig();
 
     private final Map<String, FieldData> fields = MapUtils.lazyMap(
-            new TreeMap<>(), FieldData::new);
+            new TreeMap<>(), FieldData::new
+    );
 
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
@@ -127,7 +128,8 @@ public class FieldReportTransformer
         if (fieldData.addSamples(
                 samples,
                 configuration.getMaxSamples(),
-                configuration.getTruncateSamplesAt())) {
+                configuration.getTruncateSamplesAt()
+        )) {
             dirty = true;
         }
         return dirty;
@@ -136,7 +138,8 @@ public class FieldReportTransformer
     private void saveReport() {
         var f = ofNullable(configuration.getFile()).orElse(DEFAULT_FILE);
         try (var printer = new CSVPrinter(
-                new FileWriter(f.toFile()), CSVFormat.DEFAULT)) {
+                new FileWriter(f.toFile()), CSVFormat.DEFAULT
+        )) {
             if (configuration.isWithHeaders()) {
                 printer.print("Field Name");
                 if (configuration.isWithOccurences()) {
@@ -175,12 +178,15 @@ public class FieldReportTransformer
         private final String name;
         private final Set<String> values = new HashSet<>();
         private int occurences;
+
         public FieldData(String name) {
             this.name = name;
         }
+
         // returns true if something changed
         public boolean addSamples(
-                List<String> samples, int maxSamples, int truncateAt) {
+                List<String> samples, int maxSamples, int truncateAt
+        ) {
             occurences++;
             if (samples == null) {
                 return false;

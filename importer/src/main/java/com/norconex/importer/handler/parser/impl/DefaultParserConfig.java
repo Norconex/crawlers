@@ -22,7 +22,6 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 
-
 /**
  * Parser class when no other handlers are specified.
  * The importer uses Apache Tika parser in its own way with default

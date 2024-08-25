@@ -100,25 +100,31 @@ public class CountMatchesTransformer
         }
         if (configuration.getCountMatcher().getPattern() == null) {
             throw new IllegalArgumentException(
-                    "'countMatcher' pattern cannot be null.");
+                    "'countMatcher' pattern cannot be null."
+            );
         }
 
         var count = 0;
         if (configuration.getFieldMatcher().getPattern() == null) {
-            count = countContentMatches(docCtx.input().asReader(
-                    configuration.getSourceCharset()));
+            count = countContentMatches(
+                    docCtx.input().asReader(
+                            configuration.getSourceCharset()
+                    )
+            );
         } else {
             count = countFieldMatches(docCtx.metadata());
         }
 
         PropertySetter.orAppend(configuration.getOnSet()).apply(
-                docCtx.metadata(), configuration.getToField(), count);
+                docCtx.metadata(), configuration.getToField(), count
+        );
     }
 
     private int countFieldMatches(Properties metadata) {
         var count = 0;
         for (String value : metadata.matchKeys(
-                configuration.getFieldMatcher()).valueList()) {
+                configuration.getFieldMatcher()
+        ).valueList()) {
             var m = configuration.getCountMatcher().toRegexMatcher(value);
             while (m.find()) {
                 count++;
@@ -126,6 +132,7 @@ public class CountMatchesTransformer
         }
         return count;
     }
+
     private int countContentMatches(Reader reader) throws IOException {
         var count = 0;
         String text = null;

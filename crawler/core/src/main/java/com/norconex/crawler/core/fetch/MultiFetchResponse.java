@@ -43,45 +43,50 @@ public class MultiFetchResponse<T extends FetchResponse>
     @Override
     public CrawlDocState getCrawlDocState() {
         return getLastFetchResponse().map(
-                FetchResponse::getCrawlDocState).orElse(null);
+                FetchResponse::getCrawlDocState
+        ).orElse(null);
     }
 
     @Override
     public int getStatusCode() {
         return getLastFetchResponse().map(
-                FetchResponse::getStatusCode).orElse(0);
+                FetchResponse::getStatusCode
+        ).orElse(0);
     }
 
     @Override
     public String getReasonPhrase() {
         return getLastFetchResponse().map(
-                FetchResponse::getReasonPhrase).orElse(null);
+                FetchResponse::getReasonPhrase
+        ).orElse(null);
     }
-//    @Override
-//    public String getUserAgent() {
-//        return lastResponse().map(
-//                FetchResponse::getUserAgent).orElse(null);
-//    }
-//    @Override
+
+    //    @Override
+    //    public String getUserAgent() {
+    //        return lastResponse().map(
+    //                FetchResponse::getUserAgent).orElse(null);
+    //    }
+    //    @Override
     @Override
     public Exception getException() {
         return getLastFetchResponse().map(
-                FetchResponse::getException).orElse(null);
+                FetchResponse::getException
+        ).orElse(null);
     }
-//    @Override
-//    public String getRedirectTarget() {
-//        return lastResponse().map(
-//                FetchResponse::getRedirectTarget).orElse(null);
-//    }
+    //    @Override
+    //    public String getRedirectTarget() {
+    //        return lastResponse().map(
+    //                FetchResponse::getRedirectTarget).orElse(null);
+    //    }
 
     public List<T> getFetchResponses() {
         return Collections.unmodifiableList(fetchResponses);
     }
 
-//    @Override
-//    public void addFetchResponse(T resp, Fetcher<?, R> fetcher) {
-//        fetchResponses.add(0, new ImmutablePair<>(resp, fetcher));
-//    }
+    //    @Override
+    //    public void addFetchResponse(T resp, Fetcher<?, R> fetcher) {
+    //        fetchResponses.add(0, new ImmutablePair<>(resp, fetcher));
+    //    }
 
     protected Optional<T> getLastFetchResponse() {
         if (fetchResponses.isEmpty()) {
@@ -89,7 +94,8 @@ public class MultiFetchResponse<T extends FetchResponse>
         }
 
         return Optional.ofNullable(
-                fetchResponses.get(fetchResponses.size() -1));
+                fetchResponses.get(fetchResponses.size() - 1)
+        );
     }
 
     @Override
@@ -101,9 +107,10 @@ public class MultiFetchResponse<T extends FetchResponse>
 
         var r = op.get();
         var b = new StringBuilder(
-                r.getStatusCode()  + " " + r.getReasonPhrase());
-//        lastFetcher().ifPresent(f -> b.append(
-//                " - " + f.getClass().getSimpleName()));
+                r.getStatusCode() + " " + r.getReasonPhrase()
+        );
+        //        lastFetcher().ifPresent(f -> b.append(
+        //                " - " + f.getClass().getSimpleName()));
         return b.toString();
     }
 }

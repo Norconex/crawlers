@@ -57,8 +57,10 @@ class MD5DocumentChecksummerTest {
         cs.getConfiguration().setCombineFieldsAndContent(true);
         var checksum = cs.createDocumentChecksum(doc);
         is.dispose();
-        assertThat(checksum).isEqualTo("e75e091aff05a39a9c585e2b4b18c9bc"
-                + "|b53227da4280f0e18270f21dd77c91d0");
+        assertThat(checksum).isEqualTo(
+                "e75e091aff05a39a9c585e2b4b18c9bc"
+                        + "|b53227da4280f0e18270f21dd77c91d0"
+        );
     }
 
     @Test
@@ -76,33 +78,40 @@ class MD5DocumentChecksummerTest {
         var checksum1 = cs.createDocumentChecksum(doc);
         Assertions.assertTrue(
                 StringUtils.isNotBlank(checksum1),
-                "No checksum was generated for two matching fields.");
+                "No checksum was generated for two matching fields."
+        );
 
         // 1 out of 2 matching fields
         cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field1,field3"));
         var checksum2 = cs.createDocumentChecksum(doc);
         Assertions.assertTrue(
                 StringUtils.isNotBlank(checksum2),
-                "No checksum was generated for 1 of two matching fields.");
+                "No checksum was generated for 1 of two matching fields."
+        );
 
         // No matching fields
         cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field4,field5"));
         var checksum3 = cs.createDocumentChecksum(doc);
-        Assertions.assertNull(checksum3,
-                "Checksum for no matching fields should have been null.");
+        Assertions.assertNull(
+                checksum3,
+                "Checksum for no matching fields should have been null."
+        );
 
         // Regex
         cs.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         var checksum4 = cs.createDocumentChecksum(doc);
-        Assertions.assertTrue(StringUtils.isNotBlank(checksum4),
-                "No checksum was generated.");
-
+        Assertions.assertTrue(
+                StringUtils.isNotBlank(checksum4),
+                "No checksum was generated."
+        );
 
         // Regex only no match
         cs.getConfiguration().setFieldMatcher(TextMatcher.regex("NOfield.*"));
         var checksum5 = cs.createDocumentChecksum(doc);
-        Assertions.assertNull(checksum5,
-                "Checksum for no matching regex should have been null.");
+        Assertions.assertNull(
+                checksum5,
+                "Checksum for no matching regex should have been null."
+        );
 
         is.dispose();
     }
@@ -130,12 +139,18 @@ class MD5DocumentChecksummerTest {
         var combinedChecksum = cs.createDocumentChecksum(doc);
 
         // The 3 checksums should be non-null, but different.
-        Assertions.assertNotNull( contentChecksum,
-                "Null content checksum.");
-        Assertions.assertNotNull( fieldsChecksum,
-                "Null fields checksum.");
-        Assertions.assertNotNull( combinedChecksum,
-                "Null combined checksum.");
+        Assertions.assertNotNull(
+                contentChecksum,
+                "Null content checksum."
+        );
+        Assertions.assertNotNull(
+                fieldsChecksum,
+                "Null fields checksum."
+        );
+        Assertions.assertNotNull(
+                combinedChecksum,
+                "Null combined checksum."
+        );
 
         Assertions.assertNotEquals(contentChecksum, fieldsChecksum);
         Assertions.assertNotEquals(fieldsChecksum, combinedChecksum);
@@ -147,13 +162,13 @@ class MD5DocumentChecksummerTest {
     void testWriteRead() {
         var c = new MD5DocumentChecksummer();
         c.getConfiguration()
-            .setFieldMatcher(TextMatcher.csv("field1,field2"))
-            .setCombineFieldsAndContent(true)
-            .setKeep(true)
-            .setToField("myToField")
-            .setOnSet(PropertySetter.PREPEND)
-            ;
+                .setFieldMatcher(TextMatcher.csv("field1,field2"))
+                .setCombineFieldsAndContent(true)
+                .setKeep(true)
+                .setToField("myToField")
+                .setOnSet(PropertySetter.PREPEND);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c));
+                () -> BeanMapper.DEFAULT.assertWriteRead(c)
+        );
     }
 }

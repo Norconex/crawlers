@@ -210,6 +210,7 @@ public class LanguageTransformerConfig implements ChunkedTextSupport {
     public List<String> getLanguages() {
         return Collections.unmodifiableList(languages);
     }
+
     /**
      * The language candidates for language detection.
      * @param languages languages to consider for detection
@@ -228,13 +229,15 @@ public class LanguageTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets a matcher for fields to use to detect language. When not
      * specified (default), use the document content instead.
      * @param fieldMatcher field matcher
      */
     public LanguageTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

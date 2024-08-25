@@ -31,6 +31,7 @@ public class StringListConverter extends SimpleArgumentConverter {
         }
         throw new IllegalArgumentException(
                 "Conversion from " + source.getClass() + " to "
-                        + targetType + " not supported.");
+                        + targetType + " not supported."
+        );
     }
 }

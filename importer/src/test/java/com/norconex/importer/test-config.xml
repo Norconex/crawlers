@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<!-- 
-   Copyright 2010-2023 Norconex Inc.
+<!--
+	Copyright 2010-2023 Norconex Inc.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 -->
 <importer>
 
-    <handlers>
+	<handlers>
 
-      <handler class="ConstantTransformer">
-        <constants>
-          <constant name="Author">
-            <values>
-              <value>Lewis Carroll</value>
-            </values>
-          </constant>
-        </constants>
-      </handler>
-      
-      <!-- Should not trigger any transformation: -->
-      <handler class="StripBetweenTransformer">
-        <operations>
-          <op inclusive="false">
-            <startMatcher ignoreCase="true">
-              <pattern>potato</pattern>
-            </startMatcher>
-            <endMatcher ignoreCase="true">
-              <pattern>carrot</pattern>
-            </endMatcher>
-          </op>
-        </operations>
-      </handler>
+		<handler class="ConstantTransformer">
+			<constants>
+				<constant name="Author">
+					<values>
+						<value>Lewis Carroll</value>
+					</values>
+				</constant>
+			</constants>
+		</handler>
 
-      <!-- Should trigger transformation: -->
-      <handler class="StripAfterTransformer">
-          <inclusive>true</inclusive>
-          <stripAfterMatcher ignoreCase="true">
-            <pattern>&lt;p&gt;</pattern>
-          </stripAfterMatcher>
-      </handler>
+		<!-- Should not trigger any transformation: -->
+		<handler class="StripBetweenTransformer">
+			<operations>
+				<op inclusive="false">
+					<startMatcher ignoreCase="true">
+						<pattern>potato</pattern>
+					</startMatcher>
+					<endMatcher ignoreCase="true">
+						<pattern>carrot</pattern>
+					</endMatcher>
+				</op>
+			</operations>
+		</handler>
 
-    </handlers>
+		<!-- Should trigger transformation: -->
+		<handler class="StripAfterTransformer">
+			<inclusive>true</inclusive>
+			<stripAfterMatcher ignoreCase="true">
+				<pattern>&lt;p&gt;</pattern>
+			</stripAfterMatcher>
+		</handler>
+
+	</handlers>
 
 </importer>

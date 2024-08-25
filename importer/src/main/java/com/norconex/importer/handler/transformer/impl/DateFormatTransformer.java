@@ -117,7 +117,8 @@ public class DateFormatTransformer
         validateArguments();
 
         var fromDates = docCtx.metadata().getStrings(
-                configuration.getFromField());
+                configuration.getFromField()
+        );
         List<String> toDates = new ArrayList<>(fromDates.size());
         for (String fromDate : fromDates) {
             var toDate = formatDate(fromDate);
@@ -130,16 +131,19 @@ public class DateFormatTransformer
 
         if (StringUtils.isBlank(configuration.getToField())) {
             PropertySetter.REPLACE.apply(
-                    docCtx.metadata(), configuration.getFromField(), toDates);
+                    docCtx.metadata(), configuration.getFromField(), toDates
+            );
         } else {
             PropertySetter.orAppend(configuration.getOnSet()).apply(
-                    docCtx.metadata(), configuration.getToField(), toDates);
+                    docCtx.metadata(), configuration.getToField(), toDates
+            );
         }
     }
 
     private String formatDate(String fromDate) {
         List<String> formats = new ArrayList<>();
-        List<String> cfgFormat = new ArrayList<>(configuration.getFromFormats());
+        List<String> cfgFormat =
+                new ArrayList<>(configuration.getFromFormats());
         CollectionUtil.removeNulls(cfgFormat);
         if (cfgFormat.isEmpty()) {
             formats.add("EPOCH");
@@ -150,26 +154,37 @@ public class DateFormatTransformer
             try {
                 var fromZdt = ZonedDateTimeParser.builder()
                         .format(nullIfEpoch(fromFormat))
-                        .locale(ofNullable(configuration.getFromLocale())
-                                .orElse(Locale.ENGLISH))
+                        .locale(
+                                ofNullable(configuration.getFromLocale())
+                                        .orElse(Locale.ENGLISH)
+                        )
                         .build()
                         .parse(fromDate);
                 if (nullIfEpoch(configuration.getToFormat()) == null) {
                     return Long.toString(fromZdt.toInstant().toEpochMilli());
                 }
                 var toDate =
-                        fromZdt.format(DateTimeFormatter
-                        .ofPattern(configuration.getToFormat())
-                        .localizedBy(
-                                ofNullable(configuration.getToLocale())
-                                    .orElse(Locale.ENGLISH)));
+                        fromZdt.format(
+                                DateTimeFormatter
+                                        .ofPattern(configuration.getToFormat())
+                                        .localizedBy(
+                                                ofNullable(
+                                                        configuration
+                                                                .getToLocale()
+                                                )
+                                                        .orElse(Locale.ENGLISH)
+                                        )
+                        );
                 if (StringUtils.isNotBlank(toDate)) {
                     return toDate;
                 }
             } catch (DateTimeException e) {
-                LOG.debug("Could not parse date '{}' with format '{}' "
-                        + "and locale {}.", fromDate, fromFormat,
-                        configuration.getFromLocale());
+                LOG.debug(
+                        "Could not parse date '{}' with format '{}' "
+                                + "and locale {}.",
+                        fromDate, fromFormat,
+                        configuration.getFromLocale()
+                );
             }
         }
         return null;
@@ -178,17 +193,20 @@ public class DateFormatTransformer
     private void validateArguments() {
         if (StringUtils.isBlank(configuration.getFromField())) {
             throw new IllegalArgumentException(
-                    "\"fromField\" cannot be empty.");
+                    "\"fromField\" cannot be empty."
+            );
         }
         if (StringUtils.isBlank(configuration.getFromField())
                 && StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException(
-                    "One of \"fromField\" or \"toField\" is required.");
+                    "One of \"fromField\" or \"toField\" is required."
+            );
         }
     }
 
     private static String nullIfEpoch(String format) {
         return "EPOCH".equalsIgnoreCase(StringUtils.trimToEmpty(format))
-                ? null : format;
+                ? null
+                : format;
     }
 }

@@ -78,7 +78,8 @@ public class LinkExtractorStage extends AbstractImporterStage {
             var inScopeUrls = docLinks.inScope.toArray(EMPTY_STRING_ARRAY);
             if (linkTypes.contains(ReferencedLinkType.INSCOPE)) {
                 ctx.getDoc().getMetadata().add(
-                        WebDocMetadata.REFERENCED_URLS, inScopeUrls);
+                        WebDocMetadata.REFERENCED_URLS, inScopeUrls
+                );
             }
             ((WebCrawlDocContext) ctx.getDoc().getDocContext())
                     .setReferencedUrls(Arrays.asList(inScopeUrls));
@@ -87,23 +88,27 @@ public class LinkExtractorStage extends AbstractImporterStage {
         LOG.debug("outScope count: {}.", docLinks.outScope.size());
         if (!docLinks.outScope.isEmpty()) {
             ctx.getDoc().getMetadata().add(
-                   WebDocMetadata.REFERENCED_URLS_OUT_OF_SCOPE,
-                   docLinks.outScope.toArray(EMPTY_STRING_ARRAY));
+                    WebDocMetadata.REFERENCED_URLS_OUT_OF_SCOPE,
+                    docLinks.outScope.toArray(EMPTY_STRING_ARRAY)
+            );
         }
 
         ctx.getCrawler().fire(
                 CrawlerEvent.builder()
-                .name(WebCrawlerEvent.URLS_EXTRACTED)
-                .source(ctx.getCrawler())
-                .subject(ctx.getDoc().getReference())
-                .docContext(ctx.getDoc().getDocContext())
-                .message(Integer.toString(docLinks.inScope.size()))
-                .build());
+                        .name(WebCrawlerEvent.URLS_EXTRACTED)
+                        .source(ctx.getCrawler())
+                        .subject(ctx.getDoc().getReference())
+                        .docContext(ctx.getDoc().getDocContext())
+                        .message(Integer.toString(docLinks.inScope.size()))
+                        .build()
+        );
         return true;
     }
 
-    private void handleExtractedLink(WebImporterPipelineContext ctx,
-            UniqueDocLinks docLinks, Link link) {
+    private void handleExtractedLink(
+            WebImporterPipelineContext ctx,
+            UniqueDocLinks docLinks, Link link
+    ) {
 
         var linkTypes = Web.config(ctx.getCrawler()).getKeepReferencedLinks();
 
@@ -116,25 +121,31 @@ public class LinkExtractorStage extends AbstractImporterStage {
             Web.fireIfUrlOutOfScope(ctx.getCrawler(), scopedUrlCtx, urlScope);
             if (urlScope.isInScope()) {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("URL in crawl scope: {} (keep: {})",
-                            link.getUrl(), linkTypes);
+                    LOG.trace(
+                            "URL in crawl scope: {} (keep: {})",
+                            link.getUrl(), linkTypes
+                    );
                 }
                 var queuedURL = queueURL(link, ctx, docLinks.extracted);
                 if (StringUtils.isNotBlank(queuedURL)) {
                     docLinks.inScope.add(queuedURL);
                 }
-            } else  {
+            } else {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("URL not in crawl scope: {} (keep: {})",
-                            link.getUrl(), linkTypes);
+                    LOG.trace(
+                            "URL not in crawl scope: {} (keep: {})",
+                            link.getUrl(), linkTypes
+                    );
                 }
                 if (linkTypes.contains(ReferencedLinkType.OUTSCOPE)) {
                     docLinks.outScope.add(link.getUrl());
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Could not queue extracted URL \"{}.",
-                    link.getUrl(), e);
+            LOG.warn(
+                    "Could not queue extracted URL \"{}.",
+                    link.getUrl(), e
+            );
         }
     }
 
@@ -142,16 +153,21 @@ public class LinkExtractorStage extends AbstractImporterStage {
         String reference = ctx.getDoc().getDocContext().getReference();
         var extractors = Web.config(ctx.getCrawler()).getLinkExtractors();
         if (extractors.isEmpty()) {
-            LOG.debug("No configured link extractor.  No links will be "
-                    + "extracted.");
+            LOG.debug(
+                    "No configured link extractor.  No links will be "
+                            + "extracted."
+            );
             return SetUtils.emptySet();
         }
 
         if (ctx.getRobotsMeta() != null
                 && ctx.getRobotsMeta().isNofollow()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("No URLs extracted due to Robots nofollow rule "
-                        + "for URL: {}", reference);
+                LOG.debug(
+                        "No URLs extracted due to Robots nofollow rule "
+                                + "for URL: {}",
+                        reference
+                );
             }
             return SetUtils.emptySet();
         }
@@ -176,27 +192,32 @@ public class LinkExtractorStage extends AbstractImporterStage {
 
     // Executes WebQueuePipeline if URL not already processed in that page
     // Returns a URL that was not already processed
-    private String queueURL(Link link,
-            WebImporterPipelineContext ctx, Set<String> uniqueExtractedURLs) {
+    private String queueURL(
+            Link link,
+            WebImporterPipelineContext ctx, Set<String> uniqueExtractedURLs
+    ) {
 
         //TODO do we want to add all URLs in a page, or just the valid ones?
         // i.e., those properly formatted.  If we do so, can it prevent
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
             var newURL = new WebCrawlDocContext(
-                    link.getUrl(), ctx.getDoc().getDocContext().getDepth() + 1);
+                    link.getUrl(), ctx.getDoc().getDocContext().getDepth() + 1
+            );
             newURL.setReferrerReference(link.getReferrer());
             if (!link.getMetadata().isEmpty()) {
                 newURL.setReferrerLinkMetadata(link.getMetadata().toString());
             }
             ctx.getCrawler()
-            .getDocPipelines()
-            .getQueuePipeline()
-            .accept(new QueuePipelineContext(ctx.getCrawler(), newURL));
+                    .getDocPipelines()
+                    .getQueuePipeline()
+                    .accept(new QueuePipelineContext(ctx.getCrawler(), newURL));
             String afterQueueURL = newURL.getReference();
             if (LOG.isDebugEnabled() && !link.getUrl().equals(afterQueueURL)) {
-                LOG.debug("URL modified from \"{}\" to \"{}\".",
-                        link.getUrl(), afterQueueURL);
+                LOG.debug(
+                        "URL modified from \"{}\" to \"{}\".",
+                        link.getUrl(), afterQueueURL
+                );
             }
             return afterQueueURL;
         }

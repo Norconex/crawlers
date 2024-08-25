@@ -110,10 +110,13 @@ public class GenericRedirectUrlProvider
     private String fallbackCharset = DEFAULT_FALLBACK_CHARSET;
 
     @Override
-    public String provideRedirectURL(HttpRequest request,
-            HttpResponse response, HttpContext context) {
+    public String provideRedirectURL(
+            HttpRequest request,
+            HttpResponse response, HttpContext context
+    ) {
         var currentReq = (HttpRequest) context.getAttribute(
-                HttpCoreContext.HTTP_REQUEST);
+                HttpCoreContext.HTTP_REQUEST
+        );
         String originalURL = null;
         try {
             originalURL = currentReq.getUri().toString();
@@ -126,8 +129,10 @@ public class GenericRedirectUrlProvider
         var hl = response.getLastHeader(HttpHeaders.LOCATION);
         if (hl == null) {
             //TODO should throw exception instead?
-            LOG.error("Redirect detected to a null Location for: {}",
-                    originalURL);
+            LOG.error(
+                    "Redirect detected to a null Location for: {}",
+                    originalURL
+            );
             return null;
         }
         var redirectLocation = hl.getValue();
@@ -139,7 +144,8 @@ public class GenericRedirectUrlProvider
             var contentType = hc.getValue();
             if (contentType.contains(";")) {
                 charset = StringUtils.substringAfterLast(
-                        contentType, "charset=");
+                        contentType, "charset="
+                );
             }
         }
         if (StringUtils.isBlank(charset)) {
@@ -158,28 +164,29 @@ public class GenericRedirectUrlProvider
 
     //TODO is there value in moving this method to somewhere re-usable?
     private String resolveRedirectURL(
-            final String redirectURL, final String nonAsciiCharset) {
+            final String redirectURL, final String nonAsciiCharset
+    ) {
 
         var url = redirectURL;
 
         // Is string containing only ASCII as it should?
         var isAscii = true;
         final var length = url.length();
-        for (var offset = 0; offset < length; ) {
-           final var codepoint = url.codePointAt(offset);
-           if (codepoint > ASCII_MAX_CODEPOINT) {
-               isAscii = false;
-               break;
-           }
-           offset += Character.charCount(codepoint);
+        for (var offset = 0; offset < length;) {
+            final var codepoint = url.codePointAt(offset);
+            if (codepoint > ASCII_MAX_CODEPOINT) {
+                isAscii = false;
+                break;
+            }
+            offset += Character.charCount(codepoint);
         }
         if (isAscii) {
             return url;
         }
         LOG.warn("""
-            Redirect URI made of 7-bit clean ASCII.\s\
-            It probably is not encoded properly.\s\
-            Will try to fix. Redirect URL: {}""", redirectURL);
+                Redirect URI made of 7-bit clean ASCII.\s\
+                It probably is not encoded properly.\s\
+                Will try to fix. Redirect URL: {}""", redirectURL);
 
         // try to fix if non ascii charset is non UTF8.
         if (StringUtils.isNotBlank(nonAsciiCharset)) {
@@ -188,9 +195,11 @@ public class GenericRedirectUrlProvider
                 try {
                     return new String(url.getBytes(charset));
                 } catch (UnsupportedEncodingException e) {
-                    LOG.warn("Could not fix badly encoded URL with charset "
-                            + "\"{}\". Redirect URL: {}",
-                            charset, redirectURL, e);
+                    LOG.warn(
+                            "Could not fix badly encoded URL with charset "
+                                    + "\"{}\". Redirect URL: {}",
+                            charset, redirectURL, e
+                    );
                 }
             }
         }
@@ -202,6 +211,7 @@ public class GenericRedirectUrlProvider
     public void loadFromXML(XML xml) {
         setFallbackCharset(xml.getString("@fallbackCharset", fallbackCharset));
     }
+
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("fallbackCharset", fallbackCharset);

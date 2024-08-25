@@ -95,6 +95,7 @@ public class DeleteRejectedEventListenerConfig {
     public TextMatcher getEventMatcher() {
         return eventMatcher;
     }
+
     /**
      * Sets the event matcher used to identify which events can trigger
      * a deletion request.
@@ -102,7 +103,8 @@ public class DeleteRejectedEventListenerConfig {
      * @return this instance
      */
     public DeleteRejectedEventListenerConfig setEventMatcher(
-            TextMatcher eventMatcher) {
+            TextMatcher eventMatcher
+    ) {
         this.eventMatcher.copyFrom(eventMatcher);
         return this;
     }

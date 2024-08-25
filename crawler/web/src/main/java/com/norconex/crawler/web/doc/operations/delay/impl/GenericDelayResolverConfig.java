@@ -104,8 +104,10 @@ public class GenericDelayResolverConfig extends BaseDelayResolverConfig {
     public List<DelaySchedule> getSchedules() {
         return Collections.unmodifiableList(schedules);
     }
+
     public GenericDelayResolverConfig setSchedules(
-            List<DelaySchedule> schedules) {
+            List<DelaySchedule> schedules
+    ) {
         CollectionUtil.setAll(this.schedules, schedules);
         return this;
     }

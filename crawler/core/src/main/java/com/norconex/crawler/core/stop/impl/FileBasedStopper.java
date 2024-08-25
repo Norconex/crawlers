@@ -58,7 +58,8 @@ public class FileBasedStopper implements CrawlerStopper {
                 FileUtils.forceDelete(monitoredStopFile.toFile());
             } catch (IOException e) {
                 throw new CrawlerStopperException(
-                        "Could not delete old stop file.", e);
+                        "Could not delete old stop file.", e
+                );
             }
         }
 
@@ -67,7 +68,8 @@ public class FileBasedStopper implements CrawlerStopper {
         scheduler.scheduleAtFixedRate(() -> {
             LogUtil.setMdcCrawlerId(crawler.getId());
             Thread.currentThread().setName(
-                    crawler.getId() + "-stop-file-monitor");
+                    crawler.getId() + "-stop-file-monitor"
+            );
             if (monitoring && Files.exists(monitoredStopFile)) {
                 stopMonitoring();
                 LOG.info("STOP request received.");
@@ -94,7 +96,9 @@ public class FileBasedStopper implements CrawlerStopper {
         } catch (IOException e) {
             throw new CrawlerStopperException(
                     "Cannot delete stop file: "
-                            + monitoredStopFile.toAbsolutePath(), e);
+                            + monitoredStopFile.toAbsolutePath(),
+                    e
+            );
         }
     }
 
@@ -109,9 +113,11 @@ public class FileBasedStopper implements CrawlerStopper {
         }
 
         if (stopFile.toFile().exists()) {
-            LOG.info("Cannot stop local instance: "
-                    + "Stop already requested. Stop file: {}",
-                    stopFile.toAbsolutePath());
+            LOG.info(
+                    "Cannot stop local instance: "
+                            + "Stop already requested. Stop file: {}",
+                    stopFile.toAbsolutePath()
+            );
             return false;
         }
 
@@ -120,7 +126,9 @@ public class FileBasedStopper implements CrawlerStopper {
         } catch (IOException e) {
             throw new CrawlerStopperException(
                     "Could not create stop file: "
-                            + stopFile.toAbsolutePath(), e);
+                            + stopFile.toAbsolutePath(),
+                    e
+            );
         }
         return true;
     }

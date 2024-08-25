@@ -47,8 +47,8 @@ class ElasticsearchCommitterConfigTest {
 
         var q = new FSQueue();
         q.getConfiguration()
-            .setBatchSize(10)
-            .setMaxPerFolder(5);
+                .setBatchSize(10)
+                .setMaxPerFolder(5);
         cfg.setQueue(q);
 
         var creds = new Credentials();
@@ -59,12 +59,18 @@ class ElasticsearchCommitterConfigTest {
         cfg.setFieldMapping("subject", "title");
         cfg.setFieldMapping("body", "content");
 
-        cfg.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")));
-        cfg.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+        cfg.getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("document.reference"),
+                        TextMatcher.wildcard("*.pdf")
+                )
+        );
+        cfg.getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("title"),
+                        TextMatcher.wildcard("Nah!")
+                )
+        );
 
         cfg.setSourceIdField("mySourceIdField");
         cfg.setTargetContentField("myTargetContentField");
@@ -80,7 +86,8 @@ class ElasticsearchCommitterConfigTest {
         cfg.setFixBadIds(true);
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c));
+                () -> BeanMapper.DEFAULT.assertWriteRead(c)
+        );
     }
 
     @Test
@@ -89,41 +96,51 @@ class ElasticsearchCommitterConfigTest {
             BeanMapper.DEFAULT.read(
                     ElasticsearchCommitter.class,
                     ResourceLoader.getXmlReader(getClass()),
-                    Format.XML);
+                    Format.XML
+            );
         });
     }
 
     @Test
     void testMisc(@TempDir Path tempDir) throws CommitterException {
         Assertions.assertThrows(
-                CommitterException.class, () ->
-                        { new ElasticsearchCommitter().initBatchCommitter(); }
-                )
+                CommitterException.class, () -> {
+                    new ElasticsearchCommitter().initBatchCommitter();
+                }
+        )
                 .getMessage().equals("Index name is undefined.");
 
         @SuppressWarnings("resource")
         var c = new ElasticsearchCommitter();
         var cfg = c.getConfiguration();
 
-        Assertions.assertThrows(CommitterException.class, () ->
-            c.init(CommitterContext.builder()
-                    .setWorkDir(tempDir)
-                    .build()));
+        Assertions.assertThrows(
+                CommitterException.class,
+                () -> c.init(
+                        CommitterContext.builder()
+                                .setWorkDir(tempDir)
+                                .build()
+                )
+        );
 
         cfg.setIndexName("index");
         var fsQueue = new FSQueue();
         fsQueue.getConfiguration().setBatchSize(1);
         cfg.setQueue(fsQueue);
         cfg.setDiscoverNodes(true);
-        c.init(CommitterContext.builder()
-                .setWorkDir(tempDir)
-                .build());
+        c.init(
+                CommitterContext.builder()
+                        .setWorkDir(tempDir)
+                        .build()
+        );
 
         var reqWithIdTooLong = new UpsertRequest(
                 StringUtils.repeat("A", 1024),
-                new Properties(), InputStream.nullInputStream());
+                new Properties(), InputStream.nullInputStream()
+        );
         var reqOK = new UpsertRequest(
-                "AAA", new Properties(), InputStream.nullInputStream());
+                "AAA", new Properties(), InputStream.nullInputStream()
+        );
 
         cfg.setFixBadIds(false);
         Assertions.assertThrows(CommitterException.class, () -> { //NOSONAR

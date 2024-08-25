@@ -124,12 +124,14 @@ public class TextStatisticsTransformerConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the field matcher for fields to split.
      * @param fieldMatcher field matcher
      */
     public TextStatisticsTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

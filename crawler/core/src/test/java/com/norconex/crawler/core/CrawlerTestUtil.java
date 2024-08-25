@@ -44,29 +44,35 @@ public final class CrawlerTestUtil {
         private String stdOut;
         private String stdErr;
         private final List<String> events = new ArrayList<>();
+
         public boolean ok() {
             return code == 0;
         }
     }
 
-    private CrawlerTestUtil() {}
+    private CrawlerTestUtil() {
+    }
 
     public static void initCrawler(Crawler crawler) {
         CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
     }
+
     public static void destroyCrawler(Crawler crawler) {
         CrawlerCommandExecuter.orderlyShutdown(
-                new CommandExecution(crawler, "TEST"));
+                new CommandExecution(crawler, "TEST")
+        );
     }
 
     public static MemoryCommitter firstCommitter(
-            @NonNull Crawler crawler) {
-        return (MemoryCommitter)
-                crawler.getConfiguration().getCommitters().get(0);
+            @NonNull Crawler crawler
+    ) {
+        return (MemoryCommitter) crawler.getConfiguration().getCommitters()
+                .get(0);
     }
 
     public static MemoryCommitter runWithConfig(
-            @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c) {
+            @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c
+    ) {
         var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
         c.accept(crawlerBuilder.configuration());
         var crawler = crawlerBuilder.build();
@@ -80,7 +86,7 @@ public final class CrawlerTestUtil {
         System.err.println("KEY DUMP FOR ALL STORES:");
         engine.getStoreNames().forEach(sn -> {
             System.err.println();
-            System.err.println("[" + sn +"]");
+            System.err.println("[" + sn + "]");
             DataStore<?> store =
                     engine.openStore(sn, engine.getStoreType(sn).get());
             store.forEach((k, v) -> {
@@ -94,7 +100,8 @@ public final class CrawlerTestUtil {
     public static MemoryCommitter withinInitializedCrawler(
             @NonNull Path workDir,
             Consumer<CrawlerConfig> configModifier,
-            @NonNull FailableRunnable<Exception> runnable) {
+            @NonNull FailableRunnable<Exception> runnable
+    ) {
         var crawler = CrawlerStubs.memoryCrawler(workDir, configModifier);
         initCrawler(crawler);
         try {
@@ -108,13 +115,16 @@ public final class CrawlerTestUtil {
 
     public static Exit cliLaunch(
             @NonNull Path workDir,
-            String... cmdArgs) throws IOException {
+            String... cmdArgs
+    ) throws IOException {
         return cliLaunch(workDir, null, cmdArgs);
     }
+
     public static Exit cliLaunch(
             @NonNull Path workDir,
             Consumer<CrawlerConfig> configModifier,
-            String... cmdArgs) throws IOException {
+            String... cmdArgs
+    ) throws IOException {
         //NOTE configuration will be read from file, but applied on top
         // of existing config so we can pre-configure items here.
         var exit = new Exit();
@@ -135,15 +145,21 @@ public final class CrawlerTestUtil {
 
         new MutableObject<CrawlerConfig>();
 
-
-        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(() ->
-                CliCrawlerLauncher.launch(
-                        CrawlerStubs
-                        .memoryCrawlerBuilder(workDir, cfg -> {
-                            cfg.addEventListener(event ->
-                                    exit.getEvents().add(event.getName()));
-                         }),
-                        cmdArgs));
+        Captured<Integer> captured =
+                SystemUtil.callAndCaptureOutput(
+                        () -> CliCrawlerLauncher.launch(
+                                CrawlerStubs
+                                        .memoryCrawlerBuilder(workDir, cfg -> {
+                                            cfg.addEventListener(
+                                                    event -> exit
+                                                            .getEvents().add(
+                                                                    event.getName()
+                                                            )
+                                            );
+                                        }),
+                                cmdArgs
+                        )
+                );
 
         exit.setCode(captured.getReturnValue());
         exit.setStdOut(captured.getStdOut());

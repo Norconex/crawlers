@@ -29,7 +29,6 @@ import com.norconex.crawler.fs.fetch.impl.BaseAuthVfsFetcherConfig;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-
 /**
  * <p>
  * Fetcher for Apache Hadoop File System (HDFS).
@@ -70,6 +69,7 @@ public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
     public List<String> getConfigNames() {
         return Collections.unmodifiableList(configNames);
     }
+
     public HdfsFetcherConfig setConfigNames(List<String> configNames) {
         CollectionUtil.setAll(this.configNames, configNames);
         return this;
@@ -79,6 +79,7 @@ public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
     public List<Path> getConfigPaths() {
         return Collections.unmodifiableList(configPaths);
     }
+
     @JsonIgnore
     public HdfsFetcherConfig setConfigPaths(List<Path> configPaths) {
         CollectionUtil.setAll(this.configPaths, configPaths);
@@ -87,11 +88,14 @@ public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
 
     @JsonProperty("configPaths")
     private HdfsFetcherConfig setStrConfigPaths(List<String> configPaths) {
-        setConfigPaths(configPaths.stream()
-                .map(Path::new)
-                .toList());
+        setConfigPaths(
+                configPaths.stream()
+                        .map(Path::new)
+                        .toList()
+        );
         return this;
     }
+
     @JsonProperty("configPaths")
     private List<String> getStrConfigPaths() {
         return getConfigPaths().stream()
@@ -102,6 +106,7 @@ public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
     public List<URL> getConfigUrls() {
         return Collections.unmodifiableList(configUrls);
     }
+
     public HdfsFetcherConfig setConfigUrls(List<URL> configUrls) {
         CollectionUtil.setAll(this.configUrls, configUrls);
         return this;

@@ -37,7 +37,7 @@ class DeleteTransformerTest {
     void testWriteRead() {
         var t = new DeleteTransformer();
         t.getConfiguration()
-            .getFieldMatcher()
+                .getFieldMatcher()
                 .setPattern("(potato|carrot|document\\.*)")
                 .setMethod(Method.REGEX);
         BeanMapper.DEFAULT.assertWriteRead(t);
@@ -54,18 +54,22 @@ class DeleteTransformerTest {
 
         var tagger = new DeleteTransformer();
         tagger.getConfiguration()
-            .getFieldMatcher()
+                .getFieldMatcher()
                 .setPattern("(field1|field2|field4\\.*)")
                 .setMethod(Method.REGEX);
 
         InputStream is = new NullInputStream(0);
-        tagger.accept(TestUtil.newDocContext(
-                "blah", is, meta, ParseState.PRE));
+        tagger.accept(
+                TestUtil.newDocContext(
+                        "blah", is, meta, ParseState.PRE
+                )
+        );
 
         Assertions.assertEquals(1, meta.size(), "Invalid field count");
         Assertions.assertEquals(
                 "keep this one", meta.getString("field3"),
-                "Value wrongfully deleted or modified");
+                "Value wrongfully deleted or modified"
+        );
     }
 
     @Test
@@ -102,8 +106,11 @@ class DeleteTransformerTest {
                 </handler>
                 """.formatted(field)), Format.XML);
         InputStream is = new NullInputStream(0);
-        t.accept(TestUtil.newDocContext(
-                "blah", is, meta, ParseState.PRE));
+        t.accept(
+                TestUtil.newDocContext(
+                        "blah", is, meta, ParseState.PRE
+                )
+        );
     }
 
     @Test
@@ -130,8 +137,11 @@ class DeleteTransformerTest {
                 """), Format.XML);
 
         InputStream is = new NullInputStream(0);
-        t.accept(TestUtil.newDocContext(
-                "blah", is, meta, ParseState.PRE));
+        t.accept(
+                TestUtil.newDocContext(
+                        "blah", is, meta, ParseState.PRE
+                )
+        );
 
         Assertions.assertEquals(3, meta.size(), "Invalid field count");
     }

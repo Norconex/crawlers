@@ -123,7 +123,6 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
         cfg.setXmlTargetField(opts, configuration.getXmlTargetField());
     }
 
-
     private void fetchCoreMeta(Context ctx) {
         ctx.addMetaXpath("author.name", "/entry/author/name/text()");
         ctx.addMetaXpath("id", "/entry/id/text()");
@@ -145,21 +144,25 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
     private void fetchProperties(Context ctx) {
         var propXmlList = ctx.document.getXMLList(
                 "/entry/object/properties//"
-                + "*[starts-with(local-name(), 'property')]");
+                        + "*[starts-with(local-name(), 'property')]"
+        );
         for (XML propXml : propXmlList) {
             var propId = propXml.getString("@propertyDefinitionId");
             if (StringUtils.isBlank(propId)) {
                 propId = "undefined_property";
             }
-            ctx.addMeta("property." + propId,
-                    propXml.getString("value/text()"));
+            ctx.addMeta(
+                    "property." + propId,
+                    propXml.getString("value/text()")
+            );
         }
     }
 
     private void fetchAcl(Context ctx) {
         var permissions = new Properties();
         var permXmlList = ctx.document.getXMLList(
-                "/entry/object/acl/permission");
+                "/entry/object/acl/permission"
+        );
         for (XML permXml : permXmlList) {
             var principalId = permXml.getString("principal/principalId");
             permXml.getStringList("permission").forEach(p -> {
@@ -184,6 +187,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
         private final CmisAtomFileSystemConfigBuilder cfg =
                 CmisAtomFileSystemConfigBuilder.getInstance();
         private final CmisAtomFileObject fileObject;
+
         public Context(CmisAtomFileObject vfsFile, Properties metadata) {
             fileObject = vfsFile;
             session = vfsFile.getSession();
@@ -191,6 +195,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
             vfsOptions = vfsFile.getFileSystem().getFileSystemOptions();
             this.metadata = metadata;
         }
+
         private void addMeta(String key, Object value) {
             var val = Objects.toString(value, null);
             if (StringUtils.isBlank(val)) {
@@ -198,6 +203,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
             }
             metadata.add(CMIS_PREFIX + key, val);
         }
+
         private void addMetaXpath(String key, String exp) {
             addMeta(key, document.getString(exp));
         }

@@ -1,63 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<!-- 
-   Copyright 2017-2023 Norconex Inc.
+<!--
+	Copyright 2017-2023 Norconex Inc.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 -->
 <committer class="com.norconex.committer.sql.SQLCommitter">
-  <driverPath>/some/path</driverPath>
-  <driverClass>driverClass</driverClass>
-  <connectionUrl>connectionUrl</connectionUrl>
-  <credentials>
-    <username>myusername</username>
-    <password>mypassword</password>
-    <passwordKey>
-      <value>mykey</value>
-      <source>key</source>
-      <size>128</size>
-    </passwordKey>
-  </credentials>
-  <properties>
-    <key1>value 1</key1>
-    <key2>value 2</key2>
-  </properties>
-  <tableName>tableName</tableName>
-  <primaryKey>pk</primaryKey>
-  <createTableSQL>CREATE TABLE blah</createTableSQL>
-  <createFieldSQL>CREATE FIELD blah</createFieldSQL>
-  <fixFieldNames>true</fixFieldNames>
-  <fixFieldValues>true</fixFieldValues>
-  <multiValuesJoiner>^^</multiValuesJoiner>
-  
-  <targetContentField>targetContentField</targetContentField>
-  
-  <restrictions>
-    <restriction>
-      <fieldMatcher method="basic"><pattern>document.reference</pattern></fieldMatcher>
-      <valueMatcher method="wildcard"><pattern>*.pdf</pattern></valueMatcher>
-    </restriction>
-    <restriction>
-      <fieldMatcher method="basic"><pattern>title</pattern></fieldMatcher>
-      <valueMatcher method="basic"><pattern>bad</pattern></valueMatcher>
-    </restriction>
-  </restrictions>
-  <fieldMappings>
-    <whatever1>wherever1</whatever1>
-    <whatever2>wherever2</whatever2>
-  </fieldMappings>
-  <queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
-    <batchSize>40</batchSize>
-    <maxPerFolder>10</maxPerFolder>
-  </queue>
+	<driverPath>/some/path</driverPath>
+	<driverClass>driverClass</driverClass>
+	<connectionUrl>connectionUrl</connectionUrl>
+	<credentials>
+		<username>myusername</username>
+		<password>mypassword</password>
+		<passwordKey>
+			<value>mykey</value>
+			<source>key</source>
+			<size>128</size>
+		</passwordKey>
+	</credentials>
+	<properties>
+		<key1>value 1</key1>
+		<key2>value 2</key2>
+	</properties>
+	<tableName>tableName</tableName>
+	<primaryKey>pk</primaryKey>
+	<createTableSQL>CREATE TABLE blah</createTableSQL>
+	<createFieldSQL>CREATE FIELD blah</createFieldSQL>
+	<fixFieldNames>true</fixFieldNames>
+	<fixFieldValues>true</fixFieldValues>
+	<multiValuesJoiner>^^</multiValuesJoiner>
+
+	<targetContentField>targetContentField</targetContentField>
+
+	<restrictions>
+		<restriction>
+			<fieldMatcher method="basic">
+				<pattern>document.reference</pattern>
+			</fieldMatcher>
+			<valueMatcher method="wildcard">
+				<pattern>*.pdf</pattern>
+			</valueMatcher>
+		</restriction>
+		<restriction>
+			<fieldMatcher method="basic">
+				<pattern>title</pattern>
+			</fieldMatcher>
+			<valueMatcher method="basic">
+				<pattern>bad</pattern>
+			</valueMatcher>
+		</restriction>
+	</restrictions>
+	<fieldMappings>
+		<whatever1>wherever1</whatever1>
+		<whatever2>wherever2</whatever2>
+	</fieldMappings>
+	<queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
+		<batchSize>40</batchSize>
+		<maxPerFolder>10</maxPerFolder>
+	</queue>
 </committer>

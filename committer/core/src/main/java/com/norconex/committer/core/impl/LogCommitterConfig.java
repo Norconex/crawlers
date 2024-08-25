@@ -23,7 +23,9 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class LogCommitterConfig extends BaseCommitterConfig {
-    public enum LogLevel { TRACE, DEBUG, INFO, WARN, ERROR, STDOUT, STDERR}
+    public enum LogLevel {
+        TRACE, DEBUG, INFO, WARN, ERROR, STDOUT, STDERR
+    }
 
     private boolean ignoreContent;
     private final TextMatcher fieldMatcher = new TextMatcher();

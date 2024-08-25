@@ -37,22 +37,30 @@ class CopyTransformerTest {
     @Test
     void testWriteRead() {
         var t = new CopyTransformer();
-        t.getConfiguration().setOperations(List.of(
-            CopyOperation.of(new TextMatcher("from1"), "to1", OPTIONAL),
-            CopyOperation.of(new TextMatcher("from2"), "to2")
-        ));
+        t.getConfiguration().setOperations(
+                List.of(
+                        CopyOperation
+                                .of(new TextMatcher("from1"), "to1", OPTIONAL),
+                        CopyOperation.of(new TextMatcher("from2"), "to2")
+                )
+        );
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
 
     @Test
     void testCopyTagger() throws IOException {
         var t = new CopyTransformer();
-        t.getConfiguration().setOperations(List.of(
-            CopyOperation.of(new TextMatcher("src1"), "trgt1"),
-            CopyOperation.of(new TextMatcher("src2"), "trgt2", OPTIONAL),
-            CopyOperation.of(new TextMatcher("src3"), "trgt3", PREPEND),
-            CopyOperation.of(new TextMatcher("src4"), "trgt4", REPLACE)
-        ));
+        t.getConfiguration().setOperations(
+                List.of(
+                        CopyOperation.of(new TextMatcher("src1"), "trgt1"),
+                        CopyOperation
+                                .of(new TextMatcher("src2"), "trgt2", OPTIONAL),
+                        CopyOperation
+                                .of(new TextMatcher("src3"), "trgt3", PREPEND),
+                        CopyOperation
+                                .of(new TextMatcher("src4"), "trgt4", REPLACE)
+                )
+        );
 
         var props = new Properties();
         props.add("src1", "srcVal1");
@@ -65,14 +73,15 @@ class CopyTransformerTest {
         props.add("trgt4", "trgtVal4");
 
         var docCtx = TestUtil.newDocContext(
-                "ref", nullInputStream(), props, ParseState.POST);
+                "ref", nullInputStream(), props, ParseState.POST
+        );
         t.accept(docCtx);
 
         assertThat(props.getStrings("trgt1"))
-            .containsExactly("trgtVal1", "srcVal1");
+                .containsExactly("trgtVal1", "srcVal1");
         assertThat(props.getStrings("trgt2")).containsExactly("trgtVal2");
         assertThat(props.getStrings("trgt3"))
-            .containsExactly("srcVal3", "trgtVal3");
+                .containsExactly("srcVal3", "trgtVal3");
         assertThat(props.getStrings("trgt4")).containsExactly("srcVal4");
     }
 
@@ -81,12 +90,16 @@ class CopyTransformerTest {
 
         var t = new CopyTransformer();
         t.getConfiguration().setOperations(
-                List.of(CopyOperation.of("toField")));
+                List.of(CopyOperation.of("toField"))
+        );
 
         var body = "Copy this.".getBytes();
         var props = new Properties();
-        t.accept(TestUtil.newDocContext(
-                "blah", new ByteArrayInputStream(body), props));
+        t.accept(
+                TestUtil.newDocContext(
+                        "blah", new ByteArrayInputStream(body), props
+                )
+        );
 
         assertThat(props.getString("toField")).isEqualTo("Copy this.");
     }

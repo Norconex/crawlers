@@ -32,44 +32,55 @@ public class MockNoopDataStore<T> implements DataStore<T> {
     public String getName() {
         return null;
     }
+
     @Override
     public boolean save(String id, T object) {
         return false;
     }
+
     @Override
     public Optional<T> find(String id) {
         return Optional.empty();
     }
+
     @Override
     public Optional<T> findFirst() {
         return Optional.empty();
     }
+
     @Override
     public boolean exists(String id) {
         return false;
     }
+
     @Override
     public long count() {
         return 0;
     }
+
     @Override
     public boolean delete(String id) {
         return false;
     }
+
     @Override
     public Optional<T> deleteFirst() {
         return Optional.empty();
     }
+
     @Override
     public void clear() {
     }
+
     @Override
     public void close() {
     }
+
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
         return false;
     }
+
     @Override
     public boolean isEmpty() {
         return false;

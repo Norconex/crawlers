@@ -40,9 +40,9 @@ class KeepOnlyTransformerTest {
     void testWriteRead() {
         var t = new KeepOnlyTransformer();
         t.getConfiguration()
-            .getFieldMatcher().setPattern("field1|field2|field3");
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+                .getFieldMatcher().setPattern("field1|field2|field3");
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -110,14 +110,16 @@ class KeepOnlyTransformerTest {
         meta.add("source", "blah");
 
         var t = new KeepOnlyTransformer();
-        BeanMapper.DEFAULT.read(t, new StringReader("""
-                <test>
-                  <fieldMatcher>
-                    <method>regex</method>
-                    <pattern>[Xx]-.*</pattern>
-                  </fieldMatcher>
-                </test>"""),
-                Format.XML);
+        BeanMapper.DEFAULT.read(
+                t, new StringReader("""
+                        <test>
+                          <fieldMatcher>
+                            <method>regex</method>
+                            <pattern>[Xx]-.*</pattern>
+                          </fieldMatcher>
+                        </test>"""),
+                Format.XML
+        );
 
         InputStream is = new NullInputStream(0);
         TestUtil.transform(t, "blah", is, meta, ParseState.PRE);

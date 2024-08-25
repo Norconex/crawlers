@@ -30,6 +30,7 @@ import com.norconex.importer.doc.Doc;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+
 /**
  * <p>
  * Filters URL based on a matching expression.
@@ -87,9 +88,9 @@ public class GenericReferenceFilter implements
     public boolean acceptDocument(Doc document) {
         return acceptReference(document.getReference());
     }
+
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {
         return acceptReference(reference);
     }
 }
-

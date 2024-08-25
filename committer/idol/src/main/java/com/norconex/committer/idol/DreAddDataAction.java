@@ -65,10 +65,14 @@ class DreAddDataAction implements IIdolIndexAction {
     @Override
     public URL url(List<CommitterRequest> batch, HttpURL url)
             throws CommitterException {
-        url.setPath(StringUtils.appendIfMissing(
-                url.getPath(), "/") + "DREADDDATA");
+        url.setPath(
+                StringUtils.appendIfMissing(
+                        url.getPath(), "/"
+                ) + "DREADDDATA"
+        );
         return url.toURL();
     }
+
     @Override
     public void writeTo(List<CommitterRequest> batch, Writer w)
             throws CommitterException {
@@ -79,7 +83,8 @@ class DreAddDataAction implements IIdolIndexAction {
             w.append("\n#DREENDDATANOOP\n\n");
         } catch (IOException e) {
             throw new CommitterException(
-                    "Could not convert committer batch to IDX.", e);
+                    "Could not convert committer batch to IDX.", e
+            );
         }
     }
 
@@ -94,9 +99,11 @@ class DreAddDataAction implements IIdolIndexAction {
         if (StringUtils.isNotBlank(refField)) {
             ref = req.getMetadata().getString(refField);
             if (StringUtils.isBlank(ref)) {
-                throw new CommitterException("Source reference field '"
-                        + refField + "' has no value for document: "
-                        + req.getReference());
+                throw new CommitterException(
+                        "Source reference field '"
+                                + refField + "' has no value for document: "
+                                + req.getReference()
+                );
             }
         }
         w.append("\n#DREREFERENCE ").append(ref);
@@ -123,8 +130,12 @@ class DreAddDataAction implements IIdolIndexAction {
         //--- Document content ---
         String content;
         if (StringUtils.isNotBlank(contentField)) {
-            content = StringUtils.trimToEmpty(String.join("\n\n",
-                    req.getMetadata().getStrings(contentField)));
+            content = StringUtils.trimToEmpty(
+                    String.join(
+                            "\n\n",
+                            req.getMetadata().getStrings(contentField)
+                    )
+            );
         } else {
             content = IOUtils.toString(req.getContent(), UTF_8);
         }

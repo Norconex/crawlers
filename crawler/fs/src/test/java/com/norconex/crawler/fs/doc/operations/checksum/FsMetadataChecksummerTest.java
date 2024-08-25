@@ -46,13 +46,18 @@ class FsMetadataChecksummerTest {
         props.add(FsDocMetadata.FILE_SIZE, 333);
         props.add(FsDocMetadata.LAST_MODIFIED, 444);
         assertThat(checksummer.createMetadataChecksum(props)).isEqualTo(
-                "444_333");
+                "444_333"
+        );
     }
 
     @Test
     void testWriteRead() {
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(
-                        FsTestUtil.randomize(FsMetadataChecksummer.class)));
+        assertThatNoException()
+                .isThrownBy(
+                        () -> BeanMapper.DEFAULT.assertWriteRead(
+                                FsTestUtil
+                                        .randomize(FsMetadataChecksummer.class)
+                        )
+                );
     }
 }

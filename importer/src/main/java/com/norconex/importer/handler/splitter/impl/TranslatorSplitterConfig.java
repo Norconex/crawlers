@@ -229,7 +229,6 @@ public class TranslatorSplitterConfig extends BaseDocumentSplitterConfig {
      */
     private String scriptPath;
 
-
     public TranslatorSplitterConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
@@ -238,8 +237,10 @@ public class TranslatorSplitterConfig extends BaseDocumentSplitterConfig {
     public List<String> getTargetLanguages() {
         return Collections.unmodifiableList(targetLanguages);
     }
+
     public TranslatorSplitterConfig setTargetLanguages(
-            List<String> targetLanguages) {
+            List<String> targetLanguages
+    ) {
         CollectionUtil.setAll(this.targetLanguages, targetLanguages);
         return this;
     }

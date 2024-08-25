@@ -29,46 +29,58 @@ import javax.net.ssl.X509ExtendedTrustManager;
 public class TrustAllX509TrustManager extends X509ExtendedTrustManager {
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[] {};
+        return new X509Certificate[] {};
     }
 
     @Override
-    public void checkClientTrusted( //NOSONAR
-            X509Certificate[] chain, String authType) {
+    public void checkClientTrusted(
+        //NOSONAR
+            X509Certificate[] chain, String authType
+    ) {
         //NOOP
     }
 
     @Override
-    public void checkServerTrusted( //NOSONAR
-            X509Certificate[] chain, String authType) {
+    public void checkServerTrusted(
+        //NOSONAR
+            X509Certificate[] chain, String authType
+    ) {
         //NOOP
     }
 
     @Override
-    public void checkClientTrusted( //NOSONAR
-            X509Certificate[] chain, String authType, Socket socket)
-                    throws CertificateException {
+    public void checkClientTrusted(
+        //NOSONAR
+            X509Certificate[] chain, String authType, Socket socket
+    )
+            throws CertificateException {
         //NOOP
     }
 
     @Override
-    public void checkServerTrusted( //NOSONAR
-            X509Certificate[] chain, String authType, Socket socket)
-                    throws CertificateException {
+    public void checkServerTrusted(
+        //NOSONAR
+            X509Certificate[] chain, String authType, Socket socket
+    )
+            throws CertificateException {
         //NOOP
     }
 
     @Override
-    public void checkClientTrusted( //NOSONAR
-            X509Certificate[] chain, String authType, SSLEngine engine)
-                    throws CertificateException {
+    public void checkClientTrusted(
+        //NOSONAR
+            X509Certificate[] chain, String authType, SSLEngine engine
+    )
+            throws CertificateException {
         //NOOP
     }
 
     @Override
-    public void checkServerTrusted( //NOSONAR
-            X509Certificate[] chain, String authType, SSLEngine engine)
-                    throws CertificateException {
+    public void checkServerTrusted(
+        //NOSONAR
+            X509Certificate[] chain, String authType, SSLEngine engine
+    )
+            throws CertificateException {
         //NOOP
     }
 }

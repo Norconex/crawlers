@@ -34,12 +34,21 @@ public class ImporterPtProvider implements PolymorphicTypeProvider {
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        map.putAll(DocumentHandler.class,
-                ClassFinder.findSubTypes(DocumentHandler.class,
-                        nm -> nm.startsWith("com.norconex.importer.handler")));
-        map.putAll(Condition.class,
-                ClassFinder.findSubTypes(Condition.class, nm -> nm.startsWith(
-                        "com.norconex.importer.handler.condition")));
+        map.putAll(
+                DocumentHandler.class,
+                ClassFinder.findSubTypes(
+                        DocumentHandler.class,
+                        nm -> nm.startsWith("com.norconex.importer.handler")
+                )
+        );
+        map.putAll(
+                Condition.class,
+                ClassFinder.findSubTypes(
+                        Condition.class, nm -> nm.startsWith(
+                                "com.norconex.importer.handler.condition"
+                        )
+                )
+        );
         return map;
     }
 }

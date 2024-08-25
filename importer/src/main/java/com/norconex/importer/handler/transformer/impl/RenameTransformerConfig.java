@@ -80,10 +80,12 @@ public class RenameTransformerConfig {
     private final List<RenameOperation> operations = new ArrayList<>();
 
     public RenameTransformerConfig setOperations(
-            List<RenameOperation> operations) {
+            List<RenameOperation> operations
+    ) {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }
+
     public List<RenameOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }

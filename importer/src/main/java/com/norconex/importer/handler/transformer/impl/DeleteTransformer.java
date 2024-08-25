@@ -22,6 +22,7 @@ import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
 /**
  * <p>
  * Delete the metadata fields provided. Exact field names (case-insensitive)
@@ -67,7 +68,8 @@ public class DeleteTransformer
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (String field : docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()).keySet()) {
+                    configuration.getFieldMatcher()
+            ).keySet()) {
                 docCtx.metadata().remove(field);
                 LOG.debug("Deleted field: {}", field);
             }

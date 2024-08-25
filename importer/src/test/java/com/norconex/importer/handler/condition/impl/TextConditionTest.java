@@ -35,10 +35,17 @@ class TextConditionTest {
             throws IOException {
         var cond = newRegexTextCondition();
         cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
-        Assertions.assertTrue(TestUtil.condition(cond, "n/a",
-                IOUtils.toInputStream("a string that matches",
-                        StandardCharsets.UTF_8), null, ParseState.PRE),
-                "Should have been accepted.");
+        Assertions.assertTrue(
+                TestUtil.condition(
+                        cond, "n/a",
+                        IOUtils.toInputStream(
+                                "a string that matches",
+                                StandardCharsets.UTF_8
+                        ),
+                        null, ParseState.PRE
+                ),
+                "Should have been accepted."
+        );
     }
 
     @Test
@@ -47,12 +54,16 @@ class TextConditionTest {
         var cond = newRegexTextCondition();
         cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
         Assertions.assertFalse(
-                TestUtil.condition(cond, "n/a", IOUtils.toInputStream(
-                        "a text that does not match", StandardCharsets.UTF_8),
-                        null, ParseState.PRE),
-                "Should have been rejected.");
+                TestUtil.condition(
+                        cond, "n/a", IOUtils.toInputStream(
+                                "a text that does not match",
+                                StandardCharsets.UTF_8
+                        ),
+                        null, ParseState.PRE
+                ),
+                "Should have been rejected."
+        );
     }
-
 
     @Test
     void testRegexFieldDocument()
@@ -68,30 +79,37 @@ class TextConditionTest {
 
         Assertions.assertTrue(
                 TestUtil.condition(cond, "n/a", null, meta, ParseState.PRE),
-                "field1 not conditioned properly.");
+                "field1 not conditioned properly."
+        );
 
         cond.getConfiguration().getFieldMatcher().setPattern("field2");
         Assertions.assertFalse(
                 TestUtil.condition(cond, "n/a", null, meta, ParseState.PRE),
-                "field2 not conditioned properly.");
+                "field2 not conditioned properly."
+        );
     }
 
     @Test
-        void testWriteRead() {
+    void testWriteRead() {
         var cond = new TextCondition();
-        cond.getConfiguration().setFieldMatcher(new TextMatcher()
-                .setMethod(Method.REGEX)
-                .setPartial(true));
-        cond.getConfiguration().setValueMatcher(new TextMatcher()
-                .setMethod(Method.REGEX)
-                .setPartial(true)
-                .setPattern("blah"));
+        cond.getConfiguration().setFieldMatcher(
+                new TextMatcher()
+                        .setMethod(Method.REGEX)
+                        .setPartial(true)
+        );
+        cond.getConfiguration().setValueMatcher(
+                new TextMatcher()
+                        .setMethod(Method.REGEX)
+                        .setPartial(true)
+                        .setPattern("blah")
+        );
         BeanMapper.DEFAULT.assertWriteRead(cond);
     }
 
     private TextCondition newRegexTextCondition() {
         return new TextCondition(newRegexMatcher(), newRegexMatcher());
     }
+
     private TextMatcher newRegexMatcher() {
         return new TextMatcher().setMethod(Method.REGEX);
     }

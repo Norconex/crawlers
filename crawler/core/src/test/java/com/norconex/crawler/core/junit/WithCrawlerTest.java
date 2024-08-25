@@ -65,8 +65,8 @@ public @interface WithCrawlerTest {
      * {@link #config()}.
      * @return crawler configuration consumer
      */
-    Class<? extends Consumer<? extends CrawlerConfig>>
-            configModifier() default NoCrawlerConfigModifier.class;
+    Class<? extends Consumer<
+            ? extends CrawlerConfig>> configModifier() default NoCrawlerConfigModifier.class;
 
     public static final class NoCrawlerConfigModifier
             implements Consumer<CrawlerConfig> {
@@ -76,4 +76,3 @@ public @interface WithCrawlerTest {
         }
     }
 }
-

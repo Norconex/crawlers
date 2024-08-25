@@ -21,6 +21,7 @@ import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+
 /**
  * <p>
  * Filters URL based on a matching expression.
@@ -60,15 +61,16 @@ public class GenericReferenceFilterConfig {
     public TextMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     /**
      * Sets the value matcher.
      * @param valueMatcher value matcher
      * @return this instance
      */
     public GenericReferenceFilterConfig setValueMatcher(
-            TextMatcher valueMatcher) {
+            TextMatcher valueMatcher
+    ) {
         this.valueMatcher.copyFrom(valueMatcher);
         return this;
     }
 }
-

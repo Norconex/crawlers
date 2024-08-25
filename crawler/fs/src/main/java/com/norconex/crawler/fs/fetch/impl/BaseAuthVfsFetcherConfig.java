@@ -55,22 +55,22 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public abstract class BaseAuthVfsFetcherConfig extends BaseFetcherConfig{
+public abstract class BaseAuthVfsFetcherConfig extends BaseFetcherConfig {
 
     private final Credentials credentials = new Credentials();
     private String domain;
 
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        xml.ifXML("authentication", authXml -> {
-//            authXml.ifXML("credentials", credentials::loadFromXML);
-//            setDomain(authXml.getString("domain", domain));
-//        });
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        var authXml = xml.addElement("authentication");
-//        credentials.saveToXML(authXml.addElement("credentials"));
-//        authXml.addElement("domain", domain);
-//    }
+    //    @Override
+    //    protected void loadFetcherFromXML(XML xml) {
+    //        xml.ifXML("authentication", authXml -> {
+    //            authXml.ifXML("credentials", credentials::loadFromXML);
+    //            setDomain(authXml.getString("domain", domain));
+    //        });
+    //    }
+    //    @Override
+    //    protected void saveFetcherToXML(XML xml) {
+    //        var authXml = xml.addElement("authentication");
+    //        credentials.saveToXML(authXml.addElement("credentials"));
+    //        authXml.addElement("domain", domain);
+    //    }
 }

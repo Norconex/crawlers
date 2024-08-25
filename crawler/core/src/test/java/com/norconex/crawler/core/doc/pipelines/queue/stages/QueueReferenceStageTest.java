@@ -37,7 +37,8 @@ class QueueReferenceStageTest {
 
         // a null reference should not fail
         var ctx3 = new QueuePipelineContext(
-                crawler, new CrawlDocContext());
+                crawler, new CrawlDocContext()
+        );
         assertThat(stage.test(ctx3)).isTrue();
     }
 }

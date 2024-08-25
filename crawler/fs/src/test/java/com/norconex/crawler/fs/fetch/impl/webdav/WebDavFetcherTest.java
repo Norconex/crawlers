@@ -37,13 +37,17 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
     @SuppressWarnings("resource")
     @Container
     public GenericContainer<?> webdavContainer =
-        new GenericContainer<>(DockerImageName.parse(
-                "mwader/webdav:update-to-go-1.12"))
-            .withExposedPorts(8080)
-            .withFileSystemBind(
-                    new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
-                    "/webdav", BindMode.READ_ONLY)
-            ;
+            new GenericContainer<>(
+                    DockerImageName.parse(
+                            "mwader/webdav:update-to-go-1.12"
+                    )
+            )
+                    .withExposedPorts(8080)
+                    .withFileSystemBind(
+                            new File(FsTestUtil.TEST_FS_PATH)
+                                    .getAbsolutePath(),
+                            "/webdav", BindMode.READ_ONLY
+                    );
 
     private String webdavUrl;
 
@@ -72,7 +76,8 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
     void testKeyStorePassToString() {
         // toString shall not show password
         assertThat(
-            new WebDavFetcherConfig().setKeyStorePass("abc123").toString()
-        ).contains("password=********");
+                new WebDavFetcherConfig().setKeyStorePass("abc123").toString()
+        )
+                .contains("password=********");
     }
 }

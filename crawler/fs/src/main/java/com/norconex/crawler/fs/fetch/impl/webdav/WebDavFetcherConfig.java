@@ -25,7 +25,6 @@ import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-
 /**
  * <p>
  * Fetcher for WebDAV repositories. While it can also be used for general

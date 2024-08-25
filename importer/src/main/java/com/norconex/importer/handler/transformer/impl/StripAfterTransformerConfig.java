@@ -80,12 +80,14 @@ public class StripAfterTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets source field matcher for fields to transform.
      * @param fieldMatcher field matcher
      */
     public StripAfterTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
@@ -97,12 +99,14 @@ public class StripAfterTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getStripAfterMatcher() {
         return stripAfterMatcher;
     }
+
     /**
      * Sets the matcher of text after which to strip.
      * @param stripAfterMatcher text matcher
      */
     public StripAfterTransformerConfig setStripAfterMatcher(
-            TextMatcher stripAfterMatcher) {
+            TextMatcher stripAfterMatcher
+    ) {
         this.stripAfterMatcher.copyFrom(stripAfterMatcher);
         return this;
     }

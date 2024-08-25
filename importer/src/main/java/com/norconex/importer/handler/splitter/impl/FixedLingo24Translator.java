@@ -31,6 +31,7 @@ class FixedLingo24Translator extends Lingo24Translator {
             throw new ImporterRuntimeException("Cannot mark as available.", e);
         }
     }
+
     public void setUserKey(String userKey) {
         try {
             FieldUtils.writeField(this, "userKey", userKey, true);
@@ -38,6 +39,7 @@ class FixedLingo24Translator extends Lingo24Translator {
             throw new ImporterRuntimeException("Cannot set user key.", e);
         }
     }
+
     public String getUserKey() {
         try {
             return (String) FieldUtils.readField(this, "userKey", true);

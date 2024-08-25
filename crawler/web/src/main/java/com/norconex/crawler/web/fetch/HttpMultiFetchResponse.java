@@ -39,11 +39,14 @@ public class HttpMultiFetchResponse
     @Override
     public String getRedirectTarget() {
         return getLastFetchResponse().map(
-                HttpFetchResponse::getRedirectTarget).orElse(null);
+                HttpFetchResponse::getRedirectTarget
+        ).orElse(null);
     }
+
     @Override
     public String getUserAgent() {
         return getLastFetchResponse().map(
-                HttpFetchResponse::getUserAgent).orElse(null);
+                HttpFetchResponse::getUserAgent
+        ).orElse(null);
     }
 }

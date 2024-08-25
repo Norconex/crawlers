@@ -32,28 +32,35 @@ class ApacheKafkaCommitterConfigTest {
     void testWriteRead() throws Exception {
         var q = new FSQueue();
         q.getConfiguration()
-            .setBatchSize(10)
-            .setMaxPerFolder(5);
+                .setBatchSize(10)
+                .setMaxPerFolder(5);
 
         var c = new ApacheKafkaCommitter();
         c.getConfiguration()
-            .setBootstrapServers("host1:1234, host2:1234")
-            .setTopicName("my-topic")
-            .setCreateTopic(true)
-            .setPartitions(1)
-            .setReplicationFactor((short) 1)
-            .setQueue(q)
-            .setFieldMapping("subject", "title")
-            .setFieldMapping("body", "content")
-            .addRestriction(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")))
-            .addRestriction(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+                .setBootstrapServers("host1:1234, host2:1234")
+                .setTopicName("my-topic")
+                .setCreateTopic(true)
+                .setPartitions(1)
+                .setReplicationFactor((short) 1)
+                .setQueue(q)
+                .setFieldMapping("subject", "title")
+                .setFieldMapping("body", "content")
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("document.reference"),
+                                TextMatcher.wildcard("*.pdf")
+                        )
+                )
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("title"),
+                                TextMatcher.wildcard("Nah!")
+                        )
+                );
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c));
+                () -> BeanMapper.DEFAULT.assertWriteRead(c)
+        );
     }
 
     @Test
@@ -61,7 +68,8 @@ class ApacheKafkaCommitterConfigTest {
         Assertions.assertDoesNotThrow(() -> {
             try (var r = ResourceLoader.getXmlReader(getClass())) {
                 BeanMapper.DEFAULT.read(
-                        ApacheKafkaCommitter.class, r, Format.XML);
+                        ApacheKafkaCommitter.class, r, Format.XML
+                );
             }
         });
     }

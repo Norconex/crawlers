@@ -85,12 +85,14 @@ public class SubstringTransformerConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets source field matcher for fields to transform.
      * @param fieldMatcher field matcher
      */
     public SubstringTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

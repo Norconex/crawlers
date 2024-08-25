@@ -235,7 +235,6 @@ public class CrawlerConfig {
     private final List<ReferencesProvider> startReferencesProviders =
             new ArrayList<>();
 
-
     /**
      * The base directory location where files generated during execution
      * will reside. When <code>null</code> the collector will use
@@ -474,7 +473,6 @@ public class CrawlerConfig {
 
     private final List<EventListener<?>> eventListeners = new ArrayList<>();
 
-
     private FetchDirectiveSupport metadataFetchSupport =
             FetchDirectiveSupport.DISABLED;
     private FetchDirectiveSupport documentFetchSupport =
@@ -514,6 +512,7 @@ public class CrawlerConfig {
     public List<String> getStartReferences() {
         return Collections.unmodifiableList(startReferences);
     }
+
     /**
      * Sets the references to initiate crawling from.
      * @param startReferences start references
@@ -533,6 +532,7 @@ public class CrawlerConfig {
     public List<Path> getStartReferencesFiles() {
         return Collections.unmodifiableList(startReferencesFiles);
     }
+
     /**
      * Sets the file paths of seed files containing references to be used as
      * start references.  Files are expected to have one reference per line.
@@ -540,7 +540,9 @@ public class CrawlerConfig {
      * @param startReferencesFiles file paths of seed files containing
      *     references
      */
-    public CrawlerConfig setStartReferencesFiles(List<Path> startReferencesFiles) {
+    public CrawlerConfig setStartReferencesFiles(
+            List<Path> startReferencesFiles
+    ) {
         CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
         return this;
     }
@@ -554,6 +556,7 @@ public class CrawlerConfig {
     public List<ReferencesProvider> getStartReferencesProviders() {
         return Collections.unmodifiableList(startReferencesProviders);
     }
+
     /**
      * Sets the providers of references used as starting points for crawling.
      * Use this approach when references need to be provided
@@ -561,9 +564,11 @@ public class CrawlerConfig {
      * @param startReferencesProviders start references provider
      */
     public CrawlerConfig setStartReferencesProviders(
-            List<ReferencesProvider> startReferencesProviders) {
+            List<ReferencesProvider> startReferencesProviders
+    ) {
         CollectionUtil.setAll(
-                this.startReferencesProviders, startReferencesProviders);
+                this.startReferencesProviders, startReferencesProviders
+        );
         CollectionUtil.removeNulls(this.startReferencesProviders);
         return this;
     }
@@ -582,6 +587,7 @@ public class CrawlerConfig {
     public List<Class<? extends Exception>> getStopOnExceptions() {
         return Collections.unmodifiableList(stopOnExceptions);
     }
+
     /**
      * Sets the exceptions we want to stop the crawler on.
      * By default the crawler will log exceptions from processing
@@ -595,7 +601,8 @@ public class CrawlerConfig {
      *         encountered
      */
     public CrawlerConfig setStopOnExceptions(
-            List<Class<? extends Exception>> stopOnExceptions) {
+            List<Class<? extends Exception>> stopOnExceptions
+    ) {
         CollectionUtil.setAll(this.stopOnExceptions, stopOnExceptions);
         return this;
     }
@@ -607,11 +614,14 @@ public class CrawlerConfig {
     public List<ReferenceFilter> getReferenceFilters() {
         return Collections.unmodifiableList(referenceFilters);
     }
+
     /**
      * Sets reference filters.
      * @param referenceFilters the referenceFilters to set
      */
-    public CrawlerConfig setReferenceFilters(List<ReferenceFilter> referenceFilters) {
+    public CrawlerConfig setReferenceFilters(
+            List<ReferenceFilter> referenceFilters
+    ) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
         return this;
     }
@@ -623,11 +633,14 @@ public class CrawlerConfig {
     public List<DocumentFilter> getDocumentFilters() {
         return Collections.unmodifiableList(documentFilters);
     }
+
     /**
      * Sets document filters.
      * @param documentFilters document filters
      */
-    public CrawlerConfig setDocumentFilters(List<DocumentFilter> documentFilters) {
+    public CrawlerConfig setDocumentFilters(
+            List<DocumentFilter> documentFilters
+    ) {
         CollectionUtil.setAll(this.documentFilters, documentFilters);
         return this;
     }
@@ -639,11 +652,14 @@ public class CrawlerConfig {
     public List<MetadataFilter> getMetadataFilters() {
         return Collections.unmodifiableList(metadataFilters);
     }
+
     /**
      * Sets metadata filters.
      * @param metadataFilters metadata filters
      */
-    public CrawlerConfig setMetadataFilters(List<MetadataFilter> metadataFilters) {
+    public CrawlerConfig setMetadataFilters(
+            List<MetadataFilter> metadataFilters
+    ) {
         CollectionUtil.setAll(this.metadataFilters, metadataFilters);
         return this;
     }
@@ -656,6 +672,7 @@ public class CrawlerConfig {
     public List<Committer> getCommitters() {
         return Collections.unmodifiableList(committers);
     }
+
     /**
      * Sets Committers responsible for persisting information
      * to a target location/repository.
@@ -675,6 +692,7 @@ public class CrawlerConfig {
     public List<EventListener<?>> getEventListeners() {
         return Collections.unmodifiableList(eventListeners);
     }
+
     /**
      * Sets event listeners.
      * Those are considered additions to automatically
@@ -682,10 +700,12 @@ public class CrawlerConfig {
      * @param eventListeners event listeners.
      */
     public CrawlerConfig setEventListeners(
-            List<EventListener<?>> eventListeners) {
+            List<EventListener<?>> eventListeners
+    ) {
         CollectionUtil.setAll(this.eventListeners, eventListeners);
         return this;
     }
+
     /**
      * Adds event listeners.
      * Those are considered additions to automatically
@@ -693,10 +713,12 @@ public class CrawlerConfig {
      * @param eventListeners event listeners.
      */
     public CrawlerConfig addEventListeners(
-            List<EventListener<?>> eventListeners) {
+            List<EventListener<?>> eventListeners
+    ) {
         this.eventListeners.addAll(eventListeners);
         return this;
     }
+
     /**
      * Adds an event listener.
      * Those are considered additions to automatically
@@ -707,6 +729,7 @@ public class CrawlerConfig {
         eventListeners.add(eventListener);
         return this;
     }
+
     /**
      * Removes a single event listener from the list of registered listeners
      * if present.
@@ -716,6 +739,7 @@ public class CrawlerConfig {
     public boolean removeEventListener(EventListener<?> eventListener) {
         return eventListeners.remove(eventListener);
     }
+
     /**
      * Clears all event listeners. The automatically
      * detected configuration objects implementing {@link EventListener}
@@ -733,12 +757,14 @@ public class CrawlerConfig {
     public List<DocumentConsumer> getPreImportConsumers() {
         return Collections.unmodifiableList(preImportConsumers);
     }
+
     /**
      * Sets pre-import consumers.
      * @param preImportConsumers pre-import consumers
      */
     public CrawlerConfig setPreImportConsumers(
-            List<DocumentConsumer> preImportConsumers) {
+            List<DocumentConsumer> preImportConsumers
+    ) {
         CollectionUtil.setAll(preImportConsumers, preImportConsumers);
         CollectionUtil.removeNulls(preImportConsumers);
         return this;
@@ -751,12 +777,14 @@ public class CrawlerConfig {
     public List<DocumentConsumer> getPostImportConsumers() {
         return Collections.unmodifiableList(postImportConsumers);
     }
+
     /**
      * Sets post-import consumers.
      * @param postImportConsumers post-import consumers
      */
     public CrawlerConfig setPostImportConsumers(
-            List<DocumentConsumer> postImportConsumers) {
+            List<DocumentConsumer> postImportConsumers
+    ) {
         CollectionUtil.setAll(postImportConsumers, postImportConsumers);
         CollectionUtil.removeNulls(postImportConsumers);
         return this;
@@ -773,6 +801,7 @@ public class CrawlerConfig {
     public List<Fetcher<?, ?>> getFetchers() { //NOSONAR
         return Collections.unmodifiableList(fetchers);
     }
+
     /**
      * One or more fetchers responsible for pulling documents and document
      * metadata associated with a reference from a source.

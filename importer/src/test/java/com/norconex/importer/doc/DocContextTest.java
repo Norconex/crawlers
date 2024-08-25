@@ -49,6 +49,6 @@ class DocContextTest {
         assertThat(di1).isNotEqualTo(di4);
 
         assertThat(di4.getEmbeddedParentReferences())
-            .containsExactly("parentRef", "parentRef2");
+                .containsExactly("parentRef", "parentRef2");
     }
 }

@@ -31,7 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class CommitterUtil {
 
-    private CommitterUtil() {}
+    private CommitterUtil() {
+    }
 
     /**
      * Gets the request content as a string. Only applicable to
@@ -48,7 +49,9 @@ public final class CommitterUtil {
             } catch (IOException e) {
                 throw new CommitterException(
                         "Could not load document content for : "
-                                + req.getReference(), e);
+                                + req.getReference(),
+                        e
+                );
             }
         }
         return null;
@@ -65,8 +68,9 @@ public final class CommitterUtil {
      * @return the source id value
      */
     public static String extractSourceIdValue(
-            CommitterRequest req, String sourceIdField) {
-       return extractSourceIdValue(req, sourceIdField, false);
+            CommitterRequest req, String sourceIdField
+    ) {
+        return extractSourceIdValue(req, sourceIdField, false);
     }
 
     /**
@@ -82,7 +86,8 @@ public final class CommitterUtil {
     public static String extractSourceIdValue(
             CommitterRequest req,
             String sourceIdField,
-            boolean keepSourceIdField) {
+            boolean keepSourceIdField
+    ) {
         String idValue = null;
         if (StringUtils.isNotBlank(sourceIdField)) {
             idValue = req.getMetadata().getString(sourceIdField);
@@ -92,9 +97,11 @@ public final class CommitterUtil {
                     req.getMetadata().remove(sourceIdField);
                 }
             } else {
-                LOG.warn("Source ID field \"{}\" has no value. "
-                        + "Falling back to using document reference: {}",
-                        sourceIdField, req.getReference());
+                LOG.warn(
+                        "Source ID field \"{}\" has no value. "
+                                + "Falling back to using document reference: {}",
+                        sourceIdField, req.getReference()
+                );
             }
         }
         if (StringUtils.isBlank(idValue)) {
@@ -114,8 +121,9 @@ public final class CommitterUtil {
      * @throws CommitterException could not apply target content
      */
     public static void applyTargetContent(
-            CommitterRequest req, String targetContentField)
-                    throws CommitterException {
+            CommitterRequest req, String targetContentField
+    )
+            throws CommitterException {
         if (req instanceof UpsertRequest
                 && StringUtils.isNotBlank(targetContentField)) {
             req.getMetadata().set(targetContentField, getContentAsString(req));
@@ -133,7 +141,8 @@ public final class CommitterUtil {
      * @param targetIdField name of the target field holding the document ID
      */
     public static void applyTargetId(
-            CommitterRequest req, String sourceIdField, String targetIdField) {
+            CommitterRequest req, String sourceIdField, String targetIdField
+    ) {
         var sourceIdValue = extractSourceIdValue(req, sourceIdField);
         if (StringUtils.isNoneBlank(targetIdField, sourceIdValue)) {
             req.getMetadata().set(targetIdField, sourceIdValue);

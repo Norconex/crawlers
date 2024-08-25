@@ -121,6 +121,7 @@ public class ScriptConditionConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets this condition field matcher.
      * @param fieldMatcher field matcher

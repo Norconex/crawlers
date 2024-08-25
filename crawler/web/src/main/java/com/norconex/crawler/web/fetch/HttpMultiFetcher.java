@@ -35,19 +35,20 @@ public class HttpMultiFetcher
     // to core MultiFetcher ?
 
     public HttpMultiFetcher(
-            @NonNull
-            List<? extends Fetcher
-                    <HttpFetchRequest, HttpFetchResponse>> fetchers,
-            @NonNull
-            ResponseListAdapter<HttpFetchResponse> multiResponseWrapper,
-            @NonNull
-            UnsuccessfulResponseFactory
-                    <HttpFetchResponse> unsuccessfulResponseAdaptor,
-            int maxRetries, Duration retryDelay) {
-        super(fetchers,
+            @NonNull List<? extends Fetcher<HttpFetchRequest,
+                    HttpFetchResponse>> fetchers,
+            @NonNull ResponseListAdapter<
+                    HttpFetchResponse> multiResponseWrapper,
+            @NonNull UnsuccessfulResponseFactory<
+                    HttpFetchResponse> unsuccessfulResponseAdaptor,
+            int maxRetries, Duration retryDelay
+    ) {
+        super(
+                fetchers,
                 multiResponseWrapper,
                 unsuccessfulResponseAdaptor,
                 maxRetries,
-                retryDelay);
+                retryDelay
+        );
     }
 }

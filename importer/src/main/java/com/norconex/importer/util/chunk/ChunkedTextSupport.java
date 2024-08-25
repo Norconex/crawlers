@@ -20,6 +20,8 @@ import com.norconex.commons.lang.text.TextMatcher;
 
 public interface ChunkedTextSupport {
     int getMaxReadSize();
+
     Charset getSourceCharset();
+
     TextMatcher getFieldMatcher();
 }

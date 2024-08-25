@@ -35,7 +35,10 @@ class LocalFetcherTest extends AbstractFileFetcherTest {
 
     @Override
     protected String getStartPath() {
-        return StringUtils.removeEnd(Path.of(FsTestUtil.TEST_FS_PATH)
-                .toAbsolutePath().toUri().toString(), "/");
+        return StringUtils.removeEnd(
+                Path.of(FsTestUtil.TEST_FS_PATH)
+                        .toAbsolutePath().toUri().toString(),
+                "/"
+        );
     }
 }

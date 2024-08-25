@@ -42,21 +42,24 @@ import com.norconex.commons.lang.bean.BeanUtil;
  * <p>Common File Committer tests.</p>
  *
  */
-public class AbstractFSCommitterTest  {
+public class AbstractFSCommitterTest {
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @ParameterizedTest(name = "{index} {1}")
-    @MethodSource(value= {
-            "committerProvider"
-    })
-    @interface CommitterTest {}
+    @MethodSource(
+        value = {
+                "committerProvider"
+        }
+    )
+    @interface CommitterTest {
+    }
 
     static Stream<Arguments> committerProvider() {
         return Stream.of(
-            TestUtil.args(new XMLFileCommitter()),
-            TestUtil.args(new JSONFileCommitter()),
-            TestUtil.args(new CSVFileCommitter())
+                TestUtil.args(new XMLFileCommitter()),
+                TestUtil.args(new JSONFileCommitter()),
+                TestUtil.args(new CSVFileCommitter())
         );
     }
 
@@ -65,30 +68,37 @@ public class AbstractFSCommitterTest  {
 
     @CommitterTest
     public void testMergedFileCommitter(
-            AbstractFSCommitter<?, ?> c, String name) 
-                    throws CommitterException {
+            AbstractFSCommitter<?, ?> c, String name
+    )
+            throws CommitterException {
         // write 5 upserts and 2 deletes.
         // max docs per file being 2, so should generate 4 files.
         c.getConfiguration().setDocsPerFile(2);
         setIndentIfPresent(c, 3);
         c.getConfiguration().setSplitUpsertDelete(false);
 
-
         c.init(TestUtil.committerContext(folder));
         TestUtil.commitRequests(c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1));
         c.close();
 
-        assertEquals(4,  TestUtil.listFSFiles(c.getResolvedDirectory()).size());
-        assertEquals(0,  TestUtil.listFSUpsertFiles(
-                c.getResolvedDirectory()).size());
-        assertEquals(0,  TestUtil.listFSDeleteFiles(
-                c.getResolvedDirectory()).size());
+        assertEquals(4, TestUtil.listFSFiles(c.getResolvedDirectory()).size());
+        assertEquals(
+                0, TestUtil.listFSUpsertFiles(
+                        c.getResolvedDirectory()
+                ).size()
+        );
+        assertEquals(
+                0, TestUtil.listFSDeleteFiles(
+                        c.getResolvedDirectory()
+                ).size()
+        );
     }
 
     @CommitterTest
     public void testSplitFileCommitter(
-            AbstractFSCommitter<?, ?> c, String name)
-                    throws CommitterException {
+            AbstractFSCommitter<?, ?> c, String name
+    )
+            throws CommitterException {
         // write 5 upserts and 2 deletes.
         // max docs per file being 2, so should generate 3 upsert files
         // and 1 delete file
@@ -100,12 +110,21 @@ public class AbstractFSCommitterTest  {
         TestUtil.commitRequests(c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1));
         c.close();
 
-        assertEquals(4,  TestUtil.listFSFiles(
-                c.getResolvedDirectory()).size());
-        assertEquals(3,  TestUtil.listFSUpsertFiles(
-                c.getResolvedDirectory()).size());
-        assertEquals(1,  TestUtil.listFSDeleteFiles(
-                c.getResolvedDirectory()).size());
+        assertEquals(
+                4, TestUtil.listFSFiles(
+                        c.getResolvedDirectory()
+                ).size()
+        );
+        assertEquals(
+                3, TestUtil.listFSUpsertFiles(
+                        c.getResolvedDirectory()
+                ).size()
+        );
+        assertEquals(
+                1, TestUtil.listFSDeleteFiles(
+                        c.getResolvedDirectory()
+                ).size()
+        );
     }
 
     @CommitterTest
@@ -113,15 +132,16 @@ public class AbstractFSCommitterTest  {
             throws CommitterException {
 
         c.getConfiguration()
-            .setCompress(true)
-            .setDirectory(Paths.get("c:\\temp"))
-            .setDocsPerFile(5)
-            .setFileNamePrefix("prefix")
-            .setFileNameSuffix("suffix")
-            .setSplitUpsertDelete(true);
+                .setCompress(true)
+                .setDirectory(Paths.get("c:\\temp"))
+                .setDocsPerFile(5)
+                .setFileNamePrefix("prefix")
+                .setFileNameSuffix("suffix")
+                .setSplitUpsertDelete(true);
         setIndentIfPresent(c, 3);
         assertThatNoException().isThrownBy(
-                () -> TestUtil.beanMapper().assertWriteRead(c));
+                () -> TestUtil.beanMapper().assertWriteRead(c)
+        );
     }
 
     @CommitterTest

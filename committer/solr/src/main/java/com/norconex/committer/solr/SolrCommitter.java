@@ -166,7 +166,8 @@ public class SolrCommitter
     protected void initBatchCommitter() throws CommitterException {
         solrClient = ObjectUtils.defaultIfNull(
                 configuration.getSolrClientType(),
-                SolrClientType.HTTP2).create(configuration.getSolrURL());
+                SolrClientType.HTTP2
+        ).create(configuration.getSolrURL());
     }
 
     @Override
@@ -209,7 +210,8 @@ public class SolrCommitter
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Cannot push document batch to Solr.", e);
+                    "Cannot push document batch to Solr.", e
+            );
         }
     }
 
@@ -227,10 +229,12 @@ public class SolrCommitter
             solrBatchRequest.setBasicAuthCredentials(
                     configuration.getCredentials().getUsername(),
                     EncryptionUtil.decryptPassword(
-                            configuration.getCredentials()));
+                            configuration.getCredentials()
+                    )
+            );
         }
-        for (Entry<String, String> entry :
-                configuration.getUpdateUrlParams().entrySet()) {
+        for (Entry<String, String> entry : configuration.getUpdateUrlParams()
+                .entrySet()) {
             solrBatchRequest.setParam(entry.getKey(), entry.getValue());
         }
 
@@ -242,25 +246,32 @@ public class SolrCommitter
     }
 
     protected void addSolrUpsertRequest(
-            UpdateRequest solrBatchRequest, UpsertRequest committerRequest)
-                    throws CommitterException {
+            UpdateRequest solrBatchRequest, UpsertRequest committerRequest
+    )
+            throws CommitterException {
 
         CommitterUtil.applyTargetId(
                 committerRequest,
                 configuration.getSourceIdField(),
-                configuration.getTargetIdField());
+                configuration.getTargetIdField()
+        );
         CommitterUtil.applyTargetContent(
-                committerRequest, configuration.getTargetContentField());
+                committerRequest, configuration.getTargetContentField()
+        );
         solrBatchRequest.add(buildSolrDocument(committerRequest.getMetadata()));
     }
+
     protected void addSolrDeleteRequest(
-            UpdateRequest solrBatchRequest, DeleteRequest committerRequest) {
+            UpdateRequest solrBatchRequest, DeleteRequest committerRequest
+    ) {
         CommitterUtil.applyTargetId(
                 committerRequest,
                 configuration.getSourceIdField(),
-                configuration.getTargetIdField());
+                configuration.getTargetIdField()
+        );
         solrBatchRequest.deleteById(committerRequest.getReference());
     }
+
     protected SolrInputDocument buildSolrDocument(Properties fields) {
         var doc = new SolrInputDocument();
         for (String key : fields.keySet()) {
@@ -276,6 +287,7 @@ public class SolrCommitter
             throws CommitterException {
         handleResponse(response.getResponse());
     }
+
     private void handleResponse(NamedList<Object> response)
             throws CommitterException {
         @SuppressWarnings("unchecked")
@@ -284,12 +296,14 @@ public class SolrCommitter
         if (headers == null) {
             throw new CommitterException(
                     "No response headers obtained from Solr request. "
-                  + "Response: " + response);
+                            + "Response: " + response
+            );
         }
         var status = Objects.toString(headers.get("status"), null);
         if (!"0".equals(status)) {
             throw new CommitterException(
-                    "Invalid Solr response status: " + status);
+                    "Invalid Solr response status: " + status
+            );
         }
     }
 

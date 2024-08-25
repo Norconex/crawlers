@@ -39,16 +39,22 @@ class IdolCommitterConfigTest {
         q.getConfiguration().setBatchSize(10);
         q.getConfiguration().setMaxPerFolder(5);
         c.getConfiguration()
-            .setQueue(q)
-            .setFieldMapping("subject", "title")
-            .setFieldMapping("body", "content");
+                .setQueue(q)
+                .setFieldMapping("subject", "title")
+                .setFieldMapping("body", "content");
 
-        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")));
-        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+        c.getConfiguration().getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("document.reference"),
+                        TextMatcher.wildcard("*.pdf")
+                )
+        );
+        c.getConfiguration().getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("title"),
+                        TextMatcher.wildcard("Nah!")
+                )
+        );
 
         var cfg = c.getConfiguration();
         cfg.setUrl("http://somehost:9001");

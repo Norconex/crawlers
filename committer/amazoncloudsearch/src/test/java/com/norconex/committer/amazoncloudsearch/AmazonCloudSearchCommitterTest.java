@@ -62,7 +62,8 @@ import com.norconex.commons.lang.url.URLStreamer;
 class AmazonCloudSearchCommitterTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            AmazonCloudSearchCommitterTest.class);
+            AmazonCloudSearchCommitterTest.class
+    );
 
     //TODO test update/delete URL params
     //TODO test source + target mappings + other mappings
@@ -76,19 +77,22 @@ class AmazonCloudSearchCommitterTest {
     @Container
     static DockerComposeContainer<?> container =
             new DockerComposeContainer<>(
-                    new File("src/test/resources/nozama-cloudsearch.yaml"))
-            .withExposedService(
-                    CLOUDSEARCH_NAME,
-                    CLOUDSEARCH_PORT,
-                    /*
-                     * Ensure nozama container gets into a state where
-                     * it will accept HTTP DELETE requests
-                     */
-                    Wait
-                        .forHttp(API_DEV_DOCUMENTS)
-                        .withMethod("DELETE")
-                        .forStatusCode(200)
-                        .withStartupTimeout(Duration.ofSeconds(60))
+                    new File("src/test/resources/nozama-cloudsearch.yaml")
+            )
+                    .withExposedService(
+                            CLOUDSEARCH_NAME,
+                            CLOUDSEARCH_PORT,
+                            /*
+                             * Ensure nozama container gets into a state where
+                             * it will accept HTTP DELETE requests
+                             */
+                            Wait
+                                    .forHttp(API_DEV_DOCUMENTS)
+                                    .withMethod("DELETE")
+                                    .forStatusCode(200)
+                                    .withStartupTimeout(
+                                            Duration.ofSeconds(60)
+                                    )
                     );
 
     private static String CLOUDSEARCH_ENDPOINT;
@@ -100,10 +104,16 @@ class AmazonCloudSearchCommitterTest {
     static void setCloudSearchEndpoint() {
         CLOUDSEARCH_ENDPOINT =
                 "http://"
-                + container.getServiceHost(CLOUDSEARCH_NAME, CLOUDSEARCH_PORT)
-                + ":"
-                + container.getServicePort(CLOUDSEARCH_NAME, CLOUDSEARCH_PORT)
-                + "/";
+                        + container.getServiceHost(
+                                CLOUDSEARCH_NAME,
+                                CLOUDSEARCH_PORT
+                        )
+                        + ":"
+                        + container.getServicePort(
+                                CLOUDSEARCH_NAME,
+                                CLOUDSEARCH_PORT
+                        )
+                        + "/";
     }
 
     @BeforeEach
@@ -123,7 +133,7 @@ class AmazonCloudSearchCommitterTest {
     }
 
     @Test
-    void testAddWithQueueContaining2documents() throws Exception{
+    void testAddWithQueueContaining2documents() throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -135,7 +145,7 @@ class AmazonCloudSearchCommitterTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd1DeleteCommand()
-            throws Exception{
+            throws Exception {
 
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
@@ -150,7 +160,7 @@ class AmazonCloudSearchCommitterTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd2DeleteCommand()
-            throws Exception{
+            throws Exception {
 
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
@@ -180,7 +190,6 @@ class AmazonCloudSearchCommitterTest {
         // Check that it's remove from CloudSearch
         Assertions.assertEquals(0, getAllDocs().size());
     }
-
 
     @Test
     void testCommitDeleteWithBadIdValue() throws Exception {
@@ -214,26 +223,36 @@ class AmazonCloudSearchCommitterTest {
         var doc = docs.get(0);
 
         // Check multi values are still there
-        assertEquals(3,
+        assertEquals(
+                3,
                 doc.getJSONObject("fields").getJSONArray("multi").length(),
-                "Multi-value not saved properly.");
+                "Multi-value not saved properly."
+        );
     }
 
     private UpsertRequest upsertRequest(String id, String content) {
         return upsertRequest(id, content, null);
     }
+
     private UpsertRequest upsertRequest(
-            String id, String content, Properties metadata) {
+            String id, String content, Properties metadata
+    ) {
         var p = metadata == null ? new Properties() : metadata;
-        return new UpsertRequest(id, p, content == null
-                ? new NullInputStream(0) : toInputStream(content, UTF_8));
+        return new UpsertRequest(
+                id, p, content == null
+                        ? new NullInputStream(0)
+                        : toInputStream(content, UTF_8)
+        );
     }
 
     private void assertTestDoc(JSONObject doc) throws RetriableException {
         assertEquals(TEST_ID, doc.getString("id"));
-        assertEquals(TEST_CONTENT,
-                doc.getJSONObject("fields").getString("content"));
+        assertEquals(
+                TEST_CONTENT,
+                doc.getJSONObject("fields").getString("content")
+        );
     }
+
     private List<JSONObject> getAllDocs() {
         var response = httpGET(API_DEV_DOCUMENTS);
         LOG.debug("CloudSearch getAllDocs() response: {}", response);
@@ -249,23 +268,28 @@ class AmazonCloudSearchCommitterTest {
     private AmazonCloudSearchCommitter createCloudSearchCommitter()
             throws CommitterException {
         var ctx = CommitterContext.builder()
-                .setWorkDir(new File(tempDir,
-                        "" + TimeIdGenerator.next()).toPath())
+                .setWorkDir(
+                        new File(
+                                tempDir,
+                                "" + TimeIdGenerator.next()
+                        ).toPath()
+                )
                 .build();
         var committer = new AmazonCloudSearchCommitter();
         committer.getConfiguration()
-            .setServiceEndpoint(CLOUDSEARCH_ENDPOINT)
-            .setSecretKey("dummySecretKey")
-            .setAccessKey("dummyAccessKey")
-            .setFixBadIds(true);
+                .setServiceEndpoint(CLOUDSEARCH_ENDPOINT)
+                .setSecretKey("dummySecretKey")
+                .setAccessKey("dummyAccessKey")
+                .setFixBadIds(true);
         committer.init(ctx);
         return committer;
     }
 
     private AmazonCloudSearchCommitter withinCommitterSession(
-            CommitterConsumer c)
+            CommitterConsumer c
+    )
             throws CommitterException {
-    	var committer = createCloudSearchCommitter();
+        var committer = createCloudSearchCommitter();
         try {
             c.accept(committer);
         } catch (CommitterException e) {
@@ -300,15 +324,18 @@ class AmazonCloudSearchCommitterTest {
             var responseCode = con.getResponseCode();
             LOG.debug("Server Response Code: {}", responseCode);
             var response = IOUtils.toString(
-                    con.getInputStream(), StandardCharsets.UTF_8);
+                    con.getInputStream(), StandardCharsets.UTF_8
+            );
             LOG.debug("Server Response Text: {}", response);
             if (!StringUtils.contains(response, "\"status\": \"ok\"")) {
                 throw new CommitterException(
-                        "Unexpected HTTP response: " + response);
+                        "Unexpected HTTP response: " + response
+                );
             }
         } catch (IOException e) {
             throw new CommitterException(
-                    "Cannot post content to " + url, e);
+                    "Cannot post content to " + url, e
+            );
         } finally {
             con.disconnect();
         }

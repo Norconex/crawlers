@@ -60,15 +60,15 @@ import lombok.experimental.Accessors;
 public class SmbFetcherConfig extends BaseAuthVfsFetcherConfig {
 
     private boolean aclDisabled;
-//
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        super.loadFetcherFromXML(xml);
-//        setAclDisabled(xml.getBoolean(Fields.aclDisabled));
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        super.saveFetcherToXML(xml);
-//        xml.addElement(Fields.aclDisabled, aclDisabled);
-//    }
+    //
+    //    @Override
+    //    protected void loadFetcherFromXML(XML xml) {
+    //        super.loadFetcherFromXML(xml);
+    //        setAclDisabled(xml.getBoolean(Fields.aclDisabled));
+    //    }
+    //    @Override
+    //    protected void saveFetcherToXML(XML xml) {
+    //        super.saveFetcherToXML(xml);
+    //        xml.addElement(Fields.aclDisabled, aclDisabled);
+    //    }
 }

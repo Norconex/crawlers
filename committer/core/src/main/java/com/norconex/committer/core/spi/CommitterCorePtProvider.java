@@ -34,12 +34,20 @@ public class CommitterCorePtProvider implements PolymorphicTypeProvider {
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        map.putAll(CommitterQueue.class,
-                ClassFinder.findSubTypes(CommitterQueue.class,
-                        nm -> nm.startsWith("com.norconex.committer.")));
-        map.putAll(Committer.class,
-                ClassFinder.findSubTypes(Committer.class,
-                        nm -> nm.startsWith("com.norconex.committer.")));
+        map.putAll(
+                CommitterQueue.class,
+                ClassFinder.findSubTypes(
+                        CommitterQueue.class,
+                        nm -> nm.startsWith("com.norconex.committer.")
+                )
+        );
+        map.putAll(
+                Committer.class,
+                ClassFinder.findSubTypes(
+                        Committer.class,
+                        nm -> nm.startsWith("com.norconex.committer.")
+                )
+        );
         return map;
     }
 }

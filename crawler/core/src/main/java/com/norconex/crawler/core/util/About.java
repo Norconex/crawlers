@@ -34,17 +34,18 @@ import com.norconex.crawler.core.CrawlerConfig;
 public final class About {
     /** Simple ASCI art of Norconex. */
     public static final String NORCONEX_ASCII =
-        """
-         _   _  ___  ____   ____ ___  _   _ _______  __
-        | \\ | |/ _ \\|  _ \\ / ___/ _ \\| \\ | | ____\\ \\/ /
-        |  \\| | | | | |_) | |  | | | |  \\| |  _|  \\  /\s
-        | |\\  | |_| |  _ <| |__| |_| | |\\  | |___ /  \\\s
-        |_| \\_|\\___/|_| \\_\\\\____\\___/|_| \\_|_____/_/\\_\\
+            """
+                     _   _  ___  ____   ____ ___  _   _ _______  __
+                    | \\ | |/ _ \\|  _ \\ / ___/ _ \\| \\ | | ____\\ \\/ /
+                    |  \\| | | | | |_) | |  | | | |  \\| |  _|  \\  /\s
+                    | |\\  | |_| |  _ <| |__| |_| | |\\  | |___ /  \\\s
+                    |_| \\_|\\___/|_| \\_\\\\____\\___/|_| \\_|_____/_/\\_\\
 
-        ================ C R A W L E R ================
-        """;
+                    ================ C R A W L E R ================
+                    """;
 
-    private About() {}
+    private About() {
+    }
 
     public static String about(CrawlerConfig config) {
         try (var sw = new StringWriter(); var w = new PrintWriter(sw, true)) {
@@ -52,7 +53,7 @@ public final class About {
             w.println(NORCONEX_ASCII);
 
             // version
-//            w.println("Version:     " + releaseVersion(Crawler.class)); //TODO pass class from crawler impl so we have the name ? (web vs file)
+            //            w.println("Version:     " + releaseVersion(Crawler.class)); //TODO pass class from crawler impl so we have the name ? (web vs file)
             w.println("Version:\n  " + releaseVersion(Crawler.class)); //TODO pass class from crawler impl so we have the name ? (web vs file)
 
             // committer
@@ -66,15 +67,15 @@ public final class About {
                 w.println("  <None>");
             }
 
-//            var prefix = "Committers:  ";
-//            if (CollectionUtils.isNotEmpty(committerClasses)) {
-//                for (Class<?> cls : committerClasses) {
-//                    w.println(prefix + committerName(cls));
-//                    prefix = "             ";
-//                }
-//            } else {
-//                w.println("  <None>");
-//            }
+            //            var prefix = "Committers:  ";
+            //            if (CollectionUtils.isNotEmpty(committerClasses)) {
+            //                for (Class<?> cls : committerClasses) {
+            //                    w.println(prefix + committerName(cls));
+            //                    prefix = "             ";
+            //                }
+            //            } else {
+            //                w.println("  <None>");
+            //            }
 
             // runtime
             w.println("Runtime:");
@@ -88,17 +89,18 @@ public final class About {
         }
     }
 
-
     private static String committerName(Class<?> cls) {
         return "%s (%s)".formatted(
                 removeEndIgnoreCase(cls.getSimpleName(), "Committer"),
-                PackageManifest.of(cls).getTitle());
+                PackageManifest.of(cls).getTitle()
+        );
     }
 
     private static String releaseVersion(Class<?> cls) {
         var manifest = PackageManifest.of(cls);
         return manifest.getTitle() + " " + manifest.getVersion();
     }
+
     private static Set<Class<?>> configuredCommitters(CrawlerConfig config) {
         return config
                 .getCommitters()

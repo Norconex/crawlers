@@ -152,7 +152,8 @@ public class TruncateTransformer
                 PropertySetter.orAppend(configuration.getOnSet()).apply(
                         docCtx.metadata(),
                         configuration.getToField(),
-                        txt);
+                        txt
+                );
             } else {
                 writer.write(txt);
             }
@@ -174,18 +175,22 @@ public class TruncateTransformer
     public void doFields(HandlerContext docCtx) {
         List<String> allTargetValues = new ArrayList<>();
         for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                configuration.getFieldMatcher()).entrySet()) {
+                configuration.getFieldMatcher()
+        ).entrySet()) {
             var fromField = en.getKey();
             var sourceValues = en.getValue();
             List<String> targetValues = new ArrayList<>();
             for (String sourceValue : sourceValues) {
                 var truncValue = truncate(
-                        sourceValue, configuration.getMaxLength());
+                        sourceValue, configuration.getMaxLength()
+                );
                 targetValues.add(truncValue);
                 if (LOG.isDebugEnabled()
                         && !Objects.equals(truncValue, sourceValue)) {
-                    LOG.debug("\"{}\" value truncated to \"{}\".",
-                            fromField, truncValue);
+                    LOG.debug(
+                            "\"{}\" value truncated to \"{}\".",
+                            fromField, truncValue
+                    );
                 }
             }
 
@@ -194,7 +199,8 @@ public class TruncateTransformer
             if (StringUtils.isBlank(configuration.getToField())) {
                 // overwrite source field
                 PropertySetter.REPLACE.apply(
-                        docCtx.metadata(), fromField, targetValues);
+                        docCtx.metadata(), fromField, targetValues
+                );
             } else {
                 allTargetValues.addAll(targetValues);
             }
@@ -203,7 +209,8 @@ public class TruncateTransformer
             // set on target field
             PropertySetter.orAppend(configuration.getOnSet()).apply(
                     docCtx.metadata(),
-                    configuration.getToField(), allTargetValues);
+                    configuration.getToField(), allTargetValues
+            );
         }
     }
 
@@ -215,13 +222,15 @@ public class TruncateTransformer
             return StringUtil.truncateWithHash(
                     value,
                     maxLength,
-                    configuration.getSuffix());
+                    configuration.getSuffix()
+            );
         }
         if (StringUtils.isNotEmpty(configuration.getSuffix())) {
             return StringUtils.abbreviate(
                     value,
                     configuration.getSuffix(),
-                    maxLength);
+                    maxLength
+            );
         }
         return StringUtils.truncate(value, maxLength);
     }

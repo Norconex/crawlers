@@ -57,30 +57,29 @@ import lombok.Getter;
  */
 public enum Browser {
 
-
     /* NOTE: As per #844, we added --no-sandbox to the chrome driver, but it
      * started leaking orphan chrome processes so we are taking it out
      * by default to prevent the issue and we make it configurable instead.
      */
     CHROME(
-        // browser-specific options
-        location -> {
-            var options = new ChromeOptions();
-            options.addArguments("--headless=new");
-            ofNullable(location.getBrowserPath())
-                .ifPresent(p -> options.setBinary(p.toFile()));
-            return options;
-        },
-        // web driver factory
-        (location, options) -> new WebDriverBuilder()
-            .driverClass(ChromeDriver.class)
-            .driverSystemProperty(
-                    ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY)
-            .location(location)
-            .options(options)
-            .build(),
-        BrowserVersion.CHROME
-    ),
+            // browser-specific options
+            location -> {
+                var options = new ChromeOptions();
+                options.addArguments("--headless=new");
+                ofNullable(location.getBrowserPath())
+                        .ifPresent(p -> options.setBinary(p.toFile()));
+                return options;
+            },
+            // web driver factory
+            (location, options) -> new WebDriverBuilder()
+                    .driverClass(ChromeDriver.class)
+                    .driverSystemProperty(
+                            ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY
+                    )
+                    .location(location)
+                    .options(options)
+                    .build(),
+            BrowserVersion.CHROME),
 
     /* NOTE: Firefox (remote) driver seems to fail to return when page load
      * strategy is not set to EAGER.  The options are:
@@ -93,113 +92,116 @@ public enum Browser {
      * NONE:   Does not wait for pages to load, returning immediately.
      */
     FIREFOX(
-        // browser-specific options
-        location -> {
-            var options = new FirefoxOptions();
-            options.addArguments("-headless");
-            ofNullable(location.getBrowserPath()).ifPresent(options::setBinary);
-            //TODO consider making page load strategy configurable (with
-            //different defaults).
-            options.setPageLoadStrategy(PageLoadStrategy.EAGER);
+            // browser-specific options
+            location -> {
+                var options = new FirefoxOptions();
+                options.addArguments("-headless");
+                ofNullable(location.getBrowserPath())
+                        .ifPresent(options::setBinary);
+                //TODO consider making page load strategy configurable (with
+                //different defaults).
+                options.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
-            var profile = options.getProfile();
-            profile.setAcceptUntrustedCertificates(true);
-            profile.setAssumeUntrustedCertificateIssuer(false);
-            profile.setPreference("devtools.console.stdout.content", true);
-            profile.setPreference("browser.privatebrowsing.autostart", true);
-            profile.setPreference("browser.aboutHomeSnippets.updateUrl", "");
-            profile.setPreference("services.settings.server", EMPTY);
-            profile.setPreference("location.services.mozilla.com", EMPTY);
-            profile.setPreference("shavar.services.mozilla.com", EMPTY);
-            profile.setPreference("app.normandy.enabled", false);
-            profile.setPreference("app.update.service.enabled", false);
-            profile.setPreference("app.update.staging.enabled", false);
-            options.setProfile(profile);
-            return options;
-        },
-        // web driver factory
-        (location, options) -> new WebDriverBuilder()
-            .driverClass(FirefoxDriver.class)
-            .driverSystemProperty(GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY)
-            .location(location)
-            .options(options)
-            .build(),
-        BrowserVersion.FIREFOX
-    ),
+                var profile = options.getProfile();
+                profile.setAcceptUntrustedCertificates(true);
+                profile.setAssumeUntrustedCertificateIssuer(false);
+                profile.setPreference("devtools.console.stdout.content", true);
+                profile.setPreference(
+                        "browser.privatebrowsing.autostart",
+                        true
+                );
+                profile.setPreference(
+                        "browser.aboutHomeSnippets.updateUrl",
+                        ""
+                );
+                profile.setPreference("services.settings.server", EMPTY);
+                profile.setPreference("location.services.mozilla.com", EMPTY);
+                profile.setPreference("shavar.services.mozilla.com", EMPTY);
+                profile.setPreference("app.normandy.enabled", false);
+                profile.setPreference("app.update.service.enabled", false);
+                profile.setPreference("app.update.staging.enabled", false);
+                options.setProfile(profile);
+                return options;
+            },
+            // web driver factory
+            (location, options) -> new WebDriverBuilder()
+                    .driverClass(FirefoxDriver.class)
+                    .driverSystemProperty(
+                            GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY
+                    )
+                    .location(location)
+                    .options(options)
+                    .build(),
+            BrowserVersion.FIREFOX),
 
     EDGE(
-        // browser-specific options
-        location -> new EdgeOptions(),
-        // web driver factory
-        (location, options) -> new WebDriverBuilder()
-            .driverClass(EdgeDriver.class)
-            .driverSystemProperty(EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY)
-            .location(location)
-            .options(options)
-            .build(),
-            BrowserVersion.EDGE
-    ),
+            // browser-specific options
+            location -> new EdgeOptions(),
+            // web driver factory
+            (location, options) -> new WebDriverBuilder()
+                    .driverClass(EdgeDriver.class)
+                    .driverSystemProperty(
+                            EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY
+                    )
+                    .location(location)
+                    .options(options)
+                    .build(),
+            BrowserVersion.EDGE),
 
     /* NOTE: Safari path is constant so it is ignored if supplied.
      */
     SAFARI(
-        // browser-specific options
-        location -> new SafariOptions(),
-        // web driver factory
-        (location, options) -> new WebDriverBuilder()
-            .driverClass(SafariDriver.class)
-            .location(location)
-            .options(options)
-            .build(),
-        null
-    ),
+            // browser-specific options
+            location -> new SafariOptions(),
+            // web driver factory
+            (location, options) -> new WebDriverBuilder()
+                    .driverClass(SafariDriver.class)
+                    .location(location)
+                    .options(options)
+                    .build(),
+            null),
 
     OPERA(
-        // browser-specific options
-        location -> new ChromeOptions()
-            .setExperimentalOption("w3c", true)
-            .addArguments("--headless=new"),
-        // web driver factory
-        (location, options) -> new WebDriverBuilder()
-            .driverClass(ChromeDriver.class)
-            .driverSystemProperty(Browser.OPERA_DRIVER_EXE_PROPERTY)
-            .location(location)
-            .options(options)
-            .build(),
-        null
-    ),
+            // browser-specific options
+            location -> new ChromeOptions()
+                    .setExperimentalOption("w3c", true)
+                    .addArguments("--headless=new"),
+            // web driver factory
+            (location, options) -> new WebDriverBuilder()
+                    .driverClass(ChromeDriver.class)
+                    .driverSystemProperty(Browser.OPERA_DRIVER_EXE_PROPERTY)
+                    .location(location)
+                    .options(options)
+                    .build(),
+            null),
 
     CUSTOM(
-        // browser-specific options
-        location -> new CustomDriverOptions(),
-        // web driver factory
-        (location, options) -> new WebDriverBuilder()
-            .location(location)
-            .options(options)
-            .build(),
-        null
-    )
-    ;
+            // browser-specific options
+            location -> new CustomDriverOptions(),
+            // web driver factory
+            (location, options) -> new WebDriverBuilder()
+                    .location(location)
+                    .options(options)
+                    .build(),
+            null);
 
     private static final Logger LOG = LoggerFactory.getLogger(Browser.class);
     private static final String OPERA_DRIVER_EXE_PROPERTY =
             "webdriver.opera.driver";
 
-
-    private final Function
-            <WebDriverLocation, MutableCapabilities> optionsSupplier;
-    private final BiFunction
-            <WebDriverLocation, MutableCapabilities, WebDriver> driverFactory;
+    private final Function<WebDriverLocation,
+            MutableCapabilities> optionsSupplier;
+    private final BiFunction<WebDriverLocation, MutableCapabilities,
+            WebDriver> driverFactory;
     @Getter(value = AccessLevel.PACKAGE)
     private final BrowserVersion htmlUnitBrowser;
 
     Browser(
-            Function
-                <WebDriverLocation, MutableCapabilities> optionsSupplier,
-            BiFunction
-                <WebDriverLocation, MutableCapabilities, WebDriver>
-                    driverFactory,
-            BrowserVersion htmlUnitBrowser) {
+            Function<WebDriverLocation, MutableCapabilities> optionsSupplier,
+            BiFunction<WebDriverLocation, MutableCapabilities,
+                    WebDriver> driverFactory,
+            BrowserVersion htmlUnitBrowser
+    ) {
         this.optionsSupplier = optionsSupplier;
         this.driverFactory = driverFactory;
         this.htmlUnitBrowser = htmlUnitBrowser;
@@ -208,9 +210,11 @@ public enum Browser {
     public MutableCapabilities createOptions(WebDriverLocation location) {
         return optionsSupplier.apply(location);
     }
+
     public WebDriver createDriver(
             WebDriverLocation location,
-            MutableCapabilities options) {
+            MutableCapabilities options
+    ) {
         return driverFactory.apply(location, options);
     }
 
@@ -228,18 +232,22 @@ public enum Browser {
         private String driverSystemProperty;
         private MutableCapabilities options;
         private Class<? extends WebDriver> driverClass;
+
         WebDriverBuilder location(WebDriverLocation location) {
             this.location = location;
             return this;
         }
+
         WebDriverBuilder driverSystemProperty(String propertyName) {
             driverSystemProperty = propertyName;
             return this;
         }
+
         WebDriverBuilder options(MutableCapabilities options) {
             this.options = options;
             return this;
         }
+
         WebDriverBuilder driverClass(Class<? extends WebDriver> driverClass) {
             this.driverClass = driverClass;
             return this;
@@ -259,17 +267,24 @@ public enum Browser {
             try {
                 return SystemUtil.callWithProperty(
                         driverSystemProperty, driverPath, () -> {
-                    if (location.getRemoteURL() != null) {
-                        LOG.info("Creating remote \"{}\" web driver.",
-                                driverClass.getSimpleName());
-                        return new RemoteWebDriver(
-                                location.getRemoteURL(), options);
-                    }
-                    LOG.info("Creating local \"{}\" web driver.",
-                            driverClass.getSimpleName());
-                    return ConstructorUtils.invokeExactConstructor(
-                            driverClass, options);
-                });
+                            if (location.getRemoteURL() != null) {
+                                LOG.info(
+                                        "Creating remote \"{}\" web driver.",
+                                        driverClass.getSimpleName()
+                                );
+                                return new RemoteWebDriver(
+                                        location.getRemoteURL(), options
+                                );
+                            }
+                            LOG.info(
+                                    "Creating local \"{}\" web driver.",
+                                    driverClass.getSimpleName()
+                            );
+                            return ConstructorUtils.invokeExactConstructor(
+                                    driverClass, options
+                            );
+                        }
+                );
             } catch (Exception e) {
                 throw new CrawlerException("Could not build web driver", e);
             }
@@ -279,10 +294,12 @@ public enum Browser {
     public static class CustomDriverOptions
             extends AbstractDriverOptions<AbstractDriverOptions<?>> {
         private static final long serialVersionUID = 1L;
+
         @Override
         protected Object getExtraCapability(String capabilityName) {
             return null;
         }
+
         @Override
         protected Set<String> getExtraCapabilityNames() {
             return Collections.emptySet();

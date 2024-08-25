@@ -34,13 +34,15 @@ public class RenameOperation {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets source field matcher for fields to rename to the value of "toField".
      * @param fieldMatcher field matcher
      * @return this instance
      */
     public RenameOperation setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

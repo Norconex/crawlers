@@ -47,95 +47,114 @@ class OnMatchFiltersResolverTest {
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
 
         // match - include
-        crawler.getConfiguration().setMetadataFilters(List.of(
-                configure(new GenericReferenceFilter(), cfg -> cfg
-                        .setValueMatcher(basic("ref"))
-                        .setOnMatch(OnMatch.INCLUDE))));
+        crawler.getConfiguration().setMetadataFilters(
+                List.of(
+                        configure(
+                                new GenericReferenceFilter(), cfg -> cfg
+                                        .setValueMatcher(basic("ref"))
+                                        .setOnMatch(OnMatch.INCLUDE)
+                        )
+                )
+        );
         var ctx1 = new ImporterPipelineContext(crawler, doc);
         crawler.getDocPipelines().getImporterPipeline().apply(ctx1);
 
         assertThat(ctx1.getDoc().getDocContext().getState())
-            .isNotSameAs(CrawlDocState.REJECTED);
+                .isNotSameAs(CrawlDocState.REJECTED);
 
         // match - exclude
-        crawler.getConfiguration().setMetadataFilters(List.of(
-                configure(new GenericReferenceFilter(), cfg -> cfg
-                        .setValueMatcher(basic("ref"))
-                        .setOnMatch(OnMatch.EXCLUDE))));
+        crawler.getConfiguration().setMetadataFilters(
+                List.of(
+                        configure(
+                                new GenericReferenceFilter(), cfg -> cfg
+                                        .setValueMatcher(basic("ref"))
+                                        .setOnMatch(OnMatch.EXCLUDE)
+                        )
+                )
+        );
         var ctx2 = new ImporterPipelineContext(crawler, doc);
         crawler.getDocPipelines().getImporterPipeline().apply(ctx2);
         assertThat(ctx2.getDoc().getDocContext().getState())
-            .isSameAs(CrawlDocState.REJECTED);
+                .isSameAs(CrawlDocState.REJECTED);
 
         // no match - include
-        crawler.getConfiguration().setMetadataFilters(List.of(
-                configure(new GenericReferenceFilter(), cfg -> cfg
-                        .setValueMatcher(basic("noref"))
-                        .setOnMatch(OnMatch.INCLUDE))));
+        crawler.getConfiguration().setMetadataFilters(
+                List.of(
+                        configure(
+                                new GenericReferenceFilter(), cfg -> cfg
+                                        .setValueMatcher(basic("noref"))
+                                        .setOnMatch(OnMatch.INCLUDE)
+                        )
+                )
+        );
         var ctx3 = new ImporterPipelineContext(crawler, doc);
         crawler.getDocPipelines().getImporterPipeline().apply(ctx3);
         assertThat(ctx3.getDoc().getDocContext().getState())
-            .isSameAs(CrawlDocState.REJECTED);
+                .isSameAs(CrawlDocState.REJECTED);
     }
 
     @ParameterizedTest
     @CsvSource(textBlock = """
-        #Originally in good state, currently doing metadata:
-        NEW, REQUIRED, REQUIRED, METADATA, false
-        NEW, OPTIONAL, REQUIRED, METADATA, true
-        NEW, DISABLED, REQUIRED, METADATA, false
-        NEW, REQUIRED, OPTIONAL, METADATA, false
-        NEW, OPTIONAL, OPTIONAL, METADATA, true
-        NEW, DISABLED, OPTIONAL, METADATA, false
-        NEW, REQUIRED, DISABLED, METADATA, false
-        NEW, OPTIONAL, DISABLED, METADATA, false
-        NEW, DISABLED, DISABLED, METADATA, false
-        #Originally in good state, currently doing document:
-        NEW, REQUIRED, REQUIRED, DOCUMENT, false
-        NEW, OPTIONAL, REQUIRED, DOCUMENT, false
-        NEW, DISABLED, REQUIRED, DOCUMENT, false
-        NEW, REQUIRED, OPTIONAL, DOCUMENT, true
-        NEW, OPTIONAL, OPTIONAL, DOCUMENT, true
-        NEW, DISABLED, OPTIONAL, DOCUMENT, false
-        NEW, REQUIRED, DISABLED, DOCUMENT, false
-        NEW, OPTIONAL, DISABLED, DOCUMENT, false
-        NEW, DISABLED, DISABLED, DOCUMENT, false
-        #Originally in bad state, currently doing metadata:
-        BAD_STATUS, REQUIRED, REQUIRED, METADATA, false
-        BAD_STATUS, OPTIONAL, REQUIRED, METADATA, true
-        BAD_STATUS, DISABLED, REQUIRED, METADATA, false
-        BAD_STATUS, REQUIRED, OPTIONAL, METADATA, false
-        BAD_STATUS, OPTIONAL, OPTIONAL, METADATA, true
-        BAD_STATUS, DISABLED, OPTIONAL, METADATA, false
-        BAD_STATUS, REQUIRED, DISABLED, METADATA, false
-        BAD_STATUS, OPTIONAL, DISABLED, METADATA, false
-        BAD_STATUS, DISABLED, DISABLED, METADATA, false
-        #Originally in bad state, currently doing document:
-        BAD_STATUS, REQUIRED, REQUIRED, DOCUMENT, false
-        BAD_STATUS, OPTIONAL, REQUIRED, DOCUMENT, false
-        BAD_STATUS, DISABLED, REQUIRED, DOCUMENT, false
-        BAD_STATUS, REQUIRED, OPTIONAL, DOCUMENT, false
-        BAD_STATUS, OPTIONAL, OPTIONAL, DOCUMENT, false
-        BAD_STATUS, DISABLED, OPTIONAL, DOCUMENT, false
-        BAD_STATUS, REQUIRED, DISABLED, DOCUMENT, false
-        BAD_STATUS, OPTIONAL, DISABLED, DOCUMENT, false
-        BAD_STATUS, DISABLED, DISABLED, DOCUMENT, false
-        """)
+            #Originally in good state, currently doing metadata:
+            NEW, REQUIRED, REQUIRED, METADATA, false
+            NEW, OPTIONAL, REQUIRED, METADATA, true
+            NEW, DISABLED, REQUIRED, METADATA, false
+            NEW, REQUIRED, OPTIONAL, METADATA, false
+            NEW, OPTIONAL, OPTIONAL, METADATA, true
+            NEW, DISABLED, OPTIONAL, METADATA, false
+            NEW, REQUIRED, DISABLED, METADATA, false
+            NEW, OPTIONAL, DISABLED, METADATA, false
+            NEW, DISABLED, DISABLED, METADATA, false
+            #Originally in good state, currently doing document:
+            NEW, REQUIRED, REQUIRED, DOCUMENT, false
+            NEW, OPTIONAL, REQUIRED, DOCUMENT, false
+            NEW, DISABLED, REQUIRED, DOCUMENT, false
+            NEW, REQUIRED, OPTIONAL, DOCUMENT, true
+            NEW, OPTIONAL, OPTIONAL, DOCUMENT, true
+            NEW, DISABLED, OPTIONAL, DOCUMENT, false
+            NEW, REQUIRED, DISABLED, DOCUMENT, false
+            NEW, OPTIONAL, DISABLED, DOCUMENT, false
+            NEW, DISABLED, DISABLED, DOCUMENT, false
+            #Originally in bad state, currently doing metadata:
+            BAD_STATUS, REQUIRED, REQUIRED, METADATA, false
+            BAD_STATUS, OPTIONAL, REQUIRED, METADATA, true
+            BAD_STATUS, DISABLED, REQUIRED, METADATA, false
+            BAD_STATUS, REQUIRED, OPTIONAL, METADATA, false
+            BAD_STATUS, OPTIONAL, OPTIONAL, METADATA, true
+            BAD_STATUS, DISABLED, OPTIONAL, METADATA, false
+            BAD_STATUS, REQUIRED, DISABLED, METADATA, false
+            BAD_STATUS, OPTIONAL, DISABLED, METADATA, false
+            BAD_STATUS, DISABLED, DISABLED, METADATA, false
+            #Originally in bad state, currently doing document:
+            BAD_STATUS, REQUIRED, REQUIRED, DOCUMENT, false
+            BAD_STATUS, OPTIONAL, REQUIRED, DOCUMENT, false
+            BAD_STATUS, DISABLED, REQUIRED, DOCUMENT, false
+            BAD_STATUS, REQUIRED, OPTIONAL, DOCUMENT, false
+            BAD_STATUS, OPTIONAL, OPTIONAL, DOCUMENT, false
+            BAD_STATUS, DISABLED, OPTIONAL, DOCUMENT, false
+            BAD_STATUS, REQUIRED, DISABLED, DOCUMENT, false
+            BAD_STATUS, OPTIONAL, DISABLED, DOCUMENT, false
+            BAD_STATUS, DISABLED, DISABLED, DOCUMENT, false
+            """)
     void testShouldAbortOnBadStatus(
             CrawlDocState originalDocState,
             FetchDirectiveSupport metaSupport,
             FetchDirectiveSupport docSupport,
             FetchDirective currentDirective,
-            boolean expected) {
+            boolean expected
+    ) {
         CrawlDocStubs.crawlDocWithCache("ref", "content");
         var crawler = CrawlerStubs.memoryCrawler(tempDir);
         var cfg = crawler.getConfiguration();
         cfg.setMetadataFetchSupport(metaSupport);
         cfg.setDocumentFetchSupport(docSupport);
 
-        assertThat(FetchUtil.shouldContinueOnBadStatus(
-                crawler,
-                originalDocState,
-                currentDirective)).isEqualTo(expected);
+        assertThat(
+                FetchUtil.shouldContinueOnBadStatus(
+                        crawler,
+                        originalDocState,
+                        currentDirective
+                )
+        ).isEqualTo(expected);
     }
 }

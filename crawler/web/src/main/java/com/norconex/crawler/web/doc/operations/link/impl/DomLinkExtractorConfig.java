@@ -280,17 +280,26 @@ public class DomLinkExtractorConfig {
         addLinkSelector(selector, null);
         return this;
     }
+
     public DomLinkExtractorConfig addLinkSelector(
-            String selector, String extract) {
-        linkSelectors.add(new LinkSelector(
-                trim(selector), isBlank(extract) ? "text" : trim(extract)));
+            String selector, String extract
+    ) {
+        linkSelectors.add(
+                new LinkSelector(
+                        trim(selector),
+                        isBlank(extract) ? "text" : trim(extract)
+                )
+        );
         return this;
     }
+
     public DomLinkExtractorConfig removeLinkSelector(String selector) {
         linkSelectors.removeIf(
-                ls -> Objects.equals(ls.getSelector(), trim(selector)));
+                ls -> Objects.equals(ls.getSelector(), trim(selector))
+        );
         return this;
     }
+
     public DomLinkExtractorConfig clearLinkSelectors() {
         linkSelectors.clear();
         return this;
@@ -299,10 +308,12 @@ public class DomLinkExtractorConfig {
     public List<String> getExtractSelectors() {
         return Collections.unmodifiableList(extractSelectors);
     }
+
     public DomLinkExtractorConfig setExtractSelectors(List<String> selectors) {
         CollectionUtil.setAll(extractSelectors, selectors);
         return this;
     }
+
     public DomLinkExtractorConfig addExtractSelectors(List<String> selectors) {
         extractSelectors.addAll(selectors);
         return this;
@@ -311,11 +322,17 @@ public class DomLinkExtractorConfig {
     public List<String> getNoExtractSelectors() {
         return Collections.unmodifiableList(noExtractSelectors);
     }
-    public DomLinkExtractorConfig setNoExtractSelectors(List<String> selectors) {
+
+    public DomLinkExtractorConfig setNoExtractSelectors(
+            List<String> selectors
+    ) {
         CollectionUtil.setAll(noExtractSelectors, selectors);
         return this;
     }
-    public DomLinkExtractorConfig addNoExtractSelectors(List<String> selectors) {
+
+    public DomLinkExtractorConfig addNoExtractSelectors(
+            List<String> selectors
+    ) {
         noExtractSelectors.addAll(selectors);
         return this;
     }
@@ -327,6 +344,7 @@ public class DomLinkExtractorConfig {
     public List<String> getSchemes() {
         return Collections.unmodifiableList(schemes);
     }
+
     /**
      * Sets the schemes to be extracted.
      * @param schemes schemes to be extracted

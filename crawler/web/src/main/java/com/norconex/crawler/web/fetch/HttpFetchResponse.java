@@ -22,5 +22,6 @@ import com.norconex.crawler.core.fetch.FetchResponse;
  */
 public interface HttpFetchResponse extends FetchResponse {
     String getUserAgent();
+
     String getRedirectTarget();
 }

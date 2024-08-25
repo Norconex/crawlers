@@ -125,6 +125,7 @@ public class DomSplitterConfig extends BaseDocumentSplitterConfig {
      * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
+
     public DomSplitterConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
@@ -139,6 +140,7 @@ public class DomSplitterConfig extends BaseDocumentSplitterConfig {
      */
     private final TextMatcher contentTypeMatcher =
             CommonMatchers.domContentTypes();
+
     /**
      * The matcher of content types to apply splitting on. No attempt to
      * split documents of any other content types will be made. Default is

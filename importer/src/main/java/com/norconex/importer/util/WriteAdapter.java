@@ -39,10 +39,12 @@ public class WriteAdapter {
 
     private final Supplier<OutputStream> outputSupplier;
     private final Charset defaultCharset;
+
     public WriteAdapter(Supplier<OutputStream> outputSupplier) {
         this.outputSupplier = outputSupplier;
         defaultCharset = null;
     }
+
     public WriteAdapter(OutputStream outputStream) {
         outputSupplier = () -> outputStream;
         defaultCharset = null;
@@ -55,11 +57,15 @@ public class WriteAdapter {
     public Writer asWriter() {
         return asWriter(null);
     }
+
     public Writer asWriter(Charset charset) {
         var os = outputSupplier.get();
-        var writer = new OutputStreamWriter(IOUtil.toNonNullOutputStream(os),
+        var writer = new OutputStreamWriter(
+                IOUtil.toNonNullOutputStream(os),
                 ObjectUtils.firstNonNull(
-                        charset, defaultCharset, StandardCharsets.UTF_8));
+                        charset, defaultCharset, StandardCharsets.UTF_8
+                )
+        );
         //NOTE: we wrap this writer to overwrite the write() methods.
         // That is necessary to "write" empty strings to the underlying
         // output stream. Without this, the CachedOutputStream will not be
@@ -77,6 +83,7 @@ public class WriteAdapter {
                 }
                 flush();
             }
+
             @Override
             public void write(char[] cbuf, int off, int len)
                     throws IOException {

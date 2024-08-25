@@ -27,6 +27,7 @@ class LogUtilTest {
 
         assertThat(MDC.get(LogUtil.MDC_CRAWLER_ID)).isEqualTo("Crawler Id");
         assertThat(MDC.get(LogUtil.MDC_CRAWLER_ID_SAFE)).isEqualTo(
-                "Crawler_32_Id");
+                "Crawler_32_Id"
+        );
     }
 }

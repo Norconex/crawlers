@@ -22,6 +22,7 @@ public enum HttpMethod {
     public boolean is(HttpMethod httpMethod) {
         return this.equals(httpMethod);
     }
+
     public boolean isAny(HttpMethod... httpMethods) {
         for (HttpMethod httpMethod : httpMethods) {
             if (is(httpMethod)) {

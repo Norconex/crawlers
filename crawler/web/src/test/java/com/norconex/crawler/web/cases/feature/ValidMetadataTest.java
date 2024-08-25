@@ -47,7 +47,8 @@ class ValidMetadataTest {
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(
-                    List.of(serverUrl(client, "/validMetadata/0000")));
+                    List.of(serverUrl(client, "/validMetadata/0000"))
+            );
             cfg.setMaxDepth(10);
         });
 
@@ -57,11 +58,11 @@ class ValidMetadataTest {
         for (UpsertRequest doc : mem.getUpsertRequests()) {
             var meta = doc.getMetadata();
             assertThat(meta.getStrings(HttpHeaders.CONTENT_TYPE))
-                .containsExactly("text/html; charset=UTF-8");
+                    .containsExactly("text/html; charset=UTF-8");
             assertThat(meta.getStrings(DocMetadata.CONTENT_TYPE))
-                .containsExactly("text/html");
+                    .containsExactly("text/html");
             assertThat(meta.getStrings(DocMetadata.CONTENT_ENCODING))
-                .containsExactly(StandardCharsets.UTF_8.toString());
+                    .containsExactly(StandardCharsets.UTF_8.toString());
         }
     }
 }

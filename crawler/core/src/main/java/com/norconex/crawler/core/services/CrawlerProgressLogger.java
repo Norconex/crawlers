@@ -57,7 +57,8 @@ public class CrawlerProgressLogger {
 
     // Minimum 1 second
     public CrawlerProgressLogger(
-            CrawlerMonitor monitor, Duration minLoggingInterval) {
+            CrawlerMonitor monitor, Duration minLoggingInterval
+    ) {
         this.monitor = monitor;
         if (minLoggingInterval != null && minLoggingInterval.getSeconds() < 0) {
             this.minLoggingInterval = Duration.ofSeconds(1);
@@ -72,6 +73,7 @@ public class CrawlerProgressLogger {
         stopWatch.reset();
         stopWatch.start();
     }
+
     public void stopTracking() {
         if (!stopWatch.isStopped()) {
             stopWatch.stop();
@@ -99,10 +101,12 @@ public class CrawlerProgressLogger {
                 .append(divideDownStr(processedCount * 1000, elapsed, 1))
                 .append(" processed/seconds")
                 .append("\n  Event counts:");
-        monitor.getEventCounts(). entrySet().stream().forEach(en -> b
-                .append("\n    ")
-                .append(StringUtils.rightPad(en.getKey() + ": ", 27))
-                .append(intFormatter.format(en.getValue())));
+        monitor.getEventCounts().entrySet().stream().forEach(
+                en -> b
+                        .append("\n    ")
+                        .append(StringUtils.rightPad(en.getKey() + ": ", 27))
+                        .append(intFormatter.format(en.getValue()))
+        );
         return b.toString();
     }
 
@@ -121,8 +125,10 @@ public class CrawlerProgressLogger {
         var msg = infoMessage(elapsed, processedCount, queuedCount);
         if (LOG.isDebugEnabled()) {
             // if debugging, compute and show more stats
-            LOG.info("{}{}", msg,
-                    debugMessage(elapsed, processedCount, queuedCount));
+            LOG.info(
+                    "{}{}", msg,
+                    debugMessage(elapsed, processedCount, queuedCount)
+            );
         } else {
             LOG.info(msg);
         }
@@ -132,38 +138,50 @@ public class CrawlerProgressLogger {
     }
 
     private String infoMessage(
-            long elapsed, long processedCount, long queuedCount) {
+            long elapsed, long processedCount, long queuedCount
+    ) {
         var processedDelta = plusMinus(processedCount - prevProcessedCount);
         var queuedDelta = plusMinus(queuedCount - prevQueuedCount);
         var elapsedTime = durationFormatter.format(stopWatch.getTime());
         var throughput = divideDownStr(
                 (processedCount - prevProcessedCount) * 1000,
                 elapsed - prevElapsed,
-                1);
-        return String.format("%s(%s) processed "
-                + "| %s(%s) queued | %s processed/sec | %s elapsed",
+                1
+        );
+        return String.format(
+                "%s(%s) processed "
+                        + "| %s(%s) queued | %s processed/sec | %s elapsed",
                 processedCount,
                 processedDelta,
                 queuedCount,
                 queuedDelta,
                 throughput,
-                elapsedTime);
+                elapsedTime
+        );
     }
+
     private String debugMessage(
-            long elapsed, long processedCount, long queuedCount) {
+            long elapsed, long processedCount, long queuedCount
+    ) {
         var totalSoFar = processedCount + queuedCount;
         var progress = divideDownStr(processedCount * 100, totalSoFar, 2);
-        var remaining = durationFormatter.format(divideDown(
-                elapsed * queuedCount,
-                processedCount,
-                0).longValueExact());
-        return String.format(" | ≈%s%% complete | ≈%s remaining",
-                progress, remaining);
+        var remaining = durationFormatter.format(
+                divideDown(
+                        elapsed * queuedCount,
+                        processedCount,
+                        0
+                ).longValueExact()
+        );
+        return String.format(
+                " | ≈%s%% complete | ≈%s remaining",
+                progress, remaining
+        );
     }
 
     private String plusMinus(long val) {
         return (val >= 0 ? "+" : "") + intFormatter.format(val);
     }
+
     private BigDecimal divideDown(long dividend, long divisor, int scale) {
         if (divisor == 0L) {
             return BigDecimal.ZERO;
@@ -172,6 +190,7 @@ public class CrawlerProgressLogger {
                 .divide(BigDecimal.valueOf(divisor), scale, RoundingMode.DOWN)
                 .stripTrailingZeros();
     }
+
     private String divideDownStr(long dividend, long divisor, int scale) {
         return divideDown(dividend, divisor, scale).toPlainString();
     }

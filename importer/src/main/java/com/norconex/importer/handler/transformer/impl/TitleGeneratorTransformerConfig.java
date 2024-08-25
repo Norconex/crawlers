@@ -150,12 +150,14 @@ public class TitleGeneratorTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets source field matcher for fields to use to generate title.
      * @param fieldMatcher field matcher
      */
     public TitleGeneratorTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

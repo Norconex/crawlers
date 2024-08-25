@@ -33,6 +33,7 @@ public class StripBetweenOperation {
     public TextMatcher getStartMatcher() {
         return startMatcher;
     }
+
     /**
      * Sets the start delimiter matcher for text to strip.
      * @param startMatcher start delimiter matcher
@@ -42,6 +43,7 @@ public class StripBetweenOperation {
         this.startMatcher.copyFrom(startMatcher);
         return this;
     }
+
     /**
      * Gets the end delimiter matcher for text to strip.
      * @return end delimiter matcher
@@ -49,6 +51,7 @@ public class StripBetweenOperation {
     public TextMatcher getEndMatcher() {
         return endMatcher;
     }
+
     /**
      * Sets the end delimiter matcher for text to strip.
      * @param endMatcher end delimiter matcher

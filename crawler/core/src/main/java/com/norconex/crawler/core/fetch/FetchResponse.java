@@ -16,12 +16,13 @@ package com.norconex.crawler.core.fetch;
 
 import com.norconex.crawler.core.doc.CrawlDocState;
 
-public interface FetchResponse{
+public interface FetchResponse {
 
     CrawlDocState getCrawlDocState();
 
     //TODO should be in core?
     int getStatusCode();
+
     //TODO should be in core?
     String getReasonPhrase();
 

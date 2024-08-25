@@ -43,6 +43,6 @@ public interface DocumentChecksummer {
      * @param document an HTTP document
      * @return a checksum value
      */
-	String createDocumentChecksum(Doc document);
+    String createDocumentChecksum(Doc document);
 
 }

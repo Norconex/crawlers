@@ -63,11 +63,14 @@ class LanguageTransformerTest {
         t.getConfiguration().setLanguages(Arrays.asList("fr", "it"));
         var meta = new Properties();
 
-        t.accept(TestUtil.newDocContext(
-                "n/a",
-                factory.newInputStream(sampleTexts.get("en")),
-                meta,
-                ParseState.POST));
+        t.accept(
+                TestUtil.newDocContext(
+                        "n/a",
+                        factory.newInputStream(sampleTexts.get("en")),
+                        meta,
+                        ParseState.POST
+                )
+        );
         Assertions.assertNotEquals("en", meta.getString(DocMetadata.LANGUAGE));
     }
 
@@ -76,15 +79,19 @@ class LanguageTransformerTest {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration().setLanguages(
-                Arrays.asList("en", "fr", "it", "es"));
+                Arrays.asList("en", "fr", "it", "es")
+        );
         var meta = new Properties();
 
         for (String lang : sampleTexts.keySet()) {
-            t.accept(TestUtil.newDocContext(
-                    "n/a",
-                    factory.newInputStream(sampleTexts.get(lang)),
-                    meta,
-                    ParseState.POST));
+            t.accept(
+                    TestUtil.newDocContext(
+                            "n/a",
+                            factory.newInputStream(sampleTexts.get(lang)),
+                            meta,
+                            ParseState.POST
+                    )
+            );
             Assertions.assertEquals(lang, meta.getString(DocMetadata.LANGUAGE));
         }
     }
@@ -93,8 +100,8 @@ class LanguageTransformerTest {
     void testWrite() {
         var t = new LanguageTransformer();
         t.getConfiguration()
-            .setKeepProbabilities(true)
-            .setFallbackLanguage("fr");
+                .setKeepProbabilities(true)
+                .setFallbackLanguage("fr");
 
         var sw = new StringWriter();
         BeanMapper.DEFAULT.write(t, sw, Format.XML);
@@ -104,11 +111,11 @@ class LanguageTransformerTest {
         sw = new StringWriter();
         BeanMapper.DEFAULT.write(t, sw, Format.XML);
         assertThat(sw.toString()).contains("""
-            <languages>\
-            <language>it</language>\
-            <language>br</language>\
-            <language>en</language>\
-            </languages>""");
+                <languages>\
+                <language>it</language>\
+                <language>br</language>\
+                <language>en</language>\
+                </languages>""");
     }
 
     @Test
@@ -133,31 +140,32 @@ class LanguageTransformerTest {
                 </LanguageTransformer>
                 """;
 
-
         var t1 = BeanMapper.DEFAULT.read(
-                LanguageTransformer.class, new StringReader(xml1), Format.XML);
+                LanguageTransformer.class, new StringReader(xml1), Format.XML
+        );
         assertThat(t1.getConfiguration().getLanguages()).isEmpty();
 
         var t2 = BeanMapper.DEFAULT.read(
-                LanguageTransformer.class, new StringReader(xml2), Format.XML);
+                LanguageTransformer.class, new StringReader(xml2), Format.XML
+        );
         assertThat(t2.getConfiguration().getLanguages()).contains(
-                "it", "br", "en");
+                "it", "br", "en"
+        );
     }
-
 
     @Test
     void testWriteRead() {
         var t = new LanguageTransformer();
         t.getConfiguration()
-            .setKeepProbabilities(true)
-            .setFallbackLanguage("fr");
+                .setKeepProbabilities(true)
+                .setFallbackLanguage("fr");
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
 
         t.getConfiguration().setLanguages(Arrays.asList("it", "br", "en"));
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -165,28 +173,32 @@ class LanguageTransformerTest {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration()
-            .setKeepProbabilities(true)
-            .setLanguages(Arrays.asList("en", "fr", "nl"));
+                .setKeepProbabilities(true)
+                .setLanguages(Arrays.asList("en", "fr", "nl"));
         var meta = new Properties();
-        var content = """
-            Alice fing an sich zu langweilen; sie saß schon lange bei ihrer\s\
-            Schwester am Ufer und hatte nichts zu thun. Das Buch, das ihre\s\
-            Schwester las, gefiel ihr nicht; denn es waren weder Bilder noch\s\
-            [2] Gespräche darin. „Und was nützen Bücher,“ dachte Alice, „ohne\s\
-            Bilder und Gespräche?“
+        var content =
+                """
+                        Alice fing an sich zu langweilen; sie saß schon lange bei ihrer\s\
+                        Schwester am Ufer und hatte nichts zu thun. Das Buch, das ihre\s\
+                        Schwester las, gefiel ihr nicht; denn es waren weder Bilder noch\s\
+                        [2] Gespräche darin. „Und was nützen Bücher,“ dachte Alice, „ohne\s\
+                        Bilder und Gespräche?“
 
-            Sie überlegte sich eben, (so gut es ging, denn sie war schläfrig\s\
-            und dumm von der Hitze,) ob es der Mühe werth sei aufzustehen und\s\
-            Gänseblümchen zu pflücken, um eine Kette damit zu machen, als\s\
-            plötzlich ein weißes Kaninchen mit rothen Augen dicht an ihr\s\
-            vorbeirannte.
+                        Sie überlegte sich eben, (so gut es ging, denn sie war schläfrig\s\
+                        und dumm von der Hitze,) ob es der Mühe werth sei aufzustehen und\s\
+                        Gänseblümchen zu pflücken, um eine Kette damit zu machen, als\s\
+                        plötzlich ein weißes Kaninchen mit rothen Augen dicht an ihr\s\
+                        vorbeirannte.
 
-            This last line is purposely in English.""";
-        t.accept(TestUtil.newDocContext(
-                "n/a",
-                factory.newInputStream(content),
-                meta,
-                ParseState.POST));
+                        This last line is purposely in English.""";
+        t.accept(
+                TestUtil.newDocContext(
+                        "n/a",
+                        factory.newInputStream(content),
+                        meta,
+                        ParseState.POST
+                )
+        );
         Assertions.assertEquals("nl", meta.getString(DocMetadata.LANGUAGE));
     }
 }

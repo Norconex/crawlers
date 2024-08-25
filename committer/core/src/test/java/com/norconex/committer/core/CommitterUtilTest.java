@@ -24,40 +24,50 @@ class CommitterUtilTest {
 
     @Test
     void testGetContentAsString() throws CommitterException {
-        assertThat(CommitterUtil.getContentAsString(
-                TestUtil.upsertRequest("ref", "gotit"))).isEqualTo("gotit");
-        assertThat(CommitterUtil.getContentAsString(
-                TestUtil.deleteRequest("ref"))).isNull();
+        assertThat(
+                CommitterUtil.getContentAsString(
+                        TestUtil.upsertRequest("ref", "gotit")
+                )
+        ).isEqualTo("gotit");
+        assertThat(
+                CommitterUtil.getContentAsString(
+                        TestUtil.deleteRequest("ref")
+                )
+        ).isNull();
         assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
-            CommitterUtil.getContentAsString(new UpsertRequest(
-                    "ref", null, new BrokenInputStream()));
+            CommitterUtil.getContentAsString(
+                    new UpsertRequest(
+                            "ref", null, new BrokenInputStream()
+                    )
+            );
         });
     }
 
     @Test
     void testExtractSourceIdValueCommitterRequestString() {
         var req = TestUtil.upsertRequest(
-                "someRef", "content", "srcField", "srcValue");
+                "someRef", "content", "srcField", "srcValue"
+        );
 
         // get source id from request ref
         assertThat(CommitterUtil.extractSourceIdValue(req, null))
-            .isEqualTo("someRef");
+                .isEqualTo("someRef");
 
         // get source id from request metadata field, keeping it
         assertThat(CommitterUtil.extractSourceIdValue(req, "srcField", true))
-            .isEqualTo("srcValue");
+                .isEqualTo("srcValue");
         assertThat(req.getMetadata().getString("srcField"))
-            .isEqualTo("srcValue");
+                .isEqualTo("srcValue");
 
         // get source id from request metadata field, not keeping it
         assertThat(CommitterUtil.extractSourceIdValue(req, "srcField"))
-            .isEqualTo("srcValue");
+                .isEqualTo("srcValue");
         assertThat(req.getMetadata().getString("srcField"))
-            .isNull();
+                .isNull();
 
         // at this point, source field does not exist, default to ref
         assertThat(CommitterUtil.extractSourceIdValue(req, "srcField"))
-            .isEqualTo("someRef");
+                .isEqualTo("someRef");
     }
 
     @Test
@@ -67,13 +77,15 @@ class CommitterUtilTest {
         // test storing the content stream into a field
         CommitterUtil.applyTargetContent(req, "overHere");
         assertThat(req.getMetadata().getString("overHere"))
-            .isEqualTo("content");
+                .isEqualTo("content");
     }
 
     @Test
     void testApplyTargetId() {
-        var req = TestUtil.upsertRequest("someRef", "content",
-                "fromId", "myValue");
+        var req = TestUtil.upsertRequest(
+                "someRef", "content",
+                "fromId", "myValue"
+        );
 
         // test storing the content stream into a field
         CommitterUtil.applyTargetId(req, "fromId", "toId");

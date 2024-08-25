@@ -312,13 +312,15 @@ public class ExternalTransformerConfig {
     public List<RegexFieldValueExtractor> getExtractionPatterns() {
         return Collections.unmodifiableList(extractionPatterns);
     }
+
     /**
      * Sets metadata extraction patterns. See class documentation.
      * @param patterns extraction pattern
      * @return this instance
      */
     public ExternalTransformerConfig setExtractionPatterns(
-            List<RegexFieldValueExtractor> extractionPatterns) {
+            List<RegexFieldValueExtractor> extractionPatterns
+    ) {
         CollectionUtil.setAll(this.extractionPatterns, extractionPatterns);
         return this;
     }

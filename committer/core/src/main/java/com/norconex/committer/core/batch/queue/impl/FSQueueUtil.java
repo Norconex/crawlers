@@ -46,8 +46,8 @@ public final class FSQueueUtil {
     static final String EXT = ".zip";
     static final FileFilter FILTER = f -> f.getName().endsWith(EXT);
 
-    private FSQueueUtil() {}
-
+    private FSQueueUtil() {
+    }
 
     /**
      * Recursively gets whether a queue directory is empty of
@@ -68,16 +68,21 @@ public final class FSQueueUtil {
      * @throws IOException problem occurred searching for files.
      */
     public static Stream<Path> findZipFiles(Path dir) throws IOException {
-       return Files
-               .find(dir, Integer.MAX_VALUE, (f, a) -> FILTER.accept(f.toFile()))
-               .sorted();
+        return Files
+                .find(
+                        dir, Integer.MAX_VALUE,
+                        (f, a) -> FILTER.accept(f.toFile())
+                )
+                .sorted();
     }
 
     public static void toZipFile(
-            CommitterRequest request, Path targetFile) throws IOException {
+            CommitterRequest request, Path targetFile
+    ) throws IOException {
 
         try (var zipOS = new ZipOutputStream(
-                IOUtils.buffer(Files.newOutputStream(targetFile)), UTF_8)) {
+                IOUtils.buffer(Files.newOutputStream(targetFile)), UTF_8
+        )) {
             // Reference
             zipOS.putNextEntry(new ZipEntry("reference"));
             IOUtils.write(request.getReference(), zipOS, UTF_8);
@@ -104,16 +109,18 @@ public final class FSQueueUtil {
             throws IOException {
         return fromZipFile(sourceFile, null);
     }
+
     public static CommitterRequest fromZipFile(
-            Path sourceFile, CachedStreamFactory streamFactory)
-                    throws IOException {
+            Path sourceFile, CachedStreamFactory streamFactory
+    )
+            throws IOException {
         String ref = null;
         var meta = new Properties();
         CachedInputStream content = null;
 
         try (var zipFile = new ZipFile(sourceFile.toFile())) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while(entries.hasMoreElements()){
+            while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 var name = entry.getName();
                 try (var is = zipFile.getInputStream(entry)) {
@@ -123,8 +130,10 @@ public final class FSQueueUtil {
                         meta.loadFromProperties(is);
                     } else if ("content".equals(name)) {
                         var csf = Optional.ofNullable(
-                                streamFactory).orElseGet(
-                                        CachedStreamFactory::new);
+                                streamFactory
+                        ).orElseGet(
+                                CachedStreamFactory::new
+                        );
                         content = csf.newInputStream(is); //NOSONAR returns it
                         content.enforceFullCaching();
                         content.rewind();
@@ -133,8 +142,10 @@ public final class FSQueueUtil {
             }
         }
         if (ref == null) {
-            throw new IOException("Committer queue zip contains no "
-                    + "\"reference\" file: " + sourceFile);
+            throw new IOException(
+                    "Committer queue zip contains no "
+                            + "\"reference\" file: " + sourceFile
+            );
         }
 
         if (content == null) {

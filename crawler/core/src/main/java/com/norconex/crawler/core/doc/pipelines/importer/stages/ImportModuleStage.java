@@ -39,7 +39,8 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
         // has one to deal with
         if (!isContentTypeSet && response.getDoc() != null) {
             doc.getDocContext().setContentType(
-                    response.getDoc().getDocContext().getContentType());
+                    response.getDoc().getDocContext().getContentType()
+            );
         }
 
         return true;

@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.doc.operations.filter;
 
-
 /**
  * Tells the collector that a filter is of "OnMatch" type.  This means
  * if one or more filters of type "include" exist in a set of filters,

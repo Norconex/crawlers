@@ -70,7 +70,7 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @Slf4j
 @Data
-public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
+public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {
 
     private static final int LOG_TIME_BATCH_SIZE = 100;
 
@@ -96,6 +96,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
         watch.reset();
         watch.start();
     }
+
     @Override
     protected void doUpsert(UpsertRequest upsertRequest)
             throws CommitterException {
@@ -103,13 +104,17 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
         b.append("\n=== DOCUMENT UPSERTED ================================\n");
 
         stringifyRefAndMeta(
-                b, upsertRequest.getReference(), upsertRequest.getMetadata());
+                b, upsertRequest.getReference(), upsertRequest.getMetadata()
+        );
 
         if (!configuration.isIgnoreContent()) {
             b.append("\n--- Content ---------------------------------------\n");
             try {
-                b.append(IOUtils.toString(
-                        upsertRequest.getContent(), UTF_8)).append('\n');
+                b.append(
+                        IOUtils.toString(
+                                upsertRequest.getContent(), UTF_8
+                        )
+                ).append('\n');
             } catch (IOException e) {
                 b.append(ExceptionUtils.getStackTrace(e));
             }
@@ -121,13 +126,15 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
             LOG.info("{} upsert logged in: {}", addCount, watch);
         }
     }
+
     @Override
     protected void doDelete(DeleteRequest deleteRequest)
             throws CommitterException {
         var b = new StringBuilder();
         b.append("\n=== DOCUMENT DELETED =================================\n");
         stringifyRefAndMeta(
-                b, deleteRequest.getReference(), deleteRequest.getMetadata());
+                b, deleteRequest.getReference(), deleteRequest.getMetadata()
+        );
         log(b.toString());
 
         removeCount++;
@@ -135,6 +142,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
             LOG.info("{} delete logged in {}", removeCount, watch);
         }
     }
+
     @Override
     protected void doClose() throws CommitterException {
         watch.stop();
@@ -149,14 +157,16 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
     }
 
     private void stringifyRefAndMeta(
-            StringBuilder b, String reference, Properties metadata) {
+            StringBuilder b, String reference, Properties metadata
+    ) {
         b.append("REFERENCE = ").append(reference).append('\n');
         if (metadata != null) {
             b.append("\n--- Metadata: -------------------------------------\n");
             for (Entry<String, List<String>> en : metadata.entrySet()) {
                 if (configuration.getFieldMatcher().getPattern() == null
                         || configuration.getFieldMatcher().matches(
-                                en.getKey())) {
+                                en.getKey()
+                        )) {
                     for (String val : en.getValue()) {
                         b.append(en.getKey()).append(" = ")
                                 .append(val).append('\n');

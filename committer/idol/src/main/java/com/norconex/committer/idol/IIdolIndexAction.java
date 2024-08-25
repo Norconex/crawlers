@@ -8,7 +8,6 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.commons.lang.url.HttpURL;
 
-
 /* Delete/add params are set by IDOL Client prior to calling
  * "prepare".
  */

@@ -99,8 +99,8 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class XMLFileCommitter extends AbstractFSCommitter
-        <EnhancedXMLStreamWriter, XMLFileCommitterConfig> {
+public class XMLFileCommitter extends
+        AbstractFSCommitter<EnhancedXMLStreamWriter, XMLFileCommitterConfig> {
 
     @Getter
     private final XMLFileCommitterConfig configuration =
@@ -110,26 +110,31 @@ public class XMLFileCommitter extends AbstractFSCommitter
     protected String getFileExtension() {
         return "xml";
     }
+
     @Override
     protected EnhancedXMLStreamWriter createDocWriter(Writer writer)
             throws IOException {
         var xml = new EnhancedXMLStreamWriter(
-                writer, false, configuration.getIndent());
+                writer, false, configuration.getIndent()
+        );
         xml.writeStartDocument();
         xml.writeStartElement("docs");
         return xml;
     }
+
     @Override
-    protected void writeUpsert(EnhancedXMLStreamWriter xml,
-            UpsertRequest upsertRequest) throws IOException {
+    protected void writeUpsert(
+            EnhancedXMLStreamWriter xml,
+            UpsertRequest upsertRequest
+    ) throws IOException {
 
         xml.writeStartElement("upsert");
 
         xml.writeElementString("reference", upsertRequest.getReference());
 
         xml.writeStartElement("metadata");
-        for (Entry<String, List<String>> entry
-                : upsertRequest.getMetadata().entrySet()) {
+        for (Entry<String, List<String>> entry : upsertRequest.getMetadata()
+                .entrySet()) {
             for (String value : entry.getValue()) {
                 xml.writeStartElement("meta");
                 xml.writeAttributeString("name", entry.getKey());
@@ -137,25 +142,31 @@ public class XMLFileCommitter extends AbstractFSCommitter
                 xml.writeEndElement();
             }
         }
-        xml.writeEndElement();  // </metadata>
+        xml.writeEndElement(); // </metadata>
 
-        xml.writeElementString("content", IOUtils.toString(
-                upsertRequest.getContent(), StandardCharsets.UTF_8).trim());
+        xml.writeElementString(
+                "content", IOUtils.toString(
+                        upsertRequest.getContent(), StandardCharsets.UTF_8
+                ).trim()
+        );
 
-        xml.writeEndElement();  // </upsert>
+        xml.writeEndElement(); // </upsert>
         xml.flush();
     }
+
     @Override
-    protected void writeDelete(EnhancedXMLStreamWriter xml,
-            DeleteRequest deleteRequest) throws IOException {
+    protected void writeDelete(
+            EnhancedXMLStreamWriter xml,
+            DeleteRequest deleteRequest
+    ) throws IOException {
 
         xml.writeStartElement("delete");
 
         xml.writeElementString("reference", deleteRequest.getReference());
 
         xml.writeStartElement("metadata");
-        for (Entry<String, List<String>> entry
-                : deleteRequest.getMetadata().entrySet()) {
+        for (Entry<String, List<String>> entry : deleteRequest.getMetadata()
+                .entrySet()) {
             for (String value : entry.getValue()) {
                 xml.writeStartElement("meta");
                 xml.writeAttributeString("name", entry.getKey());
@@ -168,6 +179,7 @@ public class XMLFileCommitter extends AbstractFSCommitter
         xml.writeEndElement(); // </delete>
         xml.flush();
     }
+
     @Override
     protected void closeDocWriter(EnhancedXMLStreamWriter xml)
             throws IOException {

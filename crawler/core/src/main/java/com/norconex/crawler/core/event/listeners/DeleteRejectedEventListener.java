@@ -134,7 +134,8 @@ public class DeleteRejectedEventListener implements
         // of on completion in case users want to keep a record.
         crawler.getDataStoreEngine().dropStore("rejected-refs");
         refStore = crawler.getDataStoreEngine().openStore(
-                "rejected-refs", Boolean.class);
+                "rejected-refs", Boolean.class
+        );
     }
 
     private void close() {
@@ -153,8 +154,11 @@ public class DeleteRejectedEventListener implements
         // does it have a document reference?
         var docInfo = event.getDocContext();
         if (docInfo == null) {
-            LOG.warn("Listening for reference rejections on a crawler event "
-                    + "that has no reference: {}", event.getName());
+            LOG.warn(
+                    "Listening for reference rejections on a crawler event "
+                            + "that has no reference: {}",
+                    event.getName()
+            );
             return;
         }
 
@@ -173,14 +177,19 @@ public class DeleteRejectedEventListener implements
 
     private void commitDeletions(Crawler crawler) {
         if (LOG.isInfoEnabled()) {
-            LOG.info("Committing {} rejected references for deletion...",
-                    refStore.count());
+            LOG.info(
+                    "Committing {} rejected references for deletion...",
+                    refStore.count()
+            );
         }
         refStore.forEach((ref, sent) -> {
             if (Boolean.FALSE.equals(sent)) {
-                crawler.getServices().getCommitterService().delete(new CrawlDoc(
-                        new CrawlDocContext(ref),
-                        CachedInputStream.cache(new NullInputStream())));
+                crawler.getServices().getCommitterService().delete(
+                        new CrawlDoc(
+                                new CrawlDocContext(ref),
+                                CachedInputStream.cache(new NullInputStream())
+                        )
+                );
             }
             return true;
         });

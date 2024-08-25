@@ -86,6 +86,7 @@ public class PDFPageSplitterConfig extends BaseDocumentSplitterConfig {
      */
     private final TextMatcher contentTypeMatcher =
             TextMatcher.basic("application/pdf");
+
     /**
      * The matcher of content types to apply splitting on. No attempt to
      * split documents of any other content types will be made. Default is

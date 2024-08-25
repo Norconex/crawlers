@@ -24,7 +24,8 @@ import com.norconex.crawler.fs.path.FsPath;
  * Fetches File System resources.
  * @since 4.0.0
  */
-public interface FileFetcher extends Fetcher<FileFetchRequest, FileFetchResponse> {
+public interface FileFetcher
+        extends Fetcher<FileFetchRequest, FileFetchResponse> {
 
     Set<FsPath> fetchChildPaths(String parentPath) throws FetchException;
 }

@@ -53,6 +53,7 @@ class DepthValidationStageTest {
         docRec.setState(CrawlDocState.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(
-                CrawlDocState.TOO_DEEP);
+                CrawlDocState.TOO_DEEP
+        );
     }
 }

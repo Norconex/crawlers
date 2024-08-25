@@ -42,19 +42,21 @@ public class FileMultiFetcher
         implements FileFetcher {
 
     public FileMultiFetcher(
-            @NonNull
-            List<? extends Fetcher <FileFetchRequest, FileFetchResponse>> fetchers,
-            @NonNull
-            ResponseListAdapter<FileFetchResponse> multiResponseWrapper,
-            @NonNull
-            UnsuccessfulResponseFactory
-                    <FileFetchResponse> unsuccessfulResponseAdaptor,
-            int maxRetries, Duration retryDelay) {
-        super(fetchers,
+            @NonNull List<? extends Fetcher<FileFetchRequest,
+                    FileFetchResponse>> fetchers,
+            @NonNull ResponseListAdapter<
+                    FileFetchResponse> multiResponseWrapper,
+            @NonNull UnsuccessfulResponseFactory<
+                    FileFetchResponse> unsuccessfulResponseAdaptor,
+            int maxRetries, Duration retryDelay
+    ) {
+        super(
+                fetchers,
                 multiResponseWrapper,
                 unsuccessfulResponseAdaptor,
                 maxRetries,
-                retryDelay);
+                retryDelay
+        );
     }
 
     @Override
@@ -62,38 +64,46 @@ public class FileMultiFetcher
             throws FetchException {
 
         var accepted = false;
-        for (Fetcher<FileFetchRequest, FileFetchResponse> fetcher :
-                getFetchers()) {
+        for (Fetcher<FileFetchRequest,
+                FileFetchResponse> fetcher : getFetchers()) {
 
             // Fetch request is fake here, just so we can invoke "accept"
             var req = new FileFetchRequest(
                     new CrawlDoc(new CrawlDocContext(parentPath)),
-                    FetchDirective.DOCUMENT);
+                    FetchDirective.DOCUMENT
+            );
             if (!fetcher.accept(req)) {
                 continue;
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Child paths fetcher {} accepted this "
-                        + "reference: \"{}\".",
-                        fetcher.getClass().getSimpleName(), parentPath);
+                LOG.debug(
+                        "Child paths fetcher {} accepted this "
+                                + "reference: \"{}\".",
+                        fetcher.getClass().getSimpleName(), parentPath
+                );
             }
             accepted = true;
 
             try {
-                return new Retrier(getMaxRetries()).execute(() ->
-                        ((FileFetcher) fetcher).fetchChildPaths(parentPath));
+                return new Retrier(getMaxRetries())
+                        .execute(
+                                () -> ((FileFetcher) fetcher)
+                                        .fetchChildPaths(parentPath)
+                        );
             } catch (RetriableException e) {
-                LOG.debug("Failed to obtain child paths with fetcher: {}.",
-                        fetcher.getClass().getName(), e);
+                LOG.debug(
+                        "Failed to obtain child paths with fetcher: {}.",
+                        fetcher.getClass().getName(), e
+                );
             }
         }
         if (!accepted) {
             LOG.debug("""
-                No fetcher accepted to fetch this\s\
-                reference when fetching children: "{}".\s\
-                For generic reference filtering it is highly recommended \s\
-                you use a regular reference filtering options, such as \s\
-                reference filters.""", parentPath);
+                    No fetcher accepted to fetch this\s\
+                    reference when fetching children: "{}".\s\
+                    For generic reference filtering it is highly recommended \s\
+                    you use a regular reference filtering options, such as \s\
+                    reference filters.""", parentPath);
         }
         return Collections.emptySet();
     }

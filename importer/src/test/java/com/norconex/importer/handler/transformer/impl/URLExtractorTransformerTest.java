@@ -34,21 +34,22 @@ class URLExtractorTransformerTest {
     void testWriteRead() {
         var t = new URLExtractorTransformer();
         t.getConfiguration()
-            .setFieldMatcher(TextMatcher.basic("blah"))
-            .setMaxReadSize(10)
-            .setOnSet(PropertySetter.REPLACE)
-            .setSourceCharset(UTF_8)
-            .setToField("there");
+                .setFieldMatcher(TextMatcher.basic("blah"))
+                .setMaxReadSize(10)
+                .setOnSet(PropertySetter.REPLACE)
+                .setSourceCharset(UTF_8)
+                .setToField("there");
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t));
+                () -> BeanMapper.DEFAULT.assertWriteRead(t)
+        );
     }
 
     @Test
     void testURLExtractorTagger() throws IOException {
         var t = new URLExtractorTransformer();
         t.getConfiguration()
-            .setToField("result");
+                .setToField("result");
 
         var text = """
                 This is a sample http://example.com/ url to be extracted.
@@ -56,10 +57,15 @@ class URLExtractorTransformerTest {
                 """;
 
         var props = new Properties();
-        t.accept(TestUtil.newDocContext(
-                "ref", TestUtil.toInputStream(text), props, ParseState.POST));
+        t.accept(
+                TestUtil.newDocContext(
+                        "ref", TestUtil.toInputStream(text), props,
+                        ParseState.POST
+                )
+        );
         assertThat(props.getStrings("result")).containsExactlyInAnyOrder(
                 "http://example.com/",
-                "https://www.example.com/blah.html"); // https is prepended
+                "https://www.example.com/blah.html"
+        ); // https is prepended
     }
 }

@@ -95,13 +95,15 @@ public class NumericConditionConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the text matcher of field names. Copies it.
      * @param fieldMatcher text matcher
      * @return this instance
      */
     public NumericConditionConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
@@ -109,8 +111,10 @@ public class NumericConditionConfig {
     public NumericValueMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     public NumericConditionConfig setValueMatcher(
-            NumericValueMatcher firstValueMatcher) {
+            NumericValueMatcher firstValueMatcher
+    ) {
         valueMatcher = firstValueMatcher;
         return this;
     }
@@ -118,8 +122,10 @@ public class NumericConditionConfig {
     public NumericValueMatcher getValueMatcherRangeEnd() {
         return valueMatcherRangeEnd;
     }
+
     public NumericConditionConfig setValueMatcherRangeEnd(
-            NumericValueMatcher secondValueMatcher) {
+            NumericValueMatcher secondValueMatcher
+    ) {
         valueMatcherRangeEnd = secondValueMatcher;
         return this;
     }

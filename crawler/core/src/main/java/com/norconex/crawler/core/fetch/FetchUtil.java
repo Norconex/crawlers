@@ -24,12 +24,14 @@ import lombok.NonNull;
  */
 public final class FetchUtil {
 
-    private FetchUtil() {}
+    private FetchUtil() {
+    }
 
     public static boolean shouldContinueOnBadStatus(
             @NonNull Crawler crawler,
             CrawlDocState originalCrawlDocState,
-            @NonNull FetchDirective fetchDirective) {
+            @NonNull FetchDirective fetchDirective
+    ) {
         // Note: a disabled directive should never get here,
         // and when both are enabled, DOCUMENT always comes after METADATA.
         var metaSupport = crawler.getConfiguration().getMetadataFetchSupport();
@@ -45,7 +47,7 @@ public final class FetchUtil {
             return FetchDirectiveSupport.OPTIONAL.is(metaSupport)
                     && FetchDirectiveSupport.isEnabled(docSupport);
 
-        //--- GET ---
+            //--- GET ---
         }
         if (FetchDirective.DOCUMENT.is(fetchDirective)) {
             // if directive is required, we end it here.

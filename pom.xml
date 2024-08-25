@@ -893,7 +893,7 @@
             <encoding>UTF-8</encoding>
             <configFile>${project.parent.basedir}/norconex-formatter.xml</configFile>
             <includes>
-              <include>com/norconex/</include>
+              <include>com/norconex/**/*.java</include>
             </includes>
           </configuration>
           <inherited>true</inherited>

@@ -39,6 +39,7 @@ public interface CrawlerStopper {
      */
     void listenForStopRequest(Crawler crawler)
             throws CrawlerStopperException;
+
     /**
      * Destroys resources allocated with this stopper.
      * Called at the end of a crawl session execution.

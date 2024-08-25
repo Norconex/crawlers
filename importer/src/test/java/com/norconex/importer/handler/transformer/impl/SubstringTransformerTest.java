@@ -48,8 +48,8 @@ class SubstringTransformerTest {
             throws IOException {
         var t = new SubstringTransformer();
         t.getConfiguration()
-            .setBegin(begin)
-            .setEnd(end);
+                .setBegin(begin)
+                .setEnd(end);
         var doc = TestUtil.newDocContext(content);
         t.accept(doc);
         return doc.input().asString();
@@ -59,9 +59,9 @@ class SubstringTransformerTest {
     void testWriteRead() {
         var t = new SubstringTransformer();
         t.getConfiguration()
-            .setBegin(1000)
-            .setEnd(5000);
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+                .setBegin(1000)
+                .setEnd(5000);
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

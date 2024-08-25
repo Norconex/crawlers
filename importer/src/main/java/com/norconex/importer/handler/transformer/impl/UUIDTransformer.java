@@ -80,6 +80,7 @@ public class UUIDTransformer
             finalField = UUIDTransformerConfig.DEFAULT_FIELD;
         }
         PropertySetter.orAppend(configuration.getOnSet()).apply(
-                docCtx.metadata(), finalField, uuid);
+                docCtx.metadata(), finalField, uuid
+        );
     }
 }

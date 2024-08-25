@@ -28,7 +28,8 @@ public class DelayResolverStage extends AbstractImporterStage {
         if (delayResolver != null) {
             String reference = ctx.getDoc().getDocContext().getReference();
             delayResolver.delay(
-                    Web.robotsTxt(ctx.getCrawler(), reference), reference);
+                    Web.robotsTxt(ctx.getCrawler(), reference), reference
+            );
         }
         return true;
     }

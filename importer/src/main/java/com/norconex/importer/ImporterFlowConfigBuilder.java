@@ -26,12 +26,17 @@ public class ImporterFlowConfigBuilder implements Supplier<FlowMapperConfig> {
             .setConsumerNameProvider(c -> "handler");
     static {
         CFG.getConsumerType()
-            .setBaseType(DocumentHandler.class)
-            .setScanFilter(n -> n.startsWith("com.norconex.importer.handler"));
+                .setBaseType(DocumentHandler.class)
+                .setScanFilter(
+                        n -> n.startsWith("com.norconex.importer.handler")
+                );
         CFG.getPredicateType()
-            .setBaseType(BaseCondition.class)
-            .setScanFilter(n -> n.startsWith(
-                    "com.norconex.importer.handler.condition"));
+                .setBaseType(BaseCondition.class)
+                .setScanFilter(
+                        n -> n.startsWith(
+                                "com.norconex.importer.handler.condition"
+                        )
+                );
     }
 
     @Override

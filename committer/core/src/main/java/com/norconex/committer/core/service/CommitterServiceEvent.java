@@ -69,10 +69,12 @@ public class CommitterServiceEvent extends Event {
         // Cannot use ReflectionToStringBuilder here to prevent
         // "An illegal reflective access operation has occurred"
         return new ToStringBuilder(this, ToStringStyle.NO_CLASS_NAME_STYLE)
-//                .appendSuper(super.toString())
-                .append("committers", '[' + committers.stream()
-                        .map(c -> c.getClass().getSimpleName())
-                        .collect(Collectors.joining(",")) + ']')
+                //                .appendSuper(super.toString())
+                .append(
+                        "committers", '[' + committers.stream()
+                                .map(c -> c.getClass().getSimpleName())
+                                .collect(Collectors.joining(",")) + ']'
+                )
                 .append("subject", subject)
                 .build();
     }

@@ -65,12 +65,14 @@ public class CrawlerServices implements Closeable {
 
         docTrackerService.init();
 
-        committerService.init(CommitterContext
-                .builder()
-                .setEventManager(getEventManager())
-                .setWorkDir(crawler.getWorkDir().resolve("committer"))
-                .setStreamFactory(crawler.getStreamFactory())
-                .build());
+        committerService.init(
+                CommitterContext
+                        .builder()
+                        .setEventManager(getEventManager())
+                        .setWorkDir(crawler.getWorkDir().resolve("committer"))
+                        .setStreamFactory(crawler.getStreamFactory())
+                        .build()
+        );
 
         dedupService.init(crawler);
     }

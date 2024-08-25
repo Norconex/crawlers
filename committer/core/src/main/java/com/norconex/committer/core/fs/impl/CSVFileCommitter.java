@@ -138,19 +138,23 @@ public class CSVFileCommitter
     public static final int DEFAULT_TRUNCATE_AT = 5096;
 
     private final CSVFileCommitterConfig configuration =
-                new CSVFileCommitterConfig();
+            new CSVFileCommitterConfig();
 
     @Override
     protected String getFileExtension() {
         return "csv";
     }
+
     @Override
     protected CSVPrinter createDocWriter(Writer writer) throws IOException {
-        var builder = Builder.create(configuration.getFormat() == null
-                ? CSVFormat.newFormat(',')
-                : new EnumConverter().toType(
-                        configuration.getFormat().toString(),
-                        CSVFormat.Predefined.class).getFormat());
+        var builder = Builder.create(
+                configuration.getFormat() == null
+                        ? CSVFormat.newFormat(',')
+                        : new EnumConverter().toType(
+                                configuration.getFormat().toString(),
+                                CSVFormat.Predefined.class
+                        ).getFormat()
+        );
 
         if (configuration.getDelimiter() != null) {
             builder.setDelimiter(configuration.getDelimiter());
@@ -175,8 +179,11 @@ public class CSVFileCommitter
 
         if (StringUtils.isNotBlank(configuration.getTypeHeader())
                 || !configuration.isSplitUpsertDelete()) {
-            csv.print(isNotBlank(configuration.getTypeHeader())
-                    ? configuration.getTypeHeader() : "type");
+            csv.print(
+                    isNotBlank(configuration.getTypeHeader())
+                            ? configuration.getTypeHeader()
+                            : "type"
+            );
         }
         for (CSVColumn col : configuration.getColumns()) {
             var header = col.getHeader();
@@ -190,7 +197,8 @@ public class CSVFileCommitter
 
     @Override
     protected void writeUpsert(
-            CSVPrinter csv, UpsertRequest upsertRequest) throws IOException {
+            CSVPrinter csv, UpsertRequest upsertRequest
+    ) throws IOException {
 
         if (isNotBlank(configuration.getTypeHeader())
                 || !configuration.isSplitUpsertDelete()) {
@@ -205,7 +213,8 @@ public class CSVFileCommitter
             } else {
                 value = StringUtils.join(
                         upsertRequest.getMetadata().getStrings(field),
-                        configuration.getMultiValueJoinDelimiter());
+                        configuration.getMultiValueJoinDelimiter()
+                );
             }
             value = truncate(value, col.getTruncateAt());
             csv.print(StringUtils.trimToEmpty(value));
@@ -216,7 +225,8 @@ public class CSVFileCommitter
 
     @Override
     protected void writeDelete(
-            CSVPrinter csv, DeleteRequest deleteRequest) throws IOException {
+            CSVPrinter csv, DeleteRequest deleteRequest
+    ) throws IOException {
 
         if (isNotBlank(configuration.getTypeHeader())
                 || !configuration.isSplitUpsertDelete()) {
@@ -230,7 +240,8 @@ public class CSVFileCommitter
             if (StringUtils.isNotBlank(field)) {
                 value = StringUtils.join(
                         deleteRequest.getMetadata().getStrings(field),
-                        configuration.getMultiValueJoinDelimiter());
+                        configuration.getMultiValueJoinDelimiter()
+                );
             }
             value = truncate(value, col.getTruncateAt());
             csv.print(StringUtils.trimToEmpty(value));
@@ -259,7 +270,7 @@ public class CSVFileCommitter
     @Override
     protected void closeDocWriter(CSVPrinter csv)
             throws IOException {
-        if (csv!= null) {
+        if (csv != null) {
             csv.flush();
             csv.close();
         }

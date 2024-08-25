@@ -20,11 +20,13 @@ package com.norconex.crawler.core.fetch;
  */
 public enum FetchDirectiveSupport {
     DISABLED, OPTIONAL, REQUIRED;
+
     public boolean is(FetchDirectiveSupport support) {
         // considers null as disabled.
         return (this == DISABLED && support == null)
                 || (this == support);
     }
+
     public static boolean isEnabled(FetchDirectiveSupport support) {
         return support == FetchDirectiveSupport.OPTIONAL
                 || support == FetchDirectiveSupport.REQUIRED;

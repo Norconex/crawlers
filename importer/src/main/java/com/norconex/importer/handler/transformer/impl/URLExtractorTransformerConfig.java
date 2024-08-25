@@ -113,7 +113,6 @@ public class URLExtractorTransformerConfig implements ChunkedTextSupport {
     private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
     private Charset sourceCharset;
 
-
     /**
      * Gets field matcher for fields containing text.
      * @return field matcher
@@ -122,12 +121,14 @@ public class URLExtractorTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the field matcher for fields containing text.
      * @param fieldMatcher field matcher
      */
     public URLExtractorTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

@@ -114,15 +114,18 @@ public class JSONFileCommitter
     protected String getFileExtension() {
         return "json";
     }
+
     @Override
     protected Writer createDocWriter(Writer writer) throws IOException {
         writer.write("[");
         newLine(writer);
         return writer;
     }
+
     @Override
     protected synchronized void writeUpsert(
-            Writer writer, UpsertRequest upsertRequest) throws IOException {
+            Writer writer, UpsertRequest upsertRequest
+    ) throws IOException {
 
         if (!first) {
             writer.write(',');
@@ -132,8 +135,11 @@ public class JSONFileCommitter
         var doc = new JSONObject();
         doc.put("reference", upsertRequest.getReference());
         doc.put("metadata", new JSONObject(upsertRequest.getMetadata()));
-        doc.put("content", IOUtils.toString(
-                upsertRequest.getContent(), StandardCharsets.UTF_8).trim());
+        doc.put(
+                "content", IOUtils.toString(
+                        upsertRequest.getContent(), StandardCharsets.UTF_8
+                ).trim()
+        );
 
         var upsertObj = new JSONObject();
         upsertObj.put("upsert", doc);
@@ -149,7 +155,8 @@ public class JSONFileCommitter
 
     @Override
     protected synchronized void writeDelete(
-            Writer writer, DeleteRequest deleteRequest) throws IOException {
+            Writer writer, DeleteRequest deleteRequest
+    ) throws IOException {
 
         if (!first) {
             writer.write(',');

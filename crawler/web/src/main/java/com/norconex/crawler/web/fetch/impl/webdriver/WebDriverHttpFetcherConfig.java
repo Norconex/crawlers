@@ -52,10 +52,13 @@ public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
         NAME(By::name),
         PARTIALLINKTEXT(By::partialLinkText),
         XPATH(By::xpath);
+
         private final Function<String, By> byFunction;
+
         WaitElementType(Function<String, By> byFunction) {
             this.byFunction = byFunction;
         }
+
         By getBy(String selector) {
             return byFunction.apply(selector);
         }
@@ -98,13 +101,15 @@ public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
     private String waitForElementSelector;
     private long waitForElementTimeout;
 
-
     public Map<String, String> getCapabilities(
-            Map<String, String> capabilities) {
+            Map<String, String> capabilities
+    ) {
         return Collections.unmodifiableMap(capabilities);
     }
+
     public WebDriverHttpFetcherConfig setCapabilities(
-            Map<String, String> capabilities) {
+            Map<String, String> capabilities
+    ) {
         CollectionUtil.setAll(this.capabilities, capabilities);
         return this;
     }

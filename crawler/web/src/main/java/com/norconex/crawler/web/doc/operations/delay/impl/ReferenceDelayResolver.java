@@ -99,8 +99,8 @@ public class ReferenceDelayResolver
     @Override
     protected Duration resolveExplicitDelay(String url) {
         Duration delay = null;
-        for (DelayReferencePattern delayPattern :
-                configuration.getDelayReferencePatterns()) {
+        for (DelayReferencePattern delayPattern : configuration
+                .getDelayReferencePatterns()) {
             if (delayPattern.matches(url)) {
                 delay = delayPattern.getDelay();
                 break;
@@ -109,4 +109,3 @@ public class ReferenceDelayResolver
         return delay;
     }
 }
-

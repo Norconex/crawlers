@@ -50,17 +50,20 @@ class DocumentFiltersStageTest {
 
         // test match
         crawler.getConfiguration().setDocumentFilters(
-                List.of(new TestFilter(OnMatch.INCLUDE, true)));
+                List.of(new TestFilter(OnMatch.INCLUDE, true))
+        );
         assertThat(stage.test(ctx)).isTrue();
 
         // test no match
         crawler.getConfiguration().setDocumentFilters(
-                List.of(new TestFilter(OnMatch.INCLUDE, false)));
+                List.of(new TestFilter(OnMatch.INCLUDE, false))
+        );
         assertThat(stage.test(ctx)).isFalse();
 
         // exclude
         crawler.getConfiguration().setDocumentFilters(
-                List.of(new TestFilter(OnMatch.EXCLUDE, false)));
+                List.of(new TestFilter(OnMatch.EXCLUDE, false))
+        );
         assertThat(stage.test(ctx)).isFalse();
 
     }
@@ -70,6 +73,7 @@ class DocumentFiltersStageTest {
     static class TestFilter implements DocumentFilter, OnMatchFilter {
         private OnMatch onMatch;
         private boolean accepts;
+
         @Override
         public boolean acceptDocument(Doc document) {
             return accepts;

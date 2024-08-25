@@ -101,13 +101,15 @@ public class PDFPageSplitter
 
         // Make sure we are not splitting a page that was already split
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docRecord())
+                configuration.getContentTypeMatcher(), docCtx.docRecord()
+        )
                 || (docCtx.metadata().getInteger(DOC_PDF_PAGE_NO, 0) > 0)) {
             return;
         }
 
         try (var document = PDDocument.load(
-                docCtx.input().asInputStream())) {
+                docCtx.input().asInputStream()
+        )) {
 
             // Make sure we are not splitting single pages.
             if (document.getNumberOfPages() <= 1) {
@@ -133,9 +135,10 @@ public class PDFPageSplitter
 
                 var pageInfo = new DocContext(pageRef);
 
-                pageMeta.set(DocMetadata.EMBEDDED_REFERENCE,
-                        Integer.toString(pageNo));
-
+                pageMeta.set(
+                        DocMetadata.EMBEDDED_REFERENCE,
+                        Integer.toString(pageNo)
+                );
 
                 pageInfo.addEmbeddedParentReference(docCtx.reference());
 
@@ -144,19 +147,22 @@ public class PDFPageSplitter
 
                 // a single page should not be too big to store in memory
                 var os = new ByteArrayOutputStream();
-                try(page) {
+                try (page) {
                     page.save(os);
                 }
                 var pageDoc = new Doc(
                         pageInfo,
                         docCtx.streamFactory().newInputStream(
-                                os.toInputStream()),
-                        pageMeta);
+                                os.toInputStream()
+                        ),
+                        pageMeta
+                );
                 pageDocs.add(pageDoc);
             }
         } catch (IOException e) {
             throw new DocumentHandlerException(
-                    "Could not split PDF: " + docCtx.reference(), e);
+                    "Could not split PDF: " + docCtx.reference(), e
+            );
         }
     }
 }

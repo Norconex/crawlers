@@ -45,53 +45,63 @@ class CurrentDateTransformerTest {
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertTrue(
                 meta.getString(DocMetadata.IMPORTED_DATE).matches(
-                        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"),
-                "Returned date format does not match");
+                        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"
+                ),
+                "Returned date format does not match"
+        );
 
         meta = new Properties();
         t = new CurrentDateTransformer();
         t.getConfiguration()
-            .setFormat("EEEE")
-            .setLocale(Locale.CANADA_FRENCH);
+                .setFormat("EEEE")
+                .setLocale(Locale.CANADA_FRENCH);
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertTrue(
-                ArrayUtils.contains(new String[]{
-                        "lundi", "mardi", "mercredi", "jeudi", "vendredi",
-                        "samedi", "dimanche"},
-                        meta.getString(DocMetadata.IMPORTED_DATE)),
-                "Returned date format does not match");
+                ArrayUtils.contains(
+                        new String[] {
+                                "lundi", "mardi", "mercredi", "jeudi",
+                                "vendredi",
+                                "samedi", "dimanche" },
+                        meta.getString(DocMetadata.IMPORTED_DATE)
+                ),
+                "Returned date format does not match"
+        );
 
         meta = new Properties();
         meta.add("existingField", "1002727941000");
         t = new CurrentDateTransformer();
         t.getConfiguration()
-            .setOnSet(PropertySetter.REPLACE)
-            .setToField("existingField");
+                .setOnSet(PropertySetter.REPLACE)
+                .setToField("existingField");
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(
                 1, meta.getLongs("existingField").size(),
-                "Invalid overwritten number of date values");
+                "Invalid overwritten number of date values"
+        );
         Assertions.assertTrue(
                 meta.getLong("existingField") > now,
-                "Invalid overwritten date created");
+                "Invalid overwritten date created"
+        );
 
         meta = new Properties();
         meta.add("existingField", "1002727941000");
         t = new CurrentDateTransformer();
         t.getConfiguration()
-            .setOnSet(PropertySetter.APPEND)
-            .setToField("existingField");
+                .setOnSet(PropertySetter.APPEND)
+                .setToField("existingField");
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(
                 2, meta.getLongs("existingField").size(),
-                "Invalid added number of date values");
+                "Invalid added number of date values"
+        );
         var longs = meta.getLongs("existingField");
         for (Long dateLong : longs) {
             if (dateLong == 1002727941000L) {
                 continue;
             }
             Assertions.assertTrue(
-                    dateLong > now, "Invalid added date created");
+                    dateLong > now, "Invalid added date created"
+            );
         }
     }
 
@@ -99,9 +109,9 @@ class CurrentDateTransformerTest {
     void testWriteRead() {
         var t = new CurrentDateTransformer();
         t.getConfiguration()
-            .setToField("field1")
-            .setFormat("yyyy-MM-dd")
-            .setOnSet(PropertySetter.REPLACE);
+                .setToField("field1")
+                .setFormat("yyyy-MM-dd")
+                .setOnSet(PropertySetter.REPLACE);
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
 }

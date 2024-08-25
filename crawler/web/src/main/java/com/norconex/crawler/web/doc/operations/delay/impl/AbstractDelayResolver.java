@@ -101,24 +101,28 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
         }
         var delay = delays.get(getConfiguration().getScope());
         if (delay == null) {
-            LOG.warn("Unspecified or unsupported delay scope: {}. "
-                    + "Using {} scope.",
+            LOG.warn(
+                    "Unspecified or unsupported delay scope: {}. "
+                            + "Using {} scope.",
                     getConfiguration().getScope(),
-                    BaseDelayResolverConfig.DEFAULT_SCOPE);
+                    BaseDelayResolverConfig.DEFAULT_SCOPE
+            );
             delay = delays.get(BaseDelayResolverConfig.DEFAULT_SCOPE);
         }
         delay.delay(expectedDelayNanos, url);
     }
 
     private long getExpectedDelayNanos(
-            RobotsTxt robotsTxt, String url) {
+            RobotsTxt robotsTxt, String url
+    ) {
         var delayNanos = Optional
                 .ofNullable(getConfiguration().getDefaultDelay())
                 .orElse(BaseDelayResolverConfig.DEFAULT_DELAY)
                 .toNanos();
         if (isUsingRobotsTxtCrawlDelay(robotsTxt)) {
             delayNanos = TimeUnit.SECONDS.toNanos(
-                    (long)(robotsTxt.getCrawlDelay()));
+                    (long) (robotsTxt.getCrawlDelay())
+            );
         } else {
             var explicitDelay = resolveExplicitDelay(url);
             if (explicitDelay != null) {

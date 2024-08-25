@@ -35,25 +35,30 @@ class WebCrawlerConfigTest {
 
     @Test
     void testWebCrawlerConfig() {
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(
-                        CrawlerConfigStubs.randomMemoryCrawlerConfig(tempDir)));
+        assertThatNoException()
+                .isThrownBy(
+                        () -> BeanMapper.DEFAULT.assertWriteRead(
+                                CrawlerConfigStubs
+                                        .randomMemoryCrawlerConfig(tempDir)
+                        )
+                );
     }
 
     @Test
     void testValidation() {
         assertThatNoException().isThrownBy(() -> {
-                try (Reader r = new InputStreamReader(
-                        getClass().getResourceAsStream(
-                                "/validation/web-crawl-session-large.xml"))) {
-                    var cfg = new WebCrawlerConfig();
-                    BeanMapper.DEFAULT.read(cfg, r, Format.XML);
-                    BeanMapper.DEFAULT.assertWriteRead(cfg);
-                } catch (Exception e) {
-                    System.err.println(ExceptionUtil.getFormattedMessages(e));
-                    throw e;
-                }
+            try (Reader r = new InputStreamReader(
+                    getClass().getResourceAsStream(
+                            "/validation/web-crawl-session-large.xml"
+                    )
+            )) {
+                var cfg = new WebCrawlerConfig();
+                BeanMapper.DEFAULT.read(cfg, r, Format.XML);
+                BeanMapper.DEFAULT.assertWriteRead(cfg);
+            } catch (Exception e) {
+                System.err.println(ExceptionUtil.getFormattedMessages(e));
+                throw e;
             }
-        );
+        });
     }
 }

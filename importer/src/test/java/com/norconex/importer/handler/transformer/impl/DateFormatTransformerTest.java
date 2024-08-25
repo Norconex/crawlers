@@ -36,7 +36,6 @@ class DateFormatTransformerTest {
         var dateEPOCHFormat = "EPOCH";
         var dateHTTPFormat = "EEE, dd MMM yyyy HH:mm:ss";
 
-
         var dateISO = "2001-10-10T11:32:21";
         var dateEPOCH = "1002713541000";
         var dateHTTP = "Wed, 10 Oct 2001 11:32:21";
@@ -44,7 +43,7 @@ class DateFormatTransformerTest {
         var meta = new Properties();
         meta.add("dateISO", dateISO);
         meta.add("dateEPOCH", dateEPOCH);
-        meta.add("dateHTTP",  dateHTTP);
+        meta.add("dateHTTP", dateHTTP);
 
         var t = new DateFormatTransformer();
         var cfg = t.getConfiguration();
@@ -56,7 +55,8 @@ class DateFormatTransformerTest {
         cfg.setFromField("dateISO");
         cfg.setToFormat(dateEPOCHFormat);
         cfg.setFromFormats(
-                List.of(dateHTTPFormat, dateEPOCHFormat, dateISOFormat));
+                List.of(dateHTTPFormat, dateEPOCHFormat, dateISOFormat)
+        );
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(dateEPOCH, meta.getString("date"));
@@ -66,7 +66,8 @@ class DateFormatTransformerTest {
         cfg.setFromField("dateEPOCH");
         cfg.setToFormat(dateISOFormat);
         cfg.setFromFormats(
-                List.of(dateHTTPFormat, dateISOFormat, dateEPOCHFormat));
+                List.of(dateHTTPFormat, dateISOFormat, dateEPOCHFormat)
+        );
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(dateISO, meta.getString("date"));
 
@@ -75,7 +76,8 @@ class DateFormatTransformerTest {
         cfg.setFromField("dateHTTP");
         cfg.setToFormat(dateISOFormat);
         cfg.setFromFormats(
-                List.of(dateISOFormat, dateEPOCHFormat, dateHTTPFormat));
+                List.of(dateISOFormat, dateEPOCHFormat, dateHTTPFormat)
+        );
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(dateISO, meta.getString("date"));
 
@@ -143,7 +145,8 @@ class DateFormatTransformerTest {
         cfg.setToFormat("EEE, dd MMM yyyy");
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(
-                "Tue, 10 Apr 2001", meta.getString("targetField"));
+                "Tue, 10 Apr 2001", meta.getString("targetField")
+        );
 
         meta = new Properties();
         meta.add("sourceField", "2001-04-10T11:32:21");
@@ -157,7 +160,8 @@ class DateFormatTransformerTest {
         cfg.setToLocale(Locale.CANADA_FRENCH);
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(
-                "mar., 10 avr. 2001", meta.getString("targetField"));
+                "mar., 10 avr. 2001", meta.getString("targetField")
+        );
     }
 
     @Test
@@ -190,6 +194,7 @@ class DateFormatTransformerTest {
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals("2001-04-10", meta.getString("targetField"));
     }
+
     @Test
     void testWriteRead() {
         var t = new DateFormatTransformer();

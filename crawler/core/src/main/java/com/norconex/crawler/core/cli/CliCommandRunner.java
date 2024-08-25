@@ -40,52 +40,51 @@ import picocli.CommandLine.Spec;
     commandListHeading = "%nCommands:%n",
     footerHeading = "%nExamples:%n",
     footer = """
-        %n  Start a crawl session:%n\
-        %n    <app> start -config=/path/to/config.xml%n\
-        %n  Stop a crawl session:%n\
-        %n    <app> stop -config=/path/to/config.xml%n\
-        %n  Get usage help on "check" command:%n\
-        %n    <app> help configcheck%n
-        """,
+            %n  Start a crawl session:%n\
+            %n    <app> start -config=/path/to/config.xml%n\
+            %n  Stop a crawl session:%n\
+            %n    <app> stop -config=/path/to/config.xml%n\
+            %n  Get usage help on "check" command:%n\
+            %n    <app> help configcheck%n
+            """,
 
     subcommands = {
-        HelpCommand.class,
-        CliStartCommand.class,
-        CliStopCommand.class,
-        ConfigCheckCommand.class,
-        ConfigRenderCommand.class,
-        CleanCommand.class,
-        StoreExportCommand.class,
-        StoreImportCommand.class
+            HelpCommand.class,
+            CliStartCommand.class,
+            CliStopCommand.class,
+            ConfigCheckCommand.class,
+            ConfigRenderCommand.class,
+            CleanCommand.class,
+            StoreExportCommand.class,
+            StoreImportCommand.class
     }
 )
 @EqualsAndHashCode
 @ToString
 @RequiredArgsConstructor
 public class CliCommandRunner implements Runnable {
-//
-//    @NonNull
-//    private final CrawlerImpl crawlerImpl;
-//      @Getter
-//      @NonNull
-//      private final Crawler crawler;
+    //
+    //    @NonNull
+    //    private final CrawlerImpl crawlerImpl;
+    //      @Getter
+    //      @NonNull
+    //      private final Crawler crawler;
     @Getter
     @NonNull
     private final CrawlerBuilder crawlerBuilder;
-//    private final CrawlerConfig crawlerConfig; //TODO pass Class instead? Or builder with Class on it?
+    //    private final CrawlerConfig crawlerConfig; //TODO pass Class instead? Or builder with Class on it?
 
-
-//    @NonNull
-//    private final BeanMapper beanMapper;
-//
+    //    @NonNull
+    //    private final BeanMapper beanMapper;
+    //
     @Option(
-        names = {"-h", "-help"},
+        names = { "-h", "-help" },
         usageHelp = true,
         description = "Show this help message and exit"
     )
     private boolean help;
     @Option(
-        names = {"-v", "-version"},
+        names = { "-v", "-version" },
         description = "Show the crawler version and exit"
     )
     private boolean version;
@@ -93,43 +92,43 @@ public class CliCommandRunner implements Runnable {
     @Spec
     private CommandSpec spec;
 
-//    public CliCommandRunner(Crawler crawler/*@NonNull CrawlerImpl crawlerImpl*/) {
-//        this.crawler = crawler;
-//        this.crawlerImpl = crawlerImpl;
-//        var mapper = crawlerImpl.beanMapper();
-//        if (mapper == null) {
-//            mapper = CrawlSessionBeanMapperFactory.create(
-//                    crawlerImpl.crawlerConfigClass());
-//        }
-//        beanMapper = mapper;
-//    }
-//
-//    CrawlerImpl getCrawlSessionImpl() {
-//        return crawlerImpl;
-//    }
-//    BeanMapper getBeanMapper() {
-//        return beanMapper;
-//    }
-//
+    //    public CliCommandRunner(Crawler crawler/*@NonNull CrawlerImpl crawlerImpl*/) {
+    //        this.crawler = crawler;
+    //        this.crawlerImpl = crawlerImpl;
+    //        var mapper = crawlerImpl.beanMapper();
+    //        if (mapper == null) {
+    //            mapper = CrawlSessionBeanMapperFactory.create(
+    //                    crawlerImpl.crawlerConfigClass());
+    //        }
+    //        beanMapper = mapper;
+    //    }
+    //
+    //    CrawlerImpl getCrawlSessionImpl() {
+    //        return crawlerImpl;
+    //    }
+    //    BeanMapper getBeanMapper() {
+    //        return beanMapper;
+    //    }
+    //
     @Override
     public void run() {
         if (version) {
             spec.commandLine().getOut().println(
-                    About.about(crawlerBuilder.configuration()));
+                    About.about(crawlerBuilder.configuration())
+            );
         }
     }
 
-
-//    @Override
-//    public int handleExecutionException(
-//            Exception ex, CommandLine commandLine, ParseResult parseResult)
-//                    throws Exception {
-//        if (ex instanceof PicocliException) {
-//            commandLine.getErr().println(ex.getMessage());
-//            commandLine.getErr().println();
-//            commandLine.usage(commandLine.getErr());
-//            return -1;
-//        }
-//        throw ex;
-//    }
+    //    @Override
+    //    public int handleExecutionException(
+    //            Exception ex, CommandLine commandLine, ParseResult parseResult)
+    //                    throws Exception {
+    //        if (ex instanceof PicocliException) {
+    //            commandLine.getErr().println(ex.getMessage());
+    //            commandLine.getErr().println();
+    //            commandLine.usage(commandLine.getErr());
+    //            return -1;
+    //        }
+    //        throw ex;
+    //    }
 }

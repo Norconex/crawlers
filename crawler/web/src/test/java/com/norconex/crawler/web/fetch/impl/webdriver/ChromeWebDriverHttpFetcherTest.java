@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-class ChromeWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest  {
+class ChromeWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
 
     // Tests are in super class
 

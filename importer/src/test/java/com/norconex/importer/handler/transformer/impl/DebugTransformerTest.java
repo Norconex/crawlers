@@ -46,8 +46,11 @@ class DebugTransformerTest {
         props.set("field1", "value1");
         props.set("field2", "value2");
         assertThatNoException().isThrownBy(() -> {
-            t.accept(TestUtil.newDocContext(
-                    "ref", nullInputStream(), props, PRE));
+            t.accept(
+                    TestUtil.newDocContext(
+                            "ref", nullInputStream(), props, PRE
+                    )
+            );
         });
     }
 }

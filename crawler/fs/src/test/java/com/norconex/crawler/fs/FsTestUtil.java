@@ -75,76 +75,109 @@ public final class FsTestUtil {
 
     private static EasyRandom easyRandom = new EasyRandom(
             new EasyRandomParameters()
-        .seed(System.currentTimeMillis())
-        .collectionSizeRange(1, 5)
-        .randomizationDepth(5)
-        .scanClasspathForConcreteTypes(true)
-        .overrideDefaultInitialization(true)
-        .randomize(File.class,
-                () -> new File(new StringRandomizer(100).getRandomValue()))
-        .randomize(Path.class,
-                () -> Path.of(new StringRandomizer(100).getRandomValue()))
-        .randomize(Long.class,
-                () -> Math.abs(new LongRandomizer().getRandomValue()))
-        .randomize(Integer.class,
-                () -> Math.abs(new IntegerRandomizer().getRandomValue()))
-        .randomize(ImporterConfig.class, ImporterConfig::new)
-        .randomize(UpsertRequest.class,
-                () -> new UpsertRequest(
-                        new StringRandomizer(100).getRandomValue(),
-                        new Properties(),
-                        new NullInputStream()))
-        .randomize(DeleteRequest.class,
-                () -> new DeleteRequest(
-                        new StringRandomizer(100).getRandomValue(),
-                        new Properties()))
-        .randomize(Committer.class, MemoryCommitter::new)
-        .randomize(SpoiledReferenceStrategizer.class,
-                GenericSpoiledReferenceStrategizer::new)
-        .randomize(AtomicBoolean.class, () -> new AtomicBoolean(
-                new BooleanRandomizer().getRandomValue()))
+                    .seed(System.currentTimeMillis())
+                    .collectionSizeRange(1, 5)
+                    .randomizationDepth(5)
+                    .scanClasspathForConcreteTypes(true)
+                    .overrideDefaultInitialization(true)
+                    .randomize(
+                            File.class,
+                            () -> new File(
+                                    new StringRandomizer(100).getRandomValue()
+                            )
+                    )
+                    .randomize(
+                            Path.class,
+                            () -> Path.of(
+                                    new StringRandomizer(100).getRandomValue()
+                            )
+                    )
+                    .randomize(
+                            Long.class,
+                            () -> Math
+                                    .abs(new LongRandomizer().getRandomValue())
+                    )
+                    .randomize(
+                            Integer.class,
+                            () -> Math.abs(
+                                    new IntegerRandomizer().getRandomValue()
+                            )
+                    )
+                    .randomize(ImporterConfig.class, ImporterConfig::new)
+                    .randomize(
+                            UpsertRequest.class,
+                            () -> new UpsertRequest(
+                                    new StringRandomizer(100).getRandomValue(),
+                                    new Properties(),
+                                    new NullInputStream()
+                            )
+                    )
+                    .randomize(
+                            DeleteRequest.class,
+                            () -> new DeleteRequest(
+                                    new StringRandomizer(100).getRandomValue(),
+                                    new Properties()
+                            )
+                    )
+                    .randomize(Committer.class, MemoryCommitter::new)
+                    .randomize(
+                            SpoiledReferenceStrategizer.class,
+                            GenericSpoiledReferenceStrategizer::new
+                    )
+                    .randomize(
+                            AtomicBoolean.class, () -> new AtomicBoolean(
+                                    new BooleanRandomizer().getRandomValue()
+                            )
+                    )
 
-        .excludeType(DataStoreEngine.class::equals)
-        .excludeType(DataStore.class::equals)
-        .excludeType(StandardFileSystemManager.class::equals)
-        .excludeType(FileSystemOptions.class::equals)
-        .excludeType(ReferencesProvider.class::equals)
-        .excludeType(OnMatch.class::equals)
-        .excludeType(ReferenceFilter.class::equals)
+                    .excludeType(DataStoreEngine.class::equals)
+                    .excludeType(DataStore.class::equals)
+                    .excludeType(StandardFileSystemManager.class::equals)
+                    .excludeType(FileSystemOptions.class::equals)
+                    .excludeType(ReferencesProvider.class::equals)
+                    .excludeType(OnMatch.class::equals)
+                    .excludeType(ReferenceFilter.class::equals)
     );
-
 
     //MAYBE: maybe move some of the common test classes/methods to core
     // and make it a usable test artifact?
 
-    private FsTestUtil() {}
+    private FsTestUtil() {
+    }
 
     public static <T> T randomize(Class<T> cls) {
         return easyRandom.nextObject(cls);
     }
 
     public static Optional<UpsertRequest> getUpsertRequest(
-            @NonNull MemoryCommitter mem, @NonNull String ref) {
+            @NonNull MemoryCommitter mem, @NonNull String ref
+    ) {
         return mem.getUpsertRequests().stream()
                 .filter(m -> ref.equals(m.getReference()))
                 .findFirst();
     }
+
     public static String getUpsertRequestMeta(
             @NonNull MemoryCommitter mem,
             @NonNull String ref,
-            @NonNull String fieldName) {
+            @NonNull String fieldName
+    ) {
         return getUpsertRequest(mem, ref)
                 .map(req -> req.getMetadata().getString(fieldName))
                 .orElse(null);
     }
+
     public static String getUpsertRequestContent(
-            @NonNull MemoryCommitter mem, @NonNull String ref) {
+            @NonNull MemoryCommitter mem, @NonNull String ref
+    ) {
         return getUpsertRequest(mem, ref)
                 .map(FsTestUtil::docText)
                 .orElse(null);
     }
+
     public static Optional<DeleteRequest> getDeleteRequest(
-            @NonNull MemoryCommitter mem, @NonNull String ref) {
+            @NonNull MemoryCommitter mem, @NonNull String ref
+    ) {
         return mem.getDeleteRequests().stream()
                 .filter(m -> ref.equals(m.getReference()))
                 .findFirst();
@@ -155,26 +188,31 @@ public final class FsTestUtil {
                 .map(CommitterRequest::getReference)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
+
     public static Set<String> sortedUpsertReferences(MemoryCommitter c) {
         return c.getUpsertRequests().stream()
                 .map(UpsertRequest::getReference)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
+
     public static Set<String> sortedDeleteReferences(MemoryCommitter c) {
         return c.getDeleteRequests().stream()
                 .map(DeleteRequest::getReference)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
+
     public static String lastSortedRequestReference(MemoryCommitter c) {
         return sortedRequestReferences(c).stream()
-            .reduce((first, second) -> second)
-            .orElse(null);
+                .reduce((first, second) -> second)
+                .orElse(null);
     }
+
     public static String lastSortedUpsertReference(MemoryCommitter c) {
         return sortedUpsertReferences(c).stream()
                 .reduce((first, second) -> second)
                 .orElse(null);
     }
+
     public static String lastSortedDeleteReference(MemoryCommitter c) {
         return sortedDeleteReferences(c).stream()
                 .reduce((first, second) -> second)
@@ -184,9 +222,11 @@ public final class FsTestUtil {
     public static ZonedDateTime daysAgo(int days) {
         return ZonedDateTime.now().minusDays(days).withNano(0);
     }
+
     public static String daysAgoRFC(int days) {
         return rfcFormat(daysAgo(days));
     }
+
     public static String rfcFormat(ZonedDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.RFC_1123_DATE_TIME);
     }
@@ -194,9 +234,11 @@ public final class FsTestUtil {
     public static String docText(Doc doc) {
         return toString(doc.getInputStream());
     }
+
     public static String docText(UpsertRequest doc) {
         return toString(doc.getContent());
     }
+
     public static String toString(InputStream is) {
         try {
             return IOUtils.toString(is, UTF_8);
@@ -204,6 +246,7 @@ public final class FsTestUtil {
             throw new UncheckedIOException(e);
         }
     }
+
     public static String resourceAsString(String resourcePath) {
         return toString(FsTestUtil.class.getResourceAsStream(resourcePath));
     }
@@ -211,17 +254,19 @@ public final class FsTestUtil {
     public static void initCrawler(Crawler crawler) {
         CrawlerCoreTestUtil.initCrawler(crawler);
     }
+
     public static void destroyCrawler(Crawler crawler) {
         CrawlerCoreTestUtil.destroyCrawler(crawler);
     }
 
     public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
-        return (MemoryCommitter)
-                crawler.getConfiguration().getCommitters().get(0);
+        return (MemoryCommitter) crawler.getConfiguration().getCommitters()
+                .get(0);
     }
 
     public static MemoryCommitter runWithConfig(
-            @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c) {
+            @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c
+    ) {
         var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
         c.accept(crawlerBuilder.configuration());
         var crawler = crawlerBuilder.build();

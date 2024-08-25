@@ -27,20 +27,20 @@ public class ReplaceOperation {
     private final TextMatcher fieldMatcher = new TextMatcher();
     private final TextMatcher valueMatcher = new TextMatcher();
 
-
     private String toField;
     private String toValue;
     private PropertySetter onSet;
     private boolean discardUnchanged;
 
-
     public String getToValue() {
         return toValue;
     }
+
     public ReplaceOperation setToValue(String toValue) {
         this.toValue = toValue;
         return this;
     }
+
     /**
      * Gets value matcher.
      * @return value matcher
@@ -48,6 +48,7 @@ public class ReplaceOperation {
     public TextMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     /**
      * Sets value matcher.
      * @param valueMatcher value matcher
@@ -57,6 +58,7 @@ public class ReplaceOperation {
         this.valueMatcher.copyFrom(valueMatcher);
         return this;
     }
+
     /**
      * Gets field matcher.
      * @return field matcher
@@ -64,6 +66,7 @@ public class ReplaceOperation {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets field matcher.
      * @param fieldMatcher field matcher

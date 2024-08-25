@@ -50,5 +50,6 @@ public interface RedirectUrlProvider {
     String provideRedirectURL(
             final HttpRequest request,
             final HttpResponse response,
-            final HttpContext context);
+            final HttpContext context
+    );
 }

@@ -31,22 +31,22 @@ class ImageTransformerTest {
     void testWriteRead() {
         var t = new ImageTransformer();
         t.getConfiguration()
-            .getCrop()
+                .getCrop()
                 .setX(10)
                 .setY(15)
                 .setWidth(400)
                 .setHeight(250);
         t.getConfiguration()
-            .getScale()
+                .getScale()
                 .setStretch(true)
                 .setWidth(800)
                 .setHeight(600)
                 .setFactor(0.5);
         t.getConfiguration()
-            .setRotation(-90.0)
-            .setTargetFormat("jpg");
-        assertThatNoException().isThrownBy(() ->
-            BeanMapper.DEFAULT.assertWriteRead(t));
+                .setRotation(-90.0)
+                .setTargetFormat("jpg");
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -56,10 +56,13 @@ class ImageTransformerTest {
         var doc = TestUtil.newDocContext(
                 "img.png",
                 getClass().getResourceAsStream(
-                        "/parser/image/importer.png"));
+                        "/parser/image/importer.png"
+                )
+        );
         assertThatNoException().isThrownBy(() -> t.accept(doc));
         assertThat(
-                ((CachedInputStream) doc.input().asInputStream()).length())
+                ((CachedInputStream) doc.input().asInputStream()).length()
+        )
                 .isPositive();
     }
 }

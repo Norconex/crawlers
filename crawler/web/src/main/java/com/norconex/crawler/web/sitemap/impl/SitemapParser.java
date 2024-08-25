@@ -44,7 +44,8 @@ class SitemapParser {
     private final MutableBoolean stopping;
 
     List<SitemapRecord> parse(
-            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer) {
+            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer
+    ) {
 
         var location = sitemapDoc.getReference();
         List<SitemapRecord> children = new ArrayList<>();
@@ -53,29 +54,36 @@ class SitemapParser {
 
             var sitemapLocationDir = substringBeforeLast(location, "/");
             XML.stream(is)
-                .takeWhile(c -> {
-                    if (stopping.isTrue()) {
-                        LOG.debug("Sitemap not entirely parsed due to "
-                                + "crawler being stopped.");
-                        return false;
-                    }
-                    return true;
-                })
-                .forEachOrdered(c -> {
-                    if ("sitemap".equalsIgnoreCase(c.getLocalName())) {
-                        toSitemapRecord(c.readAsXML()).ifPresent(children::add);
-                    } else if ("url".equalsIgnoreCase(c.getLocalName())) {
-                        toDocRecord(c.readAsXML(), sitemapLocationDir)
-                            .ifPresent(urlConsumer::accept);
-                    }
-                });
+                    .takeWhile(c -> {
+                        if (stopping.isTrue()) {
+                            LOG.debug(
+                                    "Sitemap not entirely parsed due to "
+                                            + "crawler being stopped."
+                            );
+                            return false;
+                        }
+                        return true;
+                    })
+                    .forEachOrdered(c -> {
+                        if ("sitemap".equalsIgnoreCase(c.getLocalName())) {
+                            toSitemapRecord(c.readAsXML())
+                                    .ifPresent(children::add);
+                        } else if ("url".equalsIgnoreCase(c.getLocalName())) {
+                            toDocRecord(c.readAsXML(), sitemapLocationDir)
+                                    .ifPresent(urlConsumer::accept);
+                        }
+                    });
         } catch (XMLException e) {
-            LOG.error("Cannot fetch sitemap: {} -- Likely an invalid sitemap "
-                    + "XML format causing a parsing error (actual error:{}).",
-                    location, e.getMessage());
+            LOG.error(
+                    "Cannot fetch sitemap: {} -- Likely an invalid sitemap "
+                            + "XML format causing a parsing error (actual error:{}).",
+                    location, e.getMessage()
+            );
         } catch (IOException e) {
-            LOG.error("Cannot fetch sitemap: {} ({})",
-                    location, e.getMessage(), e);
+            LOG.error(
+                    "Cannot fetch sitemap: {} ({})",
+                    location, e.getMessage(), e
+            );
         }
         return children;
     }
@@ -94,15 +102,18 @@ class SitemapParser {
     }
 
     private Optional<WebCrawlDocContext> toDocRecord(
-            XML xml, String sitemapLocationDir) {
+            XML xml, String sitemapLocationDir
+    ) {
         var url = xml.getString("loc");
 
         // Is URL valid?
         if (StringUtils.isBlank(url)
                 || (!lenient && !url.startsWith(sitemapLocationDir))) {
-            LOG.debug("Sitemap URL invalid for location directory."
-                    + " URL: {}  Location directory: {}",
-                    url, sitemapLocationDir);
+            LOG.debug(
+                    "Sitemap URL invalid for location directory."
+                            + " URL: {}  Location directory: {}",
+                    url, sitemapLocationDir
+            );
             return Optional.empty();
         }
 

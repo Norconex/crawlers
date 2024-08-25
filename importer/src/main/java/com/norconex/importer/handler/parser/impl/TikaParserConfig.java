@@ -17,7 +17,6 @@ package com.norconex.importer.handler.parser.impl;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-
 @Data
 @Accessors(chain = true)
 public class TikaParserConfig {

@@ -76,15 +76,16 @@ public class GenericSpoiledReferenceStrategizer implements
 
     @Override
     public SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
-            String reference, CrawlDocState state) {
+            String reference, CrawlDocState state
+    ) {
 
         var strategy = configuration.getMappings().get(state);
         if (strategy == null) {
             strategy = configuration.getFallbackStrategy();
         }
         if (strategy == null) {
-            strategy = GenericSpoiledReferenceStrategizerConfig
-                    .DEFAULT_FALLBACK_STRATEGY;
+            strategy =
+                    GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
         }
         return strategy;
     }

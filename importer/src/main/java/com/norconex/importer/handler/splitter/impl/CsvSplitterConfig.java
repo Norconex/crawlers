@@ -85,6 +85,7 @@ public class CsvSplitterConfig extends BaseDocumentSplitterConfig {
      * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
+
     public CsvSplitterConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
@@ -147,6 +148,7 @@ public class CsvSplitterConfig extends BaseDocumentSplitterConfig {
     public List<String> getContentColumns() {
         return Collections.unmodifiableList(contentColumns);
     }
+
     /**
      * One or several columns containing the text to be considered as
      * the document "content".

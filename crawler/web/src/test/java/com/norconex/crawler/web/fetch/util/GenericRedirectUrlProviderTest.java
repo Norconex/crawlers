@@ -28,7 +28,7 @@ class GenericRedirectUrlProviderTest {
     void testWriteRead() {
         var p = new GenericRedirectUrlProvider();
         p.setFallbackCharset(StandardCharsets.UTF_8.toString());
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(p));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(p));
     }
 }

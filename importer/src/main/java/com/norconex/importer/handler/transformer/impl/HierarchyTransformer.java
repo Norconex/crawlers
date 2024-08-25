@@ -109,7 +109,8 @@ public class HierarchyTransformer
     public void handle(HandlerContext docCtx) throws IOException {
 
         configuration.getOperations().forEach(
-                op -> breakSegments(docCtx.metadata(), op));
+                op -> breakSegments(docCtx.metadata(), op)
+        );
     }
 
     private void breakSegments(Properties metadata, HierarchyOperation op) {
@@ -153,7 +154,7 @@ public class HierarchyTransformer
             if (!op.isKeepEmptySegments()) {
                 var iter =
                         segments.listIterator(segments.size());
-                while(iter.hasPrevious()) {
+                while (iter.hasPrevious()) {
                     var seg = iter.previous();
                     if (seg instanceof Separator) {
                         if (prevIsSep) {
@@ -186,7 +187,8 @@ public class HierarchyTransformer
         if (StringUtils.isNotBlank(op.getToField())) {
             // set on target field
             PropertySetter.orAppend(op.getOnSet()).apply(
-                    metadata, op.getToField(), paths);
+                    metadata, op.getToField(), paths
+            );
         } else {
             // overwrite source field
             PropertySetter.REPLACE.apply(metadata, op.getFromField(), paths);
@@ -196,9 +198,11 @@ public class HierarchyTransformer
     @EqualsAndHashCode
     private static class Separator {
         private final String sep;
+
         public Separator(String sep) {
             this.sep = sep;
         }
+
         @Override
         public String toString() {
             return sep;

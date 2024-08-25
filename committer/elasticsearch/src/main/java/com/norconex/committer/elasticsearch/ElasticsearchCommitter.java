@@ -232,10 +232,12 @@ public class ElasticsearchCommitter
     }
 
     private String extractId(CommitterRequest req) throws CommitterException {
-        return fixBadIdValue(CommitterUtil.extractSourceIdValue(
-                req, configuration.getSourceIdField()));
+        return fixBadIdValue(
+                CommitterUtil.extractSourceIdValue(
+                        req, configuration.getSourceIdField()
+                )
+        );
     }
-
 
     @Override
     protected void commitBatch(Iterator<CommitterRequest> it)
@@ -253,7 +255,8 @@ public class ElasticsearchCommitter
                     appendDeleteRequest(json, delete);
                 } else {
                     throw new CommitterException(
-                            "Unsupported request: " + req);
+                            "Unsupported request: " + req
+                    );
                 }
                 docCount++;
             }
@@ -270,7 +273,8 @@ public class ElasticsearchCommitter
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Could not commit JSON batch to Elasticsearch.", e);
+                    "Could not commit JSON batch to Elasticsearch.", e
+            );
         }
     }
 
@@ -283,13 +287,13 @@ public class ElasticsearchCommitter
         LOG.info("Elasticsearch RestClient closed.");
     }
 
-
     private void handleResponse(Response response)
             throws IOException, CommitterException {
         var respEntity = response.getEntity();
         if (respEntity != null) {
             var responseAsString = IOUtils.toString(
-                    respEntity.getContent(), StandardCharsets.UTF_8);
+                    respEntity.getContent(), StandardCharsets.UTF_8
+            );
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Elasticsearch response:\n{}", responseAsString);
             }
@@ -298,7 +302,8 @@ public class ElasticsearchCommitter
             // (saving on the parsing). We'll do it on errors only
             // to filter out successful ones and report only the errors
             if (StringUtils.substring(
-                    responseAsString, 0, 100).contains("\"errors\":true")) {
+                    responseAsString, 0, 100
+            ).contains("\"errors\":true")) {
                 var error = extractResponseErrors(responseAsString);
                 if (!configuration.isIgnoreResponseErrors()) {
                     throw new CommitterException(error);
@@ -307,12 +312,15 @@ public class ElasticsearchCommitter
             }
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Elasticsearch response status: {}",
-                    response.getStatusLine());
+            LOG.debug(
+                    "Elasticsearch response status: {}",
+                    response.getStatusLine()
+            );
         }
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new CommitterException(
-                  "Invalid HTTP response: " + response.getStatusLine());
+                    "Invalid HTTP response: " + response.getStatusLine()
+            );
         }
     }
 
@@ -339,7 +347,8 @@ public class ElasticsearchCommitter
             throws CommitterException {
 
         CommitterUtil.applyTargetContent(
-                req, configuration.getTargetContentField());
+                req, configuration.getTargetContentField()
+        );
 
         json.append("{\"index\":{");
         append(json, "_index", configuration.getIndexName());
@@ -351,8 +360,10 @@ public class ElasticsearchCommitter
         var first = true;
         for (Entry<String, List<String>> entry : req.getMetadata().entrySet()) {
             var field = entry.getKey();
-            field = StringUtils.replace(field, ".",
-                    configuration.getDotReplacement());
+            field = StringUtils.replace(
+                    field, ".",
+                    configuration.getDotReplacement()
+            );
             // Do not store _id as a field since it is passed above already.
             if (ELASTICSEARCH_ID_FIELD.equals(field)) {
                 continue;
@@ -378,29 +389,30 @@ public class ElasticsearchCommitter
     }
 
     private void append(
-            StringBuilder json, String field, List<String> values) {
+            StringBuilder json, String field, List<String> values
+    ) {
         if (values.size() == 1) {
             append(json, field, values.get(0));
             return;
         }
 
         json.append('"')
-            .append(StringEscapeUtils.escapeJson(field))
-            .append("\":[");
+                .append(StringEscapeUtils.escapeJson(field))
+                .append("\":[");
 
         for (String value : values) {
             appendValue(json, field, value);
             json.append(',');
         }
 
-        json.deleteCharAt(json.length()-1);
+        json.deleteCharAt(json.length() - 1);
         json.append(']');
     }
 
     private void append(StringBuilder json, String field, String value) {
         json.append('"')
-            .append(StringEscapeUtils.escapeJson(field))
-            .append("\":");
+                .append(StringEscapeUtils.escapeJson(field))
+                .append("\":");
         appendValue(json, field, value);
     }
 
@@ -410,8 +422,8 @@ public class ElasticsearchCommitter
             json.append(value);
         } else {
             json.append('"')
-                .append(StringEscapeUtils.escapeJson(value))
-                .append("\"");
+                    .append(StringEscapeUtils.escapeJson(value))
+                    .append("\"");
         }
     }
 
@@ -424,13 +436,14 @@ public class ElasticsearchCommitter
             String v;
             try {
                 v = StringUtil.truncateBytesWithHash(
-                        value, StandardCharsets.UTF_8, 512, "!");
+                        value, StandardCharsets.UTF_8, 512, "!"
+                );
             } catch (CharacterCodingException e) {
                 LOG.error("""
-                    Bad id detected (too long), but could not be\s\
-                    truncated properly by byte size. Will truncate\s\
-                    based on characters size instead, which may not\s\
-                    work on IDs containing multi-byte characters.""");
+                        Bad id detected (too long), but could not be\s\
+                        truncated properly by byte size. Will truncate\s\
+                        based on characters size instead, which may not\s\
+                        work on IDs containing multi-byte characters.""");
                 v = StringUtil.truncateWithHash(value, 512, "!");
             }
             if (LOG.isDebugEnabled() && !value.equals(v)) {
@@ -452,15 +465,23 @@ public class ElasticsearchCommitter
         builder.setFailureListener(new FailureListener() {
             @Override
             public void onFailure(Node node) {
-                LOG.error("Failure occured on node: \"{}\". Check node logs.",
-                        node.getName());
+                LOG.error(
+                        "Failure occured on node: \"{}\". Check node logs.",
+                        node.getName()
+                );
             }
         });
-        builder.setRequestConfigCallback(rcb -> rcb
-                .setConnectTimeout(
-                        (int) configuration.getConnectionTimeout().toMillis())
-                .setSocketTimeout(
-                        (int) configuration.getSocketTimeout().toMillis()));
+        builder.setRequestConfigCallback(
+                rcb -> rcb
+                        .setConnectTimeout(
+                                (int) configuration.getConnectionTimeout()
+                                        .toMillis()
+                        )
+                        .setSocketTimeout(
+                                (int) configuration.getSocketTimeout()
+                                        .toMillis()
+                        )
+        );
 
         var credentials = configuration.getCredentials();
         if (credentials.isSet()) {
@@ -469,9 +490,13 @@ public class ElasticsearchCommitter
                     AuthScope.ANY, new UsernamePasswordCredentials(
                             credentials.getUsername(), EncryptionUtil.decrypt(
                                     credentials.getPassword(),
-                                    credentials.getPasswordKey())));
+                                    credentials.getPasswordKey()
+                            )
+                    )
+            );
             builder.setHttpClientConfigCallback(
-                    b -> b.setDefaultCredentialsProvider(credsProvider));
+                    b -> b.setDefaultCredentialsProvider(credsProvider)
+            );
         }
         return builder.build();
     }
@@ -480,11 +505,14 @@ public class ElasticsearchCommitter
         // here we assume a cluster is either all https, or all https (no mix).
         if (!configuration.getNodes().isEmpty()
                 && configuration.getNodes().get(0).startsWith("https:")) {
-            NodesSniffer nodesSniffer = new ElasticsearchNodesSniffer(client,
+            NodesSniffer nodesSniffer = new ElasticsearchNodesSniffer(
+                    client,
                     ElasticsearchNodesSniffer.DEFAULT_SNIFF_REQUEST_TIMEOUT,
-                    ElasticsearchNodesSniffer.Scheme.HTTPS);
+                    ElasticsearchNodesSniffer.Scheme.HTTPS
+            );
             return Sniffer.builder(
-                    client).setNodesSniffer(nodesSniffer).build();
+                    client
+            ).setNodesSniffer(nodesSniffer).build();
         }
         return Sniffer.builder(client).build();
     }

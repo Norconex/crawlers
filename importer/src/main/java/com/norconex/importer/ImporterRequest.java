@@ -49,6 +49,7 @@ public class ImporterRequest {
         this.inputStream = inputStream;
         file = null;
     }
+
     public ImporterRequest(Path file) {
         inputStream = null;
         this.file = file;

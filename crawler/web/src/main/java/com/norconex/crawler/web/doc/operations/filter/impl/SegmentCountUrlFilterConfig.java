@@ -20,6 +20,7 @@ import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+
 /**
  * <p>
  * Filters URL based based on the number of URL segments. A URL with

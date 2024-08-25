@@ -27,5 +27,6 @@ public final class FsDocMetadata {
 
     public static final String ACL = PREFIX + "acl";
 
-    private FsDocMetadata() {}
+    private FsDocMetadata() {
+    }
 }

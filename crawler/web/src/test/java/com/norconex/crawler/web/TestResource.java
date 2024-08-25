@@ -48,6 +48,7 @@ public class TestResource {
     public String asString() {
         return new String(asBytes(), UTF_8);
     }
+
     public byte[] asBytes() {
         try {
             return IOUtils.toByteArray(asInputStream());
@@ -55,6 +56,7 @@ public class TestResource {
             throw new UncheckedIOException(e);
         }
     }
+
     public InputStream asInputStream() {
         return TestResource.class.getClassLoader().getResourceAsStream(path);
     }
@@ -62,6 +64,7 @@ public class TestResource {
     public String relativePath() {
         return path;
     }
+
     public String absolutePath(String baseUrl) {
         return StringUtils.appendIfMissing(baseUrl, "/") + path;
     }
@@ -69,7 +72,8 @@ public class TestResource {
     public BufferedImage asImage() {
         if (!path.startsWith("img/")) {
             throw new UnsupportedOperationException(
-                    "Path indicates this not an image: " + path);
+                    "Path indicates this not an image: " + path
+            );
         }
         try {
             return ImageIO.read(asInputStream());
@@ -77,11 +81,13 @@ public class TestResource {
             throw new UncheckedIOException(e);
         }
     }
+
     public FeaturedImage asFeaturedImage(String baseUrl) {
         var img = asImage();
         return new FeaturedImage(
                 absolutePath(baseUrl),
                 new Dimension(img.getWidth(), img.getHeight()),
-                img);
+                img
+        );
     }
 }

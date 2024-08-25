@@ -46,7 +46,6 @@ class DomSplitterTest {
         Assertions.assertTrue(content.contains("Dalton"));
     }
 
-
     @Test
     void testXmlDOMSplit()
             throws IOException, IOException {
@@ -77,7 +76,8 @@ class DomSplitterTest {
         var splitter = new DomSplitter();
         splitter.getConfiguration().setSelector("blah");
         splitter.getConfiguration().setContentTypeMatcher(
-                TextMatcher.basic("value").partial().ignoreCase());
+                TextMatcher.basic("value").partial().ignoreCase()
+        );
         BeanMapper.DEFAULT.assertWriteRead(splitter);
     }
 }

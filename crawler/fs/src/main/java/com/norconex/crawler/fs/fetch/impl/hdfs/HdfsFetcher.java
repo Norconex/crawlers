@@ -26,7 +26,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
-
 /**
  * <p>
  * Fetcher for Apache Hadoop File System (HDFS).

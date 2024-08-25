@@ -60,9 +60,11 @@ public class Neo4jCommitterConfig
     public Set<String> getOptionalParameters() {
         return Collections.unmodifiableSet(optionalParameters);
     }
+
     public void setOptionalParameters(Set<String> optionalParameters) {
         CollectionUtil.setAll(this.optionalParameters, optionalParameters);
     }
+
     public void addOptionalParameter(String optionalParameter) {
         optionalParameters.add(optionalParameter);
     }

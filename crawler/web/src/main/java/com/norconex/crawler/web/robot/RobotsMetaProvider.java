@@ -36,5 +36,6 @@ public interface RobotsMetaProvider {
      */
     RobotsMeta getRobotsMeta(
             Reader document, String documentUrl, ContentType contentType,
-            Properties httpHeaders) throws IOException;
+            Properties httpHeaders
+    ) throws IOException;
 }

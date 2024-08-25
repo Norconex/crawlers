@@ -159,7 +159,8 @@ public class AmazonCloudSearchCommitter
      * the pattern will be replaced by an underscore.
      */
     public static final Pattern FIELD_PATTERN = Pattern.compile(
-            "[a-z0-9][a-z0-9_]{0,63}$");
+            "[a-z0-9][a-z0-9_]{0,63}$"
+    );
 
     /** CloudSearch mandatory ID field */
     public static final String COULDSEARCH_ID_FIELD = "id";
@@ -182,33 +183,45 @@ public class AmazonCloudSearchCommitter
             throw new CommitterException("Service endpoint is undefined.");
         }
         var b = AmazonCloudSearchDomainClientBuilder.standard();
-        var clientConfig= new ClientConfiguration();
+        var clientConfig = new ClientConfiguration();
         if (configuration.getProxySettings().isSet()) {
             var proxy = configuration.getProxySettings();
             clientConfig.setProxyHost(proxy.getHost().getName());
             clientConfig.setProxyPort(proxy.getHost().getPort());
             if (proxy.getCredentials().isSet()) {
                 clientConfig.setProxyUsername(
-                        proxy.getCredentials().getUsername());
-                clientConfig.setProxyPassword(EncryptionUtil.decrypt(
-                        proxy.getCredentials().getPassword(),
-                        proxy.getCredentials().getPasswordKey()));
+                        proxy.getCredentials().getUsername()
+                );
+                clientConfig.setProxyPassword(
+                        EncryptionUtil.decrypt(
+                                proxy.getCredentials().getPassword(),
+                                proxy.getCredentials().getPasswordKey()
+                        )
+                );
             }
         }
         b.setClientConfiguration(clientConfig);
         if (StringUtils.isAnyBlank(
                 configuration.getAccessKey(),
-                configuration.getSecretKey())) {
+                configuration.getSecretKey()
+        )) {
             b.withCredentials(new DefaultAWSCredentialsProviderChain());
         } else {
-            b.withCredentials(new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(
-                            configuration.getAccessKey(),
-                            configuration.getSecretKey())));
+            b.withCredentials(
+                    new AWSStaticCredentialsProvider(
+                            new BasicAWSCredentials(
+                                    configuration.getAccessKey(),
+                                    configuration.getSecretKey()
+                            )
+                    )
+            );
         }
-        b.withEndpointConfiguration(new EndpointConfiguration(
-                configuration.getServiceEndpoint(),
-                configuration.getSigningRegion()));
+        b.withEndpointConfiguration(
+                new EndpointConfiguration(
+                        configuration.getServiceEndpoint(),
+                        configuration.getSigningRegion()
+                )
+        );
         awsClient = b.build();
     }
 
@@ -233,7 +246,8 @@ public class AmazonCloudSearchCommitter
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Could not commit JSON batch to CloudSearch.", e);
+                    "Could not commit JSON batch to CloudSearch.", e
+            );
         }
     }
 
@@ -262,11 +276,15 @@ public class AmazonCloudSearchCommitter
             uploadRequest.setContentLength((long) bytes.length);
             var result =
                     awsClient.uploadDocuments(uploadRequest);
-            LOG.info("{} upserts and {} deletes sent to the AWS CloudSearch "
-                    + "domain.", result.getAdds(), result.getDeletes());
+            LOG.info(
+                    "{} upserts and {} deletes sent to the AWS CloudSearch "
+                            + "domain.",
+                    result.getAdds(), result.getDeletes()
+            );
         } catch (IOException | AmazonServiceException e) {
             throw new CommitterException(
-                    "Could not execute CloudSearch upload request.", e);
+                    "Could not execute CloudSearch upload request.", e
+            );
         }
     }
 
@@ -274,7 +292,8 @@ public class AmazonCloudSearchCommitter
             throws CommitterException {
 
         CommitterUtil.applyTargetContent(
-                req, configuration.getTargetContentField());
+                req, configuration.getTargetContentField()
+        );
 
         Map<String, Object> documentMap = new HashMap<>();
         documentMap.put("type", "add");
@@ -291,7 +310,7 @@ public class AmazonCloudSearchCommitter
                 var fixedKey = fixKey(key);
                 if (values.size() == 1) {
                     fieldMap.put(fixedKey, values.get(0));
-                } else if (values.size() > 1){
+                } else if (values.size() > 1) {
                     fieldMap.put(fixedKey, values);
                 } else {
                     fieldMap.put(fixedKey, "");
@@ -311,8 +330,11 @@ public class AmazonCloudSearchCommitter
     }
 
     private String extractId(CommitterRequest req) throws CommitterException {
-        return fixBadIdValue(CommitterUtil.extractSourceIdValue(
-                req, configuration.getSourceIdField()));
+        return fixBadIdValue(
+                CommitterUtil.extractSourceIdValue(
+                        req, configuration.getSourceIdField()
+                )
+        );
     }
 
     private String fixBadIdValue(String value) throws CommitterException {
@@ -323,7 +345,9 @@ public class AmazonCloudSearchCommitter
         if (configuration.isFixBadIds()) {
             var v = value.replaceAll(
                     "[^a-zA-Z0-9\\-\\_\\/\\#\\:\\.\\;\\&\\=\\?"
-                  + "\\@\\$\\+\\!\\*'\\(\\)\\,\\%]", "_");
+                            + "\\@\\$\\+\\!\\*'\\(\\)\\,\\%]",
+                    "_"
+            );
             v = StringUtil.truncateWithHash(v, 128, "!");
             if (LOG.isDebugEnabled() && !value.equals(v)) {
                 LOG.debug("Fixed document id from \"{}\" to \"{}\".", value, v);
@@ -342,8 +366,11 @@ public class AmazonCloudSearchCommitter
         fix = StringUtils.truncate(fix, 63);
         fix = fix.replaceAll("[^a-zA-Z0-9_]", "_");
         fix = fix.toLowerCase(Locale.ENGLISH);
-        LOG.warn("\"{}\" field renamed to \"{}\" as it does not match "
-                + "CloudSearch required pattern: {}", key, fix, FIELD_PATTERN);
+        LOG.warn(
+                "\"{}\" field renamed to \"{}\" as it does not match "
+                        + "CloudSearch required pattern: {}",
+                key, fix, FIELD_PATTERN
+        );
         return fix;
     }
 }

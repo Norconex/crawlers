@@ -94,6 +94,7 @@ public class DocumentLengthTransformer
         }
 
         PropertySetter.orAppend(configuration.getOnSet()).apply(
-                docCtx.metadata(), configuration.getToField(), length);
+                docCtx.metadata(), configuration.getToField(), length
+        );
     }
 }

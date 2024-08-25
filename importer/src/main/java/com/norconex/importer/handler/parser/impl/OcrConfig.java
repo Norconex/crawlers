@@ -151,127 +151,124 @@ public class OcrConfig {
         return this;
     }
 
-
-
-
-//
-//
-//
-//    // below to refactor:
-//
-//
-////    private boolean disabled;
-//
-//    /**
-//     * The Tesseract OCR engine full path to the executable file.
-//     * @param path executable path
-//     * @return path executable path
-//     */
-////    private Path tesseractPath;
-////    private Path tessdataPath;
-//
-//    private final List<TextMatcher> contentTypeMatchers = new ArrayList<>();
-//
-////    private Path imageMagickPath;
-//
-//    @ToString.Exclude
-//    @EqualsAndHashCode.Exclude
-//    @NonNull
-//    private TesseractOCRConfig tesseractConfig = new TesseractOCRConfig();
-//
-//    /**
-//     * Text matchers restricting which content types to apply OCR.
-//     * @return content type matchers
-//     */
-//    public List<TextMatcher> getContentTypeMatchers() {
-//        return Collections.unmodifiableList(contentTypeMatchers);
-//    }
-//    /**
-//     * Text matchers restricting which content types to apply OCR.
-//     * @param matchers content type matchers
-//     */
-//    public void setContentTypeMatchers(List<TextMatcher> matchers) {
-//        CollectionUtil.setAll(contentTypeMatchers, matchers);
-//    }
-//
-//    @EqualsAndHashCode.Include
-//    @ToString.Include
-//    private String tesseractConfigToString() {
-//        return new ReflectionToStringBuilder(
-//                tesseractConfig,
-//                ToStringStyle.NO_CLASS_NAME_STYLE)
-//            .setExcludeFieldNames("userConfigured")
-//            .toString();
-//    }
-//
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        setDisabled(xml.getBoolean("@disabled"));
-//        setTesseractPath(xml.getPath(Fields.tesseractPath, tesseractPath));
-//        setTessdataPath(xml.getPath(Fields.tessdataPath, tessdataPath));
-//        setContentTypeMatchers(xml.getXMLList("contentTypes/matcher").stream()
-//            .map(x -> {
-//                var tm = new TextMatcher();
-//                tm.loadFromXML(x);
-//                return tm;
-//            })
-//            .toList());
-//        setImageMagickPath(
-//                xml.getPath(Fields.imageMagickPath, getImageMagickPath()));
-//
-//        var t = tesseractConfig;
-//        t.setApplyRotation(
-//                xml.getBoolean("applyRotation", t.isApplyRotation()));
-//        t.setColorspace(xml.getString("colorSpace", t.getColorspace()));
-//        t.setDensity(xml.getInteger("density", t.getDensity()));
-//        t.setDepth(xml.getInteger("depth", t.getDepth()));
-//        t.setEnableImagePreprocessing(xml.getBoolean(
-//                "enableImagePreprocessing", t.isEnableImagePreprocessing()));
-//        t.setFilter(xml.getString("filter", t.getFilter()));
-//        t.setLanguage(xml.getString("language", t.getLanguage()));
-//        t.setMaxFileSizeToOcr(
-//                xml.getLong("maxFileSizeToOcr", t.getMaxFileSizeToOcr()));
-//        t.setMinFileSizeToOcr(
-//                xml.getLong("minFileSizeToOcr", t.getMinFileSizeToOcr()));
-//        t.setPageSegMode(
-//                xml.getString("pageSegMode", t.getPageSegMode()));
-//        // TesseractOCRConfig defaults to "" but does not want ""
-//        var pageSep = xml.getString("pageSeparator");
-//        if (StringUtils.isNotBlank(pageSep)) {
-//            t.setPageSeparator(
-//                    xml.getString("pageSeparator", t.getPageSeparator()));
-//        }
-//        t.setPreserveInterwordSpacing(xml.getBoolean(
-//                "preserveInterwordSpacing", t.isPreserveInterwordSpacing()));
-//        t.setResize(xml.getInteger("resize", t.getResize()));
-//        t.setTimeoutSeconds(
-//                xml.getInteger("timeoutSeconds", t.getTimeoutSeconds()));
-//    }
-//
-//    @Override
-//    public void saveToXML(XML xml) {
-//        xml.setAttribute("disabled", disabled);
-//        xml.addElement(Fields.tesseractPath, tesseractPath);
-//        xml.addElement(Fields.tessdataPath, tessdataPath);
-//        xml.addElementList("contentTypes", "matcher", contentTypeMatchers);
-//        xml.addElement(Fields.imageMagickPath, imageMagickPath);
-//
-//        var t = tesseractConfig;
-//        xml.addElement("applyRotation", t.isApplyRotation());
-//        xml.addElement("colorSpace", t.getColorspace());
-//        xml.addElement("density", t.getDensity());
-//        xml.addElement("depth", t.getDepth());
-//        xml.addElement(
-//                "enableImagePreprocessing", t.isEnableImagePreprocessing());
-//        xml.addElement("filter", t.getFilter());
-//        xml.addElement("language", t.getLanguage());
-//        xml.addElement("maxFileSizeToOcr", t.getMaxFileSizeToOcr());
-//        xml.addElement("minFileSizeToOcr", t.getMinFileSizeToOcr());
-//        xml.addElement("pageSegMode", t.getPageSegMode());
-//        xml.addElement("pageSeparator", t.getPageSeparator());
-//        xml.addElement(
-//                "preserveInterwordSpacing", t.isPreserveInterwordSpacing());
-//        xml.addElement("resize", t.getResize());
-//        xml.addElement("timeoutSeconds", t.getTimeoutSeconds());
-//    }
+    //
+    //
+    //
+    //    // below to refactor:
+    //
+    //
+    ////    private boolean disabled;
+    //
+    //    /**
+    //     * The Tesseract OCR engine full path to the executable file.
+    //     * @param path executable path
+    //     * @return path executable path
+    //     */
+    ////    private Path tesseractPath;
+    ////    private Path tessdataPath;
+    //
+    //    private final List<TextMatcher> contentTypeMatchers = new ArrayList<>();
+    //
+    ////    private Path imageMagickPath;
+    //
+    //    @ToString.Exclude
+    //    @EqualsAndHashCode.Exclude
+    //    @NonNull
+    //    private TesseractOCRConfig tesseractConfig = new TesseractOCRConfig();
+    //
+    //    /**
+    //     * Text matchers restricting which content types to apply OCR.
+    //     * @return content type matchers
+    //     */
+    //    public List<TextMatcher> getContentTypeMatchers() {
+    //        return Collections.unmodifiableList(contentTypeMatchers);
+    //    }
+    //    /**
+    //     * Text matchers restricting which content types to apply OCR.
+    //     * @param matchers content type matchers
+    //     */
+    //    public void setContentTypeMatchers(List<TextMatcher> matchers) {
+    //        CollectionUtil.setAll(contentTypeMatchers, matchers);
+    //    }
+    //
+    //    @EqualsAndHashCode.Include
+    //    @ToString.Include
+    //    private String tesseractConfigToString() {
+    //        return new ReflectionToStringBuilder(
+    //                tesseractConfig,
+    //                ToStringStyle.NO_CLASS_NAME_STYLE)
+    //            .setExcludeFieldNames("userConfigured")
+    //            .toString();
+    //    }
+    //
+    //    @Override
+    //    public void loadFromXML(XML xml) {
+    //        setDisabled(xml.getBoolean("@disabled"));
+    //        setTesseractPath(xml.getPath(Fields.tesseractPath, tesseractPath));
+    //        setTessdataPath(xml.getPath(Fields.tessdataPath, tessdataPath));
+    //        setContentTypeMatchers(xml.getXMLList("contentTypes/matcher").stream()
+    //            .map(x -> {
+    //                var tm = new TextMatcher();
+    //                tm.loadFromXML(x);
+    //                return tm;
+    //            })
+    //            .toList());
+    //        setImageMagickPath(
+    //                xml.getPath(Fields.imageMagickPath, getImageMagickPath()));
+    //
+    //        var t = tesseractConfig;
+    //        t.setApplyRotation(
+    //                xml.getBoolean("applyRotation", t.isApplyRotation()));
+    //        t.setColorspace(xml.getString("colorSpace", t.getColorspace()));
+    //        t.setDensity(xml.getInteger("density", t.getDensity()));
+    //        t.setDepth(xml.getInteger("depth", t.getDepth()));
+    //        t.setEnableImagePreprocessing(xml.getBoolean(
+    //                "enableImagePreprocessing", t.isEnableImagePreprocessing()));
+    //        t.setFilter(xml.getString("filter", t.getFilter()));
+    //        t.setLanguage(xml.getString("language", t.getLanguage()));
+    //        t.setMaxFileSizeToOcr(
+    //                xml.getLong("maxFileSizeToOcr", t.getMaxFileSizeToOcr()));
+    //        t.setMinFileSizeToOcr(
+    //                xml.getLong("minFileSizeToOcr", t.getMinFileSizeToOcr()));
+    //        t.setPageSegMode(
+    //                xml.getString("pageSegMode", t.getPageSegMode()));
+    //        // TesseractOCRConfig defaults to "" but does not want ""
+    //        var pageSep = xml.getString("pageSeparator");
+    //        if (StringUtils.isNotBlank(pageSep)) {
+    //            t.setPageSeparator(
+    //                    xml.getString("pageSeparator", t.getPageSeparator()));
+    //        }
+    //        t.setPreserveInterwordSpacing(xml.getBoolean(
+    //                "preserveInterwordSpacing", t.isPreserveInterwordSpacing()));
+    //        t.setResize(xml.getInteger("resize", t.getResize()));
+    //        t.setTimeoutSeconds(
+    //                xml.getInteger("timeoutSeconds", t.getTimeoutSeconds()));
+    //    }
+    //
+    //    @Override
+    //    public void saveToXML(XML xml) {
+    //        xml.setAttribute("disabled", disabled);
+    //        xml.addElement(Fields.tesseractPath, tesseractPath);
+    //        xml.addElement(Fields.tessdataPath, tessdataPath);
+    //        xml.addElementList("contentTypes", "matcher", contentTypeMatchers);
+    //        xml.addElement(Fields.imageMagickPath, imageMagickPath);
+    //
+    //        var t = tesseractConfig;
+    //        xml.addElement("applyRotation", t.isApplyRotation());
+    //        xml.addElement("colorSpace", t.getColorspace());
+    //        xml.addElement("density", t.getDensity());
+    //        xml.addElement("depth", t.getDepth());
+    //        xml.addElement(
+    //                "enableImagePreprocessing", t.isEnableImagePreprocessing());
+    //        xml.addElement("filter", t.getFilter());
+    //        xml.addElement("language", t.getLanguage());
+    //        xml.addElement("maxFileSizeToOcr", t.getMaxFileSizeToOcr());
+    //        xml.addElement("minFileSizeToOcr", t.getMinFileSizeToOcr());
+    //        xml.addElement("pageSegMode", t.getPageSegMode());
+    //        xml.addElement("pageSeparator", t.getPageSeparator());
+    //        xml.addElement(
+    //                "preserveInterwordSpacing", t.isPreserveInterwordSpacing());
+    //        xml.addElement("resize", t.getResize());
+    //        xml.addElement("timeoutSeconds", t.getTimeoutSeconds());
+    //    }
 }

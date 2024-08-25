@@ -34,7 +34,8 @@ public final class CopyOperation {
     private final PropertySetter onSet;
 
     private CopyOperation(
-            TextMatcher fieldMatcher, String toField, PropertySetter onSet) {
+            TextMatcher fieldMatcher, String toField, PropertySetter onSet
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         this.toField = toField;
         this.onSet = onSet;
@@ -43,20 +44,20 @@ public final class CopyOperation {
     public static CopyOperation of(@NonNull String toField) {
         return of(null, toField, null);
     }
+
     public static CopyOperation of(
-            TextMatcher fieldMatcher, @NonNull String toField) {
+            TextMatcher fieldMatcher, @NonNull String toField
+    ) {
         return of(fieldMatcher, toField, null);
     }
 
     @JsonCreator
     public static CopyOperation of(
-            @JsonProperty("fieldMatcher")
-            TextMatcher fieldMatcher,
+            @JsonProperty("fieldMatcher") TextMatcher fieldMatcher,
             @JsonProperty("toField")
-            @NonNull
-            String toField,
-            @JsonProperty("onSet")
-            PropertySetter onSet) {
+            @NonNull String toField,
+            @JsonProperty("onSet") PropertySetter onSet
+    ) {
         return new CopyOperation(fieldMatcher, toField, onSet);
     }
 }

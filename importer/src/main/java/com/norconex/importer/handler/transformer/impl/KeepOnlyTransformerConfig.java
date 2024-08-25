@@ -72,6 +72,7 @@ public class KeepOnlyTransformerConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets field matcher.
      * @param fieldMatcher field matcher

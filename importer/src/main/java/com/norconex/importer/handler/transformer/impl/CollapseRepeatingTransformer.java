@@ -101,14 +101,15 @@ public class CollapseRepeatingTransformer
 
     private String resolveControlChars(String text) {
         return text
-            .replaceAll("\\\\s", " ")  //NOSONAR test fails otherwise
-            .replaceAll("\\\\t", "\t") //NOSONAR test fails otherwise
-            .replaceAll("\\\\n", "\n") //NOSONAR test fails otherwise
-            .replaceAll("\\\\r", "\r");//NOSONAR test fails otherwise
+                .replaceAll("\\\\s", " ") //NOSONAR test fails otherwise
+                .replaceAll("\\\\t", "\t") //NOSONAR test fails otherwise
+                .replaceAll("\\\\n", "\n") //NOSONAR test fails otherwise
+                .replaceAll("\\\\r", "\r");//NOSONAR test fails otherwise
     }
 
     private String escapeRegex(String text) {
         return text.replaceAll(
-                "([\\\\\\.\\[\\{\\(\\*\\+\\?\\^\\$\\|])", "\\\\$1");
+                "([\\\\\\.\\[\\{\\(\\*\\+\\?\\^\\$\\|])", "\\\\$1"
+        );
     }
 }

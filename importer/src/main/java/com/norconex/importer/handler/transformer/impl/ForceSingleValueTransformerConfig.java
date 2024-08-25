@@ -18,6 +18,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+
 /**
  * <p>
  * Forces a metadata field to be single-value.  The action can be one of the
@@ -79,12 +80,14 @@ public class ForceSingleValueTransformerConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets field matcher.
      * @param fieldMatcher field matcher
      */
     public ForceSingleValueTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

@@ -25,10 +25,10 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode
-public abstract class AbstractDocumentSplitter
-        <T extends BaseDocumentSplitterConfig>
-                extends BaseDocumentHandler
-                implements Configurable<T> {
+public abstract class AbstractDocumentSplitter<
+        T extends BaseDocumentSplitterConfig>
+        extends BaseDocumentHandler
+        implements Configurable<T> {
 
     @Override
     public final void handle(HandlerContext docCtx) throws IOException {
@@ -38,6 +38,7 @@ public abstract class AbstractDocumentSplitter
             docCtx.rejectedBy(this);
         }
     }
+
     public abstract void split(HandlerContext docCtx)
             throws IOException;
 }

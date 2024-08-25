@@ -156,26 +156,30 @@ public class DomCondition
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                docCtx.docRecord().getContentType().toString())) {
+                docCtx.docRecord().getContentType().toString()
+        )) {
             return false;
         }
 
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()
-            .charset(configuration.getSourceCharset())
-            .fieldMatcher(configuration.getFieldMatcher())
-            .maxChunkSize(-1) // disable chunking to not break the DOM.
-            .build()
-            .read(docCtx, chunk -> {
-                // only check if no successful match yet.
-                if (matches.isFalse() && testDocument(Jsoup.parse(
-                        chunk.getText(),
-                        docCtx.reference(),
-                        toJSoupParser(configuration.getParser())))) {
-                    matches.setTrue();
-                }
-                return true;
-            });
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(-1) // disable chunking to not break the DOM.
+                .build()
+                .read(docCtx, chunk -> {
+                    // only check if no successful match yet.
+                    if (matches.isFalse() && testDocument(
+                            Jsoup.parse(
+                                    chunk.getText(),
+                                    docCtx.reference(),
+                                    toJSoupParser(configuration.getParser())
+                            )
+                    )) {
+                        matches.setTrue();
+                    }
+                    return true;
+                });
         return matches.booleanValue();
     }
 

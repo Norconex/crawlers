@@ -33,7 +33,9 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DelaySchedule {
 
-    public enum DOW {MON,TUE,WED,THU,FRI,SAT,SUN}
+    public enum DOW {
+        MON, TUE, WED, THU, FRI, SAT, SUN
+    }
 
     @Data
     @AllArgsConstructor
@@ -57,13 +59,16 @@ public class DelaySchedule {
             timeRange = null;
             return;
         }
-        setTimeRange(new Range<LocalTime>()
-                .setStart(parseTime(range.getStart()))
-                .setEnd(parseTime(range.getEnd())));
+        setTimeRange(
+                new Range<LocalTime>()
+                        .setStart(parseTime(range.getStart()))
+                        .setEnd(parseTime(range.getEnd()))
+        );
     }
+
     @JsonGetter(value = "timeRange")
     Range<String> getTimeRangeAsString() {
-        if (timeRange == null ) {
+        if (timeRange == null) {
             return null;
         }
         return new Range<String>()

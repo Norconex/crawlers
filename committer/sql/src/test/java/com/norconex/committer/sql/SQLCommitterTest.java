@@ -67,9 +67,9 @@ class SQLCommitterTest {
     void beforeEach() {
         LOG.debug("Creating new database.");
         connectionURL = "jdbc:h2:"
-              + tempDir.getAbsolutePath()
-              + ";WRITE_DELAY=0;AUTOCOMMIT=ON;"
-              + "AUTO_SERVER=TRUE;USER=sa;PASSWORD=123";
+                + tempDir.getAbsolutePath()
+                + ";WRITE_DELAY=0;AUTOCOMMIT=ON;"
+                + "AUTO_SERVER=TRUE;USER=sa;PASSWORD=123";
         try {
             withinDbSession(qr -> qr.update("DROP TABLE " + TEST_TABLE));
         } catch (SQLException e) {
@@ -104,9 +104,9 @@ class SQLCommitterTest {
 
         // Verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(CommitterException.class)
-            .hasMessage("No connection URL specified.");
+                .isNotNull()
+                .isInstanceOf(CommitterException.class)
+                .hasMessage("No connection URL specified.");
     }
 
     @Test
@@ -125,9 +125,9 @@ class SQLCommitterTest {
 
         // Verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(CommitterException.class)
-            .hasMessage("No table name specified.");
+                .isNotNull()
+                .isInstanceOf(CommitterException.class)
+                .hasMessage("No table name specified.");
     }
 
     @Test
@@ -146,13 +146,13 @@ class SQLCommitterTest {
 
         // Verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(CommitterException.class)
-            .hasMessage("No primary key specified.");
+                .isNotNull()
+                .isInstanceOf(CommitterException.class)
+                .hasMessage("No primary key specified.");
     }
 
     @Test
-    void testAddWithQueueContaining2documents() throws Exception{
+    void testAddWithQueueContaining2documents() throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -164,7 +164,7 @@ class SQLCommitterTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd1DeleteCommand()
-            throws Exception{
+            throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -178,7 +178,7 @@ class SQLCommitterTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd2DeleteCommand()
-            throws Exception{
+            throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -208,7 +208,6 @@ class SQLCommitterTest {
         assertThat(getAllDocs()).isEmpty();
     }
 
-
     @Test
     void testMultiValueFields() throws Exception {
         var metadata = new Properties();
@@ -234,11 +233,13 @@ class SQLCommitterTest {
         withinCommitterSession(c -> {
             var metadata = new Properties();
             metadata.set("LONGSINGLE", StringUtils.repeat("a", 50));
-            metadata.set("LONGMULTI",
+            metadata.set(
+                    "LONGMULTI",
                     StringUtils.repeat("a", 10),
                     StringUtils.repeat("b", 10),
                     StringUtils.repeat("c", 10),
-                    StringUtils.repeat("d", 10));
+                    StringUtils.repeat("d", 10)
+            );
 
             var config = c.getConfiguration();
             config.setFixFieldValues(true);
@@ -246,23 +247,24 @@ class SQLCommitterTest {
             c.upsert(upsertRequest(TEST_ID, null, metadata));
         });
 
-
         var docs = getAllDocs();
         assertThat(docs).hasSize(1);
 
         var doc = docs.get(0);
         assertThat(doc.get(TEST_FLD_PK))
-            .isInstanceOf(String.class)
-            .isEqualTo(TEST_ID);
+                .isInstanceOf(String.class)
+                .isEqualTo(TEST_ID);
         // Check values were truncated
         assertThat(doc.get("LONGSINGLE"))
-            .isInstanceOf(String.class)
-            .isEqualTo(StringUtils.repeat("a", 30));
+                .isInstanceOf(String.class)
+                .isEqualTo(StringUtils.repeat("a", 30));
         assertThat(doc.get("LONGMULTI"))
                 .isInstanceOf(String.class)
-                .isEqualTo(StringUtils.repeat("a", 10) + "-"
-                        + StringUtils.repeat("b", 10) + "-"
-                        + StringUtils.repeat("c", 8));
+                .isEqualTo(
+                        StringUtils.repeat("a", 10) + "-"
+                                + StringUtils.repeat("b", 10) + "-"
+                                + StringUtils.repeat("c", 8)
+                );
     }
 
     @Test
@@ -283,45 +285,54 @@ class SQLCommitterTest {
 
         var doc = docs.get(0);
         assertThat(doc.get(TEST_FLD_PK))
-            .isInstanceOf(String.class)
-            .isEqualTo(TEST_ID);
+                .isInstanceOf(String.class)
+                .isEqualTo(TEST_ID);
 
         // Check values were truncated
         assertThat(doc.get("A_B_C_E_F"))
-            .isInstanceOf(String.class)
-            .isEqualTo("test1");
+                .isInstanceOf(String.class)
+                .isEqualTo("test1");
         assertThat(doc.get("FIELD2"))
-            .isInstanceOf(String.class)
-            .isEqualTo("test2");
+                .isInstanceOf(String.class)
+                .isEqualTo("test2");
         assertThat(doc.get("FIELD3"))
-            .isInstanceOf(String.class)
-            .isEqualTo("test3");
+                .isInstanceOf(String.class)
+                .isEqualTo("test3");
     }
-
 
     private UpsertRequest upsertRequest(String id, String content) {
         return upsertRequest(id, content, null);
     }
+
     private UpsertRequest upsertRequest(
-            String id, String content, Properties metadata) {
+            String id, String content, Properties metadata
+    ) {
         var p = metadata == null ? new Properties() : metadata;
-        return new UpsertRequest(id, p, content == null
-                ? new NullInputStream(0) : toInputStream(content, UTF_8));
+        return new UpsertRequest(
+                id, p, content == null
+                        ? new NullInputStream(0)
+                        : toInputStream(content, UTF_8)
+        );
     }
 
     private void assertTestDoc(Map<String, Object> doc) {
         assertThat(doc.get(TEST_FLD_PK))
-            .isInstanceOf(String.class)
-            .isEqualTo(TEST_ID);
+                .isInstanceOf(String.class)
+                .isEqualTo(TEST_ID);
         assertThat(doc.get(TEST_FLD_CONTENT))
-            .isInstanceOf(String.class)
-            .isEqualTo(TEST_CONTENT);
+                .isInstanceOf(String.class)
+                .isEqualTo(TEST_CONTENT);
     }
 
     private CommitterContext createCommitterContext() {
         return CommitterContext.builder()
-                .setWorkDir(new File(tempDir,
-                        "work-" + TimeIdGenerator.next()).toPath()).build();
+                .setWorkDir(
+                        new File(
+                                tempDir,
+                                "work-" + TimeIdGenerator.next()
+                        ).toPath()
+                )
+                .build();
     }
 
     private SQLCommitter createSQLCommitterNoInit()
@@ -340,13 +351,15 @@ class SQLCommitterTest {
 
         config.setCreateTableSQL(
                 """
-                	CREATE TABLE {tableName} (\
-                	  {primaryKey} VARCHAR(32672) NOT NULL,\s\
-                	  content CLOB,\s\
-                	  PRIMARY KEY ({primaryKey})\s\
-                	)""");
+                        CREATE TABLE {tableName} (\
+                          {primaryKey} VARCHAR(32672) NOT NULL,\s\
+                          content CLOB,\s\
+                          PRIMARY KEY ({primaryKey})\s\
+                        )"""
+        );
         config.setCreateFieldSQL(
-                "ALTER TABLE {tableName} ADD {fieldName} VARCHAR(30)");
+                "ALTER TABLE {tableName} ADD {fieldName} VARCHAR(30)"
+        );
 
         return committer;
     }
@@ -367,7 +380,8 @@ class SQLCommitterTest {
     }
 
     private SQLCommitter withinCommitterSessionEmptyConnUrl(
-            CommitterConsumer c) throws CommitterException {
+            CommitterConsumer c
+    ) throws CommitterException {
 
         var committer = createSQLCommitterEmptyConnUrl();
         committer.init(createCommitterContext());
@@ -392,7 +406,8 @@ class SQLCommitterTest {
     }
 
     private SQLCommitter withinCommitterSessionEmptyTableName(
-            CommitterConsumer c) throws CommitterException {
+            CommitterConsumer c
+    ) throws CommitterException {
 
         var committer = createSQLCommitterEmptyTableName();
         committer.init(createCommitterContext());
@@ -417,9 +432,9 @@ class SQLCommitterTest {
         return committer;
     }
 
-
     private SQLCommitter withinCommitterSessionEmptyPrimaryKey(
-            CommitterConsumer c) throws CommitterException {
+            CommitterConsumer c
+    ) throws CommitterException {
 
         var committer = createSQLCommitterEmptyPrimaryKey();
         committer.init(createCommitterContext());
@@ -445,7 +460,6 @@ class SQLCommitterTest {
         return committer;
     }
 
-
     private <T> T withinDbSession(DbFunction<T> c) throws SQLException {
         var datasource = new BasicDataSource();
         datasource.setDriverClassName(DRIVER_CLASS);
@@ -460,14 +474,19 @@ class SQLCommitterTest {
     private interface CommitterConsumer {
         void accept(SQLCommitter c) throws Exception;
     }
+
     @FunctionalInterface
     private interface DbFunction<T> {
         T apply(QueryRunner q) throws SQLException;
     }
 
     private List<Map<String, Object>> getAllDocs() throws SQLException {
-        return withinDbSession(qr -> qr.query("SELECT * FROM " + TEST_TABLE,
-                new MapListHandler(new ClobAwareRowProcessor())));
+        return withinDbSession(
+                qr -> qr.query(
+                        "SELECT * FROM " + TEST_TABLE,
+                        new MapListHandler(new ClobAwareRowProcessor())
+                )
+        );
     }
 
     class ClobAwareRowProcessor extends BasicRowProcessor {

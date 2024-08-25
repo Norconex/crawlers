@@ -75,8 +75,10 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
     SniffedResponseHeader track(String url) {
         return trackedUrlResponses.computeIfAbsent(
-                url, na -> new SniffedResponseHeader());
+                url, na -> new SniffedResponseHeader()
+        );
     }
+
     void untrack(String url) {
         trackedUrlResponses.remove(url);
     }
@@ -112,14 +114,16 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
         // request headers
         configuration.getRequestHeaders().entrySet().forEach(
-                en -> mobProxy.addHeader(en.getKey(), en.getValue()));
+                en -> mobProxy.addHeader(en.getKey(), en.getValue())
+        );
 
         // User agent
         if (StringUtils.isNotBlank(configuration.getUserAgent())) {
             mobProxy.addRequestFilter((request, contents, messageInfo) -> {
                 request.headers().remove("User-Agent");
                 request.headers().add(
-                        "User-Agent", configuration.getUserAgent());
+                        "User-Agent", configuration.getUserAgent()
+                );
                 return null;// Return null to continue with the modified request
             });
         }
@@ -128,24 +132,34 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
         mobProxy.addLastHttpFilterFactory(
                 new ResponseFilterAdapter.FilterSource(
                         (response, contents, messageInfo) -> {
-            // sniff only if original URL is being tracked
-            var trackedResponse =
-                    trackedUrlResponses.get(messageInfo.getOriginalUrl());
+                            // sniff only if original URL is being tracked
+                            var trackedResponse =
+                                    trackedUrlResponses
+                                            .get(messageInfo.getOriginalUrl());
 
-            if (trackedResponse != null) {
-                response.headers().forEach(en ->
-                    trackedResponse.headers.put(en.getKey(), en.getValue()));
-                trackedResponse.statusCode = response.status().code();
-                trackedResponse.reasonPhrase = response.status().reasonPhrase();
-            }
-        }, configuration.getMaxBufferSize()));
+                            if (trackedResponse != null) {
+                                response.headers()
+                                        .forEach(
+                                                en -> trackedResponse.headers
+                                                        .put(
+                                                                en.getKey(),
+                                                                en.getValue()
+                                                        )
+                                        );
+                                trackedResponse.statusCode =
+                                        response.status().code();
+                                trackedResponse.reasonPhrase =
+                                        response.status().reasonPhrase();
+                            }
+                        }, configuration.getMaxBufferSize()
+                )
+        );
 
         mobProxy.start(configuration.getPort());
 
         var actualPort = mobProxy.getPort();
         var proxyHost = ofNullable(configuration.getHost()).orElse("localhost");
         LOG.info("Proxy set on browser as: {}.", proxyHost + ":" + actualPort);
-
 
         // Fix bug with firefox where request/response filters are not
         // triggered properly unless dealing with firefox profile
@@ -164,7 +178,8 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
             // Required since FF v67 to enable a localhost proxy:
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1535581
             profile.setPreference(
-                    "network.proxy.allow_hijacking_localhost", true);
+                    "network.proxy.allow_hijacking_localhost", true
+            );
             ((FirefoxOptions) options).setProfile(profile);
 
         } else if (options instanceof ChromeOptions chromeOptions) {
@@ -172,7 +187,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
             // https://bugs.chromium.org/p/chromium/issues/detail?id=899126#c15
             chromeOptions.addArguments(
                     "--proxy-bypass-list=<-loopback>",
-                    "--proxy-server=" +  proxyHost + ":" + actualPort,
+                    "--proxy-server=" + proxyHost + ":" + actualPort,
                     "--disable-popup-blocking",
                     "--disable-extensions",
                     "--disable-dev-shm-usage",
@@ -187,7 +202,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                     "--no-default-browser-check",
                     "--disable-sign-in"
             );
-            if  (LOG.isDebugEnabled()) {
+            if (LOG.isDebugEnabled()) {
                 System.setProperty("webdriver.chrome.verboseLogging", "true");
             }
         }
@@ -208,6 +223,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                 MultiMapUtils.newListValuedHashMap();
         private int statusCode;
         private String reasonPhrase;
+
         public MultiValuedMap<String, String> getHeaders() {
             return headers;
         }

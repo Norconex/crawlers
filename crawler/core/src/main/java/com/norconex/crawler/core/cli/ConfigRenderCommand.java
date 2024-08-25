@@ -41,21 +41,24 @@ import picocli.CommandLine.Option;
 @ToString
 public class ConfigRenderCommand extends CliSubCommandBase {
 
-    @Option(names = { "-o", "-output" },
-            description = "Render to a file",
-            required = false)
+    @Option(
+        names = { "-o", "-output" },
+        description = "Render to a file",
+        required = false
+    )
     private Path output;
 
-    @Option(names = { "-format" },
-            description = "One of \"xml\", \"yaml\", or \"json\" (default)",
-            required = false)
+    @Option(
+        names = { "-format" },
+        description = "One of \"xml\", \"yaml\", or \"json\" (default)",
+        required = false
+    )
     private String format;
 
-
-//    @Option(names = { "-i", "-indent" },
-//            description = "Number of spaces used for indentation (default: 2).",
-//            required = false)
-//    private int indent = 2;
+    //    @Option(names = { "-i", "-indent" },
+    //            description = "Number of spaces used for indentation (default: 2).",
+    //            required = false)
+    //    private int indent = 2;
 
     @Override
     public void runCommand(Crawler crawler) {
@@ -74,13 +77,16 @@ public class ConfigRenderCommand extends CliSubCommandBase {
             crawler.getServices().getBeanMapper().write(
                     crawler.getConfiguration(),
                     out,
-                    f);
+                    f
+            );
             if (output == null) {
                 out().println(((StringWriter) out).toString());
             }
         } catch (IOException e) {
-            err().println("Could not render config: "
-                    + ExceptionUtil.getFormattedMessages(e));
+            err().println(
+                    "Could not render config: "
+                            + ExceptionUtil.getFormattedMessages(e)
+            );
         }
     }
 }

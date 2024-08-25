@@ -37,8 +37,10 @@ class PDFPageSplitterTest {
     @BeforeEach
     void setup() {
         input = PDFPageSplitterTest.class.getResourceAsStream(
-                PDFPageSplitterTest.class.getSimpleName() + ".pdf");
+                PDFPageSplitterTest.class.getSimpleName() + ".pdf"
+        );
     }
+
     @AfterEach
     void tearDown() throws IOException {
         input.close();
@@ -63,8 +65,8 @@ class PDFPageSplitterTest {
     void testWriteRead() {
         var splitter = new PDFPageSplitter();
         splitter.getConfiguration().setReferencePagePrefix("#page");
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(splitter));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(splitter));
     }
 
     private List<Doc> split(PDFPageSplitter splitter)

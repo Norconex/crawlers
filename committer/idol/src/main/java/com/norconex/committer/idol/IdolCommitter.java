@@ -103,8 +103,10 @@ public class IdolCommitter
     protected void initBatchCommitter() throws CommitterException {
         // IDOL Client
         idolClient = new IdolClient(configuration);
-        LOG.info("IDOL {}URL: {}",
-                configuration.isCfs() ? "CFS " : "", configuration.getUrl());
+        LOG.info(
+                "IDOL {}URL: {}",
+                configuration.isCfs() ? "CFS " : "", configuration.getUrl()
+        );
     }
 
     @Override

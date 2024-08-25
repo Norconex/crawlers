@@ -22,18 +22,21 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
 
-
-class GenericSpoiledReferenceStrategizerTest  {
+class GenericSpoiledReferenceStrategizerTest {
 
     @Test
     void testWriteRead() {
         var s = new GenericSpoiledReferenceStrategizer();
         s.getConfiguration()
-            .setFallbackStrategy(SpoiledReferenceStrategy.GRACE_ONCE)
-            .setMapping(CrawlDocState.MODIFIED,
-                    SpoiledReferenceStrategy.IGNORE)
-            .setMapping(CrawlDocState.BAD_STATUS,
-                    SpoiledReferenceStrategy.DELETE);
+                .setFallbackStrategy(SpoiledReferenceStrategy.GRACE_ONCE)
+                .setMapping(
+                        CrawlDocState.MODIFIED,
+                        SpoiledReferenceStrategy.IGNORE
+                )
+                .setMapping(
+                        CrawlDocState.BAD_STATUS,
+                        SpoiledReferenceStrategy.DELETE
+                );
         assertThatNoException().isThrownBy(() -> {
             BeanMapper.DEFAULT.assertWriteRead(s);
         });

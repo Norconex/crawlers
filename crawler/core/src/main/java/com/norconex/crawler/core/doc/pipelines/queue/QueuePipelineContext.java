@@ -27,7 +27,7 @@ import lombok.Data;
  * by one of the pipeline stages).
  */
 @Data
-public class QueuePipelineContext  {
+public class QueuePipelineContext {
     private final Crawler crawler;
     private final CrawlDocContext docContext;
 }

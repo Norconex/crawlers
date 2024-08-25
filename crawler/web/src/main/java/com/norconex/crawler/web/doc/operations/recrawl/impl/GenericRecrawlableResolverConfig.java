@@ -110,6 +110,7 @@ public class GenericRecrawlableResolverConfig {
 
     public enum SitemapSupport {
         FIRST, LAST, NEVER;
+
         public static SitemapSupport getSitemapSupport(String sitemapSupport) {
             if (StringUtils.isBlank(sitemapSupport)) {
                 return null;
@@ -133,7 +134,6 @@ public class GenericRecrawlableResolverConfig {
 
     private final List<MinFrequency> minFrequencies = new ArrayList<>();
 
-
     /**
      * Gets minimum frequencies.
      * @return minimum frequencies
@@ -141,6 +141,7 @@ public class GenericRecrawlableResolverConfig {
     public List<MinFrequency> getMinFrequencies() {
         return Collections.unmodifiableList(minFrequencies);
     }
+
     /**
      * Sets minimum frequencies.
      * @param minFrequencies minimum frequencies
@@ -156,11 +157,13 @@ public class GenericRecrawlableResolverConfig {
         private String applyTo;
         private String value;
         private final TextMatcher matcher = new TextMatcher();
+
         public MinFrequency(String applyTo, String value, TextMatcher matcher) {
             this.applyTo = applyTo;
             this.value = value;
             this.matcher.copyFrom(matcher);
         }
+
         public void setMatcher(TextMatcher matcher) {
             this.matcher.copyFrom(matcher);
         }

@@ -43,21 +43,24 @@ import com.norconex.importer.Importer;
  */
 public final class BeanMapperFactory {
 
-    private BeanMapperFactory() {}
+    private BeanMapperFactory() {
+    }
 
     public static BeanMapper create(
-            Class<? extends CrawlerConfig> crawlerConfigClass) {
+            Class<? extends CrawlerConfig> crawlerConfigClass
+    ) {
         return create(crawlerConfigClass, null);
     }
 
     public static BeanMapper create(
             Class<? extends CrawlerConfig> crawlerConfigClass,
-            Consumer<BeanMapper.BeanMapperBuilder> builderModifier) {
+            Consumer<BeanMapper.BeanMapperBuilder> builderModifier
+    ) {
         var beanMapperBuilder = BeanMapper.builder()
-            .ignoredProperty("crawlerDefaults")
-            .defaultPolymorphicType(CrawlerConfig.class, crawlerConfigClass)
-            .unboundPropertyMapping("crawler", crawlerConfigClass)
-            .unboundPropertyMapping("importer", Importer.class);
+                .ignoredProperty("crawlerDefaults")
+                .defaultPolymorphicType(CrawlerConfig.class, crawlerConfigClass)
+                .unboundPropertyMapping("crawler", crawlerConfigClass)
+                .unboundPropertyMapping("importer", Importer.class);
 
         registerPolymorpicTypes(beanMapperBuilder);
 
@@ -68,7 +71,6 @@ public final class BeanMapperFactory {
         return beanMapperBuilder.build();
     }
 
-
     private static void registerPolymorpicTypes(BeanMapperBuilder builder) {
         //MAYBE: make package configurable? Maybe use java service loaded?
         //TODO make scanning path configurable? Like java service loader?
@@ -78,8 +80,10 @@ public final class BeanMapperFactory {
 
         // This one has too many that are not meant to be added as configuration
         // so we only accept those that are standalone listeners:
-        builder.polymorphicType(EventListener.class,
-                predicate.and(nm -> nm.endsWith("EventListener")));
+        builder.polymorphicType(
+                EventListener.class,
+                predicate.and(nm -> nm.endsWith("EventListener"))
+        );
         builder.polymorphicType(ReferencesProvider.class, predicate);
         builder.polymorphicType(DataStoreEngine.class, predicate);
         builder.polymorphicType(ReferenceFilter.class, predicate);

@@ -169,12 +169,14 @@ public class AzureSearchCommitterConfig
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
+
     /**
      * Sets the proxy settings.
      * @param proxySettings proxy settings
      */
     public AzureSearchCommitterConfig setProxySettings(
-            @NonNull ProxySettings proxySettings) {
+            @NonNull ProxySettings proxySettings
+    ) {
         this.proxySettings.copyFrom(proxySettings);
         return this;
     }

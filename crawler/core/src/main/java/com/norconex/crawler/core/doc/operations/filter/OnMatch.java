@@ -24,6 +24,7 @@ public enum OnMatch {
     public static OnMatch includeIfNull(OnMatch onMatch) {
         return onMatch != null ? onMatch : INCLUDE;
     }
+
     public static OnMatch excludeIfNull(OnMatch onMatch) {
         return onMatch != null ? onMatch : EXCLUDE;
     }

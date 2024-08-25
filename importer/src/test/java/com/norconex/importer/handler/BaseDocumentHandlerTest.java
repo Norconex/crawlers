@@ -16,21 +16,21 @@ package com.norconex.importer.handler;
 
 class BaseDocumentHandlerTest {
 
-//    @Test
-//    void test() {
-//        var importer = configure(new Importer(), cfg -> cfg
-//            .setPreParseConsumer(
-//                BaseDocumentHandler.decorate(configure(
-//                    new TruncateTransformer(), t -> t
-//                        .setMaxLength(10)))));
-//
-//        System.err.println("IMPORTER: " + importer);
-//
-//
-////        var cfg = Configurable.configure(new TruncateTransformer(), t -> {
-////            new ImporterConfig()
-////            .setPreParseConsumer(
-////        });
-//    }
+    //    @Test
+    //    void test() {
+    //        var importer = configure(new Importer(), cfg -> cfg
+    //            .setPreParseConsumer(
+    //                BaseDocumentHandler.decorate(configure(
+    //                    new TruncateTransformer(), t -> t
+    //                        .setMaxLength(10)))));
+    //
+    //        System.err.println("IMPORTER: " + importer);
+    //
+    //
+    ////        var cfg = Configurable.configure(new TruncateTransformer(), t -> {
+    ////            new ImporterConfig()
+    ////            .setPreParseConsumer(
+    ////        });
+    //    }
 
 }

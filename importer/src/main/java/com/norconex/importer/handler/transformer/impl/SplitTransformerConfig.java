@@ -87,10 +87,12 @@ public class SplitTransformerConfig {
     private final List<SplitOperation> operations = new ArrayList<>();
 
     public SplitTransformerConfig setOperations(
-            List<SplitOperation> operations) {
+            List<SplitOperation> operations
+    ) {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }
+
     public List<SplitOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }

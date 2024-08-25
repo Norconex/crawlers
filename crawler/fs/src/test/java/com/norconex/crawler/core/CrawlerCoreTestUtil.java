@@ -21,13 +21,16 @@ import com.norconex.crawler.core.CrawlerCommandExecuter.CommandExecution;
  */
 public final class CrawlerCoreTestUtil {
 
-    private CrawlerCoreTestUtil() {}
+    private CrawlerCoreTestUtil() {
+    }
 
     public static void initCrawler(Crawler crawler) {
-      CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
+        CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
     }
+
     public static void destroyCrawler(Crawler crawler) {
         CrawlerCommandExecuter.orderlyShutdown(
-                new CommandExecution(crawler, "TEST"));
+                new CommandExecution(crawler, "TEST")
+        );
     }
 }

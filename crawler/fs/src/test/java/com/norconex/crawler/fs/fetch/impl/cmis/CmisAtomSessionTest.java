@@ -42,9 +42,11 @@ class CmisAtomSessionTest {
     void test() throws ClientProtocolException, IOException {
         when(httpClient.execute(Mockito.any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(
-                new BasicStatusLine(HttpVersion.HTTP_1_1, 500, "Too bad"));
+                new BasicStatusLine(HttpVersion.HTTP_1_1, 500, "Too bad")
+        );
         when(httpResponse.getEntity()).thenReturn(
-                new StringEntity("Really too bad"));
+                new StringEntity("Really too bad")
+        );
 
         var cmis = new CmisAtomSession(httpClient);
         assertThatException().isThrownBy(() -> cmis.getStream("badone"));

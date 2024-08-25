@@ -103,7 +103,8 @@ public class CharsetTransformer
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()).entrySet()) {
+                    configuration.getFieldMatcher()
+            ).entrySet()) {
                 var key = en.getKey();
                 List<String> newVals = new ArrayList<>();
                 for (String val : en.getValue()) {
@@ -117,7 +118,7 @@ public class CharsetTransformer
             }
         } else {
             // Body
-            try (var is  = docCtx.input().asInputStream();
+            try (var is = docCtx.input().asInputStream();
                     var os = docCtx.output().asOutputStream()) {
                 doTransform(docCtx, is, os);
             }
@@ -126,21 +127,24 @@ public class CharsetTransformer
 
     // returns final charset
     private Charset doTransform(
-            HandlerContext docCtx, InputStream in, OutputStream out)
-                    throws IOException {
+            HandlerContext docCtx, InputStream in, OutputStream out
+    )
+            throws IOException {
 
         var inputCharset = detectCharsetIfNull(in);
 
         //--- Get target charset ---
-        var outputCharset =  configuration.getTargetCharset();
+        var outputCharset = configuration.getTargetCharset();
         if (outputCharset == null) {
             outputCharset = StandardCharsets.UTF_8;
         }
 
         // Do not proceed if encoding is already what we want
         if (inputCharset.equals(outputCharset)) {
-            LOG.debug("Source and target encodings are the same for {}",
-                    docCtx.reference());
+            LOG.debug(
+                    "Source and target encodings are the same for {}",
+                    docCtx.reference()
+            );
             IOUtils.copyLarge(in, out);
             return outputCharset;
         }
@@ -149,11 +153,14 @@ public class CharsetTransformer
         try {
             CharsetUtil.convertCharset(
                     in, inputCharset,
-                    out, outputCharset);
+                    out, outputCharset
+            );
         } catch (IOException e) {
-            LOG.warn("Cannot convert character encoding from {} to {}. "
-                    + "Encoding will remain unchanged. Reference: {}",
-                    inputCharset, outputCharset, docCtx.reference(), e);
+            LOG.warn(
+                    "Cannot convert character encoding from {} to {}. "
+                            + "Encoding will remain unchanged. Reference: {}",
+                    inputCharset, outputCharset, docCtx.reference(), e
+            );
         }
         return outputCharset;
     }
@@ -161,8 +168,8 @@ public class CharsetTransformer
     private Charset detectCharsetIfNull(InputStream input)
             throws IOException {
         return CharsetDetector.builder()
-            .priorityCharset(configuration::getSourceCharset)
-            .build()
-            .detect(input);
+                .priorityCharset(configuration::getSourceCharset)
+                .build()
+                .detect(input);
     }
 }

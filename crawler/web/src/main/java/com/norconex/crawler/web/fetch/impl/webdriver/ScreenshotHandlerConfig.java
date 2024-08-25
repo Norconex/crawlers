@@ -62,8 +62,8 @@ public class ScreenshotHandlerConfig extends DocImageHandlerConfig {
     private String cssSelector;
 
     public ScreenshotHandlerConfig() {
-            setTargetDir(DEFAULT_SCREENSHOT_DIR);
-            setTargetDirField(DEFAULT_SCREENSHOT_DIR_FIELD);
-            setTargetMetaField(DEFAULT_SCREENSHOT_META_FIELD);
+        setTargetDir(DEFAULT_SCREENSHOT_DIR);
+        setTargetDirField(DEFAULT_SCREENSHOT_DIR_FIELD);
+        setTargetMetaField(DEFAULT_SCREENSHOT_META_FIELD);
     }
 }

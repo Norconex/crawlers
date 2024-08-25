@@ -31,6 +31,7 @@ class FixedGoogleTranslator extends GoogleTranslator {
             throw new ImporterRuntimeException("Cannot mark as available.", e);
         }
     }
+
     public void setApiKey(String apiKey) {
         try {
             FieldUtils.writeField(this, "apiKey", apiKey, true);
@@ -38,6 +39,7 @@ class FixedGoogleTranslator extends GoogleTranslator {
             throw new ImporterRuntimeException("Cannot set api key.", e);
         }
     }
+
     public String getApiKey() {
         try {
             return (String) FieldUtils.readField(this, "apiKey", true);

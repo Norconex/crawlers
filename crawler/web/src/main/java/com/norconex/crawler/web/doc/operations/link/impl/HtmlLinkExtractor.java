@@ -293,77 +293,174 @@ public class HtmlLinkExtractor
     @ToString.Exclude
     private final BiPredicate<Tag, Set<Link>> tagLinksExtractor =
 
-        //--- From tag body ---
-        // When no attributes configured for a tag name, we take the body
-        // value as the URL.
-        ((BiPredicate<Tag, Set<Link>>) (tag, links) -> Optional.of(tag)
-            .filter(t -> t.configAttribNames.isEmpty())
-            .filter(t -> isNotBlank(t.bodyText))
-            .map(t -> toCleanAbsoluteURL(t.referrer, tag.bodyText.trim()))
-            .map(url -> addAsLink(links, url, tag, null))
-            .filter(Boolean::valueOf)
-            .orElse(false)
-        )
+            //--- From tag body ---
+            // When no attributes configured for a tag name, we take the body
+            // value as the URL.
+            ((BiPredicate<Tag, Set<Link>>) (tag, links) -> Optional.of(tag)
+                    .filter(t -> t.configAttribNames.isEmpty())
+                    .filter(t -> isNotBlank(t.bodyText))
+                    .map(
+                            t -> toCleanAbsoluteURL(
+                                    t.referrer,
+                                    tag.bodyText.trim()
+                            )
+                    )
+                    .map(url -> addAsLink(links, url, tag, null))
+                    .filter(Boolean::valueOf)
+                    .orElse(false))
 
-        //--- From meta http-equiv tag ---
-        // E.g.: <meta http-equiv="refresh" content="...">:
-        .or((tag, links) -> Optional.of(tag)
-            .filter(t -> "meta".equals(t.name))
-            .filter(t -> t.configAttribNames.contains(HTTP_EQUIV))
-            .filter(t -> t.attribs.getStrings(HTTP_EQUIV).contains("refresh"))
-            .filter(t -> t.attribs.containsKey(CONTENT))
-            // very unlikely that we have more than one redirect directives,
-            // but loop just in case
-            .map(t -> t.attribs.getStrings(CONTENT)
-                .stream()
-                .map(LinkUtil::extractHttpEquivRefreshContentUrl)
-                .map(url -> toCleanAbsoluteURL(tag.referrer, url))
-                .findFirst()
-                .map(url -> addAsLink(links, url, tag, CONTENT))
-                .filter(Boolean::valueOf)
-                .orElse(false)
-            )
-            .filter(Boolean::valueOf)
-            .orElse(false)
-        )
+                            //--- From meta http-equiv tag ---
+                            // E.g.: <meta http-equiv="refresh" content="...">:
+                            .or(
+                                    (tag, links) -> Optional.of(tag)
+                                            .filter(t -> "meta".equals(t.name))
+                                            .filter(
+                                                    t -> t.configAttribNames
+                                                            .contains(
+                                                                    HTTP_EQUIV
+                                                            )
+                                            )
+                                            .filter(
+                                                    t -> t.attribs
+                                                            .getStrings(
+                                                                    HTTP_EQUIV
+                                                            )
+                                                            .contains("refresh")
+                                            )
+                                            .filter(
+                                                    t -> t.attribs.containsKey(
+                                                            CONTENT
+                                                    )
+                                            )
+                                            // very unlikely that we have more than one redirect directives,
+                                            // but loop just in case
+                                            .map(
+                                                    t -> t.attribs
+                                                            .getStrings(CONTENT)
+                                                            .stream()
+                                                            .map(
+                                                                    LinkUtil::extractHttpEquivRefreshContentUrl
+                                                            )
+                                                            .map(
+                                                                    url -> toCleanAbsoluteURL(
+                                                                            tag.referrer,
+                                                                            url
+                                                                    )
+                                                            )
+                                                            .findFirst()
+                                                            .map(
+                                                                    url -> addAsLink(
+                                                                            links,
+                                                                            url,
+                                                                            tag,
+                                                                            CONTENT
+                                                                    )
+                                                            )
+                                                            .filter(
+                                                                    Boolean::valueOf
+                                                            )
+                                                            .orElse(false)
+                                            )
+                                            .filter(Boolean::valueOf)
+                                            .orElse(false)
+                            )
 
-        //--- From anchor tag ---
-        // E.g.: <a href="...">...</a>
-        .or((tag, links) -> Optional.of(tag)
-            .filter(t -> "a".equals(t.name))
-            .filter(t -> t.configAttribNames.contains("href"))
-            .filter(t -> t.attribs.containsKey("href"))
-            .filter(t -> !hasActiveDoNotFollow(t))
-            .map(t -> toCleanAbsoluteURL(
-                    t.referrer, t.attribs.getString("href")))
-            .map(url -> addAsLink(links, url, tag, "href"))
-            .filter(Boolean::valueOf)
-            .orElse(hasActiveDoNotFollow(tag)) // skip others if no follow
-        )
+                            //--- From anchor tag ---
+                            // E.g.: <a href="...">...</a>
+                            .or(
+                                    (tag, links) -> Optional.of(tag)
+                                            .filter(t -> "a".equals(t.name))
+                                            .filter(
+                                                    t -> t.configAttribNames
+                                                            .contains("href")
+                                            )
+                                            .filter(
+                                                    t -> t.attribs
+                                                            .containsKey("href")
+                                            )
+                                            .filter(
+                                                    t -> !hasActiveDoNotFollow(
+                                                            t
+                                                    )
+                                            )
+                                            .map(
+                                                    t -> toCleanAbsoluteURL(
+                                                            t.referrer,
+                                                            t.attribs.getString(
+                                                                    "href"
+                                                            )
+                                                    )
+                                            )
+                                            .map(
+                                                    url -> addAsLink(
+                                                            links, url, tag,
+                                                            "href"
+                                                    )
+                                            )
+                                            .filter(Boolean::valueOf)
+                                            .orElse(hasActiveDoNotFollow(tag)) // skip others if no follow
+                            )
 
-        //--- From other matching attributes for tag ---
-        .or((tag, links) -> tag.configAttribNames.stream()
-            .map(cfgAttr -> Optional.ofNullable(tag.attribs.getString(cfgAttr))
-                .map(urlStr ->
-                    (EqualsUtil.equalsAny(tag.name, "object", "applet")
-                        ? List.of(StringUtils.split(urlStr, ", "))
-                        : List.of(urlStr))
-                    .stream()
-                    .map(url -> toCleanAbsoluteURL(tag.referrer, url))
-                    .map(url -> addAsLink(links, url, tag, cfgAttr))
-                    .anyMatch(Boolean::valueOf)
-                )
-            )
-            .flatMap(Optional::stream)
-            .anyMatch(Boolean::valueOf)
-        );
+                            //--- From other matching attributes for tag ---
+                            .or(
+                                    (tag, links) -> tag.configAttribNames
+                                            .stream()
+                                            .map(
+                                                    cfgAttr -> Optional
+                                                            .ofNullable(
+                                                                    tag.attribs
+                                                                            .getString(
+                                                                                    cfgAttr
+                                                                            )
+                                                            )
+                                                            .map(
+                                                                    urlStr -> (EqualsUtil
+                                                                            .equalsAny(
+                                                                                    tag.name,
+                                                                                    "object",
+                                                                                    "applet"
+                                                                            )
+                                                                                    ? List.of(
+                                                                                            StringUtils
+                                                                                                    .split(
+                                                                                                            urlStr,
+                                                                                                            ", "
+                                                                                                    )
+                                                                                    )
+                                                                                    : List.of(
+                                                                                            urlStr
+                                                                                    ))
+                                                                                            .stream()
+                                                                                            .map(
+                                                                                                    url -> toCleanAbsoluteURL(
+                                                                                                            tag.referrer,
+                                                                                                            url
+                                                                                                    )
+                                                                                            )
+                                                                                            .map(
+                                                                                                    url -> addAsLink(
+                                                                                                            links,
+                                                                                                            url,
+                                                                                                            tag,
+                                                                                                            cfgAttr
+                                                                                                    )
+                                                                                            )
+                                                                                            .anyMatch(
+                                                                                                    Boolean::valueOf
+                                                                                            )
+                                                            )
+                                            )
+                                            .flatMap(Optional::stream)
+                                            .anyMatch(Boolean::valueOf)
+                            );
 
     @Override
     public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString())) {
+                doc.getDocContext().getContentType().toString()
+        )) {
             return Set.of();
         }
 
@@ -373,14 +470,19 @@ public class HtmlLinkExtractor
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             doc.getMetadata()
-                .matchKeys(configuration.getFieldMatcher())
-                .valueList()
-                    .forEach(val ->
-                        extractLinksFromText(links, val, refererUrl, true));
+                    .matchKeys(configuration.getFieldMatcher())
+                    .valueList()
+                    .forEach(
+                            val -> extractLinksFromText(
+                                    links, val, refererUrl,
+                                    true
+                            )
+                    );
         } else {
             // Body
             try (var r = new TextReader(
-                    new InputStreamReader(doc.getInputStream()))) {
+                    new InputStreamReader(doc.getInputStream())
+            )) {
                 var firstChunk = true;
                 String text = null;
                 while ((text = r.readText()) != null) {
@@ -394,7 +496,8 @@ public class HtmlLinkExtractor
     //--- Non-public methods ---------------------------------------------------
 
     private void extractLinksFromText(
-            Set<Link> links, String text, String url, boolean checkBaseHref) {
+            Set<Link> links, String text, String url, boolean checkBaseHref
+    ) {
         var content = normalizeWhiteSpaces(text);
         var refererUrl = adjustReferer(content, url, checkBaseHref);
         extractLinksFromCleanText(links, content, refererUrl);
@@ -402,7 +505,8 @@ public class HtmlLinkExtractor
 
     private String adjustReferer(
             final String content, final String refererUrl,
-            final boolean firstChunk) {
+            final boolean firstChunk
+    ) {
         var ref = refererUrl;
         if (firstChunk) {
             // make content easier to match by normalizing white spaces
@@ -421,7 +525,8 @@ public class HtmlLinkExtractor
     }
 
     private void extractLinksFromCleanText(
-            Set<Link> links, String theContent, String referrerUrl) {
+            Set<Link> links, String theContent, String referrerUrl
+    ) {
         var content = theContent;
 
         // Eliminate content not matching extract patterns
@@ -430,18 +535,21 @@ public class HtmlLinkExtractor
         // Get rid of <script> tags content to eliminate possibly
         // generated URLs.
         content = content.replaceAll(
-                "(?is)(<script\\b[^>]*>)(.*?)(</script>)", "$1$3");
+                "(?is)(<script\\b[^>]*>)(.*?)(</script>)", "$1$3"
+        );
 
         // Possibly get rid of comments
         if (!configuration.isCommentsEnabled()) {
             content = content.replaceAll("(?is)<!--.*?-->", "");
         }
 
-        Set<String> lcTagNames = new HashSet<>(configuration.getTagAttribs()
-                .keySet()
-                .stream()
-                .map(String::toLowerCase)
-                .toList());
+        Set<String> lcTagNames = new HashSet<>(
+                configuration.getTagAttribs()
+                        .keySet()
+                        .stream()
+                        .map(String::toLowerCase)
+                        .toList()
+        );
 
         var tagNameMatcher = Pattern.compile("<([\\w-]+)").matcher(content);
         while (tagNameMatcher.find()) {
@@ -483,11 +591,13 @@ public class HtmlLinkExtractor
 
         tag.attribs.putAll(Web.parseDomAttributes(attribsStr));
 
-        tag.configAttribNames.addAll(configuration.getTagAttribs()
-                .getStrings(tag.name)
-                .stream()
-                .filter(StringUtils::isNotBlank)
-                .toList());
+        tag.configAttribNames.addAll(
+                configuration.getTagAttribs()
+                        .getStrings(tag.name)
+                        .stream()
+                        .filter(StringUtils::isNotBlank)
+                        .toList()
+        );
 
         return tag;
     }
@@ -504,7 +614,8 @@ public class HtmlLinkExtractor
     }
 
     private boolean addAsLink(
-            Set<Link> links, String url, Tag tag, String attWithUrl) {
+            Set<Link> links, String url, Tag tag, String attWithUrl
+    ) {
         if (StringUtils.isBlank(url)) {
             return false;
         }
@@ -526,7 +637,8 @@ public class HtmlLinkExtractor
         tag.attribs.forEach((attName, attValues) -> {
             if (!Objects.equal(attWithUrl, attName)) {
                 attValues.forEach(
-                        val -> setNonBlank(linkMeta, "attr." + attName, val));
+                        val -> setNonBlank(linkMeta, "attr." + attName, val)
+                );
             }
         });
         return links.add(link);
@@ -536,8 +648,11 @@ public class HtmlLinkExtractor
         return "a".equals(tag.name)
                 && !configuration.isIgnoreNofollow()
                 && tag.attribs.getStrings("rel")
-                    .stream()
-                    .anyMatch(s -> "nofollow".equalsIgnoreCase(trimToEmpty(s)));
+                        .stream()
+                        .anyMatch(
+                                s -> "nofollow"
+                                        .equalsIgnoreCase(trimToEmpty(s))
+                        );
     }
 
     private void setNonBlank(Properties meta, String key, String value) {
@@ -568,8 +683,10 @@ public class HtmlLinkExtractor
     private String applyExtractBetweens(String content) {
         var b = new StringBuilder();
         for (RegexPair regexPair : configuration.getExtractBetweens()) {
-            for (Pair<Integer, Integer> pair :
-                    matchBetweens(content, regexPair)) {
+            for (Pair<Integer, Integer> pair : matchBetweens(
+                    content,
+                    regexPair
+            )) {
                 b.append(content.substring(pair.getLeft(), pair.getRight()));
             }
         }
@@ -581,7 +698,7 @@ public class HtmlLinkExtractor
         for (RegexPair regexPair : configuration.getNoExtractBetweens()) {
             var matches =
                     matchBetweens(content, regexPair);
-            for (var i = matches.size() -1; i >= 0; i--) {
+            for (var i = matches.size() - 1; i >= 0; i--) {
                 var pair = matches.get(i);
                 b.delete(pair.getLeft(), pair.getRight());
             }
@@ -590,7 +707,8 @@ public class HtmlLinkExtractor
     }
 
     private List<Pair<Integer, Integer>> matchBetweens(
-            String content, RegexPair pair) {
+            String content, RegexPair pair
+    ) {
         var flags = Pattern.DOTALL;
         if (pair.isIgnoreCase()) {
             flags = flags | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
@@ -604,8 +722,11 @@ public class HtmlLinkExtractor
             if (!rightMatch.find(leftMatch.end())) {
                 break;
             }
-            matches.add(new ImmutablePair<>(
-                    leftMatch.start(), rightMatch.end()));
+            matches.add(
+                    new ImmutablePair<>(
+                            leftMatch.start(), rightMatch.end()
+                    )
+            );
         }
         return matches;
     }
@@ -623,6 +744,7 @@ public class HtmlLinkExtractor
         }
         return b.toString();
     }
+
     private String applyNoExtractSelectors(String content) {
         var doc = Jsoup.parse(content);
         for (String selector : configuration.getNoExtractSelectors()) {
@@ -634,7 +756,8 @@ public class HtmlLinkExtractor
     }
 
     private String toCleanAbsoluteURL(
-            final String referrerUrl, final String newURL) {
+            final String referrerUrl, final String newURL
+    ) {
         var url = StringUtils.trimToNull(newURL);
         if (!isValidNewURL(url)) {
             return null;
@@ -652,14 +775,16 @@ public class HtmlLinkExtractor
 
         if (url.length() > configuration.getMaxURLLength()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("""
-                    URL length ({}) exceeding maximum length allowed\s\
-                    ({}) to be extracted. URL (showing first {} chars):\s\
-                    {}...""",
+                LOG.debug(
+                        """
+                                URL length ({}) exceeding maximum length allowed\s\
+                                ({}) to be extracted. URL (showing first {} chars):\s\
+                                {}...""",
                         url.length(),
                         configuration.getMaxURLLength(),
                         LOGGING_MAX_URL_LENGTH,
-                        StringUtils.substring(url, 0, LOGGING_MAX_URL_LENGTH));
+                        StringUtils.substring(url, 0, LOGGING_MAX_URL_LENGTH)
+                );
             }
             return null;
         }

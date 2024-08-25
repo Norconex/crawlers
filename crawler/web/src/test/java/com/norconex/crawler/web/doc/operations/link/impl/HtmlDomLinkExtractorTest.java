@@ -57,27 +57,35 @@ class HtmlDomLinkExtractorTest {
 
         Set<Link> links;
         try (var is = getClass().getResourceAsStream(
-                "LinkExtractBetweenTest.html")) {
+                "LinkExtractBetweenTest.html"
+        )) {
             links = extractor.extractLinks(
                     CrawlDocStubs.crawlDoc(
                             baseURL + "LinkExtractBetweenTest.html",
-                            ContentType.HTML, is));
+                            ContentType.HTML, is
+                    )
+            );
         }
 
         var actualUrls = links.stream().map(Link::getUrl).toList();
         assertThat(actualUrls).containsExactlyInAnyOrder(expectedURLs);
     }
+
     static Stream<LinkExtractor> testExtractBetweenProvider() {
         var htmlExtractor = new HtmlLinkExtractor();
         htmlExtractor.getConfiguration().addExtractSelectors(
-                List.of("include1", "include2"));
+                List.of("include1", "include2")
+        );
         htmlExtractor.getConfiguration().addNoExtractSelectors(
-                List.of("exclude1", "exclude2"));
+                List.of("exclude1", "exclude2")
+        );
         var domExtractor = new DomLinkExtractor();
         domExtractor.getConfiguration().addExtractSelectors(
-                List.of("include1", "include2"));
+                List.of("include1", "include2")
+        );
         domExtractor.getConfiguration().addNoExtractSelectors(
-                List.of("exclude1", "exclude2"));
+                List.of("exclude1", "exclude2")
+        );
         return Stream.of(
                 htmlExtractor,
                 domExtractor
@@ -118,19 +126,24 @@ class HtmlDomLinkExtractorTest {
         link3.getMetadata().add("tag", "img");
         link3.getMetadata().add("attr", "src");
         link3.getMetadata().add("attr.title", "Image Title");
-        link3.getMetadata().add("attr.style",
-                "width: 64px; display: inline-block");
+        link3.getMetadata().add(
+                "attr.style",
+                "width: 64px; display: inline-block"
+        );
         link3.getMetadata().add("attr.alt", "Image Alt");
 
         Set<Link> expectedLinks = new TreeSet<>(
-                List.of(link0, link1, link2, link3));
+                List.of(link0, link1, link2, link3)
+        );
 
         Set<Link> links;
         try (var is = getClass().getResourceAsStream(
-                "LinkAttributesExtractorTest.html")) {
+                "LinkAttributesExtractorTest.html"
+        )) {
             var docRecord = new WebCrawlDocContext();
             docRecord.setReference(
-                    baseURL + "LinkAttributesExtractorTest.html");
+                    baseURL + "LinkAttributesExtractorTest.html"
+            );
             docRecord.setContentType(ContentType.HTML);
             var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
             doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ContentType.HTML);
@@ -138,6 +151,7 @@ class HtmlDomLinkExtractorTest {
         }
         assertThat(links).containsExactlyInAnyOrderElementsOf(expectedLinks);
     }
+
     static Stream<LinkExtractor> testExtractAttributesProvider() {
         var htmlExtractor = new HtmlLinkExtractor();
         htmlExtractor.getConfiguration().addLinkTag("link", "href");

@@ -206,16 +206,24 @@ public class FeaturedImageProcessorConfig {
     public static final StorageDiskStructure DEFAULT_STORAGE_DISK_STRUCTURE =
             StorageDiskStructure.URL2PATH;
 
-    public enum Storage { URL, INLINE, DISK }
-    public enum StorageDiskStructure { URL2PATH, DATE, DATETIME }
+    public enum Storage {
+        URL, INLINE, DISK
+    }
+
+    public enum StorageDiskStructure {
+        URL2PATH, DATE, DATETIME
+    }
+
     public enum Quality {
         AUTO(Method.AUTOMATIC),
         LOW(Method.SPEED),
         MEDIUM(Method.BALANCED),
         HIGH(Method.QUALITY),
         MAX(Method.ULTRA_QUALITY);
+
         @Getter
         private final Method scalrMethod;
+
         Quality(Method scalrMethod) {
             this.scalrMethod = scalrMethod;
         }
@@ -249,6 +257,7 @@ public class FeaturedImageProcessorConfig {
     public List<Storage> getStorage() {
         return Collections.unmodifiableList(storage);
     }
+
     /**
      * Sets the storage mechanisms.
      * @param storage storage mechanisms

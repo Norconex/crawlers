@@ -91,10 +91,12 @@ public class SftpFetcher extends AbstractAuthVfsFetcher<SftpFetcherConfig> {
         sftp.setKnownHosts(opts, configuration.getKnownHosts());
         sftp.setFileNameEncoding(opts, configuration.getFileNameEncoding());
         sftp.setPreferredAuthentications(
-                opts, configuration.getPreferredAuthentications());
+                opts, configuration.getPreferredAuthentications()
+        );
         try {
             sftp.setStrictHostKeyChecking(
-                    opts, configuration.getStrictHostKeyChecking());
+                    opts, configuration.getStrictHostKeyChecking()
+            );
         } catch (FileSystemException e) {
             throw new CrawlerException(e);
         }

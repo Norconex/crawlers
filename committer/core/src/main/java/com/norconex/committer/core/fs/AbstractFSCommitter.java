@@ -62,9 +62,11 @@ public abstract class AbstractFSCommitter<T, C extends BaseFSCommitterConfig>
         extends AbstractCommitter<C> {
 
     // These will share the same instance if not split.
-    @Getter(value = AccessLevel.NONE) @Setter(value = AccessLevel.NONE)
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private FSDocWriterHandler<T> upsertHandler;
-    @Getter(value = AccessLevel.NONE) @Setter(value = AccessLevel.NONE)
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private FSDocWriterHandler<T> deleteHandler;
     /**
      * The directly from configuration, else, from the committer context
@@ -85,12 +87,16 @@ public abstract class AbstractFSCommitter<T, C extends BaseFSCommitterConfig>
         try {
             Files.createDirectories(resolvedDirectory);
         } catch (IOException e) {
-            throw new CommitterException("Could not create resolvedDirectory: "
-                    + resolvedDirectory.toAbsolutePath(), e);
+            throw new CommitterException(
+                    "Could not create resolvedDirectory: "
+                            + resolvedDirectory.toAbsolutePath(),
+                    e
+            );
         }
 
         var fileBaseName = DateFormatUtils.format(
-                System.currentTimeMillis(), "yyyy-MM-dd'T'hh-mm-ss-SSS");
+                System.currentTimeMillis(), "yyyy-MM-dd'T'hh-mm-ss-SSS"
+        );
         if (getConfiguration().isSplitUpsertDelete()) {
             upsertHandler =
                     new FSDocWriterHandler<>(this, "upsert-" + fileBaseName);
@@ -102,26 +108,33 @@ public abstract class AbstractFSCommitter<T, C extends BaseFSCommitterConfig>
             deleteHandler = upsertHandler;
         }
     }
+
     @Override
     protected synchronized void doUpsert(UpsertRequest upsertRequest)
             throws CommitterException {
         try {
             writeUpsert(upsertHandler.withDocWriter(), upsertRequest);
         } catch (IOException e) {
-            throw new CommitterException("Could not write upsert request for: "
-                    + upsertRequest.getReference());
+            throw new CommitterException(
+                    "Could not write upsert request for: "
+                            + upsertRequest.getReference()
+            );
         }
     }
+
     @Override
     protected synchronized void doDelete(DeleteRequest deleteRequest)
             throws CommitterException {
         try {
             writeDelete(deleteHandler.withDocWriter(), deleteRequest);
         } catch (IOException e) {
-            throw new CommitterException("Could not write delete request for: "
-                    + deleteRequest.getReference());
+            throw new CommitterException(
+                    "Could not write delete request for: "
+                            + deleteRequest.getReference()
+            );
         }
     }
+
     @Override
     protected void doClose() throws CommitterException {
         try {
@@ -144,11 +157,17 @@ public abstract class AbstractFSCommitter<T, C extends BaseFSCommitterConfig>
     }
 
     protected abstract String getFileExtension();
+
     protected abstract T createDocWriter(Writer writer) throws IOException;
+
     protected abstract void writeUpsert(
-            T docWriter, UpsertRequest upsertRequest) throws IOException;
+            T docWriter, UpsertRequest upsertRequest
+    ) throws IOException;
+
     protected abstract void writeDelete(
-            T docWriter, DeleteRequest deleteRequest) throws IOException;
+            T docWriter, DeleteRequest deleteRequest
+    ) throws IOException;
+
     protected abstract void closeDocWriter(T docWriter)
             throws IOException;
 }

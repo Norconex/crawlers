@@ -28,6 +28,7 @@ public interface DateProvider {
      * @return date time.
      */
     ZonedDateTime getDateTime();
+
     /**
      * The zone ID, which should always be the same for this instance,
      * regardless whether the date-time is dynamic or static. Invoking this

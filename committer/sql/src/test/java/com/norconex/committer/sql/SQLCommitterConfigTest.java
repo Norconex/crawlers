@@ -34,44 +34,49 @@ class SQLCommitterConfigTest {
     void testWriteRead() throws Exception {
         var q = new FSQueue();
         q.getConfiguration()
-            .setBatchSize(10)
-            .setMaxPerFolder(5);
+                .setBatchSize(10)
+                .setMaxPerFolder(5);
 
         var c = new SQLCommitter();
         c.getConfiguration()
-            .setDriverPath("driverPath")
-            .setDriverClass("driverClass")
-            .setConnectionUrl("connectionUrl")
-            .setTableName("tableName")
-            .setPrimaryKey("id")
-            .setCreateTableSQL("createTableSQL")
-            .setCreateFieldSQL("createFieldSQL")
-            .setFixFieldNames(true)
-            .setFixFieldValues(true)
-            .setMultiValuesJoiner("^")
-            .setTargetContentField("targetContentField")
-            .setQueue(q)
-            .setFieldMapping("subject", "title")
-            .setFieldMapping("body", "content")
-            .addRestriction(new PropertyMatcher(
-                    TextMatcher.basic("document.reference"),
-                    TextMatcher.wildcard("*.pdf")))
-            .addRestriction(new PropertyMatcher(
-                    TextMatcher.basic("title"),
-                    TextMatcher.wildcard("Nah!")))
-            ;
+                .setDriverPath("driverPath")
+                .setDriverClass("driverClass")
+                .setConnectionUrl("connectionUrl")
+                .setTableName("tableName")
+                .setPrimaryKey("id")
+                .setCreateTableSQL("createTableSQL")
+                .setCreateFieldSQL("createFieldSQL")
+                .setFixFieldNames(true)
+                .setFixFieldValues(true)
+                .setMultiValuesJoiner("^")
+                .setTargetContentField("targetContentField")
+                .setQueue(q)
+                .setFieldMapping("subject", "title")
+                .setFieldMapping("body", "content")
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("document.reference"),
+                                TextMatcher.wildcard("*.pdf")
+                        )
+                )
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("title"),
+                                TextMatcher.wildcard("Nah!")
+                        )
+                );
 
         c.getConfiguration().getProperties().set("key1", "value1");
         c.getConfiguration().getProperties().set("key2", "value2");
 
         c.getConfiguration().getCredentials()
-            .setUsername("Optimus")
-            .setPassword("Prime");
+                .setUsername("Optimus")
+                .setPassword("Prime");
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c));
+                () -> BeanMapper.DEFAULT.assertWriteRead(c)
+        );
     }
-
 
     @Test
     void testValidation() throws IOException {

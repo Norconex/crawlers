@@ -35,78 +35,87 @@ class TruncateTransformerTest {
     void testWriteRead() {
         var t = new TruncateTransformer();
         t.getConfiguration()
-            .setAppendHash(true)
-            .setFieldMatcher(TextMatcher.basic("fromField"))
-            .setMaxLength(100)
-            .setOnSet(PropertySetter.REPLACE)
-            .setSuffix("suffix")
-            .setToField("toField");
+                .setAppendHash(true)
+                .setFieldMatcher(TextMatcher.basic("fromField"))
+                .setMaxLength(100)
+                .setOnSet(PropertySetter.REPLACE)
+                .setSuffix("suffix")
+                .setToField("toField");
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
     void testFieldWithSuffixAndHash() throws IOException {
         var metadata = new Properties();
-        metadata.add("from",
+        metadata.add(
+                "from",
                 "Please truncate me before you start thinking I am too long.",
                 "Another long string to test similar with suffix and no hash",
                 "Another long string to test similar without suffix, a hash",
                 "Another long string to test similar without suffix, no hash",
-                "A small one");
+                "A small one"
+        );
 
         var t = new TruncateTransformer();
         t.getConfiguration()
-            .setFieldMatcher(TextMatcher.basic("from"))
-            .setToField("to")
-            .setMaxLength(50)
-            .setOnSet(PropertySetter.REPLACE)
-            // hash + suffix
-            .setAppendHash(true)
-            .setSuffix("!");
+                .setFieldMatcher(TextMatcher.basic("from"))
+                .setToField("to")
+                .setMaxLength(50)
+                .setOnSet(PropertySetter.REPLACE)
+                // hash + suffix
+                .setAppendHash(true)
+                .setSuffix("!");
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
-                metadata.getStrings("to").get(0));
-        Assertions.assertNotEquals("Must have different hashes",
+                metadata.getStrings("to").get(0)
+        );
+        Assertions.assertNotEquals(
+                "Must have different hashes",
                 metadata.getStrings("to").get(1),
-                metadata.getStrings("to").get(2));
+                metadata.getStrings("to").get(2)
+        );
 
         // no hash + suffix
         t.getConfiguration()
-            .setAppendHash(false)
-            .setSuffix("...");
+                .setAppendHash(false)
+                .setSuffix("...");
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
                 "Another long string to test similar with suffix...",
-                metadata.getStrings("to").get(1));
+                metadata.getStrings("to").get(1)
+        );
 
         // no hash + suffix
         t.getConfiguration()
-            .setAppendHash(true)
-            .setSuffix(null);
+                .setAppendHash(true)
+                .setSuffix(null);
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
                 "Another long string to test similar with0939281732",
-                metadata.getStrings("to").get(2));
+                metadata.getStrings("to").get(2)
+        );
 
         // no hash + no suffix
         t.getConfiguration()
-            .setAppendHash(false)
-            .setSuffix(null);
+                .setAppendHash(false)
+                .setSuffix(null);
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
                 "Another long string to test similar without suffix",
-                metadata.getStrings("to").get(3));
+                metadata.getStrings("to").get(3)
+        );
 
         // too small for truncate
         t.getConfiguration()
-            .setAppendHash(false)
-            .setSuffix(null);
+                .setAppendHash(false)
+                .setSuffix(null);
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
-                "A small one", metadata.getStrings("to").get(4));
+                "A small one", metadata.getStrings("to").get(4)
+        );
     }
 
     @Test
@@ -117,74 +126,84 @@ class TruncateTransformerTest {
 
         // hash + suffix
         docCtx = TestUtil.newDocContext(
-                "Please truncate me before you start thinking I am too long.");
+                "Please truncate me before you start thinking I am too long."
+        );
         t.getConfiguration()
-            .setToField("to")
-            .setMaxLength(50)
-            .setOnSet(PropertySetter.REPLACE)
-            .setAppendHash(true)
-            .setSuffix("!");
+                .setToField("to")
+                .setMaxLength(50)
+                .setOnSet(PropertySetter.REPLACE)
+                .setAppendHash(true)
+                .setSuffix("!");
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
-                docCtx.metadata().getString("to"));
+                docCtx.metadata().getString("to")
+        );
 
         // no hash + suffix
         docCtx = TestUtil.newDocContext(
-                "Another long string to test similar with suffix and no hash");
+                "Another long string to test similar with suffix and no hash"
+        );
         t.getConfiguration()
-            .setAppendHash(false)
-            .setSuffix("...");
+                .setAppendHash(false)
+                .setSuffix("...");
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar with suffix...",
-                docCtx.metadata().getString("to"));
+                docCtx.metadata().getString("to")
+        );
 
         // hash + no suffix
         docCtx = TestUtil.newDocContext(
-                "Another long string to test similar without suffix, a hash");
+                "Another long string to test similar without suffix, a hash"
+        );
         t.getConfiguration()
-            .setAppendHash(true)
-            .setSuffix(null);
+                .setAppendHash(true)
+                .setSuffix(null);
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar with0939281732",
-                docCtx.metadata().getString("to"));
+                docCtx.metadata().getString("to")
+        );
 
         // no hash + no suffix
         docCtx = TestUtil.newDocContext(
-                "Another long string to test similar without suffix, no hash");
+                "Another long string to test similar without suffix, no hash"
+        );
         t.getConfiguration()
-            .setAppendHash(false)
-            .setSuffix(null);
+                .setAppendHash(false)
+                .setSuffix(null);
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar without suffix",
-                docCtx.metadata().getString("to"));
+                docCtx.metadata().getString("to")
+        );
 
         // too small for truncate
         docCtx = TestUtil.newDocContext("A small one");
         t.getConfiguration()
-            .setAppendHash(false)
-            .setSuffix(null);
+                .setAppendHash(false)
+                .setSuffix(null);
         t.accept(docCtx);
         Assertions.assertEquals(
-                "A small one", docCtx.metadata().getString("to"));
-
+                "A small one", docCtx.metadata().getString("to")
+        );
 
         // hash + suffix, replacing body
         docCtx = TestUtil.newDocContext(
-                "Please truncate me before you start thinking I am too long.");
+                "Please truncate me before you start thinking I am too long."
+        );
         t = new TruncateTransformer();
         t.getConfiguration()
-            .setToField(null)
-            .setMaxLength(50)
-            .setOnSet(PropertySetter.REPLACE)
-            .setAppendHash(true)
-            .setSuffix("!");
+                .setToField(null)
+                .setMaxLength(50)
+                .setOnSet(PropertySetter.REPLACE)
+                .setAppendHash(true)
+                .setSuffix("!");
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
-                docCtx.input().asString());
+                docCtx.input().asString()
+        );
     }
 }

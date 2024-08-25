@@ -29,7 +29,6 @@ public final class DocMetadata {
 
     //TODO move to Doc/DocRecord and delete this class.
 
-
     //MAYBE DELETE these if they can be referenced from DocRecord?
     //    (still have them as metadata, just no longer need constants).
     // maybe we could document all DocRecord properties are copied as
@@ -68,5 +67,6 @@ public final class DocMetadata {
     public static final String EMBEDDED_INDEX =
             EMBEDDED_PREFIX + "index";
 
-    private DocMetadata() {}
+    private DocMetadata() {
+    }
 }

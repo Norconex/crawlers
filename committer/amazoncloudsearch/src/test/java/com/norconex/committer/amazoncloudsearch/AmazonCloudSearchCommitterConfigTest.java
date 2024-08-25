@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.norconex.committer.amazoncloudsearch;
+
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
@@ -28,7 +29,6 @@ import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
 
-
 /**
  * @author Pascal Essiembre
  */
@@ -38,8 +38,8 @@ class AmazonCloudSearchCommitterConfigTest {
     void testWriteRead() throws IOException {
         var q = new FSQueue();
         q.getConfiguration()
-            .setBatchSize(10)
-            .setMaxPerFolder(5);
+                .setBatchSize(10)
+                .setMaxPerFolder(5);
 
         var creds = new Credentials();
         creds.setPassword("mypassword");
@@ -47,28 +47,35 @@ class AmazonCloudSearchCommitterConfigTest {
 
         var c = new AmazonCloudSearchCommitter();
         c.getConfiguration()
-            .setAccessKey("accessKey")
-            .setSecretKey("secretKey")
-            .setServiceEndpoint("serviceEndpoint")
-            .setSigningRegion("signingRegion")
-            .setFixBadIds(true)
-            .setSourceIdField("mySourceIdField")
-            .setTargetContentField("myTargetContentField")
-            .setQueue(q)
-        .setFieldMapping("subject", "title")
-        .setFieldMapping("body", "content")
-            .addRestriction(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")))
-            .addRestriction(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+                .setAccessKey("accessKey")
+                .setSecretKey("secretKey")
+                .setServiceEndpoint("serviceEndpoint")
+                .setSigningRegion("signingRegion")
+                .setFixBadIds(true)
+                .setSourceIdField("mySourceIdField")
+                .setTargetContentField("myTargetContentField")
+                .setQueue(q)
+                .setFieldMapping("subject", "title")
+                .setFieldMapping("body", "content")
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("document.reference"),
+                                TextMatcher.wildcard("*.pdf")
+                        )
+                )
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("title"),
+                                TextMatcher.wildcard("Nah!")
+                        )
+                );
 
         c.getConfiguration().getProxySettings().setHost(
-                new Host("example.com", 1234));
+                new Host("example.com", 1234)
+        );
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(c));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test
@@ -76,7 +83,8 @@ class AmazonCloudSearchCommitterConfigTest {
         assertThatNoException().isThrownBy(() -> {
             try (var r = ResourceLoader.getXmlReader(this.getClass())) {
                 BeanMapper.DEFAULT.read(
-                        AmazonCloudSearchCommitter.class, r, Format.XML);
+                        AmazonCloudSearchCommitter.class, r, Format.XML
+                );
             }
         });
     }

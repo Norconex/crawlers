@@ -102,7 +102,8 @@ public class XmlFeedLinkExtractor
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString())) {
+                doc.getDocContext().getContentType().toString()
+        )) {
             return Set.of();
         }
 
@@ -114,7 +115,7 @@ public class XmlFeedLinkExtractor
             var values = doc.getMetadata()
                     .matchKeys(configuration.getFieldMatcher())
                     .valueList();
-            for (String val: values) {
+            for (String val : values) {
                 extractFeedLinks(links, new StringReader(val), refererUrl);
             }
         } else {
@@ -122,14 +123,16 @@ public class XmlFeedLinkExtractor
             extractFeedLinks(
                     links,
                     new InputStreamReader(doc.getInputStream()),
-                    doc.getReference());
+                    doc.getReference()
+            );
         }
         return links;
     }
 
     private void extractFeedLinks(
-            Set<Link> links, Reader reader, String referrerUrl)
-                    throws IOException {
+            Set<Link> links, Reader reader, String referrerUrl
+    )
+            throws IOException {
         try (reader) {
             var xmlReader = XMLUtil.createXMLReader();
             var handler = new FeedHandler(referrerUrl, links);
@@ -138,7 +141,8 @@ public class XmlFeedLinkExtractor
             xmlReader.parse(new InputSource(reader));
         } catch (SAXException e) {
             throw new CrawlerException(
-                    "Could not parse XML Feed: " + referrerUrl, e);
+                    "Could not parse XML Feed: " + referrerUrl, e
+            );
         }
     }
 
@@ -146,14 +150,18 @@ public class XmlFeedLinkExtractor
         private final String referer;
         private final Set<Link> links;
         private boolean isInLink = false;
-        private String stringLink="";
+        private String stringLink = "";
+
         public FeedHandler(String referer, Set<Link> links) {
             this.referer = referer;
             this.links = links;
         }
+
         @Override
-        public void startElement(String uri, String localName, String qName,
-                Attributes attributes) throws SAXException {
+        public void startElement(
+                String uri, String localName, String qName,
+                Attributes attributes
+        ) throws SAXException {
             if ("link".equalsIgnoreCase(localName)) {
                 isInLink = true;
                 var href = attributes.getValue("href");
@@ -164,27 +172,30 @@ public class XmlFeedLinkExtractor
                 }
             }
         }
+
         @Override
         public void characters(
-                char[] chars, int start, int len) throws SAXException {
-        	 if (isInLink && len > 0) {
-          	   stringLink = stringLink+new String(chars, start, len);
+                char[] chars, int start, int len
+        ) throws SAXException {
+            if (isInLink && len > 0) {
+                stringLink = stringLink + new String(chars, start, len);
 
-             }
+            }
         }
+
         @Override
         public void endElement(String uri, String localName, String qName)
                 throws SAXException {
-        	if ("link".equals(localName)){
-     		   if(stringLink.length() > 0) {
-     			   var link = new Link(stringLink);
-     			   link.setReferrer(referer);
-     			   links.add(link);
-     			   stringLink="";
-     		   }
-     		   isInLink = false;
+            if ("link".equals(localName)) {
+                if (stringLink.length() > 0) {
+                    var link = new Link(stringLink);
+                    link.setReferrer(referer);
+                    links.add(link);
+                    stringLink = "";
+                }
+                isInLink = false;
 
-     	   }
+            }
         }
     }
 }

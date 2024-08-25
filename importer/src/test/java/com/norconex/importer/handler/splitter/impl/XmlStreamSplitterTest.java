@@ -36,28 +36,28 @@ import com.norconex.importer.doc.Doc;
 class XmlStreamSplitterTest {
 
     private final String sampleXML = """
-    	 <animals>
-    	   <species name="mouse">
-    	     <animal>
-    	       <name>Itchy</name>
-    	       <race>cartoon</race>
-    	     </animal>
-    	   </species>
-    	   <species name="cat">
-    	     <animal>
-    	       <name>Scratchy</name>
-    	       <race>cartoon</race>
-    	     </animal>
-    	   </species>
-    	 </animals>""";
+            <animals>
+              <species name="mouse">
+                <animal>
+                  <name>Itchy</name>
+                  <race>cartoon</race>
+                </animal>
+              </species>
+              <species name="cat">
+                <animal>
+                  <name>Scratchy</name>
+                  <race>cartoon</race>
+                </animal>
+              </species>
+            </animals>""";
 
     @Test
     void testStreamSplit() throws IOException, IOException {
 
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
-            .setPath("/animals/species/animal")
-            .setContentTypeMatcher(TextMatcher.regex(".*"));
+                .setPath("/animals/species/animal")
+                .setContentTypeMatcher(TextMatcher.regex(".*"));
         var docs = split(sampleXML, splitter);
 
         Assertions.assertEquals(2, docs.size());
@@ -69,20 +69,24 @@ class XmlStreamSplitterTest {
     void testErrorsAndEmpty() throws IOException, IOException {
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
-            .setPath("/a/b/c")
-            .setContentTypeMatcher(TextMatcher.regex(".*"));
+                .setPath("/a/b/c")
+                .setContentTypeMatcher(TextMatcher.regex(".*"));
 
         // test failing stream
         assertThatExceptionOfType(UncheckedIOException.class)
-            .isThrownBy(//NOSONAR
-                    () -> splitter.accept(TestUtil.newDocContext()));
+                .isThrownBy(
+                    //NOSONAR
+                        () -> splitter.accept(TestUtil.newDocContext())
+                );
 
         // Test non applicable
         splitter.getConfiguration().setContentTypeMatcher(
-                TextMatcher.basic("IdontExists"));
+                TextMatcher.basic("IdontExists")
+        );
         var docCtx = TestUtil.newDocContext(
                 "N/A",
-                TestUtil.toCachedInputStream(sampleXML));
+                TestUtil.toCachedInputStream(sampleXML)
+        );
         splitter.accept(docCtx);
         assertThat(docCtx.childDocs()).isEmpty();
     }
@@ -101,10 +105,11 @@ class XmlStreamSplitterTest {
     void testWriteRead() {
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
-            .setPath("blah")
-            .setContentTypeMatcher(
-                    TextMatcher.basic("value").partial().ignoreCase());
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(splitter));
+                .setPath("blah")
+                .setContentTypeMatcher(
+                        TextMatcher.basic("value").partial().ignoreCase()
+                );
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(splitter));
     }
 }

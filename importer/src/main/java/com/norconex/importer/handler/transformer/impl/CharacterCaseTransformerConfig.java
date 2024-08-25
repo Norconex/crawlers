@@ -121,13 +121,15 @@ public class CharacterCaseTransformerConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Optional matcher of fields to apply transformation to.
      * When not specified, transformation is on the document content.
      * @param fieldMatcher field matcher
      */
     public CharacterCaseTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

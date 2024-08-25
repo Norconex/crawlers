@@ -184,8 +184,10 @@ public class GenericUrlNormalizerConfig {
         UNSECURE_SCHEME(URLNormalizer::unsecureScheme),
         UPPERCASE_ESCAPESEQUENCE(URLNormalizer::upperCaseEscapeSequence),
         ;
+
         @Getter
         private final Consumer<URLNormalizer> consumer;
+
         Normalization(Consumer<URLNormalizer> c) {
             consumer = c;
         }
@@ -200,20 +202,25 @@ public class GenericUrlNormalizerConfig {
     private final List<NormalizationReplace> replacements = new ArrayList<>();
 
     public GenericUrlNormalizerConfig() {
-        setNormalizations(List.of(
-                Normalization.REMOVE_FRAGMENT,
-                Normalization.LOWERCASE_SCHEME_HOST,
-                Normalization.UPPERCASE_ESCAPESEQUENCE,
-                Normalization.DECODE_UNRESERVED_CHARACTERS,
-                Normalization.REMOVE_DEFAULT_PORT,
-                Normalization.ENCODE_NON_URI_CHARACTERS));
+        setNormalizations(
+                List.of(
+                        Normalization.REMOVE_FRAGMENT,
+                        Normalization.LOWERCASE_SCHEME_HOST,
+                        Normalization.UPPERCASE_ESCAPESEQUENCE,
+                        Normalization.DECODE_UNRESERVED_CHARACTERS,
+                        Normalization.REMOVE_DEFAULT_PORT,
+                        Normalization.ENCODE_NON_URI_CHARACTERS
+                )
+        );
     }
 
     public List<Normalization> getNormalizations() {
         return Collections.unmodifiableList(normalizations);
     }
+
     public GenericUrlNormalizerConfig setNormalizations(
-            List<Normalization> normalizations) {
+            List<Normalization> normalizations
+    ) {
         CollectionUtil.setAll(this.normalizations, normalizations);
         return this;
     }
@@ -221,7 +228,10 @@ public class GenericUrlNormalizerConfig {
     public List<NormalizationReplace> getReplacements() {
         return Collections.unmodifiableList(replacements);
     }
-    public GenericUrlNormalizerConfig setReplacements(List<NormalizationReplace> replacements) {
+
+    public GenericUrlNormalizerConfig setReplacements(
+            List<NormalizationReplace> replacements
+    ) {
         CollectionUtil.setAll(this.replacements, replacements);
         return this;
     }
@@ -230,16 +240,17 @@ public class GenericUrlNormalizerConfig {
     public static class NormalizationReplace {
         private final String match;
         private final String value;
+
         public NormalizationReplace(String match) {
             this.match = match;
             value = null;
         }
+
         @JsonCreator
         public NormalizationReplace(
-                @JsonProperty("match")
-                String match,
-                @JsonProperty("value")
-                String replacement) {
+                @JsonProperty("match") String match,
+                @JsonProperty("value") String replacement
+        ) {
             this.match = match;
             value = replacement;
         }

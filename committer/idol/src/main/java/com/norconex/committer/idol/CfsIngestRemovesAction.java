@@ -63,7 +63,8 @@ class CfsIngestRemovesAction implements IIdolIndexAction {
             return addRemovesToUrl(batch, url.toString());
         } catch (MalformedURLException | UnsupportedEncodingException e) {
             throw new CommitterException(
-                    "Could not create CFS Ingest Removes URL.", e);
+                    "Could not create CFS Ingest Removes URL.", e
+            );
         }
     }
 
@@ -78,10 +79,12 @@ class CfsIngestRemovesAction implements IIdolIndexAction {
             if (StringUtils.isNotBlank(refField)) {
                 ref = req.getMetadata().getString(refField);
                 if (StringUtils.isBlank(ref)) {
-                    LOG.warn("Source reference field '{}' has no value "
-                            + "for deletion of document: '{}'. Using that "
-                            + "original document reference instead.",
-                            refField, req.getReference());
+                    LOG.warn(
+                            "Source reference field '{}' has no value "
+                                    + "for deletion of document: '{}'. Using that "
+                                    + "original document reference instead.",
+                            refField, req.getReference()
+                    );
                     ref = req.getReference();
                 }
             }

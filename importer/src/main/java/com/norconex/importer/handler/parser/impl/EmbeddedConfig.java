@@ -97,8 +97,8 @@ public class EmbeddedConfig implements Serializable { //{
     private static final long serialVersionUID = 1L;
 
     private final List<TextMatcher> splitContentTypes = new ArrayList<>();
-    private final List<TextMatcher>
-            skipEmbeddedOfContentTypes = new ArrayList<>();
+    private final List<TextMatcher> skipEmbeddedOfContentTypes =
+            new ArrayList<>();
     private final List<TextMatcher> skipEmbeddedContentTypes =
             new ArrayList<>();
 
@@ -119,6 +119,7 @@ public class EmbeddedConfig implements Serializable { //{
     public List<TextMatcher> getSplitContentTypes() {
         return Collections.unmodifiableList(splitContentTypes);
     }
+
     /**
      * Gets the content types of container files to split and treat their
      * embedded files as separate documents. Default does not split
@@ -127,7 +128,8 @@ public class EmbeddedConfig implements Serializable { //{
      * @return this instance
      */
     public EmbeddedConfig setSplitContentTypes(
-            List<TextMatcher> splitContentTypes) {
+            List<TextMatcher> splitContentTypes
+    ) {
         CollectionUtil.setAll(this.splitContentTypes, splitContentTypes);
         return this;
     }
@@ -142,6 +144,7 @@ public class EmbeddedConfig implements Serializable { //{
     public List<TextMatcher> getSkipEmbeddedOfContentTypes() {
         return Collections.unmodifiableList(skipEmbeddedOfContentTypes);
     }
+
     /**
      * Gets the content type matchers of container files you do not want to
      * have their embedded files parsed. Embedded files of matching containers
@@ -151,9 +154,11 @@ public class EmbeddedConfig implements Serializable { //{
      * @return this instance
      */
     public EmbeddedConfig setSkipEmbeddedOfContentTypes(
-            List<TextMatcher> skipEmbeddedOfContentTypes) {
+            List<TextMatcher> skipEmbeddedOfContentTypes
+    ) {
         CollectionUtil.setAll(
-                this.skipEmbeddedOfContentTypes, skipEmbeddedOfContentTypes);
+                this.skipEmbeddedOfContentTypes, skipEmbeddedOfContentTypes
+        );
         return this;
     }
 
@@ -166,6 +171,7 @@ public class EmbeddedConfig implements Serializable { //{
     public List<TextMatcher> getSkipEmbeddedContentTypes() {
         return Collections.unmodifiableList(skipEmbeddedContentTypes);
     }
+
     /**
      * Gets the content types of container files to split and treat their
      * embedded files as separate documents. Default does not split
@@ -174,9 +180,11 @@ public class EmbeddedConfig implements Serializable { //{
      * @return this instance
      */
     public EmbeddedConfig setSkipEmbeddedContentTypes(
-            List<TextMatcher> skipEmbeddedContentTypes) {
+            List<TextMatcher> skipEmbeddedContentTypes
+    ) {
         CollectionUtil.setAll(
-                this.skipEmbeddedContentTypes, skipEmbeddedContentTypes);
+                this.skipEmbeddedContentTypes, skipEmbeddedContentTypes
+        );
         return this;
     }
 }

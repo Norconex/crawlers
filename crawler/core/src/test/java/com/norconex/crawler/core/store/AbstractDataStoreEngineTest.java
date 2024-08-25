@@ -182,8 +182,10 @@ public abstract class AbstractDataStoreEngineTest {
             Assertions.assertEquals(1, store.count());
         });
         inNewStoreSession(store -> {
-            Assertions.assertEquals("newVal3",
-                    store.find("areference").get().getContentChecksum());
+            Assertions.assertEquals(
+                    "newVal3",
+                    store.find("areference").get().getContentChecksum()
+            );
         });
     }
 
@@ -206,12 +208,18 @@ public abstract class AbstractDataStoreEngineTest {
             Assertions.assertEquals(3, store.count());
         });
         inNewStoreSession(store -> {
-            Assertions.assertEquals("checksumvalue",
-                    store.find("areference").get().getContentChecksum());
-            Assertions.assertEquals("newVal",
-                    store.find("breference").get().getContentChecksum());
-            Assertions.assertEquals("newVal",
-                    store.find("creference").get().getContentChecksum());
+            Assertions.assertEquals(
+                    "checksumvalue",
+                    store.find("areference").get().getContentChecksum()
+            );
+            Assertions.assertEquals(
+                    "newVal",
+                    store.find("breference").get().getContentChecksum()
+            );
+            Assertions.assertEquals(
+                    "newVal",
+                    store.find("creference").get().getContentChecksum()
+            );
         });
     }
 
@@ -240,15 +248,16 @@ public abstract class AbstractDataStoreEngineTest {
             engine.openStore("storeA", TestObject.class);
             engine.openStore("storeB", TestObject.class);
             assertThat(engine.getStoreNames())
-                .map(String::toUpperCase)
-                .contains(
-                        "ACTIVE",
-                        "QUEUED",
-                        "TESTSTORE",
-                        "STOREB",
-                        "STOREA",
-                        "PROCESSED",
-                        "CACHED");
+                    .map(String::toUpperCase)
+                    .contains(
+                            "ACTIVE",
+                            "QUEUED",
+                            "TESTSTORE",
+                            "STOREB",
+                            "STOREA",
+                            "PROCESSED",
+                            "CACHED"
+                    );
             engine.clean();
             assertThat(engine.getStoreNames()).isEmpty();
         });
@@ -257,8 +266,8 @@ public abstract class AbstractDataStoreEngineTest {
     @Test
     void testEngineWriteRead() {
         var engine = createEngine();
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(engine));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(engine));
     }
 
     private void savePojo(TestObject testPojo) {
@@ -284,8 +293,11 @@ public abstract class AbstractDataStoreEngineTest {
         });
         CrawlerTestUtil.initCrawler(crawler);
         LOG.debug("Start data store test...");
-        c.accept(crawler.getDataStoreEngine().openStore(
-                TEST_STORE_NAME, TestObject.class));
+        c.accept(
+                crawler.getDataStoreEngine().openStore(
+                        TEST_STORE_NAME, TestObject.class
+                )
+        );
         LOG.debug("Data store test done.");
         CrawlerTestUtil.destroyCrawler(crawler);
     }

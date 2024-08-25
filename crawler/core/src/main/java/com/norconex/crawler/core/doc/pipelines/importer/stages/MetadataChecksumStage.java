@@ -53,20 +53,23 @@ public class MetadataChecksumStage extends AbstractImporterStage {
         var newHeadChecksum = check.createMetadataChecksum(headers);
 
         var accepted = ChecksumStageUtil.resolveMetaChecksum(
-                newHeadChecksum, ctx.getDoc());
+                newHeadChecksum, ctx.getDoc()
+        );
         if (!accepted) {
             var s = new StringBuilder()
-                .append(check.getClass().getSimpleName())
-                .append(" - ")
-                .append("Checksum=")
-                .append(StringUtils.abbreviate(newHeadChecksum, 200));
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                    .source(ctx.getCrawler())
-                    .docContext(ctx.getDoc().getDocContext())
-                    .subject(check)
-                    .message(s.toString())
-                    .build());
+                    .append(check.getClass().getSimpleName())
+                    .append(" - ")
+                    .append("Checksum=")
+                    .append(StringUtils.abbreviate(newHeadChecksum, 200));
+            ctx.getCrawler().fire(
+                    CrawlerEvent.builder()
+                            .name(CrawlerEvent.REJECTED_UNMODIFIED)
+                            .source(ctx.getCrawler())
+                            .docContext(ctx.getDoc().getDocContext())
+                            .subject(check)
+                            .message(s.toString())
+                            .build()
+            );
         }
         return accepted;
     }

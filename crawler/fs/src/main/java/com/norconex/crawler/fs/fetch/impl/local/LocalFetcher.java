@@ -43,7 +43,6 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
  * <p>
  * Fetcher for a local file system. Mounted file systems and mapped drives
@@ -103,11 +102,13 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(
-            fetchRequest,
-            "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
-            "tar:", "tgz:", "tbz2:", "zip:", "mime:"
-        ) || fetchRequest.getDoc().getDocContext().getReference().matches(
-                "(?i)^[a-z]{1,2}:[/\\\\].*");
+                fetchRequest,
+                "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
+                "tar:", "tgz:", "tbz2:", "zip:", "mime:"
+        )
+                || fetchRequest.getDoc().getDocContext().getReference().matches(
+                        "(?i)^[a-z]{1,2}:[/\\\\].*"
+                );
     }
 
     @Override
@@ -124,11 +125,14 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
     private void fetchAcl(LocalFile localFile, Properties metadata) {
         try {
             var localFileName = (LocalFileName) localFile.getName();
-            var file = new File(localFileName.getRootFile()
-                    + localFileName.getPathDecoded()).toPath();
+            var file = new File(
+                    localFileName.getRootFile()
+                            + localFileName.getPathDecoded()
+            ).toPath();
 
             var aclFileAttributes = Files.getFileAttributeView(
-                    file, AclFileAttributeView.class);
+                    file, AclFileAttributeView.class
+            );
 
             if (aclFileAttributes == null) {
                 LOG.debug("No ACL file attributes on " + file);
@@ -137,20 +141,28 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
 
             if (aclFileAttributes.getOwner() != null
                     && aclFileAttributes.getOwner().getName() != null) {
-                metadata.add(FsDocMetadata.ACL + ".owner",
-                        aclFileAttributes.getOwner().getName());
+                metadata.add(
+                        FsDocMetadata.ACL + ".owner",
+                        aclFileAttributes.getOwner().getName()
+                );
             }
 
             for (AclEntry aclEntry : aclFileAttributes.getAcl()) {
                 var type = Objects.toString(aclEntry.type(), "[NOTYPE]");
                 var principal = aclEntry.principal().getName();
                 for (AclEntryPermission perm : aclEntry.permissions()) {
-                    metadata.add(FsDocMetadata.ACL + "." + type
-                            + "." + perm.name(), principal);
+                    metadata.add(
+                            FsDocMetadata.ACL + "." + type
+                                    + "." + perm.name(),
+                            principal
+                    );
                 }
                 for (AclEntryFlag flag : aclEntry.flags()) {
-                    metadata.add(FsDocMetadata.ACL + "." + type
-                            + ".flag." + flag.name(), principal);
+                    metadata.add(
+                            FsDocMetadata.ACL + "." + type
+                                    + ".flag." + flag.name(),
+                            principal
+                    );
                 }
             }
         } catch (IOException e) {

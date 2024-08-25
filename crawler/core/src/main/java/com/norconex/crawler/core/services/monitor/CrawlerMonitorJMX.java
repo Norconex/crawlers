@@ -33,19 +33,22 @@ public final class CrawlerMonitorJMX {
 
     private CrawlerMonitorJMX() {
     }
+
     public static void register(Crawler crawler) {
         Objects.requireNonNull(crawler, "'crawler' must not be null.");
         var mbs = ManagementFactory.getPlatformMBeanServer();
         try {
             mbs.registerMBean(
-                    crawler.getServices().getMonitor(), objectName(crawler));
+                    crawler.getServices().getMonitor(), objectName(crawler)
+            );
         } catch (MalformedObjectNameException
                 | InstanceAlreadyExistsException
                 | MBeanRegistrationException
                 | NotCompliantMBeanException e) {
-           throw new CrawlerException(e);
+            throw new CrawlerException(e);
         }
     }
+
     public static void unregister(Crawler crawler) {
         Objects.requireNonNull(crawler, "'crawler' must not be null.");
         var mbs = ManagementFactory.getPlatformMBeanServer();
@@ -57,13 +60,16 @@ public final class CrawlerMonitorJMX {
         } catch (MalformedObjectNameException
                 | MBeanRegistrationException
                 | InstanceNotFoundException e) {
-           throw new CrawlerException(e);
+            throw new CrawlerException(e);
         }
     }
+
     private static ObjectName objectName(Crawler crawler)
             throws MalformedObjectNameException {
-        return new ObjectName(crawler.getClass().getName()
-                + ":type=Metrics"
-                + ",crawler=" + quote(crawler.getId()));
+        return new ObjectName(
+                crawler.getClass().getName()
+                        + ":type=Metrics"
+                        + ",crawler=" + quote(crawler.getId())
+        );
     }
 }

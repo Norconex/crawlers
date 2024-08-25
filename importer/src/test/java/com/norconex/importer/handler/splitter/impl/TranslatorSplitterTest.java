@@ -29,21 +29,20 @@ class TranslatorSplitterTest {
     void testWriteRead() {
         var ts = new TranslatorSplitter();
         ts.getConfiguration()
-            .setApi("google")
-            .setApiKey("myapikey")
-            .setClientId("myclientid")
-            .setClientSecret("myclientsecret")
-            .setFieldMatcher(TextMatcher.csv("field1, field2"))
-            .setIgnoreNonTranslatedFields(true)
-            .setScriptPath("myscriptpath")
-            .setSmtPath("mysmtpath")
-            .setSourceLanguage("fr")
-            .setSourceLanguageField("mysourcelangfield")
-            .setTargetLanguages(List.of("en", "it"))
-            .setUserKey("myuserkey");
+                .setApi("google")
+                .setApiKey("myapikey")
+                .setClientId("myclientid")
+                .setClientSecret("myclientsecret")
+                .setFieldMatcher(TextMatcher.csv("field1, field2"))
+                .setIgnoreNonTranslatedFields(true)
+                .setScriptPath("myscriptpath")
+                .setSmtPath("mysmtpath")
+                .setSourceLanguage("fr")
+                .setSourceLanguageField("mysourcelangfield")
+                .setTargetLanguages(List.of("en", "it"))
+                .setUserKey("myuserkey");
 
-        assertThatNoException().isThrownBy(() ->
-            BeanMapper.DEFAULT.assertWriteRead(ts)
-        );
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(ts));
     }
 }

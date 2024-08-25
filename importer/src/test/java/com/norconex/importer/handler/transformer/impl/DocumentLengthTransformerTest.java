@@ -32,30 +32,35 @@ class DocumentLengthTransformerTest {
     void testDocumentLengthTagger() throws IOException {
         var t = new DocumentLengthTransformer();
         t.getConfiguration()
-            .setToField("theLength")
-            .setOnSet(PropertySetter.REPLACE);
+                .setToField("theLength")
+                .setOnSet(PropertySetter.REPLACE);
 
         assertThatNoException().isThrownBy(() -> {
             BeanMapper.DEFAULT.assertWriteRead(t);
         });
 
-
         var props = new Properties();
         assertThatNoException().isThrownBy(() -> {
-            t.accept(TestUtil.newDocContext(
-                    "ref",
-                    TestUtil.toCachedInputStream("four"),
-                    props,
-                    ParseState.PRE));
+            t.accept(
+                    TestUtil.newDocContext(
+                            "ref",
+                            TestUtil.toCachedInputStream("four"),
+                            props,
+                            ParseState.PRE
+                    )
+            );
         });
         assertThat(props.getLong("theLength")).isEqualTo(4);
 
         assertThatNoException().isThrownBy(() -> {
-            t.accept(TestUtil.newDocContext(
-                    "ref",
-                    TestUtil.toInputStream("fives"),
-                    props,
-                    ParseState.PRE));
+            t.accept(
+                    TestUtil.newDocContext(
+                            "ref",
+                            TestUtil.toInputStream("fives"),
+                            props,
+                            ParseState.PRE
+                    )
+            );
         });
         assertThat(props.getLong("theLength")).isEqualTo(5);
     }

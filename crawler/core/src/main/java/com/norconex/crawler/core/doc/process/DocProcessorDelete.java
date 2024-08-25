@@ -18,11 +18,11 @@ import com.norconex.crawler.core.doc.CrawlDocState;
 
 import lombok.extern.slf4j.Slf4j;
 
-
 @Slf4j
 final class DocProcessorDelete {
 
-    private DocProcessorDelete() {}
+    private DocProcessorDelete() {
+    }
 
     static void execute(DocProcessorContext ctx) {
         LOG.debug("Deleting reference: {}", ctx.doc().getReference());

@@ -49,9 +49,11 @@ public abstract class AbstractDelay {
             var timeToSleepNanos = expectedDelayNanos - elapsedTimeNanos;
             if (LOG.isDebugEnabled()) {
                 var millis = TimeUnit.NANOSECONDS.toMillis(timeToSleepNanos);
-                LOG.debug("Thread {} sleeping for {} seconds.",
+                LOG.debug(
+                        "Thread {} sleeping for {} seconds.",
                         Thread.currentThread().getName(),
-                        (millis / THOUSAND_MILLIS));
+                        (millis / THOUSAND_MILLIS)
+                );
             }
             Sleeper.sleepNanos(timeToSleepNanos);
         }

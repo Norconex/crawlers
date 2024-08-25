@@ -35,12 +35,15 @@ public enum ParseState {
     public boolean isPre() {
         return this == PRE;
     }
+
     public boolean isPost() {
         return this == POST;
     }
+
     public static boolean isPre(ParseState parseState) {
         return parseState == null || parseState == PRE;
     }
+
     public static boolean isPost(ParseState parseState) {
         return parseState != null && parseState == POST;
     }

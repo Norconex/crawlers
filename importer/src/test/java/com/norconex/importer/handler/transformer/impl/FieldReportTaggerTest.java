@@ -41,14 +41,15 @@ class FieldReportTaggerTest {
 
         var reportFile = tempDir.resolve("report.csv");
         t.getConfiguration()
-            .setFile(reportFile)
-            .setMaxSamples(2)
-            .setTruncateSamplesAt(3)
-            .setWithHeaders(true)
-            .setWithOccurences(true);
+                .setFile(reportFile)
+                .setMaxSamples(2)
+                .setTruncateSamplesAt(3)
+                .setWithHeaders(true)
+                .setWithOccurences(true);
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t));
+                () -> BeanMapper.DEFAULT.assertWriteRead(t)
+        );
 
         t.getConfiguration().setWithHeaders(false);
         var props = new Properties();
@@ -74,13 +75,13 @@ class FieldReportTaggerTest {
         t.accept(TestUtil.newDocContext("ref", nullInputStream(), props, PRE));
 
         assertThat(Files.readString(reportFile)).isEqualToIgnoringNewLines("""
-            a,6,a11,a22
-            b,3,b11,b22
-            c,2,c11,
-            d,2,d11,
-            e,2,e11,
-            f,2,f11,
-            g,1,g22,
-            """);
+                a,6,a11,a22
+                b,3,b11,b22
+                c,2,c11,
+                d,2,d11,
+                e,2,e11,
+                f,2,f11,
+                g,1,g22,
+                """);
     }
 }

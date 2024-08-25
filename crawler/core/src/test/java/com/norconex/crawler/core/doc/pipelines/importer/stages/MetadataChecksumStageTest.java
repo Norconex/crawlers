@@ -35,26 +35,35 @@ class MetadataChecksumStageTest {
     @Test
     void testMetadataChecksumStage(@TempDir Path tempDir) {
         var doc = CrawlDocStubs.crawlDoc(
-                "ref", "content", "myfield", "somevalue");
+                "ref", "content", "myfield", "somevalue"
+        );
         var crawler = CrawlerStubs.memoryCrawler(tempDir);
         crawler.getConfiguration().setMetadataFetchSupport(
-                FetchDirectiveSupport.REQUIRED);
+                FetchDirectiveSupport.REQUIRED
+        );
 
         // without a checksummer
         var ctx = new ImporterPipelineContext(crawler, doc);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getMetadata().getString(
-                CrawlDocMetadata.CHECKSUM_METADATA)).isNull();
+        assertThat(
+                doc.getMetadata().getString(
+                        CrawlDocMetadata.CHECKSUM_METADATA
+                )
+        ).isNull();
 
         // with a checksummer
         var checksummer = new GenericMetadataChecksummer();
         checksummer.getConfiguration()
-            .setFieldMatcher(TextMatcher.basic("myfield"))
-            .setKeep(true);
+                .setFieldMatcher(TextMatcher.basic("myfield"))
+                .setKeep(true);
         crawler.getConfiguration().setMetadataChecksummer(checksummer);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getMetadata().getString(
-                CrawlDocMetadata.CHECKSUM_METADATA)).isEqualTo(
-                        "myfield=somevalue;");
+        assertThat(
+                doc.getMetadata().getString(
+                        CrawlDocMetadata.CHECKSUM_METADATA
+                )
+        ).isEqualTo(
+                "myfield=somevalue;"
+        );
     }
 }

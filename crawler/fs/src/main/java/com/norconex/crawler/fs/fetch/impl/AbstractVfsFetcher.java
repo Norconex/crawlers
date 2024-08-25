@@ -59,7 +59,7 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
+public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         extends AbstractFetcher<FileFetchRequest, FileFetchResponse, C>
         implements FileFetcher {
 
@@ -79,7 +79,8 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             fsManager.init();
         } catch (FileSystemException e) {
             throw new CrawlerException(
-                    "Could not initialize file system manager.", e);
+                    "Could not initialize file system manager.", e
+            );
         }
 
         fsOptions = new FileSystemOptions();
@@ -98,8 +99,10 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             throws FetchException {
 
         if (fsOptions == null) {
-            throw new IllegalStateException("This fetcher was not initialized: "
-                    + getClass().getName());
+            throw new IllegalStateException(
+                    "This fetcher was not initialized: "
+                            + getClass().getName()
+            );
         }
 
         var doc = fetchRequest.getDoc();
@@ -113,7 +116,8 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
         var ref = doc.getReference();
         try {
             var fileObject = fsManager.resolveFile(
-                    FileFetchUtil.uriEncodeLocalPath(ref), fsOptions);
+                    FileFetchUtil.uriEncodeLocalPath(ref), fsOptions
+            );
 
             if (fileObject == null || !fileObject.exists()) {
                 return GenericFileFetchResponse.builder()
@@ -124,7 +128,8 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             if (fileObject.isFile()) {
                 // Don't fetch body if we do meta only
                 if (FetchDirective.DOCUMENT.is(
-                        fetchRequest.getFetchDirective())) {
+                        fetchRequest.getFetchDirective()
+                )) {
                     fetchContent(doc, fileObject);
                 }
                 fetchMetadata(doc, fileObject);
@@ -133,10 +138,10 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             //TODO set status if not found or whatever bad state
 
             return GenericFileFetchResponse.builder()
-                .crawlDocState(CrawlDocState.NEW)
-                .file(fileObject.isFile())
-                .folder(fileObject.isFolder())
-                .build();
+                    .crawlDocState(CrawlDocState.NEW)
+                    .file(fileObject.isFile())
+                    .folder(fileObject.isFolder())
+                    .build();
         } catch (IOException e) {
             throw new FetchException("Could not fetch reference: " + ref, e);
         }
@@ -147,7 +152,8 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             throws FetchException {
         try {
             var fileObject = fsManager.resolveFile(
-                    FileFetchUtil.uriEncodeLocalPath(parentPath), fsOptions);
+                    FileFetchUtil.uriEncodeLocalPath(parentPath), fsOptions
+            );
             Set<FsPath> childPaths = new HashSet<>();
             for (var childPath : fileObject.getChildren()) {
 
@@ -165,8 +171,11 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             }
             return childPaths;
         } catch (FileSystemException e) {
-            throw new FetchException("Could not fetch child paths of: "
-                    + parentPath, e);
+            throw new FetchException(
+                    "Could not fetch child paths of: "
+                            + parentPath,
+                    e
+            );
         }
     }
 
@@ -209,7 +218,8 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             return false;
         }
         try (var is = doc.getStreamFactory().newInputStream(
-                content.getInputStream())) {
+                content.getInputStream()
+        )) {
             is.enforceFullCaching();
             doc.setInputStream(is);
         }

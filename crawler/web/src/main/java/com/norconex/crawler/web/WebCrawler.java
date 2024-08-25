@@ -29,13 +29,13 @@ public class WebCrawler {
 
     protected static final Supplier<CrawlerBuilder> crawlerBuilderSupplier =
             () -> Crawler
-            .builder()
-            .configuration(new WebCrawlerConfig())
-            .fetcherProvider(new HttpFetcherProvider())
-            .callbacks(WebCrawlerCallbacks.get())
-            .docPipelines(WebDocPipelines.get())
-            .docContextType(WebCrawlDocContext.class)
-            .context(new WebCrawlerContext());
+                    .builder()
+                    .configuration(new WebCrawlerConfig())
+                    .fetcherProvider(new HttpFetcherProvider())
+                    .callbacks(WebCrawlerCallbacks.get())
+                    .docPipelines(WebDocPipelines.get())
+                    .docContextType(WebCrawlDocContext.class)
+                    .context(new WebCrawlerContext());
 
     /**
      * Invokes the Web Crawler from the command line.
@@ -59,25 +59,27 @@ public class WebCrawler {
     public static Crawler create(WebCrawlerConfig crawlerConfig) {
         return crawlerBuilderSupplier
                 .get()
-                .configuration(Optional.ofNullable(crawlerConfig)
-                    .orElseGet(WebCrawlerConfig::new))
+                .configuration(
+                        Optional.ofNullable(crawlerConfig)
+                                .orElseGet(WebCrawlerConfig::new)
+                )
                 .build();
     }
 
-//    static CrawlSessionImpl initCrawlSessionImpl(
-//            CrawlSessionConfig sessionConfig) {
-//        return CrawlSessionImpl
-//            .builder()
-//            .crawlerConfigClass(WebCrawlerConfig.class)
-//            .crawlerFactory(
-//                (sess, cfg) -> Crawler.builder()
-//                    .crawlSession(sess)
-//                    .crawlerConfig(cfg)
-//                    .crawlerImpl(WebCrawlerImplFactory.create())
-//                    .build()
-//            )
-//            .beanMapper(Web.beanMapper())
-//            .crawlSessionConfig(sessionConfig)
-//            .build();
-//    }
+    //    static CrawlSessionImpl initCrawlSessionImpl(
+    //            CrawlSessionConfig sessionConfig) {
+    //        return CrawlSessionImpl
+    //            .builder()
+    //            .crawlerConfigClass(WebCrawlerConfig.class)
+    //            .crawlerFactory(
+    //                (sess, cfg) -> Crawler.builder()
+    //                    .crawlSession(sess)
+    //                    .crawlerConfig(cfg)
+    //                    .crawlerImpl(WebCrawlerImplFactory.create())
+    //                    .build()
+    //            )
+    //            .beanMapper(Web.beanMapper())
+    //            .crawlSessionConfig(sessionConfig)
+    //            .build();
+    //    }
 }

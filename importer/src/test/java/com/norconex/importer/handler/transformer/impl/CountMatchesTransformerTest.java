@@ -33,7 +33,7 @@ import com.norconex.importer.handler.parser.ParseState;
 class CountMatchesTransformerTest {
 
     @Test
-        void testWriteRead() {
+    void testWriteRead() {
         var t = new CountMatchesTransformer();
         var cfg = t.getConfiguration();
         cfg.getFieldMatcher().setPattern("fromFiel1");
@@ -156,8 +156,10 @@ class CountMatchesTransformerTest {
                 .setMethod(Method.REGEX).setIgnoreCase(true);
         is = toInputStream(content, UTF_8);
         t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
-        assertEquals(3,
-                (int) meta.getInteger("vegetableCountInsensitiveRegex"));
+        assertEquals(
+                3,
+                (int) meta.getInteger("vegetableCountInsensitiveRegex")
+        );
     }
 
     @Test
@@ -167,7 +169,6 @@ class CountMatchesTransformerTest {
         meta.add("fruits", "orange orange");
         var content = "potato whatever whatever whatever whatever"
                 + "potato whatever whatever whatever whatever";
-
 
         CountMatchesTransformer t;
         InputStream is;
@@ -210,8 +211,11 @@ class CountMatchesTransformerTest {
         cfg.setToField("fruitCount");
         cfg.getCountMatcher().setPattern("(orange|apple)")
                 .setMethod(Method.REGEX).setPartial(true);
-        t.accept(TestUtil.newDocContext(
-                "n/a", nullInputStream(), meta, ParseState.POST));
+        t.accept(
+                TestUtil.newDocContext(
+                        "n/a", nullInputStream(), meta, ParseState.POST
+                )
+        );
         // we should get the sum of both oranges and apples
         assertEquals(5, (int) meta.getInteger("fruitCount"));
 
@@ -221,8 +225,11 @@ class CountMatchesTransformerTest {
         cfg.getFieldMatcher().setPattern("potato");
         cfg.setToField("potatoCount");
         cfg.getCountMatcher().setPattern("potato").setPartial(true);
-        t.accept(TestUtil.newDocContext(
-                "n/a", nullInputStream(), meta, ParseState.POST));
+        t.accept(
+                TestUtil.newDocContext(
+                        "n/a", nullInputStream(), meta, ParseState.POST
+                )
+        );
         // we should get zero (use string to make sure).
         assertEquals("0", meta.getString("potatoCount"));
     }

@@ -33,20 +33,26 @@ public class CrawlerMonitor implements CrawlerMonitorMXBean {
 
     public CrawlerMonitor(
             @NonNull DocTrackerService docTrackerService,
-            @NonNull EventManager eventManager) {
+            @NonNull EventManager eventManager
+    ) {
         this.docTrackerService = docTrackerService;
-        eventManager.addListener(e -> eventCounts.computeIfAbsent(
-                e.getName(), k -> new AtomicLong()).incrementAndGet());
+        eventManager.addListener(
+                e -> eventCounts.computeIfAbsent(
+                        e.getName(), k -> new AtomicLong()
+                ).incrementAndGet()
+        );
     }
 
     @Override
     public long getProcessedCount() {
         return docTrackerService.getProcessedCount();
     }
+
     @Override
     public long getQueuedCount() {
         return docTrackerService.getQueueCount();
     }
+
     @Override
     public long getActiveCount() {
         return docTrackerService.getActiveCount();
@@ -55,8 +61,8 @@ public class CrawlerMonitor implements CrawlerMonitorMXBean {
     @Override
     public Map<String, Long> getEventCounts() {
         Map<String, Long> map = new TreeMap<>();
-        eventCounts.forEach((event, count) ->
-            map.put(event, count.longValue()));
+        eventCounts
+                .forEach((event, count) -> map.put(event, count.longValue()));
         return map;
     }
 }

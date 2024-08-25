@@ -75,18 +75,21 @@ class SitemapResolutionStageTest {
         var sitemap = SITEMAP_XML.formatted(
                 baseUrl + "0001",
                 baseUrl + "0002",
-                baseUrl + "0003");
+                baseUrl + "0003"
+        );
         client
-        .when(request().withPath("/sitemap.xml"))
-        .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
+                .when(request().withPath("/sitemap.xml"))
+                .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
         WebsiteMock.whenInfiniteDepth(client);
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setSitemapLocator(new GenericSitemapLocator())
-            .setSitemapResolver(new GenericSitemapResolver())
-            .setStartReferences(List.of(serverUrl(client, "/stayOnSitemap")))
-            .setNumThreads(1)
-            .setMaxDocuments(10);
+                    .setSitemapResolver(new GenericSitemapResolver())
+                    .setStartReferences(
+                            List.of(serverUrl(client, "/stayOnSitemap"))
+                    )
+                    .setNumThreads(1)
+                    .setMaxDocuments(10);
             ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
                     .getConfiguration().setStayOnSitemap(true);
         });
@@ -104,25 +107,26 @@ class SitemapResolutionStageTest {
         var sitemap = SITEMAP_XML.formatted(
                 baseUrl + "0001",
                 baseUrl + "0002",
-                baseUrl + "0003");
+                baseUrl + "0003"
+        );
         client
-        .when(request().withPath("/sitemap.xml"))
-        .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
+                .when(request().withPath("/sitemap.xml"))
+                .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
         WebsiteMock.whenInfiniteDepth(client);
 
-       var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-           cfg.setSitemapLocator(new GenericSitemapLocator())
-           .setSitemapResolver(new GenericSitemapResolver())
-           .setNumThreads(1)
-           .setMaxDocuments(10)
-           .setStartReferences(List.of(serverUrl(client, "/0002")));
-           ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
-           .getConfiguration().setStayOnSitemap(true);
-       });
+        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
+            cfg.setSitemapLocator(new GenericSitemapLocator())
+                    .setSitemapResolver(new GenericSitemapResolver())
+                    .setNumThreads(1)
+                    .setMaxDocuments(10)
+                    .setStartReferences(List.of(serverUrl(client, "/0002")));
+            ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
+                    .getConfiguration().setStayOnSitemap(true);
+        });
 
         assertThat(mem.getRequestCount()).isEqualTo(3);
         assertThat(mem.getUpsertRequests())
-            .map(req -> substringAfterLast(req.getReference(), "/"))
-            .containsExactly("0001", "0002", "0003");
+                .map(req -> substringAfterLast(req.getReference(), "/"))
+                .containsExactly("0001", "0002", "0003");
     }
 }

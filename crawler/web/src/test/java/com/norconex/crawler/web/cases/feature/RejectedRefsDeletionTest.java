@@ -54,17 +54,20 @@ class RejectedRefsDeletionTest {
     @Test
     void testRejectedRefsDeletionTest(ClientAndServer client) {
         client
-            .when(request())
-            .respond(HttpClassCallback.callback(Callback.class));
+                .when(request())
+                .respond(HttpClassCallback.callback(Callback.class));
 
         var startRef = serverUrl(client, PATH);
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(startRef));
             var drel = new DeleteRejectedEventListener();
-            drel.getConfiguration().setEventMatcher(TextMatcher.csv(
-                    CrawlerEvent.REJECTED_NOTFOUND
-                    + ", " + CrawlerEvent.REJECTED_BAD_STATUS));
+            drel.getConfiguration().setEventMatcher(
+                    TextMatcher.csv(
+                            CrawlerEvent.REJECTED_NOTFOUND
+                                    + ", " + CrawlerEvent.REJECTED_BAD_STATUS
+                    )
+            );
             cfg.addEventListeners(List.of(drel));
             cfg.getImporterConfig().setHandlers(List.of(docCtx -> {
                 if (docCtx.reference().endsWith("page=6-REJECTED_IMPORT")) {
@@ -80,20 +83,20 @@ class RejectedRefsDeletionTest {
         var deletes = mem.getDeleteRequests();
 
         assertThat(upserts)
-            .map(UpsertRequest::getReference)
-            .containsExactly(
-                    startRef,
-                    startRef + "?page=1-OK",
-                    startRef + "?page=3-OK"
-            );
+                .map(UpsertRequest::getReference)
+                .containsExactly(
+                        startRef,
+                        startRef + "?page=1-OK",
+                        startRef + "?page=3-OK"
+                );
         assertThat(deletes)
-            .map(DeleteRequest::getReference)
-            .containsExactly(
-                    startRef + "?page=2-REJECTED_NOTFOUND",
-                    startRef + "?page=4-REJECTED_BAD_STATUS",
-                    startRef + "?page=5-REJECTED_NOTFOUND",
-                    startRef + "?page=7-REJECTED_NOTFOUND"
-            );
+                .map(DeleteRequest::getReference)
+                .containsExactly(
+                        startRef + "?page=2-REJECTED_NOTFOUND",
+                        startRef + "?page=4-REJECTED_BAD_STATUS",
+                        startRef + "?page=5-REJECTED_NOTFOUND",
+                        startRef + "?page=7-REJECTED_NOTFOUND"
+                );
     }
 
     public static class Callback implements ExpectationResponseCallback {
@@ -106,8 +109,8 @@ class RejectedRefsDeletionTest {
             }
             if ("2-REJECTED_NOTFOUND".equals(page)) {
                 return response()
-                    .withStatusCode(HttpStatusCode.NOT_FOUND_404.code())
-                    .withBody("Page 2 expected event: REJECTED_NOTFOUND");
+                        .withStatusCode(HttpStatusCode.NOT_FOUND_404.code())
+                        .withBody("Page 2 expected event: REJECTED_NOTFOUND");
             }
             if ("3-OK".equals(page)) {
                 return response().withBody("Page 3 expected event: OK");
@@ -124,7 +127,8 @@ class RejectedRefsDeletionTest {
             }
             if ("6-REJECTED_IMPORT".equals(page)) {
                 return response().withBody(
-                        "Page 6 expected event: REJECTED_IMPORT");
+                        "Page 6 expected event: REJECTED_IMPORT"
+                );
             }
             if ("7-REJECTED_NOTFOUND".equals(page)) {
                 return response()
@@ -132,21 +136,21 @@ class RejectedRefsDeletionTest {
                         .withBody("Page 7 expected event: REJECTED_NOTFOUND");
             }
             return response().withBody("""
-                <h1>DeleteRejectedEventListener test main page</h1>
-                <p>The test pages and expected events generated:</p>
-                <ol>
-                <li><a href="?page=1-OK">OK</a></li>
-                <li><a href="?page=2-REJECTED_NOTFOUND">delete #1</a></li>
-                <li><a href="?page=3-OK">OK</a></li>
-                <li><a href="?page=4-REJECTED_BAD_STATUS">delete #2</a></li>
-                <li><a href="?page=5-REJECTED_NOTFOUND">delete #3</a></li>
-                <li><a href="?page=6-REJECTED_IMPORT">
-                    no delete, event does not match</a></li>
-                <li><a href="?page=2-REJECTED_NOTFOUND">
-                    no delete, page 2 duplicate)</a></li>
-                <li><a href="?page=7-REJECTED_NOTFOUND">delete #4</a></li>
-                </ol>
-                """);
+                    <h1>DeleteRejectedEventListener test main page</h1>
+                    <p>The test pages and expected events generated:</p>
+                    <ol>
+                    <li><a href="?page=1-OK">OK</a></li>
+                    <li><a href="?page=2-REJECTED_NOTFOUND">delete #1</a></li>
+                    <li><a href="?page=3-OK">OK</a></li>
+                    <li><a href="?page=4-REJECTED_BAD_STATUS">delete #2</a></li>
+                    <li><a href="?page=5-REJECTED_NOTFOUND">delete #3</a></li>
+                    <li><a href="?page=6-REJECTED_IMPORT">
+                        no delete, event does not match</a></li>
+                    <li><a href="?page=2-REJECTED_NOTFOUND">
+                        no delete, page 2 duplicate)</a></li>
+                    <li><a href="?page=7-REJECTED_NOTFOUND">delete #4</a></li>
+                    </ol>
+                    """);
         }
     }
 }

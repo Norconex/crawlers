@@ -33,12 +33,18 @@ class ConstantTransformerTest {
     void testWriteRead() {
         var t = new ConstantTransformer();
         t.getConfiguration()
-            .setConstants(List.of(
-                    Constant.of("constant1", List.of("value1", "value2")),
-                    Constant.of("constant2", List.of("valueA", "valueA")),
-                    Constant.of("constant3", "valueZ")
-            ))
-            .setOnSet(PropertySetter.REPLACE);
+                .setConstants(
+                        List.of(
+                                Constant.of(
+                                        "constant1", List.of("value1", "value2")
+                                ),
+                                Constant.of(
+                                        "constant2", List.of("valueA", "valueA")
+                                ),
+                                Constant.of("constant3", "valueZ")
+                        )
+                )
+                .setOnSet(PropertySetter.REPLACE);
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
 
@@ -59,36 +65,48 @@ class ConstantTransformerTest {
 
         // APPEND
         t.getConfiguration()
-            .setOnSet(PropertySetter.APPEND)
-            .setConstants(List.of(Constant.of("test1", List.of("3", "4"))));
+                .setOnSet(PropertySetter.APPEND)
+                .setConstants(List.of(Constant.of("test1", List.of("3", "4"))));
 
         is = new NullInputStream(0);
         t.accept(TestUtil.newDocContext("n/a", is, m));
-        Assertions.assertArrayEquals(new String[]{
-                "1", "2", "3", "4"}, m.getStrings("test1").toArray());
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "1", "2", "3", "4" },
+                m.getStrings("test1").toArray()
+        );
         // REPLACE
         t.getConfiguration()
-            .setOnSet(PropertySetter.REPLACE)
-            .setConstants(List.of(Constant.of("test2", List.of("3", "4"))));
+                .setOnSet(PropertySetter.REPLACE)
+                .setConstants(List.of(Constant.of("test2", List.of("3", "4"))));
         is = new NullInputStream(0);
         t.accept(TestUtil.newDocContext("n/a", is, m));
-        Assertions.assertArrayEquals(new String[]{
-                "3", "4"}, m.getStrings("test2").toArray());
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "3", "4" },
+                m.getStrings("test2").toArray()
+        );
         // OPTIONAL
         t.getConfiguration()
-            .setOnSet(PropertySetter.OPTIONAL)
-            .setConstants(List.of(Constant.of("test3", List.of("3", "4"))));
+                .setOnSet(PropertySetter.OPTIONAL)
+                .setConstants(List.of(Constant.of("test3", List.of("3", "4"))));
         is = new NullInputStream(0);
         t.accept(TestUtil.newDocContext("n/a", is, m));
-        Assertions.assertArrayEquals(new String[]{
-                "1", "2"}, m.getStrings("test3").toArray());
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "1", "2" },
+                m.getStrings("test3").toArray()
+        );
         // PREPEND
         t.getConfiguration()
-            .setOnSet(PropertySetter.PREPEND)
-            .setConstants(List.of(Constant.of("test4", List.of("3", "4"))));
+                .setOnSet(PropertySetter.PREPEND)
+                .setConstants(List.of(Constant.of("test4", List.of("3", "4"))));
         is = new NullInputStream(0);
         t.accept(TestUtil.newDocContext("n/a", is, m));
-        Assertions.assertArrayEquals(new String[]{
-                "3", "4", "1", "2"}, m.getStrings("test4").toArray());
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "3", "4", "1", "2" },
+                m.getStrings("test4").toArray()
+        );
     }
 }

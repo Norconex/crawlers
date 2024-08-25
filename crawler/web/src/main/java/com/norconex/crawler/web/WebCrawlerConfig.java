@@ -686,15 +686,18 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public List<String> getStartReferencesSitemaps() {
         return Collections.unmodifiableList(startReferencesSitemaps);
     }
+
     /**
      * Sets the sitemap URLs used as starting points for crawling.
      * @param startReferencesSitemaps sitemap URLs
      * @since 3.0.0
      */
     public WebCrawlerConfig setStartReferencesSitemaps(
-            List<String> startReferencesSitemaps) {
+            List<String> startReferencesSitemaps
+    ) {
         CollectionUtil.setAll(
-                this.startReferencesSitemaps, startReferencesSitemaps);
+                this.startReferencesSitemaps, startReferencesSitemaps
+        );
         CollectionUtil.removeBlanks(this.startReferencesSitemaps);
         return this;
     }
@@ -709,6 +712,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public Set<ReferencedLinkType> getKeepReferencedLinks() {
         return Collections.unmodifiableSet(keepReferencedLinks);
     }
+
     /**
      * Sets whether to keep referenced links and what to keep.
      * Those links are URLs extracted by link extractors. See class
@@ -717,7 +721,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public WebCrawlerConfig setKeepReferencedLinks(
-            Set<ReferencedLinkType> keepReferencedLinks) {
+            Set<ReferencedLinkType> keepReferencedLinks
+    ) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
         return this;
     }
@@ -729,13 +734,15 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public List<LinkExtractor> getLinkExtractors() {
         return Collections.unmodifiableList(linkExtractors);
     }
+
     /**
      * Sets link extractors.
      * @param linkExtractors link extractors
      * @since 3.0.0
      */
     public WebCrawlerConfig setLinkExtractors(
-            List<LinkExtractor> linkExtractors) {
+            List<LinkExtractor> linkExtractors
+    ) {
         CollectionUtil.setAll(this.linkExtractors, linkExtractors);
         return this;
     }
@@ -749,6 +756,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public TextMatcher getPostImportLinks() {
         return postImportLinks;
     }
+
     /**
      * Set a field matcher used to identify post-import metadata fields
      * holding URLs to consider for crawling.

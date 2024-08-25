@@ -42,14 +42,15 @@ class UrlStatusCrawlerEventListenerTest {
 
     @Test
     void testURLStatusCrawlerEventListener(
-            ClientAndServer client, @TempDir Path tempDir) throws IOException {
+            ClientAndServer client, @TempDir Path tempDir
+    ) throws IOException {
 
         var urlStatusListener = new UrlStatusCrawlerEventListener();
         urlStatusListener.getConfiguration()
-            .setTimestamped(true)
-            .setStatusCodes("200-299, 400-499, 500")
-            .setFileNamePrefix("super-")
-            .setOutputDir(tempDir.resolve("statuses"));
+                .setTimestamped(true)
+                .setStatusCodes("200-299, 400-499, 500")
+                .setFileNamePrefix("super-")
+                .setOutputDir(tempDir.resolve("statuses"));
 
         var ok1Path = "/ok1.html";
         var ok2Path = "/ok2.html";
@@ -60,40 +61,51 @@ class UrlStatusCrawlerEventListenerTest {
         WebsiteMock.whenHtml(client, ok1Path, "This page is OK.");
 
         client
-            .when(request(notFoundPath))
-            .respond(HttpResponse.notFoundResponse());
+                .when(request(notFoundPath))
+                .respond(HttpResponse.notFoundResponse());
 
         client
-            .when(request(errorPath))
-            .respond(response()
-                .withStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500.code())
-                .withReasonPhrase("Kaput!"));
+                .when(request(errorPath))
+                .respond(
+                        response()
+                                .withStatusCode(
+                                        HttpStatusCode.INTERNAL_SERVER_ERROR_500
+                                                .code()
+                                )
+                                .withReasonPhrase("Kaput!")
+                );
 
         WebTestUtil.runWithConfig(tempDir, cfg -> {
-           cfg.setStartReferences(List.of(
-                   serverUrl(client, ok1Path),
-                   serverUrl(client, notFoundPath),
-                   serverUrl(client, ok2Path),
-                   serverUrl(client, errorPath)))
-               .addEventListener(urlStatusListener);
+            cfg.setStartReferences(
+                    List.of(
+                            serverUrl(client, ok1Path),
+                            serverUrl(client, notFoundPath),
+                            serverUrl(client, ok2Path),
+                            serverUrl(client, errorPath)
+                    )
+            )
+                    .addEventListener(urlStatusListener);
         });
 
         var file = FileUtils.listFiles(
-                tempDir.resolve("statuses").toFile(), null, false)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow();
+                tempDir.resolve("statuses").toFile(), null, false
+        )
+                .stream()
+                .findFirst()
+                .orElseThrow();
 
         var csvLines = FileUtils.readLines(file, UTF_8);
         var baseUrl = serverUrl(client, "");
         assertThat(csvLines).containsExactlyInAnyOrder(
-            "Referrer,URL,Status,Reason",
-            "\"\",%serror.html,500,Kaput!".formatted(baseUrl),
-            "\"\",%snotFound.html,404,Not Found".formatted(baseUrl),
-            "\"\",%sok1.html,200,OK".formatted(baseUrl),
-            "\"\",%sok2.html,404,Not Found".formatted(baseUrl));
+                "Referrer,URL,Status,Reason",
+                "\"\",%serror.html,500,Kaput!".formatted(baseUrl),
+                "\"\",%snotFound.html,404,Not Found".formatted(baseUrl),
+                "\"\",%sok1.html,200,OK".formatted(baseUrl),
+                "\"\",%sok2.html,404,Not Found".formatted(baseUrl)
+        );
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(urlStatusListener));
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(urlStatusListener)
+        );
     }
 }

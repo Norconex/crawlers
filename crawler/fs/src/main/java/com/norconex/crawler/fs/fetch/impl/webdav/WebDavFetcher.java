@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
-
 /**
  * <p>
  * Fetcher for WebDAV repositories. While it can also be used for general
@@ -82,7 +81,8 @@ public class WebDavFetcher extends AbstractAuthVfsFetcher<WebDavFetcherConfig> {
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(
-                fetchRequest, "webdav://", "http://", "https://");
+                fetchRequest, "webdav://", "http://", "https://"
+        );
     }
 
     @ToString.Include(name = "keyStorePass")
@@ -98,20 +98,28 @@ public class WebDavFetcher extends AbstractAuthVfsFetcher<WebDavFetcherConfig> {
         fs.setConnectionTimeout(opts, cfg.getConnectionTimeout());
         fs.setFollowRedirect(opts, cfg.isFollowRedirect());
         fs.setHostnameVerificationEnabled(
-                opts, cfg.isHostnameVerificationEnabled());
+                opts, cfg.isHostnameVerificationEnabled()
+        );
         fs.setKeepAlive(opts, cfg.isKeepAlive());
         fs.setKeyStoreFile(opts, cfg.getKeyStoreFile());
         fs.setKeyStorePass(
-                opts, decrypt(cfg.getKeyStorePass(), cfg.getKeyStorePassKey()));
+                opts, decrypt(cfg.getKeyStorePass(), cfg.getKeyStorePassKey())
+        );
         fs.setKeyStoreType(opts, cfg.getKeyStoreType());
         fs.setMaxConnectionsPerHost(opts, cfg.getMaxConnectionsPerHost());
         fs.setMaxTotalConnections(opts, cfg.getMaxTotalConnections());
         fs.setPreemptiveAuth(opts, cfg.isPreemptiveAuth());
         if (cfg.getProxySettings().isSet()) {
-            fs.setProxyAuthenticator(opts, new StaticUserAuthenticator(
-                    cfg.getProxySettings().getCredentials().getUsername(),
-                    decryptPassword(cfg.getProxySettings().getCredentials()),
-                    cfg.getProxyDomain()));
+            fs.setProxyAuthenticator(
+                    opts, new StaticUserAuthenticator(
+                            cfg.getProxySettings().getCredentials()
+                                    .getUsername(),
+                            decryptPassword(
+                                    cfg.getProxySettings().getCredentials()
+                            ),
+                            cfg.getProxyDomain()
+                    )
+            );
             fs.setProxyHost(opts, cfg.getProxySettings().getHost().getName());
             fs.setProxyPort(opts, cfg.getProxySettings().getHost().getPort());
             fs.setProxyScheme(opts, cfg.getProxySettings().getScheme());

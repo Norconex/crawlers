@@ -51,15 +51,16 @@ class ScriptTransformerTest {
             throws IOException, IOException {
         var t = new ScriptTransformer();
         t.getConfiguration()
-            .setEngineName(engineName)
-            .setScript(script);
+                .setEngineName(engineName)
+                .setScript(script);
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         var doc = TestUtil.newDocContext(
-                htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
+                htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
+        );
         t.accept(doc);
         is.close();
 
@@ -76,44 +77,50 @@ class ScriptTransformerTest {
         @Override
         public Stream<Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                // JavaScript with "returnValue"
-                Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
-                    metadata.add('test', 'success');
-                    var returnValue = content.replace(/Alice/g, 'Roger');
-                    """),
-                // JavaScript with last-assigned variable
-                Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
-                    metadata.add('test', 'success');
-                    text = content.replace(/Alice/g, 'Roger');
-                    """),
-                // JavaScript with both "returnValue" and last-assigned variable
-                Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
-                    metadata.add('test', 'success');
-                    returnValue = content.replace(/Alice/g, 'Roger');
-                    text = "Should not be me";
-                    """),
+                    // JavaScript with "returnValue"
+                    Arguments.of(
+                            ScriptRunner.JAVASCRIPT_ENGINE,
+                            """
+                                    metadata.add('test', 'success');
+                                    var returnValue = content.replace(/Alice/g, 'Roger');
+                                    """
+                    ),
+                    // JavaScript with last-assigned variable
+                    Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
+                            metadata.add('test', 'success');
+                            text = content.replace(/Alice/g, 'Roger');
+                            """),
+                    // JavaScript with both "returnValue" and last-assigned variable
+                    Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
+                            metadata.add('test', 'success');
+                            returnValue = content.replace(/Alice/g, 'Roger');
+                            text = "Should not be me";
+                            """),
 
-                // Lua with "returnValue"
-                Arguments.of(ScriptRunner.LUA_ENGINE, """
-                    metadata:add('test', {'success'});
-                    returnValue = content:gsub('Alice', 'Roger');
-                    """),
+                    // Lua with "returnValue"
+                    Arguments.of(ScriptRunner.LUA_ENGINE, """
+                            metadata:add('test', {'success'});
+                            returnValue = content:gsub('Alice', 'Roger');
+                            """),
 
-                // Lua with explicit return statement
-                Arguments.of(ScriptRunner.LUA_ENGINE, """
-                    metadata:add('test', {'success'});
-                    local text = content:gsub('Alice', 'Roger');
-                    return text;
-                    """),
+                    // Lua with explicit return statement
+                    Arguments.of(ScriptRunner.LUA_ENGINE, """
+                            metadata:add('test', {'success'});
+                            local text = content:gsub('Alice', 'Roger');
+                            return text;
+                            """),
 
-//                Arguments.of(ScriptRunner.PYTHON_ENGINE, """
-//                    metadata.add('test', 'success')
-//                    returnValue = content.replace('Alice', 'Roger')
-//                    """),
-                Arguments.of(ScriptRunner.VELOCITY_ENGINE, """
-                    $metadata.add("test", "success")
-                    #set($returnValue = $content.replace('Alice', 'Roger'))
-                    """)
+                    //                Arguments.of(ScriptRunner.PYTHON_ENGINE, """
+                    //                    metadata.add('test', 'success')
+                    //                    returnValue = content.replace('Alice', 'Roger')
+                    //                    """),
+                    Arguments.of(
+                            ScriptRunner.VELOCITY_ENGINE,
+                            """
+                                    $metadata.add("test", "success")
+                                    #set($returnValue = $content.replace('Alice', 'Roger'))
+                                    """
+                    )
             );
         }
     }
@@ -130,9 +137,11 @@ class ScriptTransformerTest {
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         var is = IOUtils.toInputStream(
-                "World!", StandardCharsets.UTF_8);
+                "World!", StandardCharsets.UTF_8
+        );
         var doc = TestUtil.newDocContext(
-                "N/A", is, metadata, ParseState.POST);
+                "N/A", is, metadata, ParseState.POST
+        );
         t.accept(doc);
         var content = doc.input().asString();
         Assertions.assertEquals("Hello World!", content);
@@ -142,32 +151,41 @@ class ScriptTransformerTest {
         @Override
         public Stream<Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
-                    var ct = metadata.getString('document.contentType');
-                    if (ct != null && ct == 'text/html' && content != null) {
-                        content = 'Hello ' + content;
-                    }
-                    """),
-                Arguments.of(ScriptRunner.LUA_ENGINE, """
-                    local ct = metadata:getString('document.contentType')
-                    if(ct ~= nil and ct == 'text/html' and content ~= nil)
-                    then
-                        content = 'Hello ' .. content
-                    end
-                    return content
-                    """),
-//                Arguments.of(ScriptRunner.PYTHON_ENGINE, """
-//                    ct = metadata.getString('document.contentType');
-//                    if ct and ct == 'text/html' and content:
-//                        content = 'Hello ' + content;
-//                    returnValue = content
-//                    """),
-                Arguments.of(ScriptRunner.VELOCITY_ENGINE, """
-                    #set($ct = $metadata.getString("document.contentType"))
-                    #if ($ct && $ct == "text/html" && $content)
-                      #set($returnValue = "Hello " + $content)
-                    #end
-                    """)
+                    Arguments.of(
+                            ScriptRunner.JAVASCRIPT_ENGINE,
+                            """
+                                    var ct = metadata.getString('document.contentType');
+                                    if (ct != null && ct == 'text/html' && content != null) {
+                                        content = 'Hello ' + content;
+                                    }
+                                    """
+                    ),
+                    Arguments.of(
+                            ScriptRunner.LUA_ENGINE,
+                            """
+                                    local ct = metadata:getString('document.contentType')
+                                    if(ct ~= nil and ct == 'text/html' and content ~= nil)
+                                    then
+                                        content = 'Hello ' .. content
+                                    end
+                                    return content
+                                    """
+                    ),
+                    //                Arguments.of(ScriptRunner.PYTHON_ENGINE, """
+                    //                    ct = metadata.getString('document.contentType');
+                    //                    if ct and ct == 'text/html' and content:
+                    //                        content = 'Hello ' + content;
+                    //                    returnValue = content
+                    //                    """),
+                    Arguments.of(
+                            ScriptRunner.VELOCITY_ENGINE,
+                            """
+                                    #set($ct = $metadata.getString("document.contentType"))
+                                    #if ($ct && $ct == "text/html" && $content)
+                                      #set($returnValue = "Hello " + $content)
+                                    #end
+                                    """
+                    )
             );
         }
     }
@@ -178,9 +196,10 @@ class ScriptTransformerTest {
     void testWriteRead() {
         var t = new ScriptTransformer();
         t.getConfiguration()
-            .setEngineName(ScriptRunner.JAVASCRIPT_ENGINE)
-            .setScript("var blah = 'blah';");
+                .setEngineName(ScriptRunner.JAVASCRIPT_ENGINE)
+                .setScript("var blah = 'blah';");
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t));
+                () -> BeanMapper.DEFAULT.assertWriteRead(t)
+        );
     }
 }

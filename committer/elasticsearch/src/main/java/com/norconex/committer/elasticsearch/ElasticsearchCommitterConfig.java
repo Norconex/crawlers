@@ -161,6 +161,7 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
     public List<String> getNodes() {
         return Collections.unmodifiableList(nodes);
     }
+
     /**
      * Sets cluster node URLs.
      * Node URLs with no port are assumed to be using port 80.
@@ -177,6 +178,7 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
     public Credentials getCredentials() {
         return credentials;
     }
+
     /**
      * Sets Elasticsearch authentication credentials.
      * @param credentials the credentials

@@ -191,7 +191,6 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
      */
     private String targetContentField = DEFAULT_SOLR_CONTENT_FIELD;
 
-
     /**
      * Gets URL parameters to be added on Solr HTTP calls.
      * @return a map of parameter names and values
@@ -199,6 +198,7 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
     public Map<String, String> getUpdateUrlParams() {
         return Collections.unmodifiableMap(updateUrlParams);
     }
+
     /**
      * Sets URL parameters to be added on Solr HTTP calls.
      * @param updateUrlParams a map of parameter names and values
@@ -206,6 +206,7 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
     public void setUpdateUrlParams(Map<String, String> updateUrlParams) {
         CollectionUtil.setAll(this.updateUrlParams, updateUrlParams);
     }
+
     /**
      * Sets a URL parameter to be added on Solr HTTP calls.
      * @param name parameter name
@@ -214,6 +215,7 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
     public void setUpdateUrlParam(String name, String value) {
         updateUrlParams.put(name, value);
     }
+
     /**
      * Gets a URL parameter value by its parameter name.
      * @param name parameter name
@@ -222,6 +224,7 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
     public String getUpdateUrlParam(String name) {
         return updateUrlParams.get(name);
     }
+
     /**
      * Gets the update URL parameter names.
      * @return parameter names
@@ -238,6 +241,7 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
     public Credentials getCredentials() {
         return credentials;
     }
+
     /**
      * Sets Solr authentication credentials.
      * @param credentials the credentials

@@ -159,9 +159,9 @@ public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
     public List<CSVColumn> getColumns() {
         return Collections.unmodifiableList(columns);
     }
+
     public CSVFileCommitterConfig setColumns(List<CSVColumn> columns) {
         CollectionUtil.setAll(this.columns, columns);
         return this;
     }
 }
-

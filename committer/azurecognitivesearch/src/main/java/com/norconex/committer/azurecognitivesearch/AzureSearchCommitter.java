@@ -173,7 +173,8 @@ public class AzureSearchCommitter
         if (configuration.getQueue() instanceof FSQueue queue &&
                 queue.getConfiguration().getBatchSize() > 1000) {
             throw new CommitterException(
-                    "Commit batch size cannot be greater than 1000.");
+                    "Commit batch size cannot be greater than 1000."
+            );
         }
     }
 

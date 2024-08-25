@@ -41,57 +41,69 @@ import lombok.experimental.Accessors;
 
 public final class WebsiteMock {
 
-    private WebsiteMock() {}
+    private WebsiteMock() {
+    }
 
     public static void whenInfiniteDepth(ClientAndServer client) {
         client
-            .when(request())
-            .respond(WebsiteMock.responseWithInfiniteDepth());
+                .when(request())
+                .respond(WebsiteMock.responseWithInfiniteDepth());
     }
 
     public static void whenJsRenderedWebsite(ClientAndServer client) {
         whenResourceWebSite(client, "website/js-rendered")
-            .whenHtml("/apple.html")
-            .whenHtml("/carrot.html")
-            .whenHtml("/celery.html")
-            .whenHtml("/fruits.html")
-            .whenHtml("/index.html")
-            .whenHtml("/orange.html")
-            .whenHtml("/vegetables.html")
-            .whenJPG("/apple.jpg")
-            .whenPDF("/tiny.pdf")
-            ;
+                .whenHtml("/apple.html")
+                .whenHtml("/carrot.html")
+                .whenHtml("/celery.html")
+                .whenHtml("/fruits.html")
+                .whenHtml("/index.html")
+                .whenHtml("/orange.html")
+                .whenHtml("/vegetables.html")
+                .whenJPG("/apple.jpg")
+                .whenPDF("/tiny.pdf");
     }
 
     public static ResourceWebSite whenResourceWebSite(
-            ClientAndServer client, String resourceBasePath) {
+            ClientAndServer client, String resourceBasePath
+    ) {
         return new ResourceWebSite(client, resourceBasePath);
     }
 
     public static class ResourceWebSite {
         private final String resourceBasePath;
         private final ClientAndServer client;
+
         private ResourceWebSite(
-                ClientAndServer client, String resourceBasePath) {
+                ClientAndServer client, String resourceBasePath
+        ) {
             this.client = client;
             this.resourceBasePath = removeEnd(resourceBasePath, "/");
         }
+
         public ResourceWebSite whenHtml(String path) {
             var p = prependIfMissing(path, "/");
-            WebsiteMock.whenHtml(client, p,
-                    new TestResource(resourceBasePath + p).asString());
+            WebsiteMock.whenHtml(
+                    client, p,
+                    new TestResource(resourceBasePath + p).asString()
+            );
             return this;
         }
+
         public ResourceWebSite whenPDF(String path) {
             var p = prependIfMissing(path, "/");
-            WebsiteMock.whenPDF(client, p,
-                    new TestResource(resourceBasePath + p));
+            WebsiteMock.whenPDF(
+                    client, p,
+                    new TestResource(resourceBasePath + p)
+            );
             return this;
         }
+
         public ResourceWebSite whenJPG(String path) {
             var p = prependIfMissing(path, "/");
-            WebsiteMock.whenJPG(client, p,
-                    new TestResource(resourceBasePath + p));
+            WebsiteMock.whenJPG(
+                    client, p,
+                    new TestResource(resourceBasePath + p)
+            );
             return this;
         }
     }
@@ -107,7 +119,8 @@ public final class WebsiteMock {
             var reqPath = req.getPath().toString();
             var numStr = StringUtils.substringAfterLast(reqPath, "/");
             var basePath = appendIfMissing(
-                    substringBeforeLast(reqPath, "/"), "/");
+                    substringBeforeLast(reqPath, "/"), "/"
+            );
             var curDepth = 0;
             if (NumberUtils.isDigits(numStr)) {
                 curDepth = Integer.parseInt(numStr);
@@ -122,75 +135,107 @@ public final class WebsiteMock {
             var afterNum = leftPad(Integer.toString(curDepth + 1), 4, '0');
             var nextLink = " | <a href=\"%s\">Next</a>"
                     .formatted(basePath + afterNum);
-            return response().withBody(WebsiteMock.htmlPage().body(
-                """
-                <h1>%s test page</h1>
-                %s Current page depth: %s %s
-                """
-                .formatted(reqPath, prevLink, curDepth, nextLink))
-                .build(), HTML_UTF_8);
+            return response().withBody(
+                    WebsiteMock.htmlPage().body(
+                            """
+                                    <h1>%s test page</h1>
+                                    %s Current page depth: %s %s
+                                    """
+                                    .formatted(
+                                            reqPath, prevLink, curDepth,
+                                            nextLink
+                                    )
+                    )
+                            .build(),
+                    HTML_UTF_8
+            );
         };
     }
 
     public static String secureServerUrl(
-            ClientAndServer client, String urlPath) {
+            ClientAndServer client, String urlPath
+    ) {
         return serverUrl(client, urlPath).replace("http://", "https://");
     }
+
     public static String serverUrl(ClientAndServer client, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 client.getLocalPort(),
-                StringUtils.prependIfMissing(urlPath, "/"));
+                StringUtils.prependIfMissing(urlPath, "/")
+        );
     }
+
     public static String serverUrl(HttpRequest request, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 StringUtils.substringAfterLast(request.getLocalAddress(), ":"),
-                StringUtils.prependIfMissing(urlPath, "/"));
+                StringUtils.prependIfMissing(urlPath, "/")
+        );
     }
 
     public static Expectation[] whenHtml(
-            ClientAndServer client, String urlPath, String body) {
+            ClientAndServer client, String urlPath, String body
+    ) {
         return client
-            .when(request().withPath(urlPath))
-            .respond(response().withBody(
-                    WebsiteMock.htmlPage().body(body).build(), HTML_UTF_8));
+                .when(request().withPath(urlPath))
+                .respond(
+                        response().withBody(
+                                WebsiteMock.htmlPage().body(body).build(),
+                                HTML_UTF_8
+                        )
+                );
     }
 
     public static Expectation[] whenHtml(
-            ClientAndServer client, String urlPath, TestResource resource)
-                    throws IOException {
+            ClientAndServer client, String urlPath, TestResource resource
+    )
+            throws IOException {
         return client
-            .when(request().withPath(urlPath))
-            .respond(response().withBody(resource.asString(), HTML_UTF_8));
+                .when(request().withPath(urlPath))
+                .respond(response().withBody(resource.asString(), HTML_UTF_8));
     }
 
     public static Expectation[] whenPNG(
-            ClientAndServer client, String urlPath, TestResource resource)
-                    throws IOException {
+            ClientAndServer client, String urlPath, TestResource resource
+    )
+            throws IOException {
         return client
-            .when(request().withPath(urlPath))
-            .respond(response().withBody(
-                    BinaryBody.binary(resource.asBytes(), MediaType.PNG))
-        );
+                .when(request().withPath(urlPath))
+                .respond(
+                        response().withBody(
+                                BinaryBody.binary(
+                                        resource.asBytes(), MediaType.PNG
+                                )
+                        )
+                );
     }
 
     public static Expectation[] whenJPG(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath, TestResource resource
+    ) {
         return client
-            .when(request().withPath(urlPath))
-            .respond(response().withBody(
-                    BinaryBody.binary(resource.asBytes(), MediaType.JPEG))
-        );
+                .when(request().withPath(urlPath))
+                .respond(
+                        response().withBody(
+                                BinaryBody.binary(
+                                        resource.asBytes(), MediaType.JPEG
+                                )
+                        )
+                );
     }
 
     public static Expectation[] whenPDF(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath, TestResource resource
+    ) {
         return client
-            .when(request().withPath(urlPath))
-            .respond(response().withBody(
-                    BinaryBody.binary(resource.asBytes(), MediaType.PDF))
-        );
+                .when(request().withPath(urlPath))
+                .respond(
+                        response().withBody(
+                                BinaryBody.binary(
+                                        resource.asBytes(), MediaType.PDF
+                                )
+                        )
+                );
     }
-
 
     @Data
     @Accessors(fluent = true)
@@ -200,19 +245,20 @@ public final class WebsiteMock {
         //TODO if needed, replace with collections, of scripts, css, etc.
         String head = "";
         String body = "Mock HTML page content.";
+
         public String build() {
             return """
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                  <title>%s</title>
-                  %s
-                </head>
-                <body>
-                %s
-                </body>
-                </html>
-                """.formatted(title, head, body);
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                      <title>%s</title>
+                      %s
+                    </head>
+                    <body>
+                    %s
+                    </body>
+                    </html>
+                    """.formatted(title, head, body);
         }
     }
 

@@ -30,10 +30,12 @@ public class DelayReferencePattern {
     @JsonCreator
     public DelayReferencePattern(
             @JsonProperty("pattern") String pattern,
-            @JsonProperty("delay") Duration delay) {
+            @JsonProperty("delay") Duration delay
+    ) {
         this.pattern = pattern;
         this.delay = delay;
     }
+
     @JsonIgnore
     public boolean matches(String reference) {
         return reference.matches(pattern);

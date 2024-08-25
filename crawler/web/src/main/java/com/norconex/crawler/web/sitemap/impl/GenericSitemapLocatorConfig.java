@@ -75,6 +75,7 @@ public class GenericSitemapLocatorConfig {
     public List<String> getPaths() {
         return Collections.unmodifiableList(paths);
     }
+
     /**
      * Sets the URL paths, relative to the URL root, from which to try
      * locate and resolve sitemaps.

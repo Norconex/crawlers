@@ -19,28 +19,29 @@ import com.norconex.committer.core.CommitterException;
 
 class KafkaAdmin {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaAdmin.class);    
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaAdmin.class);
     private Admin admin;
-    
+
     public KafkaAdmin(String bootstrapServers) {
         Properties props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         admin = Admin.create(props);
     }
-    
+
     public void ensureTopicExists(
-            String topicName, 
-            int partitions, 
-            short replicationFactor) throws CommitterException {
-        
-        if(isTopicExists(topicName)) {
+            String topicName,
+            int partitions,
+            short replicationFactor
+    ) throws CommitterException {
+
+        if (isTopicExists(topicName)) {
             LOG.info("Topic `{}` already exists.", topicName);
             return;
         }
-        
+
         createTopic(topicName, partitions, replicationFactor);
     }
-    
+
     public boolean isTopicExists(String topicName) {
         ListTopicsResult topics = admin.listTopics();
 
@@ -52,28 +53,38 @@ class KafkaAdmin {
             Thread.currentThread().interrupt();
         }
 
-        if(topicNames == null) {
+        if (topicNames == null) {
             return false;
         }
-        
+
         return topicNames.contains(topicName);
     }
 
     public void close() {
         admin.close();
     }
-    
+
     private void createTopic(
-            String topicName, 
-            int partitions, 
-            short replicationFactor) {
+            String topicName,
+            int partitions,
+            short replicationFactor
+    ) {
         LOG.info("Creating compacted topic `{}`...", topicName);
 
-        CreateTopicsResult result = admin.createTopics(Collections
-                .singleton(new NewTopic(topicName, partitions, replicationFactor)
-                        .configs(Collections.singletonMap(
-                                TopicConfig.CLEANUP_POLICY_CONFIG,
-                                TopicConfig.CLEANUP_POLICY_COMPACT))));
+        CreateTopicsResult result = admin.createTopics(
+                Collections
+                        .singleton(
+                                new NewTopic(
+                                        topicName, partitions, replicationFactor
+                                )
+                                        .configs(
+                                                Collections.singletonMap(
+                                                        TopicConfig.CLEANUP_POLICY_CONFIG,
+                                                        TopicConfig.CLEANUP_POLICY_COMPACT
+                                                )
+                                        )
+                        )
+        );
 
         KafkaFuture<Void> future = result.values().get(topicName);
 

@@ -68,7 +68,8 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
     private int upsertCount = 0;
     private int deleteCount = 0;
     @JsonIgnore
-    @Getter @Setter
+    @Getter
+    @Setter
     private boolean closed;
 
     private final MemoryCommitterConfig configuration =
@@ -92,6 +93,7 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
     public List<CommitterRequest> getAllRequests() {
         return requests;
     }
+
     @JsonIgnore
     public List<UpsertRequest> getUpsertRequests() {
         return requests.stream()
@@ -99,6 +101,7 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
                 .map(UpsertRequest.class::cast)
                 .toList();
     }
+
     @JsonIgnore
     public List<DeleteRequest> getDeleteRequests() {
         return requests.stream()
@@ -111,10 +114,12 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
     public int getUpsertCount() {
         return upsertCount;
     }
+
     @JsonIgnore
     public int getDeleteCount() {
         return deleteCount;
     }
+
     @JsonIgnore
     public int getRequestCount() {
         return requests.size();
@@ -131,10 +136,12 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
         if (!configuration.isIgnoreContent() && reqContent != null) {
             try {
                 memContent = new ByteArrayInputStream(
-                        IOUtils.toByteArray(reqContent));
+                        IOUtils.toByteArray(reqContent)
+                );
             } catch (IOException e) {
                 throw new CommitterException(
-                        "Could not do upsert for " + memReference);
+                        "Could not do upsert for " + memReference
+                );
             }
         }
 
@@ -143,6 +150,7 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
         requests.add(new UpsertRequest(memReference, memMetadata, memContent));
         upsertCount++;
     }
+
     @Override
     protected void doDelete(DeleteRequest deleteRequest) {
         var memReference = deleteRequest.getReference();
@@ -159,11 +167,18 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
             if (configuration.getFieldMatcher().getPattern() == null) {
                 memMetadata.loadFromMap(reqMetadata);
             } else {
-                memMetadata.loadFromMap(reqMetadata.entrySet().stream()
-                        .filter(en -> configuration.getFieldMatcher()
-                                .matches(en.getKey()))
-                        .collect(Collectors.toMap(
-                                Entry::getKey, Entry::getValue)));
+                memMetadata.loadFromMap(
+                        reqMetadata.entrySet().stream()
+                                .filter(
+                                        en -> configuration.getFieldMatcher()
+                                                .matches(en.getKey())
+                                )
+                                .collect(
+                                        Collectors.toMap(
+                                                Entry::getKey, Entry::getValue
+                                        )
+                                )
+                );
             }
         }
         return memMetadata;

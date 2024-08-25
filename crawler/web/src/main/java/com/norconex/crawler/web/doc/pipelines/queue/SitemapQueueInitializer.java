@@ -28,7 +28,8 @@ import com.norconex.crawler.web.util.Web;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SitemapQueueInitializer implements ToIntFunction<QueueInitContext>{
+public class SitemapQueueInitializer
+        implements ToIntFunction<QueueInitContext> {
     @Override
     public int applyAsInt(QueueInitContext queueInitCtx) {
 
@@ -38,10 +39,10 @@ public class SitemapQueueInitializer implements ToIntFunction<QueueInitContext>{
 
         if (!sitemapURLs.isEmpty() && sitemapResolver == null) {
             throw new ConfigurationException("""
-                One or more sitemap URLs were\s\
-                configured as start references but the sitemap resolver\s\
-                was set to null.
-                """);
+                    One or more sitemap URLs were\s\
+                    configured as start references but the sitemap resolver\s\
+                    was set to null.
+                    """);
         }
 
         final var urlCount = new MutableInt();
@@ -52,15 +53,19 @@ public class SitemapQueueInitializer implements ToIntFunction<QueueInitContext>{
 
         // Process each sitemap URL
         for (String url : sitemapURLs) {
-            sitemapResolver.resolve(SitemapContext.builder()
-                .fetcher(Web.fetcher(queueInitCtx.getCrawler()))
-                .location(url)
-                .urlConsumer(urlConsumer)
-                .build());
+            sitemapResolver.resolve(
+                    SitemapContext.builder()
+                            .fetcher(Web.fetcher(queueInitCtx.getCrawler()))
+                            .location(url)
+                            .urlConsumer(urlConsumer)
+                            .build()
+            );
         }
         if (urlCount.intValue() > 0) {
-            LOG.info("Queued {} start references from {} sitemap(s).",
-                    urlCount, sitemapURLs.size());
+            LOG.info(
+                    "Queued {} start references from {} sitemap(s).",
+                    urlCount, sitemapURLs.size()
+            );
         }
         return urlCount.intValue();
     }

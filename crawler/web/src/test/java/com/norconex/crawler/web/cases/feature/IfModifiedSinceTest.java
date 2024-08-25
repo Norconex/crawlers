@@ -74,8 +74,8 @@ class IfModifiedSinceTest {
     void testIfModifiedSince(ClientAndServer client) throws CommitterException {
 
         client
-            .when(request().withPath(path))
-            .respond(HttpClassCallback.callback(Callback.class));
+                .when(request().withPath(path))
+                .respond(HttpClassCallback.callback(Callback.class));
 
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, path)));
@@ -120,14 +120,17 @@ class IfModifiedSinceTest {
         public HttpResponse handle(HttpRequest req) {
             var response = response().withHeader(
                     HttpHeaders.LAST_MODIFIED,
-                    WebTestUtil.rfcFormat(serverDate));
+                    WebTestUtil.rfcFormat(serverDate)
+            );
             var dateStr = req.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE);
             if (StringUtils.isNotBlank(dateStr)) {
                 var reqDate = ZonedDateTime.parse(
-                        dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
+                        dateStr, DateTimeFormatter.RFC_1123_DATE_TIME
+                );
                 if (!reqDate.isBefore(serverDate)) {
                     return response.withStatusCode(
-                            HttpStatusCode.NOT_MODIFIED_304.code());
+                            HttpStatusCode.NOT_MODIFIED_304.code()
+                    );
                 }
             }
             return response.withBody("Doc modified.");

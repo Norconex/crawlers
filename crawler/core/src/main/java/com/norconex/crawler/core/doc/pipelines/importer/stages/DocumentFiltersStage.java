@@ -35,23 +35,27 @@ public class DocumentFiltersStage
         var doc = ctx.getDoc();
 
         return OnMatchFiltersResolver
-        .<CrawlDoc, DocumentFilter>builder()
-        .subject(doc)
-        .filters(filters)
-        .predicate((s, f) -> f.acceptDocument(s))
-        .onRejected((f, msg) -> {
-            LOG.debug("REJECTED document. Reference: {} Filter={}",
-                    doc.getDocContext().getReference(), f);
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_FILTER)
-                    .source(ctx.getCrawler())
-                    .docContext(doc.getDocContext())
-                    .subject(f)
-                    .message(msg)
-                    .build());
-            doc.getDocContext().setState(CrawlDocState.REJECTED);
-        })
-        .build()
-        .isAccepted();
+                .<CrawlDoc, DocumentFilter>builder()
+                .subject(doc)
+                .filters(filters)
+                .predicate((s, f) -> f.acceptDocument(s))
+                .onRejected((f, msg) -> {
+                    LOG.debug(
+                            "REJECTED document. Reference: {} Filter={}",
+                            doc.getDocContext().getReference(), f
+                    );
+                    ctx.getCrawler().fire(
+                            CrawlerEvent.builder()
+                                    .name(CrawlerEvent.REJECTED_FILTER)
+                                    .source(ctx.getCrawler())
+                                    .docContext(doc.getDocContext())
+                                    .subject(f)
+                                    .message(msg)
+                                    .build()
+                    );
+                    doc.getDocContext().setState(CrawlDocState.REJECTED);
+                })
+                .build()
+                .isAccepted();
     }
 }

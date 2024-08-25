@@ -81,7 +81,8 @@ public class StandardRobotsMetaProvider implements
             Reader document,
             String documentUrl,
             ContentType contentType,
-            Properties httpHeaders) throws IOException {
+            Properties httpHeaders
+    ) throws IOException {
 
         RobotsMeta robotsMeta = null;
 
@@ -100,12 +101,16 @@ public class StandardRobotsMetaProvider implements
 
                     // Eliminate comments
                     cleanText = cleanText.replaceAll(
-                            "(?s)(<!--.*?-->)|(<!--.+?-->)|(<!--.*$)", "");
+                            "(?s)(<!--.*?-->)|(<!--.+?-->)|(<!--.*$)", ""
+                    );
                     var robotContent = findInContent(cleanText);
                     robotsMeta = buildMeta(robotContent);
                     if (robotsMeta != null) {
-                        LOG.debug("Meta robots \"{}\" found in HTML meta "
-                                + "tag for: {}", robotContent, documentUrl);
+                        LOG.debug(
+                                "Meta robots \"{}\" found in HTML meta "
+                                        + "tag for: {}",
+                                robotContent, documentUrl
+                        );
                     }
                     if (robotsMeta != null || isEndOfHead(cleanText)) {
                         break;
@@ -131,7 +136,8 @@ public class StandardRobotsMetaProvider implements
     }
 
     private RobotsMeta findInHeaders(
-            Properties httpHeaders, String documentUrl) {
+            Properties httpHeaders, String documentUrl
+    ) {
         var name = "X-Robots-Tag";
         if (StringUtils.isNotBlank(configuration.getHeadersPrefix())) {
             name = configuration.getHeadersPrefix() + name;
@@ -139,8 +145,10 @@ public class StandardRobotsMetaProvider implements
         var content = httpHeaders.getString(name);
         var robotsMeta = buildMeta(content);
         if (LOG.isDebugEnabled() && robotsMeta != null) {
-            LOG.debug("Meta robots \"{}\" found in HTTP header for: {}",
-                    content, documentUrl);
+            LOG.debug(
+                    "Meta robots \"{}\" found in HTTP header for: {}",
+                    content, documentUrl
+            );
         }
         return robotsMeta;
     }
@@ -167,8 +175,11 @@ public class StandardRobotsMetaProvider implements
         var m = Pattern.compile("(?is)<meta\\s[^<>]+>").matcher(text);
         while (m.find()) {
             var props = Web.parseDomAttributes(m.group(), true);
-            if ("robots".equalsIgnoreCase(StringUtils.trimToEmpty(
-                    props.getString("name")))) {
+            if ("robots".equalsIgnoreCase(
+                    StringUtils.trimToEmpty(
+                            props.getString("name")
+                    )
+            )) {
                 var content = props.getString("content");
                 if (StringUtils.isNotBlank(content)) {
                     return content;

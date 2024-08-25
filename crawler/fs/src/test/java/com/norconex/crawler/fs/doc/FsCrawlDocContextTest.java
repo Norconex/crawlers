@@ -29,7 +29,8 @@ class FsCrawlDocContextTest {
         // Should make absolute
         var rec = new FsCrawlDocContext("ref");
         assertThat(rec.getReference()).isEqualTo(
-                new File("ref").getAbsolutePath());
+                new File("ref").getAbsolutePath()
+        );
 
         // Already absolute on windows, do not change
         rec = new FsCrawlDocContext(new DocContext("c:\\ref"));

@@ -91,6 +91,7 @@ public class CharsetTransformerConfig {
      * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
+
     /**
      * Set field matcher.
      * @param fieldMatcher field matcher

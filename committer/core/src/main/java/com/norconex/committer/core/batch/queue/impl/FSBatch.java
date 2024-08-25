@@ -54,8 +54,11 @@ class FSBatch implements Iterable<CommitterRequest> {
     @Override
     public CountingIterator<CommitterRequest> iterator() {
         try {
-            return new CountingIterator<>(new TransformIterator<>(
-                    zipIterator(), this::loadCommitterRequest));
+            return new CountingIterator<>(
+                    new TransformIterator<>(
+                            zipIterator(), this::loadCommitterRequest
+                    )
+            );
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

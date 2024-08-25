@@ -42,18 +42,25 @@ class Neo4jCommitterConfigTest {
         c.getConfiguration().setFieldMapping("subject", "title");
         c.getConfiguration().setFieldMapping("body", "content");
 
-        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")));
-        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+        c.getConfiguration().getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("document.reference"),
+                        TextMatcher.wildcard("*.pdf")
+                )
+        );
+        c.getConfiguration().getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("title"),
+                        TextMatcher.wildcard("Nah!")
+                )
+        );
 
         var cfg = c.getConfiguration();
 
         cfg.setUri("someURL");
         cfg.setCredentials(
-                new Credentials().setUsername("Nick").setPassword("Fury"));
+                new Credentials().setUsername("Nick").setPassword("Fury")
+        );
         cfg.setMultiValuesJoiner("^");
         cfg.setNodeIdProperty("myId");
         cfg.setNodeContentProperty("myContent");
@@ -61,7 +68,8 @@ class Neo4jCommitterConfigTest {
         cfg.setDeleteCypher("my delete cypher");
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c));
+                () -> BeanMapper.DEFAULT.assertWriteRead(c)
+        );
     }
 
     @Test

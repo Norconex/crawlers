@@ -33,10 +33,11 @@ class ForceSingleValueTransformerTest {
     void testWriteRead() {
         var t = new ForceSingleValueTransformer();
         t.getConfiguration()
-            .setAction("keepFirst")
-            .getFieldMatcher().setPattern("field1|field2|field3");
+                .setAction("keepFirst")
+                .getFieldMatcher().setPattern("field1|field2|field3");
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t));
+                () -> BeanMapper.DEFAULT.assertWriteRead(t)
+        );
     }
 
     @Test

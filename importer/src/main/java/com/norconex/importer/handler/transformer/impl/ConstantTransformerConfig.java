@@ -79,6 +79,7 @@ public class ConstantTransformerConfig {
     public List<Constant> getConstants() {
         return Collections.unmodifiableList(constants);
     }
+
     /**
      * Set constants to be added as metadata fields.
      * @param constants list of constants

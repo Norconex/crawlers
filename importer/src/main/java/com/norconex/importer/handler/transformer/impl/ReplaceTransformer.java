@@ -81,20 +81,21 @@ public class ReplaceTransformer
     public void handle(HandlerContext docCtx) throws IOException {
         for (ReplaceOperation op : configuration.getOperations()) {
             ChunkedTextReader.builder()
-                .charset(configuration.getSourceCharset())
-                .fieldMatcher(op.getFieldMatcher())
-                .maxChunkSize(configuration.getMaxReadSize())
-                .build()
-                .read(docCtx, chunk -> {
-                    doReplaceOnChunk(op, docCtx, chunk);
-                    return true;
-                });
+                    .charset(configuration.getSourceCharset())
+                    .fieldMatcher(op.getFieldMatcher())
+                    .maxChunkSize(configuration.getMaxReadSize())
+                    .build()
+                    .read(docCtx, chunk -> {
+                        doReplaceOnChunk(op, docCtx, chunk);
+                        return true;
+                    });
         }
     }
 
     private void doReplaceOnChunk(
-            ReplaceOperation op, HandlerContext docCtx, TextChunk chunk)
-                    throws IOException {
+            ReplaceOperation op, HandlerContext docCtx, TextChunk chunk
+    )
+            throws IOException {
 
         // About fields:
         // Because replace can result in removing a value from a list, we
@@ -117,7 +118,7 @@ public class ReplaceTransformer
         List<String> newValues = new ArrayList<>();
         var toValue = Optional.ofNullable(op.getToValue()).orElse("");
         for (String sourceValue : sourceValues) {
-            var newValue = op.getValueMatcher() .replace(sourceValue, toValue);
+            var newValue = op.getValueMatcher().replace(sourceValue, toValue);
             if (newValue != null && (!op.isDiscardUnchanged()
                     || !Objects.equals(sourceValue, newValue))) {
                 newValues.add(newValue);
@@ -127,7 +128,8 @@ public class ReplaceTransformer
         if (chunk.getField() == null) {
             //body
             try (var out = docCtx.output().asWriter(
-                    configuration.getSourceCharset())) {
+                    configuration.getSourceCharset()
+            )) {
                 if (newValues.isEmpty()) {
                     out.write("");
                 } else {
@@ -138,11 +140,13 @@ public class ReplaceTransformer
         if (StringUtils.isNotBlank(op.getToField())) {
             // set on target field
             PropertySetter.orAppend(op.getOnSet()).apply(
-                    docCtx.metadata(), op.getToField(), newValues);
+                    docCtx.metadata(), op.getToField(), newValues
+            );
         } else {
             // overwrite source field
             PropertySetter.REPLACE.apply(
-                    docCtx.metadata(), chunk.getField(), newValues);
+                    docCtx.metadata(), chunk.getField(), newValues
+            );
         }
     }
 }

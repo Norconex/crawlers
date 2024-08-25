@@ -20,7 +20,8 @@ import com.norconex.importer.doc.DocContext;
 
 public final class MatchUtil {
 
-    private MatchUtil() {}
+    private MatchUtil() {
+    }
 
     /**
      * Null-safe matches a document record content type.
@@ -30,7 +31,8 @@ public final class MatchUtil {
      *      type are <code>null</code>
      */
     public static boolean matchesContentType(
-            TextMatcher matcher, DocContext docRecord) {
+            TextMatcher matcher, DocContext docRecord
+    ) {
         if (docRecord == null) {
             return true;
         }
@@ -45,7 +47,8 @@ public final class MatchUtil {
      *      <code>null</code>
      */
     public static boolean matchesContentType(
-            TextMatcher matcher, ContentType contentType) {
+            TextMatcher matcher, ContentType contentType
+    ) {
         if (matcher == null || contentType == null) {
             return true;
         }

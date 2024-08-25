@@ -32,12 +32,14 @@ class DocProcessorFinalizeTest {
     @WithCrawlerTest
     void testThreadActionFinalize(Crawler crawler) {
         var strategy = new MutableObject<>(
-                SpoiledReferenceStrategy.IGNORE);
+                SpoiledReferenceStrategy.IGNORE
+        );
         SpoiledReferenceStrategizer spoiledHandler =
                 (ref, state) -> strategy.getValue();
 
         crawler.getConfiguration().setSpoiledReferenceStrategizer(
-                spoiledHandler);
+                spoiledHandler
+        );
         var ctx = new DocProcessorContext();
 
         // no doc record set, exits right away
@@ -52,14 +54,18 @@ class DocProcessorFinalizeTest {
         DocProcessorFinalize.execute(ctx);
         assertThat(ctx.doc()).isNotNull();
         assertThat(ctx.docContext().getState()).isSameAs(
-                CrawlDocState.BAD_STATUS);
+                CrawlDocState.BAD_STATUS
+        );
 
         // spoiled strategies
         var doc = ctx.doc();
-        ctx.doc(new CrawlDoc(
-                doc.getDocContext(),
-                new CrawlDocContext(doc.getDocContext()),
-                doc.getInputStream()));
+        ctx.doc(
+                new CrawlDoc(
+                        doc.getDocContext(),
+                        new CrawlDocContext(doc.getDocContext()),
+                        doc.getInputStream()
+                )
+        );
 
         ctx.finalized(false);
         ctx.docContext().setState(CrawlDocState.BAD_STATUS);

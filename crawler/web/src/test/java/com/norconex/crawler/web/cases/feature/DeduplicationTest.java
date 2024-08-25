@@ -53,44 +53,58 @@ class DeduplicationTest {
         // 2001-01-01T01:01:01 GMT
         var staticDate = "978310861000L";
 
-        WebsiteMock.whenHtml(client, homePath, """
-            <p>The 3 links below point to pages that are:</p>
-            <ul>
-              <li><a href="%s">Link 1: Not a duplicate.</a></li>
-              <li><a href="%s">Link 2: Link 1 dupl. by meta checksum.</a></li>
-              <li>
-                <a href="%s">Link 3: Link 1 dupl. by content checksum.</a>
-              </li>
-            </ul>
-            """.formatted(noDuplPath, metaDuplPath, contentDuplPath));
+        WebsiteMock.whenHtml(
+                client, homePath,
+                """
+                        <p>The 3 links below point to pages that are:</p>
+                        <ul>
+                          <li><a href="%s">Link 1: Not a duplicate.</a></li>
+                          <li><a href="%s">Link 2: Link 1 dupl. by meta checksum.</a></li>
+                          <li>
+                            <a href="%s">Link 3: Link 1 dupl. by content checksum.</a>
+                          </li>
+                        </ul>
+                        """
+                        .formatted(noDuplPath, metaDuplPath, contentDuplPath)
+        );
 
         client
-            .when(request().withPath(noDuplPath))
-            .respond(response()
-                .withHeader("Last-Modified", staticDate)
-                .withBody(
-                        "A page with same content as another one.",
-                        MediaType.HTML_UTF_8)
-            );
+                .when(request().withPath(noDuplPath))
+                .respond(
+                        response()
+                                .withHeader("Last-Modified", staticDate)
+                                .withBody(
+                                        "A page with same content as another one.",
+                                        MediaType.HTML_UTF_8
+                                )
+                );
 
         client
-            .when(request().withPath(metaDuplPath))
-            .respond(response()
-                .withHeader("Last-Modified", staticDate)
-                .withBody(
-                        "Same Last-Modified HTTP response value as \"noDupl\"",
-                        MediaType.HTML_UTF_8)
-            );
+                .when(request().withPath(metaDuplPath))
+                .respond(
+                        response()
+                                .withHeader("Last-Modified", staticDate)
+                                .withBody(
+                                        "Same Last-Modified HTTP response value as \"noDupl\"",
+                                        MediaType.HTML_UTF_8
+                                )
+                );
 
         client
-            .when(request().withPath(contentDuplPath))
-            .respond(response()
-                .withHeader("Last-Modified",
-                        Long.toString(System.currentTimeMillis()))
-                .withBody(
-                        "A page with same content as another one.",
-                        MediaType.HTML_UTF_8)
-            );
+                .when(request().withPath(contentDuplPath))
+                .respond(
+                        response()
+                                .withHeader(
+                                        "Last-Modified",
+                                        Long.toString(
+                                                System.currentTimeMillis()
+                                        )
+                                )
+                                .withBody(
+                                        "A page with same content as another one.",
+                                        MediaType.HTML_UTF_8
+                                )
+                );
 
         // Relying on these crawler defaults:
         //    - LastModifiedMetadataChecksummer
@@ -102,9 +116,10 @@ class DeduplicationTest {
         });
 
         assertThat(mem.getUpsertRequests())
-            .map(UpsertRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    serverUrl(client, homePath),
-                    serverUrl(client, noDuplPath));
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, homePath),
+                        serverUrl(client, noDuplPath)
+                );
     }
 }

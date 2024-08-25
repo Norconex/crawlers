@@ -141,23 +141,33 @@ public class GenericDelayResolver
 
     static CircularSchedule toCircularSchedule(DelaySchedule sch) {
         var schedule = new CircularSchedule();
-        ofNullable(sch.getDayOfMonthRange()).ifPresent(range ->
-                schedule.domRange = CircularRange.between(
-                        1,  31, range.getStart(), range.getEnd()));
-        ofNullable(sch.getDayOfWeekRange()).ifPresent(range ->
-                schedule.dowRange = CircularRange.between(
-                        DelaySchedule.DOW.MON,
-                        DelaySchedule.DOW.SUN,
-                        range.getStart(),
-                        range.getEnd()));
-        ofNullable(sch.getTimeRange()).ifPresent(range ->
-                schedule.timeRange = CircularRange.between(
-                        LocalTime.of(0, 0),
-                        LocalTime.of(23, 59, 59),
-                        range.getStart(),
-                        range.getEnd()));
+        ofNullable(sch.getDayOfMonthRange())
+                .ifPresent(
+                        range -> schedule.domRange = CircularRange.between(
+                                1, 31, range.getStart(), range.getEnd()
+                        )
+                );
+        ofNullable(sch.getDayOfWeekRange())
+                .ifPresent(
+                        range -> schedule.dowRange = CircularRange.between(
+                                DelaySchedule.DOW.MON,
+                                DelaySchedule.DOW.SUN,
+                                range.getStart(),
+                                range.getEnd()
+                        )
+                );
+        ofNullable(sch.getTimeRange())
+                .ifPresent(
+                        range -> schedule.timeRange = CircularRange.between(
+                                LocalTime.of(0, 0),
+                                LocalTime.of(23, 59, 59),
+                                range.getStart(),
+                                range.getEnd()
+                        )
+                );
         ofNullable(sch.getDelay()).ifPresent(
-                delay -> schedule.delay = delay);
+                delay -> schedule.delay = delay
+        );
         return schedule;
     }
 
@@ -169,7 +179,8 @@ public class GenericDelayResolver
 
         boolean isDateTimeInSchedule(LocalDateTime dt) {
             if ((dowRange != null && !dowRange.contains(
-                    DelaySchedule.DOW.values()[dt.getDayOfWeek().ordinal()]))
+                    DelaySchedule.DOW.values()[dt.getDayOfWeek().ordinal()]
+            ))
                     || (domRange != null
                             && !domRange.contains(dt.getDayOfMonth()))) {
                 return false;

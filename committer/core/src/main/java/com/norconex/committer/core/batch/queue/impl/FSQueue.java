@@ -132,7 +132,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
 
-    public enum SplitBatch { OFF, HALF, ONE }
+    public enum SplitBatch {
+        OFF, HALF, ONE
+    }
 
     // If not supplied in CommitterContext, defaults to OS temp dir
     @EqualsAndHashCode.Exclude
@@ -164,11 +166,14 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
     @Override
     public void init(
             CommitterContext committerContext,
-            @NonNull BatchConsumer batchConsumer)
-                    throws CommitterQueueException {
+            @NonNull BatchConsumer batchConsumer
+    )
+            throws CommitterQueueException {
 
-        this.batchConsumer = Objects.requireNonNull(batchConsumer,
-                "'batchConsumer' must not be null.");
+        this.batchConsumer = Objects.requireNonNull(
+                batchConsumer,
+                "'batchConsumer' must not be null."
+        );
 
         LOG.info("Initializing file system Committer queue...");
 
@@ -179,13 +184,16 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
 
         retrier = new Retrier();
         retrier.setMaxRetries(
-                configuration.getOnCommitFailure().getMaxRetries());
+                configuration.getOnCommitFailure().getMaxRetries()
+        );
         retrier.setRetryDelay(
-                configuration.getOnCommitFailure().getRetryDelay());
+                configuration.getOnCommitFailure().getRetryDelay()
+        );
 
-
-        LOG.info("Committer working directory: {}",
-                workDir.toAbsolutePath());
+        LOG.info(
+                "Committer working directory: {}",
+                workDir.toAbsolutePath()
+        );
         queueDir = workDir.resolve("queue");
         errorDir = workDir.resolve("error");
         try {
@@ -195,7 +203,8 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         } catch (IOException e) {
             throw new CommitterQueueException(
                     "Could not create committer queue directory: "
-                            + workDir.toAbsolutePath());
+                            + workDir.toAbsolutePath()
+            );
         }
 
         if (configuration.isCommitLeftoversOnInit()) {
@@ -237,9 +246,12 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         try {
             FSQueueUtil.toZipFile(request, file);
         } catch (IOException e) {
-            throw new CommitterQueueException("Could not queue request for "
-                    + request.getReference() + " at "
-                    + file.toAbsolutePath(), e);
+            throw new CommitterQueueException(
+                    "Could not queue request for "
+                            + request.getReference() + " at "
+                            + file.toAbsolutePath(),
+                    e
+            );
         }
 
         if (fullBatchDir.getValue() != null) {
@@ -252,10 +264,13 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         try {
             return consumeSplitableBatchDirectory(dir);
         } catch (IOException e) {
-            throw new CommitterQueueException("Could not read files to commit "
-                    + "from directory " + dir.toAbsolutePath());
+            throw new CommitterQueueException(
+                    "Could not read files to commit "
+                            + "from directory " + dir.toAbsolutePath()
+            );
         }
     }
+
     private int consumeSplitableBatchDirectory(Path dir)
             throws CommitterQueueException, IOException {
 
@@ -297,7 +312,9 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         } catch (IOException e) {
             throw new CommitterQueueException(
                     "Could not delete consumed committer "
-                            + "batch located at " + dir.toAbsolutePath(), e);
+                            + "batch located at " + dir.toAbsolutePath(),
+                    e
+            );
         }
 
         return totalConsumed;
@@ -318,20 +335,26 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         } catch (RetriableException e) {
             throw new CommitterQueueException(
                     "Could not consume batch. Number of attempts: "
-                            + (retrier.getMaxRetries() + 1), e);
+                            + (retrier.getMaxRetries() + 1),
+                    e
+            );
         }
     }
 
     private void moveUnrecoverableBatchError(
-            FSBatch batch, Exception e) throws CommitterQueueException {
+            FSBatch batch, Exception e
+    ) throws CommitterQueueException {
         try {
             batch.move(errorDir);
         } catch (IOException e1) {
             throw new CommitterQueueException(
-                      "Could not process one or more files form committer "
-                    + "batch located at " + batch.getDir().toAbsolutePath()
-                    + " and could not copy it under "
-                    + errorDir.toAbsolutePath(), e);
+                    "Could not process one or more files form committer "
+                            + "batch located at "
+                            + batch.getDir().toAbsolutePath()
+                            + " and could not copy it under "
+                            + errorDir.toAbsolutePath(),
+                    e
+            );
         }
         var msg = "Could not process one or more files form committer batch "
                 + "located at " + batch.getDir().toAbsolutePath()
@@ -352,18 +375,25 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         var sb = ofNullable(configuration.getOnCommitFailure().getSplitBatch())
                 .orElse(SplitBatch.OFF);
         return switch (sb) {
-        case HALF -> {
-            var newMaxSize = (lastTriedSize + 1) / 2;
-            LOG.error("Could not process batch of max size {}. Trying "
-                    + "again with max size {}...", lastTriedSize, newMaxSize);
-            yield newMaxSize;
-        }
-        case ONE -> {
-            LOG.error("Could not process batch of max size {}. Trying "
-                    + "again one by one...", lastTriedSize);
-            yield 1;
-        }
-        default -> -1;
+            case HALF -> {
+                var newMaxSize = (lastTriedSize + 1) / 2;
+                LOG.error(
+                        "Could not process batch of max size {}. Trying "
+                                + "again with max size {}...",
+                        lastTriedSize,
+                        newMaxSize
+                );
+                yield newMaxSize;
+            }
+            case ONE -> {
+                LOG.error(
+                        "Could not process batch of max size {}. Trying "
+                                + "again one by one...",
+                        lastTriedSize
+                );
+                yield 1;
+            }
+            default -> -1;
         };
     }
 
@@ -384,9 +414,12 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
                 cnt += consumeBatchDirectory(d);
             }
         } catch (IOException e) {
-            throw new CommitterQueueException("Could not consume "
-                    + "remaining batches at "
-                    + queueDir.toAbsolutePath(), e);
+            throw new CommitterQueueException(
+                    "Could not consume "
+                            + "remaining batches at "
+                            + queueDir.toAbsolutePath(),
+                    e
+            );
         }
         return cnt;
     }
@@ -402,9 +435,12 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         try {
             FileUtil.delete(queueDir.getParent().toFile());
         } catch (IOException e) {
-            throw new CommitterQueueException("Could not clean queue "
-                    + "directory located at "
-                    + queueDir.getParent().toAbsolutePath(), e);
+            throw new CommitterQueueException(
+                    "Could not clean queue "
+                            + "directory located at "
+                            + queueDir.getParent().toAbsolutePath(),
+                    e
+            );
         }
     }
 
@@ -413,8 +449,9 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
     }
 
     private synchronized Path createQueueFile(
-            CommitterRequest req, MutableObject<Path> consumeBatchDir)
-                    throws CommitterQueueException {
+            CommitterRequest req, MutableObject<Path> consumeBatchDir
+    )
+            throws CommitterQueueException {
         try {
             // If starting a new batch, create the folder for it
             if (batchCount.get() == configuration.getBatchSize()) {
@@ -426,18 +463,22 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         } catch (IOException e) {
             throw new CommitterQueueException(
                     "Could not create batch directory: "
-                            + activeDir.toAbsolutePath());
+                            + activeDir.toAbsolutePath()
+            );
         }
 
-        var file = activeDir.resolve(filePath(batchCount.get())
-                + (req instanceof DeleteRequest ? "-delete" : "-upsert")
-                        + FSQueueUtil.EXT);
+        var file = activeDir.resolve(
+                filePath(batchCount.get())
+                        + (req instanceof DeleteRequest ? "-delete" : "-upsert")
+                        + FSQueueUtil.EXT
+        );
         try {
             Files.createDirectories(file.getParent());
         } catch (IOException e) {
             throw new CommitterQueueException(
                     "Could not create file directory: "
-                            + file.toAbsolutePath());
+                            + file.toAbsolutePath()
+            );
         }
         batchCount.incrementAndGet();
         return file;
@@ -447,11 +488,14 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
     // so we do not have more than "maxFilesPerFolder" docs in a given folder
     private String filePath(long value) {
         var nameLength = (int) ceil(log10(configuration.getMaxPerFolder()));
-        var dirDepth = (int) ceil(log(configuration.getBatchSize())
-                / log(configuration.getMaxPerFolder()));
+        var dirDepth = (int) ceil(
+                log(configuration.getBatchSize())
+                        / log(configuration.getMaxPerFolder())
+        );
         var pathLength = nameLength * dirDepth;
         var path = leftPad(Long.toString(value), pathLength, '0');
         return path.replaceAll(
-                "(.{" + nameLength + "})(?!$)", "$1/");
+                "(.{" + nameLength + "})(?!$)", "$1/"
+        );
     }
 }

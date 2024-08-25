@@ -29,7 +29,6 @@ import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContex
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
 
-
 class DocumentChecksumStageTest {
 
     @TempDir
@@ -40,12 +39,14 @@ class DocumentChecksumStageTest {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(
-                CrawlerStubs.memoryCrawler(tempDir), doc);
+                CrawlerStubs.memoryCrawler(tempDir), doc
+        );
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
         assertThat(doc.getDocContext().getContentChecksum()).isEqualTo(
-                CrawlDocStubs.CRAWLDOC_CONTENT_MD5);
+                CrawlDocStubs.CRAWLDOC_CONTENT_MD5
+        );
     }
 
     @Test
@@ -59,7 +60,8 @@ class DocumentChecksumStageTest {
                         <crawler id="id">\
                         <documentChecksummer />\
                         </crawler>"""),
-                Format.XML);
+                Format.XML
+        );
 
         var ctx = new CommitterPipelineContext(crawler, doc);
         var stage = new DocumentChecksumStage();

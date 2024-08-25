@@ -40,45 +40,48 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
     public final void accept(HandlerContext ctx) {
         fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_BEGIN);
         try {
-//            if (handler instanceof DocumentTagger t) {
-//                tagDocument(ctx, t);
-//            } else if (handler instanceof DocumentTransformer t) {
-//                transformDocument(ctx, t);
-//            } else if (handler instanceof DocumentSplitter s) {
-//                splitDocument(ctx, s);
-//            } else if (handler instanceof DocumentFilter f) {
-//                acceptDocument(ctx, f);
-//            } else {
-//                //TODO instead check if implementing right consumer
-//                // and invoke if so?
-//                LOG.error("Unsupported Import Handler: {}", handler);
-//            }
+            //            if (handler instanceof DocumentTagger t) {
+            //                tagDocument(ctx, t);
+            //            } else if (handler instanceof DocumentTransformer t) {
+            //                transformDocument(ctx, t);
+            //            } else if (handler instanceof DocumentSplitter s) {
+            //                splitDocument(ctx, s);
+            //            } else if (handler instanceof DocumentFilter f) {
+            //                acceptDocument(ctx, f);
+            //            } else {
+            //                //TODO instead check if implementing right consumer
+            //                // and invoke if so?
+            //                LOG.error("Unsupported Import Handler: {}", handler);
+            //            }
             handle(ctx);
             // be safe, and flush any written content
             ctx.flush();
         } catch (IOException e) {
             fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
             throw new UncheckedIOException(
-                    "Importer failure for handler: " + this, e);
+                    "Importer failure for handler: " + this, e
+            );
         }
         fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
     }
 
     protected abstract void handle(HandlerContext ctx) throws IOException;
 
-
     private void fireEvent(HandlerContext ctx, String eventName) {
         fireEvent(ctx, eventName, null);
     }
+
     private void fireEvent(
-            HandlerContext ctx, String eventName, Exception e) {
+            HandlerContext ctx, String eventName, Exception e
+    ) {
         ctx.eventManager().fire(
                 ImporterEvent.builder()
-                    .name(eventName)
-                    .source(this)
-                    .document(ctx.doc())
-                    .parseState(ctx.parseState())
-                    .exception(e)
-                    .build());
+                        .name(eventName)
+                        .source(this)
+                        .document(ctx.doc())
+                        .parseState(ctx.parseState())
+                        .exception(e)
+                        .build()
+        );
     }
 }

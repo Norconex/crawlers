@@ -19,7 +19,6 @@ import com.norconex.crawler.fs.fetch.impl.BaseAuthVfsFetcherConfig;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-
 /**
  * <p>
  * Fetcher for a local file system. Mounted file systems and mapped drives
@@ -74,12 +73,12 @@ public class LocalFetcherConfig extends BaseAuthVfsFetcherConfig {
 
     private boolean aclDisabled;
 
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        setAclDisabled(xml.getBoolean(Fields.aclDisabled));
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        xml.addElement(Fields.aclDisabled, aclDisabled);
-//    }
+    //    @Override
+    //    protected void loadFetcherFromXML(XML xml) {
+    //        setAclDisabled(xml.getBoolean(Fields.aclDisabled));
+    //    }
+    //    @Override
+    //    protected void saveFetcherToXML(XML xml) {
+    //        xml.addElement(Fields.aclDisabled, aclDisabled);
+    //    }
 }

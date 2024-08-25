@@ -122,13 +122,15 @@ public class StopCrawlerOnMaxEventListenerConfig {
     public TextMatcher getEventMatcher() {
         return eventMatcher;
     }
+
     /**
      * Sets the event matcher used to identify which events will be counted.
      * @param eventMatcher event matcher
      * @return this instance
      */
     public StopCrawlerOnMaxEventListenerConfig setEventMatcher(
-            TextMatcher eventMatcher) {
+            TextMatcher eventMatcher
+    ) {
         this.eventMatcher.copyFrom(eventMatcher);
         return this;
     }

@@ -125,6 +125,7 @@ public class ImageTransformerConfig {
         private Integer height;
         private Integer width;
     }
+
     @Data
     public static class Crop {
         private int x;

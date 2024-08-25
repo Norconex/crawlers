@@ -78,6 +78,7 @@ public class DebugTransformerConfig {
     public List<String> getLogFields() {
         return Collections.unmodifiableList(logFields);
     }
+
     public DebugTransformerConfig setLogFields(List<String> logFields) {
         CollectionUtil.setAll(this.logFields, logFields);
         return this;

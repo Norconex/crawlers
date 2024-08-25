@@ -30,11 +30,14 @@ class FeaturedImageTest {
     void testFeaturedImage() throws IOException {
 
         var img160x120 = TestResource.IMG_160X120_PNG.asFeaturedImage(
-                "http://somewhere.com/");
+                "http://somewhere.com/"
+        );
         var img320x240 = TestResource.IMG_320X240_PNG.asFeaturedImage(
-                "http://somewhere.com/");
+                "http://somewhere.com/"
+        );
         var img640x480 = TestResource.IMG_640X480_PNG.asFeaturedImage(
-                "http://somewhere.com/");
+                "http://somewhere.com/"
+        );
 
         assertThat(img320x240.fits((Dimension) null)).isFalse();
         assertThat(img320x240.fits(new Dimension(330, 260))).isTrue();
@@ -60,9 +63,11 @@ class FeaturedImageTest {
 
         assertThat(img160x120.getArea()).isEqualTo(19_200);
         assertThatNoException().isThrownBy(
-                () -> img160x120.toHTMLInlineString("png"));
+                () -> img160x120.toHTMLInlineString("png")
+        );
         assertThat(img160x120.getUrl()).isEqualTo(
-                "http://somewhere.com/img/160x120.png");
+                "http://somewhere.com/img/160x120.png"
+        );
     }
 
 }

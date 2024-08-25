@@ -44,16 +44,21 @@ class GenericRecrawlableResolverTest {
         var r = new GenericRecrawlableResolver();
         r.getConfiguration().setSitemapSupport(SitemapSupport.LAST);
 
-        var f1 = new MinFrequency("reference", "monthly",
-                TextMatcher.regex(".*\\.pdf").ignoreCase());
-        var f2 = new MinFrequency("contentType", "1234",
-                TextMatcher.regex(".*"));
+        var f1 = new MinFrequency(
+                "reference", "monthly",
+                TextMatcher.regex(".*\\.pdf").ignoreCase()
+        );
+        var f2 = new MinFrequency(
+                "contentType", "1234",
+                TextMatcher.regex(".*")
+        );
 
         r.getConfiguration().setMinFrequencies(List.of(f1, f2));
 
         LOG.debug("Writing/Reading this: {}", r);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(r));
+                () -> BeanMapper.DEFAULT.assertWriteRead(r)
+        );
     }
 
     // Test for: https://github.com/Norconex/collector-http/issues/597
@@ -70,7 +75,8 @@ class GenericRecrawlableResolverTest {
         prevCrawl.setCrawlDate(prevCrawlDate);
 
         var f = new MinFrequency(
-                "reference", "120 days", TextMatcher.regex(".*"));
+                "reference", "120 days", TextMatcher.regex(".*")
+        );
 
         r.getConfiguration().setMinFrequencies(List.of(f));
         Assertions.assertFalse(r.isRecrawlable(prevCrawl));
@@ -84,20 +90,20 @@ class GenericRecrawlableResolverTest {
     @Test
     void testCustomFrequencyFromXML() {
         var xml = """
-            <recrawlableResolver>
-              <class>GenericRecrawlableResolver</class>
-              <minFrequencies>
-                <minFrequency>
-                  <applyTo>reference</applyTo>
-                  <matcher>
-                    <method>regex</method>
-                    <pattern>.*</pattern>
-                  </matcher>
-                  <value>128 days</value>
-                </minFrequency>
-              </minFrequencies>
-              <sitemapSupport>never</sitemapSupport>
-            </recrawlableResolver>""";
+                <recrawlableResolver>
+                  <class>GenericRecrawlableResolver</class>
+                  <minFrequencies>
+                    <minFrequency>
+                      <applyTo>reference</applyTo>
+                      <matcher>
+                        <method>regex</method>
+                        <pattern>.*</pattern>
+                      </matcher>
+                      <value>128 days</value>
+                    </minFrequency>
+                  </minFrequencies>
+                  <sitemapSupport>never</sitemapSupport>
+                </recrawlableResolver>""";
 
         var r = new GenericRecrawlableResolver();
         BeanMapper.DEFAULT.read(r, new StringReader(xml), Format.XML);
@@ -110,32 +116,31 @@ class GenericRecrawlableResolverTest {
         Assertions.assertFalse(r.isRecrawlable(prevCrawl));
     }
 
-
     @ParameterizedTest
     @CsvSource(
         nullValues = "NULL",
         textBlock = """
-            first, NULL,    NULL, reference,   hourly,  true,
-            first, hourly,  NULL, reference,   hourly,  true,
-            first, hourly,  NULL, reference,   always,  true,
-            first, hourly,  NULL, reference,   never,   true,
-            first, hourly,  NULL, reference,   yearly,  true,
-            last,  NULL,    NULL, reference,   hourly,  true,
-            last,  hourly,  NULL, reference,   hourly,  true,
-            last,  hourly,  NULL, reference,   always,  true,
-            last,  hourly,  NULL, reference,   never,   false,
-            last,  hourly,  NULL, reference,   yearly,  false,
-            last,  daily,   NULL, reference,   NULL,    true,
-            last,  monthly, NULL, reference,   NULL,    true,
-            first, daily,   NULL, reference,   NULL,    true,
-            first, weekly,  NULL, reference,   NULL,    false,
-            first, monthly, NULL, reference,   NULL,    false,
-            last,  hourly,  NULL, contentType, hourly,  true,
-            last,  hourly,  NULL, contentType, always,  true,
-            last,  hourly,  NULL, contentType, never,   false,
-            first, monthly, 2,    contentType, monthly, true,
-            first, monthly, 2,    contentType, monthly, true,
-            """
+                first, NULL,    NULL, reference,   hourly,  true,
+                first, hourly,  NULL, reference,   hourly,  true,
+                first, hourly,  NULL, reference,   always,  true,
+                first, hourly,  NULL, reference,   never,   true,
+                first, hourly,  NULL, reference,   yearly,  true,
+                last,  NULL,    NULL, reference,   hourly,  true,
+                last,  hourly,  NULL, reference,   hourly,  true,
+                last,  hourly,  NULL, reference,   always,  true,
+                last,  hourly,  NULL, reference,   never,   false,
+                last,  hourly,  NULL, reference,   yearly,  false,
+                last,  daily,   NULL, reference,   NULL,    true,
+                last,  monthly, NULL, reference,   NULL,    true,
+                first, daily,   NULL, reference,   NULL,    true,
+                first, weekly,  NULL, reference,   NULL,    false,
+                first, monthly, NULL, reference,   NULL,    false,
+                last,  hourly,  NULL, contentType, hourly,  true,
+                last,  hourly,  NULL, contentType, always,  true,
+                last,  hourly,  NULL, contentType, never,   false,
+                first, monthly, 2,    contentType, monthly, true,
+                first, monthly, 2,    contentType, monthly, true,
+                """
     )
     void testIsRecrawlable(
             String sitemapSupport,
@@ -143,7 +148,8 @@ class GenericRecrawlableResolverTest {
             Integer sitemapLastModDays,
             String minFreqApplyTo,
             String minFreqValue,
-            boolean expected) {
+            boolean expected
+    ) {
         WebCrawlDocContext prevRec;
         var url = "http://test.com/yes.html";
         var resolver = new GenericRecrawlableResolver();
@@ -153,16 +159,24 @@ class GenericRecrawlableResolverTest {
         prevRec.setSitemapChangeFreq(sitemapChangeFreq);
         if (sitemapLastModDays != null) {
             prevRec.setSitemapLastMod(
-                    ZonedDateTime.now().minusDays(sitemapLastModDays));
+                    ZonedDateTime.now().minusDays(sitemapLastModDays)
+            );
         }
 
         resolver.getConfiguration().setSitemapSupport(
-                SitemapSupport.getSitemapSupport(sitemapSupport));
+                SitemapSupport.getSitemapSupport(sitemapSupport)
+        );
 
         var matcher = "reference".equals(minFreqApplyTo)
-                ? TextMatcher.basic(url) : TextMatcher.basic("text/html");
-        resolver.getConfiguration().setMinFrequencies(List.of(new MinFrequency(
-                minFreqApplyTo, minFreqValue, matcher)));
+                ? TextMatcher.basic(url)
+                : TextMatcher.basic("text/html");
+        resolver.getConfiguration().setMinFrequencies(
+                List.of(
+                        new MinFrequency(
+                                minFreqApplyTo, minFreqValue, matcher
+                        )
+                )
+        );
 
         assertThat(resolver.isRecrawlable(prevRec)).isEqualTo(expected);
     }
@@ -173,7 +187,10 @@ class GenericRecrawlableResolverTest {
         assertThat(SitemapSupport.getSitemapSupport("iDontExist")).isNull();
 
         // no last crawl date
-        assertThat(new GenericRecrawlableResolver().isRecrawlable(
-                new WebCrawlDocContext("http://blah.com"))).isTrue();
+        assertThat(
+                new GenericRecrawlableResolver().isRecrawlable(
+                        new WebCrawlDocContext("http://blah.com")
+                )
+        ).isTrue();
     }
 }

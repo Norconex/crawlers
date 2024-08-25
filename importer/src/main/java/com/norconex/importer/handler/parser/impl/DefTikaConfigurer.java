@@ -41,10 +41,10 @@ class DefTikaConfigurer {
                     .create();
 
             tikaXml.addXML("""
-                <service-loader
-                    loadErrorHandler="WARN"
-                    initializableProblemHandler="IGNORE"/>
-                """);
+                    <service-loader
+                        loadErrorHandler="WARN"
+                        initializableProblemHandler="IGNORE"/>
+                    """);
 
             //TODO How to handle Tika 2.x changing original metadata
             // to different ones? Here we do title being an obvious one
@@ -54,19 +54,19 @@ class DefTikaConfigurer {
 
             //TODO why the following isn't working?
             tikaXml.addXML("""
-                <metadataFilters>
-                  <metadataFilter class="%s">
-                    <params>
-                      <excludeUnmapped>false</excludeUnmapped>
-                      <!--
-                      <mappings>
-                        <mapping from="dc:title" to="title"/>
-                      </mappings>
-                      -->
-                    </params>
-                  </metadataFilter>
-                </metadataFilters>
-                """.formatted(FieldNameMappingFilter.class.getName()));
+                    <metadataFilters>
+                      <metadataFilter class="%s">
+                        <params>
+                          <excludeUnmapped>false</excludeUnmapped>
+                          <!--
+                          <mappings>
+                            <mapping from="dc:title" to="title"/>
+                          </mappings>
+                          -->
+                        </params>
+                      </metadataFilter>
+                    </metadataFilters>
+                    """.formatted(FieldNameMappingFilter.class.getName()));
 
             var parsersXml = tikaXml.addElement("parsers");
             var ocr = config.getOcrConfig();
@@ -74,46 +74,70 @@ class DefTikaConfigurer {
             // If nothing to configure, return default
             // https://cwiki.apache.org/confluence/display/TIKA/TikaOCR
             if (!ocr.isDisabled()) {
-                parsersXml.addXML("""
-                    <parser class="%s">
-                        <parser-exclude class="%s"/>
-                    </parser>
-                    """.formatted(
-                        org.apache.tika.parser.DefaultParser.class.getName(),
-                        TesseractOCRParser.class.getName()));
+                parsersXml.addXML(
+                        """
+                                <parser class="%s">
+                                    <parser-exclude class="%s"/>
+                                </parser>
+                                """.formatted(
+                                org.apache.tika.parser.DefaultParser.class
+                                        .getName(),
+                                TesseractOCRParser.class.getName()
+                        )
+                );
                 // Configure Tesseract OCR
-                parsersXml.addXML(new TesseractParserConfigBuilder()
-                    .append("applyRotation", ocr.getApplyRotation())
-                    .append("colorSpace", ocr.getColorSpace())
-                    .append("density", ocr.getDensity())
-                    .append("depth", ocr.getDepth())
-                    .append("enableImagePreprocessing",
-                            ocr.getEnableImagePreprocessing())
-                    .append("filter", ocr.getFilter())
-                    .append("imageMagickPath", ocr.getImageMagickPath())
-                    .append("language", ocr.getLanguage())
-                    .append("maxFileSizeToOcr", ocr.getMaxFileSizeToOcr())
-                    .append("minFileSizeToOcr", ocr.getMinFileSizeToOcr())
-                    .append("pageSegMode", ocr.getPageSegMode())
-                    .append("pageSeparator", ocr.getPageSeparator())
-                    .append("preserveInterwordSpacing",
-                            ocr.getPreserveInterwordSpacing())
-                    .append("resize", ocr.getResize())
-                    .append("skipOcr", ocr.isDisabled())
-                    .append("tessdataPath", ocr.getTessdataPath())
-                    .append("tesseractPath", ocr.getTesseractPath())
-                    .append("timeoutSeconds", ocr.getTimeoutSeconds())
-                    .build());
+                parsersXml.addXML(
+                        new TesseractParserConfigBuilder()
+                                .append("applyRotation", ocr.getApplyRotation())
+                                .append("colorSpace", ocr.getColorSpace())
+                                .append("density", ocr.getDensity())
+                                .append("depth", ocr.getDepth())
+                                .append(
+                                        "enableImagePreprocessing",
+                                        ocr.getEnableImagePreprocessing()
+                                )
+                                .append("filter", ocr.getFilter())
+                                .append(
+                                        "imageMagickPath",
+                                        ocr.getImageMagickPath()
+                                )
+                                .append("language", ocr.getLanguage())
+                                .append(
+                                        "maxFileSizeToOcr",
+                                        ocr.getMaxFileSizeToOcr()
+                                )
+                                .append(
+                                        "minFileSizeToOcr",
+                                        ocr.getMinFileSizeToOcr()
+                                )
+                                .append("pageSegMode", ocr.getPageSegMode())
+                                .append("pageSeparator", ocr.getPageSeparator())
+                                .append(
+                                        "preserveInterwordSpacing",
+                                        ocr.getPreserveInterwordSpacing()
+                                )
+                                .append("resize", ocr.getResize())
+                                .append("skipOcr", ocr.isDisabled())
+                                .append("tessdataPath", ocr.getTessdataPath())
+                                .append("tesseractPath", ocr.getTesseractPath())
+                                .append(
+                                        "timeoutSeconds",
+                                        ocr.getTimeoutSeconds()
+                                )
+                                .build()
+                );
             }
 
             // XFDL Parser
             // https://issues.apache.org/jira/browse/TIKA-2222
-            parsersXml.addXML("""
-                    <parser class="%s">
-                        <mime>application/vnd.xfdl</mime>
-                    </parser>
+            parsersXml.addXML(
                     """
-                    .formatted(XfdlTikaParser.class.getName()));
+                            <parser class="%s">
+                                <mime>application/vnd.xfdl</mime>
+                            </parser>
+                            """
+                            .formatted(XfdlTikaParser.class.getName())
+            );
 
             return new TikaConfig((Element) tikaXml.getNode());
         } catch (TikaException e) {
@@ -125,45 +149,55 @@ class DefTikaConfigurer {
         private final XML parser = new XML("parser")
                 .setAttribute("class", TesseractOCRParser.class.getName());
         private final XML params = parser.addElement("params");
+
         TesseractParserConfigBuilder append(String name, Boolean value) {
             if (value != null) {
                 return append(name, "bool", Boolean.toString(value));
             }
             return this;
         }
+
         TesseractParserConfigBuilder append(String name, String value) {
             if (value != null) {
                 return append(name, "string", value);
             }
             return this;
         }
+
         TesseractParserConfigBuilder append(String name, Integer value) {
             if (value != null) {
                 return append(name, "int", Integer.toString(value));
             }
             return this;
         }
+
         TesseractParserConfigBuilder append(String name, Long value) {
             if (value != null) {
                 return append(name, "long", Long.toString(value));
             }
             return this;
         }
+
         TesseractParserConfigBuilder append(String name, Path value) {
-            return append(name, "string", Optional.ofNullable(value)
-                    .map(Path::toAbsolutePath)
-                    .map(Path::toString).orElse(null));
+            return append(
+                    name, "string", Optional.ofNullable(value)
+                            .map(Path::toAbsolutePath)
+                            .map(Path::toString).orElse(null)
+            );
         }
+
         private TesseractParserConfigBuilder append(
-                String name, String type, String value) {
+                String name, String type, String value
+        ) {
             if (StringUtils.isNotBlank(value)) {
                 params.addElement("param")
-                    .setAttribute("name", name)
-                    .setAttribute("type", type)
-                    .setTextContent(value);
+                        .setAttribute("name", name)
+                        .setAttribute("type", type)
+                        .setTextContent(value);
             }
             return this;
         }
+
         public XML build() {
             return parser;
         }

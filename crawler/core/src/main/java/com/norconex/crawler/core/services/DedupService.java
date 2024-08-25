@@ -90,7 +90,8 @@ public class DedupService implements Closeable {
         return doFindOrTrack(
                 dedupDocumentStore,
                 docContext.getContentChecksum(),
-                docContext.getReference());
+                docContext.getReference()
+        );
     }
 
     /**
@@ -104,11 +105,13 @@ public class DedupService implements Closeable {
         return doFindOrTrack(
                 dedupMetadataStore,
                 docContext.getMetaChecksum(),
-                docContext.getReference());
+                docContext.getReference()
+        );
     }
 
     private Optional<String> doFindOrTrack(
-            DataStore<String> store, String checksum, String reference) {
+            DataStore<String> store, String checksum, String reference
+    ) {
         if (store == null || checksum == null) {
             return Optional.empty();
         }

@@ -34,16 +34,16 @@ import com.norconex.importer.handler.parser.ParseState;
 class CollapseRepeatingTransformerTest {
 
     private final String xml = """
-        <handler>
-          <ignoreCase>true</ignoreCase>
-          <strings>
-            <string>\\stext</string>
-            <string>\\t</string>
-            <string>\\n\\r</string>
-            <string>\\s</string>
-            <string>.</string>
-          </strings>
-        </handler>""";
+            <handler>
+              <ignoreCase>true</ignoreCase>
+              <strings>
+                <string>\\stext</string>
+                <string>\\t</string>
+                <string>\\n\\r</string>
+                <string>\\s</string>
+                <string>.</string>
+              </strings>
+            </handler>""";
 
     @Test
     void testTransformTextDocument() throws IOException {
@@ -53,19 +53,23 @@ class CollapseRepeatingTransformerTest {
         var t = new CollapseRepeatingTransformer();
 
         try (Reader reader = new InputStreamReader(
-                IOUtils.toInputStream(xml, StandardCharsets.UTF_8))) {
+                IOUtils.toInputStream(xml, StandardCharsets.UTF_8)
+        )) {
             BeanMapper.DEFAULT.read(t, reader, Format.XML);
         }
 
         try (var is = IOUtils.toInputStream(
-                text, StandardCharsets.UTF_8)) {
+                text, StandardCharsets.UTF_8
+        )) {
             var doc = TestUtil.newDocContext(
-                    "dummyRef", is, new Properties(), ParseState.POST);
+                    "dummyRef", is, new Properties(), ParseState.POST
+            );
             t.accept(doc);
             var response = IOUtils.toString(doc.input().asReader());
             Assertions.assertEquals(
                     "\tthis is the text i want to modify.\n\r too much space.",
-                    response.toLowerCase());
+                    response.toLowerCase()
+            );
         }
     }
 
@@ -73,10 +77,11 @@ class CollapseRepeatingTransformerTest {
     void testWriteRead() throws IOException {
         var t = new CollapseRepeatingTransformer();
         try (Reader reader = new InputStreamReader(
-                IOUtils.toInputStream(xml, StandardCharsets.UTF_8))) {
+                IOUtils.toInputStream(xml, StandardCharsets.UTF_8)
+        )) {
             BeanMapper.DEFAULT.read(t, reader, Format.XML);
         }
-        assertThatNoException().isThrownBy(() ->
-            BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

@@ -58,7 +58,7 @@ public class IntervalTaskRunner {
     public void stop() {
         stopRequested.set(true);
         if (future != null) {
-            future.cancel(false);  // Cancel the scheduled task
+            future.cancel(false); // Cancel the scheduled task
         }
         // We don't shut down the scheduler here; it can be  reused for future
         // tasks
@@ -81,7 +81,7 @@ public class IntervalTaskRunner {
     public void shutdown() {
         stopRequested.set(true);
         if (future != null) {
-            future.cancel(false);  // Cancel the scheduled task
+            future.cancel(false); // Cancel the scheduled task
         }
         scheduler.shutdown();
         try {

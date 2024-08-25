@@ -35,18 +35,20 @@ class RenameTransformerTest {
     @Test
     void testWriteRead() {
         var t = new RenameTransformer();
-        t.getConfiguration().setOperations(List.of(
-            new RenameOperation()
-                .setFieldMatcher(TextMatcher.basic("from1"))
-                .setToField("to1")
-                .setOnSet(REPLACE),
-            new RenameOperation()
-                .setFieldMatcher(TextMatcher.basic("from2"))
-                .setToField("to2")
-                .setOnSet(APPEND)
-        ));
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new RenameOperation()
+                                .setFieldMatcher(TextMatcher.basic("from1"))
+                                .setToField("to1")
+                                .setOnSet(REPLACE),
+                        new RenameOperation()
+                                .setFieldMatcher(TextMatcher.basic("from2"))
+                                .setToField("to2")
+                                .setOnSet(APPEND)
+                )
+        );
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -58,16 +60,22 @@ class RenameTransformerTest {
         meta.add("nochange4", "value4");
 
         var t = new RenameTransformer();
-        t.getConfiguration().setOperations(List.of(
-            new RenameOperation()
-                .setFieldMatcher(TextMatcher.basic("regularFrom1"))
-                .setToField("regularTo1")
-                .setOnSet(APPEND),
-            new RenameOperation()
-                .setFieldMatcher(TextMatcher.regex(".*(From)(\\d+).*"))
-                .setToField("$1Regex$2")
-                .setOnSet(APPEND)
-        ));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new RenameOperation()
+                                .setFieldMatcher(
+                                        TextMatcher.basic("regularFrom1")
+                                )
+                                .setToField("regularTo1")
+                                .setOnSet(APPEND),
+                        new RenameOperation()
+                                .setFieldMatcher(
+                                        TextMatcher.regex(".*(From)(\\d+).*")
+                                )
+                                .setToField("$1Regex$2")
+                                .setOnSet(APPEND)
+                )
+        );
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 

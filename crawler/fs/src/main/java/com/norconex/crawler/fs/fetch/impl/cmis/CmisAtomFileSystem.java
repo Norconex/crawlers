@@ -35,7 +35,8 @@ public class CmisAtomFileSystem extends AbstractFileSystem {
             final FileName rootName,
             final FileObject parentLayer,
             final FileSystemOptions fileSystemOptions,
-            final CmisAtomSession session) {
+            final CmisAtomSession session
+    ) {
         super(rootName, parentLayer, fileSystemOptions);
         this.session = session;
     }

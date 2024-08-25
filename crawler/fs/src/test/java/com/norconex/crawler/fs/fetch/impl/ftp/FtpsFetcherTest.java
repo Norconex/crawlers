@@ -35,6 +35,7 @@ class FtpsFetcherTest extends AbstractFileFetcherTest {
         server = new MockFtpServer(tempDir, true);
         server.start();
     }
+
     @AfterAll
     static void afterAll() throws FtpException {
         MockFtpServer.stop(server);

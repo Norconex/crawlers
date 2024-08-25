@@ -61,8 +61,10 @@ public class ExtensionReferenceFilterConfig {
     public Set<String> getExtensions() {
         return Collections.unmodifiableSet(extensions);
     }
+
     public ExtensionReferenceFilterConfig setExtensions(
-            List<String> extensions) {
+            List<String> extensions
+    ) {
         CollectionUtil.setAll(this.extensions, extensions);
         return this;
     }

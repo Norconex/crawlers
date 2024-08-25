@@ -33,20 +33,23 @@ class UUIDTransformerTest {
     void testWriteRead() {
         var t = new UUIDTransformer();
         t.getConfiguration()
-            .setToField("field1")
-            .setOnSet(PropertySetter.REPLACE);
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+                .setToField("field1")
+                .setOnSet(PropertySetter.REPLACE);
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
     void testUUIDTagger() throws IOException {
         var t = new UUIDTransformer();
         t.getConfiguration()
-            .setToField("result");
+                .setToField("result");
         var props = new Properties();
-        t.accept(TestUtil.newDocContext(
-                "ref", nullInputStream(), props, ParseState.POST));
+        t.accept(
+                TestUtil.newDocContext(
+                        "ref", nullInputStream(), props, ParseState.POST
+                )
+        );
         assertThat(props.getStrings("result")).isNotEmpty();
     }
 }

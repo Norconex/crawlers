@@ -27,14 +27,15 @@ import lombok.Data;
 
 @Data
 public class NumericValueMatcher //NOSONAR we want to support null
-        implements Predicate<Double>{
+        implements Predicate<Double> {
     private final Operator operator;
     private final double number;
 
     @JsonCreator
     public NumericValueMatcher(
             @JsonProperty("operator") Operator operator,
-            @JsonProperty("number") double number) {
+            @JsonProperty("number") double number
+    ) {
         this.operator = operator;
         this.number = number;
     }

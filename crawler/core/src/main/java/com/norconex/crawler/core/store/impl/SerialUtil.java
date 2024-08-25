@@ -45,7 +45,8 @@ public final class SerialUtil {
     private static final ObjectMapper mapper = new ObjectMapper();
     static {
         mapper.enable(
-                DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+                DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT
+        );
         mapper.configure(Feature.AUTO_CLOSE_SOURCE, false);
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         mapper.registerModule(new ParameterNamesModule());
@@ -53,8 +54,8 @@ public final class SerialUtil {
         mapper.registerModule(new JavaTimeModule());
     }
 
-    private SerialUtil() {}
-
+    private SerialUtil() {
+    }
 
     public static JsonFactory jsonFactory() {
         return new JsonFactory(mapper);
@@ -65,17 +66,20 @@ public final class SerialUtil {
             return jsonFactory().createGenerator(os, JsonEncoding.UTF8);
         } catch (IOException e) {
             throw new SerializationException(
-                    "Could not create JsonGenerator.", e);
+                    "Could not create JsonGenerator.", e
+            );
         }
     }
 
     public static JsonParser jsonParser(@NonNull InputStream is) {
         try {
             return jsonFactory().createParser(
-                    new InputStreamReader(is, StandardCharsets.UTF_8));
+                    new InputStreamReader(is, StandardCharsets.UTF_8)
+            );
         } catch (IOException e) {
             throw new SerializationException(
-                    "Could not create JsonParser.", e);
+                    "Could not create JsonParser.", e
+            );
         }
     }
 
@@ -84,9 +88,11 @@ public final class SerialUtil {
             return mapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             throw new SerializationException(
-                    "Could not serialize object to JSON: " + object, e);
+                    "Could not serialize object to JSON: " + object, e
+            );
         }
     }
+
     public static Reader toJsonReader(@NonNull Object object) {
         return new StringReader(toJsonString(object));
     }
@@ -96,24 +102,30 @@ public final class SerialUtil {
             return mapper.readValue(json, cls);
         } catch (JsonProcessingException e) {
             throw new SerializationException(
-                    "Could not deserialize JSON to object: " + json, e);
+                    "Could not deserialize JSON to object: " + json, e
+            );
         }
     }
+
     public static <T> T fromJson(@NonNull Reader json, @NonNull Class<T> cls) {
         try {
             return mapper.readValue(json, cls);
         } catch (IOException e) {
             throw new SerializationException(
-                    "Could not deserialize JSON reader to object." + json, e);
+                    "Could not deserialize JSON reader to object." + json, e
+            );
         }
     }
+
     public static <T> T fromJson(
-            @NonNull JsonParser json, @NonNull Class<T> cls) {
+            @NonNull JsonParser json, @NonNull Class<T> cls
+    ) {
         try {
             return mapper.readValue(json, cls);
         } catch (IOException e) {
             throw new SerializationException(
-                    "Could not deserialize JSON reader to object." + json, e);
+                    "Could not deserialize JSON reader to object." + json, e
+            );
         }
     }
 }

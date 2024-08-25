@@ -18,6 +18,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+
 /**
  * <p>
  * Delete the metadata fields provided. Exact field names (case-insensitive)
@@ -62,6 +63,7 @@ public class DeleteTransformerConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the field matcher for fields to delete. If not set, delete the
      * document content (sets it to zero length).

@@ -37,7 +37,7 @@ import com.norconex.importer.doc.DocMetadata;
 class XmlFeedLinkExtractorTest {
 
     @Test
-    void testAtomLinkExtraction()  throws IOException {
+    void testAtomLinkExtraction() throws IOException {
         var baseURL = "http://www.example.com/";
         var baseDir = baseURL + "test/";
         var docURL = baseDir + "XmlFeedLinkExtractorTest.atom";
@@ -51,28 +51,34 @@ class XmlFeedLinkExtractorTest {
                 baseURL + "atom/page2.html",
         };
 
-        InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
-                "XmlFeedLinkExtractorTest.atom"));
+        InputStream is = IOUtils.buffer(
+                getClass().getResourceAsStream(
+                        "XmlFeedLinkExtractorTest.atom"
+                )
+        );
 
         var ct = ContentTypeDetector.detect(is);
 
         var links = extractor.extractLinks(
-                toCrawlDoc(docURL, ct, is));
+                toCrawlDoc(docURL, ct, is)
+        );
         is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue(
                     contains(links, expectedURL),
-                "Could not find expected URL: " + expectedURL);
+                    "Could not find expected URL: " + expectedURL
+            );
         }
 
         Assertions.assertEquals(
                 expectedURLs.length, links.size(),
-                "Invalid number of links extracted.");
+                "Invalid number of links extracted."
+        );
     }
 
     @Test
-    void testRSSLinkExtraction()  throws IOException {
+    void testRSSLinkExtraction() throws IOException {
         var baseURL = "http://www.example.com/";
         var baseDir = baseURL + "test/";
         var docURL = baseDir + "XmlFeedLinkExtractorTest.rss";
@@ -86,33 +92,40 @@ class XmlFeedLinkExtractorTest {
                 baseURL + "rss/page2.html",
         };
 
-        InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
-                "XmlFeedLinkExtractorTest.rss"));
+        InputStream is = IOUtils.buffer(
+                getClass().getResourceAsStream(
+                        "XmlFeedLinkExtractorTest.rss"
+                )
+        );
 
         var ct = ContentTypeDetector.detect(is);
 
         var links = extractor.extractLinks(
-                toCrawlDoc(docURL, ct, is));
+                toCrawlDoc(docURL, ct, is)
+        );
         is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue(
                     contains(links, expectedURL),
-                "Could not find expected URL: " + expectedURL);
+                    "Could not find expected URL: " + expectedURL
+            );
         }
 
         Assertions.assertEquals(
                 expectedURLs.length, links.size(),
-                "Invalid number of links extracted.");
+                "Invalid number of links extracted."
+        );
     }
 
     @Test
     void testGenericWriteRead() {
         var extractor = new XmlFeedLinkExtractor();
-//        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ct")));
-//        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ref")));
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(extractor));
+        //        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ct")));
+        //        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ref")));
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(extractor)
+        );
     }
 
     private boolean contains(Set<Link> links, String url) {
