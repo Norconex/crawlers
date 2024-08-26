@@ -18,13 +18,12 @@ import static java.util.Optional.ofNullable;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import net.lightbody.bmp.proxy.auth.AuthType;
+import org.apache.commons.collections4.MultiMapUtils;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
-import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -38,9 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.EqualsUtil;
+import com.norconex.commons.lang.encrypt.EncryptionUtil;
 
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.filters.ResponseFilterAdapter;
+import net.lightbody.bmp.proxy.auth.AuthType;
 
 /**
  * <p>
@@ -78,46 +79,36 @@ class HttpSniffer {
     }
 
     void start(MutableCapabilities options, HttpSnifferConfig config) {
+        //NOTE we use to have `mobProxy.setMitmDisabled(true)` in this method,
+        // but that made it fail to invoke the response filter set below.
+        // We can make that option configurable if it causes issues for some.
+
         var cfg = Optional.ofNullable(config).orElseGet(HttpSnifferConfig::new);
         mobProxy = new BrowserMobProxyServer();
-
-
-        // TODO: 2024-08-14: flipping doesnt seems making any diff
         mobProxy.setTrustAllServers(true);
         mobProxy.setTrustSource(null);
 
-        //NOTE we use to have `mobProxy.setMitmDisabled(true)` here, but
-        // that made it fail to invoke the response filter set below.
-        // We can make that option configurable if it causes issues for some.
-
-        ofNullable(cfg.getChainedProxy()).ifPresent(proxy -> {
+        var chainedCfg = cfg.getChainedProxy();
+        if (chainedCfg.isSet()) {
+            var inetAddress = new InetSocketAddress(
+                    chainedCfg.getHost().getName(),
+                    chainedCfg.getHost().getPort());
             // Set Chained Proxy Host and IP
-            ofNullable(proxy.getHost())
-                    .flatMap(host -> ofNullable(host.getName())
-                            .flatMap(name -> ofNullable(host.getPort())
-                                    .map(port -> new InetSocketAddress(name, port))))
-                    .ifPresentOrElse(pAddr -> {
-                        mobProxy.setChainedProxy(pAddr);
-                        LOG.info("Chained Proxy set on httpSniffer as: {}.", pAddr);
-
-                        // Set Chained Proxy Credentials
-                        ofNullable(proxy.getCredentials())
-                                .flatMap(creds -> ofNullable(creds.getUsername())
-                                        .flatMap(uname -> ofNullable(creds.getPassword())
-                                                .flatMap(pw -> ofNullable(proxy.getRealm())
-                                                        .map(rlm -> {
-                                                            mobProxy.chainedProxyAuthorization(
-                                                                    uname,
-                                                                    pw,
-                                                                    AuthType.valueOf(rlm)
-                                                            );
-                                                            LOG.info("Chained Proxy Authorization is set.");
-                                                            return null;
-                                                        }))));
-                    },() -> {
-                        LOG.info("Chained Proxy not configured");
-                    });
-        });
+            mobProxy.setChainedProxy(inetAddress);
+            LOG.info("Chained proxy set on HTTP Sniffer as: {}.", inetAddress);
+            // Set Chained Proxy Credentials
+            var creds = chainedCfg.getCredentials();
+            if (chainedCfg.getCredentials().isSet()) {
+                mobProxy.chainedProxyAuthorization(
+                        creds.getUsername(),
+                        EncryptionUtil.decryptPassword(creds),
+                        AuthType.BASIC
+                );
+                LOG.info("Chained proxy authorization set.");
+            }
+        } else {
+            LOG.info("No chained proxy configured on HTTP Sniffer.");
+        }
 
         // request headers
         cfg.getRequestHeaders().entrySet().forEach(
@@ -213,11 +204,11 @@ class HttpSniffer {
 
     static class SniffedResponseHeader {
 
-        private final Map<String, String> headers =
-                new ListOrderedMap<>();
+        private final MultiValuedMap<String, String> headers =
+                MultiMapUtils.newListValuedHashMap();
         private int statusCode;
         private String reasonPhrase;
-        public Map<String, String> getHeaders() {
+        public MultiValuedMap<String, String> getHeaders() {
             return headers;
         }
         public int getStatusCode() {
@@ -235,7 +226,8 @@ class HttpSniffer {
             var other = (SniffedResponseHeader) obj;
             return EqualsBuilder.reflectionEquals(
                     this, other, "requestHeaders")
-                    && EqualsUtil.equalsMap(headers, other.headers);
+                    && EqualsUtil.equalsMap(
+                            headers.asMap(), other.headers.asMap());
         }
         @Override
         public int hashCode() {
