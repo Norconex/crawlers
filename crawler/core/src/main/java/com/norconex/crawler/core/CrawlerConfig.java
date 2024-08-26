@@ -45,6 +45,7 @@ import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
 import com.norconex.importer.ImporterConfig;
 
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
@@ -300,10 +301,11 @@ public class CrawlerConfig {
     private boolean startReferencesAsync;
 
     /**
-     * The maximum number of threads a crawler can use. Default is two.
+     * The maximum number of threads a crawler can use. Default is 2.
      * @param numThreads number of threads
      * @return number of threads
      */
+    @Min(1)
     private int numThreads = 2;
 
     /**

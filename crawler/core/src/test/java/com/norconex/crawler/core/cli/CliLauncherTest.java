@@ -149,6 +149,23 @@ class CliLauncherTest {
     }
 
     @Test
+    void testBadConfig() throws IOException {
+        var cfgFile = tempDir.resolve("badconfig.xml");
+        Files.writeString(cfgFile, """
+                <crawler>
+                  <numThreads>0</numThreads>
+                </crawler>
+                """);
+
+        var exit = cliLaunch(tempDir,
+                        "configcheck", "-config=" + cfgFile.toAbsolutePath());
+        assertThat(exit.ok()).isFalse();
+        assertThat(exit.getStdErr()).contains(
+                "\"numThreads\" must be greater than or equal to 1.");
+    }
+
+
+    @Test
     void testStoreExportImport() throws IOException {
         var exportDir = tempDir.resolve("exportdir");
         var exportFile = exportDir.resolve(CrawlerStubs.CRAWLER_ID + ".zip");
@@ -312,6 +329,17 @@ class CliLauncherTest {
         assertThat(Files.readString(renderedFile).trim()).isEqualTo(
                 exit1.getStdOut().trim()
         );
+    }
+
+    @Test
+    void testFailingConfigRender() throws IOException {
+        var exit = cliLaunch(
+                tempDir,
+                "configrender",
+                "-config=",
+                // passing a directory to get FileNotFoundException
+                "-output=" + tempDir.toAbsolutePath());
+        assertThat(exit.getStdErr()).contains("FileNotFoundException");
     }
 
     //TODO write unit tests for <app> help command

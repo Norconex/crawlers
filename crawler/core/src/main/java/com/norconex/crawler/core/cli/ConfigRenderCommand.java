@@ -17,6 +17,7 @@ package com.norconex.crawler.core.cli;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -82,7 +83,7 @@ public class ConfigRenderCommand extends CliSubCommandBase {
             if (output == null) {
                 out().println(((StringWriter) out).toString());
             }
-        } catch (IOException e) {
+        } catch (InvalidPathException | IOException e) {
             err().println(
                     "Could not render config: "
                             + ExceptionUtil.getFormattedMessages(e)
