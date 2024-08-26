@@ -122,7 +122,7 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
         }
     }
 
-    private void fetchAcl(LocalFile localFile, Properties metadata) {
+    void fetchAcl(LocalFile localFile, Properties metadata) {
         try {
             var localFileName = (LocalFileName) localFile.getName();
             var file = new File(

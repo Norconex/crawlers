@@ -14,13 +14,19 @@
  */
 package com.norconex.crawler.fs.fetch.impl.local;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
 
+import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.fs.FsTestUtil;
+import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
+import com.norconex.crawler.fs.stubs.CrawlDocStubs;
 
 class LocalFetcherTest extends AbstractFileFetcherTest {
 
@@ -40,5 +46,17 @@ class LocalFetcherTest extends AbstractFileFetcherTest {
                         .toAbsolutePath().toUri().toString(),
                 "/"
         );
+    }
+
+    @Test
+    void testAcceptRequestOfNetworkPathDrive() {
+        assertThat(new LocalFetcher()
+                .acceptRequest(mockRequest("Z:/\\\\path"))).isTrue();
+    }
+
+    private FileFetchRequest mockRequest(String ref) {
+        return new FileFetchRequest(
+                CrawlDocStubs.crawlDoc(ref, "content"),
+                FetchDirective.DOCUMENT);
     }
 }
