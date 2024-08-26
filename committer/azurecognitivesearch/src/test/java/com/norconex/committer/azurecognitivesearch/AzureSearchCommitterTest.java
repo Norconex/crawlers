@@ -416,7 +416,7 @@ class AzureSearchCommitterTest {
                 .build();
     }
 
-    private AzureSearchCommitter createAzureSearchCommitter()  {
+    static AzureSearchCommitter createAzureSearchCommitter(int port)  {
         var committer = new AzureSearchCommitter();
         var config = committer.getConfiguration();
         config.setApiKey(AzureSearchMocker.MOCK_API_KEY);
@@ -432,7 +432,7 @@ class AzureSearchCommitterTest {
 
     private AzureSearchCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        var committer = createAzureSearchCommitter();
+        var committer = createAzureSearchCommitter(port);
         committer.init(createCommitterContext());
 
         try {
@@ -468,7 +468,7 @@ class AzureSearchCommitterTest {
             CommitterConsumer c,
             ConfigOptions options
     ) throws CommitterException {
-        var committer = createAzureSearchCommitter();
+        var committer = createAzureSearchCommitter(port);
 
         switch (options) {
             case EmptyEndpoint:
@@ -496,7 +496,7 @@ class AzureSearchCommitterTest {
             Consumer<AzureSearchCommitterConfig> configConsumer,
             CommitterConsumer initializedCommitterConsumer
     ) throws CommitterException {
-        var committer = createAzureSearchCommitter();
+        var committer = createAzureSearchCommitter(port);
 
         if (configConsumer != null) {
             configConsumer.accept(committer.getConfiguration());

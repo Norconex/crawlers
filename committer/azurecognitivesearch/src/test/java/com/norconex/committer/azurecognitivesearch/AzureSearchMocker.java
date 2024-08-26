@@ -16,7 +16,6 @@ package com.norconex.committer.azurecognitivesearch;
 
 import static com.norconex.committer.azurecognitivesearch.AzureSearchCommitterConfig.DEFAULT_API_VERSION;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +41,7 @@ class AzureSearchMocker {
 
     private final ListOrderedMap<String, Doc> db = new ListOrderedMap<>();
 
-    AzureSearchMocker(ClientAndServer mockServer)
-            throws IOException {
+    AzureSearchMocker(ClientAndServer mockServer) {
         mockServer
                 .when(
                         HttpRequest.request()
@@ -62,7 +60,7 @@ class AzureSearchMocker {
                 )
                 .respond(
                         req -> {
-                            MockResponse resp = index(db, req);
+                            var resp = index(db, req);
                             return HttpResponse.response()
                                     .withStatusCode(resp.code)
                                     .withReasonPhrase(resp.reason)
@@ -92,19 +90,19 @@ class AzureSearchMocker {
     }
 
     private static MockResponse index(Map<String, Doc> db, HttpRequest req) {
-        JSONArray commitRequests = new JSONObject(
+        var commitRequests = new JSONObject(
                 req.getBodyAsJsonOrXmlString()
         ).getJSONArray("value");
 
-        int responseStatus = HttpStatus.SC_OK;
-        JSONArray respArray = new JSONArray();
-        for (int i = 0; i < commitRequests.length(); i++) {
-            JSONObject commitRequest = commitRequests.getJSONObject(i);
+        var responseStatus = HttpStatus.SC_OK;
+        var respArray = new JSONArray();
+        for (var i = 0; i < commitRequests.length(); i++) {
+            var commitRequest = commitRequests.getJSONObject(i);
             List<String> fields = new ArrayList<>(commitRequest.keySet());
 
             // First entry must be the action:
-            String actionField = fields.remove(0);
-            String action = commitRequest.getString(actionField);
+            var actionField = fields.remove(0);
+            var action = commitRequest.getString(actionField);
             if (!"@search.action".equals(actionField)) {
                 responseStatus = HttpStatus.SC_MULTI_STATUS;
                 respArray.put(
@@ -121,23 +119,23 @@ class AzureSearchMocker {
             }
 
             // Second entry is the document key
-            String keyField = fields.get(0);
-            String key = commitRequest.getString(keyField);
+            var keyField = fields.get(0);
+            var key = commitRequest.getString(keyField);
 
             // Apply request to database
             if ("upload".equals(action)) {
-                Doc doc = new Doc(key);
+                var doc = new Doc(key);
                 for (String field : fields) {
-                    JSONArray values = commitRequest.optJSONArray(field);
+                    var values = commitRequest.optJSONArray(field);
                     if (values != null) {
-                        for (int j = 0; j < values.length(); j++) {
+                        for (var j = 0; j < values.length(); j++) {
                             doc.fields.put(field, values.getString(j));
                         }
                     } else {
                         doc.fields.put(field, commitRequest.getString(field));
                     }
                 }
-                Doc previousDoc = db.put(key, doc);
+                var previousDoc = db.put(key, doc);
                 if (previousDoc == null) {
                     respArray.put(
                             docOpResponse(
@@ -162,11 +160,12 @@ class AzureSearchMocker {
             }
         }
 
-        JSONObject respBody = new JSONObject();
+        var respBody = new JSONObject();
         respBody.put("value", respArray);
         if (responseStatus == HttpStatus.SC_OK) {
             return MockResponse.ok(respBody.toString());
-        } else if (responseStatus == HttpStatus.SC_MULTI_STATUS) {
+        }
+        if (responseStatus == HttpStatus.SC_MULTI_STATUS) {
             return MockResponse.multiStatus(respBody.toString());
         }
         return new MockResponse(
@@ -176,8 +175,8 @@ class AzureSearchMocker {
     }
 
     private static JSONObject docOpResponse(String key, MockResponse docResp) {
-        boolean isgood = docResp.code >= 200 && docResp.code < 300;
-        JSONObject json = new JSONObject();
+        var isgood = docResp.code >= 200 && docResp.code < 300;
+        var json = new JSONObject();
         json.put("key", key);
         json.put("status", isgood);
         json.put("errorMessage", isgood ? null : docResp.reason);
@@ -192,7 +191,6 @@ class AzureSearchMocker {
                 MultiMapUtils.newListValuedHashMap();
 
         public Doc(String key) {
-            super();
             this.key = key;
         }
 
@@ -201,7 +199,7 @@ class AzureSearchMocker {
         }
 
         public String getFieldValue(String field) {
-            List<String> values = getFieldValues(field);
+            var values = getFieldValues(field);
             if (!values.isEmpty()) {
                 return values.get(0);
             }
@@ -219,7 +217,6 @@ class AzureSearchMocker {
         private String body;
 
         MockResponse(int code, String reason, String body) {
-            super();
             this.code = code;
             this.reason = reason;
             this.body = body;
