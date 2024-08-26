@@ -16,7 +16,6 @@ package com.norconex.crawler.core.doc.pipelines.committer.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Path;
 
@@ -39,18 +38,16 @@ class DocumentChecksumStageTest {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(
-                CrawlerStubs.memoryCrawler(tempDir), doc
-        );
+                CrawlerStubs.memoryCrawler(tempDir), doc);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
         assertThat(doc.getDocContext().getContentChecksum()).isEqualTo(
-                CrawlDocStubs.CRAWLDOC_CONTENT_MD5
-        );
+                CrawlDocStubs.CRAWLDOC_CONTENT_MD5);
     }
 
     @Test
-    void testNoDocumentChecksummer() throws IOException {
+    void testNoDocumentChecksummer() {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var crawler = CrawlerStubs.memoryCrawler(tempDir);
@@ -60,13 +57,34 @@ class DocumentChecksumStageTest {
                         <crawler id="id">\
                         <documentChecksummer />\
                         </crawler>"""),
-                Format.XML
-        );
+                Format.XML);
 
         var ctx = new CommitterPipelineContext(crawler, doc);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
         assertThat(doc.getDocContext().getContentChecksum()).isNull();
+    }
+
+    @Test
+    void testRejectedUnmodified() {
+        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+
+        var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
+        doc.getDocContext().setContentChecksum(crawler
+                .getConfiguration()
+                .getDocumentChecksummer()
+                .createDocumentChecksum(doc));
+
+        doc.getCachedDocContext().setContentChecksum(crawler
+                .getConfiguration()
+                .getDocumentChecksummer()
+                .createDocumentChecksum(doc));
+
+        var ctx = new CommitterPipelineContext(
+                CrawlerStubs.memoryCrawler(tempDir), doc);
+
+        var stage = new DocumentChecksumStage();
+        assertThat(stage.test(ctx)).isFalse();
     }
 }

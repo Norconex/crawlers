@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.doc.operations.spoil.impl;
 
+import static com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
@@ -31,14 +33,21 @@ class GenericSpoiledReferenceStrategizerTest {
                 .setFallbackStrategy(SpoiledReferenceStrategy.GRACE_ONCE)
                 .setMapping(
                         CrawlDocState.MODIFIED,
-                        SpoiledReferenceStrategy.IGNORE
-                )
+                        SpoiledReferenceStrategy.IGNORE)
                 .setMapping(
                         CrawlDocState.BAD_STATUS,
-                        SpoiledReferenceStrategy.DELETE
-                );
+                        SpoiledReferenceStrategy.DELETE);
         assertThatNoException().isThrownBy(() -> {
             BeanMapper.DEFAULT.assertWriteRead(s);
         });
+    }
+
+    @Test
+    void testNoStrategy() {
+        var s = new GenericSpoiledReferenceStrategizer();
+        s.getConfiguration().setFallbackStrategy(null);
+        assertThat(s.resolveSpoiledReferenceStrategy(
+                "ref", CrawlDocState.MODIFIED)).isSameAs(
+                        DEFAULT_FALLBACK_STRATEGY);
     }
 }
