@@ -223,7 +223,7 @@ class SplitTransformerTest {
         var is = IOUtils.toInputStream(
                 "Joe, Jack, William, Avrel", StandardCharsets.UTF_8
         );
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
 
         Assertions.assertEquals(
                 Arrays.asList("Joe", "Jack", "William", "Avrel"),
@@ -245,7 +245,7 @@ class SplitTransformerTest {
         );
 
         var is = IOUtils.toInputStream("a, b,c d;e, f", StandardCharsets.UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         Assertions.assertEquals(
                 Arrays.asList("a", "b", "c", "d", "e", "f"),
                 meta.getStrings("targetField")

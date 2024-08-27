@@ -163,7 +163,7 @@ class SaveDocumentTransformerTest {
     private HandlerContext transform(SaveDocumentTransformer t, String ref)
             throws IOException {
         var is = TestUtil.toInputStream("blah");
-        var docCtx = TestUtil.newDocContext(ref, is);
+        var docCtx = TestUtil.newHandlerContext(ref, is);
         t.accept(docCtx);
         return docCtx;
     }

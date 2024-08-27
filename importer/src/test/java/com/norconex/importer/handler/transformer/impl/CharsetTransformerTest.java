@@ -78,7 +78,7 @@ class CharsetTransformerTest {
                 .setTargetCharset(StandardCharsets.UTF_8);
 
         var is = getFileStream("/charset/ISO-8859-1.txt");
-        var doc = TestUtil.newDocContext("ISO-8859-1.txt", is);
+        var doc = TestUtil.newHandlerContext("ISO-8859-1.txt", is);
         t.accept(doc);
         is.close();
 
@@ -102,7 +102,7 @@ class CharsetTransformerTest {
                 .setTargetCharset(null); // using default: UTF-8
 
         var is = getFileStream("/charset/ISO-8859-1.txt");
-        var doc = TestUtil.newDocContext("ISO-8859-1.txt", is);
+        var doc = TestUtil.newHandlerContext("ISO-8859-1.txt", is);
         t.accept(doc);
         var output = IOUtils.toByteArray(doc.input().asInputStream());
         is.close();
@@ -127,7 +127,7 @@ class CharsetTransformerTest {
         ).isThrownBy(
             //NOSONAR
                 () -> t.accept(
-                        TestUtil.newDocContext(
+                        TestUtil.newHandlerContext(
                                 "N/A", TestUtil.failingCachedInputStream(),
                                 new Properties()
                         )
@@ -187,7 +187,7 @@ class CharsetTransformerTest {
 
         InputStream is = new NullInputStream(0);
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "ref-" + fromCharset + "-" + toCharset, is, metadata
                 )
         );
@@ -228,7 +228,7 @@ class CharsetTransformerTest {
         t.getConfiguration().setTargetCharset(toCharset);
 
         var is = getFileStream("/charset/" + fromCharset + ".txt");
-        var doc = TestUtil.newDocContext(fromCharset + ".txt", is);
+        var doc = TestUtil.newHandlerContext(fromCharset + ".txt", is);
         t.accept(doc);
 
         var output = IOUtils.toByteArray(doc.input().asInputStream());

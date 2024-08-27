@@ -78,7 +78,7 @@ public class HandlerContext {
 
     private Object rejectedBy;
 
-    public DocContext docRecord() {
+    public DocContext docContext() {
         return doc.getDocContext();
     }
 
@@ -115,7 +115,7 @@ public class HandlerContext {
         return CharsetUtil.firstNonNullOrUTF8(
                 parseState,
                 charset,
-                docRecord().getCharset(),
+                docContext().getCharset(),
                 StandardCharsets.UTF_8
         );
     }
@@ -151,7 +151,7 @@ public class HandlerContext {
         return new ReadAdapter(
                 doc::getInputStream,
                 CharsetUtil.firstNonNullOrUTF8(
-                        parseState, docRecord().getCharset()
+                        parseState, docContext().getCharset()
                 )
         );
     }

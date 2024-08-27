@@ -222,21 +222,15 @@ public class LanguageTransformer
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
             var results = detector.detectAll(chunk.getText());
             if (results.isEmpty()) {
-                LOG.debug(
-                        "No language found, using fallback language "
-                                + "for {}.",
-                        docCtx.reference()
-                );
-                docCtx.metadata().set(
-                        DocMetadata.LANGUAGE,
-                        configuration.getFallbackLanguage()
-                );
+                LOG.debug("No language found, using fallback language for {}.",
+                        docCtx.reference());
+                docCtx.metadata().set(DocMetadata.LANGUAGE,
+                        configuration.getFallbackLanguage());
             } else {
                 Collections.sort(results, langResultComparator);
                 docCtx.metadata().set(
                         DocMetadata.LANGUAGE,
-                        results.get(0).getLanguage()
-                );
+                        results.get(0).getLanguage());
 
                 if (configuration.isKeepProbabilities()) {
                     var count = 0;
@@ -244,12 +238,10 @@ public class LanguageTransformer
                         count++;
                         var prefix = DocMetadata.LANGUAGE + "." + count;
                         docCtx.metadata().set(
-                                prefix + ".tag", lang.getLanguage()
-                        );
+                                prefix + ".tag", lang.getLanguage());
                         docCtx.metadata().set(
                                 prefix + ".probability",
-                                lang.getRawScore()
-                        );
+                                lang.getRawScore());
                     }
                 }
             }

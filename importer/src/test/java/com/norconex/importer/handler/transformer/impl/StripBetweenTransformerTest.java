@@ -82,7 +82,7 @@ class StripBetweenTransformerTest {
                 new BufferedInputStream(new FileInputStream(htmlFile))) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            var doc = TestUtil.newDocContext(
+            var doc = TestUtil.newHandlerContext(
                     htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
             );
             t.accept(doc);
@@ -145,7 +145,7 @@ class StripBetweenTransformerTest {
         try (var is = new ByteArrayInputStream(html.getBytes())) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            var doc = TestUtil.newDocContext(
+            var doc = TestUtil.newHandlerContext(
                     "fake.html",
                     is, metadata, ParseState.PRE
             );

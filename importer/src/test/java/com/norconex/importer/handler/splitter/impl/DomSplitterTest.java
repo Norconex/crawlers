@@ -69,7 +69,7 @@ class DomSplitterTest {
         metadata.add("splitme", xml);
 
         var is = IOUtils.toInputStream("blah", StandardCharsets.UTF_8);
-        var docCtx = TestUtil.newDocContext("n/a", is, metadata);
+        var docCtx = TestUtil.newHandlerContext("n/a", is, metadata);
         splitter.accept(docCtx);
 
         var docs = docCtx.childDocs();
@@ -84,7 +84,7 @@ class DomSplitterTest {
     private List<Doc> split(String text, DomSplitter splitter) {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
-        var docCtx = TestUtil.newDocContext("n/a", is, metadata);
+        var docCtx = TestUtil.newHandlerContext("n/a", is, metadata);
         splitter.accept(docCtx);
         return docCtx.childDocs();
     }

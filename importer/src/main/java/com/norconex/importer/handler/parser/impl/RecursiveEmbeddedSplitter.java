@@ -85,7 +85,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         }
 
         var embedDepth =
-                docCtx.docRecord().getEmbeddedParentReferences().size() + 1;
+                docCtx.docContext().getEmbeddedParentReferences().size() + 1;
         var maxDepth = embeddedConfig.getMaxEmbeddedDepth();
         // Extract only up to specified max depth
         if (maxDepth >= 0 && embedDepth > maxDepth) {
@@ -98,7 +98,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         }
 
         // Don't parse if unwanted embedded of parent content type
-        var parentType = docCtx.docRecord()
+        var parentType = docCtx.docContext()
                 .getContentType().toBaseTypeString();
         if (TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedOfContentTypes(),
@@ -137,7 +137,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
                 tikaMeta, embedMeta, embedCount
         );
         embedRecord.setEmbeddedParentReferences(
-                docCtx.docRecord().getEmbeddedParentReferences()
+                docCtx.docContext().getEmbeddedParentReferences()
         );
 
         // Read the steam into cache for reuse since Tika will

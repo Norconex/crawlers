@@ -128,7 +128,7 @@ public class XmlStreamSplitter
     public void split(HandlerContext docCtx) throws IOException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docRecord()
+                configuration.getContentTypeMatcher(), docCtx.docContext()
         )) {
         }
 

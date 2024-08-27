@@ -99,7 +99,7 @@ class ReplaceTransformerTest {
                 var os = new ByteArrayOutputStream();) {
             var metadata = new Properties();
             metadata.set("document.reference", reference);
-            var doc = TestUtil.newDocContext(
+            var doc = TestUtil.newHandlerContext(
                     reference, is, metadata, ParseState.POST
             );
             t.accept(doc);

@@ -61,7 +61,7 @@ class CollapseRepeatingTransformerTest {
         try (var is = IOUtils.toInputStream(
                 text, StandardCharsets.UTF_8
         )) {
-            var doc = TestUtil.newDocContext(
+            var doc = TestUtil.newHandlerContext(
                     "dummyRef", is, new Properties(), ParseState.POST
             );
             t.accept(doc);

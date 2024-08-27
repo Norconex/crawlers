@@ -60,7 +60,7 @@ class DeleteTransformerTest {
 
         InputStream is = new NullInputStream(0);
         tagger.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "blah", is, meta, ParseState.PRE
                 )
         );
@@ -107,7 +107,7 @@ class DeleteTransformerTest {
                 """.formatted(field)), Format.XML);
         InputStream is = new NullInputStream(0);
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "blah", is, meta, ParseState.PRE
                 )
         );
@@ -138,7 +138,7 @@ class DeleteTransformerTest {
 
         InputStream is = new NullInputStream(0);
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "blah", is, meta, ParseState.PRE
                 )
         );
@@ -149,7 +149,7 @@ class DeleteTransformerTest {
     @Test
     void testOnBody() throws IOException {
         var t = new DeleteTransformer();
-        var doc = TestUtil.newDocContext("blah", "Delete this.");
+        var doc = TestUtil.newHandlerContext("blah", "Delete this.");
         t.accept(doc);
         assertThat(doc.input().asInputStream()).isEmpty();
     }

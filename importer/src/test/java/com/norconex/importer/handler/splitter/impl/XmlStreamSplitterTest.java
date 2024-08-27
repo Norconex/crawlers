@@ -76,14 +76,14 @@ class XmlStreamSplitterTest {
         assertThatExceptionOfType(UncheckedIOException.class)
                 .isThrownBy(
                     //NOSONAR
-                        () -> splitter.accept(TestUtil.newDocContext())
+                        () -> splitter.accept(TestUtil.newHandlerContext())
                 );
 
         // Test non applicable
         splitter.getConfiguration().setContentTypeMatcher(
                 TextMatcher.basic("IdontExists")
         );
-        var docCtx = TestUtil.newDocContext(
+        var docCtx = TestUtil.newHandlerContext(
                 "N/A",
                 TestUtil.toCachedInputStream(sampleXML)
         );
@@ -96,7 +96,7 @@ class XmlStreamSplitterTest {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
 
-        var docCtx = TestUtil.newDocContext("N/A", is, metadata);
+        var docCtx = TestUtil.newHandlerContext("N/A", is, metadata);
         splitter.accept(docCtx);
         return docCtx.childDocs();
     }

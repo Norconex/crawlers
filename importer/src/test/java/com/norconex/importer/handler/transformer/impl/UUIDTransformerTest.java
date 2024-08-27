@@ -46,7 +46,7 @@ class UUIDTransformerTest {
                 .setToField("result");
         var props = new Properties();
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "ref", nullInputStream(), props, ParseState.POST
                 )
         );

@@ -50,7 +50,7 @@ class SubstringTransformerTest {
         t.getConfiguration()
                 .setBegin(begin)
                 .setEnd(end);
-        var doc = TestUtil.newDocContext(content);
+        var doc = TestUtil.newHandlerContext(content);
         t.accept(doc);
         return doc.input().asString();
     }

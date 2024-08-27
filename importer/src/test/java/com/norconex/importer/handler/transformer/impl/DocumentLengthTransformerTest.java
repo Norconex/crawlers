@@ -42,7 +42,7 @@ class DocumentLengthTransformerTest {
         var props = new Properties();
         assertThatNoException().isThrownBy(() -> {
             t.accept(
-                    TestUtil.newDocContext(
+                    TestUtil.newHandlerContext(
                             "ref",
                             TestUtil.toCachedInputStream("four"),
                             props,
@@ -54,7 +54,7 @@ class DocumentLengthTransformerTest {
 
         assertThatNoException().isThrownBy(() -> {
             t.accept(
-                    TestUtil.newDocContext(
+                    TestUtil.newHandlerContext(
                             "ref",
                             TestUtil.toInputStream("fives"),
                             props,

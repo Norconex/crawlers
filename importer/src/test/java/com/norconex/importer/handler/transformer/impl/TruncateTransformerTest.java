@@ -125,7 +125,7 @@ class TruncateTransformerTest {
         var t = new TruncateTransformer();
 
         // hash + suffix
-        docCtx = TestUtil.newDocContext(
+        docCtx = TestUtil.newHandlerContext(
                 "Please truncate me before you start thinking I am too long."
         );
         t.getConfiguration()
@@ -141,7 +141,7 @@ class TruncateTransformerTest {
         );
 
         // no hash + suffix
-        docCtx = TestUtil.newDocContext(
+        docCtx = TestUtil.newHandlerContext(
                 "Another long string to test similar with suffix and no hash"
         );
         t.getConfiguration()
@@ -154,7 +154,7 @@ class TruncateTransformerTest {
         );
 
         // hash + no suffix
-        docCtx = TestUtil.newDocContext(
+        docCtx = TestUtil.newHandlerContext(
                 "Another long string to test similar without suffix, a hash"
         );
         t.getConfiguration()
@@ -167,7 +167,7 @@ class TruncateTransformerTest {
         );
 
         // no hash + no suffix
-        docCtx = TestUtil.newDocContext(
+        docCtx = TestUtil.newHandlerContext(
                 "Another long string to test similar without suffix, no hash"
         );
         t.getConfiguration()
@@ -180,7 +180,7 @@ class TruncateTransformerTest {
         );
 
         // too small for truncate
-        docCtx = TestUtil.newDocContext("A small one");
+        docCtx = TestUtil.newHandlerContext("A small one");
         t.getConfiguration()
                 .setAppendHash(false)
                 .setSuffix(null);
@@ -190,7 +190,7 @@ class TruncateTransformerTest {
         );
 
         // hash + suffix, replacing body
-        docCtx = TestUtil.newDocContext(
+        docCtx = TestUtil.newHandlerContext(
                 "Please truncate me before you start thinking I am too long."
         );
         t = new TruncateTransformer();

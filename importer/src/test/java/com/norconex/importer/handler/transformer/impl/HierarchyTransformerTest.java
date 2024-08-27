@@ -243,7 +243,7 @@ class HierarchyTransformerTest {
     private String[] tag(HierarchyTransformer t, Properties meta) {
         InputStream is = new NullInputStream(0);
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "blah", is, meta, ParseState.PRE
                 )
         );

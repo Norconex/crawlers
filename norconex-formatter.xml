@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- 
-   Copyright 2024 Norconex Inc.
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
--->
 <profiles version="23">
     <profile kind="CodeFormatterProfile" name="Norconex" version="23">
         <setting id="org.eclipse.jdt.core.formatter.insert_space_after_ellipsis" value="insert"/>
@@ -105,7 +90,7 @@
         <setting id="org.eclipse.jdt.core.formatter.alignment_for_annotations_on_enum_constant" value="49"/>
         <setting id="org.eclipse.jdt.core.formatter.insert_space_before_and_in_type_parameter" value="insert"/>
         <setting id="org.eclipse.jdt.core.formatter.insert_space_after_opening_paren_in_parenthesized_expression" value="do not insert"/>
-        <setting id="org.eclipse.jdt.core.formatter.text_block_indentation" value="0"/>
+        <setting id="org.eclipse.jdt.core.formatter.text_block_indentation" value="3"/>
         <setting id="org.eclipse.jdt.core.formatter.align_type_members_on_columns" value="false"/>
         <setting id="org.eclipse.jdt.core.formatter.alignment_for_assignment" value="16"/>
         <setting id="org.eclipse.jdt.core.formatter.alignment_for_module_statements" value="16"/>

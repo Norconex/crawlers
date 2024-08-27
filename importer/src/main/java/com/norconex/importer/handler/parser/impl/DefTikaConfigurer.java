@@ -28,7 +28,11 @@ import org.w3c.dom.Element;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLUtil;
 
-class DefTikaConfigurer {
+final class DefTikaConfigurer {
+
+    private DefTikaConfigurer() {
+    }
+
     // Useful: https://tika.apache.org/2.7.0/configuring.html
     // and: https://cwiki.apache.org/confluence/display/tika/TikaOCR
     // and: https://cwiki.apache.org/confluence/display/TIKA/Metadata+Filters
@@ -82,9 +86,7 @@ class DefTikaConfigurer {
                                 """.formatted(
                                 org.apache.tika.parser.DefaultParser.class
                                         .getName(),
-                                TesseractOCRParser.class.getName()
-                        )
-                );
+                                TesseractOCRParser.class.getName()));
                 // Configure Tesseract OCR
                 parsersXml.addXML(
                         new TesseractParserConfigBuilder()
@@ -94,38 +96,31 @@ class DefTikaConfigurer {
                                 .append("depth", ocr.getDepth())
                                 .append(
                                         "enableImagePreprocessing",
-                                        ocr.getEnableImagePreprocessing()
-                                )
+                                        ocr.getEnableImagePreprocessing())
                                 .append("filter", ocr.getFilter())
                                 .append(
                                         "imageMagickPath",
-                                        ocr.getImageMagickPath()
-                                )
+                                        ocr.getImageMagickPath())
                                 .append("language", ocr.getLanguage())
                                 .append(
                                         "maxFileSizeToOcr",
-                                        ocr.getMaxFileSizeToOcr()
-                                )
+                                        ocr.getMaxFileSizeToOcr())
                                 .append(
                                         "minFileSizeToOcr",
-                                        ocr.getMinFileSizeToOcr()
-                                )
+                                        ocr.getMinFileSizeToOcr())
                                 .append("pageSegMode", ocr.getPageSegMode())
                                 .append("pageSeparator", ocr.getPageSeparator())
                                 .append(
                                         "preserveInterwordSpacing",
-                                        ocr.getPreserveInterwordSpacing()
-                                )
+                                        ocr.getPreserveInterwordSpacing())
                                 .append("resize", ocr.getResize())
                                 .append("skipOcr", ocr.isDisabled())
                                 .append("tessdataPath", ocr.getTessdataPath())
                                 .append("tesseractPath", ocr.getTesseractPath())
                                 .append(
                                         "timeoutSeconds",
-                                        ocr.getTimeoutSeconds()
-                                )
-                                .build()
-                );
+                                        ocr.getTimeoutSeconds())
+                                .build());
             }
 
             // XFDL Parser
@@ -136,8 +131,7 @@ class DefTikaConfigurer {
                                 <mime>application/vnd.xfdl</mime>
                             </parser>
                             """
-                            .formatted(XfdlTikaParser.class.getName())
-            );
+                            .formatted(XfdlTikaParser.class.getName()));
 
             return new TikaConfig((Element) tikaXml.getNode());
         } catch (TikaException e) {
@@ -182,13 +176,11 @@ class DefTikaConfigurer {
             return append(
                     name, "string", Optional.ofNullable(value)
                             .map(Path::toAbsolutePath)
-                            .map(Path::toString).orElse(null)
-            );
+                            .map(Path::toString).orElse(null));
         }
 
         private TesseractParserConfigBuilder append(
-                String name, String type, String value
-        ) {
+                String name, String type, String value) {
             if (StringUtils.isNotBlank(value)) {
                 params.addElement("param")
                         .setAttribute("name", name)

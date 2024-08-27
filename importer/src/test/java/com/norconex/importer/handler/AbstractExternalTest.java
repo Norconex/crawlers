@@ -142,7 +142,7 @@ public abstract class AbstractExternalTest {
                 .setMetadataInputFormat(META_FORMAT_PROPERTIES)
                 .setMetadataOutputFormat(META_FORMAT_PROPERTIES)
                 .setOnSet(PropertySetter.REPLACE);
-        var doc = TestUtil.newDocContext(
+        var doc = TestUtil.newHandlerContext(
                 "c:\\ref with spaces\\doc.txt", input,
                 metadata, ParseState.PRE
         );

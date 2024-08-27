@@ -61,7 +61,7 @@ class CountMatchesTransformerTest {
         cfg.setToField("slashesCountNormal");
         cfg.getCountMatcher().setPattern("/").setIgnoreCase(true);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(4, (int) meta.getInteger("slashesCountNormal"));
         // Count slashes with regex (4)
         t = new CountMatchesTransformer();
@@ -71,7 +71,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("/")
                 .setMethod(Method.REGEX).setIgnoreCase(true);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(4, (int) meta.getInteger("slashesCountRegex"));
         // Count URL segments (3)
         t = new CountMatchesTransformer();
@@ -81,7 +81,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("/[^/]+")
                 .setMethod(Method.REGEX).setIgnoreCase(true);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(3, (int) meta.getInteger("segmentCountRegex"));
 
         // Count fruits with substrings case-sensitive (1)
@@ -91,7 +91,7 @@ class CountMatchesTransformerTest {
         cfg.setToField("appleCountSensitiveNormal");
         cfg.getCountMatcher().setPattern("apple");
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(1, (int) meta.getInteger("appleCountSensitiveNormal"));
         // Count fruits with substrings case-insensitive (2)
         t = new CountMatchesTransformer();
@@ -100,7 +100,7 @@ class CountMatchesTransformerTest {
         cfg.setToField("appleCountInsensitiveNormal");
         cfg.getCountMatcher().setPattern("apple").setIgnoreCase(true);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(2, (int) meta.getInteger("appleCountInsensitiveNormal"));
         // Count fruits with regex case-sensitive (3)
         t = new CountMatchesTransformer();
@@ -110,7 +110,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("(apple|orange|grapefruit)")
                 .setMethod(Method.REGEX);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(3, (int) meta.getInteger("fruitsCountSensitiveRegex"));
         // Count fruits with regex case-insensitive (4)
         t = new CountMatchesTransformer();
@@ -120,7 +120,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("(apple|orange|grapefruit)")
                 .setMethod(Method.REGEX).setIgnoreCase(true);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(4, (int) meta.getInteger("fruitsCountInsensitiveRegex"));
 
         // Count vegetables with substrings case-sensitive (1)
@@ -129,7 +129,7 @@ class CountMatchesTransformerTest {
         cfg.setToField("potatoCountSensitiveNormal");
         cfg.getCountMatcher().setPattern("potato");
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(1, (int) meta.getInteger("potatoCountSensitiveNormal"));
         // Count vegetables  with substrings case-insensitive (2)
         t = new CountMatchesTransformer();
@@ -137,7 +137,7 @@ class CountMatchesTransformerTest {
         cfg.setToField("potatoCountInsensitiveNormal");
         cfg.getCountMatcher().setPattern("potato").setIgnoreCase(true);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(2, (int) meta.getInteger("potatoCountInsensitiveNormal"));
         // Count vegetables  with regex case-sensitive (2)
         t = new CountMatchesTransformer();
@@ -146,7 +146,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("(potato|carrot)")
                 .setMethod(Method.REGEX);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(2, (int) meta.getInteger("vegetableCountSensitiveRegex"));
         // Count vegetables  with regex case-insensitive (3)
         t = new CountMatchesTransformer();
@@ -155,7 +155,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("(potato|carrot)")
                 .setMethod(Method.REGEX).setIgnoreCase(true);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(
                 3,
                 (int) meta.getInteger("vegetableCountInsensitiveRegex")
@@ -180,7 +180,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("potato").setPartial(true);
 
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(2, (int) meta.getInteger("potatoCount"));
 
         t = new CountMatchesTransformer();
@@ -190,7 +190,7 @@ class CountMatchesTransformerTest {
         cfg.setToField("orangeCount");
         cfg.getCountMatcher().setPattern("orange").setPartial(true);
         is = toInputStream(content, UTF_8);
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.POST));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(2, (int) meta.getInteger("orangeCount"));
     }
 
@@ -212,7 +212,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("(orange|apple)")
                 .setMethod(Method.REGEX).setPartial(true);
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "n/a", nullInputStream(), meta, ParseState.POST
                 )
         );
@@ -226,7 +226,7 @@ class CountMatchesTransformerTest {
         cfg.setToField("potatoCount");
         cfg.getCountMatcher().setPattern("potato").setPartial(true);
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "n/a", nullInputStream(), meta, ParseState.POST
                 )
         );

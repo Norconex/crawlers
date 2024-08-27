@@ -61,7 +61,7 @@ class TextStatisticsTransformerTest {
 
         var meta = new Properties();
         meta.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.PRE));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.PRE));
 
         is.close();
 

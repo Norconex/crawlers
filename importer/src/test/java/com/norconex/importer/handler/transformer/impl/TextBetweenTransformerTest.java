@@ -90,7 +90,7 @@ class TextBetweenTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
 
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
                 )
         );
@@ -119,7 +119,7 @@ class TextBetweenTransformerTest {
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
                 )
         );
@@ -147,7 +147,7 @@ class TextBetweenTransformerTest {
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
                 )
         );

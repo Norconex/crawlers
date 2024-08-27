@@ -101,7 +101,7 @@ public class PDFPageSplitter
 
         // Make sure we are not splitting a page that was already split
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docRecord()
+                configuration.getContentTypeMatcher(), docCtx.docContext()
         )
                 || (docCtx.metadata().getInteger(DOC_PDF_PAGE_NO, 0) > 0)) {
             return;

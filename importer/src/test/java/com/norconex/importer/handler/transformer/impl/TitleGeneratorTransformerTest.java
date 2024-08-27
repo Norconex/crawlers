@@ -69,7 +69,7 @@ class TitleGeneratorTransformerTest {
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         file.getAbsolutePath(), is, metadata, ParseState.POST
                 )
         );
@@ -99,7 +99,7 @@ class TitleGeneratorTransformerTest {
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         file.getAbsolutePath(), is, metadata, ParseState.POST
                 )
         );
@@ -123,7 +123,7 @@ class TitleGeneratorTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
 
         t.accept(
-                TestUtil.newDocContext(
+                TestUtil.newHandlerContext(
                         "test.txt", is, metadata, ParseState.POST
                 )
         );

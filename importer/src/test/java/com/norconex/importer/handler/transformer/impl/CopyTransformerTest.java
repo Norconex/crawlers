@@ -21,6 +21,7 @@ import static java.io.InputStream.nullInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
 class CopyTransformerTest {
@@ -41,9 +41,7 @@ class CopyTransformerTest {
                 List.of(
                         CopyOperation
                                 .of(new TextMatcher("from1"), "to1", OPTIONAL),
-                        CopyOperation.of(new TextMatcher("from2"), "to2")
-                )
-        );
+                        CopyOperation.of(new TextMatcher("from2"), "to2")));
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
 
@@ -58,9 +56,8 @@ class CopyTransformerTest {
                         CopyOperation
                                 .of(new TextMatcher("src3"), "trgt3", PREPEND),
                         CopyOperation
-                                .of(new TextMatcher("src4"), "trgt4", REPLACE)
-                )
-        );
+                                .of(new TextMatcher("src4"), "trgt4",
+                                        REPLACE)));
 
         var props = new Properties();
         props.add("src1", "srcVal1");
@@ -72,9 +69,8 @@ class CopyTransformerTest {
         props.add("trgt3", "trgtVal3");
         props.add("trgt4", "trgtVal4");
 
-        var docCtx = TestUtil.newDocContext(
-                "ref", nullInputStream(), props, ParseState.POST
-        );
+        var docCtx = TestUtil.newHandlerContext(
+                "ref", nullInputStream(), props, ParseState.POST);
         t.accept(docCtx);
 
         assertThat(props.getStrings("trgt1"))
@@ -90,16 +86,12 @@ class CopyTransformerTest {
 
         var t = new CopyTransformer();
         t.getConfiguration().setOperations(
-                List.of(CopyOperation.of("toField"))
-        );
+                List.of(CopyOperation.of("toField")));
 
         var body = "Copy this.".getBytes();
         var props = new Properties();
-        t.accept(
-                TestUtil.newDocContext(
-                        "blah", new ByteArrayInputStream(body), props
-                )
-        );
+        t.accept(TestUtil.newHandlerContext(
+                "blah", new ByteArrayInputStream(body), props));
 
         assertThat(props.getString("toField")).isEqualTo("Copy this.");
     }

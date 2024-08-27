@@ -47,7 +47,7 @@ class StripAfterTransformerTest {
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        var doc = TestUtil.newDocContext(
+        var doc = TestUtil.newHandlerContext(
                 htmlFile.getAbsolutePath(),
                 is, metadata, ParseState.PRE
         );

@@ -109,7 +109,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
     public void split(HandlerContext docCtx) throws DocumentHandlerException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docRecord()
+                configuration.getContentTypeMatcher(), docCtx.docContext()
         )) {
             return;
         }
@@ -140,7 +140,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
                 var inputCharset = CharsetUtil.firstNonNullOrUTF8(
                         docCtx.parseState(),
                         configuration.getSourceCharset(),
-                        docCtx.docRecord().getCharset()
+                        docCtx.docContext().getCharset()
                 );
                 var soupDoc = Jsoup.parse(
                         docCtx.input().asInputStream(),

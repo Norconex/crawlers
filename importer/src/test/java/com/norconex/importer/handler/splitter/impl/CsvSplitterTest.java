@@ -116,7 +116,7 @@ class CsvSplitterTest {
     private List<Doc> split(CsvSplitter splitter)
             throws IOException {
         var metadata = new Properties();
-        var ctx = TestUtil.newDocContext("n/a", input, metadata);
+        var ctx = TestUtil.newHandlerContext("n/a", input, metadata);
         splitter.accept(ctx);
         return ctx.childDocs();
     }
