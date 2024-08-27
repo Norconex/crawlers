@@ -53,16 +53,33 @@ class ImageTransformerTest {
     void testImageTransformer() throws IOException {
         var t = new ImageTransformer();
         t.getConfiguration().setRotation(90d);
-        var doc = TestUtil.newDocContext(
-                "img.png",
-                getClass().getResourceAsStream(
-                        "/parser/image/importer.png"
-                )
-        );
+        var doc = TestUtil.newDocContext("img.png",
+                getClass().getResourceAsStream("/parser/image/importer.png"));
         assertThatNoException().isThrownBy(() -> t.accept(doc));
-        assertThat(
-                ((CachedInputStream) doc.input().asInputStream()).length()
-        )
+        assertThat(((CachedInputStream) doc.input().asInputStream()).length())
+                .isPositive();
+    }
+
+    @Test
+    void testOperationsDoNotThrow() throws IOException {
+        var t = new ImageTransformer();
+        var cfg = t.getConfiguration();
+        cfg.getScale()
+                .setFactor(1.5)
+                .setHeight(32)
+                .setWidth(64)
+                .setStretch(true);
+        cfg.setRotation(null);
+        cfg.getCrop()
+                .setHeight(10)
+                .setWidth(20)
+                .setX(2)
+                .setY(4);
+
+        var doc = TestUtil.newDocContext("img.png",
+                getClass().getResourceAsStream("/parser/image/importer.png"));
+        assertThatNoException().isThrownBy(() -> t.accept(doc));
+        assertThat(((CachedInputStream) doc.input().asInputStream()).length())
                 .isPositive();
     }
 }
