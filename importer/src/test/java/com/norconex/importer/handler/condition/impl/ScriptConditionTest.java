@@ -36,7 +36,6 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.DocumentHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
 
 class ScriptConditionTest {
@@ -109,12 +108,12 @@ class ScriptConditionTest {
     }
 
     @Test
-    void testNoScriptMustThrow() throws IOException {
+    void testNoScriptMustThrow() {
         var cond = new ScriptCondition();
         cond.getConfiguration().setScript(null);
 
         var ctx = TestUtil.newHandlerContext("ref", "potato");
-        assertThatExceptionOfType(DocumentHandlerException.class)
+        assertThatExceptionOfType(IOException.class)
             .isThrownBy(() -> cond.evaluate(ctx));
     }
 }
