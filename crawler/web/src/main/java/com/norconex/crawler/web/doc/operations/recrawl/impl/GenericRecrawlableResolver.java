@@ -165,8 +165,7 @@ public class GenericRecrawlableResolver implements
                     && f.getMatcher().matches(prevData.getReference())
                     || ("contentType".equalsIgnoreCase(applyTo)
                             && f.getMatcher().matches(
-                                    prevData.getContentType().toString()
-                            )))) {
+                                    prevData.getContentType().toString())))) {
                 return f;
             }
         }
@@ -182,8 +181,7 @@ public class GenericRecrawlableResolver implements
     }
 
     private boolean isRecrawlableFromMinFrequencies(
-            MinFrequency f, WebCrawlDocContext prevData
-    ) {
+            MinFrequency f, WebCrawlDocContext prevData) {
         var value = f.getValue();
         if (StringUtils.isBlank(value)) {
             return true;
@@ -202,8 +200,7 @@ public class GenericRecrawlableResolver implements
         }
         var lastCrawlDate = prevData.getCrawlDate();
         var minCrawlDate = lastCrawlDate.plus(
-                millis, ChronoField.MILLI_OF_DAY.getBaseUnit()
-        );
+                millis, ChronoField.MILLI_OF_DAY.getBaseUnit());
         var now = ZonedDateTime.now();
         if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
@@ -215,8 +212,7 @@ public class GenericRecrawlableResolver implements
                         formatDuration(millis),
                         formatDuration(lastCrawlDate, now),
                         lastCrawlDate,
-                        prevData.getReference()
-                );
+                        prevData.getReference());
             }
             return true;
         }
@@ -230,8 +226,7 @@ public class GenericRecrawlableResolver implements
                     formatDuration(millis),
                     formatDuration(lastCrawlDate, now),
                     lastCrawlDate,
-                    prevData.getReference()
-            );
+                    prevData.getReference());
         }
         return false;
     }
@@ -245,15 +240,13 @@ public class GenericRecrawlableResolver implements
             var lastCrawled = prevData.getCrawlDate();
             LOG.debug(
                     "Sitemap last modified date is {} for: {}",
-                    lastModified, prevData.getReference()
-            );
+                    lastModified, prevData.getReference());
             if (lastModified.isAfter(lastCrawled)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(
                             "Recrawlable according to sitemap directive "
                                     + "(last modified '{}' > last crawled '{}'): {}",
-                            lastModified, lastCrawled, prevData.getReference()
-                    );
+                            lastModified, lastCrawled, prevData.getReference());
                 }
                 return true;
             }
@@ -261,8 +254,7 @@ public class GenericRecrawlableResolver implements
                 LOG.debug(
                         "Not recrawlable according to sitemap directive "
                                 + "(last modified '{}' > last crawled '{}'): {}",
-                        lastModified, lastCrawled, prevData.getReference()
-                );
+                        lastModified, lastCrawled, prevData.getReference());
             }
             return false;
         }
@@ -270,16 +262,14 @@ public class GenericRecrawlableResolver implements
         // If sitemap specifies a change frequency, check if we are past
         // it and recrawl if so (otherwise don't).
         var cf = SitemapChangeFrequency.of(
-                prevData.getSitemapChangeFreq()
-        );
+                prevData.getSitemapChangeFreq());
 
         return isRecrawlableFromFrequency(cf, prevData, "Sitemap");
     }
 
     private boolean isRecrawlableFromFrequency(
             SitemapChangeFrequency cf, WebCrawlDocContext prevData,
-            String context
-    ) {
+            String context) {
         if (cf == null) {
             return true;
         }
@@ -287,8 +277,7 @@ public class GenericRecrawlableResolver implements
         if (LOG.isDebugEnabled()) {
             LOG.debug(
                     "The {} change frequency is {} for: {}",
-                    context, cf, prevData.getReference()
-            );
+                    context, cf, prevData.getReference());
         }
         if (cf == SitemapChangeFrequency.ALWAYS) {
             return true;
@@ -322,34 +311,29 @@ public class GenericRecrawlableResolver implements
         var now = ZonedDateTime.now();
         if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        """
-                                Recrawlable according to {} directive\s\
-                                (required elasped time '{}'\s\
-                                < actual elasped time '{}' since '{}'): {}""",
+                LOG.debug("""
+                        Recrawlable according to {} directive\s\
+                        (required elasped time '{}'\s\
+                        < actual elasped time '{}' since '{}'): {}""",
                         context,
                         formatDuration(lastCrawlDate, minCrawlDate),
                         formatDuration(lastCrawlDate, now),
                         lastCrawlDate,
-                        prevData.getReference()
-                );
+                        prevData.getReference());
             }
             return true;
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug(
-                    String.format(
-                            """
-                                    Not recrawlable according to {} directive\s\
-                                    (required elapsed time '{}'\s\
-                                    >= actual elapsed time '{}' since '{}'): {}""",
+                    String.format("""
+                            Not recrawlable according to {} directive\s\
+                            (required elapsed time '{}'\s\
+                            >= actual elapsed time '{}' since '{}'): {}""",
                             context,
                             formatDuration(lastCrawlDate, minCrawlDate),
                             formatDuration(lastCrawlDate, now),
                             lastCrawlDate,
-                            prevData.getReference()
-                    )
-            );
+                            prevData.getReference()));
         }
         return false;
     }
@@ -367,53 +351,4 @@ public class GenericRecrawlableResolver implements
                 .withLocale(Locale.ENGLISH)
                 .format(millis);
     }
-
-    //    @Data
-    //    @NoArgsConstructor
-    //    public static class MinFrequency {
-    //        private String applyTo;
-    //        private String value;
-    //        private final TextMatcher matcher = new TextMatcher();
-    //        public MinFrequency(String applyTo, String value, TextMatcher matcher) {
-    //            this.applyTo = applyTo;
-    //            this.value = value;
-    //            this.matcher.copyFrom(matcher);
-    //        }
-    //        public void setMatcher(TextMatcher matcher) {
-    //            this.matcher.copyFrom(matcher);
-    //        }
-    //    }
-
-    //    @Override
-    //    public void loadFromXML(XML xml) {
-    //        var smsXml = xml.getString("@sitemapSupport");
-    //        if (StringUtils.isNotBlank(smsXml)) {
-    //            var sms = SitemapSupport.getSitemapSupport(smsXml);
-    //            if (sms == null) {
-    //                LOG.warn("Unsupported sitemap support value: \"{}\". "
-    //                        + "Will use default.", smsXml);
-    //            }
-    //            setSitemapSupport(sms);
-    //        }
-    //
-    //        List<MinFrequency> frequencies = new ArrayList<>();
-    //        for (XML minFreqXml : xml.getXMLList("minFrequency")) {
-    //            var f = new MinFrequency();
-    //            f.setApplyTo(minFreqXml.getString("@applyTo"));
-    //            f.setValue(minFreqXml.getString("@value"));
-    //            f.matcher.loadFromXML(minFreqXml.getXML("matcher"));
-    //            frequencies.add(f);
-    //        }
-    //        setMinFrequencies(frequencies);
-    //    }
-    //    @Override
-    //    public void saveToXML(XML xml) {
-    //        xml.setAttribute("sitemapSupport", sitemapSupport);
-    //        for (MinFrequency mf : minFrequencies) {
-    //            var minFreqXml = xml.addElement("minFrequency")
-    //                    .setAttribute("applyTo", mf.applyTo)
-    //                    .setAttribute("value", mf.value);
-    //            mf.matcher.saveToXML(minFreqXml.addElement("matcher"));
-    //        }
-    //    }
 }
