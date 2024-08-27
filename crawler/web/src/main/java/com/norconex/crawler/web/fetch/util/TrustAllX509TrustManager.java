@@ -33,53 +33,41 @@ public class TrustAllX509TrustManager extends X509ExtendedTrustManager {
     }
 
     @Override
-    public void checkClientTrusted(
-        //NOSONAR
-            X509Certificate[] chain, String authType
-    ) {
+    public void checkClientTrusted( //NOSONAR
+            X509Certificate[] chain, String authType) {
         //NOOP
     }
 
     @Override
-    public void checkServerTrusted(
-        //NOSONAR
-            X509Certificate[] chain, String authType
-    ) {
+    public void checkServerTrusted( //NOSONAR
+            X509Certificate[] chain, String authType) {
         //NOOP
     }
 
     @Override
-    public void checkClientTrusted(
-        //NOSONAR
-            X509Certificate[] chain, String authType, Socket socket
-    )
+    public void checkClientTrusted( //NOSONAR
+            X509Certificate[] chain, String authType, Socket socket)
             throws CertificateException {
         //NOOP
     }
 
     @Override
-    public void checkServerTrusted(
-        //NOSONAR
-            X509Certificate[] chain, String authType, Socket socket
-    )
+    public void checkServerTrusted( //NOSONAR
+            X509Certificate[] chain, String authType, Socket socket)
             throws CertificateException {
         //NOOP
     }
 
     @Override
-    public void checkClientTrusted(
-        //NOSONAR
-            X509Certificate[] chain, String authType, SSLEngine engine
-    )
+    public void checkClientTrusted( //NOSONAR
+            X509Certificate[] chain, String authType, SSLEngine engine)
             throws CertificateException {
         //NOOP
     }
 
     @Override
-    public void checkServerTrusted(
-        //NOSONAR
-            X509Certificate[] chain, String authType, SSLEngine engine
-    )
+    public void checkServerTrusted( //NOSONAR
+            X509Certificate[] chain, String authType, SSLEngine engine)
             throws CertificateException {
         //NOOP
     }
