@@ -106,7 +106,6 @@ public class Importer {
             configuration = new ImporterConfig();
         }
         this.eventManager = new EventManager(eventManager);
-        //        parseHandler = new ImporterParseHandler(this);
         INSTANCE.set(this);
     }
 
@@ -121,7 +120,10 @@ public class Importer {
      *    list of command-line options.
      */
     public static void main(String[] args) {
-        ImporterLauncher.launch(args);
+        var val = ImporterLauncher.launch(args);
+        if (val != 0) {
+            System.exit(val);
+        }
     }
 
     /**
@@ -374,37 +376,6 @@ public class Importer {
                 configuration.getTempDir()
         );
     }
-
-    //    private ImporterResponse doImportDocument(
-    //            Doc document, List<Doc> nestedDocs) throws IOException {
-    //
-    //        return executeHandlers(
-    //                document,
-    //                nestedDocs,
-    //                configuration.getHandler());
-    ////                ,
-    //////                configuration.getPreParseConsumer(),
-    ////                ParseState.PRE);
-    ////
-    ////        if (!filterStatus.isSuccess()) {
-    ////            return filterStatus;
-    ////        }
-    ////        //--- Parse ---
-    ////        //MAYBE: make parse just another handler in the chain?  Eliminating
-    ////        //the need for pre and post handlers?
-    ////        parseHandler.parseDocument(document, nestedDocs);
-    ////
-    ////        //--- Post-handlers ---
-    ////        filterStatus = executeHandlers(
-    ////                document,
-    ////                nestedDocs,
-    ////                configuration.getPostParseConsumer(),
-    ////                ParseState.POST);
-    ////        if (!filterStatus.isSuccess()) {
-    ////            return filterStatus;
-    ////        }
-    ////        return PASSING_FILTER_STATUS;
-    //    }
 
     private void processResponse(ImporterResponse response) {
         for (ImporterResponseProcessor proc : configuration
