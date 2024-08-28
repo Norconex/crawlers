@@ -1,8 +1,6 @@
 name: Check CopyRight Info on Files
 
-on: 
-  push:
-    branches: [ bugfix/copyright-check-xml-type ] 
+on:   
   pull_request:
     branches: [ main ]
     
