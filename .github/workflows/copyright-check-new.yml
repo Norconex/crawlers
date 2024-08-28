@@ -40,7 +40,7 @@ jobs:
             **/assembly/**
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
-        if: steps.check_dependabot.outputs.check == '0'
+        if: ${{ steps.check_dependabot.outputs.check == '0' && steps.modified-files.outputs.all_changed_files != '' }}
         run: |
           for file in ${{ steps.modified-files.outputs.all_changed_files }}; do
             if ! grep -qE 'Copyright [0-9]{4} Norconex Inc\.|Copyright [0-9]{4}-[0-9]{4} Norconex Inc\.' "$file"; then
@@ -92,7 +92,7 @@ jobs:
           done
           
       - name: Verify Year on files' Copyright Info is up to date
-        if: steps.check_dependabot.outputs.check == '0'
+        if: ${{ steps.check_dependabot.outputs.check == '0' && steps.modified-files.outputs.all_changed_files != '' }}
         run: |
           # make sure the file exist
           touch /tmp/modified-file-list.txt
@@ -161,11 +161,11 @@ jobs:
           echo ""
 
       - name: Check git status
-        if: steps.check_dependabot.outputs.check == '0'
+        if: ${{ steps.check_dependabot.outputs.check == '0' && steps.modified-files.outputs.all_changed_files != '' }}
         run: git status
 
       - name: Upload Modified Files
-        if: steps.check_dependabot.outputs.check == '0'
+        if: ${{ steps.check_dependabot.outputs.check == '0' && steps.modified-files.outputs.all_changed_files != '' }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Apply Copyright year changes
