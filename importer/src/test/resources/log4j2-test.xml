@@ -12,7 +12,7 @@
       <AppenderRef ref="Console"/>
     </Root>
 
-    <Logger name="com.norconex.importer" level="INFO" additivity="false">
+    <Logger name="com.norconex.importer" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.commons.lang" level="INFO" additivity="false">

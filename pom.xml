@@ -95,7 +95,7 @@
     
     <!-- === Maven plugins ================================================= -->
 
-    <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>    
+    <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <license-maven-plugin.version>2.4.0</license-maven-plugin.version>
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>

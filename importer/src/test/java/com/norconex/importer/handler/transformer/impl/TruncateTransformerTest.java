@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
@@ -119,8 +120,7 @@ class TruncateTransformerTest {
     }
 
     @Test
-    void testBodyWithSuffixAndHash()
-            throws IOException, IOException {
+    void testBodyWithSuffixAndHash() throws IOException {
         HandlerContext docCtx;
         var t = new TruncateTransformer();
 
@@ -205,5 +205,18 @@ class TruncateTransformerTest {
                 "Please truncate me before you start thi!0996700004",
                 docCtx.input().asString()
         );
+
+        // doing fields, without "to" field
+        docCtx = TestUtil.newHandlerContext("Content");
+        docCtx.metadata().add("key", "I should be truncated.");
+        t = new TruncateTransformer();
+        t.getConfiguration()
+                .setToField(null)
+                .setMaxLength(10)
+                .setOnSet(PropertySetter.REPLACE)
+                .setFieldMatcher(TextMatcher.basic("key"));
+        t.doFields(docCtx);
+        Assertions.assertEquals("Content", docCtx.input().asString());
+        assertThat(docCtx.metadata().getString("key")).isEqualTo("I should b");
     }
 }

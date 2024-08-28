@@ -221,7 +221,9 @@ public class LanguageTransformer
 
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
             var results = detector.detectAll(chunk.getText());
-            if (results.isEmpty()) {
+            if (results.isEmpty()
+                    || (results.size() == 1 &&
+                            results.contains(LanguageResult.NULL))) {
                 LOG.debug("No language found, using fallback language for {}.",
                         docCtx.reference());
                 docCtx.metadata().set(DocMetadata.LANGUAGE,
