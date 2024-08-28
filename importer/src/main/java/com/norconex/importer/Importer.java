@@ -122,7 +122,7 @@ public class Importer {
     public static void main(String[] args) {
         var val = ImporterLauncher.launch(args);
         if (val != 0) {
-            System.exit(val);
+            System.err.println("Command did not terminate properly.");//NOSONAR
         }
     }
 

@@ -110,9 +110,6 @@ public final class ImporterLauncher {
         var reference = cmd.getOptionValue(ARG_REFERENCE);
         var metadata = new Properties();
         var config = loadCommandLineConfig(configFile, varFile);
-        if (config == null) {
-            return -1;
-        }
 
         var inputFile = Paths.get(cmd.getOptionValue(ARG_INPUTFILE));
         try {

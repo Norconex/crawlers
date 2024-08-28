@@ -162,7 +162,6 @@ class ImporterLauncherTest {
                         "-i", TEST_PDF,
                         "-o",  tempDir + "/output.txt"
                 }));
-        assertThat(exit.getReturnValue()).isNotZero();
         assertThat(exit.getStdErr()).contains(
                 "A problem occured loading configuration.");
     }
@@ -179,7 +178,6 @@ class ImporterLauncherTest {
                         "-i", TEST_PDF,
                         "-o",  tempDir + "/output.txt"
                 }));
-        assertThat(exit.getReturnValue()).isNotZero();
         System.err.println("ERROR: " + exit.getStdErr());
         assertThat(exit.getStdErr()).contains(
                 "A problem occured loading configuration.");

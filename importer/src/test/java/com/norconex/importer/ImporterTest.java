@@ -124,12 +124,12 @@ class ImporterTest {
 
     @Test
     void testMain() throws IOException {
-        var in = TestUtil.getAliceHtmlFile().getAbsolutePath();
-        var out = tempDir.resolve("out.txt").toAbsolutePath().toString();
-        Importer.main(new String[] { "-i", in, "-o", out });
+        var inFile = TestUtil.getAliceHtmlFile().getAbsolutePath();
+        var outFile = tempDir.resolve("out.txt").toAbsolutePath().toString();
+        Importer.main(new String[] { "-i", inFile, "-o", outFile });
         Assertions.assertTrue(
                 FileUtils.readFileToString(
-                        new File(out), UTF_8
+                        new File(outFile), UTF_8
                 ).contains("And so it was indeed")
         );
     }
