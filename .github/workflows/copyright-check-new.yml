@@ -2,7 +2,8 @@ name: Check CopyRight Info on Files
 
 on:  
   pull_request:
-    branches: [ main ]
+    #branches: [ main ]
+    branches: [ bugfix/copyright-check-xml-type ]
 
 jobs:
   update-author:
@@ -61,9 +62,9 @@ jobs:
               # check if file type is xml file  
               elif [[ "${file}" == *.xml ]]; then
                 
-                cat .github/workflows/copyright-headers/xml_file.txt $file > tmp.txt
-                
-                mv tmp.txt $file       
+                sed -e '/<?xml version="1.0" encoding="UTF-8"?>/ {' -e 'r .github/workflows/copyright-headers/xml_file.txt' -e 'd' -e '}' -i $file
+                # cat .github/workflows/copyright-headers/xml_file.txt $file > tmp.txt
+                # mv tmp.txt $file       
                 
               # check if file type is html file
               elif [[ "${file}" == *.html ]]; then
