@@ -47,8 +47,11 @@ public class Doc {
     public Doc(String reference, CachedInputStream content) {
         this(reference, content, null);
     }
-    public Doc(@NonNull String reference, CachedInputStream content,
-            Properties metadata) {
+
+    public Doc(
+            @NonNull String reference, CachedInputStream content,
+            Properties metadata
+    ) {
         this(new DocContext(reference), content, metadata);
     }
 
@@ -62,6 +65,7 @@ public class Doc {
     public Doc(DocContext docContext, CachedInputStream content) {
         this(docContext, content, null);
     }
+
     /**
      * Creates a blank importer document using the supplied input stream
      * to handle content.
@@ -72,7 +76,8 @@ public class Doc {
     public Doc(
             @NonNull DocContext docContext,
             @NonNull CachedInputStream content,
-            Properties metadata) {
+            Properties metadata
+    ) {
         this.docContext = docContext;
         this.content = content;
         if (metadata == null) {
@@ -96,6 +101,7 @@ public class Doc {
         content.rewind();
         return content;
     }
+
     public void setInputStream(@NonNull InputStream inputStream) {
         if (content == inputStream) {
             return;
@@ -112,7 +118,8 @@ public class Doc {
             }
         } catch (IOException e) {
             throw new ImporterRuntimeException(
-                    "Could set content input stream.", e);
+                    "Could set content input stream.", e
+            );
         }
     }
 

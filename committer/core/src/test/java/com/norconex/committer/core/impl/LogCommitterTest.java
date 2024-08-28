@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 /**
  * <p>LogCommitter tests.</p>
  */
-class LogCommitterTest  {
+class LogCommitterTest {
 
     @Test
     void testMemoryCommitter() throws CommitterException {
@@ -36,7 +36,8 @@ class LogCommitterTest  {
             var c = new LogCommitter();
             c.init(TestUtil.committerContext(null));
             TestUtil.commitRequests(
-                    c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1));
+                    c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1)
+            );
             c.close();
         });
     }
@@ -46,9 +47,9 @@ class LogCommitterTest  {
         assertThatNoException().isThrownBy(() -> {
             var c = new LogCommitter();
             c.getConfiguration()
-                .setFieldMatcher(TextMatcher.wildcard("pot?to"))
-                .setIgnoreContent(true)
-                .setLogLevel(LogLevel.ERROR);
+                    .setFieldMatcher(TextMatcher.wildcard("pot?to"))
+                    .setIgnoreContent(true)
+                    .setLogLevel(LogLevel.ERROR);
             BeanMapper.DEFAULT.assertWriteRead(c);
         });
     }

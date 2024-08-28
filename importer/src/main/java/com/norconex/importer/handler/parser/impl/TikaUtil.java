@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,13 @@ import com.norconex.commons.lang.map.Properties;
 
 class TikaUtil {
 
-    private TikaUtil() {}
+    private TikaUtil() {
+    }
 
     static void metadataToProperties(
-            Metadata tikaMeta, Properties metadata) {
-        var  names = tikaMeta.names();
+            Metadata tikaMeta, Properties metadata
+    ) {
+        var names = tikaMeta.names();
         for (String name : names) {
             if (TikaCoreProperties.RESOURCE_NAME_KEY.equals(name)) {
                 continue;
@@ -47,11 +49,13 @@ class TikaUtil {
     }
 
     private static boolean containsSameValue(
-            String name, List<String> nxValues, String tikaValue) {
+            String name, List<String> nxValues, String tikaValue
+    ) {
         if (EqualsUtil.equalsAnyIgnoreCase(
                 name,
                 HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.CONTENT_ENCODING)) {
+                HttpHeaders.CONTENT_ENCODING
+        )) {
             var tk = tikaValue.replaceAll("[\\s]", "");
             for (String nxValue : nxValues) {
                 if (nxValue.replaceAll("[\\s]", "").equalsIgnoreCase(tk)) {

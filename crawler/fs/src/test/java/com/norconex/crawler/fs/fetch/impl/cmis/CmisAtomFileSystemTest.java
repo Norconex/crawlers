@@ -38,6 +38,7 @@ class CmisAtomFileSystemTest {
         cmisServer = new CmisTestServer();
         cmisServer.start();
     }
+
     @AfterAll
     static void afterClass() throws Exception {
         if (cmisServer != null) {
@@ -50,11 +51,11 @@ class CmisAtomFileSystemTest {
     void testAtom_1_0() {
         testCmisFileSystem(CmisTestServer.ATOM_1_0, 21);
     }
+
     @Test
     void testAtom_1_1() {
         testCmisFileSystem(CmisTestServer.ATOM_1_1, 21);
     }
-
 
     void testCmisFileSystem(String path, int expectedQty) {
 
@@ -62,8 +63,9 @@ class CmisAtomFileSystemTest {
         var mem = FsTestUtil.runWithConfig(
                 tempDir,
                 cfg -> cfg
-                .setStartReferences(List.of(ref))
-                .setFetchers(List.of(new CmisFetcher())));
+                        .setStartReferences(List.of(ref))
+                        .setFetchers(List.of(new CmisFetcher()))
+        );
         assertThat(mem.getUpsertCount()).isEqualTo(expectedQty);
     }
 

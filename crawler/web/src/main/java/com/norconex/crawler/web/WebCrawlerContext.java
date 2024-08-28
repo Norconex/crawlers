@@ -29,7 +29,9 @@ import lombok.Data;
 @Data
 public class WebCrawlerContext extends CrawlerContext {
 
-    public enum SitemapPresence { RESOLVING, PRESENT, NONE }
+    public enum SitemapPresence {
+        RESOLVING, PRESENT, NONE
+    }
 
     // key = root url
     private final Map<String, SitemapPresence> resolvedWebsites =

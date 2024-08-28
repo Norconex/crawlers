@@ -54,14 +54,14 @@ public class DocsProcessor implements Runnable {
     @Override
     public void run() {
         try {
-           init();
-           ofNullable(crawler.getCallbacks().getBeforeCrawlerExecution())
-           .ifPresent(cb -> cb.accept(crawler));
-           execute();
+            init();
+            ofNullable(crawler.getCallbacks().getBeforeCrawlerExecution())
+                    .ifPresent(cb -> cb.accept(crawler));
+            execute();
         } finally {
             try {
                 ofNullable(crawler.getCallbacks().getAfterCrawlerExecution())
-                .ifPresent(cb -> cb.accept(crawler));
+                        .ifPresent(cb -> cb.accept(crawler));
             } finally {
                 destroy();
             }
@@ -78,12 +78,14 @@ public class DocsProcessor implements Runnable {
         resumableMaxDocs = cfgMaxDocs;
         if (cfgMaxDocs > -1 && state.isResuming()) {
             resumableMaxDocs += docTrackerService.getProcessedCount();
-            LOG.info("""
-                Adding configured maximum documents ({})\s\
-                to this resumed session. The combined maximum\s\
-                documents for this run and previous stopped one(s) is: {}
-                """,
-                cfgMaxDocs, resumableMaxDocs);
+            LOG.info(
+                    """
+                            Adding configured maximum documents ({})\s\
+                            to this resumed session. The combined maximum\s\
+                            documents for this run and previous stopped one(s) is: {}
+                            """,
+                    cfgMaxDocs, resumableMaxDocs
+            );
         }
     }
 
@@ -94,11 +96,11 @@ public class DocsProcessor implements Runnable {
             LogUtil.setMdcCrawlerId(crawler.getId());
             Thread.currentThread().setName(crawler.getId() + "#queue-init");
             LOG.debug("Crawler thread 'init-queue' started.");
-                crawler.fire(CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
-                crawler
-                .getDocPipelines()
-                .getQueuePipeline()
-                .initializeQueue(crawler);
+            crawler.fire(CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
+            crawler
+                    .getDocPipelines()
+                    .getQueuePipeline()
+                    .initializeQueue(crawler);
 
         } finally {
             crawler.fire(CRAWLER_RUN_THREAD_END, Thread.currentThread());
@@ -120,8 +122,10 @@ public class DocsProcessor implements Runnable {
         LOG.info("Crawler {}", (state.isStopped() ? "stopped." : "completed."));
         try {
             progressLogger.stopTracking();
-            LOG.info("Execution Summary:{}",
-                    progressLogger.getExecutionSummary());
+            LOG.info(
+                    "Execution Summary:{}",
+                    progressLogger.getExecutionSummary()
+            );
         } finally {
             if (state.isStopping()) {
                 state.setStopped(true);
@@ -139,19 +143,21 @@ public class DocsProcessor implements Runnable {
             for (var i = 0; i < numThreads; i++) {
                 final var threadIndex = i + 1;
                 LOG.debug("Crawler thread #{} starting...", threadIndex);
-                execService.execute(DocProcessor.builder()
-                    .crawler(crawler)
-                    .latch(latch)
-                    .threadIndex(threadIndex)
-                    .deleting(flags.delete)
-                    .orphan(flags.orphan)
-                    .crawlRunner(this)
-                    .build());
+                execService.execute(
+                        DocProcessor.builder()
+                                .crawler(crawler)
+                                .latch(latch)
+                                .threadIndex(threadIndex)
+                                .deleting(flags.delete)
+                                .orphan(flags.orphan)
+                                .crawlRunner(this)
+                                .build()
+                );
             }
             latch.await();
         } catch (InterruptedException e) {
-             Thread.currentThread().interrupt();
-             throw new CrawlerException(e);
+            Thread.currentThread().interrupt();
+            throw new CrawlerException(e);
         } finally {
             execService.shutdown();
             // necessary to ensure thread end event is not sometimes fired
@@ -174,8 +180,10 @@ public class DocsProcessor implements Runnable {
         var isMax = resumableMaxDocs > -1
                 && docTrackerService.getProcessedCount() >= resumableMaxDocs;
         if (isMax) {
-            LOG.info("Maximum documents reached for this crawling session: {}",
-                    resumableMaxDocs);
+            LOG.info(
+                    "Maximum documents reached for this crawling session: {}",
+                    resumableMaxDocs
+            );
         }
         return isMax;
     }
@@ -184,8 +192,10 @@ public class DocsProcessor implements Runnable {
         if (Boolean.getBoolean(Crawler.SYS_PROP_ENABLE_JMX)) {
             LOG.info("JMX support enabled.");
         } else {
-            LOG.info("JMX support disabled. To enable, set -DenableJMX=true "
-                    + "system property as a JVM argument.");
+            LOG.info(
+                    "JMX support disabled. To enable, set -DenableJMX=true "
+                            + "system property as a JVM argument."
+            );
         }
     }
 
@@ -193,10 +203,12 @@ public class DocsProcessor implements Runnable {
     public static final class ProcessFlags {
         private boolean delete;
         private boolean orphan;
+
         ProcessFlags delete() {
             delete = true;
             return this;
         }
+
         ProcessFlags orphan() {
             orphan = true;
             return this;

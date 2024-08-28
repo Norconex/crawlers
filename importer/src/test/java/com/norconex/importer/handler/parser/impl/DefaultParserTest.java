@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,22 +30,26 @@ class DefaultParserTest {
     @Test
     void testWriteRead() {
 
-        var parser = Configurable.configure(new DefaultParser(),
-            cfg -> cfg.getEmbeddedConfig()
-                .setSplitContentTypes(
-                        List.of(TextMatcher.regex(".*splitBlah.*")))
-                .setSkipEmbeddedContentTypes(
-                        List.of(TextMatcher.regex(".*embedBlah.*")))
-                .setSkipEmbeddedOfContentTypes(
-                        List.of(TextMatcher.regex(".*embedOfBlah.*"))),
-            cfg -> cfg.getOcrConfig()
-                .setContentTypeMatcher(TextMatcher.regex(".*blah.*"))
-                .setLanguage("eng+fra")
-                .setTesseractPath(Path.of("/tmp/blah")),
-            cfg -> cfg.setErrorsSaveDir(Path.of("/tmp/saveDir"))
+        var parser = Configurable.configure(
+                new DefaultParser(),
+                cfg -> cfg.getEmbeddedConfig()
+                        .setSplitContentTypes(
+                                List.of(TextMatcher.regex(".*splitBlah.*"))
+                        )
+                        .setSkipEmbeddedContentTypes(
+                                List.of(TextMatcher.regex(".*embedBlah.*"))
+                        )
+                        .setSkipEmbeddedOfContentTypes(
+                                List.of(TextMatcher.regex(".*embedOfBlah.*"))
+                        ),
+                cfg -> cfg.getOcrConfig()
+                        .setContentTypeMatcher(TextMatcher.regex(".*blah.*"))
+                        .setLanguage("eng+fra")
+                        .setTesseractPath(Path.of("/tmp/blah")),
+                cfg -> cfg.setErrorsSaveDir(Path.of("/tmp/saveDir"))
         );
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(parser));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(parser));
     }
 }

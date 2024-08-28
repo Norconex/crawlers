@@ -34,74 +34,112 @@ class GenericDelayResolverTest {
     @Test
     void testWriteRead() {
         List<DelaySchedule> schedules = new ArrayList<>();
-        schedules.add(new DelaySchedule()
-                .setDayOfWeekRange(new Range<>(
-                        DelaySchedule.DOW.MON,
-                        DelaySchedule.DOW.WED))
-                .setDayOfMonthRange(new Range<>(1, 15))
-                .setTimeRange(new Range<>(
-                        LocalTime.parse("13:00"),
-                        LocalTime.parse("14:00")))
-                .setDelay(Duration.ofSeconds(1)));
+        schedules.add(
+                new DelaySchedule()
+                        .setDayOfWeekRange(
+                                new Range<>(
+                                        DelaySchedule.DOW.MON,
+                                        DelaySchedule.DOW.WED
+                                )
+                        )
+                        .setDayOfMonthRange(new Range<>(1, 15))
+                        .setTimeRange(
+                                new Range<>(
+                                        LocalTime.parse("13:00"),
+                                        LocalTime.parse("14:00")
+                                )
+                        )
+                        .setDelay(Duration.ofSeconds(1))
+        );
 
         var r = new GenericDelayResolver();
         r.getConfiguration()
-            .setSchedules(schedules)
-            .setDefaultDelay(Duration.ofSeconds(10))
-            .setIgnoreRobotsCrawlDelay(true)
-            .setScope(DelayResolverScope.THREAD);
+                .setSchedules(schedules)
+                .setDefaultDelay(Duration.ofSeconds(10))
+                .setIgnoreRobotsCrawlDelay(true)
+                .setScope(DelayResolverScope.THREAD);
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(r));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(r));
     }
 
     @Test
     void testDelayScheduleBoundaries() {
         //FYI: Jan 1, 2000 was a Saturday
         var schedule = new DelaySchedule()
-                .setDayOfWeekRange(new Range<>(
-                        DelaySchedule.DOW.MON,
-                        DelaySchedule.DOW.WED))
+                .setDayOfWeekRange(
+                        new Range<>(
+                                DelaySchedule.DOW.MON,
+                                DelaySchedule.DOW.WED
+                        )
+                )
                 .setDayOfMonthRange(new Range<>(1, 15))
-                .setTimeRange(new Range<>(
-                        LocalTime.parse("13:00"),
-                        LocalTime.parse("14:00")))
+                .setTimeRange(
+                        new Range<>(
+                                LocalTime.parse("13:00"),
+                                LocalTime.parse("14:00")
+                        )
+                )
                 .setDelay(Duration.ZERO);
-        Assertions.assertTrue(GenericDelayResolver
-                .toCircularSchedule(schedule)
-                .isDateTimeInSchedule(
-                        LocalDateTime.parse("2000-01-03T13:30")));
-        Assertions.assertFalse(GenericDelayResolver
-                .toCircularSchedule(schedule).isDateTimeInSchedule(
-                        LocalDateTime.parse("2000-01-03T01:30")));
+        Assertions.assertTrue(
+                GenericDelayResolver
+                        .toCircularSchedule(schedule)
+                        .isDateTimeInSchedule(
+                                LocalDateTime.parse("2000-01-03T13:30")
+                        )
+        );
+        Assertions.assertFalse(
+                GenericDelayResolver
+                        .toCircularSchedule(schedule).isDateTimeInSchedule(
+                                LocalDateTime.parse("2000-01-03T01:30")
+                        )
+        );
 
         schedule = new DelaySchedule()
-                .setDayOfWeekRange(new Range<>(
-                        DelaySchedule.DOW.FRI,
-                        DelaySchedule.DOW.TUE))
+                .setDayOfWeekRange(
+                        new Range<>(
+                                DelaySchedule.DOW.FRI,
+                                DelaySchedule.DOW.TUE
+                        )
+                )
                 .setDayOfMonthRange(new Range<>(25, 5))
-                .setTimeRange(new Range<>(
-                        LocalTime.parse("22:00"),
-                        LocalTime.parse("06:00")))
+                .setTimeRange(
+                        new Range<>(
+                                LocalTime.parse("22:00"),
+                                LocalTime.parse("06:00")
+                        )
+                )
                 .setDelay(Duration.ZERO);
-        Assertions.assertTrue(GenericDelayResolver
-                .toCircularSchedule(schedule)
-                .isDateTimeInSchedule(
-                        LocalDateTime.parse("2000-01-01T23:30")));
+        Assertions.assertTrue(
+                GenericDelayResolver
+                        .toCircularSchedule(schedule)
+                        .isDateTimeInSchedule(
+                                LocalDateTime.parse("2000-01-01T23:30")
+                        )
+        );
 
         schedule = new DelaySchedule()
-                .setDayOfWeekRange(new Range<>(
-                        DelaySchedule.DOW.SAT,
-                        DelaySchedule.DOW.TUE))
+                .setDayOfWeekRange(
+                        new Range<>(
+                                DelaySchedule.DOW.SAT,
+                                DelaySchedule.DOW.TUE
+                        )
+                )
                 .setDayOfMonthRange(new Range<>(25, 1))
-                .setTimeRange(new Range<>(
-                        LocalTime.parse("23:30"),
-                        LocalTime.parse("23:30")))
+                .setTimeRange(
+                        new Range<>(
+                                LocalTime.parse("23:30"),
+                                LocalTime.parse("23:30")
+                        )
+                )
                 .setDelay(Duration.ZERO);
-        Assertions.assertTrue(GenericDelayResolver
-                .toCircularSchedule(schedule)
-                .isDateTimeInSchedule(
-                        LocalDateTime.parse("2000-01-01T23:30")));
+        Assertions.assertTrue(
+                GenericDelayResolver
+                        .toCircularSchedule(schedule)
+                        .isDateTimeInSchedule(
+                                LocalDateTime.parse("2000-01-01T23:30")
+                        )
+        );
     }
 
     @Test
@@ -109,13 +147,16 @@ class GenericDelayResolverTest {
         var r = new GenericDelayResolver();
         r.getConfiguration().setDefaultDelay(Duration.ZERO);
         assertThatNoException().isThrownBy(
-                () -> r.delay(null, "http://somewhere.com"));
+                () -> r.delay(null, "http://somewhere.com")
+        );
 
         r.getConfiguration().setDefaultDelay(Duration.ofMillis(50));
         assertThatNoException().isThrownBy(
-                () -> r.delay(null, "http://somewhere.com"));
+                () -> r.delay(null, "http://somewhere.com")
+        );
         // doing twice in a row to trigger within elapsed time
         assertThatNoException().isThrownBy(
-                () -> r.delay(null, "http://somewhere.com"));
+                () -> r.delay(null, "http://somewhere.com")
+        );
     }
 }

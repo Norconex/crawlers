@@ -41,18 +41,25 @@ public class DocumentDedupStage implements Predicate<CommitterPipelineContext> {
         var duplRef = dedupService.findOrTrackDocument(docContext);
         if (duplRef.isPresent()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("REJECTED duplicate content checkum found for: {}",
-                        docContext.getReference());
+                LOG.debug(
+                        "REJECTED duplicate content checkum found for: {}",
+                        docContext.getReference()
+                );
             }
             docContext.setState(CrawlDocState.REJECTED);
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_DUPLICATE)
-                    .source(ctx.getCrawler())
-                    .subject(duplRef.get())
-                    .docContext(ctx.getDoc().getDocContext())
-                    .message("A document with the same content checksum "
-                            + "was already processed: " + duplRef.get())
-                    .build());
+            ctx.getCrawler().fire(
+                    CrawlerEvent.builder()
+                            .name(CrawlerEvent.REJECTED_DUPLICATE)
+                            .source(ctx.getCrawler())
+                            .subject(duplRef.get())
+                            .docContext(ctx.getDoc().getDocContext())
+                            .message(
+                                    "A document with the same content checksum "
+                                            + "was already processed: "
+                                            + duplRef.get()
+                            )
+                            .build()
+            );
             return false;
         }
         return true;

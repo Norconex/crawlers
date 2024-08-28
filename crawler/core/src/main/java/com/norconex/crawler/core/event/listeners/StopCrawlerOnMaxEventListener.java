@@ -131,11 +131,14 @@ public class StopCrawlerOnMaxEventListener implements
         }
 
         eventCounts.computeIfAbsent(
-                event.getName(), k -> new AtomicLong()).incrementAndGet();
+                event.getName(), k -> new AtomicLong()
+        ).incrementAndGet();
 
         if (isMaxReached()) {
-            LOG.info("Maximum number of events reached for crawler: {}",
-                    crawler.getId());
+            LOG.info(
+                    "Maximum number of events reached for crawler: {}",
+                    crawler.getId()
+            );
             crawler.stop();
         }
     }
@@ -148,7 +151,8 @@ public class StopCrawlerOnMaxEventListener implements
         }
         if (OnMultiple.SUM == configuration.getOnMultiple()) {
             return eventCounts.values().stream().collect(
-                    Collectors.summingLong(AtomicLong::get)) >= maximum;
+                    Collectors.summingLong(AtomicLong::get)
+            ) >= maximum;
         }
         return eventCounts.values().stream()
                 .anyMatch(v -> v.get() >= maximum);

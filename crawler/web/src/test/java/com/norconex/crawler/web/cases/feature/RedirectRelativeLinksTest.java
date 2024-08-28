@@ -54,26 +54,36 @@ class RedirectRelativeLinksTest {
         var page2Url = serverUrl(client, basePath + "/final/page2.html");
 
         client
-            .when(request(homePath))
-            .respond(response()
-                .withStatusCode(302)
-                .withHeader("Location", finalUrl));
+                .when(request(homePath))
+                .respond(
+                        response()
+                                .withStatusCode(302)
+                                .withHeader("Location", finalUrl)
+                );
         client
-            .when(request(finalPath))
-            .respond(response().withBody("""
-                <h1>Redirected test page</h1>
-                The URL was redirected.
-                The URLs on this page should be relative to
-                %s and not %s.  The crawler should redirect and figure that
-                out.
-                <a href="page1.html">Page 1 (broken)</a>
-                <a href="page2.html">Page 2 (broken)</a>
-                """.formatted(finalPath, homePath)));
+                .when(request(finalPath))
+                .respond(
+                        response().withBody(
+                                """
+                                        <h1>Redirected test page</h1>
+                                        The URL was redirected.
+                                        The URLs on this page should be relative to
+                                        %s and not %s.  The crawler should redirect and figure that
+                                        out.
+                                        <a href="page1.html">Page 1 (broken)</a>
+                                        <a href="page2.html">Page 2 (broken)</a>
+                                        """
+                                        .formatted(finalPath, homePath)
+                        )
+                );
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setKeepReferencedLinks(Set.of(
-                    ReferencedLinkType.INSCOPE,
-                    ReferencedLinkType.MAXDEPTH));
+            cfg.setKeepReferencedLinks(
+                    Set.of(
+                            ReferencedLinkType.INSCOPE,
+                            ReferencedLinkType.MAXDEPTH
+                    )
+            );
             cfg.setStartReferences(List.of(serverUrl(client, homePath)));
             cfg.setMaxDepth(0);
         });
@@ -87,10 +97,10 @@ class RedirectRelativeLinksTest {
 
         // The only reference in metadata should be the final.
         assertThat(doc.getMetadata().getStrings(DocMetadata.REFERENCE))
-            .containsExactly(finalUrl);
+                .containsExactly(finalUrl);
 
         // Exracted URLs should be relative to final URL.
         assertThat(doc.getMetadata().getStrings(WebDocMetadata.REFERENCED_URLS))
-            .containsExactlyInAnyOrder(page1Url, page2Url);
+                .containsExactlyInAnyOrder(page1Url, page2Url);
     }
 }

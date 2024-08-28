@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +42,11 @@ class CmisAtomSessionTest {
     void test() throws ClientProtocolException, IOException {
         when(httpClient.execute(Mockito.any())).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(
-                new BasicStatusLine(HttpVersion.HTTP_1_1, 500, "Too bad"));
+                new BasicStatusLine(HttpVersion.HTTP_1_1, 500, "Too bad")
+        );
         when(httpResponse.getEntity()).thenReturn(
-                new StringEntity("Really too bad"));
+                new StringEntity("Really too bad")
+        );
 
         var cmis = new CmisAtomSession(httpClient);
         assertThatException().isThrownBy(() -> cmis.getStream("badone"));

@@ -1,4 +1,4 @@
-/* Copyright 2018-2023 Norconex Inc.
+/* Copyright 2018-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,10 @@ class PDFPageSplitterTest {
     @BeforeEach
     void setup() {
         input = PDFPageSplitterTest.class.getResourceAsStream(
-                PDFPageSplitterTest.class.getSimpleName() + ".pdf");
+                PDFPageSplitterTest.class.getSimpleName() + ".pdf"
+        );
     }
+
     @AfterEach
     void tearDown() throws IOException {
         input.close();
@@ -63,14 +65,14 @@ class PDFPageSplitterTest {
     void testWriteRead() {
         var splitter = new PDFPageSplitter();
         splitter.getConfiguration().setReferencePagePrefix("#page");
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(splitter));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(splitter));
     }
 
     private List<Doc> split(PDFPageSplitter splitter)
             throws IOException {
         var metadata = new Properties();
-        var docCtx = TestUtil.newDocContext("n/a", input, metadata);
+        var docCtx = TestUtil.newHandlerContext("n/a", input, metadata);
         splitter.accept(docCtx);
         return docCtx.childDocs();
     }

@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import com.norconex.crawler.fs.fetch.impl.BaseAuthVfsFetcherConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 
 /**
  * <p>
@@ -74,12 +73,12 @@ public class LocalFetcherConfig extends BaseAuthVfsFetcherConfig {
 
     private boolean aclDisabled;
 
-//    @Override
-//    protected void loadFetcherFromXML(XML xml) {
-//        setAclDisabled(xml.getBoolean(Fields.aclDisabled));
-//    }
-//    @Override
-//    protected void saveFetcherToXML(XML xml) {
-//        xml.addElement(Fields.aclDisabled, aclDisabled);
-//    }
+    //    @Override
+    //    protected void loadFetcherFromXML(XML xml) {
+    //        setAclDisabled(xml.getBoolean(Fields.aclDisabled));
+    //    }
+    //    @Override
+    //    protected void saveFetcherToXML(XML xml) {
+    //        xml.addElement(Fields.aclDisabled, aclDisabled);
+    //    }
 }

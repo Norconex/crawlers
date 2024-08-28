@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ class FixedGoogleTranslator extends GoogleTranslator {
             throw new ImporterRuntimeException("Cannot mark as available.", e);
         }
     }
+
     public void setApiKey(String apiKey) {
         try {
             FieldUtils.writeField(this, "apiKey", apiKey, true);
@@ -38,6 +39,7 @@ class FixedGoogleTranslator extends GoogleTranslator {
             throw new ImporterRuntimeException("Cannot set api key.", e);
         }
     }
+
     public String getApiKey() {
         try {
             return (String) FieldUtils.readField(this, "apiKey", true);

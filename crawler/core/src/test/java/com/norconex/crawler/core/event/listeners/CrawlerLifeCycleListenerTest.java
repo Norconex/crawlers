@@ -29,46 +29,57 @@ class CrawlerLifeCycleListenerTest {
         protected void onCrawlerEvent(CrawlerEvent event) {
             method.setValue("onCrawlerEvent");
         }
+
         @Override
         protected void onCrawlerShutdown(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerShutdown");
         }
+
         @Override
         protected void onCrawlerInitBegin(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerInitBegin");
         }
+
         @Override
         protected void onCrawlerInitEnd(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerInitEnd");
         }
+
         @Override
         protected void onCrawlerRunBegin(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerRunBegin");
         }
+
         @Override
         protected void onCrawlerRunEnd(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerRunEnd");
         }
+
         @Override
         protected void onCrawlerRunThreadBegin(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerRunThreadBegin");
         }
+
         @Override
         protected void onCrawlerRunThreadEnd(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerRunThreadEnd");
         }
+
         @Override
         protected void onCrawlerStopBegin(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerStopBegin");
         }
+
         @Override
         protected void onCrawlerStopEnd(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerStopEnd");
         }
+
         @Override
         protected void onCrawlerCleanBegin(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerCleanBegin");
         }
+
         @Override
         protected void onCrawlerCleanEnd(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerCleanEnd");
@@ -78,25 +89,35 @@ class CrawlerLifeCycleListenerTest {
     @Test
     void testCrawlerLifeCycleListener() {
         assertThat(m(CrawlerEvent.CRAWLER_INIT_BEGIN)).isEqualTo(
-                "onCrawlerEvent+onCrawlerInitBegin");
+                "onCrawlerEvent+onCrawlerInitBegin"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_INIT_END)).isEqualTo(
-                "onCrawlerEvent+onCrawlerInitEnd");
+                "onCrawlerEvent+onCrawlerInitEnd"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_RUN_BEGIN)).isEqualTo(
-                "onCrawlerEvent+onCrawlerRunBegin");
+                "onCrawlerEvent+onCrawlerRunBegin"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_RUN_END)).isEqualTo(
-                "onCrawlerEvent+onCrawlerRunEnd+onCrawlerShutdown");
+                "onCrawlerEvent+onCrawlerRunEnd+onCrawlerShutdown"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)).isEqualTo(
-                "onCrawlerEvent+onCrawlerRunThreadBegin");
+                "onCrawlerEvent+onCrawlerRunThreadBegin"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_RUN_THREAD_END)).isEqualTo(
-                "onCrawlerEvent+onCrawlerRunThreadEnd");
+                "onCrawlerEvent+onCrawlerRunThreadEnd"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_STOP_BEGIN)).isEqualTo(
-                "onCrawlerEvent+onCrawlerStopBegin");
+                "onCrawlerEvent+onCrawlerStopBegin"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_STOP_END)).isEqualTo(
-                "onCrawlerEvent+onCrawlerStopEnd+onCrawlerShutdown");
+                "onCrawlerEvent+onCrawlerStopEnd+onCrawlerShutdown"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_CLEAN_BEGIN)).isEqualTo(
-                "onCrawlerEvent+onCrawlerCleanBegin");
+                "onCrawlerEvent+onCrawlerCleanBegin"
+        );
         assertThat(m(CrawlerEvent.CRAWLER_CLEAN_END)).isEqualTo(
-                "onCrawlerEvent+onCrawlerCleanEnd");
+                "onCrawlerEvent+onCrawlerCleanEnd"
+        );
 
         // null
         method.setValue(null);
@@ -106,10 +127,12 @@ class CrawlerLifeCycleListenerTest {
     }
 
     private String m(String eventName) {
-        listener.accept(CrawlerEvent.builder()
-                .name(eventName)
-                .source("source")
-                .build());
+        listener.accept(
+                CrawlerEvent.builder()
+                        .name(eventName)
+                        .source("source")
+                        .build()
+        );
         return method.getValue();
     }
 }

@@ -212,7 +212,8 @@ public class DomLinkExtractor
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString())) {
+                doc.getDocContext().getContentType().toString()
+        )) {
             return Set.of();
         }
 
@@ -222,14 +223,19 @@ public class DomLinkExtractor
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             doc.getMetadata()
-                .matchKeys(configuration.getFieldMatcher())
-                .valueList()
-                    .forEach(val -> extractFromJsoupDocument(
-                            links, parser.parseInput(val, doc.getReference())));
+                    .matchKeys(configuration.getFieldMatcher())
+                    .valueList()
+                    .forEach(
+                            val -> extractFromJsoupDocument(
+                                    links,
+                                    parser.parseInput(val, doc.getReference())
+                            )
+                    );
         } else {
             // Body
             try (var in = IOUtils.buffer(
-                    new InputStreamReader(doc.getInputStream()))) {
+                    new InputStreamReader(doc.getInputStream())
+            )) {
                 var jdoc = parser.parseInput(in, doc.getReference());
                 extractFromJsoupDocument(links, jdoc);
             }
@@ -238,7 +244,8 @@ public class DomLinkExtractor
     }
 
     private void extractFromJsoupDocument(
-            Set<Link> links, Document jdoc) {
+            Set<Link> links, Document jdoc
+    ) {
         jdoc = excludeUnwantedContent(jdoc);
         for (LinkSelector sel : configuration.getLinkSelectors()) {
             for (Element elm : jdoc.select(sel.getSelector())) {
@@ -249,7 +256,6 @@ public class DomLinkExtractor
             }
         }
     }
-
 
     private Link extractLink(Element elm, String extract) {
         var url = trimToNull(DomUtil.getElementValue(elm, extract));
@@ -262,14 +268,14 @@ public class DomLinkExtractor
         if (elm.is("meta[http-equiv='refresh']") && elm.hasAttr("content")) {
             url = url.replaceAll("\\s+", " ");
             url = url.replaceFirst(
-                    "(?i)^.*\\burl\\s?=\\s?([\"']?)\\s?([^\\s]+)\\s?\\1", "$2");
+                    "(?i)^.*\\burl\\s?=\\s?([\"']?)\\s?([^\\s]+)\\s?\\1", "$2"
+            );
             url = StringUtils.strip(url, "\"'");
         }
 
         // Make absolute (can't rely on JSoup "abs:" since URL can be defined
         // in XML elements as well, not just attributes).
         url = HttpURL.toAbsolute(elm.baseUri(), url);
-
 
         // Make sure URL scheme is supported
         var supportedSchemes = configuration.getSchemes().isEmpty()
@@ -287,7 +293,8 @@ public class DomLinkExtractor
         // Link data
         if (!configuration.isIgnoreLinkData()) {
             var m = Pattern.compile(
-                    "(?i)^attr\\((.*?)\\)$").matcher(extract);
+                    "(?i)^attr\\((.*?)\\)$"
+            ).matcher(extract);
             String urlAttr = null;
             if (m.matches()) {
                 urlAttr = m.group(1);

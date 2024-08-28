@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,18 +66,22 @@ public abstract class AbstractSolrTest {
         if (solrServer != null && solrServer.isRunning()) {
             throw new IllegalStateException(
                     "Solr already running on local port "
-                            + solrServer.getLocalPort());
+                            + solrServer.getLocalPort()
+            );
         }
-        System.setProperty("solr.log.dir",
-                new File(solrHome, "solr-test.log").getAbsolutePath());
-
+        System.setProperty(
+                "solr.log.dir",
+                new File(solrHome, "solr-test.log").getAbsolutePath()
+        );
 
         FileUtils.copyDirectory(
                 new File("./src/test/resources/solr-server"),
-                solrHome);
+                solrHome
+        );
 
         solrServer = new JettySolrRunner(
-                solrHome.getAbsolutePath(), "/solr", 0);
+                solrHome.getAbsolutePath(), "/solr", 0
+        );
         solrServer.start();
 
         var seconds = 0;
@@ -89,8 +93,11 @@ public abstract class AbstractSolrTest {
             Sleeper.sleepSeconds(1);
         }
         if (seconds >= 30) {
-            LOG.warn("Looks like Solr is not starting on port {}. "
-                   + "Please investigate.", solrServer.getLocalPort());
+            LOG.warn(
+                    "Looks like Solr is not starting on port {}. "
+                            + "Please investigate.",
+                    solrServer.getLocalPort()
+            );
 
         } else {
             LOG.info("Solr started on port {}", solrServer.getLocalPort());
@@ -99,8 +106,10 @@ public abstract class AbstractSolrTest {
         // Solr Client:
         // solrServer.newClient() does not work for some reason, host is null
         solrClient = new Http2SolrClient.Builder(
-               "http://localhost:" + getSolrPort() + "/solr/test").build();
+                "http://localhost:" + getSolrPort() + "/solr/test"
+        ).build();
     }
+
     @BeforeEach
     private void beforeEach() throws SolrServerException, IOException {
         solrClient.deleteByQuery("*:*");
@@ -118,7 +127,8 @@ public abstract class AbstractSolrTest {
     public int getSolrPort() {
         if (solrServer == null) {
             throw new IllegalStateException(
-                    "Cannot get Solr port. Solr Server is not running.");
+                    "Cannot get Solr port. Solr Server is not running."
+            );
         }
         return solrServer.getLocalPort();
     }
@@ -134,7 +144,8 @@ public abstract class AbstractSolrTest {
     public String getSolrBaseURL() {
         if (solrServer == null) {
             throw new IllegalStateException(
-                    "Cannot get Solr base URL. Solr Server is not running.");
+                    "Cannot get Solr base URL. Solr Server is not running."
+            );
         }
         return "http://localhost:" + getSolrPort()
                 + solrServer.getBaseUrl().getPath();
@@ -146,8 +157,12 @@ public abstract class AbstractSolrTest {
 
     protected SolrCommitter createSolrCommitter() throws CommitterException {
         var ctx = CommitterContext.builder()
-                .setWorkDir(new File(getSolrHome(),
-                        "" + TimeIdGenerator.next()).toPath())
+                .setWorkDir(
+                        new File(
+                                getSolrHome(),
+                                "" + TimeIdGenerator.next()
+                        ).toPath()
+                )
                 .build();
         var committer = new SolrCommitter();
         committer.getConfiguration().setSolrURL(getSolrTestURL());

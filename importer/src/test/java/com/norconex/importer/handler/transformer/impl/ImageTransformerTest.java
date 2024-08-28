@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,35 +31,55 @@ class ImageTransformerTest {
     void testWriteRead() {
         var t = new ImageTransformer();
         t.getConfiguration()
-            .getCrop()
+                .getCrop()
                 .setX(10)
                 .setY(15)
                 .setWidth(400)
                 .setHeight(250);
         t.getConfiguration()
-            .getScale()
+                .getScale()
                 .setStretch(true)
                 .setWidth(800)
                 .setHeight(600)
                 .setFactor(0.5);
         t.getConfiguration()
-            .setRotation(-90.0)
-            .setTargetFormat("jpg");
-        assertThatNoException().isThrownBy(() ->
-            BeanMapper.DEFAULT.assertWriteRead(t));
+                .setRotation(-90.0)
+                .setTargetFormat("jpg");
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
     void testImageTransformer() throws IOException {
         var t = new ImageTransformer();
         t.getConfiguration().setRotation(90d);
-        var doc = TestUtil.newDocContext(
-                "img.png",
-                getClass().getResourceAsStream(
-                        "/parser/image/importer.png"));
+        var doc = TestUtil.newHandlerContext("img.png",
+                getClass().getResourceAsStream("/parser/image/importer.png"));
         assertThatNoException().isThrownBy(() -> t.accept(doc));
-        assertThat(
-                ((CachedInputStream) doc.input().asInputStream()).length())
+        assertThat(((CachedInputStream) doc.input().asInputStream()).length())
+                .isPositive();
+    }
+
+    @Test
+    void testOperationsDoNotThrow() throws IOException {
+        var t = new ImageTransformer();
+        var cfg = t.getConfiguration();
+        cfg.getScale()
+                .setFactor(1.5)
+                .setHeight(32)
+                .setWidth(64)
+                .setStretch(true);
+        cfg.setRotation(null);
+        cfg.getCrop()
+                .setHeight(10)
+                .setWidth(20)
+                .setX(2)
+                .setY(4);
+
+        var doc = TestUtil.newHandlerContext("img.png",
+                getClass().getResourceAsStream("/parser/image/importer.png"));
+        assertThatNoException().isThrownBy(() -> t.accept(doc));
+        assertThat(((CachedInputStream) doc.input().asInputStream()).length())
                 .isPositive();
     }
 }

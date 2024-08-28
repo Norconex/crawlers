@@ -42,12 +42,12 @@ class CliLauncherTest {
     @TempDir
     private Path tempDir;
 
-//    private Path configFile;
-//
-//    @BeforeEach
-//    void beforeEach() {
-//        configFile = CoreStubber.writeSampleConfigToDir(tempDir);
-//    }
+    //    private Path configFile;
+    //
+    //    @BeforeEach
+    //    void beforeEach() {
+    //        configFile = CoreStubber.writeSampleConfigToDir(tempDir);
+    //    }
 
     @Test
     void testNoArgs() throws IOException {
@@ -55,8 +55,8 @@ class CliLauncherTest {
         assertThat(exit.ok()).isFalse();
         assertThat(exit.getStdErr()).contains("No arguments provided.");
         assertThat(exit.getStdOut()).contains(
-            "Usage:",
-            "help configcheck"
+                "Usage:",
+                "help configcheck"
         );
     }
 
@@ -66,28 +66,33 @@ class CliLauncherTest {
         var exit1 = cliLaunch(tempDir, "potato", "--soup");
         assertThat(exit1.ok()).isFalse();
         assertThat(exit1.getStdErr()).contains(
-            "Unmatched arguments"
+                "Unmatched arguments"
         );
 
         // Non existant config file
-        var exit2 = cliLaunch(tempDir,
+        var exit2 = cliLaunch(
+                tempDir,
                 "configcheck",
-                "-config=" + TimeIdGenerator.next() + "IDontExist");
+                "-config=" + TimeIdGenerator.next() + "IDontExist"
+        );
         assertThat(exit2.ok()).isFalse();
         assertThat(exit2.getStdErr()).contains(
-            "Configuration file does not exist"
+                "Configuration file does not exist"
         );
 
         // Simulate Picocli Exception
         var captured = SystemUtil.callAndCaptureOutput(
                 () -> CliCrawlerLauncher.launch(
                         CrawlerStubs.memoryCrawlerBuilder(tempDir),
-                        "clean", "-config=", "-config="));
+                        "clean", "-config=", "-config="
+                )
+        );
         assertThat(captured.getReturnValue()).isNotZero();
         assertThat(captured.getStdErr()).contains(
                 "should be specified only once",
                 "Usage:",
-                "Clean the");
+                "Clean the"
+        );
 
         // Bad config syntax
         var file = tempDir.resolve("badConfig.xml");
@@ -97,7 +102,7 @@ class CliLauncherTest {
         var exit3 = cliLaunch(tempDir, "configcheck", "-config=" + file);
         assertThat(exit3.ok()).isFalse();
         assertThat(exit3.getStdErr()).contains(
-            "Unrecognized field \"badAttr\""
+                "Unrecognized field \"badAttr\""
         );
     }
 
@@ -106,15 +111,15 @@ class CliLauncherTest {
         var exit = cliLaunch(tempDir, "-h");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).contains(
-            "Usage:",
-            "help",
-            "start",
-            "stop",
-            "configcheck",
-            "configrender",
-            "clean",
-            "storeexport",
-            "storeimport"
+                "Usage:",
+                "help",
+                "start",
+                "stop",
+                "configcheck",
+                "configrender",
+                "clean",
+                "storeexport",
+                "storeimport"
         );
     }
 
@@ -123,15 +128,15 @@ class CliLauncherTest {
         var exit = cliLaunch(tempDir, "-v");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).contains(
-            "C R A W L E R",
-            "Committers:",
-            "Memory (Norconex Committer Core)",
-            "Runtime:",
-            "Name:",
-            "Version:",
-            "Vendor:"
+                "C R A W L E R",
+                "Committers:",
+                "Memory (Norconex Committer Core)",
+                "Runtime:",
+                "Name:",
+                "Version:",
+                "Vendor:"
         )
-        .doesNotContain("null");
+                .doesNotContain("null");
     }
 
     @Test
@@ -139,30 +144,53 @@ class CliLauncherTest {
         var exit = cliLaunch(tempDir, "configcheck", "-config=");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).containsIgnoringWhitespaces(
-                "No configuration errors detected.");
+                "No configuration errors detected."
+        );
     }
+
+    @Test
+    void testBadConfig() throws IOException {
+        var cfgFile = tempDir.resolve("badconfig.xml");
+        Files.writeString(cfgFile, """
+                <crawler>
+                  <numThreads>0</numThreads>
+                </crawler>
+                """);
+
+        var exit = cliLaunch(tempDir,
+                        "configcheck", "-config=" + cfgFile.toAbsolutePath());
+        assertThat(exit.ok()).isFalse();
+        assertThat(exit.getStdErr()).contains(
+                "\"numThreads\" must be greater than or equal to 1.");
+    }
+
 
     @Test
     void testStoreExportImport() throws IOException {
         var exportDir = tempDir.resolve("exportdir");
         var exportFile = exportDir.resolve(CrawlerStubs.CRAWLER_ID + ".zip");
         var configFile = CrawlerConfigStubs.writeConfigToDir(
-                tempDir, cfg -> {});
+                tempDir, cfg -> {}
+        );
 
         // Export
-        var exit1 = cliLaunch(tempDir,
+        var exit1 = cliLaunch(
+                tempDir,
                 "storeexport",
                 "-config=" + configFile,
-                "-dir=" + exportDir);
+                "-dir=" + exportDir
+        );
 
         assertThat(exit1.ok()).isTrue();
         assertThat(exportFile).isNotEmptyFile();
 
         // Import
-        var exit2 = cliLaunch(tempDir,
+        var exit2 = cliLaunch(
+                tempDir,
                 "storeimport",
                 "-config=" + configFile,
-                "-file=" + exportFile);
+                "-file=" + exportFile
+        );
         assertThat(exit2.ok()).isTrue();
     }
 
@@ -197,7 +225,8 @@ class CliLauncherTest {
 
         LOG.debug("=== Run 2: Clean and Start ===");
         var exit2 = cliLaunch(
-                tempDir, "start", "-clean", "-config=");
+                tempDir, "start", "-clean", "-config="
+        );
         assertThat(exit2.ok()).withFailMessage(exit2.getStdErr()).isTrue();
         assertThat(exit2.getEvents()).containsExactly(
                 // Clean flow
@@ -240,7 +269,6 @@ class CliLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
                 CrawlerEvent.CRAWLER_SHUTDOWN_END
         );
-
 
         //TODO verify that crawlstore from previous run was deleted
         // and recreated
@@ -291,13 +319,27 @@ class CliLauncherTest {
         assertThat(exit1.getStdOut()).doesNotContain("<importer");
 
         var renderedFile = tempDir.resolve("configrender.xml");
-        var exit2 = cliLaunch(tempDir,
+        var exit2 = cliLaunch(
+                tempDir,
                 "configrender",
                 "-config=" + cfgFile,
-                "-output=" + renderedFile);
+                "-output=" + renderedFile
+        );
         assertThat(exit2.ok()).isTrue();
         assertThat(Files.readString(renderedFile).trim()).isEqualTo(
-                exit1.getStdOut().trim());
+                exit1.getStdOut().trim()
+        );
+    }
+
+    @Test
+    void testFailingConfigRender() throws IOException {
+        var exit = cliLaunch(
+                tempDir,
+                "configrender",
+                "-config=",
+                // passing a directory to get FileNotFoundException
+                "-output=" + tempDir.toAbsolutePath());
+        assertThat(exit.getStdErr()).contains("FileNotFoundException");
     }
 
     //TODO write unit tests for <app> help command

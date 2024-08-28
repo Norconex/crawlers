@@ -78,7 +78,6 @@ public class GenericUrlScopeResolverConfig {
      */
     private boolean stayOnProtocol = false;
 
-
     /**
      * Whether to limit crawling to entries found in an existing website
      * sitemap (do not go deeper). Only applies if a sitemap is present

@@ -50,32 +50,42 @@ class PostImportLinksTest {
         var path = "/postImportLinks";
 
         WebsiteMock.whenHtml(client, path, """
-            <h1>Post import test page.</h1>
-            URLs in <a href="/post-import-links.pdf">this link</a>
-            should be queued for processing.
-            """);
+                <h1>Post import test page.</h1>
+                URLs in <a href="/post-import-links.pdf">this link</a>
+                should be queued for processing.
+                """);
         WebsiteMock.whenPDF(
-                client, "/post-import-links.pdf", TestResource.PDF_WITH_LINKS);
+                client, "/post-import-links.pdf", TestResource.PDF_WITH_LINKS
+        );
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, path)));
             cfg.setMaxDepth(1);
             // Tell it which field will hold post-import URLs.
             cfg.setPostImportLinks(
-                    TextMatcher.basic("myPostImportURLs"));
+                    TextMatcher.basic("myPostImportURLs")
+            );
             cfg.setPostImportLinksKeep(true);
             // Keep only the test PDF.
-            cfg.setDocumentFilters(List.of(
-                    Configurable.configure(new ExtensionReferenceFilter(), c -> c
-                        .setExtensions(List.of("pdf"))
-                        .setOnMatch(OnMatch.INCLUDE)
-                    )));
+            cfg.setDocumentFilters(
+                    List.of(
+                            Configurable.configure(
+                                    new ExtensionReferenceFilter(),
+                                    c -> c
+                                            .setExtensions(List.of("pdf"))
+                                            .setOnMatch(OnMatch.INCLUDE)
+                            )
+                    )
+            );
             // Create a field with post-import PDF URLs.
             var tagger = new URLExtractorTransformer();
             tagger.getConfiguration().setToField("myPostImportURLs");
-            cfg.getImporterConfig().setHandlers(List.of(
-                    new DefaultParser(),
-                    tagger));
+            cfg.getImporterConfig().setHandlers(
+                    List.of(
+                            new DefaultParser(),
+                            tagger
+                    )
+            );
         });
 
         assertThat(mem.getUpsertCount()).isOne();
@@ -85,12 +95,13 @@ class PostImportLinksTest {
         // Page 2 exists as a link value and a link label, with different URLs,
         // so we expect 6 links back.
         assertThat(doc.getMetadata().getStrings("myPostImportURLs"))
-            .containsExactlyInAnyOrder(
-                    "http://www.example.com/page1.html",
-                    "http://www.example.com/page2.html",
-                    "https://www.example.com/page2.html",
-                    "http://www.example.com/page3.html",
-                    "https://www.example.com/page4.html",
-                    "http://www.example.com/page5.html");
+                .containsExactlyInAnyOrder(
+                        "http://www.example.com/page1.html",
+                        "http://www.example.com/page2.html",
+                        "https://www.example.com/page2.html",
+                        "http://www.example.com/page3.html",
+                        "https://www.example.com/page4.html",
+                        "http://www.example.com/page5.html"
+                );
     }
 }

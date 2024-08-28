@@ -67,31 +67,34 @@ public class TextCondition
     private final TextConditionConfig configuration =
             new TextConditionConfig();
 
-    public TextCondition() {}
+    public TextCondition() {
+    }
+
     public TextCondition(TextMatcher valueMatcher) {
         configuration.setValueMatcher(valueMatcher);
     }
+
     public TextCondition(TextMatcher fieldMatcher, TextMatcher valueMatcher) {
         configuration
-            .setValueMatcher(valueMatcher)
-            .setFieldMatcher(fieldMatcher);
+                .setValueMatcher(valueMatcher)
+                .setFieldMatcher(fieldMatcher);
     }
 
     @Override
     public boolean evaluate(HandlerContext docCtx) throws IOException {
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()
-            .charset(configuration.getSourceCharset())
-            .fieldMatcher(configuration.getFieldMatcher())
-            .maxChunkSize(configuration.getMaxReadSize())
-            .build()
-            .read(docCtx, chunk -> {
-                if (matches.isFalse()
-                        && textMatches(docCtx, chunk.getText())) {
-                    matches.setTrue();
-                }
-                return true;
-            });
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(configuration.getMaxReadSize())
+                .build()
+                .read(docCtx, chunk -> {
+                    if (matches.isFalse()
+                            && textMatches(docCtx, chunk.getText())) {
+                        matches.setTrue();
+                    }
+                    return true;
+                });
         return matches.booleanValue();
     }
 
@@ -105,7 +108,8 @@ public class TextCondition
         // field(s)
         return new PropertyMatcher(
                 configuration.getFieldMatcher(),
-                configuration.getValueMatcher())
-                    .matches(docCtx.metadata());
+                configuration.getValueMatcher()
+        )
+                .matches(docCtx.metadata());
     }
 }

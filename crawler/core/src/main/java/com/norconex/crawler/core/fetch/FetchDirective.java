@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.norconex.crawler.core.fetch;
  * Whether to perform metadata extraction on its own before (or instead)
  * performing document extraction as a whole (including metadata).
  */
-public enum FetchDirective{
+public enum FetchDirective {
     /**
      * A directive to execute a fetch request separate from document fetch.
      */
@@ -27,8 +27,7 @@ public enum FetchDirective{
      * A directive to execute a fetch request for the entire
      * document, including metadata.
      */
-    DOCUMENT
-    ;
+    DOCUMENT;
 
     public boolean is(FetchDirective fetchDirective) {
         return equals(fetchDirective);

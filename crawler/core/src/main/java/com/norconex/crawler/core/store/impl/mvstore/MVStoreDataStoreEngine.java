@@ -79,15 +79,19 @@ public class MVStoreDataStoreEngine
         if (cfg.getCacheSize() != null) {
             //MVStore expects it as megabytes
             builder.cacheSize(
-                    DataUnit.B.to(cfg.getCacheSize(), DataUnit.MB).intValue());
+                    DataUnit.B.to(cfg.getCacheSize(), DataUnit.MB).intValue()
+            );
         }
         if (cfg.getAutoCompactFillRate() != null) {
             builder.autoCompactFillRate(cfg.getAutoCompactFillRate());
         }
         if (cfg.getAutoCommitBufferSize() != null) {
             //MVStore expects it as kilobytes
-            builder.autoCommitBufferSize(DataUnit.B.to(
-                    cfg.getAutoCommitBufferSize(), DataUnit.KB).intValue());
+            builder.autoCommitBufferSize(
+                    DataUnit.B.to(
+                            cfg.getAutoCommitBufferSize(), DataUnit.KB
+                    ).intValue()
+            );
         }
         if (Long.valueOf(0).equals(cfg.getAutoCommitDelay())) {
             builder.autoCommitDisabled();
@@ -102,21 +106,27 @@ public class MVStoreDataStoreEngine
             } catch (IOException e) {
                 throw new DataStoreException(
                         "Cannot create data store engine directory: "
-                                + engineDir, e);
+                                + engineDir,
+                        e
+                );
             }
             builder.fileName(
-                    engineDir.resolve("mvstore").toAbsolutePath().toString());
+                    engineDir.resolve("mvstore").toAbsolutePath().toString()
+            );
         }
 
         try {
             mvstore = builder.open();
         } catch (MVStoreException e) {
-            LOG.warn("""
-                An exception occurred while trying to open the store engine.\s\
-                This could happen due to an abnormal shutdown on a previous\s\
-                execution of the crawler. An attempt will be made to recover.\s\
-                It is advised to back-up the store engine if you want to\s\
-                preserve the crawl history.""", e);
+            LOG.warn(
+                    """
+                            An exception occurred while trying to open the store engine.\s\
+                            This could happen due to an abnormal shutdown on a previous\s\
+                            execution of the crawler. An attempt will be made to recover.\s\
+                            It is advised to back-up the store engine if you want to\s\
+                            preserve the crawl history.""",
+                    e
+            );
             builder.recoveryMode();
             mvstore = builder.open();
             LOG.warn("Store engine recovery appears to be successful.");
@@ -131,6 +141,7 @@ public class MVStoreDataStoreEngine
 
         mvstore.commit();
     }
+
     private Integer asInt(Long l) {
         if (l == null) {
             return null;
@@ -152,10 +163,12 @@ public class MVStoreDataStoreEngine
             FileUtils.deleteDirectory(dirToDelete);
         } catch (IOException e) {
             throw new DataStoreException(
-                    "Could not delete data store directory.", e);
+                    "Could not delete data store directory.", e
+            );
         }
         return hadStores;
     }
+
     @Override
     public synchronized void close() {
         LOG.info("Closing data store engine...");
@@ -170,12 +183,15 @@ public class MVStoreDataStoreEngine
         engineDir = null;
         LOG.info("Data store engine closed.");
     }
+
     @Override
     public synchronized <T> DataStore<T> openStore(
-            String name, Class<? extends T> type) {
+            String name, Class<? extends T> type
+    ) {
         storeTypes.put(name, type);
         return new MVStoreDataStore<>(mvstore, name, type);
     }
+
     @Override
     public synchronized boolean dropStore(String name) {
         if (mvstore.hasMap(name)) {
@@ -215,33 +231,33 @@ public class MVStoreDataStoreEngine
     public Optional<Class<?>> getStoreType(String name) {
         return Optional.ofNullable(storeTypes.get(name));
     }
-//
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        cfg.setPageSplitSize(
-//                xml.getDataSize(Fields.pageSplitSize, cfg.getPageSplitSize()));
-//        cfg.setCompress(xml.getInteger(Fields.compress, cfg.getCompress()));
-//        cfg.setCacheConcurrency(xml.getInteger(
-//                Fields.cacheConcurrency, cfg.getCacheConcurrency()));
-//        cfg.setCacheSize(xml.getDataSize(Fields.cacheSize, cfg.getCacheSize()));
-//        cfg.setAutoCompactFillRate(xml.getInteger(
-//                Fields.autoCompactFillRate, cfg.getAutoCompactFillRate()));
-//        cfg.setAutoCommitBufferSize(xml.getDataSize(
-//                Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize()));
-//        cfg.setAutoCommitDelay(xml.getDurationMillis(
-//                Fields.autoCommitDelay, cfg.getAutoCommitDelay()));
-//        cfg.setEphemeral(xml.getBoolean(Fields.ephemeral, cfg.isEphemeral()));
-//    }
-//
-//    @Override
-//    public void saveToXML(XML xml) {
-//        xml.addElement(Fields.pageSplitSize, cfg.getPageSplitSize());
-//        xml.addElement(Fields.compress, cfg.getCompress());
-//        xml.addElement(Fields.cacheConcurrency, cfg.getCacheConcurrency());
-//        xml.addElement(Fields.cacheSize, cfg.getCacheSize());
-//        xml.addElement(Fields.autoCompactFillRate, cfg.getAutoCompactFillRate());
-//        xml.addElement(Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize());
-//        xml.addElement(Fields.autoCommitDelay, cfg.getAutoCommitDelay());
-//        xml.addElement(Fields.ephemeral, cfg.isEphemeral());
-//    }
+    //
+    //    @Override
+    //    public void loadFromXML(XML xml) {
+    //        cfg.setPageSplitSize(
+    //                xml.getDataSize(Fields.pageSplitSize, cfg.getPageSplitSize()));
+    //        cfg.setCompress(xml.getInteger(Fields.compress, cfg.getCompress()));
+    //        cfg.setCacheConcurrency(xml.getInteger(
+    //                Fields.cacheConcurrency, cfg.getCacheConcurrency()));
+    //        cfg.setCacheSize(xml.getDataSize(Fields.cacheSize, cfg.getCacheSize()));
+    //        cfg.setAutoCompactFillRate(xml.getInteger(
+    //                Fields.autoCompactFillRate, cfg.getAutoCompactFillRate()));
+    //        cfg.setAutoCommitBufferSize(xml.getDataSize(
+    //                Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize()));
+    //        cfg.setAutoCommitDelay(xml.getDurationMillis(
+    //                Fields.autoCommitDelay, cfg.getAutoCommitDelay()));
+    //        cfg.setEphemeral(xml.getBoolean(Fields.ephemeral, cfg.isEphemeral()));
+    //    }
+    //
+    //    @Override
+    //    public void saveToXML(XML xml) {
+    //        xml.addElement(Fields.pageSplitSize, cfg.getPageSplitSize());
+    //        xml.addElement(Fields.compress, cfg.getCompress());
+    //        xml.addElement(Fields.cacheConcurrency, cfg.getCacheConcurrency());
+    //        xml.addElement(Fields.cacheSize, cfg.getCacheSize());
+    //        xml.addElement(Fields.autoCompactFillRate, cfg.getAutoCompactFillRate());
+    //        xml.addElement(Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize());
+    //        xml.addElement(Fields.autoCommitDelay, cfg.getAutoCommitDelay());
+    //        xml.addElement(Fields.ephemeral, cfg.isEphemeral());
+    //    }
 }

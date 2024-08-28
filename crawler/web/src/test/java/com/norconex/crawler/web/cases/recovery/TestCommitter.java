@@ -38,7 +38,10 @@ import lombok.SneakyThrows;
 @Data
 public class TestCommitter implements Committer, XMLConfigurable {
     private Path dir;
-    public TestCommitter() {}
+
+    public TestCommitter() {
+    }
+
     public TestCommitter(Path dir) {
         this.dir = dir;
     }
@@ -49,62 +52,80 @@ public class TestCommitter implements Committer, XMLConfigurable {
             throws CommitterException {
         Files.createDirectories(dir);
     }
+
     @Override
     @SneakyThrows
     public void clean() throws CommitterException {
         FileUtil.delete(dir.toFile());
     }
+
     @Override
     public boolean accept(CommitterRequest request)
             throws CommitterException {
         return true;
     }
+
     @Override
     @SneakyThrows
     public void upsert(UpsertRequest upsertRequest)
             throws CommitterException {
-        FSQueueUtil.toZipFile(upsertRequest, dir.resolve(
-                "upsert-" + UUID.randomUUID() + ".zip"));
+        FSQueueUtil.toZipFile(
+                upsertRequest, dir.resolve(
+                        "upsert-" + UUID.randomUUID() + ".zip"
+                )
+        );
     }
+
     @Override
     @SneakyThrows
     public void delete(DeleteRequest deleteRequest)
             throws CommitterException {
-        FSQueueUtil.toZipFile(deleteRequest, dir.resolve(
-                "delete-" + UUID.randomUUID() + ".zip"));
+        FSQueueUtil.toZipFile(
+                deleteRequest, dir.resolve(
+                        "delete-" + UUID.randomUUID() + ".zip"
+                )
+        );
     }
+
     @Override
     public void close() throws CommitterException {
         //NOOP
     }
+
     @Override
     public void loadFromXML(XML xml) {
         setDir(xml.getPath("dir", dir));
     }
+
     @Override
     public void saveToXML(XML xml) {
         xml.addElement("dir", dir);
     }
+
     @SneakyThrows
     public void fillMemoryCommitters(
-            CrawlOutcome outcome, ZonedDateTime launchTime) {
+            CrawlOutcome outcome, ZonedDateTime launchTime
+    ) {
         FSQueueUtil.findZipFiles(dir).forEach(zip -> {
             try {
                 CommitterRequest req = FSQueueUtil.fromZipFile(zip);
                 if (Files.getLastModifiedTime(zip).compareTo(
-                        FileTime.from(launchTime.toInstant())) > 0) {
+                        FileTime.from(launchTime.toInstant())
+                ) > 0) {
                     if (req instanceof UpsertRequest upsert) {
                         outcome.committerAfterLaunch.upsert(upsert);
                     } else {
                         outcome.committerAfterLaunch.delete(
-                                (DeleteRequest) req);
+                                (DeleteRequest) req
+                        );
                     }
                 }
                 if (req instanceof UpsertRequest upsert) {
                     outcome.committerCombininedLaunches.upsert(upsert);
                 } else {
                     outcome.committerCombininedLaunches.delete(
-                            (DeleteRequest) req);
+                            (DeleteRequest) req
+                    );
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);

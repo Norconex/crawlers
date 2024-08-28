@@ -35,13 +35,16 @@ public class FsCrawlDocContext extends CrawlDocContext {
 
     public FsCrawlDocContext() {
     }
+
     public FsCrawlDocContext(String reference) {
         super(reference);
     }
+
     public FsCrawlDocContext(String reference, int depth) {
         super(reference);
         setDepth(depth);
     }
+
     /**
      * Copy constructor.
      * @param docRecord document record to copy

@@ -33,17 +33,23 @@ class GenericReferenceFilterTest {
         var f = new GenericReferenceFilter();
         f.getConfiguration().setValueMatcher(TextMatcher.regex(".*blah.*"));
         assertThat(f.getConfiguration().getValueMatcher())
-            .isEqualTo(TextMatcher.regex(".*blah.*"));
+                .isEqualTo(TextMatcher.regex(".*blah.*"));
 
         var doc1 = CrawlDocStubs.crawlDoc("http://blah.com", "content");
         assertThat(f.acceptDocument(doc1)).isTrue();
-        assertThat(f.acceptMetadata(
-                doc1.getReference(), doc1.getMetadata())).isTrue();
+        assertThat(
+                f.acceptMetadata(
+                        doc1.getReference(), doc1.getMetadata()
+                )
+        ).isTrue();
 
         var doc2 = CrawlDocStubs.crawlDoc("http://asdf.com", "content");
         assertThat(f.acceptDocument(doc2)).isFalse();
-        assertThat(f.acceptMetadata(
-                doc2.getReference(), doc2.getMetadata())).isFalse();
+        assertThat(
+                f.acceptMetadata(
+                        doc2.getReference(), doc2.getMetadata()
+                )
+        ).isFalse();
 
         // a blank expression means a match
         f = new GenericReferenceFilter();
@@ -58,13 +64,15 @@ class GenericReferenceFilterTest {
 
         // must match any case:
         f.getConfiguration()
-            .setValueMatcher(TextMatcher.regex("case").setIgnoreCase(true));
+                .setValueMatcher(TextMatcher.regex("case").setIgnoreCase(true));
         assertTrue(f.acceptReference("case"));
         assertTrue(f.acceptReference("CASE"));
 
         // must match only matching case:
         f.getConfiguration()
-            .setValueMatcher(TextMatcher.regex("case").setIgnoreCase(false));
+                .setValueMatcher(
+                        TextMatcher.regex("case").setIgnoreCase(false)
+                );
         assertTrue(f.acceptReference("case"));
         assertFalse(f.acceptReference("CASE"));
     }
@@ -73,9 +81,10 @@ class GenericReferenceFilterTest {
     void testWriteRead() {
         var f = new GenericReferenceFilter();
         f.getConfiguration()
-            .setValueMatcher(TextMatcher.regex(".*blah.*"))
-            .setOnMatch(OnMatch.EXCLUDE);
+                .setValueMatcher(TextMatcher.regex(".*blah.*"))
+                .setOnMatch(OnMatch.EXCLUDE);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(f));
+                () -> BeanMapper.DEFAULT.assertWriteRead(f)
+        );
     }
 }

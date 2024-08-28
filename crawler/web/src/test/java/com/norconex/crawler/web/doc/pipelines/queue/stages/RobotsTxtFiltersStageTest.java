@@ -38,41 +38,62 @@ class RobotsTxtFiltersStageTest {
 
     @Test
     void testAllow() {
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg ->
-            cfg.setRobotsTxtProvider(new StandardRobotsTxtProvider() {
-                @Override
-                public synchronized RobotsTxt getRobotsTxt(
-                        HttpFetcher fetcher, String url) {
-                    try {
-                        return parseRobotsTxt(IOUtils.toInputStream("""
-                                User-agent: *
+        var crawler = CrawlerStubs.memoryCrawler(
+                tempDir, cfg -> cfg
+                        .setRobotsTxtProvider(new StandardRobotsTxtProvider() {
+                            @Override
+                            public synchronized RobotsTxt getRobotsTxt(
+                                    HttpFetcher fetcher, String url
+                            ) {
+                                try {
+                                    return parseRobotsTxt(
+                                            IOUtils.toInputStream(
+                                                    """
+                                                            User-agent: *
 
-                                Disallow: /rejectMost/*
-                                Allow: /rejectMost/butNotThisOne/*
-                                """,
-                                StandardCharsets.UTF_8), url, "test-crawler");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }));
+                                                            Disallow: /rejectMost/*
+                                                            Allow: /rejectMost/butNotThisOne/*
+                                                            """,
+                                                    StandardCharsets.UTF_8
+                                            ), url,
+                                            "test-crawler"
+                                    );
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        })
+        );
 
         // An allow for a robot rule should now be rejecting all non-allowing.
         // It should allows sub directories that have their parent rejected
-        Assertions.assertFalse(testAllow(crawler,
-                "http://rejected.com/rejectMost/blah.html"),
-                "Matches Disallow");
-        Assertions.assertTrue(testAllow(crawler,
-                "http://accepted.com/rejectMost/butNotThisOne/blah.html"),
-                "Matches Disallow AND Allow");
-        Assertions.assertTrue(testAllow(crawler,
-                "http://accepted.com/notListed/blah.html"),
-                "No match in robot.txt");
+        Assertions.assertFalse(
+                testAllow(
+                        crawler,
+                        "http://rejected.com/rejectMost/blah.html"
+                ),
+                "Matches Disallow"
+        );
+        Assertions.assertTrue(
+                testAllow(
+                        crawler,
+                        "http://accepted.com/rejectMost/butNotThisOne/blah.html"
+                ),
+                "Matches Disallow AND Allow"
+        );
+        Assertions.assertTrue(
+                testAllow(
+                        crawler,
+                        "http://accepted.com/notListed/blah.html"
+                ),
+                "No match in robot.txt"
+        );
     }
 
     private boolean testAllow(Crawler crawler, final String url) {
         var ctx = new QueuePipelineContext(
-                crawler, new WebCrawlDocContext(url, 0));
+                crawler, new WebCrawlDocContext(url, 0)
+        );
         var filterStage = new RobotsTxtFiltersStage();
         return filterStage.test(ctx);
     }

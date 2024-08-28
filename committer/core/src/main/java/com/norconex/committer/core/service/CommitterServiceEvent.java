@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,10 +69,12 @@ public class CommitterServiceEvent extends Event {
         // Cannot use ReflectionToStringBuilder here to prevent
         // "An illegal reflective access operation has occurred"
         return new ToStringBuilder(this, ToStringStyle.NO_CLASS_NAME_STYLE)
-//                .appendSuper(super.toString())
-                .append("committers", '[' + committers.stream()
-                        .map(c -> c.getClass().getSimpleName())
-                        .collect(Collectors.joining(",")) + ']')
+                //                .appendSuper(super.toString())
+                .append(
+                        "committers", '[' + committers.stream()
+                                .map(c -> c.getClass().getSimpleName())
+                                .collect(Collectors.joining(",")) + ']'
+                )
                 .append("subject", subject)
                 .build();
     }

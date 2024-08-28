@@ -152,15 +152,17 @@ public class RegexLinkExtractorConfig {
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
 
-
     public List<ExtractionPattern> getPatterns() {
         return Collections.unmodifiableList(patterns);
     }
+
     public RegexLinkExtractorConfig setPatterns(
-            List<ExtractionPattern> patterns) {
+            List<ExtractionPattern> patterns
+    ) {
         CollectionUtil.setAll(this.patterns, patterns);
         return this;
     }
+
     public RegexLinkExtractorConfig clearPatterns() {
         patterns.clear();
         return this;
@@ -172,6 +174,7 @@ public class RegexLinkExtractorConfig {
     public void clearRestrictions() {
         restrictions.clear();
     }
+
     /**
      * Gets all restrictions
      * @return the restrictions

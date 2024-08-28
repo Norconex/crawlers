@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-
 class WPOfficeParserTest {
 
     @TempDir
@@ -32,21 +31,23 @@ class WPOfficeParserTest {
     @Test
     void test_WPOffice_QuattroPro_qpw() throws IOException {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/wordperfect/quattropro.qpw"))
-            .hasContentType("application/x-quattro-pro; version=9")
-            .hasContentFamily("Spreadsheet")
-            .hasExtension("qpw")
-            .contains("Misc. relative references");
+                resourceAsFile(folder, "/parser/wordperfect/quattropro.qpw")
+        )
+                .hasContentType("application/x-quattro-pro; version=9")
+                .hasContentFamily("Spreadsheet")
+                .hasExtension("qpw")
+                .contains("Misc. relative references");
     }
 
     //--- Word Perfect ---------------------------------------------------------
     @Test
     void test_WPOffice_WordPerfect_wpd() throws IOException {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/wordperfect/wordperfect.wpd"))
-            .hasContentType("application/vnd.wordperfect; version=6.x")
-            .hasContentFamily("Word Processor")
-            .hasExtension("wpd")
-            .contains("test test");
+                resourceAsFile(folder, "/parser/wordperfect/wordperfect.wpd")
+        )
+                .hasContentType("application/vnd.wordperfect; version=6.x")
+                .hasContentFamily("Word Processor")
+                .hasExtension("wpd")
+                .contains("test test");
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,8 @@ class CfsIngestRemovesAction implements IIdolIndexAction {
             return addRemovesToUrl(batch, url.toString());
         } catch (MalformedURLException | UnsupportedEncodingException e) {
             throw new CommitterException(
-                    "Could not create CFS Ingest Removes URL.", e);
+                    "Could not create CFS Ingest Removes URL.", e
+            );
         }
     }
 
@@ -78,10 +79,12 @@ class CfsIngestRemovesAction implements IIdolIndexAction {
             if (StringUtils.isNotBlank(refField)) {
                 ref = req.getMetadata().getString(refField);
                 if (StringUtils.isBlank(ref)) {
-                    LOG.warn("Source reference field '{}' has no value "
-                            + "for deletion of document: '{}'. Using that "
-                            + "original document reference instead.",
-                            refField, req.getReference());
+                    LOG.warn(
+                            "Source reference field '{}' has no value "
+                                    + "for deletion of document: '{}'. Using that "
+                                    + "original document reference instead.",
+                            refField, req.getReference()
+                    );
                     ref = req.getReference();
                 }
             }

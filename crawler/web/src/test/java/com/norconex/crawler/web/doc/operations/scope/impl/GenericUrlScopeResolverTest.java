@@ -68,9 +68,9 @@ class GenericUrlScopeResolverTest {
         // Protocol + Domain + Port
         s = new GenericUrlScopeResolver();
         s.getConfiguration()
-            .setStayOnProtocol(true)
-            .setStayOnDomain(true)
-            .setStayOnPort(true);
+                .setStayOnProtocol(true)
+                .setStayOnDomain(true)
+                .setStayOnPort(true);
         assertThat(s.resolve(url, diffProtocol).isInScope()).isFalse();
         assertThat(s.resolve(url, diffDomain).isInScope()).isFalse();
         assertThat(s.resolve(url, diffPort).isInScope()).isFalse();

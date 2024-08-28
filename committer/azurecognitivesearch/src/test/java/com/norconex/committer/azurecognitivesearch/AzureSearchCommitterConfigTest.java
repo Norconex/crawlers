@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,37 +36,46 @@ class AzureSearchCommitterConfigTest {
     void testWriteRead() throws Exception {
         var q = new FSQueue();
         q.getConfiguration()
-            .setBatchSize(10)
-            .setMaxPerFolder(5);
+                .setBatchSize(10)
+                .setMaxPerFolder(5);
 
         var c = new AzureSearchCommitter();
         c.getConfiguration()
-            .setSourceKeyField("sourceKeyField")
-            .setTargetKeyField("targetKeyField")
-            .setTargetContentField("targetContentField")
-            .setProxySettings(new ProxySettings()
-                    .setHost(new Host("there.com", 123)))
-            .setEndpoint("endpoint")
-            .setApiVersion("apiVersion")
-            .setApiKey("apiKey")
-            .setIndexName("indexName")
-            .setDisableDocKeyEncoding(true)
-            .setIgnoreValidationErrors(true)
-            .setIgnoreResponseErrors(true)
-            .setArrayFields(".*")
-            .setArrayFieldsRegex(true)
-            .setQueue(q)
-            .setFieldMapping("subject", "title")
-            .setFieldMapping("body", "content")
-            .addRestriction(new PropertyMatcher(
-                    TextMatcher.basic("document.reference"),
-                    TextMatcher.wildcard("*.pdf")))
-            .addRestriction(new PropertyMatcher(
-                    TextMatcher.basic("title"),
-                    TextMatcher.wildcard("Nah!")));
+                .setSourceKeyField("sourceKeyField")
+                .setTargetKeyField("targetKeyField")
+                .setTargetContentField("targetContentField")
+                .setProxySettings(
+                        new ProxySettings()
+                                .setHost(new Host("there.com", 123))
+                )
+                .setEndpoint("endpoint")
+                .setApiVersion("apiVersion")
+                .setApiKey("apiKey")
+                .setIndexName("indexName")
+                .setDisableDocKeyEncoding(true)
+                .setIgnoreValidationErrors(true)
+                .setIgnoreResponseErrors(true)
+                .setArrayFields(".*")
+                .setArrayFieldsRegex(true)
+                .setQueue(q)
+                .setFieldMapping("subject", "title")
+                .setFieldMapping("body", "content")
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("document.reference"),
+                                TextMatcher.wildcard("*.pdf")
+                        )
+                )
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("title"),
+                                TextMatcher.wildcard("Nah!")
+                        )
+                );
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c));
+                () -> BeanMapper.DEFAULT.assertWriteRead(c)
+        );
     }
 
     @Test
@@ -74,7 +83,8 @@ class AzureSearchCommitterConfigTest {
         Assertions.assertDoesNotThrow(() -> {
             try (var r = ResourceLoader.getXmlReader(this.getClass())) {
                 BeanMapper.DEFAULT.read(
-                        AzureSearchCommitter.class, r, Format.XML);
+                        AzureSearchCommitter.class, r, Format.XML
+                );
             }
         });
     }

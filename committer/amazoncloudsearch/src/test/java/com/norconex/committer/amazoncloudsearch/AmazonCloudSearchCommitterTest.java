@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.norconex.committer.amazoncloudsearch;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -26,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -50,6 +52,8 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.exec.RetriableException;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.net.Host;
+import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.url.URLStreamer;
 
 /**
@@ -77,19 +81,19 @@ class AmazonCloudSearchCommitterTest {
     static DockerComposeContainer<?> container =
             new DockerComposeContainer<>(
                     new File("src/test/resources/nozama-cloudsearch.yaml"))
-            .withExposedService(
-                    CLOUDSEARCH_NAME,
-                    CLOUDSEARCH_PORT,
-                    /*
-                     * Ensure nozama container gets into a state where
-                     * it will accept HTTP DELETE requests
-                     */
-                    Wait
-                        .forHttp(API_DEV_DOCUMENTS)
-                        .withMethod("DELETE")
-                        .forStatusCode(200)
-                        .withStartupTimeout(Duration.ofSeconds(60))
-                    );
+                            .withExposedService(
+                                    CLOUDSEARCH_NAME,
+                                    CLOUDSEARCH_PORT,
+                                    /*
+                                     * Ensure nozama container gets into a state where
+                                     * it will accept HTTP DELETE requests
+                                     */
+                                    Wait
+                                            .forHttp(API_DEV_DOCUMENTS)
+                                            .withMethod("DELETE")
+                                            .forStatusCode(200)
+                                            .withStartupTimeout(
+                                                    Duration.ofSeconds(60)));
 
     private static String CLOUDSEARCH_ENDPOINT;
 
@@ -100,10 +104,14 @@ class AmazonCloudSearchCommitterTest {
     static void setCloudSearchEndpoint() {
         CLOUDSEARCH_ENDPOINT =
                 "http://"
-                + container.getServiceHost(CLOUDSEARCH_NAME, CLOUDSEARCH_PORT)
-                + ":"
-                + container.getServicePort(CLOUDSEARCH_NAME, CLOUDSEARCH_PORT)
-                + "/";
+                        + container.getServiceHost(
+                                CLOUDSEARCH_NAME,
+                                CLOUDSEARCH_PORT)
+                        + ":"
+                        + container.getServicePort(
+                                CLOUDSEARCH_NAME,
+                                CLOUDSEARCH_PORT)
+                        + "/";
     }
 
     @BeforeEach
@@ -123,7 +131,7 @@ class AmazonCloudSearchCommitterTest {
     }
 
     @Test
-    void testAddWithQueueContaining2documents() throws Exception{
+    void testAddWithQueueContaining2documents() throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -135,7 +143,7 @@ class AmazonCloudSearchCommitterTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd1DeleteCommand()
-            throws Exception{
+            throws Exception {
 
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
@@ -150,7 +158,7 @@ class AmazonCloudSearchCommitterTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd2DeleteCommand()
-            throws Exception{
+            throws Exception {
 
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
@@ -180,7 +188,6 @@ class AmazonCloudSearchCommitterTest {
         // Check that it's remove from CloudSearch
         Assertions.assertEquals(0, getAllDocs().size());
     }
-
 
     @Test
     void testCommitDeleteWithBadIdValue() throws Exception {
@@ -214,26 +221,60 @@ class AmazonCloudSearchCommitterTest {
         var doc = docs.get(0);
 
         // Check multi values are still there
-        assertEquals(3,
+        assertEquals(
+                3,
                 doc.getJSONObject("fields").getJSONArray("multi").length(),
                 "Multi-value not saved properly.");
+    }
+
+    @Test
+    void testWithBadProxyMustTrhow() {
+        assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
+            // Add new doc to CloudSearch
+            withinCommitterSession(
+                    cfg -> {
+                        cfg.getProxySettings()
+                            .setHost(new Host("there", 99))
+                            .setCredentials(new Credentials("cool", "dude"));
+                    }, committer -> {
+                        committer.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+                    });
+        });
+    }
+
+    @Test
+    void testWithNoEndpointMustThrow() {
+        assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
+            // Add new doc to CloudSearch
+            withinCommitterSession(
+                    cfg -> {
+                        cfg.setServiceEndpoint(null);
+                    }, committer -> {
+                        committer.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+                    });
+        });
     }
 
     private UpsertRequest upsertRequest(String id, String content) {
         return upsertRequest(id, content, null);
     }
+
     private UpsertRequest upsertRequest(
             String id, String content, Properties metadata) {
         var p = metadata == null ? new Properties() : metadata;
-        return new UpsertRequest(id, p, content == null
-                ? new NullInputStream(0) : toInputStream(content, UTF_8));
+        return new UpsertRequest(
+                id, p, content == null
+                        ? new NullInputStream(0)
+                        : toInputStream(content, UTF_8));
     }
 
     private void assertTestDoc(JSONObject doc) throws RetriableException {
         assertEquals(TEST_ID, doc.getString("id"));
-        assertEquals(TEST_CONTENT,
+        assertEquals(
+                TEST_CONTENT,
                 doc.getJSONObject("fields").getString("content"));
     }
+
     private List<JSONObject> getAllDocs() {
         var response = httpGET(API_DEV_DOCUMENTS);
         LOG.debug("CloudSearch getAllDocs() response: {}", response);
@@ -246,28 +287,37 @@ class AmazonCloudSearchCommitterTest {
         return docs;
     }
 
-    private AmazonCloudSearchCommitter createCloudSearchCommitter()
+    private AmazonCloudSearchCommitter withinCommitterSession(
+            CommitterConsumer initializedCommiterConsumer)
             throws CommitterException {
-        var ctx = CommitterContext.builder()
-                .setWorkDir(new File(tempDir,
-                        "" + TimeIdGenerator.next()).toPath())
-                .build();
-        var committer = new AmazonCloudSearchCommitter();
-        committer.getConfiguration()
-            .setServiceEndpoint(CLOUDSEARCH_ENDPOINT)
-            .setSecretKey("dummySecretKey")
-            .setAccessKey("dummyAccessKey")
-            .setFixBadIds(true);
-        committer.init(ctx);
-        return committer;
+        return withinCommitterSession(null, initializedCommiterConsumer);
     }
 
     private AmazonCloudSearchCommitter withinCommitterSession(
-            CommitterConsumer c)
+            Consumer<AmazonCloudSearchCommitterConfig> configConsumer,
+            CommitterConsumer initializedCommiterConsumer)
             throws CommitterException {
-    	var committer = createCloudSearchCommitter();
+
+        var ctx = CommitterContext.builder()
+                .setWorkDir(
+                        new File(
+                                tempDir,
+                                "" + TimeIdGenerator.next()).toPath())
+                .build();
+        var committer = new AmazonCloudSearchCommitter();
+        committer.getConfiguration()
+                .setServiceEndpoint(CLOUDSEARCH_ENDPOINT)
+                .setSecretKey("dummySecretKey")
+                .setAccessKey("dummyAccessKey")
+                .setFixBadIds(true);
         try {
-            c.accept(committer);
+            if (configConsumer != null) {
+                configConsumer.accept(committer.getConfiguration());
+            }
+            committer.init(ctx);
+            if (initializedCommiterConsumer != null) {
+                initializedCommiterConsumer.accept(committer);
+            }
         } catch (CommitterException e) {
             throw e;
         } catch (Exception e) {

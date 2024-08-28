@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.crawler.web.sitemap;
 
 import java.util.function.Consumer;

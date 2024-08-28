@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,19 +35,20 @@ public class HttpMultiFetcher
     // to core MultiFetcher ?
 
     public HttpMultiFetcher(
-            @NonNull
-            List<? extends Fetcher
-                    <HttpFetchRequest, HttpFetchResponse>> fetchers,
-            @NonNull
-            ResponseListAdapter<HttpFetchResponse> multiResponseWrapper,
-            @NonNull
-            UnsuccessfulResponseFactory
-                    <HttpFetchResponse> unsuccessfulResponseAdaptor,
-            int maxRetries, Duration retryDelay) {
-        super(fetchers,
+            @NonNull List<? extends Fetcher<HttpFetchRequest,
+                    HttpFetchResponse>> fetchers,
+            @NonNull ResponseListAdapter<
+                    HttpFetchResponse> multiResponseWrapper,
+            @NonNull UnsuccessfulResponseFactory<
+                    HttpFetchResponse> unsuccessfulResponseAdaptor,
+            int maxRetries, Duration retryDelay
+    ) {
+        super(
+                fetchers,
                 multiResponseWrapper,
                 unsuccessfulResponseAdaptor,
                 maxRetries,
-                retryDelay);
+                retryDelay
+        );
     }
 }

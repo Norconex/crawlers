@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,19 +29,22 @@ import com.norconex.importer.doc.DocMetadata;
 
 class StandardRobotsMetaProviderTest {
 
-
     @Test
     void testNiceRobotsMeta() throws IOException {
         testRobotsMeta("nice");
     }
+
     @Test
     void testUglyRobotsMeta() throws IOException {
         testRobotsMeta("ugly");
     }
 
     private void testRobotsMeta(String suffix) throws IOException {
-        Reader docReader = new InputStreamReader(getClass().getResourceAsStream(
-                "StandardRobotsMetaProviderTest-" + suffix + ".html"));
+        Reader docReader = new InputStreamReader(
+                getClass().getResourceAsStream(
+                        "StandardRobotsMetaProviderTest-" + suffix + ".html"
+                )
+        );
         var docURL = "http://www.example.com/test" + suffix + ".html";
         var metadata = new Properties();
         metadata.set(DocMetadata.REFERENCE, docURL);
@@ -49,11 +52,13 @@ class StandardRobotsMetaProviderTest {
 
         var p = new StandardRobotsMetaProvider();
         var robotsMeta = p.getRobotsMeta(
-                docReader, docURL, ContentType.HTML, metadata);
+                docReader, docURL, ContentType.HTML, metadata
+        );
 
         assertTrue(
                 robotsMeta.isNofollow() && robotsMeta.isNoindex(),
-                "Robots meta should be noindex nofollow.");
+                "Robots meta should be noindex nofollow."
+        );
     }
 
     @Test
@@ -65,10 +70,12 @@ class StandardRobotsMetaProviderTest {
 
         var p = new StandardRobotsMetaProvider();
         var robotsMeta = p.getRobotsMeta(
-                Reader.nullReader(), "someRef", ContentType.HTML, metadata);
+                Reader.nullReader(), "someRef", ContentType.HTML, metadata
+        );
 
         assertTrue(
                 robotsMeta.isNofollow() && robotsMeta.isNoindex(),
-                "Robots meta should be noindex nofollow.");
+                "Robots meta should be noindex nofollow."
+        );
     }
 }

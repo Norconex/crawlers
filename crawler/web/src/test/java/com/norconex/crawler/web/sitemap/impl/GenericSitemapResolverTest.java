@@ -54,50 +54,80 @@ class GenericSitemapResolverTest {
         // We test redirect
 
         client
-            .when(request()
-                    .withPath("/sitemap-index"))
-            .respond(response()
-                .withBody("""
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <sitemapindex \
-                        xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
-                      <sitemap>
-                        <loc>%s</loc>
-                        <lastmod>2000-10-01T18:23:17+00:00</lastmod>
-                      </sitemap>
-                    </sitemapindex>
-                    """.formatted(serverUrl(client, "sitemap")),
-                    MediaType.XML_UTF_8));
+                .when(
+                        request()
+                                .withPath("/sitemap-index")
+                )
+                .respond(
+                        response()
+                                .withBody(
+                                        """
+                                                <?xml version="1.0" encoding="UTF-8"?>
+                                                <sitemapindex \
+                                                    xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+                                                  <sitemap>
+                                                    <loc>%s</loc>
+                                                    <lastmod>2000-10-01T18:23:17+00:00</lastmod>
+                                                  </sitemap>
+                                                </sitemapindex>
+                                                """
+                                                .formatted(
+                                                        serverUrl(
+                                                                client,
+                                                                "sitemap"
+                                                        )
+                                                ),
+                                        MediaType.XML_UTF_8
+                                )
+                );
 
         client
-            .when(request()
-                .withPath("/sitemap"))
-            .respond(response()
-                .withStatusCode(302)
-                .withHeader("Location",
-                        serverUrl(client, "/sitemap-new")));
+                .when(
+                        request()
+                                .withPath("/sitemap")
+                )
+                .respond(
+                        response()
+                                .withStatusCode(302)
+                                .withHeader(
+                                        "Location",
+                                        serverUrl(client, "/sitemap-new")
+                                )
+                );
 
         client
-            .when(request()
-                .withPath("/sitemap-new"))
-            .respond(response()
-                    .withHeader("Content-Encoding", "gzip")
-                    .withHeader("Content-type", "text/xml; charset=utf-8")
-                    .withBody(compressSitemap(serverUrl(client, ""))));
+                .when(
+                        request()
+                                .withPath("/sitemap-new")
+                )
+                .respond(
+                        response()
+                                .withHeader("Content-Encoding", "gzip")
+                                .withHeader(
+                                        "Content-type",
+                                        "text/xml; charset=utf-8"
+                                )
+                                .withBody(
+                                        compressSitemap(serverUrl(client, ""))
+                                )
+                );
 
         List<String> urls = new ArrayList<>();
-        var resolver = ((WebCrawlerConfig)
-                crawler.getConfiguration()).getSitemapResolver();
-        resolver.resolve(SitemapContext
-                .builder()
-                .fetcher((HttpFetcher) crawler.getFetcher())
-                .location(serverUrl(client, "sitemap-index"))
-                .urlConsumer(rec -> urls.add(rec.getReference()))
-                .build());
+        var resolver = ((WebCrawlerConfig) crawler.getConfiguration())
+                .getSitemapResolver();
+        resolver.resolve(
+                SitemapContext
+                        .builder()
+                        .fetcher((HttpFetcher) crawler.getFetcher())
+                        .location(serverUrl(client, "sitemap-index"))
+                        .urlConsumer(rec -> urls.add(rec.getReference()))
+                        .build()
+        );
 
         assertThat(urls).containsExactly(
                 serverUrl(client, "/pageA.html"),
-                serverUrl(client, "/pageB.html"));
+                serverUrl(client, "/pageB.html")
+        );
     }
 
     private byte[] compressSitemap(String baseUrl) throws IOException {
@@ -117,8 +147,9 @@ class GenericSitemapResolverTest {
                   </url>
                 </urlset>
                 """.formatted(
-                        baseUrl + "pageA.html",
-                        baseUrl + "pageB.html")
+                baseUrl + "pageA.html",
+                baseUrl + "pageB.html"
+        )
                 .getBytes();
         var bos = new ByteArrayOutputStream(content.length);
         var gzip = new GZIPOutputStream(bos);
@@ -135,6 +166,7 @@ class GenericSitemapResolverTest {
         r.getConfiguration().setLenient(true);
         LOG.debug("Writing/Reading this: {}", r);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(r));
+                () -> BeanMapper.DEFAULT.assertWriteRead(r)
+        );
     }
 }

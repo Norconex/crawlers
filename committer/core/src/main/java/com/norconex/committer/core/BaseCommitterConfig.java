@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,17 +93,20 @@ public class BaseCommitterConfig {
         restrictions.add(restriction);
         return this;
     }
+
     /**
      * Adds restrictions this committer should be restricted to.
      * @param restrictions the restrictions
      */
     public BaseCommitterConfig addRestrictions(
-            List<PropertyMatcher> restrictions) {
+            List<PropertyMatcher> restrictions
+    ) {
         if (restrictions != null) {
             this.restrictions.addAll(restrictions);
         }
         return this;
     }
+
     /**
      * Removes all restrictions on a given field.
      * @param field the field to remove restrictions on
@@ -112,6 +115,7 @@ public class BaseCommitterConfig {
     public int removeRestriction(String field) {
         return restrictions.remove(field);
     }
+
     /**
      * Removes a restriction.
      * @param restriction the restriction to remove
@@ -120,12 +124,14 @@ public class BaseCommitterConfig {
     public boolean removeRestriction(PropertyMatcher restriction) {
         return restrictions.remove(restriction);
     }
+
     /**
      * Clears all restrictions.
      */
     public void clearRestrictions() {
         restrictions.clear();
     }
+
     /**
      * Gets all restrictions
      * @return the restrictions
@@ -141,16 +147,19 @@ public class BaseCommitterConfig {
     public Map<String, String> getFieldMappings() {
         return Collections.unmodifiableMap(fieldMappings);
     }
+
     /**
      * Sets a metadata field mapping.
      * @param fromField source field
      * @param toField target field
      */
     public BaseCommitterConfig setFieldMapping(
-            String fromField, String toField) {
+            String fromField, String toField
+    ) {
         fieldMappings.put(fromField, toField);
         return this;
     }
+
     /**
      * Sets a metadata field mappings, where the key is the source field and
      * the value is the target field.
@@ -160,9 +169,11 @@ public class BaseCommitterConfig {
         fieldMappings.putAll(mappings);
         return this;
     }
+
     public String removeFieldMapping(String fromField) {
         return fieldMappings.remove(fromField);
     }
+
     public void clearFieldMappings() {
         fieldMappings.clear();
     }

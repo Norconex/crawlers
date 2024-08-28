@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,9 +60,11 @@ public class Neo4jCommitterConfig
     public Set<String> getOptionalParameters() {
         return Collections.unmodifiableSet(optionalParameters);
     }
+
     public void setOptionalParameters(Set<String> optionalParameters) {
         CollectionUtil.setAll(this.optionalParameters, optionalParameters);
     }
+
     public void addOptionalParameter(String optionalParameter) {
         optionalParameters.add(optionalParameter);
     }

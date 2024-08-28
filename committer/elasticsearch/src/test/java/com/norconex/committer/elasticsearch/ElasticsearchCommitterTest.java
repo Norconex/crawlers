@@ -1,4 +1,4 @@
-/* Copyright 2013-2023 Norconex Inc.
+/* Copyright 2013-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class ElasticsearchCommitterTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            ElasticsearchCommitterTest.class);
+            ElasticsearchCommitterTest.class
+    );
 
     private static final String TEST_ES_VERSION = "8.7.1";
     private static final String TEST_INDEX = "tests";
@@ -70,16 +71,19 @@ class ElasticsearchCommitterTest {
     @Container
     static ElasticsearchContainer container = new ElasticsearchContainer(
             DockerImageName.parse(
-                    "docker.elastic.co/elasticsearch/elasticsearch")
-                .withTag(TEST_ES_VERSION))
-    		.withEnv("xpack.security.enabled", "false");
+                    "docker.elastic.co/elasticsearch/elasticsearch"
+            )
+                    .withTag(TEST_ES_VERSION)
+    )
+            .withEnv("xpack.security.enabled", "false");
 
     private static RestClient restClient;
 
     @BeforeAll
     static void beforeAll() throws Exception {
         restClient = RestClient.builder(
-                HttpHost.create(container.getHttpHostAddress())).build();
+                HttpHost.create(container.getHttpHostAddress())
+        ).build();
     }
 
     @BeforeEach
@@ -113,9 +117,11 @@ class ElasticsearchCommitterTest {
     void testCommitDelete() throws Exception {
         // Add a document directly to ES
         var request = new Request(
-                "PUT", INDEX_ENDPOINT + "_doc/" + TEST_ID);
+                "PUT", INDEX_ENDPOINT + "_doc/" + TEST_ID
+        );
         request.setJsonEntity(
-                "{\"" + CONTENT_FIELD + "\":\"" + TEST_CONTENT + "\"}");
+                "{\"" + CONTENT_FIELD + "\":\"" + TEST_CONTENT + "\"}"
+        );
         restClient.performRequest(request);
 
         assertTrue(isFound(getDocument(TEST_ID)), "Not properly added.");
@@ -173,7 +179,8 @@ class ElasticsearchCommitterTest {
         assertTrue(isFound(doc), "Not found.");
         assertTrue(hasTestContent(doc), "Bad content.");
         assertFalse(
-                hasField(doc, sourceIdField), "sourceIdField was not removed.");
+                hasField(doc, sourceIdField), "sourceIdField was not removed."
+        );
     }
 
     @Test
@@ -194,17 +201,21 @@ class ElasticsearchCommitterTest {
 
         // Check content is available in custom content target field and
         // not in the default field
-        assertEquals(TEST_CONTENT, getFieldValue(doc, targetContentField),
-                "targetContentField was not saved.");
-        assertFalse(hasField(doc, CONTENT_FIELD),
-                "Default content field was saved.");
+        assertEquals(
+                TEST_CONTENT, getFieldValue(doc, targetContentField),
+                "targetContentField was not saved."
+        );
+        assertFalse(
+                hasField(doc, CONTENT_FIELD),
+                "Default content field was saved."
+        );
     }
 
     @Test
-	void testMultiValueFields() throws Exception {
-    	var metadata = new Properties();
+    void testMultiValueFields() throws Exception {
+        var metadata = new Properties();
         var fieldname = "multi";
-		metadata.set(fieldname, "1", "2", "3");
+        metadata.set(fieldname, "1", "2", "3");
 
         withinCommitterSession(c -> {
             c.upsert(upsertRequest(TEST_ID, null, metadata));
@@ -215,9 +226,11 @@ class ElasticsearchCommitterTest {
         assertTrue(isFound(doc), "Not found.");
 
         // Check multi values are still there
-        assertEquals(3, getFieldValues(doc, fieldname).size(),
-                "Multi-value not saved properly.");
-	}
+        assertEquals(
+                3, getFieldValues(doc, fieldname).size(),
+                "Multi-value not saved properly."
+        );
+    }
 
     @Test
     void testDotReplacement() throws Exception {
@@ -238,8 +251,10 @@ class ElasticsearchCommitterTest {
         assertTrue(isFound(doc), "Not found.");
 
         // Check the dots were replaced
-        assertEquals(fieldValue, getFieldValue(doc, fieldNameNoDots),
-                "Dots not replaced.");
+        assertEquals(
+                fieldValue, getFieldValue(doc, fieldNameNoDots),
+                "Dots not replaced."
+        );
         assertFalse(hasField(doc, fieldNameDots), "Dots still present.");
     }
 
@@ -282,14 +297,18 @@ class ElasticsearchCommitterTest {
             });
             Assertions.fail("Failed to throw exception.");
         } catch (CommitterException e) {
-            assertEquals(2, StringUtils.countMatches(
-                    ExceptionUtil.getFormattedMessages(e),
-                    "\"error\":"), "Wrong error count.");
+            assertEquals(
+                    2, StringUtils.countMatches(
+                            ExceptionUtil.getFormattedMessages(e),
+                            "\"error\":"
+                    ), "Wrong error count."
+            );
         }
     }
 
     @Test
-    void testUpsertWithBadId_idIsFixed() throws CommitterException, IOException {
+    void testUpsertWithBadId_idIsFixed()
+            throws CommitterException, IOException {
         //setup
         String expectdId = StringUtils.repeat("a", 501) + "!0626151616";
         Properties props = new Properties();
@@ -318,12 +337,15 @@ class ElasticsearchCommitterTest {
     private boolean hasTestContent(JSONObject doc) {
         return TEST_CONTENT.equals(getContentFieldValue(doc));
     }
+
     private boolean hasField(JSONObject doc, String fieldName) {
         return doc.getJSONObject("_source").has(fieldName);
     }
+
     private String getFieldValue(JSONObject doc, String fieldName) {
         return doc.getJSONObject("_source").getString(fieldName);
     }
+
     private List<String> getFieldValues(JSONObject doc, String fieldName) {
         List<String> values = new ArrayList<>();
         var array = doc.getJSONObject("_source").getJSONArray(fieldName);
@@ -332,19 +354,24 @@ class ElasticsearchCommitterTest {
         }
         return values;
     }
+
     private String getContentFieldValue(JSONObject doc) {
         return getFieldValue(doc, CONTENT_FIELD);
     }
+
     private boolean isFound(JSONObject doc) {
         return doc.getBoolean("found");
     }
+
     private JSONObject getDocument(String id) throws IOException {
         return performTypeRequest("GET", "_doc/" + id);
     }
+
     private JSONObject performTypeRequest(String method, String request)
             throws IOException {
         return performRequest(method, INDEX_ENDPOINT + request);
     }
+
     private JSONObject performRequest(String method, String endpoint)
             throws IOException {
         Response httpResponse;
@@ -355,7 +382,8 @@ class ElasticsearchCommitterTest {
             httpResponse = e.getResponse();
         }
         var response = IOUtils.toString(
-                httpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+                httpResponse.getEntity().getContent(), StandardCharsets.UTF_8
+        );
         var json = new JSONObject(response);
         LOG.info("Response status: {}", httpResponse.getStatusLine());
         LOG.debug("Response body: {}", json);
@@ -365,33 +393,46 @@ class ElasticsearchCommitterTest {
     private UpsertRequest upsertRequest(String id, String content) {
         return upsertRequest(id, content, null);
     }
+
     private UpsertRequest upsertRequest(
-            String id, String content, Properties metadata) {
+            String id, String content, Properties metadata
+    ) {
         var p = metadata == null ? new Properties() : metadata;
-        return new UpsertRequest(id, p, content == null
-                ? new NullInputStream(0) : toInputStream(content, UTF_8));
+        return new UpsertRequest(
+                id, p, content == null
+                        ? new NullInputStream(0)
+                        : toInputStream(content, UTF_8)
+        );
     }
 
     private List<File> listFiles(ElasticsearchCommitter c) {
-        return new ArrayList<>(FileUtils.listFiles(
-                c.getCommitterContext().getWorkDir().toFile(), null, true));
+        return new ArrayList<>(
+                FileUtils.listFiles(
+                        c.getCommitterContext().getWorkDir().toFile(), null,
+                        true
+                )
+        );
     }
 
     protected ElasticsearchCommitter createESCommitter()
             throws CommitterException {
 
         var ctx = CommitterContext.builder()
-                .setWorkDir(new File(tempDir,
-                        "" + TimeIdGenerator.next()).toPath())
+                .setWorkDir(
+                        new File(
+                                tempDir,
+                                "" + TimeIdGenerator.next()
+                        ).toPath()
+                )
                 .build();
         var committer = new ElasticsearchCommitter();
         committer.getConfiguration().setNodes(
-                List.of(container.getHttpHostAddress()));
+                List.of(container.getHttpHostAddress())
+        );
         committer.getConfiguration().setIndexName(TEST_INDEX);
         committer.init(ctx);
         return committer;
     }
-
 
     protected ElasticsearchCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {

@@ -61,8 +61,10 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, MetadataChecksummer.class, "doc.operations.checksum");
         addPolyType(map, EventListener.class, "event.listeners");
         addPolyType(map, DelayResolver.class);
-        addPolyType(map, DocumentFilter.class,
-                "doc.operations.filter"); //NOSONAR
+        addPolyType(
+                map, DocumentFilter.class,
+                "doc.operations.filter"
+        ); //NOSONAR
         addPolyType(map, MetadataFilter.class, "doc.operations.filter");
         addPolyType(map, ReferenceFilter.class, "doc.operations.filter");
         addPolyType(map, LinkExtractor.class);
@@ -76,9 +78,12 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, UrlScopeResolver.class);
 
         map.put(CrawlerConfig.class, WebCrawlerConfig.class);
-        map.putAll(Fetcher.class, List.of(
-                GenericHttpFetcher.class,
-                WebDriverHttpFetcher.class));
+        map.putAll(
+                Fetcher.class, List.of(
+                        GenericHttpFetcher.class,
+                        WebDriverHttpFetcher.class
+                )
+        );
 
         // For unit test
         addPolyType(map, EventListener.class, "session.recovery");
@@ -89,19 +94,27 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
 
     private void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
-            Class<?> baseClass) {
+            Class<?> baseClass
+    ) {
         addPolyType(polyTypes, baseClass, null);
     }
+
     private void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
             Class<?> baseClass,
-            String corePkg) {
-        polyTypes.putAll(baseClass, ClassFinder.findSubTypes(
-                baseClass,
-                corePkg == null
-                    ? nm -> nm.startsWith(baseClass.getPackageName())
-                    : filter(corePkg)));
+            String corePkg
+    ) {
+        polyTypes.putAll(
+                baseClass, ClassFinder.findSubTypes(
+                        baseClass,
+                        corePkg == null
+                                ? nm -> nm
+                                        .startsWith(baseClass.getPackageName())
+                                : filter(corePkg)
+                )
+        );
     }
+
     private Predicate<String> filter(String corePkg) {
         return nm -> nm.startsWith("com.norconex.crawler.web." + corePkg);
     }

@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,19 +30,25 @@ import com.norconex.commons.lang.xml.XML;
 class CommitterTest {
     @Test
     void testValidation() throws IOException {
-        try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
-                "/validation/committer-core-full.xml"))) {
+        try (Reader r = new InputStreamReader(
+                getClass().getResourceAsStream(
+                        "/validation/committer-core-full.xml"
+                )
+        )) {
             var eh = new ErrorHandlerCapturer();
             var xml = XML.of(r).setErrorHandler(eh).create();
 
             List<Committer> committers = xml.getObjectListImpl(
                     Committer.class,
                     "/committers/committer",
-                    Collections.emptyList());
+                    Collections.emptyList()
+            );
 
             assertEquals(5, committers.size());
-            assertEquals(0, eh.getErrors().size(),
-                "Validation warnings/errors were found: " + eh.getErrors());
+            assertEquals(
+                    0, eh.getErrors().size(),
+                    "Validation warnings/errors were found: " + eh.getErrors()
+            );
         }
     }
 }

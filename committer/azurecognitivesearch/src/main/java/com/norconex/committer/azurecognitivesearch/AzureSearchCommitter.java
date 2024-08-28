@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,7 +173,8 @@ public class AzureSearchCommitter
         if (configuration.getQueue() instanceof FSQueue queue &&
                 queue.getConfiguration().getBatchSize() > 1000) {
             throw new CommitterException(
-                    "Commit batch size cannot be greater than 1000.");
+                    "Commit batch size cannot be greater than 1000."
+            );
         }
     }
 

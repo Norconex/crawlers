@@ -2,7 +2,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at  
+ * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -66,16 +66,18 @@ public enum SolrClientType {
      */
     LB_HTTP2("LBHttp2SolrClient", url -> new LBHttp2SolrClient.Builder(
             new Http2SolrClient.Builder().build(),
-            url.split(SolrClientType.CSV_SPLIT_REGEX)).build()),
+            url.split(SolrClientType.CSV_SPLIT_REGEX)
+    ).build()),
 
     /**
      * A client using the HTTP/2 protocol, optimized for mass upload on a
      * single node.  Not best for queries.
      * Expects a Solr URL.
      */
-    CONCURRENT_UPDATE_HTTP2("ConcurrentUpdateHttp2SolrClient", url ->
-            new ConcurrentUpdateHttp2SolrClient.Builder(
-                    url, new Http2SolrClient.Builder().build()).build()),
+    CONCURRENT_UPDATE_HTTP2("ConcurrentUpdateHttp2SolrClient",
+            url -> new ConcurrentUpdateHttp2SolrClient.Builder(
+                    url, new Http2SolrClient.Builder().build()
+            ).build()),
 
     /**
      * A client using the JDK’s built-in Http Client. Supports both Http/2
@@ -102,7 +104,8 @@ public enum SolrClientType {
     @Deprecated(since = "4.0.0")
     LB_HTTP("LBHttpSolrClient",
             url -> new LBHttpSolrClient.Builder().withBaseSolrUrls(
-                    url.split(SolrClientType.CSV_SPLIT_REGEX)).build()),
+                    url.split(SolrClientType.CSV_SPLIT_REGEX)
+            ).build()),
     /**
      * A client using the HTTP/1.x protocol, optimized for mass upload on a
      * single node.  Not best for queries.
@@ -112,12 +115,13 @@ public enum SolrClientType {
     @Deprecated(since = "4.0.0")
     CONCURRENT_UPDATE("ConcurrentUpdateSolrClient",
             url -> new ConcurrentUpdateSolrClient.Builder(url).build()),
-    ;
+            ;
 
     private static final String CSV_SPLIT_REGEX = "\\s*,\\s*";
 
     private final String type;
     private final Function<String, SolrClient> clientFactory;
+
     SolrClientType(String type, Function<String, SolrClient> f) {
         this.type = type;
         clientFactory = f;

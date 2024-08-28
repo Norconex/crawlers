@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,8 @@ public class Constant {
     }
 
     public static Constant of(
-            @NonNull String name, @NonNull List<String> values) {
+            @NonNull String name, @NonNull List<String> values
+    ) {
         return of(name, values, null);
     }
 
@@ -49,7 +50,8 @@ public class Constant {
     public static Constant of(
             @JsonProperty("name") @NonNull String name,
             @JsonProperty("values") @NonNull List<String> values,
-            @JsonProperty("onSet") PropertySetter onSet) {
+            @JsonProperty("onSet") PropertySetter onSet
+    ) {
         return new Constant(name, values, onSet);
     }
 }

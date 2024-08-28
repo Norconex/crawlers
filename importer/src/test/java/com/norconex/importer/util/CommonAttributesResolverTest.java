@@ -33,15 +33,26 @@ class CommonAttributesResolverTest {
         CommonAttributesResolver.resolve(doc);
 
         assertThat(doc.getDocContext().getCharset()).isEqualTo(
-                Charset.forName("UTF-16LE"));
+                Charset.forName("UTF-16LE")
+        );
         assertThat(doc.getDocContext().getContentType()).isEqualTo(
-                ContentType.PDF);
+                ContentType.PDF
+        );
 
-        assertThat(doc.getMetadata().getString(
-                DocMetadata.CONTENT_ENCODING)).isEqualTo("UTF-16LE");
-        assertThat(doc.getMetadata().getString(
-                DocMetadata.CONTENT_TYPE)).isEqualTo("application/pdf");
-        assertThat(doc.getMetadata().getString(
-                DocMetadata.CONTENT_FAMILY)).isEqualTo("pdf");
+        assertThat(
+                doc.getMetadata().getString(
+                        DocMetadata.CONTENT_ENCODING
+                )
+        ).isEqualTo("UTF-16LE");
+        assertThat(
+                doc.getMetadata().getString(
+                        DocMetadata.CONTENT_TYPE
+                )
+        ).isEqualTo("application/pdf");
+        assertThat(
+                doc.getMetadata().getString(
+                        DocMetadata.CONTENT_FAMILY
+                )
+        ).isEqualTo("pdf");
     }
 }

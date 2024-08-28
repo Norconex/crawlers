@@ -125,14 +125,16 @@ public class CharacterCaseTransformer
     private void doFields(HandlerContext docCtx) {
         var applyTo = configuration.getApplyTo();
         if (StringUtils.isNotBlank(applyTo)
-                &&  !StringUtils.equalsAnyIgnoreCase(
-                        applyTo, APPLY_FIELD, APPLY_VALUE, APPLY_BOTH)) {
+                && !StringUtils.equalsAnyIgnoreCase(
+                        applyTo, APPLY_FIELD, APPLY_VALUE, APPLY_BOTH
+                )) {
             LOG.warn("Unsupported \"applyTo\": {}", applyTo);
             return;
         }
 
         for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                configuration.getFieldMatcher()).entrySet()) {
+                configuration.getFieldMatcher()
+        ).entrySet()) {
 
             var field = en.getKey();
             var newField = field;
@@ -144,7 +146,8 @@ public class CharacterCaseTransformer
 
             // Do values
             if (StringUtils.isBlank(applyTo) || EqualsUtil.equalsAny(
-                    applyTo, APPLY_VALUE, APPLY_BOTH)) {
+                    applyTo, APPLY_VALUE, APPLY_BOTH
+            )) {
                 changeValuesCase(newField, docCtx.metadata());
             }
         }
@@ -153,8 +156,8 @@ public class CharacterCaseTransformer
     private void doBody(HandlerContext docCtx) throws IOException {
         try (var out = docCtx.output().asWriter()) {
             docCtx.input().asChunkedText((idx, text) -> {
-               out.write(changeCase(text));
-               return true;
+                out.write(changeCase(text));
+                return true;
             });
         }
     }
@@ -168,8 +171,10 @@ public class CharacterCaseTransformer
         }
         return newField;
     }
+
     private void changeValuesCase(
-            String field, Properties metadata) {
+            String field, Properties metadata
+    ) {
         var values = metadata.getStrings(field);
         if (values != null) {
             for (var i = 0; i < values.size(); i++) {
@@ -216,7 +221,8 @@ public class CharacterCaseTransformer
     private String capitalizeString(String value) {
         if (StringUtils.isNotBlank(value)) {
             var m = Pattern.compile(
-                    "^(.*?)([\\p{IsAlphabetic}\\p{IsDigit}])").matcher(value);
+                    "^(.*?)([\\p{IsAlphabetic}\\p{IsDigit}])"
+            ).matcher(value);
             if (m.find()) {
                 var firstChar =
                         StringUtils.upperCase(m.group(2), Locale.ENGLISH);
@@ -225,9 +231,11 @@ public class CharacterCaseTransformer
         }
         return value;
     }
+
     private String capitalizeStringFully(String value) {
         return capitalizeString(StringUtils.lowerCase(value));
     }
+
     private String capitalizeSentences(String value) {
         if (StringUtils.isBlank(value)) {
             return value;
@@ -253,6 +261,7 @@ public class CharacterCaseTransformer
         }
         return b.toString();
     }
+
     private String capitalizeSentencesFully(String value) {
         return capitalizeSentences(StringUtils.lowerCase(value));
     }

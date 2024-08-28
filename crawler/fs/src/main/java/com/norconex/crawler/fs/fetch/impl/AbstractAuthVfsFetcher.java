@@ -74,11 +74,15 @@ public abstract class AbstractAuthVfsFetcher<C extends BaseAuthVfsFetcherConfig>
     protected void applyAuthenticationOptions(FileSystemOptions opts) {
         var defBuilder = DefaultFileSystemConfigBuilder.getInstance();
         if (getConfiguration().getCredentials().isSet()) {
-            defBuilder.setUserAuthenticator(opts, new StaticUserAuthenticator(
-                    getConfiguration().getDomain(),
-                    getConfiguration().getCredentials().getUsername(),
-                    EncryptionUtil.decryptPassword(
-                            getConfiguration().getCredentials())));
+            defBuilder.setUserAuthenticator(
+                    opts, new StaticUserAuthenticator(
+                            getConfiguration().getDomain(),
+                            getConfiguration().getCredentials().getUsername(),
+                            EncryptionUtil.decryptPassword(
+                                    getConfiguration().getCredentials()
+                            )
+                    )
+            );
         }
     }
 }

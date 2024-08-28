@@ -79,18 +79,28 @@ class DisabledMetaChecksummerTest {
     }
 
     private void whenMetaChanges(
-            ClientAndServer client, int daysAgo, String salt) {
+            ClientAndServer client, int daysAgo, String salt
+    ) {
         client.reset();
         client
-            .when(request(path))
-            .respond(
-                response()
-                    .withHeader("Last-Modified",
-                            WebTestUtil.daysAgoRFC(daysAgo))
-                    .withBody(WebsiteMock
-                        .htmlPage()
-                        .head("<meta name=\"salt\" content=\"" + salt + "\">")
-                        .body("Content never changes.")
-                        .build(), MediaType.HTML_UTF_8));
+                .when(request(path))
+                .respond(
+                        response()
+                                .withHeader(
+                                        "Last-Modified",
+                                        WebTestUtil.daysAgoRFC(daysAgo)
+                                )
+                                .withBody(
+                                        WebsiteMock
+                                                .htmlPage()
+                                                .head(
+                                                        "<meta name=\"salt\" content=\""
+                                                                + salt + "\">"
+                                                )
+                                                .body("Content never changes.")
+                                                .build(),
+                                        MediaType.HTML_UTF_8
+                                )
+                );
     }
 }

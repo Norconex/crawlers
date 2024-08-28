@@ -63,7 +63,7 @@ public class BaseChecksummerConfig {
      * @param toField the metadata field name
      * @return metadata field name
      */
-	private String toField;
+    private String toField;
 
     /**
      * The property setter to use when a value is set.

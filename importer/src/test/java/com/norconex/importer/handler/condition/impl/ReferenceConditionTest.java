@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,15 +35,26 @@ class ReferenceConditionTest {
         var cond = new ReferenceCondition();
 
         cond.getConfiguration().setValueMatcher(
-                TextMatcher.regex(".*/login.*"));
+                TextMatcher.regex(".*/login.*")
+        );
 
-        assertThat(TestUtil.condition(cond,
-                "http://www.example.com/login", null, meta, ParseState.PRE))
-                    .isTrue();
+        assertThat(
+                TestUtil.condition(
+                        cond,
+                        "http://www.example.com/login", null, meta,
+                        ParseState.PRE
+                )
+        )
+                .isTrue();
 
-        assertThat(TestUtil.condition(cond,
-                "http://www.example.com/blah", null, meta, ParseState.PRE))
-                    .isFalse();
+        assertThat(
+                TestUtil.condition(
+                        cond,
+                        "http://www.example.com/blah", null, meta,
+                        ParseState.PRE
+                )
+        )
+                .isFalse();
     }
 
     @Test

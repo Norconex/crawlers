@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class CommitterService<T> {
 
     public void init(CommitterContext baseContext)
             throws CommitterServiceException {
-        fire(COMMITTER_SERVICE_INIT_BEGIN, committers,  null);
+        fire(COMMITTER_SERVICE_INIT_BEGIN, committers, null);
 
         Set<String> uniqueDirNames = new HashSet<>();
         executeAll("init", c -> {
@@ -94,7 +94,8 @@ public class CommitterService<T> {
             }
             uniqueDirNames.add(dirName);
             var ctx = baseContext.withWorkdir(
-                    baseContext.getWorkDir().resolve(dirName));
+                    baseContext.getWorkDir().resolve(dirName)
+            );
             c.init(ctx);
         });
 
@@ -186,8 +187,10 @@ public class CommitterService<T> {
             try {
                 consumer.accept(committer);
             } catch (CommitterException e) {
-                LOG.error("Could not execute \"{}\" on committer: {}",
-                        operation, committer, e);
+                LOG.error(
+                        "Could not execute \"{}\" on committer: {}",
+                        operation, committer, e
+                );
                 failures.add(committer.getClass().getSimpleName());
                 exception = e;
             }
@@ -195,33 +198,37 @@ public class CommitterService<T> {
         if (!failures.isEmpty()) {
             throw new CommitterServiceException(
                     "Could not execute \"" + operation + "\" on "
-                    + failures.size() + " committer(s): \""
-                    + StringUtils.join(failures, ", ")
-                    + "\". Cause is the last exception captured. "
-                    + "Check the logs for more details.", exception);
+                            + failures.size() + " committer(s): \""
+                            + StringUtils.join(failures, ", ")
+                            + "\". Cause is the last exception captured. "
+                            + "Check the logs for more details.",
+                    exception
+            );
         }
     }
 
     private void fire(String eventName, List<Committer> targets, T object) {
-        var msg = "Committers: " + (
-                targets.isEmpty()
+        var msg = "Committers: " + (targets.isEmpty()
                 ? "none"
                 : targets.stream().map(c -> c.getClass().getSimpleName())
                         .collect(Collectors.joining(",")));
-        getEventManager().fire(CommitterServiceEvent.builder()
-                .name(eventName)
-                .source(this)
-                .subject(object)
-                .committers(targets)
-                .message(msg)
-                .build());
+        getEventManager().fire(
+                CommitterServiceEvent.builder()
+                        .name(eventName)
+                        .source(this)
+                        .subject(object)
+                        .committers(targets)
+                        .message(msg)
+                        .build()
+        );
     }
 
     @Override
     public String toString() {
         return CommitterService.class.getSimpleName() + '[' +
                 committers.stream().map(c -> c.getClass().getSimpleName())
-                        .collect(Collectors.joining(",")) + ']';
+                        .collect(Collectors.joining(","))
+                + ']';
     }
 
     @FunctionalInterface

@@ -39,49 +39,57 @@ class BeforeWebCrawlerExecution implements Consumer<Crawler> {
         if (cfg.getUrlScopeResolver() instanceof GenericUrlScopeResolver res) {
             var scopeCfg = res.getConfiguration();
             scope = """
-                Crawl scope boundaries:
-                  Domain:           %s
-                  Sub-domain:       %s
-                  Protocol:         %s
-                  Port:             %s
-                  Sitemap:          %s""".formatted(
-                            yn(scopeCfg.isStayOnDomain()),
-                            yn(scopeCfg.isIncludeSubdomains()),
-                            yn(scopeCfg.isStayOnProtocol()),
-                            yn(scopeCfg.isStayOnPort()),
-                            yn(scopeCfg.isStayOnSitemap()));
+                    Crawl scope boundaries:
+                      Domain:           %s
+                      Sub-domain:       %s
+                      Protocol:         %s
+                      Port:             %s
+                      Sitemap:          %s""".formatted(
+                    yn(scopeCfg.isStayOnDomain()),
+                    yn(scopeCfg.isIncludeSubdomains()),
+                    yn(scopeCfg.isStayOnProtocol()),
+                    yn(scopeCfg.isStayOnPort()),
+                    yn(scopeCfg.isStayOnSitemap())
+            );
         }
 
-        LOG.info("""
-            Enabled features:
+        LOG.info(
+                """
+                        Enabled features:
 
-            RobotsTxt:          %s
-            RobotsMeta:         %s
-            Sitemap discovery:  %s
-            Sitemap resolution: %s
-            Canonical links:    %s
-            Metadata:
-              Checksummer:      %s
-              Deduplication:    %s
-            Document:
-              Checksummer:      %s
-              Deduplication:    %s
-            %s
-            """.formatted(
-                    yn(cfg.getRobotsTxtProvider() != null),
-                    yn(cfg.getRobotsMetaProvider() != null),
-                    yn(cfg.getSitemapLocator() != null),
-                    yn(cfg.getSitemapResolver() != null),
-                    yn(cfg.getCanonicalLinkDetector() != null),
-                    yn(cfg.getMetadataChecksummer() != null),
-                    yn(cfg.isMetadataDeduplicate()
-                            && cfg.getMetadataChecksummer() != null),
-                    yn(cfg.getDocumentChecksummer() != null),
-                    yn(cfg.isDocumentDeduplicate()
-                            && cfg.getDocumentChecksummer() != null),
-                    scope
-            ));
+                        RobotsTxt:          %s
+                        RobotsMeta:         %s
+                        Sitemap discovery:  %s
+                        Sitemap resolution: %s
+                        Canonical links:    %s
+                        Metadata:
+                          Checksummer:      %s
+                          Deduplication:    %s
+                        Document:
+                          Checksummer:      %s
+                          Deduplication:    %s
+                        %s
+                        """.formatted(
+                        yn(cfg.getRobotsTxtProvider() != null),
+                        yn(cfg.getRobotsMetaProvider() != null),
+                        yn(cfg.getSitemapLocator() != null),
+                        yn(cfg.getSitemapResolver() != null),
+                        yn(cfg.getCanonicalLinkDetector() != null),
+                        yn(cfg.getMetadataChecksummer() != null),
+                        yn(
+                                cfg.isMetadataDeduplicate()
+                                        && cfg.getMetadataChecksummer() != null
+                        ),
+                        yn(cfg.getDocumentChecksummer() != null),
+                        yn(
+                                cfg.isDocumentDeduplicate()
+                                        && cfg.getDocumentChecksummer() != null
+                        ),
+                        scope
+                )
+        );
     }
+
     private static String yn(boolean value) {
         return value ? "Yes" : "No";
     }

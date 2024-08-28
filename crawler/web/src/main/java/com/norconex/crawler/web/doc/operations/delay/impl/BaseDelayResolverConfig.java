@@ -71,7 +71,9 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 public class BaseDelayResolverConfig {
 
-    public enum DelayResolverScope { CRAWLER, SITE, THREAD }
+    public enum DelayResolverScope {
+        CRAWLER, SITE, THREAD
+    }
 
     /** Default delay is 3 seconds. */
     public static final Duration DEFAULT_DELAY = Duration.ofSeconds(3);

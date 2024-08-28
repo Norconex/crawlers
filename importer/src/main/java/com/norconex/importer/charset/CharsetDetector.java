@@ -32,7 +32,7 @@ import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -51,7 +51,8 @@ public class CharsetDetector {
     public CharsetDetector(
             Charset declaredCharset,
             Charset fallbackCharset,
-            Supplier<Object> priorityCharset) {
+            Supplier<Object> priorityCharset
+    ) {
         this.declaredCharset = declaredCharset;
         this.fallbackCharset = ofNullable(fallbackCharset).orElse(UTF_8);
         if (priorityCharset != null) {
@@ -117,7 +118,8 @@ public class CharsetDetector {
             return fallbackCharset;
         }
         return detect(
-                doc.getInputStream(), doc.getDocContext().getCharset());
+                doc.getInputStream(), doc.getDocContext().getCharset()
+        );
     }
 
     /**
@@ -226,8 +228,10 @@ public class CharsetDetector {
         }
 
         if (!input.markSupported()) {
-            LOG.warn("mark/reset not supported on input stream. "
-                    + "Will not attempt to detect encoding.");
+            LOG.warn(
+                    "mark/reset not supported on input stream. "
+                            + "Will not attempt to detect encoding."
+            );
             return fallbackCharset;
         }
 
@@ -258,7 +262,8 @@ public class CharsetDetector {
      * and if so, we return UTF-8 instead.
      */
     private static Charset doDetect(
-            org.apache.tika.parser.txt.CharsetDetector cd) {
+            org.apache.tika.parser.txt.CharsetDetector cd
+    ) {
         var matches = cd.detectAll();
         if (ArrayUtils.isEmpty(matches)) {
             return null;
@@ -309,33 +314,43 @@ public class CharsetDetector {
         private Charset declaredCharset;
         private Charset fallbackCharset;
         private Supplier<Object> priorityCharset;
-        CharsetDetectorBuilder() {}
+
+        CharsetDetectorBuilder() {
+        }
+
         public CharsetDetector build() {
             return new CharsetDetector(
-                    declaredCharset, fallbackCharset, priorityCharset);
+                    declaredCharset, fallbackCharset, priorityCharset
+            );
         }
+
         public CharsetDetectorBuilder declaredCharset(String charset) {
             if (StringUtils.isNotBlank(charset)) {
                 declaredCharset = Charset.forName(CharsetUtils.clean(charset));
             }
             return this;
         }
+
         public CharsetDetectorBuilder declaredCharset(Charset charset) {
             declaredCharset = charset;
             return this;
         }
+
         public CharsetDetectorBuilder fallbackCharset(String charset) {
             if (StringUtils.isNotBlank(charset)) {
                 fallbackCharset = Charset.forName(CharsetUtils.clean(charset));
             }
             return this;
         }
+
         public CharsetDetectorBuilder fallbackCharset(Charset charset) {
             fallbackCharset = charset;
             return this;
         }
+
         public CharsetDetectorBuilder priorityCharset(
-                Supplier<Object> charsetSupplier) {
+                Supplier<Object> charsetSupplier
+        ) {
             priorityCharset = charsetSupplier;
             return this;
         }

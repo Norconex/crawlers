@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ public class CmisAtomFileSystem extends AbstractFileSystem {
             final FileName rootName,
             final FileObject parentLayer,
             final FileSystemOptions fileSystemOptions,
-            final CmisAtomSession session) {
+            final CmisAtomSession session
+    ) {
         super(rootName, parentLayer, fileSystemOptions);
         this.session = session;
     }

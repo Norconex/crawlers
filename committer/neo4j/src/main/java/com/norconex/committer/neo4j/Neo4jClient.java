@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,17 +68,22 @@ class Neo4jClient {
         Driver driver;
         var creds = config.getCredentials();
         if (creds.isSet()) {
-            driver = GraphDatabase.driver(config.getUri(), AuthTokens.basic(
-                    creds.getUsername(),
-                    EncryptionUtil.decrypt(
-                            creds.getPassword(),
-                            creds.getPasswordKey())));
+            driver = GraphDatabase.driver(
+                    config.getUri(), AuthTokens.basic(
+                            creds.getUsername(),
+                            EncryptionUtil.decrypt(
+                                    creds.getPassword(),
+                                    creds.getPasswordKey()
+                            )
+                    )
+            );
         } else {
             driver = GraphDatabase.driver(config.getUri());
         }
         LOG.info("Neo4j Driver loaded.");
         return driver;
     }
+
     private SessionConfig createNeo4jSessionConfig() {
         var b = SessionConfig.builder();
         if (StringUtils.isNotBlank(config.getDatabase())) {
@@ -100,7 +105,8 @@ class Neo4jClient {
                 }
             } catch (IOException e) {
                 throw new CommitterException(
-                        "Cannot perform commit request.", e);
+                        "Cannot perform commit request.", e
+                );
             }
         }
     }
@@ -116,8 +122,11 @@ class Neo4jClient {
             meta.set(config.getNodeIdProperty(), req.getReference());
         }
         if (StringUtils.isNotBlank(config.getNodeContentProperty())) {
-            meta.set(config.getNodeContentProperty(), IOUtils.toString(
-                    req.getContent(), StandardCharsets.UTF_8));
+            meta.set(
+                    config.getNodeContentProperty(), IOUtils.toString(
+                            req.getContent(), StandardCharsets.UTF_8
+                    )
+            );
         }
         try (var session = neo4jDriver.session(sessionConfig)) {
             session.executeWrite(tx -> {
@@ -130,7 +139,8 @@ class Neo4jClient {
     private void postDelete(DeleteRequest req) {
         var meta = req.getMetadata();
         Optional.ofNullable(trimToNull(config.getNodeIdProperty())).ifPresent(
-                fld -> meta.set(fld, req.getReference()));
+                fld -> meta.set(fld, req.getReference())
+        );
         try (var session = neo4jDriver.session(sessionConfig)) {
             session.executeWrite(tx -> {
                 tx.run(config.getDeleteCypher(), toObjectMap(meta));
@@ -150,8 +160,8 @@ class Neo4jClient {
         });
 
         // Add optional parameters
-        config.getOptionalParameters().forEach(param ->
-            map.computeIfAbsent(param, p -> NullValue.NULL)
+        config.getOptionalParameters().forEach(
+                param -> map.computeIfAbsent(param, p -> NullValue.NULL)
         );
         return map;
     }

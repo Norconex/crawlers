@@ -35,6 +35,7 @@ import com.norconex.importer.doc.Doc;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+
 /**
  * <p>
  * Filters URL based based on the number of URL segments. A URL with
@@ -79,7 +80,7 @@ public class SegmentCountUrlFilter implements
         ReferenceFilter,
         DocumentFilter,
         MetadataFilter,
-        Configurable<SegmentCountUrlFilterConfig>{
+        Configurable<SegmentCountUrlFilterConfig> {
 
     @Getter
     private final SegmentCountUrlFilterConfig configuration =
@@ -94,10 +95,12 @@ public class SegmentCountUrlFilter implements
     public boolean acceptDocument(Doc document) {
         return acceptReference(document.getReference());
     }
+
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {
         return acceptReference(reference);
     }
+
     @Override
     public boolean acceptReference(String url) {
         var isInclude = getOnMatch() == OnMatch.INCLUDE;
@@ -132,7 +135,8 @@ public class SegmentCountUrlFilter implements
     private List<String> getCleanSegments(String url) {
         var path = new HttpURL(url).getPath();
         var allSegments = Pattern.compile(
-                configuration.getSeparator()).split(path);
+                configuration.getSeparator()
+        ).split(path);
         // remove empty/nulls
         List<String> cleanSegments = new ArrayList<>();
         for (String segment : allSegments) {

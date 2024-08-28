@@ -77,13 +77,15 @@ public class BaseFetcherConfig {
     public List<ReferenceFilter> getReferenceFilters() {
         return Collections.unmodifiableList(referenceFilters);
     }
+
     /**
      * Sets reference filters.
      * @param referenceFilters the referenceFilters to set
      * @return this instance
      */
     public BaseFetcherConfig setReferenceFilters(
-            List<ReferenceFilter> referenceFilters) {
+            List<ReferenceFilter> referenceFilters
+    ) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
         CollectionUtil.removeNulls(this.referenceFilters);
         return this;

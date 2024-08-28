@@ -44,38 +44,40 @@ class DocImageHandlerTest {
     void testWriteRead() {
         var h = new DocImageHandler();
         h.getConfiguration()
-        .setImageFormat("jpg")
-        .setTargetDir(Paths.get("/tmp/blah"))
-        .setTargetDirStructure(DirStructure.URL2PATH)
-        .setTargetDirField("docImage")
-        .setTargetMetaField("docMeta")
-        .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+                .setImageFormat("jpg")
+                .setTargetDir(Paths.get("/tmp/blah"))
+                .setTargetDirStructure(DirStructure.URL2PATH)
+                .setTargetDirField("docImage")
+                .setTargetMetaField("docMeta")
+                .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(h));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(h));
     }
 
     @Test
     void testHandleImage(@TempDir Path tempDir) throws IOException {
         var h = new DocImageHandler();
         h.getConfiguration()
-            .setTargetDir(tempDir)
-            .setTargetDirField("img-path")
-            .setTargetMetaField("img-64")
-            .setImageFormat("jpg")
-            .setTargetDirStructure(DirStructure.DATE)
-            .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+                .setTargetDir(tempDir)
+                .setTargetDirField("img-path")
+                .setTargetMetaField("img-64")
+                .setImageFormat("jpg")
+                .setTargetDirStructure(DirStructure.DATE)
+                .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
         var doc = CrawlDocStubs.crawlDoc(
                 "http://site.com/page.html",
                 ContentType.HTML,
-                InputStream.nullInputStream());
+                InputStream.nullInputStream()
+        );
         h.handleImage(TestResource.IMG_320X240_PNG.asInputStream(), doc);
 
         var file = new File(doc.getMetadata().getString("img-path"));
         var img1 = ImageIO.read(file);
         var img2 = MutableImage.fromBase64String(
-                doc.getMetadata().getString("img-64")).toImage();
+                doc.getMetadata().getString("img-64")
+        ).toImage();
 
         var baos1 = new ByteArrayOutputStream();
         ImageIO.write(img1, "jpg", baos1);

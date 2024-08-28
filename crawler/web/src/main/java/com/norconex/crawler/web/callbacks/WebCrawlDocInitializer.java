@@ -42,11 +42,15 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
 
         //TODO should DEPTH be set here now that is is in Core?
         metadata.add(CrawlDocMetadata.DEPTH, docRecord.getDepth());
-        metadata.add(WebDocMetadata.SM_CHANGE_FREQ,
-                docRecord.getSitemapChangeFreq());
+        metadata.add(
+                WebDocMetadata.SM_CHANGE_FREQ,
+                docRecord.getSitemapChangeFreq()
+        );
         metadata.add(WebDocMetadata.SM_LASTMOD, docRecord.getSitemapLastMod());
-        metadata.add(WebDocMetadata.SM_PRORITY,
-                docRecord.getSitemapPriority());
+        metadata.add(
+                WebDocMetadata.SM_PRORITY,
+                docRecord.getSitemapPriority()
+        );
 
         // In case the crawl data supplied is from a URL that was pulled
         // from cache because the parent was skipped and could not be
@@ -61,16 +65,20 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
                 && docRecord.getReferrerReference() != null
                 && Objects.equals(
                         docRecord.getReferrerReference(),
-                        cachedDocRecord.getReferrerReference())
+                        cachedDocRecord.getReferrerReference()
+                )
                 && (docRecord.getReferrerLinkMetadata() == null)) {
             docRecord.setReferrerLinkMetadata(
-                    cachedDocRecord.getReferrerLinkMetadata());
+                    cachedDocRecord.getReferrerLinkMetadata()
+            );
         }
 
         // Add referrer data to metadata
         //TODO move elsewhere, like .core?
-        metadata.add(WebDocMetadata.REFERRER_REFERENCE,
-                docRecord.getReferrerReference());
+        metadata.add(
+                WebDocMetadata.REFERRER_REFERENCE,
+                docRecord.getReferrerReference()
+        );
         if (docRecord.getReferrerLinkMetadata() != null) {
             var linkMeta = new Properties();
             linkMeta.fromString(docRecord.getReferrerLinkMetadata());
@@ -86,8 +94,10 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
 
         // Add possible redirect trail
         if (!docRecord.getRedirectTrail().isEmpty()) {
-            metadata.setList(WebDocMetadata.REDIRECT_TRAIL,
-                    docRecord.getRedirectTrail());
+            metadata.setList(
+                    WebDocMetadata.REDIRECT_TRAIL,
+                    docRecord.getRedirectTrail()
+            );
         }
     }
 }

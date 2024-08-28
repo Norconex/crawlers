@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ public class ImporterRequest {
         this.inputStream = inputStream;
         file = null;
     }
+
     public ImporterRequest(Path file) {
         inputStream = null;
         this.file = file;

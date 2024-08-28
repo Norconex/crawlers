@@ -41,20 +41,24 @@ class ImportModuleStageTest {
         var crawler = CrawlerStubs.memoryCrawler(tempDir);
         crawler.getConfiguration().getImporterConfig().setHandlers(
                 List.of(hctx -> {
-            try {
-                hctx.output().asWriter().write("potato");
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }));
+                    try {
+                        hctx.output().asWriter().write("potato");
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                })
+        );
         crawler.start();
         var ctx = new ImporterPipelineContext(crawler, doc);
         var stage = new ImportModuleStage();
         stage.test(ctx);
 
         // no filters is equal to a match
-        assertThat(IOUtils.toString(
-                ctx.getDoc().getInputStream(), UTF_8).trim())
+        assertThat(
+                IOUtils.toString(
+                        ctx.getDoc().getInputStream(), UTF_8
+                ).trim()
+        )
                 .isEqualTo("potato");
     }
 }

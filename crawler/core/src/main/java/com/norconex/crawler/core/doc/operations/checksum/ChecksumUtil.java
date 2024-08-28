@@ -50,25 +50,31 @@ public final class ChecksumUtil {
             return checksum;
         }
     }
+
     public static String checksumMD5(String text) {
         if (text == null) {
             return null;
         }
-        var checksum = DigestUtils.md5Hex(text);  //NOSONAR not sensitive
+        var checksum = DigestUtils.md5Hex(text); //NOSONAR not sensitive
         LOG.debug("MD5 checksum from string: {}", checksum);
         return checksum;
     }
 
     public static String metadataChecksumMD5(
-            Properties metadata, TextMatcher fieldMatcher) {
+            Properties metadata, TextMatcher fieldMatcher
+    ) {
         var checksum =
                 checksumMD5(metadataChecksumPlain(metadata, fieldMatcher));
-        LOG.debug("Metadata checksum (MD5) from {} : \"{}\".",
-                fieldMatcher, checksum);
+        LOG.debug(
+                "Metadata checksum (MD5) from {} : \"{}\".",
+                fieldMatcher, checksum
+        );
         return checksum;
     }
+
     public static String metadataChecksumPlain(
-            Properties metadata, TextMatcher fieldMatcher) {
+            Properties metadata, TextMatcher fieldMatcher
+    ) {
         if (metadata == null || fieldMatcher == null
                 || isBlank(fieldMatcher.getPattern())) {
             return null;
@@ -87,14 +93,17 @@ public final class ChecksumUtil {
 
         var checksum = b.toString();
         if (LOG.isDebugEnabled() && StringUtils.isNotBlank(checksum)) {
-            LOG.debug("Metadata checksum (plain text) from {} : \"{}\".",
-                    StringUtils.join(props.keySet(), ','), checksum);
+            LOG.debug(
+                    "Metadata checksum (plain text) from {} : \"{}\".",
+                    StringUtils.join(props.keySet(), ','), checksum
+            );
         }
         return StringUtils.trimToNull(checksum);
     }
 
     private static void appendValues(
-            StringBuilder b, String field, List<String> values) {
+            StringBuilder b, String field, List<String> values
+    ) {
         if (values == null) {
             return;
         }

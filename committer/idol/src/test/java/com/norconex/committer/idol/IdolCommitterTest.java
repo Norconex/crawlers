@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.norconex.committer.idol;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -51,7 +52,7 @@ import com.norconex.commons.lang.map.Properties;
 @TestInstance(Lifecycle.PER_CLASS)
 class IdolCommitterTest {
 
-    private final String IDOL_DB_NAME = "test";
+    private static final String IDOL_DB_NAME = "test";
 
     @TempDir
     static File tempDir;
@@ -74,7 +75,7 @@ class IdolCommitterTest {
         Exception expectedException = null;
 
         mockIdol.when(request().withPath("/DREADDDATA"))
-            .respond(response().withBody("NOOP"));
+                .respond(response().withBody("NOOP"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -102,7 +103,7 @@ class IdolCommitterTest {
     void testAddOneDoc_success() throws CommitterException {
         // setup
         mockIdol.when(request().withPath("/DREADDDATA"))
-            .respond(response().withBody("INDEXID=1"));
+                .respond(response().withBody("INDEXID=1"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -122,14 +123,16 @@ class IdolCommitterTest {
 
         // verify
         var path = "/DREADDDATA";
-        mockIdol.verify(request()
-                .withPath(path), VerificationTimes.exactly(1));
+        mockIdol.verify(
+                request()
+                        .withPath(path),
+                VerificationTimes.exactly(1));
 
         var request =
                 mockIdol.retrieveRecordedRequests(
                         HttpRequest.request()
-                        .withPath(path)
-                        .withMethod("POST"));
+                                .withPath(path)
+                                .withMethod("POST"));
 
         assertThat(request).hasSize(1);
         assertThat(request[0].getBodyAsString()).isEqualTo("""
@@ -147,10 +150,66 @@ class IdolCommitterTest {
     }
 
     @Test
+    void testAddNoDoc() throws CommitterException {
+        // setup
+        mockIdol.when(request().withPath("/DREADDDATA"))
+                .respond(response().withBody("INDEXID=1"));
+
+        Collection<CommitterRequest> docs = new ArrayList<>();
+
+        // execute
+        withinCommitterSession(c -> {
+            c.commitBatch(docs.iterator());
+        });
+
+        // verify
+        var path = "/DREADDDATA";
+        mockIdol.verify(
+                request()
+                        .withPath(path),
+                VerificationTimes.exactly(0));
+
+        var request = mockIdol.retrieveRecordedRequests(
+                HttpRequest.request()
+                        .withPath(path)
+                        .withMethod("POST"));
+
+        assertThat(request).isEmpty();
+    }
+
+    @Test
+    void testBadConnectionMustThrow() throws CommitterException {
+        // setup
+        mockIdol.when(request().withPath("/DREADDDATA"))
+                .respond(response().withBody("INDEXID=1"));
+
+        Collection<CommitterRequest> docs = new ArrayList<>();
+
+        var metadata = new Properties();
+        metadata.add("homer", "simpson");
+        CommitterRequest addReq = new UpsertRequest(
+                "http://thesimpsons.com",
+                metadata,
+                null);
+
+        docs.add(addReq);
+
+        // execute
+        withinCommitterSession(c -> {
+            assertThatExceptionOfType(CommitterException.class)
+                    .isThrownBy(() -> {
+                        c.getConfiguration()
+                                .setUrl("http://0.0.0.0/bad");
+                        c.commitBatch(docs.iterator());
+                    });
+        });
+    }
+
+    @Test
     void testAddTwoDocs_success() throws CommitterException {
         // setup
         mockIdol.when(request().withPath("/DREADDDATA"))
-            .respond(response().withBody("INDEXID=1"));
+                .respond(response().withBody("INDEXID=1"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -178,14 +237,16 @@ class IdolCommitterTest {
 
         // verify
         var path = "/DREADDDATA";
-        mockIdol.verify(request()
-                .withPath(path), VerificationTimes.exactly(1));
+        mockIdol.verify(
+                request()
+                        .withPath(path),
+                VerificationTimes.exactly(1));
 
         var request =
                 mockIdol.retrieveRecordedRequests(
                         HttpRequest.request()
-                        .withPath(path)
-                        .withMethod("POST"));
+                                .withPath(path)
+                                .withMethod("POST"));
 
         assertThat(request).hasSize(1);
         assertThat(request[0].getBodyAsString()).isEqualTo("""
@@ -213,7 +274,7 @@ class IdolCommitterTest {
     void testDeleteOneDoc_success() throws CommitterException {
         // setup
         mockIdol.when(request().withPath("/DREDELETEREF"))
-            .respond(response().withBody("INDEXID=12"));
+                .respond(response().withBody("INDEXID=12"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -236,7 +297,7 @@ class IdolCommitterTest {
     void testDeleteTwoDocs_success() throws CommitterException {
         // setup
         mockIdol.when(request().withPath("/DREDELETEREF"))
-            .respond(response().withBody("INDEXID=12"));
+                .respond(response().withBody("INDEXID=12"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -264,7 +325,7 @@ class IdolCommitterTest {
     void testAddOneDoc_customSourceRefFieldWithNoValue_ExceptionThrown() {
         //setup
         mockIdol.when(request().withPath("/DREADDDATA"))
-            .respond(response().withBody("INDEXID=12"));
+                .respond(response().withBody("INDEXID=12"));
 
         Exception expectedException = null;
 
@@ -278,15 +339,16 @@ class IdolCommitterTest {
             withinCommitterSessionWithCustomSourceRefField(c -> {
                 c.commitBatch(docs.iterator());
             });
-        } catch(CommitterException e) {
+        } catch (CommitterException e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-            .isInstanceOf(CommitterException.class)
-            .hasMessage("Source reference field 'myRefField' has no value "
-                    + "for document: http://thesimpsons.com");
+                .isInstanceOf(CommitterException.class)
+                .hasMessage(
+                        "Source reference field 'myRefField' has no value "
+                                + "for document: http://thesimpsons.com");
 
     }
 
@@ -295,7 +357,7 @@ class IdolCommitterTest {
             throws CommitterException {
         //setup
         mockIdol.when(request().withPath("/DREDELETEREF"))
-            .respond(response().withBody("INDEXID=12"));
+                .respond(response().withBody("INDEXID=12"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
         CommitterRequest deleteReq = new DeleteRequest(
@@ -318,7 +380,7 @@ class IdolCommitterTest {
         Exception expectedException = null;
 
         mockIdol.when(request().withPath("/DREADDDATA"))
-            .respond(response().withBody("INDEXID=132"));
+                .respond(response().withBody("INDEXID=132"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
         CommitterRequest addReq = new UpsertRequest(
@@ -347,7 +409,7 @@ class IdolCommitterTest {
         Exception expectedException = null;
 
         mockIdol.when(request().withPath("/DREADDDATA"))
-            .respond(response().withBody("INDEXID=132"));
+                .respond(response().withBody("INDEXID=132"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
         CommitterRequest addReq = new UpsertRequest(
@@ -373,7 +435,7 @@ class IdolCommitterTest {
     void testAddOneDocViaCFS_success() throws CommitterException {
         // setup
         mockIdol.when(
-                    request()
+                request()
                         .withPath("/")
                         .withQueryStringParameter("action", "ingest"))
                 .respond(response().withBody(ingestActionResponse()));
@@ -396,40 +458,41 @@ class IdolCommitterTest {
 
         // verify
         var path = "/";
-        mockIdol.verify(request()
-                .withPath(path)
-                .withQueryStringParameter("action", "ingest"),
+        mockIdol.verify(
+                request()
+                        .withPath(path)
+                        .withQueryStringParameter("action", "ingest"),
                 VerificationTimes.exactly(1));
 
         var request =
                 mockIdol.retrieveRecordedRequests(
                         HttpRequest.request()
-                        .withPath(path)
-                        .withMethod("POST"));
+                                .withPath(path)
+                                .withMethod("POST"));
 
         assertThat(request).hasSize(1);
 
         var params = request[0].getQueryStringParameters();
         assertThat(params).isNotNull();
         assertThat(params.getEntries())
-            .isNotNull()
-            .hasSize(2);
+                .isNotNull()
+                .hasSize(2);
 
         assertThat(params.getValues("action"))
-            .isEqualTo(Collections.singletonList("ingest"));
+                .isEqualTo(Collections.singletonList("ingest"));
 
         assertThat(params.getValues("adds").get(0))
-            .isEqualToIgnoringWhitespace("""
-                <adds>
-                  <add>
-                    <document>
-                      <reference>http://thesimpsons.com</reference>
-                      <metadata name="homer" value="simpson"/>
-                      <metadata name="DREDBNAME" value="test"/>
-                    </document>
-                    <source content=""/>
-                  </add>
-                </adds>""");
+                .isEqualToIgnoringWhitespace("""
+                        <adds>
+                          <add>
+                            <document>
+                              <reference>http://thesimpsons.com</reference>
+                              <metadata name="homer" value="simpson"/>
+                              <metadata name="DREDBNAME" value="test"/>
+                            </document>
+                            <source content=""/>
+                          </add>
+                        </adds>""");
     }
 
     @Test
@@ -437,19 +500,21 @@ class IdolCommitterTest {
         //setup
         mockIdol.when(
                 request()
-                    .withPath("/")
-                    .withQueryStringParameter("action", "ingest"))
-            .respond(response().withBody("""
-                  <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
-                    <action>INGEST</action>
-                    <response>SUCCESS</response>
-                    <responsedata>
-                      <token>
-                        MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==
-                      </token>
-                    </responsedata>
-                  </autnresponse>
-                  """));
+                        .withPath("/")
+                        .withQueryStringParameter("action", "ingest"))
+                .respond(
+                        response().withBody(
+                                """
+                                        <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
+                                          <action>INGEST</action>
+                                          <response>SUCCESS</response>
+                                          <responsedata>
+                                            <token>
+                                              MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==
+                                            </token>
+                                          </responsedata>
+                                        </autnresponse>
+                                        """));
 
         Exception expectedException = null;
 
@@ -463,15 +528,16 @@ class IdolCommitterTest {
             withinCommitterSessionCFSWithCustomSourceRefField(c -> {
                 c.commitBatch(docs.iterator());
             });
-        } catch(CommitterException e) {
+        } catch (CommitterException e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-            .isInstanceOf(CommitterException.class)
-            .hasMessage("Source reference field 'myRefField' has no value "
-                    + "for document: http://thesimpsons.com");
+                .isInstanceOf(CommitterException.class)
+                .hasMessage(
+                        "Source reference field 'myRefField' has no value "
+                                + "for document: http://thesimpsons.com");
 
     }
 
@@ -480,8 +546,8 @@ class IdolCommitterTest {
         // setup
         mockIdol.when(
                 request()
-                    .withPath("/")
-                    .withQueryStringParameter("action", "ingest"))
+                        .withPath("/")
+                        .withQueryStringParameter("action", "ingest"))
                 .respond(response().withBody(ingestActionResponse()));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
@@ -499,31 +565,32 @@ class IdolCommitterTest {
 
         // verify
         var path = "/";
-        mockIdol.verify(request()
-                .withPath(path)
-                .withQueryStringParameter("action", "ingest"),
+        mockIdol.verify(
+                request()
+                        .withPath(path)
+                        .withQueryStringParameter("action", "ingest"),
                 VerificationTimes.exactly(1));
 
         var request =
                 mockIdol.retrieveRecordedRequests(
                         HttpRequest.request()
-                        .withPath(path)
-                        .withMethod("POST"));
+                                .withPath(path)
+                                .withMethod("POST"));
 
         assertThat(request).hasSize(1);
 
         var params = request[0].getQueryStringParameters();
         assertThat(params).isNotNull();
         assertThat(params.getEntries())
-            .isNotNull()
-            .hasSize(3);
+                .isNotNull()
+                .hasSize(3);
 
         assertThat(params.getValues("action"))
-            .isEqualTo(Collections.singletonList("ingest"));
+                .isEqualTo(Collections.singletonList("ingest"));
         assertThat(params.getValues("removes"))
-            .isEqualTo(Collections.singletonList("http://thesimpsons.com"));
+                .isEqualTo(Collections.singletonList("http://thesimpsons.com"));
         assertThat(params.getValues("DREDbName"))
-            .isEqualTo(Collections.singletonList("test"));
+                .isEqualTo(Collections.singletonList("test"));
     }
 
     @Test
@@ -531,8 +598,8 @@ class IdolCommitterTest {
         // setup
         mockIdol.when(
                 request()
-                    .withPath("/")
-                    .withQueryStringParameter("action", "ingest"))
+                        .withPath("/")
+                        .withQueryStringParameter("action", "ingest"))
                 .respond(response().withBody(ingestActionResponse()));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
@@ -540,7 +607,7 @@ class IdolCommitterTest {
         CommitterRequest deleteReqOne = new DeleteRequest(
                 "http://thesimpsons.com",
                 new Properties());
-        CommitterRequest deleteReqTwo= new DeleteRequest(
+        CommitterRequest deleteReqTwo = new DeleteRequest(
                 "http://familyguy.com",
                 new Properties());
 
@@ -554,32 +621,34 @@ class IdolCommitterTest {
 
         // verify
         var path = "/";
-        mockIdol.verify(request()
-                .withPath(path)
-                .withQueryStringParameter("action", "ingest"),
+        mockIdol.verify(
+                request()
+                        .withPath(path)
+                        .withQueryStringParameter("action", "ingest"),
                 VerificationTimes.exactly(1));
 
         var request =
                 mockIdol.retrieveRecordedRequests(
                         HttpRequest.request()
-                        .withPath(path)
-                        .withMethod("POST"));
+                                .withPath(path)
+                                .withMethod("POST"));
 
         assertThat(request).hasSize(1);
 
         var params = request[0].getQueryStringParameters();
         assertThat(params).isNotNull();
         assertThat(params.getEntries())
-            .isNotNull()
-            .hasSize(3);
+                .isNotNull()
+                .hasSize(3);
 
         assertThat(params.getValues("action"))
-            .isEqualTo(Collections.singletonList("ingest"));
+                .isEqualTo(Collections.singletonList("ingest"));
         assertThat(params.getValues("removes"))
-            .isEqualTo(Collections.singletonList(
-                    "http://thesimpsons.com,http://familyguy.com"));
+                .isEqualTo(
+                        Collections.singletonList(
+                                "http://thesimpsons.com,http://familyguy.com"));
         assertThat(params.getValues("DREDbName"))
-            .isEqualTo(Collections.singletonList("test"));
+                .isEqualTo(Collections.singletonList("test"));
     }
 
     @Test
@@ -588,8 +657,8 @@ class IdolCommitterTest {
         // setup
         mockIdol.when(
                 request()
-                    .withPath("/")
-                    .withQueryStringParameter("action", "ingest"))
+                        .withPath("/")
+                        .withQueryStringParameter("action", "ingest"))
                 .respond(response().withBody(ingestActionResponse()));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
@@ -609,41 +678,42 @@ class IdolCommitterTest {
         var path = "/";
         mockIdol.verify(
                 request()
-                    .withPath(path)
-                    .withQueryStringParameter("action", "ingest"),
+                        .withPath(path)
+                        .withQueryStringParameter("action", "ingest"),
                 VerificationTimes.exactly(1));
 
         var request =
                 mockIdol.retrieveRecordedRequests(
                         HttpRequest.request()
-                        .withPath(path)
-                        .withMethod("POST"));
+                                .withPath(path)
+                                .withMethod("POST"));
 
         assertThat(request).hasSize(1);
 
         var params = request[0].getQueryStringParameters();
         assertThat(params).isNotNull();
         assertThat(params.getEntries())
-            .isNotNull()
-            .hasSize(3);
+                .isNotNull()
+                .hasSize(3);
 
         assertThat(params.getValues("action"))
-            .isEqualTo(Collections.singletonList("ingest"));
+                .isEqualTo(Collections.singletonList("ingest"));
         assertThat(params.getValues("removes"))
-            .isEqualTo(Collections.singletonList(
-                    "http://thesimpsons.com"));
+                .isEqualTo(
+                        Collections.singletonList(
+                                "http://thesimpsons.com"));
         assertThat(params.getValues("DREDbName"))
-            .isEqualTo(Collections.singletonList("test"));
+                .isEqualTo(Collections.singletonList("test"));
     }
 
     @Test
-    void test2AddsAnd2Deletes_success() throws Exception{
+    void test2AddsAnd2Deletes_success() throws Exception {
         //setup
         mockIdol.when(request().withPath("/DREADDDATA"))
                 .respond(response().withBody("INDEXID=54"));
 
         mockIdol.when(request().withPath("/DREDELETEREF"))
-            .respond(response().withBody("INDEXID=55"));
+                .respond(response().withBody("INDEXID=55"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -680,18 +750,22 @@ class IdolCommitterTest {
         });
 
         //verify
-        mockIdol.verify(request()
-                .withPath("/DREDELETEREF"), VerificationTimes.exactly(2));
+        mockIdol.verify(
+                request()
+                        .withPath("/DREDELETEREF"),
+                VerificationTimes.exactly(2));
 
-        mockIdol.verify(request()
-                .withPath("/DREADDDATA"), VerificationTimes.exactly(2));
+        mockIdol.verify(
+                request()
+                        .withPath("/DREADDDATA"),
+                VerificationTimes.exactly(2));
     }
 
     @Test
     void testAddDoc_MultiValueFields() throws Exception {
         //setup
         mockIdol.when(request().withPath("/DREADDDATA"))
-            .respond(response().withBody("INDEXID=1"));
+                .respond(response().withBody("INDEXID=1"));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -711,14 +785,16 @@ class IdolCommitterTest {
 
         //verify
         var path = "/DREADDDATA";
-        mockIdol.verify(request()
-                .withPath(path), VerificationTimes.exactly(1));
+        mockIdol.verify(
+                request()
+                        .withPath(path),
+                VerificationTimes.exactly(1));
 
         var request =
                 mockIdol.retrieveRecordedRequests(
                         HttpRequest.request()
-                        .withPath(path)
-                        .withMethod("POST"));
+                                .withPath(path)
+                                .withMethod("POST"));
 
         assertThat(request).hasSize(1);
         assertThat(request[0].getBodyAsString()).contains("""
@@ -729,38 +805,42 @@ class IdolCommitterTest {
 
     private void assertIdolDeleteRequest(boolean twoDocs) {
         var path = "/DREDELETEREF";
-        mockIdol.verify(request()
-                .withPath(path), VerificationTimes.exactly(1));
+        mockIdol.verify(
+                request()
+                        .withPath(path),
+                VerificationTimes.exactly(1));
 
         var request =
                 mockIdol.retrieveRecordedRequests(
                         HttpRequest.request()
-                        .withPath(path)
-                        .withMethod("POST"));
+                                .withPath(path)
+                                .withMethod("POST"));
 
         assertThat(request).hasSize(1);
 
         var params = request[0].getQueryStringParameters();
         assertThat(params).isNotNull();
         assertThat(params.getEntries())
-            .isNotNull()
-            .hasSize(2);
+                .isNotNull()
+                .hasSize(2);
 
         var docRefs = "http://thesimpsons.com";
-        if(twoDocs) {
+        if (twoDocs) {
             docRefs = docRefs + " http://familyguy.com";
         }
         assertThat(params.getValues("Docs"))
-            .isEqualTo(Collections.singletonList(docRefs));
+                .isEqualTo(Collections.singletonList(docRefs));
 
         assertThat(params.getValues("DREDbName"))
-        .isEqualTo(Collections.singletonList(IDOL_DB_NAME));
+                .isEqualTo(Collections.singletonList(IDOL_DB_NAME));
     }
 
     private CommitterContext createIdolCommitterContext() {
         return CommitterContext.builder()
-                .setWorkDir(new File(tempDir,
-                        "" + TimeIdGenerator.next()).toPath())
+                .setWorkDir(
+                        new File(
+                                tempDir,
+                                "" + TimeIdGenerator.next()).toPath())
                 .build();
     }
 
@@ -877,13 +957,13 @@ class IdolCommitterTest {
 
     private String ingestActionResponse() {
         return """
-            <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
-              <action>INGEST</action>
-              <response>SUCCESS</response>
-              <responsedata>
-                <token>MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==</token>
-              </responsedata>
-            </autnresponse>
-            """;
+                <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
+                  <action>INGEST</action>
+                  <response>SUCCESS</response>
+                  <responsedata>
+                    <token>MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==</token>
+                  </responsedata>
+                </autnresponse>
+                """;
     }
 }

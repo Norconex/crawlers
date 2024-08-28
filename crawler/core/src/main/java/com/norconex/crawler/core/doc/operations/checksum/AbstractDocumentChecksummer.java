@@ -54,9 +54,9 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @RequiredArgsConstructor
 @Slf4j
-public abstract class AbstractDocumentChecksummer
-        <T extends BaseChecksummerConfig>
-            implements DocumentChecksummer, Configurable<T> {
+public abstract class AbstractDocumentChecksummer<
+        T extends BaseChecksummerConfig>
+        implements DocumentChecksummer, Configurable<T> {
 
     @Override
     public final String createDocumentChecksum(Doc document) {
@@ -67,7 +67,8 @@ public abstract class AbstractDocumentChecksummer
                 field = CrawlDocMetadata.CHECKSUM_DOC;
             }
             PropertySetter.orAppend(getConfiguration().getOnSet()).apply(
-                    document.getMetadata(), field, checksum);
+                    document.getMetadata(), field, checksum
+            );
             LOG.debug("Document checksum stored in {}", field);
         }
         return checksum;

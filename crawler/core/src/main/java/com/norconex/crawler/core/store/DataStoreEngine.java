@@ -24,11 +24,14 @@ import com.norconex.crawler.core.Crawler;
 public interface DataStoreEngine extends Closeable {
 
     void init(Crawler crawler);
+
     boolean clean();
+
     @Override
     void close();
 
     <T> DataStore<T> openStore(String name, Class<? extends T> type);
+
     boolean dropStore(String name);
 
     // returns true if target was deleted
@@ -36,6 +39,7 @@ public interface DataStoreEngine extends Closeable {
 
     @JsonIgnore
     Set<String> getStoreNames();
+
     @JsonIgnore
     Optional<Class<?>> getStoreType(String name);
 }

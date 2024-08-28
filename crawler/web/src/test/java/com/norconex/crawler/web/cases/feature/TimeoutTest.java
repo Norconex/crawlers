@@ -56,7 +56,8 @@ class TimeoutTest {
             f.getConfiguration().setConnectionTimeout(ofSeconds(1));
             f.getConfiguration().setSocketTimeout(ofSeconds(1));
             f.getConfiguration().setConnectionRequestTimeout(
-                    ofSeconds(1));
+                    ofSeconds(1)
+            );
             cfg.setFetchers(List.of(f));
         });
         var mem = WebTestUtil.firstCommitter(crawler);
@@ -64,11 +65,12 @@ class TimeoutTest {
         whenDelayed(client, 0);
         crawler.start();
         assertThat(mem.getUpsertRequests())
-            .map(UpsertRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    serverUrl(client, homePath),
-                    serverUrl(client, basePath + "/child1.html"),
-                    serverUrl(client, basePath + "/child2.html"));
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, homePath),
+                        serverUrl(client, basePath + "/child1.html"),
+                        serverUrl(client, basePath + "/child2.html")
+                );
         mem.clean();
 
         // First page should be skipped (timeout) but not children... even
@@ -76,10 +78,11 @@ class TimeoutTest {
         whenDelayed(client, 2000);
         crawler.start();
         assertThat(mem.getUpsertRequests())
-            .map(UpsertRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    serverUrl(client, basePath + "/child1.html"),
-                    serverUrl(client, basePath + "/child2.html"));
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, basePath + "/child1.html"),
+                        serverUrl(client, basePath + "/child2.html")
+                );
         mem.clean();
 
         crawler.clean();
@@ -88,27 +91,35 @@ class TimeoutTest {
     private void whenDelayed(ClientAndServer client, long delay) {
         client.reset();
         client
-            .when(request(homePath))
-            .respond(response()
-                .withDelay(TimeUnit.MILLISECONDS, delay)
-                .withBody("""
-                    <p>This page takes %s milliseconds to return to test
-                    timeouts, the 2 links below should return right away and
-                    have a modified content each time accessed:
-                    <ul>
-                      <li><a href="child1.html">Timeout child page 1</a></li>
-                      <li><a href="child2.html">Timeout child page 2</a></li>
-                    </ul>
-                    """));
+                .when(request(homePath))
+                .respond(
+                        response()
+                                .withDelay(TimeUnit.MILLISECONDS, delay)
+                                .withBody(
+                                        """
+                                                <p>This page takes %s milliseconds to return to test
+                                                timeouts, the 2 links below should return right away and
+                                                have a modified content each time accessed:
+                                                <ul>
+                                                  <li><a href="child1.html">Timeout child page 1</a></li>
+                                                  <li><a href="child2.html">Timeout child page 2</a></li>
+                                                </ul>
+                                                """
+                                )
+                );
 
         client
-            .when(request("!" + homePath))
-            .respond(response()
-                .withBody("""
-                    <h1>Random test child page</h1>
-                    <p>This page content is never the same.</p>
-                    <p>Salt: %s</p>"
-                    """.formatted(delay)
-                ));
+                .when(request("!" + homePath))
+                .respond(
+                        response()
+                                .withBody(
+                                        """
+                                                <h1>Random test child page</h1>
+                                                <p>This page content is never the same.</p>
+                                                <p>Salt: %s</p>"
+                                                """
+                                                .formatted(delay)
+                                )
+                );
     }
 }

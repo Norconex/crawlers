@@ -34,9 +34,11 @@ import picocli.CommandLine.Option;
 @ToString
 public class StoreExportCommand extends CliSubCommandBase {
 
-    @Option(names = { "-d", "-dir" },
-            description = "Export directory",
-            required = true)
+    @Option(
+        names = { "-d", "-dir" },
+        description = "Export directory",
+        required = true
+    )
     private Path dir;
     //TODO add format?
     //TODO add compress?

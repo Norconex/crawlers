@@ -27,11 +27,11 @@ import com.norconex.crawler.core.fetch.Fetcher;
 @FunctionalInterface
 public interface DocumentConsumer extends BiConsumer<Fetcher<?, ?>, CrawlDoc> {
 
-	/**
-	 * Processes a document.
-	 * @param fetcher document fetcher
-	 * @param doc crawl document
-	 */
+    /**
+     * Processes a document.
+     * @param fetcher document fetcher
+     * @param doc crawl document
+     */
     @Override
     void accept(Fetcher<?, ?> fetcher, CrawlDoc doc);
 }

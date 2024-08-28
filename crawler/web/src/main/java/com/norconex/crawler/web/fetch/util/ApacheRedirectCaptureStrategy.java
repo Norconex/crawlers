@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,11 @@ public class ApacheRedirectCaptureStrategy extends DefaultRedirectStrategy {
     public static final String TARGET_REDIRECT_CONTEXT_KEY =
             ApacheRedirectCaptureStrategy.class.getName() + ".targetRedirect";
 
-
     private final RedirectUrlProvider redirectUrlProvider;
 
-
     public ApacheRedirectCaptureStrategy(
-            RedirectUrlProvider redirectUrlProvider) {
+            RedirectUrlProvider redirectUrlProvider
+    ) {
         this.redirectUrlProvider = redirectUrlProvider;
     }
 
@@ -49,14 +48,16 @@ public class ApacheRedirectCaptureStrategy extends DefaultRedirectStrategy {
     public boolean isRedirected(
             final HttpRequest request,
             final HttpResponse response,
-            final HttpContext context) throws ProtocolException {
+            final HttpContext context
+    ) throws ProtocolException {
 
         //TODO check for max redirects here using config max redirect setting?
 
         var isRedirected = super.isRedirected(request, response, context);
         if (isRedirected) {
             var targetURL = redirectUrlProvider.provideRedirectURL(
-                    request, response, context);
+                    request, response, context
+            );
             if (StringUtils.isNotBlank(targetURL)) {
                 context.setAttribute(TARGET_REDIRECT_CONTEXT_KEY, targetURL);
             }

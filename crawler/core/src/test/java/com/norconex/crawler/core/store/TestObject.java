@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.crawler.core.store;
 
 import com.norconex.crawler.core.doc.CrawlDocContext;
@@ -27,8 +26,11 @@ class TestObject extends CrawlDocContext {
 
     TestObject() {
     }
-    TestObject(String reference, int count, String checksum,
-            String parentReference) {
+
+    TestObject(
+            String reference, int count, String checksum,
+            String parentReference
+    ) {
         super(reference);
         this.count = count;
         setContentChecksum(checksum);
@@ -38,12 +40,15 @@ class TestObject extends CrawlDocContext {
     int getCount() {
         return count;
     }
+
     void setCount(int count) {
         this.count = count;
     }
+
     boolean isValid() {
         return valid;
     }
+
     void setValid(boolean valid) {
         this.valid = valid;
     }

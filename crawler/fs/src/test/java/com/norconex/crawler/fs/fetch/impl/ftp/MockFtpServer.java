@@ -107,9 +107,9 @@ class MockFtpServer {
     public static FtpFetcher fetcherClient() {
         var fetcher = new FtpFetcher();
         fetcher.getConfiguration()
-            .setMdtmLastModifiedTime(true)
-            .setUserDirIsRoot(false)
-            .getCredentials()
+                .setMdtmLastModifiedTime(true)
+                .setUserDirIsRoot(false)
+                .getCredentials()
                 .setUsername("testuser")
                 .setPassword("testpassword");
         //fetcher.setPassiveMode(true);

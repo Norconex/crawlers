@@ -81,20 +81,24 @@ public class GenericSpoiledReferenceStrategizerConfig {
     public GenericSpoiledReferenceStrategizerConfig() {
         // store default mappings
         mappings.put(CrawlDocState.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
-        mappings.put(CrawlDocState.BAD_STATUS,
-                SpoiledReferenceStrategy.GRACE_ONCE);
+        mappings.put(
+                CrawlDocState.BAD_STATUS,
+                SpoiledReferenceStrategy.GRACE_ONCE
+        );
         mappings.put(CrawlDocState.ERROR, SpoiledReferenceStrategy.GRACE_ONCE);
     }
 
     @JsonIgnore
     public GenericSpoiledReferenceStrategizerConfig setMapping(
-            CrawlDocState state, SpoiledReferenceStrategy strategy) {
+            CrawlDocState state, SpoiledReferenceStrategy strategy
+    ) {
         mappings.put(state, strategy);
         return this;
     }
 
     public GenericSpoiledReferenceStrategizerConfig setMappings(
-            Map<CrawlDocState, SpoiledReferenceStrategy> mappings) {
+            Map<CrawlDocState, SpoiledReferenceStrategy> mappings
+    ) {
         this.mappings.clear();
         this.mappings.putAll(mappings);
         return this;

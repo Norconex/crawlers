@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,9 +82,11 @@ class CfsIngestAddsAction implements IIdolIndexAction {
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Could not convert committer batch to CFS XML.", e);
+                    "Could not convert committer batch to CFS XML.", e
+            );
         }
     }
+
     @Override
     public void writeTo(List<CommitterRequest> batch, Writer writer)
             throws CommitterException {
@@ -119,9 +121,11 @@ class CfsIngestAddsAction implements IIdolIndexAction {
         if (StringUtils.isNotBlank(refField)) {
             ref = req.getMetadata().getString(refField);
             if (StringUtils.isBlank(ref)) {
-                throw new CommitterException("Source reference field '"
-                        + refField + "' has no value for document: "
-                        + req.getReference());
+                throw new CommitterException(
+                        "Source reference field '"
+                                + refField + "' has no value for document: "
+                                + req.getReference()
+                );
             }
         }
         xml.writeStartElement("reference");
@@ -156,14 +160,20 @@ class CfsIngestAddsAction implements IIdolIndexAction {
         //--- Document content ---
         String content;
         if (StringUtils.isNotBlank(contentField)) {
-            content = StringUtils.trimToEmpty(String.join("\n\n",
-                    req.getMetadata().getStrings(contentField)));
+            content = StringUtils.trimToEmpty(
+                    String.join(
+                            "\n\n",
+                            req.getMetadata().getStrings(contentField)
+                    )
+            );
         } else {
             content = IOUtils.toString(req.getContent(), UTF_8);
         }
         xml.writeStartElement("source");
-        xml.writeAttribute("content",
-                Base64.encodeBase64String(content.getBytes(UTF_8)));
+        xml.writeAttribute(
+                "content",
+                Base64.encodeBase64String(content.getBytes(UTF_8))
+        );
         xml.writeEndElement();
 
         xml.writeEndElement(); // end "add"

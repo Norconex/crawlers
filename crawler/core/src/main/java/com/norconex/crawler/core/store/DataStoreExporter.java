@@ -39,25 +39,32 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class DataStoreExporter {
 
-    private DataStoreExporter() {}
+    private DataStoreExporter() {
+    }
 
     public static Path exportDataStore(
-            Crawler crawler, Path exportDir)
+            Crawler crawler, Path exportDir
+    )
             throws IOException {
         var storeEngine = crawler.getDataStoreEngine();
         Files.createDirectories(exportDir);
 
         var outFile = exportDir.resolve(
-                FileUtil.toSafeFileName(crawler.getId() + ".zip"));
+                FileUtil.toSafeFileName(crawler.getId() + ".zip")
+        );
 
         try (var zipOS = new ZipOutputStream(
-                IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
+                IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8
+        )) {
 
             for (String name : storeEngine.getStoreNames()) {
                 var type = storeEngine.getStoreType(name);
                 if (type.isPresent()) {
-                    zipOS.putNextEntry(new ZipEntry(
-                            FileUtil.toSafeFileName(name) + ".json"));
+                    zipOS.putNextEntry(
+                            new ZipEntry(
+                                    FileUtil.toSafeFileName(name) + ".json"
+                            )
+                    );
                     try (DataStore<?> store =
                             storeEngine.openStore(name, type.get())) {
                         exportStore(crawler, store, zipOS, type.get());
@@ -73,11 +80,13 @@ public final class DataStoreExporter {
         }
         return outFile;
     }
+
     private static void exportStore(
             Crawler crawler,
             DataStore<?> store,
             OutputStream out,
-            Class<?> type) throws IOException {
+            Class<?> type
+    ) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);
         //TODO add "nice" option?

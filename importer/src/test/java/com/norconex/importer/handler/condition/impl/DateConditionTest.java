@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,77 +56,97 @@ class DateConditionTest {
         cond.getConfiguration().setFieldMatcher(TextMatcher.basic("field1"));
         cond.getConfiguration().setFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-        cond.getConfiguration().setValueMatcher(new DateValueMatcher(
-                Operator.LOWER_EQUAL,
-                new DateProvider() {
-                    @Override
-                    public ZonedDateTime getDateTime() {
-                        return LocalDate.of(1980, 12, 21)
-                                .atStartOfDay(ZoneOffset.UTC);
-                    }
-                    @Override
-                    public ZoneId getZoneId() {
-                        return ZoneOffset.UTC;
-                    }
-                }
-        ));
+        cond.getConfiguration().setValueMatcher(
+                new DateValueMatcher(
+                        Operator.LOWER_EQUAL,
+                        new DateProvider() {
+                            @Override
+                            public ZonedDateTime getDateTime() {
+                                return LocalDate.of(1980, 12, 21)
+                                        .atStartOfDay(ZoneOffset.UTC);
+                            }
+
+                            @Override
+                            public ZoneId getZoneId() {
+                                return ZoneOffset.UTC;
+                            }
+                        }
+                )
+        );
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isFalse();
 
         meta.set("field1", "1980-12-21");
         cond = new DateCondition();
         cond.getConfiguration().setFieldMatcher(TextMatcher.basic("field1"));
         cond.getConfiguration().setFormat("yyyy-MM-dd");
-        cond.getConfiguration().setValueMatcher(new DateValueMatcher(
-                Operator.LOWER_EQUAL,
-                new DateProvider() {
-                    @Override
-                    public ZonedDateTime getDateTime() {
-                        return LocalDate.of(1980, 12, 21)
-                                .atStartOfDay(ZoneOffset.UTC);
-                    }
-                    @Override
-                    public ZoneId getZoneId() {
-                        return ZoneOffset.UTC;
-                    }
-                }
-        ));
+        cond.getConfiguration().setValueMatcher(
+                new DateValueMatcher(
+                        Operator.LOWER_EQUAL,
+                        new DateProvider() {
+                            @Override
+                            public ZonedDateTime getDateTime() {
+                                return LocalDate.of(1980, 12, 21)
+                                        .atStartOfDay(ZoneOffset.UTC);
+                            }
+
+                            @Override
+                            public ZoneId getZoneId() {
+                                return ZoneOffset.UTC;
+                            }
+                        }
+                )
+        );
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isTrue();
 
         meta.set("field1", "1980-12-21T12:22:01.123");
         cond = new DateCondition();
         cond.getConfiguration().setFieldMatcher(TextMatcher.basic("field1"));
         cond.getConfiguration().setFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        cond.getConfiguration().setValueMatcher(new DateValueMatcher(
-                Operator.LOWER_EQUAL,
-                new DateProvider() {
-                    @Override
-                    public ZonedDateTime getDateTime() {
-                        return LocalDate.of(1980, 12, 22)
-                                .atStartOfDay(ZoneOffset.UTC);
-                    }
-                    @Override
-                    public ZoneId getZoneId() {
-                        return ZoneOffset.UTC;
-                    }
-                }
-        ));
+        cond.getConfiguration().setValueMatcher(
+                new DateValueMatcher(
+                        Operator.LOWER_EQUAL,
+                        new DateProvider() {
+                            @Override
+                            public ZonedDateTime getDateTime() {
+                                return LocalDate.of(1980, 12, 22)
+                                        .atStartOfDay(ZoneOffset.UTC);
+                            }
+
+                            @Override
+                            public ZoneId getZoneId() {
+                                return ZoneOffset.UTC;
+                            }
+                        }
+                )
+        );
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isTrue();
 
-        meta.set("field1", ZonedDateTime.now(ZoneOffset.UTC).format(
-                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
+        meta.set(
+                "field1", ZonedDateTime.now(ZoneOffset.UTC).format(
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+                )
+        );
         cond = new DateCondition();
         cond.getConfiguration().setFieldMatcher(TextMatcher.basic("field1"));
         cond.getConfiguration().setFormat("yyyy-MM-dd'T'HH:mm:ss");
 
         // range:
-        cond.getConfiguration().setValueMatcher(new DateValueMatcher(
-                Operator.GREATER_THAN,
-                new DynamicFixedDateTimeProvider(
-                        TimeUnit.MINUTE, -1, false, null)));
+        cond.getConfiguration().setValueMatcher(
+                new DateValueMatcher(
+                        Operator.GREATER_THAN,
+                        new DynamicFixedDateTimeProvider(
+                                TimeUnit.MINUTE, -1, false, null
+                        )
+                )
+        );
         cond.getConfiguration().setValueMatcherRangeEnd(
-                new DateValueMatcher(Operator.LOWER_THAN,
-                new DynamicFixedDateTimeProvider(
-                        TimeUnit.MINUTE, +1, false, null)));
+                new DateValueMatcher(
+                        Operator.LOWER_THAN,
+                        new DynamicFixedDateTimeProvider(
+                                TimeUnit.MINUTE, +1, false, null
+                        )
+                )
+        );
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isTrue();
     }
 
@@ -136,15 +156,23 @@ class DateConditionTest {
         cond.getConfiguration().setFieldMatcher(TextMatcher.basic("field1"));
         cond.getConfiguration().setFormat("yyyy-MM-dd");
         cond.getConfiguration().setValueMatcher(
-                new DateValueMatcher(Operator.GREATER_EQUAL,
-                new DateProviderFactory.StaticDateTimeProvider(
-                        ZonedDateTime.now(ZoneOffset.UTC))));
+                new DateValueMatcher(
+                        Operator.GREATER_EQUAL,
+                        new DateProviderFactory.StaticDateTimeProvider(
+                                ZonedDateTime.now(ZoneOffset.UTC)
+                        )
+                )
+        );
         // Cannot test equality when condition is fixed since the initialization
         // time will vary. So test with last argument false.
         cond.getConfiguration().setValueMatcherRangeEnd(
-                new DateValueMatcher(Operator.EQUALS,
-                new DynamicFloatingDateTimeProvider(
-                        TimeUnit.YEAR, -2, false, null)));
+                new DateValueMatcher(
+                        Operator.EQUALS,
+                        new DynamicFloatingDateTimeProvider(
+                                TimeUnit.YEAR, -2, false, null
+                        )
+                )
+        );
         BeanMapper.DEFAULT.assertWriteRead(cond);
     }
 
@@ -164,25 +192,36 @@ class DateConditionTest {
         BeanMapper.DEFAULT.read(cond, new StringReader(xml), Format.XML);
 
         // Assert valid date strings
-        assertThat(cond.getConfiguration().getValueMatcher()
-                .getDateProvider().toString())
-            .startsWith("2020-09-27T12:34:56.000+0000")
-            .satisfiesAnyOf(
-                    s -> assertThat(s).endsWith("[UTC]"),
-                    s -> assertThat(s).endsWith("[Z]"));
-        assertThat(cond.getConfiguration().getValueMatcherRangeEnd()
-                .getDateProvider())
-            .hasToString("TODAY");
+        assertThat(
+                cond.getConfiguration().getValueMatcher()
+                        .getDateProvider().toString()
+        )
+                .startsWith("2020-09-27T12:34:56.000+0000")
+                .satisfiesAnyOf(
+                        s -> assertThat(s).endsWith("[UTC]"),
+                        s -> assertThat(s).endsWith("[Z]")
+                );
+        assertThat(
+                cond.getConfiguration().getValueMatcherRangeEnd()
+                        .getDateProvider()
+        )
+                .hasToString("TODAY");
 
         var today = ZonedDateTime.now(
-                ZoneOffset.UTC).truncatedTo(ChronoUnit.DAYS);
+                ZoneOffset.UTC
+        ).truncatedTo(ChronoUnit.DAYS);
         var dateTime = ZonedDateTime.of(
-                2020, 9, 27, 12, 34, 56, 0, today.getZone());
+                2020, 9, 27, 12, 34, 56, 0, today.getZone()
+        );
 
-        assertThat(cond.getConfiguration().getValueMatcher()
-                .getDateProvider().getDateTime()).isEqualTo(dateTime);
-        assertThat(cond.getConfiguration().getValueMatcherRangeEnd()
-                .getDateProvider().getDateTime()).isEqualTo(today);
+        assertThat(
+                cond.getConfiguration().getValueMatcher()
+                        .getDateProvider().getDateTime()
+        ).isEqualTo(dateTime);
+        assertThat(
+                cond.getConfiguration().getValueMatcherRangeEnd()
+                        .getDateProvider().getDateTime()
+        ).isEqualTo(today);
     }
 
     @Test
@@ -204,15 +243,17 @@ class DateConditionTest {
         f = new DateCondition();
         BeanMapper.DEFAULT.read(f, new StringReader(xml), Format.XML);
 
-        meta.set("docdate",   then55min.toString());
+        meta.set("docdate", then55min.toString());
         Assertions.assertTrue(
                 TestUtil.condition(f, "n/a", meta, PRE),
-                "55 minutes ago was not younger than an hour ago.");
+                "55 minutes ago was not younger than an hour ago."
+        );
 
         meta.set("docdate", then65min.toString());
         Assertions.assertFalse(
                 TestUtil.condition(f, "n/a", meta, PRE),
-                "65 minutes ago was younger than an hour ago.");
+                "65 minutes ago was younger than an hour ago."
+        );
 
         // Excludes older than 1 hour ago
         xml = """
@@ -226,15 +267,17 @@ class DateConditionTest {
         f = new DateCondition();
         BeanMapper.DEFAULT.read(f, new StringReader(xml), Format.XML);
 
-        meta.set("docdate",   then55min.toString());
+        meta.set("docdate", then55min.toString());
         Assertions.assertFalse(
                 TestUtil.condition(f, "n/a", meta, PRE),
-                "55 minutes ago was older than an hour ago.");
+                "55 minutes ago was older than an hour ago."
+        );
 
         meta.set("docdate", then65min.toString());
         Assertions.assertTrue(
                 TestUtil.condition(f, "n/a", meta, PRE),
-                "65 minutes ago was not older than an hour ago.");
+                "65 minutes ago was not older than an hour ago."
+        );
     }
 
     @Test

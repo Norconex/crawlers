@@ -134,22 +134,25 @@ public class TextStatisticsTransformer
             new TextStatisticsTransformerConfig();
 
     private static final Pattern PATTERN_WORD = Pattern.compile(
-            "\\w+\\-?\\w*", Pattern.UNICODE_CHARACTER_CLASS);
+            "\\w+\\-?\\w*", Pattern.UNICODE_CHARACTER_CLASS
+    );
 
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
-            for (Entry<String, List<String>> en :
-                    docCtx.metadata().matchKeys(
-                            configuration.getFieldMatcher()).entrySet()) {
+            for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                    configuration.getFieldMatcher()
+            ).entrySet()) {
                 analyze(
                         new StringReader(join(en.getValue(), "\n\n")),
                         docCtx.metadata(),
-                        en.getKey());
+                        en.getKey()
+                );
             }
         } else {
             try (var input = docCtx.input().asReader(
-                    configuration.getSourceCharset())) {
+                    configuration.getSourceCharset()
+            )) {
                 analyze(input, docCtx.metadata(), null);
             }
         }
@@ -205,24 +208,37 @@ public class TextStatisticsTransformer
         metadata.add(prefix + "wordCount", wordCount);
         metadata.add(prefix + "sentenceCount", sentenceCount);
         metadata.add(prefix + "paragraphCount", paragraphCount);
-        metadata.add(prefix + "averageWordCharacterCount",
-                divide(wordCharCount, wordCount));
-        metadata.add(prefix + "averageSentenceCharacterCount",
-                divide(sentenceCharCount, sentenceCount));
-        metadata.add(prefix + "averageSentenceWordCount",
-                divide(wordCount, sentenceCount));
-        metadata.add(prefix + "averageParagraphCharacterCount",
-                divide(charCount, paragraphCount));
-        metadata.add(prefix + "averageParagraphSentenceCount",
-                divide(sentenceCount, paragraphCount));
-        metadata.add(prefix + "averageParagraphWordCount",
-                divide(wordCount, paragraphCount));
+        metadata.add(
+                prefix + "averageWordCharacterCount",
+                divide(wordCharCount, wordCount)
+        );
+        metadata.add(
+                prefix + "averageSentenceCharacterCount",
+                divide(sentenceCharCount, sentenceCount)
+        );
+        metadata.add(
+                prefix + "averageSentenceWordCount",
+                divide(wordCount, sentenceCount)
+        );
+        metadata.add(
+                prefix + "averageParagraphCharacterCount",
+                divide(charCount, paragraphCount)
+        );
+        metadata.add(
+                prefix + "averageParagraphSentenceCount",
+                divide(sentenceCount, paragraphCount)
+        );
+        metadata.add(
+                prefix + "averageParagraphWordCount",
+                divide(wordCount, paragraphCount)
+        );
 
     }
 
     private String divide(long value, long divisor) {
         return BigDecimal.valueOf(value).divide(
                 BigDecimal.valueOf(divisor), 1,
-                        RoundingMode.HALF_UP).toString();
+                RoundingMode.HALF_UP
+        ).toString();
     }
 }

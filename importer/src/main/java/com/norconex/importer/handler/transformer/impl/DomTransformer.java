@@ -207,19 +207,20 @@ public class DomTransformer
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                docCtx.docRecord().getContentType().toString())) {
+                docCtx.docContext().getContentType().toString()
+        )) {
             return;
         }
 
         ChunkedTextReader.builder()
-            .charset(configuration.getSourceCharset())
-            .fieldMatcher(configuration.getFieldMatcher())
-            .maxChunkSize(-1) // disable chunking to not break the DOM.
-            .build()
-            .read(docCtx, chunk -> {
-                applyOperations(docCtx, chunk);
-                return true;
-            });
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(-1) // disable chunking to not break the DOM.
+                .build()
+                .read(docCtx, chunk -> {
+                    applyOperations(docCtx, chunk);
+                    return true;
+                });
     }
 
     //NOTE: each operation are ran in isolation, the result being passed
@@ -234,7 +235,8 @@ public class DomTransformer
         var doc = Jsoup.parse(
                 chunk.getText(),
                 docCtx.reference(),
-                DomUtil.toJSoupParser(configuration.getParser()));
+                DomUtil.toJSoupParser(configuration.getParser())
+        );
 
         var preserveOnly = new ArrayList<String>();
 
@@ -244,7 +246,8 @@ public class DomTransformer
             // set extracts on toField
             if (isNotBlank(op.getToField()) && !extractedValues.isEmpty()) {
                 PropertySetter.orAppend(op.getOnSet()).apply(
-                        docCtx.metadata(), op.getToField(), extractedValues);
+                        docCtx.metadata(), op.getToField(), extractedValues
+                );
             }
         }
 
@@ -264,7 +267,8 @@ public class DomTransformer
             Document doc,
             DomOperation op,
             List<String> extractions,
-            List<String> preserveOnly) {
+            List<String> preserveOnly
+    ) {
 
         var extractedValues = handleExtractAndDelete(doc, op);
 
@@ -285,7 +289,8 @@ public class DomTransformer
     }
 
     private List<String> handleExtractAndDelete(
-            Document doc, DomOperation op) {
+            Document doc, DomOperation op
+    ) {
         List<String> extractedValues = new ArrayList<>();
 
         var elms = doc.select(StringUtils.trim(op.getSelector()));

@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ public class ReadAdapter {
         this.inputSupplier = inputSupplier;
         defaultCharset = null;
     }
+
     public ReadAdapter(InputStream inputStream) {
         inputSupplier = () -> inputStream;
         defaultCharset = null;
@@ -58,11 +59,16 @@ public class ReadAdapter {
     public Reader asReader() {
         return asReader(null);
     }
+
     public Reader asReader(Charset charset) {
-        return new InputStreamReader(IOUtil.toNonNullInputStream(
-                inputSupplier.get()),
+        return new InputStreamReader(
+                IOUtil.toNonNullInputStream(
+                        inputSupplier.get()
+                ),
                 ObjectUtils.firstNonNull(
-                        charset, defaultCharset, StandardCharsets.UTF_8));
+                        charset, defaultCharset, StandardCharsets.UTF_8
+                )
+        );
     }
 
     /**
@@ -79,6 +85,7 @@ public class ReadAdapter {
     public String asString() throws IOException {
         return asString(null);
     }
+
     /**
      * Consumes the input as a string. <b>Caution:</b> Use only when you know
      * the content to be of acceptable size. Content too large can generate
@@ -104,24 +111,28 @@ public class ReadAdapter {
      * @throws IOException
      */
     public boolean asChunkedText(
-            @NonNull
-            FailableBiFunction<Integer, String, Boolean, IOException>
-                    textConsumer) throws IOException {
+            @NonNull FailableBiFunction<Integer, String, Boolean,
+                    IOException> textConsumer
+    )
+            throws IOException {
         return asChunkedText(textConsumer, null);
     }
+
     public boolean asChunkedText(
-            @NonNull
-            FailableBiFunction<Integer, String, Boolean, IOException>
-                    textConsumer,
-            ChunkedReadOptions chunkedReadOptions)
-                    throws IOException {
+            @NonNull FailableBiFunction<Integer, String, Boolean,
+                    IOException> textConsumer,
+            ChunkedReadOptions chunkedReadOptions
+    )
+            throws IOException {
         var options = chunkedReadOptions != null
-                ? chunkedReadOptions : new ChunkedReadOptions();
+                ? chunkedReadOptions
+                : new ChunkedReadOptions();
         var chunkIndex = 0;
         String text = null;
         var keepReading = false;
         try (var reader = new TextReader(
-                asReader(options.charset), options.maxChunkSize)) {
+                asReader(options.charset), options.maxChunkSize
+        )) {
             while ((text = reader.readText()) != null) {
                 keepReading = textConsumer.apply(chunkIndex, text);
                 chunkIndex++;

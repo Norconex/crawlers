@@ -34,11 +34,12 @@ public class RobotsMetaNoIndexStage extends AbstractImporterStage {
         if (!canIndex) {
             ctx.getCrawler().fire(
                     CrawlerEvent.builder()
-                    .name(WebCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX)
-                    .source(ctx.getCrawler())
-                    .subject(ctx.getRobotsMeta())
-                    .docContext(ctx.getDoc().getDocContext())
-                    .build());
+                            .name(WebCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX)
+                            .source(ctx.getCrawler())
+                            .subject(ctx.getRobotsMeta())
+                            .docContext(ctx.getDoc().getDocContext())
+                            .build()
+            );
             ctx.getDoc().getDocContext().setState(CrawlDocState.REJECTED);
             return false;
         }

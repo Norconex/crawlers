@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,11 @@ class FSBatch implements Iterable<CommitterRequest> {
     @Override
     public CountingIterator<CommitterRequest> iterator() {
         try {
-            return new CountingIterator<>(new TransformIterator<>(
-                    zipIterator(), this::loadCommitterRequest));
+            return new CountingIterator<>(
+                    new TransformIterator<>(
+                            zipIterator(), this::loadCommitterRequest
+                    )
+            );
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,8 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
         try {
             if (getConfiguration().getRestrictions().isEmpty()
                     || getConfiguration().getRestrictions().matches(
-                            request.getMetadata())) {
+                            request.getMetadata()
+                    )) {
                 fireInfo(CommitterEvent.COMMITTER_ACCEPT_YES);
                 return true;
             }
@@ -124,7 +125,8 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
 
     @Override
     public final void upsert(
-            UpsertRequest upsertRequest) throws CommitterException {
+            UpsertRequest upsertRequest
+    ) throws CommitterException {
         fireInfo(CommitterEvent.COMMITTER_UPSERT_BEGIN, upsertRequest);
         try {
             applyFieldMappings(upsertRequest);
@@ -135,9 +137,11 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
         }
         fireInfo(CommitterEvent.COMMITTER_UPSERT_END, upsertRequest);
     }
+
     @Override
     public final void delete(
-            DeleteRequest deleteRequest) throws CommitterException {
+            DeleteRequest deleteRequest
+    ) throws CommitterException {
         fireInfo(CommitterEvent.COMMITTER_DELETE_BEGIN, deleteRequest);
         try {
             applyFieldMappings(deleteRequest);
@@ -155,7 +159,8 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
             var fromField = en.getKey();
             if (getConfiguration().getFieldMappings().containsKey(fromField)) {
                 var toField = getConfiguration().getFieldMappings().get(
-                        fromField);
+                        fromField
+                );
                 // if target undefined, do not set
                 if (StringUtils.isNotBlank(toField)) {
                     props.addList(toField, en.getValue());
@@ -192,7 +197,6 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
         fireInfo(CommitterEvent.COMMITTER_CLEAN_END);
     }
 
-
     public CommitterContext getCommitterContext() {
         return committerContext;
     }
@@ -212,6 +216,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
 
     protected abstract void doDelete(DeleteRequest deleteRequest)
             throws CommitterException;
+
     /**
      * Subclasses can perform additional closing logic by overriding this
      * method. Default implementation does nothing.
@@ -224,41 +229,54 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
     protected final void fireDebug(String name) {
         fireInfo(name, null);
     }
+
     protected final void fireDebug(String name, CommitterRequest req) {
-        fire(CommitterEvent.builder()
-                .name(name)
-                .source(this)
-                .request(req)
-                .build(),
-                Level.DEBUG);
+        fire(
+                CommitterEvent.builder()
+                        .name(name)
+                        .source(this)
+                        .request(req)
+                        .build(),
+                Level.DEBUG
+        );
     }
+
     protected final void fireInfo(String name) {
         fireInfo(name, null);
     }
+
     protected final void fireInfo(String name, CommitterRequest req) {
-        fire(CommitterEvent.builder()
-                .name(name)
-                .source(this)
-                .request(req)
-                .build(),
-                Level.INFO);
+        fire(
+                CommitterEvent.builder()
+                        .name(name)
+                        .source(this)
+                        .request(req)
+                        .build(),
+                Level.INFO
+        );
     }
+
     protected final void fireError(String name, Exception e) {
         fireError(name, null, e);
     }
+
     protected final void fireError(
-            String name, CommitterRequest req, Exception e) {
-        fire(CommitterEvent.builder()
-                .name(name)
-                .source(this)
-                .request(req)
-                .exception(e)
-                .build(),
-                Level.ERROR);
+            String name, CommitterRequest req, Exception e
+    ) {
+        fire(
+                CommitterEvent.builder()
+                        .name(name)
+                        .source(this)
+                        .request(req)
+                        .exception(e)
+                        .build(),
+                Level.ERROR
+        );
     }
+
     private void fire(CommitterEvent e, Level level) {
         Optional.ofNullable(committerContext)
-            .map(CommitterContext::getEventManager)
-            .ifPresent(em -> em.fire(e, level));
+                .map(CommitterContext::getEventManager)
+                .ifPresent(em -> em.fire(e, level));
     }
 }

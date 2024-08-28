@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,15 +47,17 @@ class FSDocWriterHandler<T> implements AutoCloseable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private final AbstractFSCommitter<T, ? extends BaseFSCommitterConfig>
-            committer;
+    private final AbstractFSCommitter<T,
+            ? extends BaseFSCommitterConfig> committer;
 
     FSDocWriterHandler(
             AbstractFSCommitter<T, ? extends BaseFSCommitterConfig> committer,
-            String fileBaseName) {
+            String fileBaseName
+    ) {
         this.committer = committer;
         this.fileBaseName = fileBaseName;
     }
+
     synchronized T withDocWriter() throws IOException {
         var docPerFile = committer.getConfiguration().getDocsPerFile();
         var docPerFileReached = docPerFile > 0 && writeCount == docPerFile;
@@ -66,12 +68,17 @@ class FSDocWriterHandler<T> implements AutoCloseable {
 
         // invocation count is zero or max reached, we need a new file.
         if (writeCount == 0) {
-            file = new File(committer.getResolvedDirectory().toFile(), 
-                    buildFileName());
+            file = new File(
+                    committer.getResolvedDirectory().toFile(),
+                    buildFileName()
+            );
             LOG.info("Creating file: {}", file);
             if (committer.getConfiguration().isCompress()) {
-                writer = new OutputStreamWriter(new GZIPOutputStream(
-                        new FileOutputStream(file), true));
+                writer = new OutputStreamWriter(
+                        new GZIPOutputStream(
+                                new FileOutputStream(file), true
+                        )
+                );
             } else {
                 writer = new FileWriter(file);
             }
@@ -81,17 +88,25 @@ class FSDocWriterHandler<T> implements AutoCloseable {
         writeCount++;
         return docWriter;
     }
+
     private String buildFileName() {
-        var fileName = stripToEmpty(toSafeFileName(
-                committer.getConfiguration().getFileNamePrefix()))
-              + fileBaseName + stripToEmpty(toSafeFileName(
-                      committer.getConfiguration().getFileNameSuffix()))
-              + "_" + fileNumber + "." + committer.getFileExtension();
+        var fileName = stripToEmpty(
+                toSafeFileName(
+                        committer.getConfiguration().getFileNamePrefix()
+                )
+        )
+                + fileBaseName + stripToEmpty(
+                        toSafeFileName(
+                                committer.getConfiguration().getFileNameSuffix()
+                        )
+                )
+                + "_" + fileNumber + "." + committer.getFileExtension();
         if (committer.getConfiguration().isCompress()) {
             fileName += ".gz";
         }
         return fileName;
     }
+
     @Override
     public synchronized void close() throws IOException {
         writeCount = 0;

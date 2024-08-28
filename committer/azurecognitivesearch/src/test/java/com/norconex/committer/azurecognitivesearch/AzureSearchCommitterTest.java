@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@ package com.norconex.committer.azurecognitivesearch;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +43,6 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.exec.RetriableException;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
@@ -98,16 +99,18 @@ class AzureSearchCommitterTest {
             withinCommitterSession(c -> {
                 c.upsert(upsertRequest("_" + TEST_ID, TEST_CONTENT));
             });
-        } catch(Exception e) {
+        } catch (Exception e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-        .isNotNull()
-        .isInstanceOf(CommitterException.class)
-        .hasRootCauseMessage("Document key cannot start with an underscore "
-                + "character: _3");
+                .isNotNull()
+                .isInstanceOf(CommitterException.class)
+                .hasRootCauseMessage(
+                        "Document key cannot start with an underscore "
+                                + "character: _3"
+                );
     }
 
     @Test
@@ -121,22 +124,22 @@ class AzureSearchCommitterTest {
             withinCommitterSession(c -> {
                 c.upsert(upsertRequest(TEST_ID + "@$", TEST_CONTENT));
             });
-        } catch(Exception e) {
+        } catch (Exception e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-        .isNotNull()
-        .isInstanceOf(CommitterException.class)
-        .hasRootCauseMessage("""
-        	Document key cannot have one or more\s\
-        	characters other than letters, numbers, dashes,\s\
-        	underscores, and equal signs: 3@$""");
+                .isNotNull()
+                .isInstanceOf(CommitterException.class)
+                .hasRootCauseMessage("""
+                        Document key cannot have one or more\s\
+                        characters other than letters, numbers, dashes,\s\
+                        underscores, and equal signs: 3@$""");
     }
 
     @Test
-    void testAddWithQueueContaining2documents() throws Exception{
+    void testAddWithQueueContaining2documents() throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -148,7 +151,7 @@ class AzureSearchCommitterTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd1DeleteCommand()
-            throws Exception{
+            throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -162,7 +165,7 @@ class AzureSearchCommitterTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd2DeleteCommand()
-            throws Exception{
+            throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -192,7 +195,6 @@ class AzureSearchCommitterTest {
         Assertions.assertEquals(0, searchIndex.docCount());
     }
 
-
     @Test
     void testMultiValueFields() throws Exception {
         var metadata = new Properties();
@@ -209,8 +211,10 @@ class AzureSearchCommitterTest {
         var doc = searchIndex.getDoc(0);
 
         // Check multi values are still there
-        assertEquals(3, doc.getFieldValues(fieldname).size(),
-                "Multi-value not saved properly.");
+        assertEquals(
+                3, doc.getFieldValues(fieldname).size(),
+                "Multi-value not saved properly."
+        );
     }
 
     @Test
@@ -227,16 +231,18 @@ class AzureSearchCommitterTest {
             withinCommitterSession(c -> {
                 c.upsert(upsertRequest(TEST_ID, "doc content", metadata));
             });
-        } catch(CommitterException e) {
+        } catch (CommitterException e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(CommitterException.class)
-            .hasRootCauseMessage("""
-                    Document field cannot begin with "azureSearch": azureSearchField""");
+                .isNotNull()
+                .isInstanceOf(CommitterException.class)
+                .hasRootCauseMessage(
+                        """
+                                Document field cannot begin with "azureSearch": azureSearchField"""
+                );
     }
 
     @Test
@@ -253,18 +259,20 @@ class AzureSearchCommitterTest {
             withinCommitterSession(c -> {
                 c.upsert(upsertRequest(TEST_ID, "doc content", metadata));
             });
-        } catch(CommitterException e) {
+        } catch (CommitterException e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(CommitterException.class)
-            .hasRootCauseMessage("""
-            	Document field cannot have one or more\s\
-            	characters other than letters, numbers and underscores:\s\
-            	myField@!""");
+                .isNotNull()
+                .isInstanceOf(CommitterException.class)
+                .hasRootCauseMessage(
+                        """
+                                Document field cannot have one or more\s\
+                                characters other than letters, numbers and underscores:\s\
+                                myField@!"""
+                );
     }
 
     @Test
@@ -281,16 +289,18 @@ class AzureSearchCommitterTest {
             withinCommitterSession(c -> {
                 c.upsert(upsertRequest(TEST_ID, "doc content", metadata));
             });
-        } catch(CommitterException e) {
+        } catch (CommitterException e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(CommitterException.class)
-            .hasRootCauseMessage("Document field cannot be "
-                    + "longer than 128 characters: " + myField);
+                .isNotNull()
+                .isInstanceOf(CommitterException.class)
+                .hasRootCauseMessage(
+                        "Document field cannot be "
+                                + "longer than 128 characters: " + myField
+                );
     }
 
     @Test
@@ -304,15 +314,15 @@ class AzureSearchCommitterTest {
             withinCommitterSession_emptyEndpoint(c -> {
                 c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
             });
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(("Endpoint is undefined."));
+                .isNotNull()
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(("Endpoint is undefined."));
     }
 
     @Test
@@ -326,15 +336,15 @@ class AzureSearchCommitterTest {
             withinCommitterSession_emptyApiKey(c -> {
                 c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
             });
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(("API admin key is undefined."));
+                .isNotNull()
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(("API admin key is undefined."));
     }
 
     @Test
@@ -348,41 +358,65 @@ class AzureSearchCommitterTest {
             withinCommitterSession_emptyIndexName(c -> {
                 c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
             });
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             expectedException = e;
         }
 
         //verify
         assertThat(expectedException)
-            .isNotNull()
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(("Index name is undefined."));
+                .isNotNull()
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(("Index name is undefined."));
+    }
+
+    @Test
+    void testMiscConfigSettings() {
+        //execute
+        assertThatNoException().isThrownBy(() -> {
+            withinCommitterSession(
+                    cfg -> cfg.setUseWindowsAuth(true)
+                    .setDisableDocKeyEncoding(false)
+                    .setArrayFields("array_.*")
+                    .setArrayFieldsRegex(true)
+                    ,
+                    c -> {
+                c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
+            });
+        });
     }
 
     private UpsertRequest upsertRequest(String id, String content) {
         return upsertRequest(id, content, null);
     }
+
     private UpsertRequest upsertRequest(
-            String id, String content, Properties metadata) {
+            String id, String content, Properties metadata
+    ) {
         var p = metadata == null ? new Properties() : metadata;
-        return new UpsertRequest(id, p, content == null
-                ? new NullInputStream(0) : toInputStream(content, UTF_8));
+        return new UpsertRequest(
+                id, p, content == null
+                        ? new NullInputStream(0)
+                        : toInputStream(content, UTF_8)
+        );
     }
 
-    private void assertTestDoc(Doc doc) throws RetriableException {
+    private void assertTestDoc(Doc doc) {
         assertEquals(TEST_ID, doc.getKey());
         assertEquals(TEST_CONTENT, doc.getFieldValue("content"));
     }
 
     private CommitterContext createCommitterContext() {
         return CommitterContext.builder()
-                .setWorkDir(new File(tempDir,
-                        "" + TimeIdGenerator.next()).toPath())
+                .setWorkDir(
+                        new File(
+                                tempDir,
+                                "" + TimeIdGenerator.next()
+                        ).toPath()
+                )
                 .build();
     }
 
-    private AzureSearchCommitter createAzureSearchCommitter()
-            throws CommitterException {
+    static AzureSearchCommitter createAzureSearchCommitter(int port)  {
         var committer = new AzureSearchCommitter();
         var config = committer.getConfiguration();
         config.setApiKey(AzureSearchMocker.MOCK_API_KEY);
@@ -391,13 +425,14 @@ class AzureSearchCommitterTest {
         config.setIndexName("test");
         config.getProxySettings().setHost(new Host("localhost", port));
         config.getProxySettings().setCredentials(
-                new Credentials("Homer", "simpson"));
+                new Credentials("Homer", "simpson")
+        );
         return committer;
     }
 
     private AzureSearchCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        var committer = createAzureSearchCommitter();
+        var committer = createAzureSearchCommitter(port);
         committer.init(createCommitterContext());
 
         try {
@@ -412,24 +447,28 @@ class AzureSearchCommitterTest {
     }
 
     private AzureSearchCommitter withinCommitterSession_emptyEndpoint(
-            CommitterConsumer c) throws CommitterException {
+            CommitterConsumer c
+    ) throws CommitterException {
         return withinCommitterSession(c, ConfigOptions.EmptyEndpoint);
     }
 
     private AzureSearchCommitter withinCommitterSession_emptyApiKey(
-            CommitterConsumer c) throws CommitterException {
+            CommitterConsumer c
+    ) throws CommitterException {
         return withinCommitterSession(c, ConfigOptions.EmptyApiKey);
     }
 
     private AzureSearchCommitter withinCommitterSession_emptyIndexName(
-            CommitterConsumer c) throws CommitterException {
+            CommitterConsumer c
+    ) throws CommitterException {
         return withinCommitterSession(c, ConfigOptions.EmptyIndexName);
     }
 
     private AzureSearchCommitter withinCommitterSession(
             CommitterConsumer c,
-            ConfigOptions options) throws CommitterException {
-        var committer = createAzureSearchCommitter();
+            ConfigOptions options
+    ) throws CommitterException {
+        var committer = createAzureSearchCommitter(port);
 
         switch (options) {
             case EmptyEndpoint:
@@ -444,6 +483,30 @@ class AzureSearchCommitterTest {
 
         try {
             c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+
+    private AzureSearchCommitter withinCommitterSession(
+            Consumer<AzureSearchCommitterConfig> configConsumer,
+            CommitterConsumer initializedCommitterConsumer
+    ) throws CommitterException {
+        var committer = createAzureSearchCommitter(port);
+
+        if (configConsumer != null) {
+            configConsumer.accept(committer.getConfiguration());
+        }
+        committer.init(createCommitterContext());
+
+        try {
+            if (initializedCommitterConsumer != null) {
+                initializedCommitterConsumer.accept(committer);
+            }
         } catch (CommitterException e) {
             throw e;
         } catch (Exception e) {

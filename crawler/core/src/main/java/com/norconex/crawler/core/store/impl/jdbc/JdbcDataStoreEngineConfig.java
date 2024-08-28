@@ -97,7 +97,7 @@ public class JdbcDataStoreEngineConfig {
     private String upsertSql;
 
     private Properties properties = new Properties();
-//    private String varcharType;
-//    private String timestampType;
-//    private String textType;
+    //    private String varcharType;
+    //    private String timestampType;
+    //    private String textType;
 }

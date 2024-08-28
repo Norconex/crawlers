@@ -320,11 +320,13 @@ public class GenericHttpFetcher
     public HttpFetchResponse fetch(HttpFetchRequest fetchRequest)
             throws FetchException {
         var doc = fetchRequest.getDoc();
-        var httpMethod =  fetchRequest.getMethod();
+        var httpMethod = fetchRequest.getMethod();
 
         if (httpClient == null) {
-            throw new IllegalStateException("GenericHttpFetcher was not "
-                    + "initialized ('httpClient' not set).");
+            throw new IllegalStateException(
+                    "GenericHttpFetcher was not "
+                            + "initialized ('httpClient' not set)."
+            );
         }
 
         HttpUriRequestBase request = null;
@@ -333,7 +335,8 @@ public class GenericHttpFetcher
             //--- HSTS Policy --------------------------------------------------
             if (!configuration.isHstsDisabled()) {
                 HstsResolver.resolve(
-                        httpClient, (WebCrawlDocContext) doc.getDocContext());
+                        httpClient, (WebCrawlDocContext) doc.getDocContext()
+                );
             }
 
             //--- Prepare the request ------------------------------------------
@@ -342,7 +345,8 @@ public class GenericHttpFetcher
 
             var method = ofNullable(httpMethod).orElse(GET);
             request = ApacheHttpUtil.createUriRequest(
-                    doc.getReference(), method);
+                    doc.getReference(), method
+            );
 
             var ctx = HttpClientContext.create();
             // auth cache
@@ -366,27 +370,34 @@ public class GenericHttpFetcher
                 var statusCode = response.getCode();
                 var reason = response.getReasonPhrase();
 
-                LOG.debug("Fetch status for: \"{}\": {} - {}",
-                        doc.getReference(), statusCode, reason);
+                LOG.debug(
+                        "Fetch status for: \"{}\": {} - {}",
+                        doc.getReference(), statusCode, reason
+                );
 
                 var responseBuilder = GenericHttpFetchResponse.builder()
-                    .statusCode(statusCode)
-                    .reasonPhrase(reason)
-                    .userAgent(configuration.getUserAgent())
-                    .redirectTarget(ApacheRedirectCaptureStrategy
-                            .getRedirectTarget(ctx));
+                        .statusCode(statusCode)
+                        .reasonPhrase(reason)
+                        .userAgent(configuration.getUserAgent())
+                        .redirectTarget(
+                                ApacheRedirectCaptureStrategy
+                                        .getRedirectTarget(ctx)
+                        );
 
                 //--- Extract headers ---
                 ApacheHttpUtil.applyResponseHeaders(
-                        response, configuration.getHeadersPrefix(), doc);
+                        response, configuration.getHeadersPrefix(), doc
+                );
 
                 //--- Extract body ---
                 if (HttpMethod.GET.is(method) || HttpMethod.POST.is(method)) {
                     if (ApacheHttpUtil.applyResponseContent(response, doc)) {
                         performDetection(doc);
                     } else {
-                        LOG.debug("No content returned for: {}",
-                                doc.getReference());
+                        LOG.debug(
+                                "No content returned for: {}",
+                                doc.getReference()
+                        );
                     }
                 }
 
@@ -409,15 +420,18 @@ public class GenericHttpFetcher
                 //--- INVALID http response handling ---------------------------
 
                 // NOT_FOUND
-                if (configuration.getNotFoundStatusCodes().contains(statusCode)) {
+                if (configuration.getNotFoundStatusCodes()
+                        .contains(statusCode)) {
                     return responseBuilder
                             .crawlDocState(CrawlDocState.NOT_FOUND)
                             .build();
                 }
 
                 // BAD_STATUS
-                LOG.debug("Unsupported HTTP Response: {}",
-                        response.getReasonPhrase());
+                LOG.debug(
+                        "Unsupported HTTP Response: {}",
+                        response.getReasonPhrase()
+                );
                 return responseBuilder
                         .crawlDocState(CrawlDocState.BAD_STATUS)
                         .build();
@@ -427,14 +441,16 @@ public class GenericHttpFetcher
             analyseException(e);
             //MAYBE set exception on response instead?
             throw new FetchException(
-                    "Could not fetch document: " + doc.getReference(), e);
+                    "Could not fetch document: " + doc.getReference(), e
+            );
         }
     }
 
     @Override
     protected boolean acceptRequest(@NonNull HttpFetchRequest fetchRequest) {
         return configuration.getHttpMethods().contains(
-                fetchRequest.getMethod());
+                fetchRequest.getMethod()
+        );
     }
 
     public HttpClient getHttpClient() {
@@ -448,19 +464,20 @@ public class GenericHttpFetcher
         if (StringUtils.isBlank(userAgent)) {
             LOG.info("User-Agent: <None specified>");
             LOG.debug("""
-                It is recommended you identify yourself to web sites\s\
-                by specifying a user agent\s\
-                (https://en.wikipedia.org/wiki/User_agent)""");
+                    It is recommended you identify yourself to web sites\s\
+                    by specifying a user agent\s\
+                    (https://en.wikipedia.org/wiki/User_agent)""");
         } else {
             LOG.info("User-Agent: {}", userAgent);
         }
 
         if (configuration.getAuthentication() != null
-                && HttpAuthMethod.FORM ==
-                        configuration.getAuthentication().getMethod()) {
+                && HttpAuthMethod.FORM == configuration.getAuthentication()
+                        .getMethod()) {
             authenticateUsingForm(httpClient);
         }
     }
+
     @Override
     protected void fetcherShutdown(Crawler c) {
         if (httpClient instanceof CloseableHttpClient hc) {
@@ -485,8 +502,11 @@ public class GenericHttpFetcher
         try {
             if (configuration.isForceContentTypeDetection()
                     || docRecord.getContentType() == null) {
-                docRecord.setContentType(ContentTypeDetector.detect(
-                        doc.getInputStream(), doc.getReference()));
+                docRecord.setContentType(
+                        ContentTypeDetector.detect(
+                                doc.getInputStream(), doc.getReference()
+                        )
+                );
             }
         } catch (IOException e) {
             LOG.warn("Cannont perform content type detection.", e);
@@ -494,8 +514,10 @@ public class GenericHttpFetcher
         try {
             if (configuration.isForceCharsetDetection()
                     || docRecord.getCharset() == null) {
-                docRecord.setCharset(CharsetDetector.builder()
-                        .build().detect(doc.getInputStream()));
+                docRecord.setCharset(
+                        CharsetDetector.builder()
+                                .build().detect(doc.getInputStream())
+                );
             }
         } catch (IOException e) {
             LOG.warn("Cannot perform charset type detection.", e);
@@ -520,11 +542,16 @@ public class GenericHttpFetcher
         builder.setUserAgent(configuration.getUserAgent());
         builder.evictExpiredConnections();
         ofNullable(configuration.getMaxConnectionIdleTime()).ifPresent(
-            d -> builder.evictIdleConnections(ofMilliseconds(d.toMillis())));
+                d -> builder
+                        .evictIdleConnections(ofMilliseconds(d.toMillis()))
+        );
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
-        builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
-                configuration.getRedirectUrlProvider()));
+        builder.setRedirectStrategy(
+                new ApacheRedirectCaptureStrategy(
+                        configuration.getRedirectUrlProvider()
+                )
+        );
 
         buildCustomHttpClient(builder);
 
@@ -539,12 +566,15 @@ public class GenericHttpFetcher
 
         ofNullable(configuration.getSocketTimeout()).ifPresent(
                 d -> tlsBuilder.setHandshakeTimeout(
-                        d.toMillis(), TimeUnit.MINUTES));
+                        d.toMillis(), TimeUnit.MINUTES
+                )
+        );
         if (!configuration.getSslProtocols().isEmpty()) {
             tlsBuilder.setSupportedProtocols(
                     configuration
-                    .getSslProtocols()
-                    .toArray(EMPTY_STRING_ARRAY));
+                            .getSslProtocols()
+                            .toArray(EMPTY_STRING_ARRAY)
+            );
         }
         return PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslSocketFactory)
@@ -556,20 +586,27 @@ public class GenericHttpFetcher
     }
 
     protected HttpRoutePlanner createRoutePlanner(
-            SchemePortResolver schemePortResolver) {
+            SchemePortResolver schemePortResolver
+    ) {
         if (StringUtils.isBlank(configuration.getLocalAddress())) {
             return null;
         }
         return new DefaultRoutePlanner(schemePortResolver) {
             @Override
-            protected InetAddress determineLocalAddress(HttpHost firstHop,
-                    HttpContext context) throws HttpException {
+            protected InetAddress determineLocalAddress(
+                    HttpHost firstHop,
+                    HttpContext context
+            ) throws HttpException {
                 try {
                     return InetAddress.getByName(
-                            configuration.getLocalAddress());
+                            configuration.getLocalAddress()
+                    );
                 } catch (UnknownHostException e) {
-                    throw new CrawlerException("Invalid local address: {}"
-                            + configuration.getLocalAddress(), e);
+                    throw new CrawlerException(
+                            "Invalid local address: {}"
+                                    + configuration.getLocalAddress(),
+                            e
+                    );
                 }
             }
         };
@@ -586,11 +623,13 @@ public class GenericHttpFetcher
     protected void authenticateUsingForm(HttpClient httpClient) {
         try {
             ApacheHttpUtil.authenticateUsingForm(
-                    httpClient, configuration.getAuthentication());
+                    httpClient, configuration.getAuthentication()
+            );
         } catch (IOException | URISyntaxException e) {
             analyseException(e);
             throw new CrawlerException(
-                    "Could not perform FORM-based authentication.", e);
+                    "Could not perform FORM-based authentication.", e
+            );
         }
     }
 
@@ -617,8 +656,11 @@ public class GenericHttpFetcher
         //--- Configuration-defined headers
         List<Header> headers = new ArrayList<>();
         for (String name : configuration.getRequestHeaderNames()) {
-            headers.add(new BasicHeader(
-                    name, configuration.getRequestHeader(name)));
+            headers.add(
+                    new BasicHeader(
+                            name, configuration.getRequestHeader(name)
+                    )
+            );
         }
 
         //--- preemptive headers
@@ -631,23 +673,28 @@ public class GenericHttpFetcher
                 && configuration.getAuthentication().isPreemptive()) {
             var authConfig = configuration.getAuthentication();
             if (StringUtils.isBlank(
-                    authConfig.getCredentials().getUsername())) {
-                LOG.warn("Preemptive authentication is enabled while no "
-                        + "username was provided.");
+                    authConfig.getCredentials().getUsername()
+            )) {
+                LOG.warn(
+                        "Preemptive authentication is enabled while no "
+                                + "username was provided."
+                );
                 return headers;
             }
             if (HttpAuthMethod.BASIC != authConfig.getMethod()) {
                 LOG.warn("""
-                    Using preemptive authentication with a\s\
-                    method other than "Basic" may not produce the\s\
-                    expected outcome.""");
+                        Using preemptive authentication with a\s\
+                        method other than "Basic" may not produce the\s\
+                        expected outcome.""");
             }
             var password = EncryptionUtil.decryptPassword(
-                    authConfig.getCredentials());
+                    authConfig.getCredentials()
+            );
             var auth = authConfig.getCredentials().getUsername()
                     + ":" + password;
             var encodedAuth = Base64.encodeBase64(
-                    auth.getBytes(StandardCharsets.ISO_8859_1));
+                    auth.getBytes(StandardCharsets.ISO_8859_1)
+            );
             var authHeader = "Basic " + new String(encodedAuth);
             headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION, authHeader));
         }
@@ -657,30 +704,41 @@ public class GenericHttpFetcher
     protected SchemePortResolver createSchemePortResolver() {
         return SCHEME_PORT_RESOLVER;
     }
+
     protected RequestConfig createRequestConfig() {
         var builder = RequestConfig.custom();
 
         ofNullable(configuration.getConnectionRequestTimeout()).ifPresent(
                 d -> builder.setConnectionRequestTimeout(
-                        d.toMillis(), TimeUnit.MILLISECONDS));
+                        d.toMillis(), TimeUnit.MILLISECONDS
+                )
+        );
         builder.setMaxRedirects(configuration.getMaxRedirects())
-            .setExpectContinueEnabled(configuration.isExpectContinueEnabled())
-            .setCookieSpec(Objects.toString(
-                    configuration.getCookieSpec(), null));
+                .setExpectContinueEnabled(
+                        configuration.isExpectContinueEnabled()
+                )
+                .setCookieSpec(
+                        Objects.toString(
+                                configuration.getCookieSpec(), null
+                        )
+                );
         if (configuration.getMaxRedirects() <= 0) {
             builder.setRedirectsEnabled(false);
         }
         return builder.build();
     }
+
     protected HttpHost createProxy() {
         if (configuration.getProxySettings().isSet()) {
             return new HttpHost(
                     configuration.getProxySettings().getScheme(),
                     configuration.getProxySettings().getHost().getName(),
-                    configuration.getProxySettings().getHost().getPort());
+                    configuration.getProxySettings().getHost().getPort()
+            );
         }
         return null;
     }
+
     protected CredentialsProvider createCredentialsProvider() {
         BasicCredentialsProvider credsProvider = null;
 
@@ -688,18 +746,23 @@ public class GenericHttpFetcher
         var proxy = configuration.getProxySettings();
         if (proxy.isSet() && proxy.getCredentials().isSet()) {
             var password = EncryptionUtil.decryptPassword(
-                    proxy.getCredentials());
+                    proxy.getCredentials()
+            );
             credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
                     new AuthScope(
-                        new HttpHost(
-                                proxy.getHost().getName(),
-                                proxy.getHost().getPort()),
-                        proxy.getRealm(),
-                        null),
+                            new HttpHost(
+                                    proxy.getHost().getName(),
+                                    proxy.getHost().getPort()
+                            ),
+                            proxy.getRealm(),
+                            null
+                    ),
                     new UsernamePasswordCredentials(
                             proxy.getCredentials().getUsername(),
-                            trimToEmpty(password).toCharArray()));
+                            trimToEmpty(password).toCharArray()
+                    )
+            );
         }
 
         //--- Auth ---
@@ -713,47 +776,59 @@ public class GenericHttpFetcher
             }
             Credentials creds = null;
             var password = EncryptionUtil.decryptPassword(
-                    authConfig.getCredentials());
+                    authConfig.getCredentials()
+            );
             if (HttpAuthMethod.NTLM == authConfig.getMethod()) {
                 creds = new NTCredentials(
                         authConfig.getCredentials().getUsername(),
                         trimToEmpty(password).toCharArray(),
                         authConfig.getWorkstation(),
-                        authConfig.getDomain());
+                        authConfig.getDomain()
+                );
             } else {
                 creds = new UsernamePasswordCredentials(
                         authConfig.getCredentials().getUsername(),
-                        trimToEmpty(password).toCharArray());
+                        trimToEmpty(password).toCharArray()
+                );
             }
             credsProvider.setCredentials(
                     new AuthScope(
-                        new HttpHost(
-                            authConfig.getHost().getName(),
-                            authConfig.getHost().getPort()
-                        ),
-                        authConfig.getRealm(),
-                        Objects.toString(authConfig.getMethod(), null)
+                            new HttpHost(
+                                    authConfig.getHost().getName(),
+                                    authConfig.getHost().getPort()
+                            ),
+                            authConfig.getRealm(),
+                            Objects.toString(authConfig.getMethod(), null)
                     ),
-                    creds);
+                    creds
+            );
         }
         return credsProvider;
     }
+
     protected ConnectionConfig createConnectionConfig() {
         var builder = ConnectionConfig.custom();
         ofNullable(configuration.getConnectionTimeout()).ifPresent(
                 d -> builder.setConnectTimeout(
-                        d.toMillis(), TimeUnit.MILLISECONDS));
+                        d.toMillis(), TimeUnit.MILLISECONDS
+                )
+        );
         ofNullable(configuration.getSocketTimeout()).ifPresent(
                 d -> builder.setSocketTimeout(
-                        Timeout.ofMilliseconds(d.toMillis())));
+                        Timeout.ofMilliseconds(d.toMillis())
+                )
+        );
         ofNullable(configuration.getMaxConnectionInactiveTime()).ifPresent(
                 d -> builder.setValidateAfterInactivity(
-                        TimeValue.ofMilliseconds(d.toMillis())));
+                        TimeValue.ofMilliseconds(d.toMillis())
+                )
+        );
         return builder.build();
     }
 
     protected SSLConnectionSocketFactory createSSLSocketFactory(
-            SSLContext sslContext) {
+            SSLContext sslContext
+    ) {
         if (!configuration.isTrustAllSSLCertificates()
                 && configuration.getSslProtocols().isEmpty()) {
             return null;
@@ -773,7 +848,8 @@ public class GenericHttpFetcher
 
         // Turn off host name verification and remove all algorithm constraints.
         return new SSLConnectionSocketFactory(
-                        context, new NoopHostnameVerifier()) {
+                context, new NoopHostnameVerifier()
+        ) {
             @Override
             protected void prepareSocket(SSLSocket socket)
                     throws IOException {
@@ -784,35 +860,48 @@ public class GenericHttpFetcher
                     LOG.debug("SSL: Turning off host name verification.");
                     sslParams.setAlgorithmConstraints(
                             new AlgorithmConstraints() {
-                        @Override
-                        public boolean permits(
-                                Set<CryptoPrimitive> primitives, Key key) {
-                            return true;
-                        }
-                        @Override
-                        public boolean permits(Set<CryptoPrimitive> primitives,
-                                String algorithm,
-                                AlgorithmParameters parameters) {
-                            return true;
-                        }
-                        @Override
-                        public boolean permits(
-                                Set<CryptoPrimitive> primitives,
-                                String algorithm, Key key,
-                                AlgorithmParameters parameters) {
-                            return true;
-                        }
-                    });
+                                @Override
+                                public boolean permits(
+                                        Set<CryptoPrimitive> primitives,
+                                        Key key
+                                ) {
+                                    return true;
+                                }
+
+                                @Override
+                                public boolean permits(
+                                        Set<CryptoPrimitive> primitives,
+                                        String algorithm,
+                                        AlgorithmParameters parameters
+                                ) {
+                                    return true;
+                                }
+
+                                @Override
+                                public boolean permits(
+                                        Set<CryptoPrimitive> primitives,
+                                        String algorithm, Key key,
+                                        AlgorithmParameters parameters
+                                ) {
+                                    return true;
+                                }
+                            }
+                    );
                 }
 
                 // Specify protocols
                 if (!configuration.getSslProtocols().isEmpty()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("SSL: Protocols={}", StringUtils.join(
-                                configuration.getSslProtocols(), ","));
+                        LOG.debug(
+                                "SSL: Protocols={}", StringUtils.join(
+                                        configuration.getSslProtocols(), ","
+                                )
+                        );
                     }
-                    sslParams.setProtocols(configuration.getSslProtocols()
-                            .toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+                    sslParams.setProtocols(
+                            configuration.getSslProtocols()
+                                    .toArray(ArrayUtils.EMPTY_STRING_ARRAY)
+                    );
                 }
 
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");
@@ -828,8 +917,10 @@ public class GenericHttpFetcher
                     // follow the approach from here
                     // https://github.com/lightbody/browsermob-proxy/issues/117#issuecomment-141363454
                     // and disable SNI for this SSLConnectionSocketFactory only
-                    LOG.debug("SSL: Disabling SNI Extension for this "
-                            + "httpClientFactory.");
+                    LOG.debug(
+                            "SSL: Disabling SNI Extension for this "
+                                    + "httpClientFactory."
+                    );
                     sslParams.setServerNames(Collections.emptyList());
                 }
 
@@ -851,15 +942,18 @@ public class GenericHttpFetcher
                     .build();
         } catch (Exception e) {
             throw new CrawlerException(
-                    "Cannot create SSL context trusting all certificates.", e);
+                    "Cannot create SSL context trusting all certificates.", e
+            );
         }
     }
 
     private void analyseException(Exception e) {
         if (e instanceof SSLHandshakeException
                 && !configuration.isTrustAllSSLCertificates()) {
-            LOG.warn("SSL handshake exception. Consider "
-                    + "setting 'trustAllSSLCertificates' to true.");
+            LOG.warn(
+                    "SSL handshake exception. Consider "
+                            + "setting 'trustAllSSLCertificates' to true."
+            );
         }
     }
 }

@@ -49,18 +49,18 @@ class ScriptTagsTest {
         var scriptPath = "/scriptTags/script.js";
 
         WebsiteMock.whenHtml(client, homePath, """
-            <h1>Page with a script tag</h1>
-            <script src="%s">
-                THIS_MUST_BE_STRIPPED, but src URL must be crawled
-            </script>
-            <script>THIS_MUST_BE_STRIPPED</script>
-            View the source to see &lt;script&gt; tags
-            """.formatted(scriptPath));
+                <h1>Page with a script tag</h1>
+                <script src="%s">
+                    THIS_MUST_BE_STRIPPED, but src URL must be crawled
+                </script>
+                <script>THIS_MUST_BE_STRIPPED</script>
+                View the source to see &lt;script&gt; tags
+                """.formatted(scriptPath));
 
         WebsiteMock.whenHtml(client, scriptPath, """
-            <h1>The Script page</h1>
-            This must be crawled.
-            """);
+                <h1>The Script page</h1>
+                This must be crawled.
+                """);
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, homePath)));

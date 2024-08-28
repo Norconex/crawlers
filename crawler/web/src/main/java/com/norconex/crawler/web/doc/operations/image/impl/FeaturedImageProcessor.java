@@ -218,10 +218,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FeaturedImageProcessor
         extends
-            CrawlerLifeCycleListener
+        CrawlerLifeCycleListener
         implements
-            DocumentConsumer,
-            Configurable<FeaturedImageProcessorConfig> {
+        DocumentConsumer,
+        Configurable<FeaturedImageProcessorConfig> {
 
     //TODO add ability to extract from popular HTML <meta> for
     // featured image
@@ -261,31 +261,41 @@ public class FeaturedImageProcessor
                     .orElseGet(() -> workDir.resolve(DEFAULT_IMAGE_CACHE_DIR));
             try {
                 Files.createDirectories(resolvedImageCacheDir);
-                LOG.info("Featured image cache directory: {}",
-                        resolvedImageCacheDir);
+                LOG.info(
+                        "Featured image cache directory: {}",
+                        resolvedImageCacheDir
+                );
             } catch (IOException e) {
                 throw new CrawlerException(
-                        "Could not create featured image cache directory.", e);
+                        "Could not create featured image cache directory.", e
+                );
             }
             cache = IMG_CACHES.computeIfAbsent(
                     resolvedImageCacheDir, dir -> new ImageCache(
                             configuration.getImageCacheSize(),
-                            resolvedImageCacheDir));
+                            resolvedImageCacheDir
+                    )
+            );
         }
 
         // Initialize image directory
         if (configuration.getStorage().contains(Storage.DISK)) {
             resolvedStorageDiskDir = ofNullable(
-                    configuration.getStorageDiskDir()).orElseGet(
-                            () -> workDir.resolve(DEFAULT_STORAGE_DISK_DIR));
+                    configuration.getStorageDiskDir()
+            ).orElseGet(
+                    () -> workDir.resolve(DEFAULT_STORAGE_DISK_DIR)
+            );
             try {
                 Files.createDirectories(resolvedStorageDiskDir);
-                LOG.info("Featured image storage directory: {}",
-                        resolvedStorageDiskDir);
+                LOG.info(
+                        "Featured image storage directory: {}",
+                        resolvedStorageDiskDir
+                );
             } catch (IOException e) {
                 throw new CrawlerException(
                         "Could not create featured image storage directory.",
-                        e);
+                        e
+                );
             }
         }
     }
@@ -296,7 +306,6 @@ public class FeaturedImageProcessor
     public void accept(Fetcher<?, ?> f, CrawlDoc doc) {
 
         var fetcher = (HttpFetcher) f;
-
 
         // Return if not valid content type
         if (StringUtils.isNotBlank(configuration.getPageContentTypePattern())
@@ -310,24 +319,32 @@ public class FeaturedImageProcessor
             var dom = Jsoup.parse(
                     doc.getInputStream(),
                     ofNullable(doc.getDocContext().getCharset())
-                        .map(Charset::toString)
-                        .orElse(null),
-                    doc.getReference());
+                            .map(Charset::toString)
+                            .orElse(null),
+                    doc.getReference()
+            );
             var img = findFeaturedImage(
-                    dom, fetcher, configuration.isLargest());
+                    dom, fetcher, configuration.isLargest()
+            );
 
             // Save the image
             if (img != null) {
-                LOG.debug("Featured image is \"{}\" for \"{}\"",
-                        img.getUrl(), doc.getReference());
+                LOG.debug(
+                        "Featured image is \"{}\" for \"{}\"",
+                        img.getUrl(), doc.getReference()
+                );
                 storeImage(img, doc);
             } else {
-                LOG.debug("No featured image found for: {}",
-                        doc.getReference());
+                LOG.debug(
+                        "No featured image found for: {}",
+                        doc.getReference()
+                );
             }
         } catch (IOException e) {
-            LOG.error("Could not extract featured image from document: {}",
-                    doc.getReference(), e);
+            LOG.error(
+                    "Could not extract featured image from document: {}",
+                    doc.getReference(), e
+            );
         }
     }
 
@@ -335,54 +352,71 @@ public class FeaturedImageProcessor
             throws IOException {
         var imgFormat = configuration.getImageFormat();
         if (configuration.getStorage().contains(Storage.URL)) {
-            doc.getMetadata().add(Objects.toString(
-                    configuration.getStorageUrlField(),
-                    COLLECTOR_FEATURED_IMAGE_URL), img.getUrl());
+            doc.getMetadata().add(
+                    Objects.toString(
+                            configuration.getStorageUrlField(),
+                            COLLECTOR_FEATURED_IMAGE_URL
+                    ), img.getUrl()
+            );
         }
         if (configuration.getStorage().contains(Storage.INLINE)) {
-            doc.getMetadata().add(Objects.toString(
-                    configuration.getStorageInlineField(),
-                    COLLECTOR_FEATURED_IMAGE_INLINE),
-                    img.toHTMLInlineString(imgFormat));
+            doc.getMetadata().add(
+                    Objects.toString(
+                            configuration.getStorageInlineField(),
+                            COLLECTOR_FEATURED_IMAGE_INLINE
+                    ),
+                    img.toHTMLInlineString(imgFormat)
+            );
         }
         if (configuration.getStorage().contains(Storage.DISK)) {
             Path imageFile = null;
-            if (configuration.getStorageDiskStructure()
-                    == StorageDiskStructure.DATE) {
+            if (configuration
+                    .getStorageDiskStructure() == StorageDiskStructure.DATE) {
                 var fileId = Long.toString(TimeIdGenerator.next());
                 imageFile = FileUtil.createDateDirs(
-                        resolvedStorageDiskDir.toFile()).toPath().resolve(
-                                fileId + "." + imgFormat);
-            } else if (configuration.getStorageDiskStructure() ==
-                    StorageDiskStructure.DATETIME) {
+                        resolvedStorageDiskDir.toFile()
+                ).toPath().resolve(
+                        fileId + "." + imgFormat
+                );
+            } else if (configuration
+                    .getStorageDiskStructure() == StorageDiskStructure.DATETIME) {
                 var fileId = Long.toString(TimeIdGenerator.next());
                 imageFile = FileUtil.createDateTimeDirs(
-                        resolvedStorageDiskDir.toFile()).toPath().resolve(
-                                fileId + "." + imgFormat);
+                        resolvedStorageDiskDir.toFile()
+                ).toPath().resolve(
+                        fileId + "." + imgFormat
+                );
             } else {
                 String filePath = null;
                 if (StringUtils.startsWith(img.getUrl(), "data:")) {
                     filePath = FileUtil.createURLDirs(
                             resolvedStorageDiskDir.toFile(),
                             doc.getReference() + "/base64-"
-                                    + img.getUrl().hashCode(), true)
-                                            .getAbsolutePath();
+                                    + img.getUrl().hashCode(),
+                            true
+                    )
+                            .getAbsolutePath();
                 } else {
                     filePath = FileUtil.createURLDirs(
-                            resolvedStorageDiskDir.toFile(), img.getUrl(), true)
-                                    .getAbsolutePath();
+                            resolvedStorageDiskDir.toFile(), img.getUrl(), true
+                    )
+                            .getAbsolutePath();
                 }
                 if (!endsWithIgnoreCase(
-                        filePath, "." + imgFormat)) {
+                        filePath, "." + imgFormat
+                )) {
                     filePath += "." + imgFormat;
                 }
                 imageFile = Paths.get(filePath);
             }
             ImageIO.write(img.getImage(), imgFormat, imageFile.toFile());
-            doc.getMetadata().add(Objects.toString(
-                    configuration.getStorageDiskField(),
-                    COLLECTOR_FEATURED_IMAGE_PATH),
-                    imageFile.toFile().getAbsolutePath());
+            doc.getMetadata().add(
+                    Objects.toString(
+                            configuration.getStorageDiskField(),
+                            COLLECTOR_FEATURED_IMAGE_PATH
+                    ),
+                    imageFile.toFile().getAbsolutePath()
+            );
         }
     }
 
@@ -392,7 +426,8 @@ public class FeaturedImageProcessor
     }
 
     private FeaturedImage findFeaturedImage(
-            Document dom, HttpFetcher fetcher, boolean largest) {
+            Document dom, HttpFetcher fetcher, boolean largest
+    ) {
         var els = isNotBlank(configuration.getDomSelector())
                 ? dom.select(configuration.getDomSelector())
                 : dom.getElementsByTag("img");
@@ -401,7 +436,7 @@ public class FeaturedImageProcessor
         for (Element el : els) {
             var img = ofNullable(el.absUrl("src"))
                     .filter(StringUtils::isNotBlank)
-                    .map(url ->  getImage(fetcher, url))
+                    .map(url -> getImage(fetcher, url))
                     .orElse(null);
             if (img == null) {
                 continue;
@@ -433,9 +468,11 @@ public class FeaturedImageProcessor
                     if (mutableImg == null) {
                         return null;
                     }
-                    img = new FeaturedImage(url, mutableImg.getDimension(),
-                            mutableImg.toImage());
-                } else  {
+                    img = new FeaturedImage(
+                            url, mutableImg.getDimension(),
+                            mutableImg.toImage()
+                    );
+                } else {
                     var bi = fetchImage(fetcher, url);
                     if (bi == null) {
                         return null;
@@ -493,12 +530,15 @@ public class FeaturedImageProcessor
         // some files from having a colored background (instead of transparency)
         // or to not be saved properly (e.g. png to bmp).
         if (EqualsUtil.equalsNoneIgnoreCase(
-                configuration.getImageFormat(), "png", "gif")) {
+                configuration.getImageFormat(), "png", "gif"
+        )) {
             var fixedImg = new BufferedImage(
                     newImg.getWidth(), newImg.getHeight(),
-                    BufferedImage.TYPE_INT_RGB);
+                    BufferedImage.TYPE_INT_RGB
+            );
             fixedImg.createGraphics().drawImage(
-                    newImg, 0, 0, Color.WHITE, null);
+                    newImg, 0, 0, Color.WHITE, null
+            );
             newImg = fixedImg;
         }
         return newImg;
@@ -511,16 +551,20 @@ public class FeaturedImageProcessor
             var doc = new CrawlDoc(new WebCrawlDocContext(uri.toString()));
 
             FetchResponse resp = fetcher.fetch(
-                    new HttpFetchRequest(doc, HttpMethod.GET));
+                    new HttpFetchRequest(doc, HttpMethod.GET)
+            );
             if (resp != null
                     && resp.getCrawlDocState() != null
                     && resp.getCrawlDocState().isGoodState()) {
                 var bufImage = ImageIO.read(doc.getInputStream());
                 doc.dispose();
                 if (bufImage == null) {
-                    LOG.debug("Image could not be read: '{}.' "
-                            + "Detected format: '{}'.", url,
-                            doc.getDocContext().getContentType());
+                    LOG.debug(
+                            "Image could not be read: '{}.' "
+                                    + "Detected format: '{}'.",
+                            url,
+                            doc.getDocContext().getContentType()
+                    );
                 }
                 return bufImage;
             }
@@ -528,54 +572,55 @@ public class FeaturedImageProcessor
             LOG.debug("Could not load image: {}", url, e);
         }
         LOG.debug(
-                "Image was not recognized or could not be downloaded: {}", url);
+                "Image was not recognized or could not be downloaded: {}", url
+        );
         return null;
     }
 
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        setPageContentTypePattern(xml.getString(
-//                "pageContentTypePattern", pageContentTypePattern));
-//        setDomSelector(xml.getString("domSelector", domSelector));
-//        setMinDimensions(xml.getDimension("minDimensions", minDimensions));
-//        setScaleDimensions(xml.getDimension(
-//                "scaleDimensions", scaleDimensions));
-//        setScaleStretch(xml.getBoolean("scaleStretch", scaleStretch));
-//        setImageFormat(xml.getString("imageFormat", imageFormat));
-//        setImageCacheSize(xml.getInteger("imageCacheSize", imageCacheSize));
-//        setImageCacheDir(xml.getPath("imageCacheDir", imageCacheDir));
-//        setLargest(xml.getBoolean("largest", largest));
-//        setScaleQuality(xml.getEnum(
-//                "scaleQuality", Quality.class, scaleQuality));
-//        setStorage(xml.getDelimitedEnumList("storage", Storage.class, storage));
-//        setStorageDiskDir(xml.getPath("storageDiskDir", storageDiskDir));
-//        setStorageDiskStructure(
-//                xml.getEnum("storageDiskDir/@structure",
-//                        StorageDiskStructure.class, storageDiskStructure));
-//        setStorageDiskField(xml.getString(
-//                "storageDiskField", storageDiskField));
-//        setStorageInlineField(xml.getString(
-//                "storageInlineField", getStorageInlineField()));
-//        setStorageUrlField(xml.getString(
-//                "storageUrlField", getStorageUrlField()));
-//    }
-//    @Override
-//    public void saveToXML(XML xml) {
-//        xml.addElement("pageContentTypePattern", pageContentTypePattern);
-//        xml.addElement("domSelector", domSelector);
-//        xml.addElement("minDimensions", minDimensions);
-//        xml.addElement("scaleDimensions", scaleDimensions);
-//        xml.addElement("scaleStretch", isScaleStretch());
-//        xml.addElement("imageFormat", imageFormat);
-//        xml.addElement("imageCacheSize", imageCacheSize);
-//        xml.addElement("imageCacheDir", imageCacheDir);
-//        xml.addElement("largest", largest);
-//        xml.addElement("scaleQuality", scaleQuality);
-//        xml.addDelimitedElementList("storage", storage);
-//        xml.addElement("storageDiskDir", storageDiskDir)
-//                .setAttribute("structure", storageDiskStructure);
-//        xml.addElement("storageDiskField", storageDiskField);
-//        xml.addElement("storageInlineField", storageInlineField);
-//        xml.addElement("storageUrlField", storageUrlField);
-//    }
+    //    @Override
+    //    public void loadFromXML(XML xml) {
+    //        setPageContentTypePattern(xml.getString(
+    //                "pageContentTypePattern", pageContentTypePattern));
+    //        setDomSelector(xml.getString("domSelector", domSelector));
+    //        setMinDimensions(xml.getDimension("minDimensions", minDimensions));
+    //        setScaleDimensions(xml.getDimension(
+    //                "scaleDimensions", scaleDimensions));
+    //        setScaleStretch(xml.getBoolean("scaleStretch", scaleStretch));
+    //        setImageFormat(xml.getString("imageFormat", imageFormat));
+    //        setImageCacheSize(xml.getInteger("imageCacheSize", imageCacheSize));
+    //        setImageCacheDir(xml.getPath("imageCacheDir", imageCacheDir));
+    //        setLargest(xml.getBoolean("largest", largest));
+    //        setScaleQuality(xml.getEnum(
+    //                "scaleQuality", Quality.class, scaleQuality));
+    //        setStorage(xml.getDelimitedEnumList("storage", Storage.class, storage));
+    //        setStorageDiskDir(xml.getPath("storageDiskDir", storageDiskDir));
+    //        setStorageDiskStructure(
+    //                xml.getEnum("storageDiskDir/@structure",
+    //                        StorageDiskStructure.class, storageDiskStructure));
+    //        setStorageDiskField(xml.getString(
+    //                "storageDiskField", storageDiskField));
+    //        setStorageInlineField(xml.getString(
+    //                "storageInlineField", getStorageInlineField()));
+    //        setStorageUrlField(xml.getString(
+    //                "storageUrlField", getStorageUrlField()));
+    //    }
+    //    @Override
+    //    public void saveToXML(XML xml) {
+    //        xml.addElement("pageContentTypePattern", pageContentTypePattern);
+    //        xml.addElement("domSelector", domSelector);
+    //        xml.addElement("minDimensions", minDimensions);
+    //        xml.addElement("scaleDimensions", scaleDimensions);
+    //        xml.addElement("scaleStretch", isScaleStretch());
+    //        xml.addElement("imageFormat", imageFormat);
+    //        xml.addElement("imageCacheSize", imageCacheSize);
+    //        xml.addElement("imageCacheDir", imageCacheDir);
+    //        xml.addElement("largest", largest);
+    //        xml.addElement("scaleQuality", scaleQuality);
+    //        xml.addDelimitedElementList("storage", storage);
+    //        xml.addElement("storageDiskDir", storageDiskDir)
+    //                .setAttribute("structure", storageDiskStructure);
+    //        xml.addElement("storageDiskField", storageDiskField);
+    //        xml.addElement("storageInlineField", storageInlineField);
+    //        xml.addElement("storageUrlField", storageUrlField);
+    //    }
 }

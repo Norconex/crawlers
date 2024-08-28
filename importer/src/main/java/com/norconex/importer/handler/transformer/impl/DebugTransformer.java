@@ -84,12 +84,15 @@ public class DebugTransformer
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
 
-        var level = Level.valueOf(ObjectUtils.defaultIfNull(
-                configuration.getLogLevel(), "debug").toUpperCase());
+        var level = Level.valueOf(
+                ObjectUtils.defaultIfNull(
+                        configuration.getLogLevel(), "debug"
+                ).toUpperCase()
+        );
 
         if (configuration.getLogFields().isEmpty()) {
-            for (Entry<String, List<String>> entry :
-                docCtx.metadata().entrySet()) {
+            for (Entry<String, List<String>> entry : docCtx.metadata()
+                    .entrySet()) {
                 logField(level, entry.getKey(), entry.getValue());
             }
         } else {
@@ -99,10 +102,12 @@ public class DebugTransformer
         }
 
         if (configuration.isLogContent()) {
-            SLF4JUtil.log(LOG, level,
+            SLF4JUtil.log(
+                    LOG, level,
                     StringUtils.trimToEmpty(configuration.getPrefix())
-                        + "CONTENT={}",
-                    IOUtils.toString(docCtx.input().asInputStream(), UTF_8));
+                            + "CONTENT={}",
+                    IOUtils.toString(docCtx.input().asInputStream(), UTF_8)
+            );
         }
     }
 
@@ -118,7 +123,10 @@ public class DebugTransformer
                 b.append(value);
             }
         }
-        SLF4JUtil.log(LOG, level, trimToEmpty(configuration.getPrefix())
-                + "{}={}", fieldName, b.toString());
+        SLF4JUtil.log(
+                LOG, level, trimToEmpty(configuration.getPrefix())
+                        + "{}={}",
+                fieldName, b.toString()
+        );
     }
 }

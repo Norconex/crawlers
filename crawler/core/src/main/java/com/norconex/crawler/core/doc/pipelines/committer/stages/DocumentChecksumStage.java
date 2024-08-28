@@ -48,22 +48,24 @@ public class DocumentChecksumStage
         }
         var newDocChecksum = checksummer.createDocumentChecksum(ctx.getDoc());
 
-
         var accepted = ChecksumStageUtil.resolveDocumentChecksum(
-                newDocChecksum, ctx.getDoc());
+                newDocChecksum, ctx.getDoc()
+        );
         if (!accepted) {
             var s = new StringBuilder()
-                .append(checksummer.getClass().getSimpleName())
-                .append(" - ")
-                .append("Checksum=")
-                .append(StringUtils.abbreviate(newDocChecksum, 200));
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                    .source(ctx.getCrawler())
-                    .docContext(ctx.getDoc().getDocContext())
-                    .subject(checksummer)
-                    .message(s.toString())
-                    .build());
+                    .append(checksummer.getClass().getSimpleName())
+                    .append(" - ")
+                    .append("Checksum=")
+                    .append(StringUtils.abbreviate(newDocChecksum, 200));
+            ctx.getCrawler().fire(
+                    CrawlerEvent.builder()
+                            .name(CrawlerEvent.REJECTED_UNMODIFIED)
+                            .source(ctx.getCrawler())
+                            .docContext(ctx.getDoc().getDocContext())
+                            .subject(checksummer)
+                            .message(s.toString())
+                            .build()
+            );
         }
         return accepted;
     }

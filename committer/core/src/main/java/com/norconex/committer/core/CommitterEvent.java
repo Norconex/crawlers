@@ -107,7 +107,7 @@ public class CommitterEvent extends Event {
             str += c.getClass().getSimpleName();
         }
         if (request != null) {
-            str += " - " +  request.getReference();
+            str += " - " + request.getReference();
         }
         return StringUtils.isNotBlank(str) ? str : super.toString();
     }

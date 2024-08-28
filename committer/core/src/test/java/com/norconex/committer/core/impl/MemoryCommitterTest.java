@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 /**
  * <p>MemoryCommitter tests.</p>
  */
-class MemoryCommitterTest  {
+class MemoryCommitterTest {
 
     @Test
     void testMemoryCommitter() throws CommitterException {
@@ -41,8 +41,8 @@ class MemoryCommitterTest  {
         assertThat(c.getDeleteCount()).isEqualTo(2);
 
         var cfg = c.getConfiguration()
-            .setIgnoreContent(true)
-            .setFieldMatcher(TextMatcher.basic("blah"));
+                .setIgnoreContent(true)
+                .setFieldMatcher(TextMatcher.basic("blah"));
         c.clean();
         TestUtil.commitRequests(c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1));
         assertThat(cfg.isIgnoreContent()).isTrue();

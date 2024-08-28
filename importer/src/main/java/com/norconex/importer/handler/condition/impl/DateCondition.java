@@ -192,19 +192,24 @@ public class DateCondition
         HOUR(ChronoUnit.HOURS, "h"),
         MINUTE(ChronoUnit.MINUTES, "m"),
         SECOND(ChronoUnit.SECONDS, "s");
+
         private final TemporalUnit temporalUnit;
         private final String abbr;
+
         TimeUnit(TemporalUnit temporalUnit, String abbr) {
             this.temporalUnit = temporalUnit;
             this.abbr = abbr;
         }
+
         public TemporalUnit toTemporal() {
             return temporalUnit;
         }
+
         @Override
         public String toString() {
             return abbr;
         }
+
         public static TimeUnit getTimeUnit(String unit) {
             if (StringUtils.isBlank(unit)) {
                 return null;
@@ -226,22 +231,28 @@ public class DateCondition
     public boolean evaluate(HandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().getPattern() == null) {
             throw new IllegalArgumentException(
-                    "\"fieldMatcher\" pattern cannot be empty.");
+                    "\"fieldMatcher\" pattern cannot be empty."
+            );
         }
         for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                configuration.getFieldMatcher()).entrySet()) {
+                configuration.getFieldMatcher()
+        ).entrySet()) {
             for (String value : en.getValue()) {
                 if (matches(configuration.getValueMatcher(), en.getKey(), value)
-                        && matches(configuration.getValueMatcherRangeEnd(),
-                                en.getKey(), value)) {
+                        && matches(
+                                configuration.getValueMatcherRangeEnd(),
+                                en.getKey(), value
+                        )) {
                     return true;
                 }
             }
         }
         return false;
     }
+
     private boolean matches(
-            DateValueMatcher matcher, String fieldName, String fieldValue) {
+            DateValueMatcher matcher, String fieldName, String fieldValue
+    ) {
         if (matcher == null) {
             return true;
         }
@@ -256,12 +267,14 @@ public class DateCondition
         }
 
         var evalResult = matcher.test(dt);
-        LOG.debug("{}: {} [{}] {} = {}",
+        LOG.debug(
+                "{}: {} [{}] {} = {}",
                 fieldName,
                 fieldValue,
                 matcher.getOperator(),
                 matcher.getDateProvider().getDateTime(),
-                evalResult);
+                evalResult
+        );
         return evalResult;
     }
 }

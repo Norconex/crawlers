@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,32 +41,31 @@ class CharsetTransformerTest {
     void testCharsetBodyTransformer()
             throws IOException, IOException {
 
-        testCharsetBodyTransformer("ISO-8859-1",   "ISO-8859-1", true);
-        testCharsetBodyTransformer("ISO-8859-2",   "ISO-8859-1", false);
+        testCharsetBodyTransformer("ISO-8859-1", "ISO-8859-1", true);
+        testCharsetBodyTransformer("ISO-8859-2", "ISO-8859-1", false);
         testCharsetBodyTransformer("windows-1250", "ISO-8859-1", true);
-        testCharsetBodyTransformer("UTF-8",        "ISO-8859-1", true);
+        testCharsetBodyTransformer("UTF-8", "ISO-8859-1", true);
 
-        testCharsetBodyTransformer("ISO-8859-1",   "ISO-8859-2", true);
-        testCharsetBodyTransformer("ISO-8859-2",   "ISO-8859-2", false);
+        testCharsetBodyTransformer("ISO-8859-1", "ISO-8859-2", true);
+        testCharsetBodyTransformer("ISO-8859-2", "ISO-8859-2", false);
         testCharsetBodyTransformer("windows-1250", "ISO-8859-2", true);
-        testCharsetBodyTransformer("UTF-8",        "ISO-8859-2", true);
+        testCharsetBodyTransformer("UTF-8", "ISO-8859-2", true);
 
-        testCharsetBodyTransformer("ISO-8859-1",   "windows-1250", true);
-        testCharsetBodyTransformer("ISO-8859-2",   "windows-1250", true);
+        testCharsetBodyTransformer("ISO-8859-1", "windows-1250", true);
+        testCharsetBodyTransformer("ISO-8859-2", "windows-1250", true);
         testCharsetBodyTransformer("windows-1250", "windows-1250", false);
-        testCharsetBodyTransformer("UTF-8",        "windows-1250", true);
+        testCharsetBodyTransformer("UTF-8", "windows-1250", true);
 
-        testCharsetBodyTransformer("ISO-8859-1",   "UTF-8", true);
-        testCharsetBodyTransformer("ISO-8859-2",   "UTF-8", true);
+        testCharsetBodyTransformer("ISO-8859-1", "UTF-8", true);
+        testCharsetBodyTransformer("ISO-8859-2", "UTF-8", true);
         testCharsetBodyTransformer("windows-1250", "UTF-8", true);
-        testCharsetBodyTransformer("UTF-8",        "UTF-8", true);
+        testCharsetBodyTransformer("UTF-8", "UTF-8", true);
 
-        testCharsetBodyTransformer("ISO-8859-1",   "KOI8-R", true);
-        testCharsetBodyTransformer("ISO-8859-2",   "KOI8-R", true);
+        testCharsetBodyTransformer("ISO-8859-1", "KOI8-R", true);
+        testCharsetBodyTransformer("ISO-8859-2", "KOI8-R", true);
         testCharsetBodyTransformer("windows-1250", "KOI8-R", true);
-        testCharsetBodyTransformer("UTF-8",        "KOI8-R", true);
+        testCharsetBodyTransformer("UTF-8", "KOI8-R", true);
     }
-
 
     @Test
     void testCharsetWithGoodSourceBodyTransformer()
@@ -75,19 +74,21 @@ class CharsetTransformerTest {
 
         var t = new CharsetTransformer();
         t.getConfiguration()
-            .setSourceCharset(Charset.forName("ISO-8859-1"))
-            .setTargetCharset(StandardCharsets.UTF_8);
+                .setSourceCharset(Charset.forName("ISO-8859-1"))
+                .setTargetCharset(StandardCharsets.UTF_8);
 
         var is = getFileStream("/charset/ISO-8859-1.txt");
-        var doc = TestUtil.newDocContext("ISO-8859-1.txt", is);
+        var doc = TestUtil.newHandlerContext("ISO-8859-1.txt", is);
         t.accept(doc);
         is.close();
 
         var targetStartWith = Arrays.copyOf(
                 IOUtils.toByteArray(doc.input().asInputStream()),
-                startWith.length);
+                startWith.length
+        );
         Assertions.assertArrayEquals(
-                startWith, targetStartWith, "ISO-8859-1 > UTF-8");
+                startWith, targetStartWith, "ISO-8859-1 > UTF-8"
+        );
     }
 
     @Test
@@ -97,19 +98,21 @@ class CharsetTransformerTest {
 
         var t = new CharsetTransformer();
         t.getConfiguration()
-            .setSourceCharset(Charset.forName("KOI8-R"))
-            .setTargetCharset(null);  // using default: UTF-8
+                .setSourceCharset(Charset.forName("KOI8-R"))
+                .setTargetCharset(null); // using default: UTF-8
 
         var is = getFileStream("/charset/ISO-8859-1.txt");
-        var doc = TestUtil.newDocContext("ISO-8859-1.txt", is);
+        var doc = TestUtil.newHandlerContext("ISO-8859-1.txt", is);
         t.accept(doc);
         var output = IOUtils.toByteArray(doc.input().asInputStream());
         is.close();
 
         var targetStartWith = Arrays.copyOf(output, startWith.length);
         if (Arrays.equals(startWith, targetStartWith)) {
-            Assertions.fail("Transformation with bad source must not be equal. "
-                    + "KOI8-R > UTF-8");
+            Assertions.fail(
+                    "Transformation with bad source must not be equal. "
+                            + "KOI8-R > UTF-8"
+            );
         }
     }
 
@@ -117,48 +120,54 @@ class CharsetTransformerTest {
     void testBodyError() throws IOException, IOException {
         var t = new CharsetTransformer();
         t.getConfiguration()
-            .setSourceCharset(null)
-            .setTargetCharset(null);
+                .setSourceCharset(null)
+                .setTargetCharset(null);
         assertThatExceptionOfType(
-                UncheckedIOException.class).isThrownBy( //NOSONAR
-                    () -> t.accept(TestUtil.newDocContext(
-                            "N/A", TestUtil.failingCachedInputStream(),
-                            new Properties())));
+                UncheckedIOException.class
+        ).isThrownBy(
+            //NOSONAR
+                () -> t.accept(
+                        TestUtil.newHandlerContext(
+                                "N/A", TestUtil.failingCachedInputStream(),
+                                new Properties()
+                        )
+                )
+        );
     }
 
     @Test
     void testCharsetFieldTransformer()
             throws IOException, IOException {
 
-        testCharsetFieldTransformer("ISO-8859-1",   "ISO-8859-1");
-        testCharsetFieldTransformer("ISO-8859-2",   "ISO-8859-1");
+        testCharsetFieldTransformer("ISO-8859-1", "ISO-8859-1");
+        testCharsetFieldTransformer("ISO-8859-2", "ISO-8859-1");
         testCharsetFieldTransformer("windows-1250", "ISO-8859-1");
-        testCharsetFieldTransformer("UTF-8",        "ISO-8859-1");
+        testCharsetFieldTransformer("UTF-8", "ISO-8859-1");
 
-        testCharsetFieldTransformer("ISO-8859-1",   "ISO-8859-2");
-        testCharsetFieldTransformer("ISO-8859-2",   "ISO-8859-2");
+        testCharsetFieldTransformer("ISO-8859-1", "ISO-8859-2");
+        testCharsetFieldTransformer("ISO-8859-2", "ISO-8859-2");
         testCharsetFieldTransformer("windows-1250", "ISO-8859-2");
-        testCharsetFieldTransformer("UTF-8",        "ISO-8859-2");
+        testCharsetFieldTransformer("UTF-8", "ISO-8859-2");
 
-        testCharsetFieldTransformer("ISO-8859-1",   "windows-1250");
-        testCharsetFieldTransformer("ISO-8859-2",   "windows-1250");
+        testCharsetFieldTransformer("ISO-8859-1", "windows-1250");
+        testCharsetFieldTransformer("ISO-8859-2", "windows-1250");
         testCharsetFieldTransformer("windows-1250", "windows-1250");
-        testCharsetFieldTransformer("UTF-8",        "windows-1250");
+        testCharsetFieldTransformer("UTF-8", "windows-1250");
 
-        testCharsetFieldTransformer("ISO-8859-1",   "UTF-8");
-        testCharsetFieldTransformer("ISO-8859-2",   "UTF-8");
+        testCharsetFieldTransformer("ISO-8859-1", "UTF-8");
+        testCharsetFieldTransformer("ISO-8859-2", "UTF-8");
         testCharsetFieldTransformer("windows-1250", "UTF-8");
-        testCharsetFieldTransformer("UTF-8",        "UTF-8");
+        testCharsetFieldTransformer("UTF-8", "UTF-8");
 
-        testCharsetFieldTransformer("ISO-8859-1",   "KOI8-R");
-        testCharsetFieldTransformer("ISO-8859-2",   "KOI8-R");
+        testCharsetFieldTransformer("ISO-8859-1", "KOI8-R");
+        testCharsetFieldTransformer("ISO-8859-2", "KOI8-R");
         testCharsetFieldTransformer("windows-1250", "KOI8-R");
-        testCharsetFieldTransformer("UTF-8",        "KOI8-R");
+        testCharsetFieldTransformer("UTF-8", "KOI8-R");
     }
 
-
     private void testCharsetFieldTransformer(
-            String inCharset, String outCharset)
+            String inCharset, String outCharset
+    )
             throws IOException, UnsupportedEncodingException {
 
         var fromCharset = Charset.forName(inCharset);
@@ -169,16 +178,19 @@ class CharsetTransformerTest {
 
         var t = new CharsetTransformer();
         t.getConfiguration()
-            .setTargetCharset(toCharset)
-            .setFieldMatcher(TextMatcher.basic("field1"));
+                .setTargetCharset(toCharset)
+                .setFieldMatcher(TextMatcher.basic("field1"));
 
         var metadata = new Properties();
         metadata.set("field1", new String(sourceBytes, fromCharset));
         metadata.set(DocMetadata.CONTENT_ENCODING, fromCharset);
 
         InputStream is = new NullInputStream(0);
-        t.accept(TestUtil.newDocContext(
-                "ref-" + fromCharset + "-" + toCharset, is, metadata));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        "ref-" + fromCharset + "-" + toCharset, is, metadata
+                )
+        );
 
         var convertedValue = metadata.getString("field1");
         var convertedBytes = convertedValue.getBytes(toCharset);
@@ -191,14 +203,17 @@ class CharsetTransformerTest {
         System.out.println("converted value: " + convertedValue);
         System.out.println(" original bytes: " + Arrays.toString(sourceBytes));
         System.out.println("   target bytes: " + Arrays.toString(targetBytes));
-        System.out.println("converted bytes: " + Arrays.toString(convertedBytes));
+        System.out
+                .println("converted bytes: " + Arrays.toString(convertedBytes));
 
         Assertions.assertArrayEquals(
-                targetBytes, convertedBytes, fromCharset + " > " + toCharset);
+                targetBytes, convertedBytes, fromCharset + " > " + toCharset
+        );
     }
 
     private void testCharsetBodyTransformer(
-            String inCharset, String outCharset, boolean detect)
+            String inCharset, String outCharset, boolean detect
+    )
             throws IOException, IOException {
 
         var fromCharset = Charset.forName(inCharset);
@@ -213,7 +228,7 @@ class CharsetTransformerTest {
         t.getConfiguration().setTargetCharset(toCharset);
 
         var is = getFileStream("/charset/" + fromCharset + ".txt");
-        var doc = TestUtil.newDocContext(fromCharset + ".txt", is);
+        var doc = TestUtil.newHandlerContext(fromCharset + ".txt", is);
         t.accept(doc);
 
         var output = IOUtils.toByteArray(doc.input().asInputStream());
@@ -222,12 +237,13 @@ class CharsetTransformerTest {
 
         var targetStartWith = Arrays.copyOf(output, startWith.length);
 
-//        System.out.println("=== " + fromCharset + " > " + toCharset + "===");
-//        System.out.println(Arrays.toString(startWith));
-//        System.out.println(Arrays.toString(targetStartWith));
+        //        System.out.println("=== " + fromCharset + " > " + toCharset + "===");
+        //        System.out.println(Arrays.toString(startWith));
+        //        System.out.println(Arrays.toString(targetStartWith));
 
         Assertions.assertArrayEquals(
-                startWith, targetStartWith, fromCharset + " > " + toCharset);
+                startWith, targetStartWith, fromCharset + " > " + toCharset
+        );
     }
 
     private InputStream getFileStream(String resourcePath) {
@@ -238,8 +254,8 @@ class CharsetTransformerTest {
     void testWriteRead() {
         var t = new CharsetTransformer();
         t.getConfiguration()
-            .setTargetCharset(StandardCharsets.ISO_8859_1)
-            .setFieldMatcher(TextMatcher.regex(".*"));
+                .setTargetCharset(StandardCharsets.ISO_8859_1)
+                .setFieldMatcher(TextMatcher.regex(".*"));
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
 }

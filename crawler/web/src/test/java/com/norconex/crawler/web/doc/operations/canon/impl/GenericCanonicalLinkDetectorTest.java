@@ -43,14 +43,16 @@ class GenericCanonicalLinkDetectorTest {
         metadata.set("Link", "<" + canonURL + "> rel=\"canonical\"");
         url = d.detectFromMetadata(reference, metadata);
         Assertions.assertEquals(
-                canonURL, url, "Invalid absolute canonical URL");
+                canonURL, url, "Invalid absolute canonical URL"
+        );
 
         // Test relative
         var relCanonical = "/canonical.pdf";
         metadata.set("Link", "<" + relCanonical + "> rel=\"canonical\"");
         url = d.detectFromMetadata(reference, metadata);
         Assertions.assertEquals(
-                canonURL, url, "Invalid relative canonical URL");
+                canonURL, url, "Invalid relative canonical URL"
+        );
     }
 
     @Test
@@ -62,19 +64,25 @@ class GenericCanonicalLinkDetectorTest {
 
         // Valid link tag
         var contentValid = "<html><head><title>Test</title>\n"
-                + "<link rel=\"canonical\"\n href=\"\n" + canonURL +  "\" />\n"
+                + "<link rel=\"canonical\"\n href=\"\n" + canonURL + "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
-        url = d.detectFromContent(reference,  new ByteArrayInputStream(
-                contentValid.getBytes()), ContentType.HTML);
+        url = d.detectFromContent(
+                reference, new ByteArrayInputStream(
+                        contentValid.getBytes()
+                ), ContentType.HTML
+        );
         Assertions.assertEquals(canonURL, url, "Invalid <link> form <head>");
 
         // Invalid location for link tag
         var contentInvalid = "<html><head><title>Test</title>\n"
                 + "</head><body>\n"
-                + "<link rel=\"canonical\"\n href=\"\n" + canonURL +  "\" />\n"
+                + "<link rel=\"canonical\"\n href=\"\n" + canonURL + "\" />\n"
                 + "</body></html>";
-        url = d.detectFromContent(reference,  new ByteArrayInputStream(
-                contentInvalid.getBytes()), ContentType.HTML);
+        url = d.detectFromContent(
+                reference, new ByteArrayInputStream(
+                        contentInvalid.getBytes()
+                ), ContentType.HTML
+        );
         Assertions.assertNull(url, "Canonical link should be null.");
     }
 
@@ -89,17 +97,18 @@ class GenericCanonicalLinkDetectorTest {
         String url;
 
         // Test "Link:" with multiple values
-        metadata.set("Link",
+        metadata.set(
+                "Link",
                 "<http://www.example.com/images/logo.png>; rel=\"image_src\","
-              + "<" + canonURL + ">; rel=\"canonical\","
-              + "<http://www.example.com/short/1234>; rel=\"shortlink\","
-              + "<" + canonURL + ">; rel=\"hreflang_en\"");
+                        + "<" + canonURL + ">; rel=\"canonical\","
+                        + "<http://www.example.com/short/1234>; rel=\"shortlink\","
+                        + "<" + canonURL + ">; rel=\"hreflang_en\""
+        );
         url = d.detectFromMetadata(reference, metadata);
         Assertions.assertEquals(
-                canonURL, url, "Canonical URL not detected properly.");
+                canonURL, url, "Canonical URL not detected properly."
+        );
     }
-
-
 
     @Test
     void testEscapedCanonicalUrl() throws IOException {
@@ -115,8 +124,11 @@ class GenericCanonicalLinkDetectorTest {
                 + "<link rel=\"canonical\"\n href=\"\n" + escapedCanonicalUrl
                 + "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
-        url = d.detectFromContent(reference,  new ByteArrayInputStream(
-                contentValid.getBytes()), ContentType.HTML);
+        url = d.detectFromContent(
+                reference, new ByteArrayInputStream(
+                        contentValid.getBytes()
+                ), ContentType.HTML
+        );
         Assertions.assertEquals(unescapedCanonicalUrl, url);
     }
 
@@ -135,8 +147,11 @@ class GenericCanonicalLinkDetectorTest {
                 + "<link rel=\"canonical\"\n href=\"\n" + sourceUrl
                 + "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
-        extractedUrl = d.detectFromContent(reference,  new ByteArrayInputStream(
-                contentValid.getBytes()), ContentType.HTML);
+        extractedUrl = d.detectFromContent(
+                reference, new ByteArrayInputStream(
+                        contentValid.getBytes()
+                ), ContentType.HTML
+        );
         Assertions.assertEquals(targetUrl, extractedUrl);
     }
 
@@ -144,8 +159,9 @@ class GenericCanonicalLinkDetectorTest {
     void testWriteRead() {
         var d = new GenericCanonicalLinkDetector();
         d.getConfiguration().setContentTypes(
-                List.of(ContentType.HTML, ContentType.TEXT));
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(d));
+                List.of(ContentType.HTML, ContentType.TEXT)
+        );
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(d));
     }
 }

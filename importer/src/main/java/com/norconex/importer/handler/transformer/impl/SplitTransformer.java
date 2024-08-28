@@ -118,25 +118,32 @@ public class SplitTransformer
             }
         }
         PropertySetter.orAppend(op.getOnSet()).apply(
-                docCtx.metadata(), op.getToField(), targetValues);
+                docCtx.metadata(), op.getToField(), targetValues
+        );
     }
 
     private void splitMetadata(SplitOperation split, HandlerContext docCtx) {
 
         List<String> allTargetValues = new ArrayList<>();
-        for (Entry<String, List<String>> en :
-                docCtx.metadata().matchKeys(
-                        split.getFieldMatcher()).entrySet()) {
+        for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                split.getFieldMatcher()
+        ).entrySet()) {
             var fromField = en.getKey();
             var sourceValues = en.getValue();
             List<String> targetValues = new ArrayList<>();
             for (String sourceValue : sourceValues) {
                 if (split.isSeparatorRegex()) {
-                    targetValues.addAll(regexSplit(
-                            sourceValue, split.getSeparator()));
+                    targetValues.addAll(
+                            regexSplit(
+                                    sourceValue, split.getSeparator()
+                            )
+                    );
                 } else {
-                    targetValues.addAll(regularSplit(
-                            sourceValue, split.getSeparator()));
+                    targetValues.addAll(
+                            regularSplit(
+                                    sourceValue, split.getSeparator()
+                            )
+                    );
                 }
             }
 
@@ -145,7 +152,8 @@ public class SplitTransformer
             if (StringUtils.isBlank(split.getToField())) {
                 // overwrite source field
                 PropertySetter.REPLACE.apply(
-                        docCtx.metadata(), fromField, targetValues);
+                        docCtx.metadata(), fromField, targetValues
+                );
             } else {
                 allTargetValues.addAll(targetValues);
             }
@@ -153,7 +161,8 @@ public class SplitTransformer
         if (StringUtils.isNotBlank(split.getToField())) {
             // set on target field
             PropertySetter.orAppend(split.getOnSet()).apply(
-                    docCtx.metadata(), split.getToField(), allTargetValues);
+                    docCtx.metadata(), split.getToField(), allTargetValues
+            );
         }
     }
 
@@ -167,8 +176,10 @@ public class SplitTransformer
         }
         return cleanValues;
     }
+
     private List<String> regularSplit(String metaValue, String separator) {
         return Arrays.asList(
-                StringUtils.splitByWholeSeparator(metaValue, separator));
+                StringUtils.splitByWholeSeparator(metaValue, separator)
+        );
     }
 }

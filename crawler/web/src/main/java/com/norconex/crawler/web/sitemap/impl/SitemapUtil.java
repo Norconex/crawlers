@@ -37,7 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 final class SitemapUtil {
 
-    private SitemapUtil() {}
+    private SitemapUtil() {
+    }
 
     static ZonedDateTime toDateTime(String value) {
         ZonedDateTime zdt = null;
@@ -50,8 +51,10 @@ final class SitemapUtil {
                 zdt = ZonedDateTime.parse(value);
             } else {
                 // has no time
-                zdt = ZonedDateTime.of(LocalDate.parse(value),
-                        LocalTime.MIDNIGHT, ZoneOffset.UTC);
+                zdt = ZonedDateTime.of(
+                        LocalDate.parse(value),
+                        LocalTime.MIDNIGHT, ZoneOffset.UTC
+                );
             }
         } catch (Exception e) {
             LOG.info("Invalid sitemap date: {}", value);
@@ -62,7 +65,8 @@ final class SitemapUtil {
     // we consider having no cache or no last modified date on cache to
     // mean cache is older
     static boolean shouldProcessSitemap(
-            @NonNull SitemapRecord newRec, SitemapRecord cachedRec) {
+            @NonNull SitemapRecord newRec, SitemapRecord cachedRec
+    ) {
         if (cachedRec == null) {
             return true;
         }
@@ -71,10 +75,9 @@ final class SitemapUtil {
                 || cacheModifDate.isBefore(newRec.getLastModified());
     }
 
-//    static ZonedDateTime now() {
-//        return ZonedDateTime.now(ZoneOffset.UTC);
-//    }
-
+    //    static ZonedDateTime now() {
+    //        return ZonedDateTime.now(ZoneOffset.UTC);
+    //    }
 
     static SitemapRecord toSitemapRecord(CrawlDoc doc) {
         var indexRec = new SitemapRecord();

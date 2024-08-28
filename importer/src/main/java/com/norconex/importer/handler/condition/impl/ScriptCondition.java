@@ -142,21 +142,21 @@ public class ScriptCondition
 
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()
-            .charset(configuration.getSourceCharset())
-            .fieldMatcher(configuration.getFieldMatcher())
-            .maxChunkSize(configuration.getMaxReadSize())
-            .build()
-            .read(docCtx, chunk -> {
-                // only check if no successful match yet.
-                try {
-                    if (matches.isFalse() && executeScript(docCtx, chunk)) {
-                        matches.setTrue();
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(configuration.getMaxReadSize())
+                .build()
+                .read(docCtx, chunk -> {
+                    // only check if no successful match yet.
+                    try {
+                        if (matches.isFalse() && executeScript(docCtx, chunk)) {
+                            matches.setTrue();
+                        }
+                    } catch (DocumentHandlerException e) {
+                        throw new IOException(e);
                     }
-                } catch (DocumentHandlerException e) {
-                    throw new IOException(e);
-                }
-                return true;
-            });
+                    return true;
+                });
         return matches.booleanValue();
     }
 
@@ -181,14 +181,16 @@ public class ScriptCondition
 
     private synchronized ScriptRunner<Object> scriptRunner()
             throws DocumentHandlerException {
-        if (scriptRunner ==  null) {
+        if (scriptRunner == null) {
             var engineName = configuration.getEngineName();
             if (StringUtils.isBlank(configuration.getScript())) {
                 throw new DocumentHandlerException("No script provided.");
             }
             if (StringUtils.isBlank(engineName)) {
-                LOG.info("Script engine name not specified, defaulting to "
-                        + ScriptRunner.JAVASCRIPT_ENGINE);
+                LOG.info(
+                        "Script engine name not specified, defaulting to "
+                                + ScriptRunner.JAVASCRIPT_ENGINE
+                );
                 engineName = ScriptRunner.JAVASCRIPT_ENGINE;
             }
             scriptRunner =

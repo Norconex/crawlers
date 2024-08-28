@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,8 @@ public class TestMemoryQueue implements CommitterQueue {
     @Override
     public void init(
             CommitterContext committerContext,
-            BatchConsumer batchConsumer) throws CommitterQueueException {
+            BatchConsumer batchConsumer
+    ) throws CommitterQueueException {
         this.batchConsumer = batchConsumer;
     }
 
@@ -66,12 +67,14 @@ public class TestMemoryQueue implements CommitterQueue {
     public List<CommitterRequest> getAllRequests() {
         return requests;
     }
+
     public List<UpsertRequest> getUpsertRequests() {
         return requests.stream()
                 .filter(UpsertRequest.class::isInstance)
                 .map(UpsertRequest.class::cast)
                 .toList();
     }
+
     public List<DeleteRequest> getDeleteRequests() {
         return requests.stream()
                 .filter(DeleteRequest.class::isInstance)

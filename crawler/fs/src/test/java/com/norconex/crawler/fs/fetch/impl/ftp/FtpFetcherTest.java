@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ class FtpFetcherTest extends AbstractFileFetcherTest {
         server = new MockFtpServer(tempDir, false);
         server.start();
     }
+
     @AfterAll
     static void afterAll() throws FtpException {
         MockFtpServer.stop(server);

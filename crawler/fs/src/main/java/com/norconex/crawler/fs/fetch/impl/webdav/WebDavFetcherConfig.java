@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import jakarta.xml.bind.annotation.XmlTransient;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-
 
 /**
  * <p>

@@ -32,7 +32,10 @@ import lombok.ToString;
 public class MockNoopDataStoreEngine implements DataStoreEngine {
 
     private DataStore<?> dataStore = new MockNoopDataStore<>();
-    public MockNoopDataStoreEngine() {}
+
+    public MockNoopDataStoreEngine() {
+    }
+
     public MockNoopDataStoreEngine(DataStore<?> dataStore) {
         this.dataStore = dataStore;
     }
@@ -41,31 +44,38 @@ public class MockNoopDataStoreEngine implements DataStoreEngine {
     public void init(Crawler crawler) {
         //NOOP
     }
+
     @Override
     public boolean clean() {
         return false;
     }
+
     @Override
     public void close() {
         //NOOP
     }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> DataStore<T> openStore(String name, Class<? extends T> type) {
         return (DataStore<T>) dataStore;
     }
+
     @Override
     public boolean dropStore(String name) {
         return false;
     }
+
     @Override
     public boolean renameStore(DataStore<?> dataStore, String newName) {
         return false;
     }
+
     @Override
     public Set<String> getStoreNames() {
         return null;
     }
+
     @Override
     public Optional<Class<?>> getStoreType(String name) {
         return Optional.empty();

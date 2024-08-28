@@ -25,6 +25,7 @@ import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
+
 /**
  * <p>
  * Forces a metadata field to be single-value.  The action can be one of the
@@ -77,9 +78,9 @@ public class ForceSingleValueTransformer
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
         var action = configuration.getAction();
-        for (Entry<String, List<String>> en :
-            docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()).entrySet()) {
+        for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                configuration.getFieldMatcher()
+        ).entrySet()) {
             var field = en.getKey();
             var values = en.getValue();
             if (values != null && !values.isEmpty()
@@ -90,7 +91,8 @@ public class ForceSingleValueTransformer
                 } else if ("keepLast".equalsIgnoreCase(action)) {
                     singleValue = values.get(values.size() - 1);
                 } else if (StringUtils.startsWithIgnoreCase(
-                        action, "mergeWith")) {
+                        action, "mergeWith"
+                )) {
                     var sep = StringUtils.substringAfter(action, ":");
                     singleValue = StringUtils.join(values, sep);
                 } else {

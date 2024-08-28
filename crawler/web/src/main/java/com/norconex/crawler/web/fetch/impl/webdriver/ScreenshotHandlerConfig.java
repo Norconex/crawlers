@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ public class ScreenshotHandlerConfig extends DocImageHandlerConfig {
     private String cssSelector;
 
     public ScreenshotHandlerConfig() {
-            setTargetDir(DEFAULT_SCREENSHOT_DIR);
-            setTargetDirField(DEFAULT_SCREENSHOT_DIR_FIELD);
-            setTargetMetaField(DEFAULT_SCREENSHOT_META_FIELD);
+        setTargetDir(DEFAULT_SCREENSHOT_DIR);
+        setTargetDirField(DEFAULT_SCREENSHOT_DIR_FIELD);
+        setTargetMetaField(DEFAULT_SCREENSHOT_META_FIELD);
     }
 }

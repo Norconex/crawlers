@@ -1,4 +1,4 @@
-/* Copyright 2016-2023 Norconex Inc.
+/* Copyright 2016-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,68 +30,80 @@ class ImageParserTest {
     void testWEBP() throws Exception {
         testParsing("image/webp", "webp");
     }
+
     @Test
     void testBMP() throws Exception {
         testParsing("image/bmp", "bmp");
     }
+
     @Test
     void testGIF() throws Exception {
         testParsing("image/gif", "gif");
     }
+
     @Test
     void testJPG() throws Exception {
         testParsing("image/jpeg", "jpg");
     }
+
     @Test
     void testJPG_XMP() throws Exception {
         // JPEG with XMP metadata.  Can be dealt with, with a tool such
         // as http://www.exiv2.org
         // Currently parsed by Tika using Jempbox
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer-xmp.jpg"))
-            .hasContentType("image/jpeg")
-            .hasContentFamily("Image")
-            .hasExtension("jpg")
-            .hasMetaValue("dc:subject", "XMP Parsing");
+                resourceAsFile(folder, "/parser/image/importer-xmp.jpg")
+        )
+                .hasContentType("image/jpeg")
+                .hasContentFamily("Image")
+                .hasExtension("jpg")
+                .hasMetaValue("dc:subject", "XMP Parsing");
     }
+
     @Test
     void testPNG() throws Exception {
         testParsing("image/png", "png");
     }
+
     @Test
     void testPSD() throws Exception {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer.psd"))
-            .hasContentType("image/vnd.adobe.photoshop")
-            .hasContentFamily("Image")
-            .hasExtension("psd");
+                resourceAsFile(folder, "/parser/image/importer.psd")
+        )
+                .hasContentType("image/vnd.adobe.photoshop")
+                .hasContentFamily("Image")
+                .hasExtension("psd");
     }
+
     @Test
     void testTIF() throws Exception {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer.tif"))
-            .hasContentType("image/tiff")
-            .hasContentFamily("Image")
-            .hasExtension("tiff");
+                resourceAsFile(folder, "/parser/image/importer.tif")
+        )
+                .hasContentType("image/tiff")
+                .hasContentFamily("Image")
+                .hasExtension("tiff");
     }
 
     @Test
     void testJBIG2() throws Exception {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer.jb2"))
-            .hasContentType("image/x-jbig2")
-            .hasContentFamily("Image")
-            .hasExtension("jb2")
-            .hasMetaValue("width", "125")
-            .hasMetaValue("height", "16");
+                resourceAsFile(folder, "/parser/image/importer.jb2")
+        )
+                .hasContentType("image/x-jbig2")
+                .hasContentFamily("Image")
+                .hasExtension("jb2")
+                .hasMetaValue("width", "125")
+                .hasMetaValue("height", "16");
     }
 
     private void testParsing(String contentType, String extension)
             throws Exception {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer." + extension))
-            .hasContentType(contentType)
-            .hasContentFamily("Image")
-            .hasExtension(extension);
+                resourceAsFile(folder, "/parser/image/importer." + extension)
+        )
+                .hasContentType(contentType)
+                .hasContentFamily("Image")
+                .hasExtension(extension);
     }
 }

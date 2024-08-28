@@ -28,6 +28,7 @@ import com.norconex.importer.doc.Doc;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+
 /**
  * <p>
  * Accepts or rejects a reference based on whether one or more
@@ -82,7 +83,8 @@ public class GenericMetadataFilter implements
                 || isBlank(configuration.getValueMatcher().getPattern())
                 || new PropertyMatcher(
                         configuration.getFieldMatcher(),
-                        configuration.getValueMatcher()).matches(metadata)) {
+                        configuration.getValueMatcher()
+                ).matches(metadata)) {
             return getOnMatch() == OnMatch.INCLUDE;
         }
         return getOnMatch() == OnMatch.EXCLUDE;
@@ -96,4 +98,3 @@ public class GenericMetadataFilter implements
         return acceptMetadata(document.getReference(), document.getMetadata());
     }
 }
-

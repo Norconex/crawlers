@@ -56,26 +56,36 @@ public class ImageCache {
         } catch (IOException e) {
             throw new DataStoreException(
                     "Cannot create image cache directory: "
-                            + dir.toAbsolutePath(), e);
+                            + dir.toAbsolutePath(),
+                    e
+            );
         }
 
         store = MVStore.open(
-                dir.resolve("images").toAbsolutePath().toString());
+                dir.resolve("images").toAbsolutePath().toString()
+        );
         imgCache = store.openMap("imgCache");
         imgCache.clear();
 
         lru = Collections.synchronizedMap(
-                new LRUMap<String, String>(maxSize){
-            private static final long serialVersionUID = 1L;
-            @Override
-            protected boolean removeLRU(LinkEntry<String, String> entry) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Cache full, removing: {}", entry.getKey());
+                new LRUMap<String, String>(maxSize) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean removeLRU(
+                            LinkEntry<String, String> entry
+                    ) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(
+                                    "Cache full, removing: {}",
+                                    entry.getKey()
+                            );
+                        }
+                        imgCache.remove(entry.getKey());
+                        return super.removeLRU(entry);
+                    }
                 }
-                imgCache.remove(entry.getKey());
-                return super.removeLRU(entry);
-            }
-        });
+        );
         store.commit();
     }
 
@@ -89,16 +99,22 @@ public class ImageCache {
             return null;
         }
         lru.put(ref, null);
-        return new FeaturedImage(ref, img.getOriginalDimension(),
-                ImageIO.read(new ByteArrayInputStream(img.getImage())));
+        return new FeaturedImage(
+                ref, img.getOriginalDimension(),
+                ImageIO.read(new ByteArrayInputStream(img.getImage()))
+        );
     }
+
     public void setImage(FeaturedImage scaledImage)
             throws IOException {
         lru.put(scaledImage.getUrl(), null);
         var baos = new ByteArrayOutputStream();
         ImageIO.write(scaledImage.getImage(), "png", baos);
-        imgCache.put(scaledImage.getUrl(), new MVImage(
-                scaledImage.getOriginalSize(), baos.toByteArray()));
+        imgCache.put(
+                scaledImage.getUrl(), new MVImage(
+                        scaledImage.getOriginalSize(), baos.toByteArray()
+                )
+        );
         store.commit();
     }
 
@@ -106,13 +122,16 @@ public class ImageCache {
         private static final long serialVersionUID = 1L;
         private final Dimension originalDimension;
         private final byte[] image;
+
         public MVImage(Dimension originalDimension, byte[] image) {
             this.originalDimension = originalDimension;
             this.image = image;
         }
+
         public Dimension getOriginalDimension() {
             return originalDimension;
         }
+
         public byte[] getImage() {
             return image;
         }

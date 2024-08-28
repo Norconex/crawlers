@@ -81,9 +81,11 @@ public class ScreenshotHandler
     public ScreenshotHandler() {
         this(null);
     }
+
     public ScreenshotHandler(CachedStreamFactory streamFactory) {
         this.streamFactory = Optional.ofNullable(
-                streamFactory).orElseGet(CachedStreamFactory::new);
+                streamFactory
+        ).orElseGet(CachedStreamFactory::new);
     }
 
     public void takeScreenshot(WebDriver driver, Doc doc) {
@@ -91,34 +93,49 @@ public class ScreenshotHandler
         imageHandler.setConfiguration(configuration);
 
         try (InputStream in = streamFactory.newInputStream(
-                new ByteArrayInputStream(((TakesScreenshot) driver)
-                        .getScreenshotAs(OutputType.BYTES)))) {
+                new ByteArrayInputStream(
+                        ((TakesScreenshot) driver)
+                                .getScreenshotAs(OutputType.BYTES)
+                )
+        )) {
 
             // If wanting a specific web element:
             if (StringUtils.isNotBlank(configuration.getCssSelector())) {
                 var element = driver.findElement(
-                        By.cssSelector(configuration.getCssSelector()));
+                        By.cssSelector(configuration.getCssSelector())
+                );
 
                 var location = element.getLocation();
                 var size = element.getSize();
                 var rectangle = new Rectangle(
-                        location.x, location.y, size.width, size.height);
+                        location.x, location.y, size.width, size.height
+                );
                 var img = new MutableImage(in);
                 img.crop(rectangle);
-                imageHandler.handleImage(img.toInputStream(
-                        ofNullable(getConfiguration()
-                                .getImageFormat()).orElse("png")), doc);
+                imageHandler.handleImage(
+                        img.toInputStream(
+                                ofNullable(
+                                        getConfiguration()
+                                                .getImageFormat()
+                                ).orElse("png")
+                        ),
+                        doc
+                );
             } else {
                 imageHandler.handleImage(in, doc);
             }
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
-                LOG.error("Could not take screenshot of: {}",
-                        doc.getReference(), e);
+                LOG.error(
+                        "Could not take screenshot of: {}",
+                        doc.getReference(), e
+                );
             } else {
-                LOG.error("Could not take screenshot of: {}. Error:\n{}",
+                LOG.error(
+                        "Could not take screenshot of: {}. Error:\n{}",
                         doc.getReference(),
-                        ExceptionUtil.getFormattedMessages(e));
+                        ExceptionUtil.getFormattedMessages(e)
+                );
             }
         }
     }

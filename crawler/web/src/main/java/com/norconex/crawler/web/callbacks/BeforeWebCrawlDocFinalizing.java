@@ -42,7 +42,6 @@ class BeforeWebCrawlDocFinalizing
         // be re-assigned the wrong depth if linked from another, deeper, page.
         // See: https://github.com/Norconex/collector-http/issues/278
 
-
         var httpData = (WebCrawlDocContext) doc.getDocContext();
         var httpCachedData = (WebCrawlDocContext) doc.getCachedDocContext();
 
@@ -59,14 +58,17 @@ class BeforeWebCrawlDocFinalizing
         // accessing child links normally.
         var state = httpData.getState();
         if (!state.isSkipped() && !state.isOneOf(
-                CrawlDocState.BAD_STATUS, CrawlDocState.ERROR)) {
+                CrawlDocState.BAD_STATUS, CrawlDocState.ERROR
+        )) {
             return;
         }
 
         // OK, let's do this
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Queueing referenced URLs of {}",
-                    httpData.getReference());
+            LOG.debug(
+                    "Queueing referenced URLs of {}",
+                    httpData.getReference()
+            );
         }
 
         var childDepth = httpData.getDepth() + 1;
@@ -76,11 +78,14 @@ class BeforeWebCrawlDocFinalizing
             var childData = new WebCrawlDocContext(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Queueing skipped document's child: {}",
-                        childData.getReference());
+                LOG.debug(
+                        "Queueing skipped document's child: {}",
+                        childData.getReference()
+                );
             }
             crawler.getDocPipelines().getQueuePipeline().accept(
-                    new QueuePipelineContext(crawler, childData));
+                    new QueuePipelineContext(crawler, childData)
+            );
         }
     }
 }

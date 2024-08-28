@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class SolrClientTypeTest {
         solr = SolrClientType.HTTP2.create(url);
         assertThat(solr).isInstanceOf(Http2SolrClient.class);
         assertThat(SolrClientType.of("Http2SolrClient").create(url))
-            .isInstanceOf(Http2SolrClient.class);
+                .isInstanceOf(Http2SolrClient.class);
 
         solr = SolrClientType.CONCURRENT_UPDATE_HTTP2.create(url);
         assertThat(solr).isInstanceOf(ConcurrentUpdateHttp2SolrClient.class);
@@ -61,6 +61,7 @@ class SolrClientTypeTest {
         // needs a real cluster to be initialized, we don't have on in this
         // test, so should fail.
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(
-                () -> SolrClientType.CLOUD.create(url));
+                () -> SolrClientType.CLOUD.create(url)
+        );
     }
 }

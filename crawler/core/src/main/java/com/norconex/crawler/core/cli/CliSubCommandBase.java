@@ -45,20 +45,22 @@ public abstract class CliSubCommandBase implements Runnable {
     private CommandSpec spec;
 
     @Option(
-        names = {"-c", "-config"},
+        names = { "-c", "-config" },
         paramLabel = "FILE",
         description = "Path to crawl session configuration file.",
         required = true
     )
-    @Getter @Setter
+    @Getter
+    @Setter
     private Path configFile;
 
     @Option(
-        names = {"-variables"},
+        names = { "-variables" },
         paramLabel = "FILE",
         description = "Path to variables file."
     )
-    @Getter @Setter
+    @Getter
+    @Setter
     private Path variablesFile;
 
     @Override
@@ -72,6 +74,7 @@ public abstract class CliSubCommandBase implements Runnable {
     protected PrintWriter out() {
         return spec.commandLine().getOut();
     }
+
     protected PrintWriter err() {
         return spec.commandLine().getErr();
     }
@@ -80,104 +83,35 @@ public abstract class CliSubCommandBase implements Runnable {
         if (getConfigFile() == null || !getConfigFile().toFile().isFile()) {
             throw new CliException(
                     "Configuration file does not exist or is not valid: "
-                    + getConfigFile().toFile().getAbsolutePath());
+                            + getConfigFile().toFile().getAbsolutePath());
         }
 
         var cfg = parent.getCrawlerBuilder().configuration();
         try {
             ConfigurationLoader
-            .builder()
-            .variablesFile(getVariablesFile())
-            .beanMapper(parent.getCrawlerBuilder().beanMapper())
-            .build()
-            .toObject(getConfigFile(), cfg);
+                    .builder()
+                    .variablesFile(getVariablesFile())
+                    .beanMapper(parent.getCrawlerBuilder().beanMapper())
+                    .build()
+                    .toObject(getConfigFile(), cfg);
         } catch (ConstraintViolationException e) {
             if (!e.getConstraintViolations().isEmpty()) {
                 var b = new StringBuilder();
                 b.append(e.getConstraintViolations().size()
                         + " configuration errors detected:\n");
                 e.getConstraintViolations().forEach(
-                        cv -> b.append(cv.getMessage() + "\n"));
+                        cv -> b
+                        .append("\"")
+                        .append(cv.getPropertyPath())
+                        .append("\" ")
+                        .append(cv.getMessage())
+                        .append(". Invalid value: ")
+                        .append(cv.getInvalidValue())
+                        .append(".\n"));
                 throw new CliException(b.toString());
             }
         } catch (IOException e) {
             throw new CliException("Could not load crawler configuration.", e);
         }
     }
-
-
-//
-//
-//    protected int createCrawler() {
-//        if (getConfigFile() == null || !getConfigFile().toFile().isFile()) {
-//            printErr("Configuration file does not exist or is not valid: "
-//                    + getConfigFile().toFile().getAbsolutePath());
-//            return -1;
-//        }
-//
-//        var returnValue = loadConfiguration();
-//        if (returnValue != 0) {
-//            return returnValue;
-//        }
-//
-//        crawler = Crawler.builder().build();// new CrawlSession(parent.getCrawlSessionImpl());
-//
-//        return 0;
-//    }
-
-
-
-
-
-
-//    //TODO apply crawler defaults....
-//
-//    //TODO move the crawler-specific BeamMapper initialization out
-//    // so it can be used outside file-loading context.
-//
-//    private BeanMapper beanMapper() {
-//        var builder = BeanMapper.builder()
-//            //MAYBE: make package configurable? Maybe use java service loaded?
-//            .unboundPropertyMapping("crawlerDefaults",
-//                    parent.getCrawlSessionBuilder().crawlerConfigClass())
-//            .unboundPropertyMapping("crawler",
-//                    parent.getCrawlSessionBuilder().crawlerConfigClass())
-//            .unboundPropertyMapping("importer", Importer.class);
-//
-//        registerPolymorpicTypes(builder);
-//
-//        var beanMapperCustomizer =
-//                parent.getCrawlSessionBuilder().beanMapperCustomizer();
-//        if (beanMapperCustomizer != null) {
-//            beanMapperCustomizer.accept(builder);
-//        }
-//        return builder.build();
-//    }
-//
-//    private void registerPolymorpicTypes(BeanMapperBuilder builder) {
-//        //TODO make scanning path configurable? Like java service loader?
-//        // or rely on fully qualified names for non Nx classes? Maybe the latter
-//        // is best to avoid name collisions?
-//        Predicate<String> predicate = nm -> nm.startsWith("com.norconex.");
-//
-//        // This one has too many that are not meant to be added as configuration
-//        // so we only accept those that are standalone listeners:
-//        builder.polymorphicType(EventListener.class,
-//                predicate.and(nm -> nm.endsWith("EventListener")));
-//        builder.polymorphicType(ReferencesProvider.class, predicate);
-//        builder.polymorphicType(DataStoreEngine.class, predicate);
-//        builder.polymorphicType(ReferenceFilter.class, predicate);
-//        builder.polymorphicType(MetadataFilter.class, predicate);
-//        builder.polymorphicType(DocumentFilter.class, predicate);
-//        builder.polymorphicType(DocumentProcessor.class, predicate);
-//        builder.polymorphicType(MetadataChecksummer.class, predicate);
-//        builder.polymorphicType(Committer.class, predicate);
-//        builder.polymorphicType(DocumentChecksummer.class, predicate);
-//        builder.polymorphicType(SpoiledReferenceStrategizer.class, predicate);
-//        builder.polymorphicType(Fetcher.class, predicate);
-//
-//        //TODO add importer dynamically somehow?  Maybe by adding
-//        // an unboundPropertyFactory, passing what it takes to load it?
-//
-//  }
 }

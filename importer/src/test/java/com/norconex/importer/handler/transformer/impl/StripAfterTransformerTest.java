@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,32 +38,38 @@ class StripAfterTransformerTest {
             throws IOException, IOException {
         var t = new StripAfterTransformer();
         t.getConfiguration()
-            .setStripAfterMatcher(TextMatcher.regex("<p>").setIgnoreCase(true))
-            .setInclusive(true);
+                .setStripAfterMatcher(
+                        TextMatcher.regex("<p>").setIgnoreCase(true)
+                )
+                .setInclusive(true);
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        var doc = TestUtil.newDocContext(htmlFile.getAbsolutePath(),
-                is, metadata, ParseState.PRE);
+        var doc = TestUtil.newHandlerContext(
+                htmlFile.getAbsolutePath(),
+                is, metadata, ParseState.PRE
+        );
         t.accept(doc);
         Assertions.assertEquals(
                 539, doc.input().asString().replace("\r", "").length(),
-                "Length of doc content after transformation is incorrect.");
+                "Length of doc content after transformation is incorrect."
+        );
 
         is.close();
     }
-
 
     @Test
     void testWriteRead() {
         var t = new StripAfterTransformer();
         t.getConfiguration()
-            .setInclusive(true)
-            .setStripAfterMatcher(TextMatcher.regex("<p>").setIgnoreCase(true));
+                .setInclusive(true)
+                .setStripAfterMatcher(
+                        TextMatcher.regex("<p>").setIgnoreCase(true)
+                );
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

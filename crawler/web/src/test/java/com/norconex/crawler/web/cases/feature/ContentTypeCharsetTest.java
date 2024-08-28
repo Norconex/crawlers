@@ -53,26 +53,37 @@ class ContentTypeCharsetTest {
         //--- Web site ---
 
         client
-            .when(
-                request()
-                    .withPath(urlPath)
-            )
-            .respond(
-                response()
-                    .withContentType(new MediaType("application", "javascript")
-                            .withCharset("Big5"))
-                    .withBody(htmlPage()
-                            .title("ContentType + Charset ☺☻")
-                            .body("""
-                            	This page returns the Content-Type as
-                            	"application/javascript; charset=Big5"
-                            	while in reality it is
-                            	"text/html; charset=UTF-8".
-                            	Éléphant à noël. ☺☻
-                            	""")
-                            .build()
-                            .getBytes(UTF_8))
-            );
+                .when(
+                        request()
+                                .withPath(urlPath)
+                )
+                .respond(
+                        response()
+                                .withContentType(
+                                        new MediaType(
+                                                "application",
+                                                "javascript"
+                                        )
+                                                .withCharset("Big5")
+                                )
+                                .withBody(
+                                        htmlPage()
+                                                .title(
+                                                        "ContentType + Charset ☺☻"
+                                                )
+                                                .body(
+                                                        """
+                                                                This page returns the Content-Type as
+                                                                "application/javascript; charset=Big5"
+                                                                while in reality it is
+                                                                "text/html; charset=UTF-8".
+                                                                Éléphant à noël. ☺☻
+                                                                """
+                                                )
+                                                .build()
+                                                .getBytes(UTF_8)
+                                )
+                );
 
         //--- First run without detect ---
 
@@ -83,9 +94,9 @@ class ContentTypeCharsetTest {
         assertThat(mem1.getUpsertRequests()).hasSize(1);
         var doc1 = mem1.getUpsertRequests().get(0);
         assertThat(doc1.getMetadata().getString(DocMetadata.CONTENT_TYPE))
-            .isEqualTo("application/javascript");
+                .isEqualTo("application/javascript");
         assertThat(doc1.getMetadata().getString(DocMetadata.CONTENT_ENCODING))
-            .isEqualTo("Big5");
+                .isEqualTo("Big5");
 
         //--- Second run with detect ---
 
@@ -100,8 +111,8 @@ class ContentTypeCharsetTest {
         assertThat(mem2.getUpsertRequests()).hasSize(1);
         var doc2 = mem2.getUpsertRequests().get(0);
         assertThat(doc2.getMetadata().getString(DocMetadata.CONTENT_TYPE))
-            .isEqualTo("text/html");
+                .isEqualTo("text/html");
         assertThat(doc2.getMetadata().getString(DocMetadata.CONTENT_ENCODING))
-            .isEqualTo(StandardCharsets.UTF_8.toString());
+                .isEqualTo(StandardCharsets.UTF_8.toString());
     }
 }

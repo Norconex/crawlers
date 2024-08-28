@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ class CsvSplitterTest {
     @BeforeEach
     void setup() {
         input = CsvSplitterTest.class.getResourceAsStream(
-                 CsvSplitterTest.class.getSimpleName() + ".csv");
+                CsvSplitterTest.class.getSimpleName() + ".csv"
+        );
     }
 
     @AfterEach
@@ -50,42 +51,49 @@ class CsvSplitterTest {
     void testReferenceColumnByName() throws IOException {
         var splitter = new CsvSplitter();
         splitter.getConfiguration()
-            .setUseFirstRowAsFields(true)
-            .setReferenceColumn("clientPhone");
+                .setUseFirstRowAsFields(true)
+                .setReferenceColumn("clientPhone");
         var docs = split(splitter);
         Assertions.assertEquals(
                 "654-0987", docs.get(2).getMetadata().getString(
-                        DocMetadata.EMBEDDED_REFERENCE),
-                "Could not find embedded William Dalton phone reference.");
+                        DocMetadata.EMBEDDED_REFERENCE
+                ),
+                "Could not find embedded William Dalton phone reference."
+        );
     }
 
     @Test
     void testReferenceColumnByPosition() throws IOException {
         var splitter = new CsvSplitter();
         splitter.getConfiguration()
-            .setUseFirstRowAsFields(false)
-            .setReferenceColumn("2");
+                .setUseFirstRowAsFields(false)
+                .setReferenceColumn("2");
         var docs = split(splitter);
-        Assertions.assertEquals("William Dalton",
+        Assertions.assertEquals(
+                "William Dalton",
                 docs.get(3).getMetadata().getString(
-                        DocMetadata.EMBEDDED_REFERENCE),
-                "Could not find embedded William Dalton reference.");
+                        DocMetadata.EMBEDDED_REFERENCE
+                ),
+                "Could not find embedded William Dalton reference."
+        );
     }
-
 
     @Test
     void testContentColumn() throws IOException, IOException {
         var splitter = new CsvSplitter();
         splitter.getConfiguration()
-            .setUseFirstRowAsFields(true)
-            .setContentColumns(List.of("clientName", "3"));
+                .setUseFirstRowAsFields(true)
+                .setContentColumns(List.of("clientName", "3"));
 
         var docs = split(splitter);
-        Assertions.assertEquals("William Dalton 654-0987",
-                IOUtils.toString(docs.get(2).getInputStream(),
-                        StandardCharsets.UTF_8));
+        Assertions.assertEquals(
+                "William Dalton 654-0987",
+                IOUtils.toString(
+                        docs.get(2).getInputStream(),
+                        StandardCharsets.UTF_8
+                )
+        );
     }
-
 
     @Test
     void testFirstRowHeader() throws IOException {
@@ -93,18 +101,22 @@ class CsvSplitterTest {
         splitter.getConfiguration().setUseFirstRowAsFields(true);
         var docs = split(splitter);
 
-        Assertions.assertEquals(4, docs.size(),
-                "Invalid number of docs returned.");
+        Assertions.assertEquals(
+                4, docs.size(),
+                "Invalid number of docs returned."
+        );
 
-        Assertions.assertEquals("William Dalton",
+        Assertions.assertEquals(
+                "William Dalton",
                 docs.get(2).getMetadata().getString("clientName"),
-                "Could not find William Dalton by column name.");
+                "Could not find William Dalton by column name."
+        );
     }
 
     private List<Doc> split(CsvSplitter splitter)
             throws IOException {
         var metadata = new Properties();
-        var ctx = TestUtil.newDocContext("n/a", input, metadata);
+        var ctx = TestUtil.newHandlerContext("n/a", input, metadata);
         splitter.accept(ctx);
         return ctx.childDocs();
     }
@@ -113,11 +125,11 @@ class CsvSplitterTest {
     void testWriteRead() {
         var splitter = new CsvSplitter();
         splitter.getConfiguration()
-            .setEscapeCharacter('.')
-            .setLinesToSkip(10)
-            .setQuoteCharacter('!')
-            .setSeparatorCharacter('@')
-            .setUseFirstRowAsFields(true);
+                .setEscapeCharacter('.')
+                .setLinesToSkip(10)
+                .setQuoteCharacter('!')
+                .setSeparatorCharacter('@')
+                .setUseFirstRowAsFields(true);
         BeanMapper.DEFAULT.assertWriteRead(splitter);
     }
 }

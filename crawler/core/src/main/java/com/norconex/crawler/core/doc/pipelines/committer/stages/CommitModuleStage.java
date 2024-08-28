@@ -26,10 +26,10 @@ public class CommitModuleStage implements Predicate<CommitterPipelineContext> {
     public boolean test(CommitterPipelineContext ctx) {
         // Event triggered by service
         ctx
-        .getCrawler()
-        .getServices()
-        .getCommitterService()
-        .upsert(ctx.getDoc());
+                .getCrawler()
+                .getServices()
+                .getCommitterService()
+                .upsert(ctx.getDoc());
 
         //TODO rewind was done in CrawlerCommitterService when it was in this
         // core project. Now here... best place?

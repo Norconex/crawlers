@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,29 +43,33 @@ class PDFParserTest {
     @Test
     void test_PDF_plain() throws IOException {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/pdf/plain.pdf"))
-            .hasContentType("application/pdf")
-            .hasContentFamily(PDF_FAMILY)
-            .hasExtension("pdf")
-            .contains("Hey Norconex, this is a test.");
+                resourceAsFile(folder, "/parser/pdf/plain.pdf")
+        )
+                .hasContentType("application/pdf")
+                .hasContentFamily(PDF_FAMILY)
+                .hasExtension("pdf")
+                .contains("Hey Norconex, this is a test.");
     }
 
     @Test
     void test_PDF_jpeg() throws IOException {
         ParseAssertions.assertThatSplitted(
-                resourceAsFile(folder, "/parser/pdf/jpeg.pdf"))
-            .hasContentType("application/pdf")
-            .hasContentFamily(PDF_FAMILY)
-            .hasExtension("pdf")
-            .contains("PDF with a JPEG image");
+                resourceAsFile(folder, "/parser/pdf/jpeg.pdf")
+        )
+                .hasContentType("application/pdf")
+                .hasContentFamily(PDF_FAMILY)
+                .hasExtension("pdf")
+                .contains("PDF with a JPEG image");
     }
 
     @Test
     void test_PDF_jbig2()
             throws IOException, SAXException, TikaException {
         var h = new RecursiveParserWrapperHandler(
-                new BasicContentHandlerFactory(BasicContentHandlerFactory
-                        .HANDLER_TYPE.IGNORE, -1));
+                new BasicContentHandlerFactory(
+                        BasicContentHandlerFactory.HANDLER_TYPE.IGNORE, -1
+                )
+        );
 
         var p = new RecursiveParserWrapper(new AutoDetectParser());
         var context = new ParseContext();
@@ -81,16 +85,23 @@ class PDFParserTest {
         }
         var metadatas = h.getMetadataList();
 
-        Assertions.assertNull(metadatas.get(0).get("X-TIKA:EXCEPTION:warn"),
+        Assertions.assertNull(
+                metadatas.get(0).get("X-TIKA:EXCEPTION:warn"),
                 "Exception found: " + metadatas.get(0).get(
-                        "X-TIKA:EXCEPTION:warn"));
-        Assertions.assertEquals("91", metadatas.get(1).get("height"),
-                "Invalid height.");
-        Assertions.assertEquals("352", metadatas.get(1).get("width"),
-                "Invalid width.");
+                        "X-TIKA:EXCEPTION:warn"
+                )
+        );
+        Assertions.assertEquals(
+                "91", metadatas.get(1).get("height"),
+                "Invalid height."
+        );
+        Assertions.assertEquals(
+                "352", metadatas.get(1).get("width"),
+                "Invalid width."
+        );
 
-//        System.out.println("OUTPUT:" + output);
-//        System.out.println("METADATA:" + metadatas.get(1));
+        //        System.out.println("OUTPUT:" + output);
+        //        System.out.println("METADATA:" + metadatas.get(1));
 
     }
 }

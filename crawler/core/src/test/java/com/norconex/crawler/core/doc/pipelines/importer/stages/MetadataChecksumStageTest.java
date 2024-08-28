@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
@@ -32,8 +33,11 @@ import com.norconex.crawler.core.stubs.CrawlerStubs;
 
 class MetadataChecksumStageTest {
 
+    @TempDir
+    private Path tempDir;
+
     @Test
-    void testMetadataChecksumStage(@TempDir Path tempDir) {
+    void testMetadataChecksumStage() {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
         var crawler = CrawlerStubs.memoryCrawler(tempDir);
@@ -43,18 +47,51 @@ class MetadataChecksumStageTest {
         // without a checksummer
         var ctx = new ImporterPipelineContext(crawler, doc);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getMetadata().getString(
-                CrawlDocMetadata.CHECKSUM_METADATA)).isNull();
+        assertThat(
+                doc.getMetadata().getString(
+                        CrawlDocMetadata.CHECKSUM_METADATA)).isNull();
 
         // with a checksummer
         var checksummer = new GenericMetadataChecksummer();
         checksummer.getConfiguration()
-            .setFieldMatcher(TextMatcher.basic("myfield"))
-            .setKeep(true);
+                .setFieldMatcher(TextMatcher.basic("myfield"))
+                .setKeep(true);
         crawler.getConfiguration().setMetadataChecksummer(checksummer);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getMetadata().getString(
-                CrawlDocMetadata.CHECKSUM_METADATA)).isEqualTo(
-                        "myfield=somevalue;");
+        assertThat(
+                doc.getMetadata().getString(
+                        CrawlDocMetadata.CHECKSUM_METADATA)).isEqualTo(
+                                "myfield=somevalue;");
     }
+
+    @Test
+    void testRejectedUnmodified() {
+
+        var checksummer = new GenericMetadataChecksummer();
+        checksummer
+        .getConfiguration()
+        .setFieldMatcher(TextMatcher.wildcard("*"));
+
+        var meta = new Properties();
+        meta.add("key", "value");
+
+        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
+            cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED)
+                    .setMetadataChecksummer(checksummer);
+        });
+
+        var doc = CrawlDocStubs.crawlDocWithCache(
+                "ref", "content", "key", "value");
+        doc.getDocContext().setMetaChecksum(
+                checksummer.createMetadataChecksum(meta));
+
+        doc.getCachedDocContext().setMetaChecksum(
+                checksummer.createMetadataChecksum(meta));
+
+        var ctx = new ImporterPipelineContext(crawler, doc);
+
+        var stage = new MetadataChecksumStage(FetchDirective.METADATA);
+        assertThat(stage.test(ctx)).isFalse();
+    }
+
 }

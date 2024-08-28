@@ -96,8 +96,8 @@ public class ExtensionReferenceFilter implements
         for (String ext : configuration.getExtensions()) {
             if ((configuration.isIgnoreCase()
                     && ext.equalsIgnoreCase(refExtension))
-                            || (!configuration.isIgnoreCase()
-                                    && ext.equals(refExtension))) {
+                    || (!configuration.isIgnoreCase()
+                            && ext.equals(refExtension))) {
                 return safeOnMatch == OnMatch.INCLUDE;
             }
         }
@@ -109,6 +109,7 @@ public class ExtensionReferenceFilter implements
     public boolean acceptDocument(Doc document) {
         return acceptReference(document.getReference());
     }
+
     @JsonIgnore
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {

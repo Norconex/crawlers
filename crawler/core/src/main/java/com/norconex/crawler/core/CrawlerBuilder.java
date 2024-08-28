@@ -60,10 +60,11 @@ public class CrawlerBuilder {
      * @param fetcherProvider fetcher provider function
      * @return a function returning a fetcher to associate with a given crawler.
      */
-    private Function<Crawler, ? extends Fetcher<? extends FetchRequest, ? extends
-            FetchResponse>> fetcherProvider;
+    private Function<Crawler, ? extends Fetcher<? extends FetchRequest,
+            ? extends FetchResponse>> fetcherProvider;
 
-    CrawlerBuilder() {}
+    CrawlerBuilder() {
+    }
 
     public Crawler build() {
         return new Crawler(this);

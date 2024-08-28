@@ -46,25 +46,28 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
                 MultiMapUtils.newListValuedHashMap();
 
         addPolyType(map, MetadataChecksummer.class, "doc.operations");
-//        addPolyType(map, EventListener.class, "crawler.event.impl");
-//        addPolyType(map, DocumentFilter.class, "filter.impl"); //NOSONAR
-//        addPolyType(map, MetadataFilter.class, "filter.impl");
-//        addPolyType(map, ReferenceFilter.class, "filter.impl");
-//        addPolyType(map, DocumentConsumer.class, "processor.impl");
+        //        addPolyType(map, EventListener.class, "crawler.event.impl");
+        //        addPolyType(map, DocumentFilter.class, "filter.impl"); //NOSONAR
+        //        addPolyType(map, MetadataFilter.class, "filter.impl");
+        //        addPolyType(map, ReferenceFilter.class, "filter.impl");
+        //        addPolyType(map, DocumentConsumer.class, "processor.impl");
 
-//        map.put(CrawlerConfig.class, WebCrawlerConfig.class);
-        map.putAll(Fetcher.class, List.of(
-                CmisFetcher.class,
-                FtpFetcher.class,
-                HdfsFetcher.class,
-                LocalFetcher.class,
-                SftpFetcher.class,
-                SmbFetcher.class,
-                WebDavFetcher.class));
+        //        map.put(CrawlerConfig.class, WebCrawlerConfig.class);
+        map.putAll(
+                Fetcher.class, List.of(
+                        CmisFetcher.class,
+                        FtpFetcher.class,
+                        HdfsFetcher.class,
+                        LocalFetcher.class,
+                        SftpFetcher.class,
+                        SmbFetcher.class,
+                        WebDavFetcher.class
+                )
+        );
 
         // For unit test
-//        addPolyType(map, EventListener.class, "session.recovery");
-//        addPolyType(map, Committer.class, "session.recovery");
+        //        addPolyType(map, EventListener.class, "session.recovery");
+        //        addPolyType(map, Committer.class, "session.recovery");
 
         return map;
     }
@@ -72,13 +75,19 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
     private void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
             Class<?> baseClass,
-            String corePkg) {
-        polyTypes.putAll(baseClass, ClassFinder.findSubTypes(
-                baseClass,
-                corePkg == null
-                    ? nm -> nm.startsWith(baseClass.getPackageName())
-                    : filter(corePkg)));
+            String corePkg
+    ) {
+        polyTypes.putAll(
+                baseClass, ClassFinder.findSubTypes(
+                        baseClass,
+                        corePkg == null
+                                ? nm -> nm
+                                        .startsWith(baseClass.getPackageName())
+                                : filter(corePkg)
+                )
+        );
     }
+
     private Predicate<String> filter(String corePkg) {
         return nm -> nm.startsWith("com.norconex.crawler.fs." + corePkg);
     }

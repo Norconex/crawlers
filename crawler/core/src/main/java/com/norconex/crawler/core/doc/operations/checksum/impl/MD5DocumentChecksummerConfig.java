@@ -91,7 +91,8 @@ public class MD5DocumentChecksummerConfig extends BaseChecksummerConfig {
     private final TextMatcher fieldMatcher = new TextMatcher();
 
     public MD5DocumentChecksummerConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

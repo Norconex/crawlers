@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ class SolrCommitterTest extends AbstractSolrTest {
     }
 
     @Test
-    void testAddWithQueueContaining2documents() throws Exception{
+    void testAddWithQueueContaining2documents() throws Exception {
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
             c.upsert(upsertRequest("2", "Document 2"));
@@ -73,7 +73,7 @@ class SolrCommitterTest extends AbstractSolrTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd1DeleteCommand()
-            throws Exception{
+            throws Exception {
 
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
@@ -89,7 +89,7 @@ class SolrCommitterTest extends AbstractSolrTest {
 
     @Test
     void testCommitQueueWith3AddCommandAnd2DeleteCommand()
-            throws Exception{
+            throws Exception {
 
         withinCommitterSession(c -> {
             c.upsert(upsertRequest("1", "Document 1"));
@@ -110,11 +110,12 @@ class SolrCommitterTest extends AbstractSolrTest {
         // Add a document directly to Solr
         var doc = new SolrInputDocument();
         doc.addField(SolrCommitterConfig.DEFAULT_SOLR_ID_FIELD, "1");
-        doc.addField(SolrCommitterConfig.DEFAULT_SOLR_CONTENT_FIELD,
-                "Hello world!");
+        doc.addField(
+                SolrCommitterConfig.DEFAULT_SOLR_CONTENT_FIELD,
+                "Hello world!"
+        );
         getSolrClient().add(doc);
         getSolrClient().commit();
-
 
         withinCommitterSession(c -> {
             c.delete(new DeleteRequest("1", new Properties()));
@@ -125,22 +126,25 @@ class SolrCommitterTest extends AbstractSolrTest {
         Assertions.assertEquals(0, results.getNumFound());
     }
 
-
     //TODO test source + target mappings + other mappings
 
     private SolrDocumentList queryId(String id)
             throws SolrServerException, IOException {
         var solrParams = new ModifiableSolrParams();
-        solrParams.set("q", String.format("%s:%s",
-                SolrCommitterConfig.DEFAULT_SOLR_ID_FIELD, id));
+        solrParams.set(
+                "q", String.format(
+                        "%s:%s",
+                        SolrCommitterConfig.DEFAULT_SOLR_ID_FIELD, id
+                )
+        );
         var response = getSolrClient().query(solrParams);
         return response.getResults();
     }
 
     private SolrDocumentList getAllDocs()
-            throws SolrServerException, IOException{
+            throws SolrServerException, IOException {
         var solrParams = new ModifiableSolrParams();
-          solrParams.set("q", "*:*");
+        solrParams.set("q", "*:*");
         var response = getSolrClient().query(solrParams);
         return response.getResults();
     }

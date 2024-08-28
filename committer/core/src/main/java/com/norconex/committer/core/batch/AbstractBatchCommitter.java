@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,16 +84,19 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
         initBatchCommitter();
         initializedQueue.init(getCommitterContext(), this);
     }
+
     @Override
     protected void doUpsert(UpsertRequest upsertRequest)
             throws CommitterException {
         initializedQueue.queue(upsertRequest);
     }
+
     @Override
     protected void doDelete(DeleteRequest deleteRequest)
             throws CommitterException {
         initializedQueue.queue(deleteRequest);
     }
+
     @Override
     protected void doClose() throws CommitterException {
         try {
@@ -102,6 +105,7 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
             closeBatchCommitter();
         }
     }
+
     @Override
     protected void doClean() throws CommitterException {
         initializedQueue.clean();
@@ -115,7 +119,7 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
             commitBatch(it);
         } catch (CommitterException | RuntimeException e) {
             fireError(CommitterEvent.COMMITTER_BATCH_ERROR, e);
-            throw  e;
+            throw e;
         }
         fireInfo(CommitterEvent.COMMITTER_BATCH_END);
     }
@@ -136,6 +140,7 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
             throws CommitterException {
         //NOOP
     }
+
     /**
      * Commits the supplied batch.
      * @param it the batch to commit

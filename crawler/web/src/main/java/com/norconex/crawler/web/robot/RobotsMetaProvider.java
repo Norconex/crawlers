@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,5 +36,6 @@ public interface RobotsMetaProvider {
      */
     RobotsMeta getRobotsMeta(
             Reader document, String documentUrl, ContentType contentType,
-            Properties httpHeaders) throws IOException;
+            Properties httpHeaders
+    ) throws IOException;
 }

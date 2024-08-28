@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,27 +47,39 @@ public class CmisAtomSession {
     private String queryTemplate;
 
     public XML getDocumentByPath(String path) throws FileSystemException {
-        return getDocument(objectByPathTemplate.replace("{path}",
-               URLEncoder.encode(path, UTF_8)));
+        return getDocument(
+                objectByPathTemplate.replace(
+                        "{path}",
+                        URLEncoder.encode(path, UTF_8)
+                )
+        );
     }
+
     public XML getDocument(String fullURL) throws FileSystemException {
         return new XML(new InputStreamReader(getStream(fullURL), UTF_8));
     }
+
     public InputStream getStream(String fullURL) throws FileSystemException {
         try {
             var resp = httpClient.execute(new HttpGet(fullURL));
             if (resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 var consumedContent = IOUtils.toString(
-                        resp.getEntity().getContent(), UTF_8);
-                LOG.debug("Could not consume HTTP content. Response content: "
-                        + consumedContent);
-                throw new IOException("Invalid HTTP response \""
-                        +  resp.getStatusLine() + "\" from " + fullURL);
+                        resp.getEntity().getContent(), UTF_8
+                );
+                LOG.debug(
+                        "Could not consume HTTP content. Response content: "
+                                + consumedContent
+                );
+                throw new IOException(
+                        "Invalid HTTP response \""
+                                + resp.getStatusLine() + "\" from " + fullURL
+                );
             }
             return resp.getEntity().getContent();
         } catch (UnsupportedOperationException | IOException e) {
             throw new FileSystemException(
-                    "Could not get stream from " + fullURL, e);
+                    "Could not get stream from " + fullURL, e
+            );
         }
     }
 
@@ -77,7 +89,8 @@ public class CmisAtomSession {
                 httpClient.close();
             } catch (IOException e) {
                 throw new UncheckedIOException(
-                        "Error closing CMIS Atom HTTP client", e);
+                        "Error closing CMIS Atom HTTP client", e
+                );
             }
         }
     }

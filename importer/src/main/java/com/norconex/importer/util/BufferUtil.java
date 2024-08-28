@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,8 @@ public final class BufferUtil {
      * @throws IOException when there is a problem flushing the buffer
      */
     public static void flushBuffer(
-            StringBuilder buffer, Writer out, boolean cutWisely)
+            StringBuilder buffer, Writer out, boolean cutWisely
+    )
             throws IOException {
         String remainingText = null;
         if (cutWisely) {

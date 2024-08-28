@@ -15,24 +15,24 @@
 package com.norconex.crawler.core.doc.operations.spoil;
 
 /**
- * Markers indicating what to do with references that were once processed 
+ * Markers indicating what to do with references that were once processed
  * properly, but failed to get a good processing state a subsequent time around.
  */
-public enum SpoiledReferenceStrategy { 
+public enum SpoiledReferenceStrategy {
     /**
      * Deleting spoiled references sends them to the Committer
      * for deletions and they are removed from the internal reference cache.
      */
     DELETE,
     /**
-     * Gracing spoiled references gives them one chance (and only one) to 
-     * recover by not sending a deletion request to the Committer the first 
+     * Gracing spoiled references gives them one chance (and only one) to
+     * recover by not sending a deletion request to the Committer the first
      * time, but doing so if the reference is still spoiled on the next
      * crawl.
      */
     GRACE_ONCE,
     /**
-     * Ignoring spoiled references does not send a deletion request to the 
+     * Ignoring spoiled references does not send a deletion request to the
      * Committer.
      */
     IGNORE

@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,6 +202,7 @@ public class HttpAuthConfig {
     public Credentials getCredentials() {
         return credentials;
     }
+
     public void setCredentials(Credentials authCredentials) {
         credentials.copyFrom(authCredentials);
     }
@@ -216,6 +217,7 @@ public class HttpAuthConfig {
     public void setFormParam(String name, String value) {
         formParams.put(name, value);
     }
+
     /**
      * Sets authentication form parameters (equivalent to "input" or other
      * fields in HTML forms).
@@ -224,6 +226,7 @@ public class HttpAuthConfig {
     public void setFormParams(Map<String, String> params) {
         CollectionUtil.setAll(formParams, params);
     }
+
     /**
      * Gets an authentication form parameter (equivalent to "input" or other
      * fields in HTML forms).
@@ -235,6 +238,7 @@ public class HttpAuthConfig {
     public String getFormParam(String name) {
         return formParams.get(name);
     }
+
     /**
      * Gets all authentication form parameters (equivalent to "input" or other
      * fields in HTML forms).
@@ -243,6 +247,7 @@ public class HttpAuthConfig {
     public Map<String, String> getFormParams() {
         return new HashMap<>(formParams);
     }
+
     /**
      * Gets all authentication form parameter names. If no form parameters
      * are set, it returns an empty array.
@@ -251,6 +256,7 @@ public class HttpAuthConfig {
     @JsonIgnore
     public List<String> getFormParamNames() {
         return Collections.unmodifiableList(
-                new ArrayList<>(formParams.keySet()));
+                new ArrayList<>(formParams.keySet())
+        );
     }
 }

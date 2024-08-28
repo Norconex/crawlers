@@ -57,7 +57,9 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public static final List<Integer> DEFAULT_NOT_FOUND_STATUS_CODES =
             CollectionUtil.unmodifiableList(HttpStatus.SC_NOT_FOUND);
 
-    public enum CookieSpec { RELAXED, STRICT, IGNORE }
+    public enum CookieSpec {
+        RELAXED, STRICT, IGNORE
+    }
 
     private final List<Integer> validStatusCodes =
             new ArrayList<>(DEFAULT_VALID_STATUS_CODES);
@@ -231,8 +233,11 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     private RedirectUrlProvider redirectUrlProvider =
             new GenericRedirectUrlProvider();
 
-    private final List<HttpMethod> httpMethods = new ArrayList<>(Arrays.asList(
-            HttpMethod.GET, HttpMethod.HEAD));
+    private final List<HttpMethod> httpMethods = new ArrayList<>(
+            Arrays.asList(
+                    HttpMethod.GET, HttpMethod.HEAD
+            )
+    );
 
     // Security settings
 
@@ -273,12 +278,14 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public List<Integer> getValidStatusCodes() {
         return Collections.unmodifiableList(validStatusCodes);
     }
+
     /**
      * Gets valid HTTP response status codes.
      * @param validStatusCodes valid status codes
      */
     public GenericHttpFetcherConfig setValidStatusCodes(
-            List<Integer> validStatusCodes) {
+            List<Integer> validStatusCodes
+    ) {
         CollectionUtil.setAll(this.validStatusCodes, validStatusCodes);
         return this;
     }
@@ -291,12 +298,14 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public List<Integer> getNotFoundStatusCodes() {
         return Collections.unmodifiableList(notFoundStatusCodes);
     }
+
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
      * @param notFoundStatusCodes "Not found" codes
      */
     public final GenericHttpFetcherConfig setNotFoundStatusCodes(
-            List<Integer> notFoundStatusCodes) {
+            List<Integer> notFoundStatusCodes
+    ) {
         CollectionUtil.setAll(this.notFoundStatusCodes, notFoundStatusCodes);
         return this;
     }
@@ -309,10 +318,12 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param value HTTP request header value
      */
     public GenericHttpFetcherConfig setRequestHeader(
-            String name, String value) {
+            String name, String value
+    ) {
         requestHeaders.put(name, value);
         return this;
     }
+
     /**
      * Sets a default HTTP request headers every HTTP connection should have.
      * Those are in addition to any default request headers Apache HttpClient
@@ -320,10 +331,12 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param headers map of header names and values
      */
     public GenericHttpFetcherConfig setRequestHeaders(
-            Map<String, String> headers) {
+            Map<String, String> headers
+    ) {
         CollectionUtil.setAll(requestHeaders, headers);
         return this;
     }
+
     /**
      * Gets the HTTP request header value matching the given name, previously
      * set with {@link #setRequestHeader(String, String)}.
@@ -344,8 +357,10 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     @JsonIgnore
     public List<String> getRequestHeaderNames() {
         return Collections.unmodifiableList(
-                new ArrayList<>(requestHeaders.keySet()));
+                new ArrayList<>(requestHeaders.keySet())
+        );
     }
+
     /**
      * Remove the request header matching the given name.
      * @param name name of HTTP request header to remove
@@ -359,6 +374,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
+
     public GenericHttpFetcherConfig setProxySettings(ProxySettings proxy) {
         proxySettings.copyFrom(proxy);
         return this;
@@ -373,6 +389,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public List<String> getSslProtocols() {
         return Collections.unmodifiableList(sslProtocols);
     }
+
     /**
      * Sets the supported SSL/TLS protocols, such as SSLv3, TLSv1, TLSv1.1,
      * and TLSv1.2.  Note that specifying a protocol not supported by
@@ -380,7 +397,8 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param sslProtocols SSL/TLS protocols supported
      */
     public GenericHttpFetcherConfig setSslProtocols(
-            List<String> sslProtocols) {
+            List<String> sslProtocols
+    ) {
         CollectionUtil.setAll(this.sslProtocols, sslProtocols);
         return this;
     }
@@ -393,13 +411,15 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public List<HttpMethod> getHttpMethods() {
         return Collections.unmodifiableList(httpMethods);
     }
+
     /**
      * Sets the list of HTTP methods to be accepted by this fetcher.
      * Defaults are {@link HttpMethod#GET} and {@link HttpMethod#HEAD}.
      * @param httpMethods HTTP methods
      */
     public GenericHttpFetcherConfig setHttpMethods(
-            List<HttpMethod> httpMethods) {
+            List<HttpMethod> httpMethods
+    ) {
         CollectionUtil.setAll(this.httpMethods, httpMethods);
         return this;
     }

@@ -95,7 +95,8 @@ public class StandardRobotsTxtProvider
 
     @Override
     public synchronized RobotsTxt getRobotsTxt(
-            HttpFetcher fetcher, String url) {
+            HttpFetcher fetcher, String url
+    ) {
         var trimmedURL = StringUtils.trimToEmpty(url);
         var baseURL = getBaseURL(trimmedURL);
         var robotsTxt = robotsTxtCache.get(baseURL);
@@ -107,10 +108,13 @@ public class StandardRobotsTxtProvider
         CrawlDoc doc = null;
         try {
             // Try once
-            doc = new CrawlDoc(new WebCrawlDocContext(robotsURL),
-                    CachedInputStream.nullInputStream());
+            doc = new CrawlDoc(
+                    new WebCrawlDocContext(robotsURL),
+                    CachedInputStream.nullInputStream()
+            );
             var response = fetcher.fetch(
-                    new HttpFetchRequest(doc, HttpMethod.GET));
+                    new HttpFetchRequest(doc, HttpMethod.GET)
+            );
 
             //TODO handle better?
 
@@ -118,29 +122,40 @@ public class StandardRobotsTxtProvider
             var redirURL = response.getRedirectTarget();
 
             if (StringUtils.isNotBlank(redirURL)) {
-                LOG.debug("Fetching 'robots.txt' from redirect URL: {}",
-                        redirURL);
-                doc = new CrawlDoc(new WebCrawlDocContext(redirURL),
-                        CachedInputStream.nullInputStream());
+                LOG.debug(
+                        "Fetching 'robots.txt' from redirect URL: {}",
+                        redirURL
+                );
+                doc = new CrawlDoc(
+                        new WebCrawlDocContext(redirURL),
+                        CachedInputStream.nullInputStream()
+                );
                 response = fetcher.fetch(
-                        new HttpFetchRequest(doc, HttpMethod.GET));
+                        new HttpFetchRequest(doc, HttpMethod.GET)
+                );
             }
 
             if (response.getStatusCode() == HttpStatus.SC_OK) {
-                robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
-                        response.getUserAgent());
+                robotsTxt = parseRobotsTxt(
+                        doc.getInputStream(), trimmedURL,
+                        response.getUserAgent()
+                );
                 LOG.debug("Fetched and parsed robots.txt: {}", robotsURL);
                 if (crawler != null) {
-                    crawler.fire(CrawlerEvent.builder()
-                            .name(WebCrawlerEvent.FETCHED_ROBOTS_TXT)
-                            .docContext(doc.getDocContext())
-                            .source(crawler)
-                            .subject(robotsTxt)
-                            .build());
+                    crawler.fire(
+                            CrawlerEvent.builder()
+                                    .name(WebCrawlerEvent.FETCHED_ROBOTS_TXT)
+                                    .docContext(doc.getDocContext())
+                                    .source(crawler)
+                                    .subject(robotsTxt)
+                                    .build()
+                    );
                 }
             } else {
-                LOG.info("No robots.txt found for {}. ({} - {})", robotsURL,
-                        response.getStatusCode(), response.getReasonPhrase());
+                LOG.info(
+                        "No robots.txt found for {}. ({} - {})", robotsURL,
+                        response.getStatusCode(), response.getReasonPhrase()
+                );
                 robotsTxt = RobotsTxt.builder().build();
             }
         } catch (Exception e) {
@@ -152,7 +167,8 @@ public class StandardRobotsTxtProvider
     }
 
     protected RobotsTxt parseRobotsTxt(
-            InputStream is, String url, String userAgent) throws IOException {
+            InputStream is, String url, String userAgent
+    ) throws IOException {
         var baseURL = getBaseURL(url);
 
         //--- Load matching data ---
@@ -207,18 +223,23 @@ public class StandardRobotsTxtProvider
 
     private static final Pattern PATTERN_COMMENT = Pattern.compile("\\s*#.*");
     private static final Pattern PATTERN_ALLOW_ALL = Pattern.compile(
-            "\\s*allow\\s*:\\s*/\\s*", Pattern.CASE_INSENSITIVE);
+            "\\s*allow\\s*:\\s*/\\s*", Pattern.CASE_INSENSITIVE
+    );
     private static final Pattern PATTERN_DISALLOW_NONE = Pattern.compile(
-            "\\s*disallow\\s*:\\s*", Pattern.CASE_INSENSITIVE);
+            "\\s*disallow\\s*:\\s*", Pattern.CASE_INSENSITIVE
+    );
+
     private boolean ignoreLine(String line) {
-        if (StringUtils.isBlank(line) || PATTERN_COMMENT.matcher(line).matches() || PATTERN_ALLOW_ALL.matcher(line).matches()) {
+        if (StringUtils.isBlank(line) || PATTERN_COMMENT.matcher(line).matches()
+                || PATTERN_ALLOW_ALL.matcher(line).matches()) {
             return true;
         }
         return PATTERN_DISALLOW_NONE.matcher(line).matches();
     }
 
     private RobotData.Precision matchesUserAgent(
-            String userAgent, String value) {
+            String userAgent, String value
+    ) {
         if ("*".equals(value)) {
             return RobotData.Precision.WILD;
         }
@@ -249,14 +270,17 @@ public class StandardRobotsTxtProvider
         private enum Precision {
             NOMATCH, WILD, PARTIAL, EXACT;
         }
+
         private Precision precision = Precision.NOMATCH;
         private final Map<String, String> rules = new ListOrderedMap<>();
         private final List<String> sitemaps = new ArrayList<>();
         private String crawlDelay;
+
         private void clear() {
             rules.clear();
             crawlDelay = null;
         }
+
         private RobotsTxt toRobotsTxt(String baseURL) {
             List<RobotsTxtFilter> filters = new ArrayList<>();
             for (Entry<String, String> entry : rules.entrySet()) {
@@ -275,7 +299,8 @@ public class StandardRobotsTxtProvider
                 }
             }
             var delay = NumberUtils.toFloat(
-                    crawlDelay, RobotsTxt.UNSPECIFIED_CRAWL_DELAY);
+                    crawlDelay, RobotsTxt.UNSPECIFIED_CRAWL_DELAY
+            );
             return RobotsTxt
                     .builder()
                     .filters(filters)
@@ -283,8 +308,10 @@ public class StandardRobotsTxtProvider
                     .crawlDelay(delay)
                     .build();
         }
+
         private RobotsTxtFilter buildURLFilter(
-                String baseURL, final String path, final OnMatch onMatch) {
+                String baseURL, final String path, final OnMatch onMatch
+        ) {
             // Take the robots.txt pattern literally as it may include
             // characters (or character sequences) that would have special
             // meaning in a regular expression.
@@ -325,22 +352,29 @@ public class StandardRobotsTxtProvider
     private static class StdRobotsTxtFilter extends GenericReferenceFilter
             implements RobotsTxtFilter {
         private final String path;
+
         public StdRobotsTxtFilter(
-                String path, String regex, OnMatch onMatch) {
+                String path, String regex, OnMatch onMatch
+        ) {
             getConfiguration()
-                .setValueMatcher(TextMatcher.regex(regex).setIgnoreCase(true))
-                .setOnMatch(onMatch);
+                    .setValueMatcher(
+                            TextMatcher.regex(regex).setIgnoreCase(true)
+                    )
+                    .setOnMatch(onMatch);
             this.path = path;
         }
+
         @Override
         public String getPath() {
             return path;
         }
+
         @Override
         public String toString() {
             return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE
-                    ? "Allow: " : "Disallow: ") + path + " (" +
-                        getConfiguration().getValueMatcher().getPattern() + ")";
+                    ? "Allow: "
+                    : "Disallow: ") + path + " (" +
+                    getConfiguration().getValueMatcher().getPattern() + ")";
         }
     }
 }

@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.doc.operations.filter;
 
-
 /**
  * <p>
  * Filter a document based on its reference, before its properties or content

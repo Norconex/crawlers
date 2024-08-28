@@ -34,6 +34,7 @@ public class JVMCrasher implements EventListener<Event> {
     public JVMCrasher() {
         crashAt = 7;
     }
+
     public JVMCrasher(int crashAt) {
         this.crashAt = crashAt;
     }

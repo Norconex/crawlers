@@ -39,7 +39,8 @@ public class MVStoreDataStore<T> implements DataStore<T> {
     protected MVStoreDataStore(
             @NonNull MVStore mvstore,
             @NonNull String storeName,
-            @NonNull Class<? extends T> type) {
+            @NonNull Class<? extends T> type
+    ) {
         requireNonNull(mvstore, "'mvstore' must not be null.");
         this.storeName = requireNonNull(storeName, "'name' must not be null.");
         this.type = type;
@@ -50,6 +51,7 @@ public class MVStoreDataStore<T> implements DataStore<T> {
     public String getName() {
         return storeName;
     }
+
     String rename(String newName) {
         var oldName = storeName;
         map.store.renameMap(map, newName);
@@ -123,7 +125,8 @@ public class MVStoreDataStore<T> implements DataStore<T> {
         for (Entry<String, String> en : map.entrySet()) {
             if (!predicate.test(
                     en.getKey(),
-                    toObject(en.getValue()).orElse(null))) {
+                    toObject(en.getValue()).orElse(null)
+            )) {
                 return false;
             }
         }

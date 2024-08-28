@@ -56,11 +56,13 @@ public class CrawlDocContext extends DocContext {
     private ZonedDateTime crawlDate;
     private ZonedDateTime lastModified;
 
-    public CrawlDocContext() {}
+    public CrawlDocContext() {
+    }
 
     public CrawlDocContext(String reference) {
         super(reference);
     }
+
     /**
      * Copy constructor.
      * @param docDetails document details to copy
@@ -94,6 +96,7 @@ public class CrawlDocContext extends DocContext {
     public String getOriginalReference() {
         return originalReference;
     }
+
     public void setOriginalReference(String originalReference) {
         this.originalReference = originalReference;
     }
@@ -103,6 +106,7 @@ public class CrawlDocContext extends DocContext {
     public String getParentRootReference() {
         return parentRootReference;
     }
+
     public void setParentRootReference(String parentRootReference) {
         this.parentRootReference = parentRootReference;
     }
@@ -110,6 +114,7 @@ public class CrawlDocContext extends DocContext {
     public CrawlDocState getState() {
         return state;
     }
+
     public void setState(CrawlDocState state) {
         this.state = state;
     }
@@ -117,6 +122,7 @@ public class CrawlDocContext extends DocContext {
     public String getMetaChecksum() {
         return metaChecksum;
     }
+
     public void setMetaChecksum(String metaChecksum) {
         this.metaChecksum = metaChecksum;
     }
@@ -128,6 +134,7 @@ public class CrawlDocContext extends DocContext {
     public String getContentChecksum() {
         return contentChecksum;
     }
+
     /**
      * Sets the content checksum.
      * @param contentChecksum content checksum
@@ -143,6 +150,7 @@ public class CrawlDocContext extends DocContext {
     public ZonedDateTime getCrawlDate() {
         return crawlDate;
     }
+
     /**
      * Sets the crawl date.
      * @param crawlDate the crawl date
@@ -154,6 +162,7 @@ public class CrawlDocContext extends DocContext {
     public ZonedDateTime getLastModified() {
         return lastModified;
     }
+
     public void setLastModified(ZonedDateTime lastModified) {
         this.lastModified = lastModified;
     }

@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ public interface DateProvider {
      * @return date time.
      */
     ZonedDateTime getDateTime();
+
     /**
      * The zone ID, which should always be the same for this instance,
      * regardless whether the date-time is dynamic or static. Invoking this

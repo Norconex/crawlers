@@ -21,10 +21,13 @@ public interface MockFetchResponse extends FetchResponse {
 
     @Override
     CrawlDocState getCrawlDocState();
+
     @Override
     Exception getException();
+
     @Override
     String getReasonPhrase();
+
     @Override
     int getStatusCode();
 }

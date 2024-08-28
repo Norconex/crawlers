@@ -31,18 +31,16 @@ public class HttpFetcherProvider
 
         var cfg = (WebCrawlerConfig) crawler.getConfiguration();
 
-//        var fetchers = (List<HttpFetcher>) cfg.getFetchers();
+        //        var fetchers = (List<HttpFetcher>) cfg.getFetchers();
         //TODO really convert here?  and this way?
         var fetchers = Web.toHttpFetcher(cfg.getFetchers());
         if (fetchers.isEmpty()) {
             fetchers.add(new GenericHttpFetcher());
         }
 
-
         //TODO REFACTOR since MultiFetcher is the one dealing with multiple
         // fetcher, we do not need this provider anymore.
         // We do need the adaptors though.
-
 
         //TODO either find a way to return HttpFetcher instead here,
         // or remove HttpFetcher and pass Fetcher<..., ...> every where
@@ -57,6 +55,7 @@ public class HttpFetcherProvider
                         .exception(ex)
                         .build(),
                 cfg.getFetchersMaxRetries(),
-                cfg.getFetchersRetryDelay());
+                cfg.getFetchersRetryDelay()
+        );
     }
 }

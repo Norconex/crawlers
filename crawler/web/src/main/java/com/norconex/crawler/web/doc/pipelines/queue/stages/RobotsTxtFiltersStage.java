@@ -52,20 +52,23 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
         var filter = findRejectingRobotsFilter(ctx);
         if (filter != null) {
             ctx.getDocContext().setState(CrawlDocState.REJECTED);
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
-                    .source(ctx.getCrawler())
-                    .subject(filter)
-                    .docContext(ctx.getDocContext())
-                    .build());
-            LOG.debug("REJECTED by robots.txt. "
-                    + ". Reference={} Filter={}",
-                    ctx.getDocContext().getReference(), filter);
+            ctx.getCrawler().fire(
+                    CrawlerEvent.builder()
+                            .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
+                            .source(ctx.getCrawler())
+                            .subject(filter)
+                            .docContext(ctx.getDocContext())
+                            .build()
+            );
+            LOG.debug(
+                    "REJECTED by robots.txt. "
+                            + ". Reference={} Filter={}",
+                    ctx.getDocContext().getReference(), filter
+            );
             return false;
         }
         return true;
     }
-
 
     /* Find matching rules, knowing that "Allow" work like this:
      * "A matching Allow directive beats a matching Disallow only if it
@@ -73,10 +76,12 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
      * (logic described here: http://tools.seobook.com/robots-txt/)
      */
     private RobotsTxtFilter findRejectingRobotsFilter(
-            QueuePipelineContext ctx) {
+            QueuePipelineContext ctx
+    ) {
 
         var robotsTxt = Web.robotsTxt(
-                ctx.getCrawler(), ctx.getDocContext().getReference());
+                ctx.getCrawler(), ctx.getDocContext().getReference()
+        );
         if (robotsTxt == null) {
             return null;
         }

@@ -103,10 +103,12 @@ public class HierarchyTransformerConfig {
     private final List<HierarchyOperation> operations = new ArrayList<>();
 
     public HierarchyTransformerConfig setOperations(
-            List<HierarchyOperation> operations) {
+            List<HierarchyOperation> operations
+    ) {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }
+
     public List<HierarchyOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }

@@ -62,16 +62,16 @@ class StayOnSitemapTest {
     private final String page12Path = "/mysite/page12.html";
 
     private static final String SITEMAP_XML = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE xml>
-        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-           <url><loc>%s</loc></url>
-           <url><loc>%s</loc></url>
-           <url><loc>%s</loc></url>
-           <url><loc>%s</loc></url>
-           <url><loc>%s</loc></url>
-        </urlset>
-        """;
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE xml>
+            <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+               <url><loc>%s</loc></url>
+               <url><loc>%s</loc></url>
+               <url><loc>%s</loc></url>
+               <url><loc>%s</loc></url>
+               <url><loc>%s</loc></url>
+            </urlset>
+            """;
 
     @TempDir
     private Path tempDir;
@@ -84,28 +84,31 @@ class StayOnSitemapTest {
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, page1Path)));
             cfg
-            .setSitemapResolver(new GenericSitemapResolver())
-            .setSitemapLocator(new GenericSitemapLocator())
-            .setMaxDepth(3)
-            // custom fetcher that stores exception (last one)
-            // and referrers
-            .setFetchers(List.of(new GenericHttpFetcher() {
-                @Override
-                public HttpFetchResponse fetch(HttpFetchRequest req)
-                        throws FetchException {
-                    try {
-                        ofNullable(Web.docContext(
-                                req.getDoc()).getReferrerReference())
-                            .ifPresent(referrers::add);
-                        return super.fetch(req);
-                    } catch (FetchException | RuntimeException e) {
-                        exception.setValue(e);
-                        throw e;
-                    }
-                }
-            }));
+                    .setSitemapResolver(new GenericSitemapResolver())
+                    .setSitemapLocator(new GenericSitemapLocator())
+                    .setMaxDepth(3)
+                    // custom fetcher that stores exception (last one)
+                    // and referrers
+                    .setFetchers(List.of(new GenericHttpFetcher() {
+                        @Override
+                        public HttpFetchResponse fetch(HttpFetchRequest req)
+                                throws FetchException {
+                            try {
+                                ofNullable(
+                                        Web.docContext(
+                                                req.getDoc()
+                                        ).getReferrerReference()
+                                )
+                                        .ifPresent(referrers::add);
+                                return super.fetch(req);
+                            } catch (FetchException | RuntimeException e) {
+                                exception.setValue(e);
+                                throw e;
+                            }
+                        }
+                    }));
             ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
-                .getConfiguration().setStayOnSitemap(true);
+                    .getConfiguration().setStayOnSitemap(true);
         });
         var mem = WebTestUtil.firstCommitter(crawler);
 
@@ -129,14 +132,18 @@ class StayOnSitemapTest {
 
         // All links must have a depth of zero.
         mem.getUpsertRequests().forEach(req -> {
-            assertThat(req.getMetadata().getInteger(
-                    "collector.depth")).isZero();
+            assertThat(
+                    req.getMetadata().getInteger(
+                            "collector.depth"
+                    )
+            ).isZero();
             assertThat(req.getReference()).containsAnyOf(
                     page1Path,
                     page2Path,
                     page3Path,
                     page4Path,
-                    page5Path);
+                    page5Path
+            );
         });
 
         mem.clean();
@@ -147,70 +154,91 @@ class StayOnSitemapTest {
 
         // Sitemap
         client
-            .when(request(sitemapPath))
-            .respond(response().withBody(
-                    SITEMAP_XML.formatted(
-                            serverUrl(client, page1Path),
-                            serverUrl(client, page2Path),
-                            serverUrl(client, page3Path),
-                            serverUrl(client, page4Path),
-                            serverUrl(client, page5Path)),
-                    MediaType.XML_UTF_8));
-
+                .when(request(sitemapPath))
+                .respond(
+                        response().withBody(
+                                SITEMAP_XML.formatted(
+                                        serverUrl(client, page1Path),
+                                        serverUrl(client, page2Path),
+                                        serverUrl(client, page3Path),
+                                        serverUrl(client, page4Path),
+                                        serverUrl(client, page5Path)
+                                ),
+                                MediaType.XML_UTF_8
+                        )
+                );
 
         // The links in ALL following pages should not be followed when
         // sitemap is present and stayOnSitemap is true.
 
         // PAGE 1: External links only
-        WebsiteMock.whenHtml(client, page1Path, """
-                <p>These links are external so should not be followed:</p>
-                <ul>
-                  <li><a href="%s">External A</a></li>
-                  <li><a href="%s">External B</a></li>
-                </ul>
-                """.formatted(
-                        "https://badhost.badhost/externalA",
-                        "https://badhost.badhost/externalB"));
+        WebsiteMock.whenHtml(
+                client, page1Path,
+                """
+                        <p>These links are external so should not be followed:</p>
+                        <ul>
+                          <li><a href="%s">External A</a></li>
+                          <li><a href="%s">External B</a></li>
+                        </ul>
+                        """
+                        .formatted(
+                                "https://badhost.badhost/externalA",
+                                "https://badhost.badhost/externalB"
+                        )
+        );
 
         // PAGE 2: Internal links only, all in sitemap
-        WebsiteMock.whenHtml(client, page2Path, """
-                <p>These links are internal and on sitemap so
-                   should be followed:</p>
-                <ul>
-                  <li><a href="%s">Internal 1</a></li>
-                  <li><a href="%s">Internal 3</a></li>
-                  <li><a href="%s">Internal 4</a></li>
-                </ul>
-                """.formatted(
+        WebsiteMock.whenHtml(
+                client, page2Path, """
+                        <p>These links are internal and on sitemap so
+                           should be followed:</p>
+                        <ul>
+                          <li><a href="%s">Internal 1</a></li>
+                          <li><a href="%s">Internal 3</a></li>
+                          <li><a href="%s">Internal 4</a></li>
+                        </ul>
+                        """.formatted(
                         serverUrl(client, page1Path),
                         serverUrl(client, page3Path),
-                        serverUrl(client, page4Path)));
+                        serverUrl(client, page4Path)
+                )
+        );
 
         // PAGE 3: Internal links only, NOT in sitemap
-        WebsiteMock.whenHtml(client, page3Path, """
-                <p>These links are internal but not on sitemap, so should
-                   NOT be followed:</p>
-                <ul>
-                  <li><a href="%s">Internal 10</a></li>
-                  <li><a href="%s">Internal 11</a></li>
-                </ul>
-                """.formatted(
-                        serverUrl(client, page10Path),
-                        serverUrl(client, page11Path)));
+        WebsiteMock.whenHtml(
+                client, page3Path,
+                """
+                        <p>These links are internal but not on sitemap, so should
+                           NOT be followed:</p>
+                        <ul>
+                          <li><a href="%s">Internal 10</a></li>
+                          <li><a href="%s">Internal 11</a></li>
+                        </ul>
+                        """
+                        .formatted(
+                                serverUrl(client, page10Path),
+                                serverUrl(client, page11Path)
+                        )
+        );
 
         // PAGE 4: Mix of internal/external not on sitemap and on sitemap
-        WebsiteMock.whenHtml(client, page4Path, """
-                <p>This page has different types of links, only some should
-                   be followed:</p>
-                <ul>
-                  <li><a href="%s">External C</a></li>
-                  <li><a href="%s">Internal 4</a></li>
-                  <li><a href="%s">Internal 12</a></li>
-                </ul>
-                """.formatted(
-                        "https://badhost.badhost/externalC",
-                        serverUrl(client, page4Path),
-                        serverUrl(client, page12Path)));
+        WebsiteMock.whenHtml(
+                client, page4Path,
+                """
+                        <p>This page has different types of links, only some should
+                           be followed:</p>
+                        <ul>
+                          <li><a href="%s">External C</a></li>
+                          <li><a href="%s">Internal 4</a></li>
+                          <li><a href="%s">Internal 12</a></li>
+                        </ul>
+                        """
+                        .formatted(
+                                "https://badhost.badhost/externalC",
+                                serverUrl(client, page4Path),
+                                serverUrl(client, page12Path)
+                        )
+        );
 
         // PAGE 5: This page is sitemap only, not otherwise referenced.
         WebsiteMock.whenHtml(client, page5Path, """

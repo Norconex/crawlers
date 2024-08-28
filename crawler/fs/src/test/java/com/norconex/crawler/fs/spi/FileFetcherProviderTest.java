@@ -33,14 +33,15 @@ class CrawlerFsPtProviderTest {
     @Test
     void test() {
         assertThat(BeanMapper.DEFAULT.getPolymorphicTypes().values())
-            .contains(
-                    FsMetadataChecksummer.class,
-                    CmisFetcher.class,
-                    FtpFetcher.class,
-                    HdfsFetcher.class,
-                    LocalFetcher.class,
-                    SftpFetcher.class,
-                    SmbFetcher.class,
-                    WebDavFetcher.class);
+                .contains(
+                        FsMetadataChecksummer.class,
+                        CmisFetcher.class,
+                        FtpFetcher.class,
+                        HdfsFetcher.class,
+                        LocalFetcher.class,
+                        SftpFetcher.class,
+                        SmbFetcher.class,
+                        WebDavFetcher.class
+                );
     }
 }

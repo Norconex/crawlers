@@ -37,15 +37,15 @@ public final class CrawlerConfigStubs {
 
     public static final String CRAWLER_ID = "test-crawler";
 
-    private CrawlerConfigStubs() {}
+    private CrawlerConfigStubs() {
+    }
 
     public static WebCrawlerConfig memoryCrawlerConfig(Path workDir) {
         var cfg = (WebCrawlerConfig) new WebCrawlerConfig()
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
-                .setCommitters(List.of(new MemoryCommitter()))
-                ;
+                .setCommitters(List.of(new MemoryCommitter()));
         ((GenericDelayResolver) cfg.getDelayResolver())
                 .getConfiguration().setDefaultDelay(Duration.ZERO);
         return cfg;
@@ -62,7 +62,8 @@ public final class CrawlerConfigStubs {
      */
     public static WebCrawlerConfig randomMemoryCrawlerConfig(Path workDir) {
         var cfg = (WebCrawlerConfig) WebTestUtil.randomize(
-                WebCrawlerConfig.class)
+                WebCrawlerConfig.class
+        )
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
@@ -74,7 +75,8 @@ public final class CrawlerConfigStubs {
 
     public static Path writeConfigToDir(
             Path workDir,
-            @NonNull Consumer<WebCrawlerConfig> c) {
+            @NonNull Consumer<WebCrawlerConfig> c
+    ) {
         var config = memoryCrawlerConfig(workDir);
         c.accept(config);
         var file = config

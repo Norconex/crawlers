@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,14 +38,16 @@ public class UpsertRequest implements CommitterRequest {
     public UpsertRequest(
             @NonNull String reference,
             Properties metadata,
-            InputStream content) {
+            InputStream content
+    ) {
 
         this.reference = reference;
         if (metadata != null) {
             this.metadata.putAll(metadata);
         }
         this.content = content != null
-                ? content : InputStream.nullInputStream();
+                ? content
+                : InputStream.nullInputStream();
     }
 
     @Override

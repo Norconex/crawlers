@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.norconex.committer.core.batch.queue.impl;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -31,7 +32,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
-
 
 class FSQueueTest {
 
@@ -54,8 +54,8 @@ class FSQueueTest {
         final Set<String> batchRefs = new TreeSet<>();
 
         queue.getConfiguration()
-            .setCommitLeftoversOnInit(true)
-            .setBatchSize(5);
+                .setCommitLeftoversOnInit(true)
+                .setBatchSize(5);
         queue.init(ctx, it -> {
             batchQty.increment();
             while (it.hasNext()) {
@@ -77,9 +77,15 @@ class FSQueueTest {
         Assertions.assertEquals(13, batchRefs.size());
 
         // Queue directory should be empty.
-        Assertions.assertEquals(0, Files.find(folder,  1,
-                (f, a) -> f.toFile().getName().endsWith(
-                        FSQueueUtil.EXT)).count());
+        Assertions.assertEquals(
+                0, Files.find(
+                        folder, 1,
+                        (f, a) -> f.toFile().getName().endsWith(
+                                FSQueueUtil.EXT
+                        )
+                )
+                        .count()
+        );
 
         assertThat(queue.getBatchConsumer()).isNotNull();
     }
@@ -88,10 +94,10 @@ class FSQueueTest {
     void testWriteRead() {
         var q = new FSQueue();
         q.getConfiguration()
-            .setBatchSize(50)
-            .setMaxPerFolder(100)
-            .setCommitLeftoversOnInit(true)
-            .getOnCommitFailure()
+                .setBatchSize(50)
+                .setMaxPerFolder(100)
+                .setCommitLeftoversOnInit(true)
+                .getOnCommitFailure()
                 .setIgnoreErrors(true)
                 .setMaxRetries(6)
                 .setRetryDelay(666);

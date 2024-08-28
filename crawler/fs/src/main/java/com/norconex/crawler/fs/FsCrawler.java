@@ -31,15 +31,18 @@ public class FsCrawler {
 
     protected static final Supplier<CrawlerBuilder> crawlerBuilderSupplier =
             () -> Crawler
-            .builder()
-            .fetcherProvider(new FileFetcherProvider())
-            .callbacks(
-                    CrawlerCallbacks
                     .builder()
-                    .beforeCrawlerExecution(new BeforeFsCrawlerExecution())
-                    .build())
-            .docPipelines(FsDocPipelines.get())
-            .docContextType(FsCrawlDocContext.class);
+                    .fetcherProvider(new FileFetcherProvider())
+                    .callbacks(
+                            CrawlerCallbacks
+                                    .builder()
+                                    .beforeCrawlerExecution(
+                                            new BeforeFsCrawlerExecution()
+                                    )
+                                    .build()
+                    )
+                    .docPipelines(FsDocPipelines.get())
+                    .docContextType(FsCrawlDocContext.class);
 
     /**
      * Invokes the File System Crawler from the command line.
@@ -63,8 +66,10 @@ public class FsCrawler {
     public static Crawler create(CrawlerConfig crawlerConfig) {
         return crawlerBuilderSupplier
                 .get()
-                .configuration(Optional.ofNullable(crawlerConfig)
-                    .orElseGet(CrawlerConfig::new))
+                .configuration(
+                        Optional.ofNullable(crawlerConfig)
+                                .orElseGet(CrawlerConfig::new)
+                )
                 .build();
     }
 }

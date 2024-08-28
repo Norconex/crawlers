@@ -46,75 +46,94 @@ class StandardRobotsTxtProviderTest {
     void testGetRobotsTxt(ClientAndServer client, Crawler crawler) {
 
         client
-            .when(request()
-                .withPath("/robots.txt"))
-            .respond(response()
-                .withStatusCode(302)
-                .withHeader("Location",
-                        serverUrl(client, "redirected-robots.txt")));
+                .when(
+                        request()
+                                .withPath("/robots.txt")
+                )
+                .respond(
+                        response()
+                                .withStatusCode(302)
+                                .withHeader(
+                                        "Location",
+                                        serverUrl(
+                                                client, "redirected-robots.txt"
+                                        )
+                                )
+                );
 
         client
-            .when(request()
-                .withPath("/redirected-robots.txt"))
-            .respond(response()
-                .withBody("""
-                    User-agent: *
-                    Disallow: /badpath/
-                    """, MediaType.HTML_UTF_8));
+                .when(
+                        request()
+                                .withPath("/redirected-robots.txt")
+                )
+                .respond(
+                        response()
+                                .withBody("""
+                                        User-agent: *
+                                        Disallow: /badpath/
+                                        """, MediaType.HTML_UTF_8)
+                );
 
         var robotProvider = new StandardRobotsTxtProvider();
         var robotsTxt = robotProvider.getRobotsTxt(
                 (HttpFetcher) crawler.getFetcher(),
-                serverUrl(client, "/index.html"));
+                serverUrl(client, "/index.html")
+        );
 
         assertThat(robotsTxt.getAllowFilters()).isEmpty();
         assertThat(robotsTxt.getDisallowFilters()).hasSize(1);
         assertThat(robotsTxt.getDisallowFilters().get(0))
-                .matches(r -> r.acceptReference(
-                        serverUrl(client, "/goodpath/a.html")))
-                .matches(r -> !r.acceptReference(
-                        serverUrl(client, "/badpath/a.html")));
+                .matches(
+                        r -> r.acceptReference(
+                                serverUrl(client, "/goodpath/a.html")
+                        )
+                )
+                .matches(
+                        r -> !r.acceptReference(
+                                serverUrl(client, "/badpath/a.html")
+                        )
+                );
     }
 
     @Test
     void testParseRobotsTxt() throws IOException {
         var robotTxt1 = """
-        	User-agent: *
-        	Disallow: /dontgo/there/
-        	User-agent: mister-crawler
-        	Disallow: /bathroom/
-        	User-agent: miss-crawler
-        	Disallow: /tvremote/
-        	""";
+                User-agent: *
+                Disallow: /dontgo/there/
+                User-agent: mister-crawler
+                Disallow: /bathroom/
+                User-agent: miss-crawler
+                Disallow: /tvremote/
+                """;
         var robotTxt2 =
                 """
-        	 User-agent : mister-crawler\s
-        	  Disallow : /bathroom/\s
-        	   User-agent : *\s
-        	    Disallow : /dontgo/there/\s
-        	""";
+                         User-agent : mister-crawler\s
+                          Disallow : /bathroom/\s
+                           User-agent : *\s
+                            Disallow : /dontgo/there/\s
+                        """;
         var robotTxt3 = """
-        	User-agent: miss-crawler
-        	Disallow: /tvremote/
-        	User-agent: *
-        	Disallow: /dontgo/there/
-        	""";
+                User-agent: miss-crawler
+                Disallow: /tvremote/
+                User-agent: *
+                Disallow: /dontgo/there/
+                """;
         var robotTxt4 = """
-        	User-agent: miss-crawler
-        	Disallow: /tvremote/
-        	User-agent: *
-        	Disallow: /dontgo/there/
-        	User-agent: mister-crawler
-        	Disallow: /bathroom/
-        	""";
+                User-agent: miss-crawler
+                Disallow: /tvremote/
+                User-agent: *
+                Disallow: /dontgo/there/
+                User-agent: mister-crawler
+                Disallow: /bathroom/
+                """;
         var robotTxt5 = """
-        	# robots.txt
-        	User-agent: *
-        	Disallow: /some/fake/ # Spiders, keep out!\s
-        	Disallow: /spidertrap/
-        	Allow: /open/
-        	 Allow : /\s
-        	""";
+                # robots.txt
+                User-agent: *
+                Disallow: /some/fake/ # Spiders, keep out!\s
+                Disallow: /spidertrap/
+                Allow: /open/
+                 Allow : /\s
+                """;
         // An empty Disallow means allow all.
         // Test made for https://github.com/Norconex/collector-http/issues/129
         // Standard: https://en.wikipedia.org/wiki/Robots_exclusion_standard
@@ -129,43 +148,63 @@ class StandardRobotsTxtProviderTest {
                 Disallow: # allow all
                 """;
 
-        assertStartsWith("Robots.txt -> Disallow: /bathroom/",
-                parseRobotRule("mister-crawler", robotTxt1).get(0));
-        assertStartsWith("Robots.txt -> Disallow: /bathroom/",
-                parseRobotRule("mister-crawler", robotTxt2).get(0));
-        assertStartsWith("Robots.txt -> Disallow: /dontgo/there/",
-                parseRobotRule("mister-crawler", robotTxt3).get(0));
-        assertStartsWith("Robots.txt -> Disallow: /bathroom/",
-                parseRobotRule("mister-crawler", robotTxt4).get(0));
+        assertStartsWith(
+                "Robots.txt -> Disallow: /bathroom/",
+                parseRobotRule("mister-crawler", robotTxt1).get(0)
+        );
+        assertStartsWith(
+                "Robots.txt -> Disallow: /bathroom/",
+                parseRobotRule("mister-crawler", robotTxt2).get(0)
+        );
+        assertStartsWith(
+                "Robots.txt -> Disallow: /dontgo/there/",
+                parseRobotRule("mister-crawler", robotTxt3).get(0)
+        );
+        assertStartsWith(
+                "Robots.txt -> Disallow: /bathroom/",
+                parseRobotRule("mister-crawler", robotTxt4).get(0)
+        );
 
-        assertStartsWith("Robots.txt -> Disallow: /some/fake/",
-                parseRobotRule("mister-crawler", robotTxt5).get(0));
-        assertStartsWith("Robots.txt -> Disallow: /spidertrap/",
-                parseRobotRule("mister-crawler", robotTxt5).get(1));
-        assertStartsWith("Robots.txt -> Allow: /open/",
-                parseRobotRule("mister-crawler", robotTxt5).get(2));
-        Assertions.assertEquals(3,
-                parseRobotRule("mister-crawler", robotTxt5).size());
+        assertStartsWith(
+                "Robots.txt -> Disallow: /some/fake/",
+                parseRobotRule("mister-crawler", robotTxt5).get(0)
+        );
+        assertStartsWith(
+                "Robots.txt -> Disallow: /spidertrap/",
+                parseRobotRule("mister-crawler", robotTxt5).get(1)
+        );
+        assertStartsWith(
+                "Robots.txt -> Allow: /open/",
+                parseRobotRule("mister-crawler", robotTxt5).get(2)
+        );
+        Assertions.assertEquals(
+                3,
+                parseRobotRule("mister-crawler", robotTxt5).size()
+        );
 
         Assertions.assertTrue(
-                parseRobotRule("mister-crawler", robotTxt6).isEmpty());
+                parseRobotRule("mister-crawler", robotTxt6).isEmpty()
+        );
         Assertions.assertTrue(
-                parseRobotRule("mister-crawler", robotTxt7).isEmpty());
+                parseRobotRule("mister-crawler", robotTxt7).isEmpty()
+        );
     }
 
     @Test
     void testWildcardPattern() throws IOException {
         var robotTxt =
                 "User-agent: *\n\n"
-              + "Disallow: /testing/*/wildcards\n";
+                        + "Disallow: /testing/*/wildcards\n";
         ReferenceFilter rule =
                 parseRobotRule("mister-crawler", robotTxt).get(0);
 
         assertMatch(
-                "http://www.test.com/testing/some/random/path/wildcards", rule);
+                "http://www.test.com/testing/some/random/path/wildcards", rule
+        );
         assertMatch(
                 "http://www.test.com/testing/some/random/path/wildcards/test",
-                rule);
+                rule
+        );
 
         assertNoMatch("http://www.test.com/testing/wildcards", rule);
         assertNoMatch("http://www.test.com/wildcards", rule);
@@ -175,7 +214,7 @@ class StandardRobotsTxtProviderTest {
     void testStringEndPattern() throws IOException {
         var robotTxt =
                 "User-agent: *\n\n"
-              + "Disallow: /testing/anchors$\n";
+                        + "Disallow: /testing/anchors$\n";
         ReferenceFilter rule =
                 parseRobotRule("mister-crawler", robotTxt).get(0);
 
@@ -190,7 +229,7 @@ class StandardRobotsTxtProviderTest {
     void testRegexEscape() throws IOException {
         var robotTxt =
                 "User-agent: *\n\n"
-              + "Disallow: /testing/reg.ex/escape?\n";
+                        + "Disallow: /testing/reg.ex/escape?\n";
         ReferenceFilter rule =
                 parseRobotRule("mister-crawler", robotTxt).get(0);
 
@@ -204,38 +243,48 @@ class StandardRobotsTxtProviderTest {
     }
 
     private void assertStartsWith(
-            String startsWith, ReferenceFilter robotRule) {
+            String startsWith, ReferenceFilter robotRule
+    ) {
         var rule = StringUtils.substring(
-                robotRule.toString(), 0, startsWith.length());
+                robotRule.toString(), 0, startsWith.length()
+        );
         Assertions.assertEquals(startsWith, rule);
     }
 
     private void assertMatch(
-            String url, ReferenceFilter robotRule, Boolean match) {
+            String url, ReferenceFilter robotRule, Boolean match
+    ) {
         var regexFilter = (GenericReferenceFilter) robotRule;
         Assertions.assertEquals(
                 match,
-                url.matches(regexFilter.getConfiguration()
-                        .getValueMatcher().getPattern()));
+                url.matches(
+                        regexFilter.getConfiguration()
+                                .getValueMatcher().getPattern()
+                )
+        );
     }
 
     private void assertMatch(
-            String url, ReferenceFilter robotRule) {
+            String url, ReferenceFilter robotRule
+    ) {
         assertMatch(url, robotRule, true);
     }
 
     private void assertNoMatch(
-            String url, ReferenceFilter robotRule) {
+            String url, ReferenceFilter robotRule
+    ) {
         assertMatch(url, robotRule, false);
     }
 
     private List<RobotsTxtFilter> parseRobotRule(
-            String agent, String content, String url) throws IOException {
+            String agent, String content, String url
+    ) throws IOException {
         var filters = new ArrayList<RobotsTxtFilter>();
         var robotProvider = new StandardRobotsTxtProvider();
 
         var robotsTxt = robotProvider.parseRobotsTxt(
-                IOUtils.toInputStream(content, UTF_8), url, "mister-crawler");
+                IOUtils.toInputStream(content, UTF_8), url, "mister-crawler"
+        );
         filters.addAll(robotsTxt.getDisallowFilters());
         filters.addAll(robotsTxt.getAllowFilters());
         return filters;
@@ -243,7 +292,9 @@ class StandardRobotsTxtProviderTest {
 
     private List<RobotsTxtFilter> parseRobotRule(String agent, String content)
             throws IOException {
-        return parseRobotRule(agent, content,
-                "http://www.test.com/some/fake/url.html");
+        return parseRobotRule(
+                agent, content,
+                "http://www.test.com/some/fake/url.html"
+        );
     }
 }

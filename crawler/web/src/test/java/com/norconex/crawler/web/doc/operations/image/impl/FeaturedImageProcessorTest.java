@@ -55,7 +55,8 @@ class FeaturedImageProcessorTest {
 
     @WithCrawlerTest
     void testProcessFeaturedImage(
-            ClientAndServer client, Crawler crawler)
+            ClientAndServer client, Crawler crawler
+    )
             throws IOException {
         WebsiteMock.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
         WebsiteMock.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);
@@ -68,40 +69,46 @@ class FeaturedImageProcessorTest {
 
         var fip = new FeaturedImageProcessor();
         fip.getConfiguration()
-            .setStorage(List.of(INLINE, URL, DISK))
-            .setStorageDiskDir(tempDir.resolve("imageStorage"))
-            .setImageCacheDir(tempDir.resolve("imageCache"))
-            .setStorageInlineField("image-inline")
-            .setStorageUrlField("image-url")
-            .setStorageDiskField("image-path")
-            .setLargest(true)
-            .setImageCacheSize(0)
-            .setScaleDimensions(null);
-        fip.onCrawlerRunBegin(CrawlerEvent.builder()
-                .name("test")
-                .source(crawler)
-                .build());
+                .setStorage(List.of(INLINE, URL, DISK))
+                .setStorageDiskDir(tempDir.resolve("imageStorage"))
+                .setImageCacheDir(tempDir.resolve("imageCache"))
+                .setStorageInlineField("image-inline")
+                .setStorageUrlField("image-url")
+                .setStorageDiskField("image-path")
+                .setLargest(true)
+                .setImageCacheSize(0)
+                .setScaleDimensions(null);
+        fip.onCrawlerRunBegin(
+                CrawlerEvent.builder()
+                        .name("test")
+                        .source(crawler)
+                        .build()
+        );
 
         // biggest
         var doc = newDoc(docUrl);
         fip.accept(fetcher, doc);
         var img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path")));
+                Paths.get(doc.getMetadata().getString("image-path"))
+        );
         assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
-                baseUrl + "/640x480.png");
+                baseUrl + "/640x480.png"
+        );
         assertThat(img.getDimension()).isEqualTo(new Dimension(640, 480));
 
         // first over 200x200, scaled 50% down
         doc = newDoc(docUrl);
         fip.getConfiguration()
-            .setLargest(false)
-            .setMinDimensions(new Dimension(200, 200))
-            .setScaleDimensions(new Dimension(160, 160));
+                .setLargest(false)
+                .setMinDimensions(new Dimension(200, 200))
+                .setScaleDimensions(new Dimension(160, 160));
         fip.accept(fetcher, doc);
         assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
-                baseUrl + "/page/320x240.png");
+                baseUrl + "/page/320x240.png"
+        );
         img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path")));
+                Paths.get(doc.getMetadata().getString("image-path"))
+        );
         assertThat(img.getDimension()).isEqualTo(new Dimension(160, 120));
 
         // Can fail due to cache... set to memory when testing
@@ -110,12 +117,13 @@ class FeaturedImageProcessorTest {
         doc = newDoc(docUrl);
         doc.getMetadata().remove("image-url");
         fip.getConfiguration()
-            .setLargest(false)
-            .setMinDimensions(new Dimension(1, 1))
-            .setScaleDimensions(null);
+                .setLargest(false)
+                .setMinDimensions(new Dimension(1, 1))
+                .setScaleDimensions(null);
         fip.accept(fetcher, doc);
         img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path")));
+                Paths.get(doc.getMetadata().getString("image-path"))
+        );
         assertThat(img.getDimension()).isEqualTo(new Dimension(5, 5));
     }
 
@@ -125,60 +133,62 @@ class FeaturedImageProcessorTest {
 
         // All settings
         p.getConfiguration()
-            .setDomSelector("dom.dom")
-            .setImageCacheDir(Paths.get("c:\\somedir"))
-            .setImageCacheSize(5000)
-            .setImageFormat("jpg")
-            .setLargest(true)
-            .setMinDimensions(new Dimension(100, 400))
-            .setPageContentTypePattern("text/html")
-            .setScaleQuality(Quality.LOW)
-            .setScaleDimensions(new Dimension(50, 50))
-            .setScaleStretch(true)
-            .setStorage(List.of(Storage.URL, Storage.INLINE, Storage.DISK))
-            .setStorageDiskDir(Paths.get("c:\\someotherdir"))
-            .setStorageDiskStructure(StorageDiskStructure.DATETIME)
-            .setStorageDiskField("diskField")
-            .setStorageInlineField("inlineField")
-            .setStorageUrlField("urlField");
+                .setDomSelector("dom.dom")
+                .setImageCacheDir(Paths.get("c:\\somedir"))
+                .setImageCacheSize(5000)
+                .setImageFormat("jpg")
+                .setLargest(true)
+                .setMinDimensions(new Dimension(100, 400))
+                .setPageContentTypePattern("text/html")
+                .setScaleQuality(Quality.LOW)
+                .setScaleDimensions(new Dimension(50, 50))
+                .setScaleStretch(true)
+                .setStorage(List.of(Storage.URL, Storage.INLINE, Storage.DISK))
+                .setStorageDiskDir(Paths.get("c:\\someotherdir"))
+                .setStorageDiskStructure(StorageDiskStructure.DATETIME)
+                .setStorageDiskField("diskField")
+                .setStorageInlineField("inlineField")
+                .setStorageUrlField("urlField");
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(p));
+                () -> BeanMapper.DEFAULT.assertWriteRead(p)
+        );
 
         //TODO migrate this:
 
-//        // Mostly empty
-//        p.setDomSelector(null);
-//        p.setImageCacheDir(null);
-//        p.setImageCacheSize(0);
-//        p.setImageFormat(null);
-//        p.setLargest(false);
-//        p.setMinDimensions(null);
-//        p.setPageContentTypePattern(null);
-//        p.setScaleQuality(null);
-//        p.setScaleDimensions(null);
-//        p.setScaleStretch(false);
-//        p.setStorage((List<Storage>) null);
-//        p.setStorageDiskDir(null);
-//        p.setStorageDiskStructure(null);
-//        p.setStorageDiskField(null);
-//        p.setStorageInlineField(null);
-//        p.setStorageUrlField(null);
-//
-//        // should come back with default values set.
-//        // TODO consider having default resolved at runtime instead, and
-//        // set everything null by default?
-//
-//        var read = BeanMapper.DEFAULT.writeRead(p, Format.XML);
-//        assertThat(read).isEqualTo(new FeaturedImageProcessor());
-//
-////        assertThatNoException().isThrownBy(
-////                () -> BeanMapper.DEFAULT.assertWriteRead(p));
+        //        // Mostly empty
+        //        p.setDomSelector(null);
+        //        p.setImageCacheDir(null);
+        //        p.setImageCacheSize(0);
+        //        p.setImageFormat(null);
+        //        p.setLargest(false);
+        //        p.setMinDimensions(null);
+        //        p.setPageContentTypePattern(null);
+        //        p.setScaleQuality(null);
+        //        p.setScaleDimensions(null);
+        //        p.setScaleStretch(false);
+        //        p.setStorage((List<Storage>) null);
+        //        p.setStorageDiskDir(null);
+        //        p.setStorageDiskStructure(null);
+        //        p.setStorageDiskField(null);
+        //        p.setStorageInlineField(null);
+        //        p.setStorageUrlField(null);
+        //
+        //        // should come back with default values set.
+        //        // TODO consider having default resolved at runtime instead, and
+        //        // set everything null by default?
+        //
+        //        var read = BeanMapper.DEFAULT.writeRead(p, Format.XML);
+        //        assertThat(read).isEqualTo(new FeaturedImageProcessor());
+        //
+        ////        assertThatNoException().isThrownBy(
+        ////                () -> BeanMapper.DEFAULT.assertWriteRead(p));
     }
 
     private CrawlDoc newDoc(String docUrl) {
         return CrawlDocStubs.crawlDoc(
                 docUrl,
-                ContentType.HTML, ResourceLoader.getHtmlStream(getClass()));
+                ContentType.HTML, ResourceLoader.getHtmlStream(getClass())
+        );
     }
 }

@@ -41,41 +41,53 @@ class HtmlExtractorTest {
     @Test
     void testHtmlEquivRefreshIssue210() throws IOException {
         var html = """
-            <html><head><meta http-equiv="refresh" \
-            content="0; URL=en/91/index.html">\
-            </head><body></body></html>""";
+                <html><head><meta http-equiv="refresh" \
+                content="0; URL=en/91/index.html">\
+                </head><body></body></html>""";
         var docURL = "http://db-artmag.com/index_en.html";
         LinkExtractor extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(docURL, ContentType.HTML,
-                        new ByteArrayInputStream(html.getBytes())));
+                CrawlDocStubs.crawlDoc(
+                        docURL, ContentType.HTML,
+                        new ByteArrayInputStream(html.getBytes())
+                )
+        );
 
-        Assertions.assertEquals( 1, links.size(),
-                "Invalid number of links extracted.");
+        Assertions.assertEquals(
+                1, links.size(),
+                "Invalid number of links extracted."
+        );
         Assertions.assertEquals(
                 "http://db-artmag.com/en/91/index.html",
-                links.iterator().next().getUrl());
+                links.iterator().next().getUrl()
+        );
     }
 
     @Test
     void testExtractionFromField() throws IOException {
         var html = """
-            </head><body><a href="link.html">link</a></body></html>""";
+                </head><body><a href="link.html">link</a></body></html>""";
         var docURL = "http://somewhere.com/index_en.html";
         var extractor = new HtmlLinkExtractor();
         extractor.getConfiguration().setFieldMatcher(
-                TextMatcher.basic("patate"));
+                TextMatcher.basic("patate")
+        );
 
-        var doc = CrawlDocStubs.crawlDoc(docURL, ContentType.HTML,
-                InputStream.nullInputStream());
+        var doc = CrawlDocStubs.crawlDoc(
+                docURL, ContentType.HTML,
+                InputStream.nullInputStream()
+        );
         doc.getMetadata().add("patate", html);
         var links = extractor.extractLinks(doc);
 
-        Assertions.assertEquals(1, links.size(),
-                "Invalid number of links extracted.");
+        Assertions.assertEquals(
+                1, links.size(),
+                "Invalid number of links extracted."
+        );
         Assertions.assertEquals(
                 "http://somewhere.com/link.html",
-                links.iterator().next().getUrl());
+                links.iterator().next().getUrl()
+        );
     }
 
     @Test
@@ -84,13 +96,14 @@ class HtmlExtractorTest {
                 + "?param1=value1&param2=value2";
         var url = "http://www.site.com/en/articles/detail/article-x.html";
         var html = """
-            <html><body>\
-            <a href="/en/articles/detail/article-x.html">test link</a>\
-            </body></html>""";
+                <html><body>\
+                <a href="/en/articles/detail/article-x.html">test link</a>\
+                </body></html>""";
         var input = new ByteArrayInputStream(html.getBytes());
         var extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(ref, ContentType.HTML, input));
+                CrawlDocStubs.crawlDoc(ref, ContentType.HTML, input)
+        );
         input.close();
         assertThat(urlList(links)).containsExactly(url);
     }
@@ -105,7 +118,8 @@ class HtmlExtractorTest {
         var extractor = new HtmlLinkExtractor();
         extractor.getConfiguration().setSchemes(List.of("javascript"));
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc("N/A", ContentType.HTML, input));
+                CrawlDocStubs.crawlDoc("N/A", ContentType.HTML, input)
+        );
         input.close();
         assertThat(urlList(links)).containsExactly(url);
     }
@@ -116,13 +130,14 @@ class HtmlExtractorTest {
         var ref = "http://www.example.com/index.html";
         var url = "http://www.example.com/invalid^path^.html";
         var html = """
-            <html><body>\
-            <a href="/invalid^path^.html">test link</a>\
-            </body></html>""";
+                <html><body>\
+                <a href="/invalid^path^.html">test link</a>\
+                </body></html>""";
         var input = new ByteArrayInputStream(html.getBytes());
         var extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(ref, ContentType.HTML, input));
+                CrawlDocStubs.crawlDoc(ref, ContentType.HTML, input)
+        );
         input.close();
         assertThat(urlList(links)).containsExactly(url);
     }
@@ -134,17 +149,19 @@ class HtmlExtractorTest {
         var url1 = "http://www.example.com/unquoted_url1.html";
         var url2 = "http://www.example.com/unquoted_url2.html";
         var html = """
-            <html><body>\
-            <a href=unquoted_url1.html>test link 1</a>\
-            <a href=unquoted_url2.html title="blah">test link 2</a>\
-            </body></html>""";
+                <html><body>\
+                <a href=unquoted_url1.html>test link 1</a>\
+                <a href=unquoted_url2.html title="blah">test link 2</a>\
+                </body></html>""";
         var input = new ByteArrayInputStream(html.getBytes());
         var extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(ref, ContentType.HTML, input));
+                CrawlDocStubs.crawlDoc(ref, ContentType.HTML, input)
+        );
         input.close();
         assertThat(urlList(links)).containsExactlyInAnyOrder(url1, url2);
     }
+
     @Test
     void testBadQuotingURL() throws IOException {
         var ref = "http://www.example.com/index.html";
@@ -152,15 +169,16 @@ class HtmlExtractorTest {
         var url2 = "http://www.example.com/bad'quote2.html";
         var url3 = "http://www.example.com/bad\"quote3.html";
         var html = """
-            <html><body>\
-            <a href=bad"quote1.html>test link 1</a>\
-            <a href="bad'quote2.html">test link 1</a>\
-            <a href='bad"quote3.html'>test link 1</a>\
-            </body></html>""";
+                <html><body>\
+                <a href=bad"quote1.html>test link 1</a>\
+                <a href="bad'quote2.html">test link 1</a>\
+                <a href='bad"quote3.html'>test link 1</a>\
+                </body></html>""";
         var input = new ByteArrayInputStream(html.getBytes());
         var extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(ref, ContentType.HTML, input));
+                CrawlDocStubs.crawlDoc(ref, ContentType.HTML, input)
+        );
         input.close();
         assertThat(urlList(links)).containsExactlyInAnyOrder(url1, url2, url3);
     }
@@ -169,15 +187,16 @@ class HtmlExtractorTest {
     void testHtmlWriteRead() {
         var htmlExtractor = new HtmlLinkExtractor();
         htmlExtractor.getConfiguration()
-            .setIgnoreNofollow(true)
-            .addLinkTag("food", "chocolate")
-            .addLinkTag("friend", "Thor")
-            .addExtractBetween("start1", "end1", true)
-            .addExtractBetween("start2", "end2", false)
-            .addNoExtractBetween("nostart1", "noend1", true)
-            .addNoExtractBetween("nostart2", "noend2", false);
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(htmlExtractor));
+                .setIgnoreNofollow(true)
+                .addLinkTag("food", "chocolate")
+                .addLinkTag("friend", "Thor")
+                .addExtractBetween("start1", "end1", true)
+                .addExtractBetween("start2", "end2", false)
+                .addNoExtractBetween("nostart1", "noend1", true)
+                .addNoExtractBetween("nostart2", "noend2", false);
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(htmlExtractor)
+        );
     }
 
     private static List<String> urlList(Collection<Link> links) {

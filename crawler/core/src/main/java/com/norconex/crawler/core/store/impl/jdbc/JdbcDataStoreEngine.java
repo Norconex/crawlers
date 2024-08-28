@@ -130,26 +130,30 @@ public class JdbcDataStoreEngine
 
     @Override
     public void init(Crawler crawler) {
-        tableSessionPrefix = safeTableName(isBlank(
-                configuration.getTablePrefix())
-            ? crawler.getId() + "_"
-            : configuration.getTablePrefix());
+        tableSessionPrefix = safeTableName(
+                isBlank(
+                        configuration.getTablePrefix()
+                )
+                        ? crawler.getId() + "_"
+                        : configuration.getTablePrefix()
+        );
 
         // create data source
         datasource = new HikariDataSource(
-                new HikariConfig(configuration.getProperties()));
+                new HikariConfig(configuration.getProperties())
+        );
         try {
             dialect = JdbcDialect.of(datasource).orElse(null);
             LOG.info("Detected JDBC dialect: " + dialect);
         } catch (SQLException e) {
             throw new DataStoreException(
-                    "Could not establish JDBC dialect.", e);
+                    "Could not establish JDBC dialect.", e
+            );
         }
 
         // to store types for each table
         storeTypes = createStore(STORE_TYPES_NAME, String.class);
     }
-
 
     @Override
     public boolean clean() {
@@ -179,7 +183,8 @@ public class JdbcDataStoreEngine
     @SuppressWarnings("unchecked")
     @Override
     public <T> DataStore<T> openStore(
-            String storeName, Class<? extends T> type) {
+            String storeName, Class<? extends T> type
+    ) {
         storeTypes.save(storeName, type.getName());
         return (DataStore<T>) createStore(storeName, type);
     }
@@ -200,7 +205,8 @@ public class JdbcDataStoreEngine
             LOG.info("Dropped table: " + tableName);
         } catch (SQLException e) {
             throw new DataStoreException(
-                    "Could not drop table '" + tableName + "'.", e);
+                    "Could not drop table '" + tableName + "'.", e
+            );
         }
 
         if (STORE_TYPES_NAME.equalsIgnoreCase(storeName)) {
@@ -227,14 +233,17 @@ public class JdbcDataStoreEngine
         Set<String> names = new HashSet<>();
         try (var conn = datasource.getConnection()) {
             try (var rs = conn.getMetaData().getTables(
-                    null, null, "%", new String[]{"TABLE"})) {
+                    null, null, "%", new String[] { "TABLE" }
+            )) {
                 while (rs.next()) {
                     var tableName = rs.getString(3);
                     if (startsWithIgnoreCase(
-                            tableName, tableSessionPrefix)) {
+                            tableName, tableSessionPrefix
+                    )) {
                         // only add if not the table holding store types
                         var storeName = removeStartIgnoreCase(
-                                tableName, tableSessionPrefix);
+                                tableName, tableSessionPrefix
+                        );
                         if (!STORE_TYPES_NAME.equalsIgnoreCase(storeName)) {
                             names.add(storeName);
                         }
@@ -259,7 +268,8 @@ public class JdbcDataStoreEngine
                 return Optional.ofNullable(ClassUtils.getClass(typeStr.get()));
             } catch (ClassNotFoundException e) {
                 throw new DataStoreException(
-                        "Could not determine type of: " + storeName, e);
+                        "Could not determine type of: " + storeName, e
+                );
             }
         }
         return Optional.empty();
@@ -271,7 +281,8 @@ public class JdbcDataStoreEngine
             return datasource.getConnection();
         } catch (SQLException e) {
             throw new DataStoreException(
-                    "Could not get database connection.", e);
+                    "Could not get database connection.", e
+            );
         }
     }
 
@@ -280,11 +291,13 @@ public class JdbcDataStoreEngine
     }
 
     boolean tableExist(String tableName) {
-        //TODO check cluster if initializing... and if so, return true
-        // since the one that does the init will take care of creating if not there
+        // TODO check cluster if initializing... and if so, return true
+        // since the one that does the init will take care of creating if not
+        // there
         try (var conn = datasource.getConnection()) {
             try (var rs = conn.getMetaData().getTables(
-                    null, null, "%", new String[]{"TABLE"})) {
+                    null, null, "%", new String[] { "TABLE" }
+            )) {
                 while (rs.next()) {
                     if (rs.getString(3).equalsIgnoreCase(tableName)) {
                         return true;
@@ -294,23 +307,27 @@ public class JdbcDataStoreEngine
             return false;
         } catch (SQLException e) {
             throw new DataStoreException(
-                    "Could not check if table '" + tableName + "' exists.", e);
+                    "Could not check if table '" + tableName + "' exists.", e
+            );
         }
     }
 
-    //--- Private methods ------------------------------------------------------
+    // --- Private methods
+    // ------------------------------------------------------
 
     private <T> JdbcDataStore<T> createStore(String storeName, Class<T> type) {
         var tableName = toTableName(storeName);
-        return new JdbcDataStore<>(JdbcDataStore.StoreSettings
-                .<T>builder()
-                .engine(this)
-                .storeName(storeName)
-                .tableName(tableName)
-                .type(type)
-                .createTableSqlTemplate(resolveCreateTableSqlTemplate())
-                .upsertSqlTemplate(resolveUpsertSqlTemplate())
-                .build());
+        return new JdbcDataStore<>(
+                JdbcDataStore.StoreSettings
+                        .<T>builder()
+                        .engine(this)
+                        .storeName(storeName)
+                        .tableName(tableName)
+                        .type(type)
+                        .createTableSqlTemplate(resolveCreateTableSqlTemplate())
+                        .upsertSqlTemplate(resolveUpsertSqlTemplate())
+                        .build()
+        );
     }
 
     private String resolveCreateTableSqlTemplate() {
@@ -318,11 +335,11 @@ public class JdbcDataStoreEngine
         if (StringUtils.isBlank(createSql)) {
             if (dialect == null) {
                 throw new IllegalArgumentException("""
-                    Could not resolve the table creation SQL statement for
-                    your database. Either it is misconfigured, not yet
-                    supported, or you need to configure the SQL statement
-                    yourself.
-                    """);
+                        Could not resolve the table creation SQL statement for
+                        your database. Either it is misconfigured, not yet
+                        supported, or you need to configure the SQL statement
+                        yourself.
+                        """);
             }
             createSql = dialect.getCreateTableSql();
         }
@@ -334,17 +351,16 @@ public class JdbcDataStoreEngine
         if (StringUtils.isBlank(upsertSql)) {
             if (dialect == null) {
                 throw new IllegalArgumentException("""
-                    Could not resolve the table upsert SQL statement for
-                    your database. Either it is misconfigured, not yet
-                    supported, or you need to configure the SQL statement
-                    yourself.
-                    """);
+                        Could not resolve the table upsert SQL statement for
+                        your database. Either it is misconfigured, not yet
+                        supported, or you need to configure the SQL statement
+                        yourself.
+                        """);
             }
             upsertSql = dialect.getUpsertSql();
         }
         return upsertSql;
     }
-
 
     /**
      * Modifies the value to prevent SQL injection. Spaces are converted
@@ -359,9 +375,11 @@ public class JdbcDataStoreEngine
         tn = tn.replaceAll("[^_a-zA-Z0-9\\.]+", "");
         tn = tn.replaceFirst("^[^a-zA-Z]+", "");
         if (StringUtils.isBlank(tn)) {
-            throw new DataStoreException("The table name contains no supported "
-                    + "characters (alphanumeric, period, or underscore): "
-                    + tableName);
+            throw new DataStoreException(
+                    "The table name contains no supported "
+                            + "characters (alphanumeric, period, or underscore): "
+                            + tableName
+            );
         }
         return tn;
     }

@@ -36,7 +36,8 @@ class CrawlerLaunchTest {
         var exitVal = CliCrawlerLauncher.launch(
                 crawlerBuilder,
                 "start",
-                "-config=./src/test/resources/memoryCrawler.yaml");
+                "-config=./src/test/resources/memoryCrawler.yaml"
+        );
         assertThat(exitVal).isZero();
     }
 }

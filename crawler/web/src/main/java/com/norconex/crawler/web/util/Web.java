@@ -40,45 +40,48 @@ import lombok.NonNull;
 
 public final class Web {
 
-    private Web() {}
+    private Web() {
+    }
 
     public static void fireIfUrlOutOfScope(
             Crawler crawler,
             WebCrawlDocContext docContext,
-            UrlScope urlScope) {
+            UrlScope urlScope
+    ) {
         if (!urlScope.isInScope()) {
-            crawler.fire(CrawlerEvent
-                    .builder()
-                    .name(WebCrawlerEvent.REJECTED_OUT_OF_SCOPE)
-                    .source(crawler)
-                    .subject(Web.config(crawler).getUrlScopeResolver())
-                    .docContext(docContext)
-                    .message(urlScope.outOfScopeReason())
-                    .build());
+            crawler.fire(
+                    CrawlerEvent
+                            .builder()
+                            .name(WebCrawlerEvent.REJECTED_OUT_OF_SCOPE)
+                            .source(crawler)
+                            .subject(Web.config(crawler).getUrlScopeResolver())
+                            .docContext(docContext)
+                            .message(urlScope.outOfScopeReason())
+                            .build()
+            );
         }
     }
 
+    //    private static final BeanMapper BEAN_MAPPER =
+    //            CrawlSessionBeanMapperFactory.create(
+    //                    WebCrawlerConfig.class, b ->
+    //                        b.unboundPropertyMapping(
+    //                                "crawler", WebCrawlerMixIn.class));
+    //    private static class WebCrawlerMixIn {
+    //        @JsonDeserialize(as = WebCrawlerConfig.class)
+    //        private CrawlerConfig configuration;
+    //    }
 
-//    private static final BeanMapper BEAN_MAPPER =
-//            CrawlSessionBeanMapperFactory.create(
-//                    WebCrawlerConfig.class, b ->
-//                        b.unboundPropertyMapping(
-//                                "crawler", WebCrawlerMixIn.class));
-//    private static class WebCrawlerMixIn {
-//        @JsonDeserialize(as = WebCrawlerConfig.class)
-//        private CrawlerConfig configuration;
-//    }
+    //    public static BeanMapper beanMapper() {
+    //        return BEAN_MAPPER;
+    //    }
 
-//    public static BeanMapper beanMapper() {
-//        return BEAN_MAPPER;
-//    }
-
-//    public static WebCrawlerConfig config(CrawlerConfig cfg) {
-//        return (WebCrawlerConfig) cfg;
-//    }
-//    public static WebCrawlerConfig config(AbstractPipelineContext ctx) {
-//        return (WebCrawlerConfig) Web.config(ctx.getCrawler());
-//    }
+    //    public static WebCrawlerConfig config(CrawlerConfig cfg) {
+    //        return (WebCrawlerConfig) cfg;
+    //    }
+    //    public static WebCrawlerConfig config(AbstractPipelineContext ctx) {
+    //        return (WebCrawlerConfig) Web.config(ctx.getCrawler());
+    //    }
     public static WebCrawlerConfig config(Crawler crawler) {
         return (WebCrawlerConfig) crawler.getConfiguration();
     }
@@ -87,30 +90,31 @@ public final class Web {
         return (WebCrawlerContext) crawler.getContext();
     }
 
-//    public static WebImporterPipelineContext importerContext(
-//            AbstractPipelineContext ctx) {
-//        return (WebImporterPipelineContext) ctx;
-//    }
+    //    public static WebImporterPipelineContext importerContext(
+    //            AbstractPipelineContext ctx) {
+    //        return (WebImporterPipelineContext) ctx;
+    //    }
 
-//    //TODO move this one to core?
-//    public static void fire(
-//            Crawler crawler,
-//            @NonNull
-//            Consumer<CrawlerEventBuilder<?, ?>> c) {
-//        if (crawler != null) {
-//            var builder = CrawlerEvent.builder();
-//            c.accept(builder);
-//            crawler.getEventManager().fire(builder.build());
-//        }
-//    }
+    //    //TODO move this one to core?
+    //    public static void fire(
+    //            Crawler crawler,
+    //            @NonNull
+    //            Consumer<CrawlerEventBuilder<?, ?>> c) {
+    //        if (crawler != null) {
+    //            var builder = CrawlerEvent.builder();
+    //            c.accept(builder);
+    //            crawler.getEventManager().fire(builder.build());
+    //        }
+    //    }
 
     //TODO could probably move this where needed since generically,
     // we would get the fetcher wrapper directly from crawler.
     public static List<HttpFetcher> toHttpFetcher(
-            @NonNull Collection<Fetcher<?, ?>> fetchers) {
+            @NonNull Collection<Fetcher<?, ?>> fetchers
+    ) {
         return fetchers.stream()
-            .map(HttpFetcher.class::cast)
-            .toList();
+                .map(HttpFetcher.class::cast)
+                .toList();
     }
 
     public static HttpFetcher fetcher(Crawler crawler) {
@@ -120,18 +124,23 @@ public final class Web {
     public static WebCrawlDocContext docContext(@NonNull CrawlDoc crawlDoc) {
         return (WebCrawlDocContext) crawlDoc.getDocContext();
     }
+
     public static WebCrawlDocContext cachedDocContext(
-            @NonNull CrawlDoc crawlDoc) {
+            @NonNull CrawlDoc crawlDoc
+    ) {
         return (WebCrawlDocContext) crawlDoc.getCachedDocContext();
     }
 
     public static RobotsTxt robotsTxt(Crawler crawler, String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())
-            .map(rb -> rb.getRobotsTxt(
-                    (HttpFetcher) crawler.getFetcher(),
-                    reference))
-            .orElse(null);
+                .map(
+                        rb -> rb.getRobotsTxt(
+                                (HttpFetcher) crawler.getFetcher(),
+                                reference
+                        )
+                )
+                .orElse(null);
     }
 
     //TODO Move below methods to Importer or Nx Commons Lang?
@@ -141,14 +150,17 @@ public final class Web {
             return wholeStr;
         }
         return wholeStr.replaceAll(
-                "\\s*(" + Pattern.quote(subStr) + ")\\s*", "$1");
+                "\\s*(" + Pattern.quote(subStr) + ")\\s*", "$1"
+        );
     }
+
     public static String trimBeforeSubString(String wholeStr, String subStr) {
         if (wholeStr == null || subStr == null) {
             return wholeStr;
         }
         return wholeStr.replaceAll("\\s*(" + Pattern.quote(subStr) + ")", "$1");
     }
+
     public static String trimAfterSubString(String wholeStr, String subStr) {
         if (wholeStr == null || subStr == null) {
             return wholeStr;
@@ -189,36 +201,42 @@ public final class Web {
      * @return attributes (never <code>null</code>)
      */
     public static Properties parseDomAttributes(
-            String attribsStr, boolean caseInsensitive) {
+            String attribsStr, boolean caseInsensitive
+    ) {
         var props = new Properties(caseInsensitive);
         if (StringUtils.isBlank(attribsStr)) {
             return props;
         }
         doParseDomAttributes(
                 attribsStr
-                    // strip before and after angle brackets as separate steps,
-                    // in case of weird mark-up
-                    .replaceFirst("(?s)^.*<\\s*[\\w-]+\\s*(.*)$", "$1")
-                    .replaceFirst("(?s)^(.*?)>.*$", "$1")
-                    .replaceAll("\\s+", " ")
-                    .replace(" =", "=")
-                    .replace("= ", "="),
-                props);
+                        // strip before and after angle brackets as separate steps,
+                        // in case of weird mark-up
+                        .replaceFirst("(?s)^.*<\\s*[\\w-]+\\s*(.*)$", "$1")
+                        .replaceFirst("(?s)^(.*?)>.*$", "$1")
+                        .replaceAll("\\s+", " ")
+                        .replace(" =", "=")
+                        .replace("= ", "="),
+                props
+        );
         return props;
     }
+
     private static void doParseDomAttributes(
-            String attribsStr, Properties attribs) {
+            String attribsStr, Properties attribs
+    ) {
         var m = Pattern.compile("^([\\w-]+)=(.+)")
                 .matcher(attribsStr.trim());
         if (m.find()) {
             var name = m.group(1);
             var theRest = m.group(2);
             var quote = theRest.charAt(0);
-            m = Pattern.compile((quote != '"' && quote != '\'')
-                    // no quotes
-                    ? "^.*?=(.+?)(\\s|>|$)"
-                    // with quotes
-                    : "^.*?=%1$s(.*?)%1$s".formatted(quote))
+            m = Pattern.compile(
+                    (quote != '"' && quote != '\'')
+                            // no quotes
+                            ? "^.*?=(.+?)(\\s|>|$)"
+                            // with quotes
+                            : "^.*?=%1$s(.*?)%1$s".formatted(quote)
+            )
                     .matcher(attribsStr);
             if (m.find()) {
                 var value = m.group(1);

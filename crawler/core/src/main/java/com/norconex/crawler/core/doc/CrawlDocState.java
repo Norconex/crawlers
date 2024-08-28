@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,26 +47,26 @@ public class CrawlDocState implements Serializable {
     // no checksum defined... then it is nether new nor modified.
     private static final long serialVersionUID = 6542269270632505768L;
 
-    public static final CrawlDocState NEW        = new CrawlDocState("NEW");
-    public static final CrawlDocState MODIFIED   =
+    public static final CrawlDocState NEW = new CrawlDocState("NEW");
+    public static final CrawlDocState MODIFIED =
             new CrawlDocState("MODIFIED");
     public static final CrawlDocState UNMODIFIED =
             new CrawlDocState("UNMODIFIED");
-    public static final CrawlDocState ERROR      = new CrawlDocState("ERROR");
-    public static final CrawlDocState REJECTED   =
+    public static final CrawlDocState ERROR = new CrawlDocState("ERROR");
+    public static final CrawlDocState REJECTED =
             new CrawlDocState("REJECTED");
     public static final CrawlDocState BAD_STATUS =
             new CrawlDocState("BAD_STATUS");
-    public static final CrawlDocState DELETED    = new CrawlDocState("DELETED");
-    public static final CrawlDocState NOT_FOUND  =
+    public static final CrawlDocState DELETED = new CrawlDocState("DELETED");
+    public static final CrawlDocState NOT_FOUND =
             new CrawlDocState("NOT_FOUND");
     /**
      * For collectors that support it, this state indicates a previously
      * crawled document is not yet ready to be re-crawled.  It may or may not
      * be re-crawled in the next crawl session (if ready).
          */
-    public static final CrawlDocState PREMATURE  = new CrawlDocState("PREMATURE");
-
+    public static final CrawlDocState PREMATURE =
+            new CrawlDocState("PREMATURE");
 
     //TODO testing this... remove if not used:
     /**
@@ -82,7 +82,6 @@ public class CrawlDocState implements Serializable {
     @JsonProperty
     @JsonValue
     private final String state;
-
 
     /**
      * Constructor.
@@ -107,6 +106,7 @@ public class CrawlDocState implements Serializable {
     public boolean isGoodState() {
         return isOneOf(NEW, MODIFIED, UNMODIFIED, PREMATURE);
     }
+
     /**
      * Null-safe version of {@link #isGoodState()}.  A <code>null</code>
      * state returns <code>false</code>.
@@ -116,6 +116,7 @@ public class CrawlDocState implements Serializable {
     public static boolean isGoodState(CrawlDocState state) {
         return state == null ? false : state.isGoodState();
     }
+
     /**
      * Returns whether a state indicates new or modified.
      * @return <code>true</code> if new or modified
@@ -133,7 +134,6 @@ public class CrawlDocState implements Serializable {
         return isOneOf(UNMODIFIED, PREMATURE);
     }
 
-
     public boolean isOneOf(CrawlDocState... states) {
         if (ArrayUtils.isEmpty(states)) {
             return false;
@@ -148,7 +148,8 @@ public class CrawlDocState implements Serializable {
 
     @JsonCreator
     public static synchronized CrawlDocState valueOf(
-            @JsonProperty("state") String state) {
+            @JsonProperty("state") String state
+    ) {
         var refState = STATUSES.get(state);
         if (refState == null) {
             refState = new CrawlDocState(state);
@@ -160,10 +161,12 @@ public class CrawlDocState implements Serializable {
     public String toString() {
         return state;
     }
+
     @Override
     public boolean equals(final Object other) {
         return EqualsBuilder.reflectionEquals(this, other);
     }
+
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);

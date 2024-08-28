@@ -148,7 +148,8 @@ public class TitleGeneratorTransformer
             new EntryValueComparator();
 
     private static final Pattern PATTERN_HEADING = Pattern.compile(
-            "^([^\\n\\r]+)[\\n\\r]", Pattern.DOTALL);
+            "^([^\\n\\r]+)[\\n\\r]", Pattern.DOTALL
+    );
 
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
@@ -160,7 +161,9 @@ public class TitleGeneratorTransformer
                     || (PropertySetter.OPTIONAL == configuration.getOnSet()
                             && StringUtils.isNotBlank(
                                     docCtx.metadata().getString(
-                                            getTargetField())))) {
+                                            getTargetField()
+                                    )
+                            ))) {
                 return false;
             }
 
@@ -183,11 +186,13 @@ public class TitleGeneratorTransformer
                 if (configuration.getTitleMaxLength() >= 0
                         && title.length() > configuration.getTitleMaxLength()) {
                     title = StringUtils.substring(
-                            title, 0, configuration.getTitleMaxLength());
+                            title, 0, configuration.getTitleMaxLength()
+                    );
                     title += "[...]";
                 }
                 PropertySetter.orAppend(configuration.getOnSet()).apply(
-                        docCtx.metadata(), getTargetField(), title);
+                        docCtx.metadata(), getTargetField(), title
+                );
             }
             return true;
         });
@@ -196,7 +201,8 @@ public class TitleGeneratorTransformer
     private String getTargetField() {
         return StringUtils.firstNonBlank(
                 configuration.getToField(),
-                TitleGeneratorTransformerConfig.DEFAULT_TO_FIELD);
+                TitleGeneratorTransformerConfig.DEFAULT_TO_FIELD
+        );
     }
 
     private String getHeadingTitle(String text) {
@@ -206,15 +212,14 @@ public class TitleGeneratorTransformer
             firstLine = StringUtils.trim(m.group());
         }
 
-
         // if more than one sentence, ignore
         // must match min/max lengths.
         if (StringUtils.isBlank(firstLine)
                 || (StringUtils.split(firstLine, "?!.").length != 1)
-                || firstLine.length()
-                        < configuration.getDetectHeadingMinLength()
-                || firstLine.length()
-                        > configuration.getDetectHeadingMaxLength()) {
+                || firstLine.length() < configuration
+                        .getDetectHeadingMinLength()
+                || firstLine.length() > configuration
+                        .getDetectHeadingMaxLength()) {
             return null;
         }
         return firstLine;
@@ -228,12 +233,13 @@ public class TitleGeneratorTransformer
         }
         var topScore = 0L;
         var topSentence = index.sentences.get(0);
-        for (String  sentence : index.sentences) {
+        for (String sentence : index.sentences) {
             var score = 0L;
             var densityFactor = 500L - sentence.length();
             for (TermOccurence to : index.terms) {
                 var m = Pattern.compile(
-                        "\\b\\Q" + to.term + "\\E\\b").matcher(sentence);
+                        "\\b\\Q" + to.term + "\\E\\b"
+                ).matcher(sentence);
                 var count = 0;
                 while (m.find()) {
                     count++;
@@ -261,7 +267,7 @@ public class TitleGeneratorTransformer
         var start = breakIterator.first();
         var end = breakIterator.next();
         while (end != BreakIterator.DONE) {
-            var matchText = text.substring(start,end).trim();
+            var matchText = text.substring(start, end).trim();
             var sentences = matchText.split("[\\n\\r]");
             for (String sentence : sentences) {
                 var s = StringUtils.trimToNull(sentence);
@@ -288,8 +294,10 @@ public class TitleGeneratorTransformer
         }
         return index;
     }
+
     private void breakWords(
-            String sentence, ConcurrentMap<String, AtomicInteger> terms) {
+            String sentence, ConcurrentMap<String, AtomicInteger> terms
+    ) {
 
         var wordIterator = BreakIterator.getWordInstance();
         wordIterator.setText(sentence);
@@ -297,7 +305,7 @@ public class TitleGeneratorTransformer
         var end = wordIterator.next();
 
         while (end != BreakIterator.DONE) {
-            var word = sentence.substring(start,end);
+            var word = sentence.substring(start, end);
             if (Character.isLetterOrDigit(word.codePointAt(0))) {
                 terms.putIfAbsent(word, new AtomicInteger(0));
                 terms.get(word).incrementAndGet();
@@ -313,8 +321,10 @@ public class TitleGeneratorTransformer
     class EntryValueComparator
             implements Comparator<Entry<String, AtomicInteger>> {
         @Override
-        public int compare(Entry<String, AtomicInteger> o1,
-                Entry<String, AtomicInteger> o2) {
+        public int compare(
+                Entry<String, AtomicInteger> o1,
+                Entry<String, AtomicInteger> o2
+        ) {
             return Integer.compare(o2.getValue().get(), o1.getValue().get());
         }
     }
@@ -331,10 +341,12 @@ public class TitleGeneratorTransformer
     class TermOccurence implements Comparable<TermOccurence> {
         private final String term;
         private final int occurence;
+
         public TermOccurence(String term, int occurence) {
             this.term = term;
             this.occurence = occurence;
         }
+
         @Override
         public int compareTo(TermOccurence o) {
             return Integer.compare(occurence, o.occurence);

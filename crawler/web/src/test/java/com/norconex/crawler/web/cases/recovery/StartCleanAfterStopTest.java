@@ -41,7 +41,8 @@ class StartCleanAfterStopTest {
 
     @Test
     void testStartCleanAfterStop(
-            ClientAndServer client, @TempDir Path tempDir) {
+            ClientAndServer client, @TempDir Path tempDir
+    ) {
         var path = "/startCleanAfterStop";
 
         WebsiteMock.whenInfiniteDepth(client);
@@ -63,11 +64,17 @@ class StartCleanAfterStopTest {
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());
         assertThat(outcome.getReturnValue()).isZero();
-        assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(7);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).isEqualTo(
-                        WebsiteMock.serverUrl(client, path + "/0006"));
+        assertThat(
+                outcome.getCommitterAfterLaunch()
+                        .getUpsertCount()
+        ).isEqualTo(7);
+        assertThat(
+                WebTestUtil.lastSortedRequestReference(
+                        outcome.getCommitterAfterLaunch()
+                )
+        ).isEqualTo(
+                WebsiteMock.serverUrl(client, path + "/0006")
+        );
 
         // Second run, we clean and we should get 10 documents, including
         // the same first 7.
@@ -76,12 +83,20 @@ class StartCleanAfterStopTest {
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());
         assertThat(outcome.getReturnValue()).isZero();
-        assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(10);
-        assertThat(outcome.getCommitterCombininedLaunches()
-                .getUpsertCount()).isEqualTo(10);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).isEqualTo(
-                        WebsiteMock.serverUrl(client, path + "/0009"));
+        assertThat(
+                outcome.getCommitterAfterLaunch()
+                        .getUpsertCount()
+        ).isEqualTo(10);
+        assertThat(
+                outcome.getCommitterCombininedLaunches()
+                        .getUpsertCount()
+        ).isEqualTo(10);
+        assertThat(
+                WebTestUtil.lastSortedRequestReference(
+                        outcome.getCommitterAfterLaunch()
+                )
+        ).isEqualTo(
+                WebsiteMock.serverUrl(client, path + "/0009")
+        );
     }
 }

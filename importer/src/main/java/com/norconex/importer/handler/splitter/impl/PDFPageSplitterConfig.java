@@ -1,4 +1,4 @@
-/* Copyright 2018-2023 Norconex Inc.
+/* Copyright 2018-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,7 @@ public class PDFPageSplitterConfig extends BaseDocumentSplitterConfig {
      */
     private final TextMatcher contentTypeMatcher =
             TextMatcher.basic("application/pdf");
+
     /**
      * The matcher of content types to apply splitting on. No attempt to
      * split documents of any other content types will be made. Default is

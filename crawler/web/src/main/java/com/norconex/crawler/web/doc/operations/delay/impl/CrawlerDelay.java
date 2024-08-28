@@ -34,8 +34,11 @@ public class CrawlerDelay extends AbstractDelay {
         try {
             synchronized (lastHitEpochNanos) {
                 while (sleeping) {
-                    Sleeper.sleepNanos(Math.min(
-                            TINY_SLEEP_MS, expectedDelayNanos));
+                    Sleeper.sleepNanos(
+                            Math.min(
+                                    TINY_SLEEP_MS, expectedDelayNanos
+                            )
+                    );
                 }
                 sleeping = true;
             }

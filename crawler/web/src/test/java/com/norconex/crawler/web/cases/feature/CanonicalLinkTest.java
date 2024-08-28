@@ -49,45 +49,70 @@ class CanonicalLinkTest {
         var linkRelPath = "/linkRel";
 
         var commonBody = """
-            <h1>Handling of (non)canonical URLs</h1>
-            <p>The links below are pointing to pages that should be
-            considered copies of this page when accessed without URL
-            parameters.</p>
-            <ul>
-              <li><a href="%s?type=httpheader">HTTP Header</a></li>
-              <li><a href="%s?type=linkrel">link rel</a></li>
-            </ul>
-            """.formatted(
-                    serverUrl(client, httpHeaderPath),
-                    serverUrl(client, linkRelPath));
+                <h1>Handling of (non)canonical URLs</h1>
+                <p>The links below are pointing to pages that should be
+                considered copies of this page when accessed without URL
+                parameters.</p>
+                <ul>
+                  <li><a href="%s?type=httpheader">HTTP Header</a></li>
+                  <li><a href="%s?type=linkrel">link rel</a></li>
+                </ul>
+                """.formatted(
+                serverUrl(client, httpHeaderPath),
+                serverUrl(client, linkRelPath)
+        );
 
         WebsiteMock.whenHtml(
-                client, canonicalPath, "<p>Canonical page</p>" + commonBody);
+                client, canonicalPath, "<p>Canonical page</p>" + commonBody
+        );
 
         client
-            .when(request()
-                .withPath(httpHeaderPath))
-            .respond(response()
-                .withHeader("Link", "<%s>; rel=\"canonical\""
-                        .formatted(canonicalUrl))
-                .withBody(WebsiteMock
-                    .htmlPage()
-                    .body("<p>Canonical URL in HTTP header.</p>" + commonBody)
-                    .build(),
-                        MediaType.HTML_UTF_8));
+                .when(
+                        request()
+                                .withPath(httpHeaderPath)
+                )
+                .respond(
+                        response()
+                                .withHeader(
+                                        "Link", "<%s>; rel=\"canonical\""
+                                                .formatted(canonicalUrl)
+                                )
+                                .withBody(
+                                        WebsiteMock
+                                                .htmlPage()
+                                                .body(
+                                                        "<p>Canonical URL in HTTP header.</p>"
+                                                                + commonBody
+                                                )
+                                                .build(),
+                                        MediaType.HTML_UTF_8
+                                )
+                );
 
         client
-            .when(request()
-                .withPath(linkRelPath))
-            .respond(response()
-                .withBody(WebsiteMock
-                    .htmlPage()
-                    .head("<link rel=\"canonical\" href=\"%s\" />"
-                            .formatted(canonicalUrl))
-                    .body("<p>Canonical URL in HTML &lt;head&gt;.</p>"
-                            + commonBody)
-                    .build(),
-                        MediaType.HTML_UTF_8));
+                .when(
+                        request()
+                                .withPath(linkRelPath)
+                )
+                .respond(
+                        response()
+                                .withBody(
+                                        WebsiteMock
+                                                .htmlPage()
+                                                .head(
+                                                        "<link rel=\"canonical\" href=\"%s\" />"
+                                                                .formatted(
+                                                                        canonicalUrl
+                                                                )
+                                                )
+                                                .body(
+                                                        "<p>Canonical URL in HTML &lt;head&gt;.</p>"
+                                                                + commonBody
+                                                )
+                                                .build(),
+                                        MediaType.HTML_UTF_8
+                                )
+                );
 
         canCount.setValue(0);
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
@@ -102,21 +127,20 @@ class CanonicalLinkTest {
         assertThat(mem.getUpsertRequests()).hasSize(1);
         assertThat(canCount.intValue()).isEqualTo(2);
 
-
-//        var cfg = WebTestUtil.getFirstCrawlerConfig(crawlSession);
-//        canCount.setValue(0);
-//        cfg.addEventListener(e -> {
-//            if (e.is(WebCrawlerEvent.REJECTED_NONCANONICAL)) {
-//                canCount.increment();
-//            }
-//        });
-//        crawler.start();
-//
-//        var mem = WebTestUtil.firstCommitter(crawlSession);
-//        assertThat(mem.getUpsertRequests()).hasSize(1);
-//        assertThat(canCount.intValue()).isEqualTo(2);
-//
-//        crawler.clean();
+        //        var cfg = WebTestUtil.getFirstCrawlerConfig(crawlSession);
+        //        canCount.setValue(0);
+        //        cfg.addEventListener(e -> {
+        //            if (e.is(WebCrawlerEvent.REJECTED_NONCANONICAL)) {
+        //                canCount.increment();
+        //            }
+        //        });
+        //        crawler.start();
+        //
+        //        var mem = WebTestUtil.firstCommitter(crawlSession);
+        //        assertThat(mem.getUpsertRequests()).hasSize(1);
+        //        assertThat(canCount.intValue()).isEqualTo(2);
+        //
+        //        crawler.clean();
 
     }
 }

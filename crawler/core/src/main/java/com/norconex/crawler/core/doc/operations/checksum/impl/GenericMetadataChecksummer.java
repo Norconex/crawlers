@@ -79,6 +79,7 @@ public class GenericMetadataChecksummer
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
         return ChecksumUtil.metadataChecksumPlain(
-                metadata, getConfiguration().getFieldMatcher());
+                metadata, getConfiguration().getFieldMatcher()
+        );
     }
 }

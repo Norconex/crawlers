@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package com.norconex.importer.handler.parser.impl;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 
 @Data
 @Accessors(chain = true)

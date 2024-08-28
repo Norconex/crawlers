@@ -19,6 +19,7 @@ import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+
 /**
  * <p>
  * Accepts or rejects a reference based on whether one or more
@@ -65,16 +66,19 @@ public class GenericMetadataFilterConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the field matcher.
      * @param fieldMatcher field matcher
      * @return this instance
      */
     public GenericMetadataFilterConfig setFieldMatcher(
-            TextMatcher fieldMatcher) {
+            TextMatcher fieldMatcher
+    ) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
+
     /**
      * Gets the value matcher.
      * @return value matcher
@@ -82,15 +86,16 @@ public class GenericMetadataFilterConfig {
     public TextMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     /**
      * Sets the value matcher.
      * @param valueMatcher value matcher
      * @return this instance
      */
     public GenericMetadataFilterConfig setValueMatcher(
-            TextMatcher valueMatcher) {
+            TextMatcher valueMatcher
+    ) {
         this.valueMatcher.copyFrom(valueMatcher);
         return this;
     }
 }
-

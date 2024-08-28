@@ -31,15 +31,15 @@ class ScreenshotHandlerTest {
     void testWriteRead() {
         var h = new ScreenshotHandler();
         h.getConfiguration()
-            .setCssSelector("body .content")
-            .setImageFormat("jpg")
-            .setTargetDir(Paths.get("/tmp/blah"))
-            .setTargetDirStructure(DirStructure.URL2PATH)
-            .setTargetDirField("docImage")
-            .setTargetMetaField("docMeta")
-        .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+                .setCssSelector("body .content")
+                .setImageFormat("jpg")
+                .setTargetDir(Paths.get("/tmp/blah"))
+                .setTargetDirStructure(DirStructure.URL2PATH)
+                .setTargetDirField("docImage")
+                .setTargetMetaField("docMeta")
+                .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(h));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(h));
     }
 }

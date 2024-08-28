@@ -26,24 +26,31 @@ public final class CrawlerStubs {
 
     public static final String CRAWLER_ID = CrawlerConfigStubs.CRAWLER_ID;
 
-    private CrawlerStubs() {}
+    private CrawlerStubs() {
+    }
 
     public static Crawler memoryCrawler(Path workDir) {
         return memoryCrawlerBuilder(workDir).build();
     }
+
     public static Crawler memoryCrawler(
-            Path workDir, Consumer<CrawlerConfig> c) {
+            Path workDir, Consumer<CrawlerConfig> c
+    ) {
         return memoryCrawlerBuilder(workDir, c).build();
     }
+
     public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
         return memoryCrawlerBuilder(workDir, null);
     }
+
     public static CrawlerBuilder memoryCrawlerBuilder(
-            Path workDir, Consumer<CrawlerConfig> c) {
+            Path workDir, Consumer<CrawlerConfig> c
+    ) {
         var b = SneakyFsCrawler
                 .builder()
                 .configuration(
-                        CrawlerConfigStubs.memoryCrawlerConfig(workDir));
+                        CrawlerConfigStubs.memoryCrawlerConfig(workDir)
+                );
         if (c != null) {
             c.accept(b.configuration());
         }

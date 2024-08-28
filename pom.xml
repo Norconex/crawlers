@@ -94,7 +94,8 @@
     <testcontainers.version>1.20.1</testcontainers.version>
     
     <!-- === Maven plugins ================================================= -->
-    
+
+    <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <license-maven-plugin.version>2.4.0</license-maven-plugin.version>
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
@@ -874,6 +875,31 @@
         </plugin>        
         
         <plugin>
+          <groupId>net.revelc.code.formatter</groupId>
+          <artifactId>formatter-maven-plugin</artifactId>
+          <version>${formatter-maven-plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>format</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <compilerSource>${java.version}</compilerSource>
+            <compilerCompliance>${java.version}</compilerCompliance>
+            <compilerTargetPlatform>${java.version}</compilerTargetPlatform>
+            <lineEnding>LF</lineEnding>
+            <encoding>UTF-8</encoding>
+            <configFile>${project.parent.basedir}/norconex-formatter.xml</configFile>
+            <includes>
+              <include>com/norconex/**/*.java</include>
+            </includes>
+          </configuration>
+          <inherited>true</inherited>
+        </plugin>
+        
+        <plugin>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok-maven-plugin</artifactId>
           <version>${lombok-maven-plugin.version}</version>
@@ -1036,6 +1062,11 @@
       <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
+      </plugin>            
+
+      <plugin>
+        <groupId>net.revelc.code.formatter</groupId>
+        <artifactId>formatter-maven-plugin</artifactId>
       </plugin>            
 
     </plugins>

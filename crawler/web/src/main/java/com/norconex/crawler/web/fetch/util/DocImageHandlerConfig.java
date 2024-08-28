@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,50 +53,57 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DocImageHandlerConfig {
 
-    public enum Target { METADATA, DIRECTORY }
-    public enum DirStructure { URL2PATH, DATE, DATETIME }
+    public enum Target {
+        METADATA, DIRECTORY
+    }
+
+    public enum DirStructure {
+        URL2PATH, DATE, DATETIME
+    }
+
     public static final String DEFAULT_IMAGE_FORMAT = "png";
 
     protected static final List<Target> DEFAULT_TYPES =
-            List.of(Target.DIRECTORY) ;
+            List.of(Target.DIRECTORY);
 
-//    @ToString.Exclude
-//    @EqualsAndHashCode.Exclude
+    //    @ToString.Exclude
+    //    @EqualsAndHashCode.Exclude
     private final List<Target> targets = new ArrayList<>(DEFAULT_TYPES);
     private Path targetDir;
     private String targetDirField;
     private DirStructure targetDirStructure = DirStructure.DATETIME;
     private String targetMetaField;
     private String imageFormat = DEFAULT_IMAGE_FORMAT;
-//    private final ImageTransformer imgTransformer = new ImageTransformer();
+    //    private final ImageTransformer imgTransformer = new ImageTransformer();
 
     public List<Target> getTargets() {
         return Collections.unmodifiableList(targets);
     }
+
     public DocImageHandlerConfig setTargets(List<Target> targets) {
         CollectionUtil.setAll(this.targets, targets);
         return this;
     }
 
-//
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        setTargets(xml.getDelimitedEnumList("targets", Target.class, targets));
-//        setTargetDir(xml.getPath("targetDir", targetDir));
-//        setTargetDirStructure(xml.getEnum("targetDir/@structure",
-//                DirStructure.class, targetDirStructure));
-//        setTargetDirField(xml.getString("targetDir/@field", targetDirField));
-//        setTargetMetaField(xml.getString("targetMetaField", targetMetaField));
-//        setImageFormat(xml.getString("imageFormat", imageFormat));
-//    }
-//
-//    @Override
-//    public void saveToXML(XML xml) {
-//        xml.addDelimitedElementList("targets", targets);
-//        xml.addElement("targetDir", targetDir)
-//                .setAttribute("structure", targetDirStructure)
-//                .setAttribute("field", targetDirField);
-//        xml.addElement("targetMetaField", targetMetaField);
-//        xml.addElement("imageFormat", imageFormat);
-//    }
+    //
+    //    @Override
+    //    public void loadFromXML(XML xml) {
+    //        setTargets(xml.getDelimitedEnumList("targets", Target.class, targets));
+    //        setTargetDir(xml.getPath("targetDir", targetDir));
+    //        setTargetDirStructure(xml.getEnum("targetDir/@structure",
+    //                DirStructure.class, targetDirStructure));
+    //        setTargetDirField(xml.getString("targetDir/@field", targetDirField));
+    //        setTargetMetaField(xml.getString("targetMetaField", targetMetaField));
+    //        setImageFormat(xml.getString("imageFormat", imageFormat));
+    //    }
+    //
+    //    @Override
+    //    public void saveToXML(XML xml) {
+    //        xml.addDelimitedElementList("targets", targets);
+    //        xml.addElement("targetDir", targetDir)
+    //                .setAttribute("structure", targetDirStructure)
+    //                .setAttribute("field", targetDirField);
+    //        xml.addElement("targetMetaField", targetMetaField);
+    //        xml.addElement("imageFormat", imageFormat);
+    //    }
 }

@@ -47,21 +47,21 @@ class JavaScriptProtocolURLTest {
         var secondPath = "/jsUrl/target";
 
         WebsiteMock.whenHtml(client, firstPath, """
-            <h1>Page with a Javascript URL</h1>
-            <a href="javascript:some_function('some_arg', 'another_arg');">
-              Must be skipped
-            </a>
-            <a href="javascript&#x3a;abcd_Comments&#x28;true&#x29;&#x3b;">
-              Must also be skipped
-            </a>
-            <a href="%s">Must be followed</a>
-            This page must be crawled (1 of 2)
-            """.formatted(secondPath));
+                <h1>Page with a Javascript URL</h1>
+                <a href="javascript:some_function('some_arg', 'another_arg');">
+                  Must be skipped
+                </a>
+                <a href="javascript&#x3a;abcd_Comments&#x28;true&#x29;&#x3b;">
+                  Must also be skipped
+                </a>
+                <a href="%s">Must be followed</a>
+                This page must be crawled (1 of 2)
+                """.formatted(secondPath));
 
         WebsiteMock.whenHtml(client, secondPath, """
-            <h1>Page with a Javascript URL</h1>
-            Page must be crawled (2 of 2)
-            """);
+                <h1>Page with a Javascript URL</h1>
+                Page must be crawled (2 of 2)
+                """);
 
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, firstPath)));
@@ -73,10 +73,11 @@ class JavaScriptProtocolURLTest {
         });
 
         assertThat(mem.getUpsertRequests())
-            .map(UpsertRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    serverUrl(client, firstPath),
-                    serverUrl(client, secondPath));
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, firstPath),
+                        serverUrl(client, secondPath)
+                );
 
         crawler.clean();
     }

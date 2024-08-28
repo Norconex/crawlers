@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ public final class CrawlDocMetadata {
     public static final String CHECKSUM_DOC =
             PREFIX + "checksum-doc";
 
-//    /**
-//     * A document ACL if ACL extraction is supported.
-//    //     */
-//    public static final String COLLECTOR_ACL = PREFIX + "acl";
+    //    /**
+    //     * A document ACL if ACL extraction is supported.
+    //    //     */
+    //    public static final String COLLECTOR_ACL = PREFIX + "acl";
 
     /**
      * Boolean flag indicating whether a document is new to the crawler that
@@ -58,5 +58,6 @@ public final class CrawlDocMetadata {
          */
     public static final String FETCHER = PREFIX + "fetcher";
 
-    private CrawlDocMetadata() {}
+    private CrawlDocMetadata() {
+    }
 }

@@ -82,8 +82,10 @@ public class HttpSnifferConfig {
     public Map<String, String> getRequestHeaders() {
         return requestHeaders;
     }
+
     public HttpSnifferConfig setRequestHeaders(
-            Map<String, String> requestHeaders) {
+            Map<String, String> requestHeaders
+    ) {
         this.requestHeaders.clear();
         this.requestHeaders.putAll(requestHeaders);
         return this;
@@ -98,6 +100,7 @@ public class HttpSnifferConfig {
     public ProxySettings getChainedProxy() {
         return chainedProxy;
     }
+
     /**
      * Sets chained proxy settings, if any. That is, when the sniffer proxy
      * has to itself use a proxy.

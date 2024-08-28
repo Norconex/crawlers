@@ -123,22 +123,27 @@ public class URLExtractorTransformer
         if (configuration.getFieldMatcher().isSet()) {
             extractMetadataURLs(urls, docCtx.metadata());
         } else {
-            extractContentURLs(urls, docCtx.input().asReader(
-                    configuration.getSourceCharset()));
+            extractContentURLs(
+                    urls, docCtx.input().asReader(
+                            configuration.getSourceCharset()
+                    )
+            );
         }
 
         if (!urls.isEmpty()) {
             PropertySetter.orAppend(configuration.getOnSet()).apply(
-                    docCtx.metadata(), configuration.getToField(), urls);
+                    docCtx.metadata(), configuration.getToField(), urls
+            );
         }
     }
 
     private void extractMetadataURLs(Set<String> urls, Properties meta) {
-        for (String text :
-                meta.matchKeys(configuration.getFieldMatcher()).valueList()) {
+        for (String text : meta.matchKeys(configuration.getFieldMatcher())
+                .valueList()) {
             extractURLs(urls, text);
         }
     }
+
     private void extractContentURLs(Set<String> urls, Reader reader)
             throws IOException {
         String text = null;

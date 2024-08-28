@@ -92,15 +92,17 @@ import lombok.ToString;
 @ToString
 public class GenericCanonicalLinkDetector
         implements CanonicalLinkDetector,
-            Configurable<GenericCanonicalLinkDetectorConfig> {
+        Configurable<GenericCanonicalLinkDetectorConfig> {
 
     private static final List<ContentType> DEFAULT_CONTENT_TYPES =
-            Collections.unmodifiableList(Arrays.asList(
-                ContentType.HTML,
-                ContentType.valueOf("application/xhtml+xml"),
-                ContentType.valueOf("vnd.wap.xhtml+xml"),
-                ContentType.valueOf("x-asp")
-            ));
+            Collections.unmodifiableList(
+                    Arrays.asList(
+                            ContentType.HTML,
+                            ContentType.valueOf("application/xhtml+xml"),
+                            ContentType.valueOf("vnd.wap.xhtml+xml"),
+                            ContentType.valueOf("x-asp")
+                    )
+            );
 
     private final GenericCanonicalLinkDetectorConfig configuration =
             new GenericCanonicalLinkDetectorConfig(DEFAULT_CONTENT_TYPES);
@@ -117,23 +119,32 @@ public class GenericCanonicalLinkDetector
             link = link.replaceAll("\\s+", " ");
             // There might be multiple "links" in the same Link string.
             // We process them all individually.
-            return Stream.of(StringUtils.split(link,  '<'))
-                .filter(lnk -> Pattern.compile(
-                        "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
-                        .matcher(lnk).find())
-                .findFirst()
-                .map(lnk -> Pattern.compile("^([^>]+)>").matcher(lnk))
-                .filter(Matcher::find)
-                .map(matcher -> toAbsolute(reference, matcher.group(1).trim()))
-                .orElse(null);
+            return Stream.of(StringUtils.split(link, '<'))
+                    .filter(
+                            lnk -> Pattern.compile(
+                                    "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1"
+                            )
+                                    .matcher(lnk).find()
+                    )
+                    .findFirst()
+                    .map(lnk -> Pattern.compile("^([^>]+)>").matcher(lnk))
+                    .filter(Matcher::find)
+                    .map(
+                            matcher -> toAbsolute(
+                                    reference,
+                                    matcher.group(1).trim()
+                            )
+                    )
+                    .orElse(null);
         }
         return null;
     }
 
     @Override
     public String detectFromContent(
-            String reference, InputStream is, ContentType contentType)
-                    throws IOException {
+            String reference, InputStream is, ContentType contentType
+    )
+            throws IOException {
         var cTypes = configuration.getContentTypes();
         if (cTypes.isEmpty()) {
             cTypes = DEFAULT_CONTENT_TYPES;
@@ -151,16 +162,19 @@ public class GenericCanonicalLinkDetector
                         .replaceAll("\\s+", " ");
                 // if we are past the HTML "head" section, we are done
                 if (EqualsUtil.equalsAnyIgnoreCase(
-                        tag.replaceFirst("^(\\w+)", "$1"), "body", "/head")) {
+                        tag.replaceFirst("^(\\w+)", "$1"), "body", "/head"
+                )) {
                     return null;
                 }
 
                 if (Pattern.compile(
-                        "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
-                                .matcher(tag).find()) {
+                        "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1"
+                )
+                        .matcher(tag).find()) {
                     var matcher = Pattern.compile(
-                            "(?i)\\bhref\\s?=\\s?([\"'])(.*?)\\s?\\1")
-                                    .matcher(tag);
+                            "(?i)\\bhref\\s?=\\s?([\"'])(.*?)\\s?\\1"
+                    )
+                            .matcher(tag);
                     if (matcher.find()) {
                         return toAbsolute(reference, matcher.group(2));
                     }
@@ -179,6 +193,7 @@ public class GenericCanonicalLinkDetector
         }
 
         return HttpURL.toAbsolute(
-                pageReference, StringEscapeUtils.unescapeHtml4(link));
+                pageReference, StringEscapeUtils.unescapeHtml4(link)
+        );
     }
 }

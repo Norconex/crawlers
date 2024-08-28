@@ -151,7 +151,8 @@ public class ScriptTransformer
         if (scriptRunner == null) {
             scriptRunner = new ScriptRunner<>(
                     configuration.getEngineName(),
-                    configuration.getScript());
+                    configuration.getScript()
+            );
         }
         return scriptRunner;
     }

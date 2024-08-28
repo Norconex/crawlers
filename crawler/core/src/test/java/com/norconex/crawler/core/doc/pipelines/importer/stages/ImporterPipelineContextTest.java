@@ -33,13 +33,15 @@ class ImporterPipelineContextTest {
     @Test
     void testImporterPipelineContext(@TempDir Path tempDir) {
         var doc = CrawlDocStubs.crawlDoc(
-                "ref", "content", "myfield", "somevalue");
+                "ref", "content", "myfield", "somevalue"
+        );
         var crawler = CrawlerStubs.memoryCrawler(tempDir);
         var ctx = new ImporterPipelineContext(crawler, doc);
 
         // metadata: disabled; document: enabled
         crawler.getConfiguration().setMetadataFetchSupport(
-                FetchDirectiveSupport.DISABLED);
+                FetchDirectiveSupport.DISABLED
+        );
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isFalse();
         assertThat(ctx.isFetchDirectiveEnabled(METADATA)).isFalse();
@@ -47,7 +49,8 @@ class ImporterPipelineContextTest {
 
         // metadata: enabled; document: enabled
         crawler.getConfiguration().setMetadataFetchSupport(
-                FetchDirectiveSupport.REQUIRED);
+                FetchDirectiveSupport.REQUIRED
+        );
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isTrue();
         assertThat(ctx.isFetchDirectiveEnabled(METADATA)).isTrue();

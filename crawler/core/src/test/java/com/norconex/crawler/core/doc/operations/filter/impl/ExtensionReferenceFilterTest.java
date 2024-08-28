@@ -34,45 +34,62 @@ class ExtensionReferenceFilterTest {
         var filter = initFilter(List.of("com", "xml"));
 
         Assertions.assertFalse(
-                filter.acceptReference("http://example.com"));
+                filter.acceptReference("http://example.com")
+        );
 
         Assertions.assertFalse(
-                filter.acceptReference("http://example.com/file"));
+                filter.acceptReference("http://example.com/file")
+        );
 
         Assertions.assertFalse(
-                filter.acceptReference("http://example.com/dir.com/file"));
+                filter.acceptReference("http://example.com/dir.com/file")
+        );
 
         Assertions.assertTrue(
-                filter.acceptReference("http://example.com/file.com"));
+                filter.acceptReference("http://example.com/file.com")
+        );
 
         Assertions.assertTrue(
-                filter.acceptReference("http://example.de/file.com"));
+                filter.acceptReference("http://example.de/file.com")
+        );
 
         Assertions.assertTrue(
-                filter.acceptReference("http://example.com/file.xml"));
+                filter.acceptReference("http://example.com/file.xml")
+        );
 
         Assertions.assertTrue(
-                filter.acceptReference("http://example.com/file.subtype.xml"));
+                filter.acceptReference("http://example.com/file.subtype.xml")
+        );
 
         Assertions.assertTrue(
-                filter.acceptReference("http://example.com/dir.com/file.com"));
+                filter.acceptReference("http://example.com/dir.com/file.com")
+        );
 
         Assertions.assertFalse(
-                filter.acceptReference("http://example.com/dir.com/file.pdf"));
+                filter.acceptReference("http://example.com/dir.com/file.pdf")
+        );
 
         Assertions.assertTrue(
-                filter.acceptReference("http://example.com/dir.pdf/file.com"));
+                filter.acceptReference("http://example.com/dir.pdf/file.com")
+        );
 
-        Assertions.assertTrue(filter.acceptReference(
-                "http://example.com/dir.pdf/file.com?param1=something.pdf"));
+        Assertions.assertTrue(
+                filter.acceptReference(
+                        "http://example.com/dir.pdf/file.com?param1=something.pdf"
+                )
+        );
 
-        Assertions.assertFalse(filter.acceptReference(
-                "http://example.com/dir.pdf/file.pdf?param1=something.com"));
+        Assertions.assertFalse(
+                filter.acceptReference(
+                        "http://example.com/dir.pdf/file.pdf?param1=something.com"
+                )
+        );
 
         Assertions.assertTrue(filter.acceptReference("C:\\example\\file.com"));
 
         Assertions.assertFalse(
-                filter.acceptReference("C:\\example\\dir.com\\file.pdf"));
+                filter.acceptReference("C:\\example\\dir.com\\file.pdf")
+        );
 
         Assertions.assertTrue(filter.acceptReference("/tmp/file.com"));
 
@@ -94,8 +111,8 @@ class ExtensionReferenceFilterTest {
         // true (record is accepted)
         f = new ExtensionReferenceFilter();
         f.getConfiguration()
-            .setExtensions(List.of("blah"))
-            .setOnMatch(OnMatch.EXCLUDE);
+                .setExtensions(List.of("blah"))
+                .setOnMatch(OnMatch.EXCLUDE);
         assertThat(f.acceptReference("")).isTrue();
     }
 
@@ -103,11 +120,19 @@ class ExtensionReferenceFilterTest {
     void testDocumentAndMetadata() {
         var f = new ExtensionReferenceFilter();
         f.getConfiguration()
-            .setExtensions(List.of("pdf"));
-        assertThat(f.acceptDocument(CrawlDocStubs.crawlDoc(
-                "http://example.com/test.pdf"))).isTrue();
-        assertThat(f.acceptMetadata(
-                "http://example.com/test.pdf", new Properties())).isTrue();
+                .setExtensions(List.of("pdf"));
+        assertThat(
+                f.acceptDocument(
+                        CrawlDocStubs.crawlDoc(
+                                "http://example.com/test.pdf"
+                        )
+                )
+        ).isTrue();
+        assertThat(
+                f.acceptMetadata(
+                        "http://example.com/test.pdf", new Properties()
+                )
+        ).isTrue();
     }
 
     private ExtensionReferenceFilter initFilter(List<String> extensions) {
@@ -120,10 +145,11 @@ class ExtensionReferenceFilterTest {
     void testWriteRead() {
         var f = new ExtensionReferenceFilter();
         f.getConfiguration()
-            .setIgnoreCase(true)
-            .setExtensions(List.of("com","pdf"))
-            .setOnMatch(OnMatch.EXCLUDE);
+                .setIgnoreCase(true)
+                .setExtensions(List.of("com", "pdf"))
+                .setOnMatch(OnMatch.EXCLUDE);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(f));
+                () -> BeanMapper.DEFAULT.assertWriteRead(f)
+        );
     }
 }
