@@ -39,11 +39,6 @@ jobs:
             .github/*.yml
             **/assembly/**
 
-      - name: check if last step output is empty
-        if: ${{ steps.modified-files.outputs.all_changed_files != '' }}
-        run: |
-          echo "I should not see this"
-
       - name: Find all changed files don't contain Copyright Info and add the info to it
         if: steps.check_dependabot.outputs.check == '0'
         run: |
