@@ -90,18 +90,14 @@ class SolrCommitterConfigTest {
                 var committer = BeanMapper.DEFAULT.read(
                         SolrCommitter.class, r, Format.XML
                 );
-                assertThat(
-                        committer
-                                .getConfiguration()
-                                .getUpdateUrlParam("param1")
-                )
-                        .contains("value1");
-                assertThat(
-                        committer
-                                .getConfiguration()
-                                .getUpdateUrlParamNames()
-                )
-                        .contains("param1", "param2");
+                assertThat(committer
+                        .getConfiguration()
+                        .getUpdateUrlParam("param1")
+                ).contains("value1");
+                assertThat(committer
+                        .getConfiguration()
+                        .getUpdateUrlParamNames()
+                ).contains("param1", "param2");
             }
         });
     }

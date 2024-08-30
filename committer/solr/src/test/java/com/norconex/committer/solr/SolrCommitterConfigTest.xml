@@ -19,9 +19,8 @@
 	<solrClientType>CloudSolrClient</solrClientType>
 	<solrURL>http://host/solr</solrURL>
 	<updateUrlParams>
-		<param1>value1</param1>
-		<param2>
-		</param2>
+		<param key="param1" value="value1"/>
+    <param key="param2"/>
 	</updateUrlParams>
 	<solrCommitDisabled>true</solrCommitDisabled>
 	<sourceIdField>sourceReferenceField</sourceIdField>
@@ -57,8 +56,8 @@
 		</restriction>
 	</restrictions>
 	<fieldMappings>
-		<whatever1>wherever1</whatever1>
-		<whatever2>wherever2</whatever2>
+		<mapping><source>whatever1</source><target>wherever1</target></mapping>
+		<mapping source="whatever2" target="wherever2"/>
 	</fieldMappings>
 	<queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
 		<batchSize>40</batchSize>

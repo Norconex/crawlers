@@ -57,10 +57,10 @@
 			</valueMatcher>
 		</restriction>
 	</restrictions>
-	<fieldMappings>
-		<whatever1>wherever1</whatever1>
-		<whatever2>wherever2</whatever2>
-	</fieldMappings>
+  <fieldMappings>
+    <mapping><source>whatever1</source><target>wherever1</target></mapping>
+    <mapping source="whatever2" target="wherever2"/>
+  </fieldMappings>
 	<queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
 		<batchSize>40</batchSize>
 		<maxPerFolder>10</maxPerFolder>

@@ -22,6 +22,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.batch.BaseBatchCommitterConfig;
+import com.norconex.commons.lang.bean.jackson.JsonXmlMap;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.time.DurationParser;
@@ -162,6 +163,7 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
      */
     private boolean solrCommitDisabled;
 
+    @JsonXmlMap(entryName = "param")
     private final Map<String, String> updateUrlParams = new HashMap<>();
     private final Credentials credentials = new Credentials();
 
