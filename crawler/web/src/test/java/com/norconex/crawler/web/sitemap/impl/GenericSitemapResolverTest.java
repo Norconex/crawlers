@@ -56,8 +56,7 @@ class GenericSitemapResolverTest {
         client
                 .when(
                         request()
-                                .withPath("/sitemap-index")
-                )
+                                .withPath("/sitemap-index"))
                 .respond(
                         response()
                                 .withBody(
@@ -74,43 +73,33 @@ class GenericSitemapResolverTest {
                                                 .formatted(
                                                         serverUrl(
                                                                 client,
-                                                                "sitemap"
-                                                        )
-                                                ),
-                                        MediaType.XML_UTF_8
-                                )
-                );
+                                                                "sitemap")),
+                                        MediaType.XML_UTF_8));
 
         client
                 .when(
                         request()
-                                .withPath("/sitemap")
-                )
+                                .withPath("/sitemap"))
                 .respond(
                         response()
                                 .withStatusCode(302)
                                 .withHeader(
                                         "Location",
-                                        serverUrl(client, "/sitemap-new")
-                                )
-                );
+                                        serverUrl(client, "/sitemap-new")));
 
         client
                 .when(
                         request()
-                                .withPath("/sitemap-new")
-                )
+                                .withPath("/sitemap-new"))
                 .respond(
                         response()
                                 .withHeader("Content-Encoding", "gzip")
                                 .withHeader(
                                         "Content-type",
-                                        "text/xml; charset=utf-8"
-                                )
+                                        "text/xml; charset=utf-8")
                                 .withBody(
-                                        compressSitemap(serverUrl(client, ""))
-                                )
-                );
+                                        compressSitemap(
+                                                serverUrl(client, ""))));
 
         List<String> urls = new ArrayList<>();
         var resolver = ((WebCrawlerConfig) crawler.getConfiguration())
@@ -121,13 +110,11 @@ class GenericSitemapResolverTest {
                         .fetcher((HttpFetcher) crawler.getFetcher())
                         .location(serverUrl(client, "sitemap-index"))
                         .urlConsumer(rec -> urls.add(rec.getReference()))
-                        .build()
-        );
+                        .build());
 
         assertThat(urls).containsExactly(
                 serverUrl(client, "/pageA.html"),
-                serverUrl(client, "/pageB.html")
-        );
+                serverUrl(client, "/pageB.html"));
     }
 
     private byte[] compressSitemap(String baseUrl) throws IOException {
@@ -148,8 +135,7 @@ class GenericSitemapResolverTest {
                 </urlset>
                 """.formatted(
                 baseUrl + "pageA.html",
-                baseUrl + "pageB.html"
-        )
+                baseUrl + "pageB.html")
                 .getBytes();
         var bos = new ByteArrayOutputStream(content.length);
         var gzip = new GZIPOutputStream(bos);
@@ -166,7 +152,6 @@ class GenericSitemapResolverTest {
         r.getConfiguration().setLenient(true);
         LOG.debug("Writing/Reading this: {}", r);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(r)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(r));
     }
 }

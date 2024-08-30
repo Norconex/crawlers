@@ -69,9 +69,7 @@ class WithCrawlerExtension implements
                 annot.config(), cfgStr -> BeanMapper.DEFAULT.read(
                         crawlerConfig,
                         new StringReader(cfgStr),
-                        BeanMapper.detectFormat(cfgStr)
-                )
-        );
+                        BeanMapper.detectFormat(cfgStr)));
 
         // apply config modifier from consumer
         if (annot.configModifier() != null) {
@@ -97,8 +95,7 @@ class WithCrawlerExtension implements
                             .builder()
                             .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
                             .source(crawler)
-                            .build()
-            );
+                            .build());
         }
     }
 
@@ -112,8 +109,7 @@ class WithCrawlerExtension implements
                         .builder()
                         .name(CrawlerEvent.CRAWLER_RUN_END)
                         .source(crawler)
-                        .build()
-        );
+                        .build());
 
         // if not already ended normally, stop it.
         if (crawler != null && !crawler.getState().isTerminatedProperly()) {
@@ -122,8 +118,7 @@ class WithCrawlerExtension implements
 
         // Clean up the temporary directory after each test
         var tempDir = (Path) context.getStore(
-                ExtensionContext.Namespace.GLOBAL
-        ).remove(TEMP_DIR_KEY);
+                ExtensionContext.Namespace.GLOBAL).remove(TEMP_DIR_KEY);
         if (tempDir != null) {
             Files.walk(tempDir)
                     // Delete files before directories
@@ -133,8 +128,7 @@ class WithCrawlerExtension implements
                             Files.delete(path);
                         } catch (IOException e) {
                             throw new RuntimeException(
-                                    "Failed to delete file: " + path, e
-                            );
+                                    "Failed to delete file: " + path, e);
                         }
                     });
         }
@@ -143,8 +137,7 @@ class WithCrawlerExtension implements
     @Override
     public boolean supportsParameter(
             ParameterContext parameterContext,
-            ExtensionContext extensionContext
-    )
+            ExtensionContext extensionContext)
             throws ParameterResolutionException {
 
         Class<?> parameterType = parameterContext.getParameter().getType();
@@ -156,8 +149,7 @@ class WithCrawlerExtension implements
     @Override
     public Object resolveParameter(
             ParameterContext parameterContext,
-            ExtensionContext extensionContext
-    )
+            ExtensionContext extensionContext)
             throws ParameterResolutionException {
 
         Class<?> parameterType = parameterContext.getParameter().getType();
@@ -173,25 +165,21 @@ class WithCrawlerExtension implements
         // Temp dir.
         if (Path.class.isAssignableFrom(parameterType)) {
             return extensionContext.getStore(
-                    ExtensionContext.Namespace.GLOBAL
-            ).remove(TEMP_DIR_KEY);
+                    ExtensionContext.Namespace.GLOBAL).remove(TEMP_DIR_KEY);
         }
 
         throw new IllegalArgumentException(
-                "Unsupported parameter type: " + parameterType
-        );
+                "Unsupported parameter type: " + parameterType);
     }
 
     private Optional<Crawler> crawler(ExtensionContext extensionContext) {
         return ofNullable(
                 (Crawler) extensionContext
-                        .getStore(GLOBAL).get(CRAWLER_KEY)
-        );
+                        .getStore(GLOBAL).get(CRAWLER_KEY));
     }
 
     private Optional<MemoryCommitter> firstCommitter(
-            ExtensionContext extensionContext
-    ) {
+            ExtensionContext extensionContext) {
         return crawler(extensionContext)
                 .map(crwl -> crwl.getConfiguration().getCommitters())
                 .filter(cmtrs -> !cmtrs.isEmpty())
@@ -200,8 +188,7 @@ class WithCrawlerExtension implements
     }
 
     private <T extends Annotation> T getAnnotation(
-            ExtensionContext context, Class<T> annotClass
-    ) {
+            ExtensionContext context, Class<T> annotClass) {
         // Check for annotation on the test method
         var testMethod = context.getRequiredTestMethod();
         if (testMethod.isAnnotationPresent(annotClass)) {

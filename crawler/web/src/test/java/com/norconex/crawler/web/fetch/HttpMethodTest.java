@@ -26,14 +26,10 @@ class HttpMethodTest {
         assertThat(HttpMethod.GET.is(HttpMethod.HEAD)).isFalse();
         assertThat(
                 HttpMethod.POST.isAny(
-                        HttpMethod.POST, HttpMethod.HEAD
-                )
-        ).isTrue();
+                        HttpMethod.POST, HttpMethod.HEAD)).isTrue();
         assertThat(
                 HttpMethod.POST.isAny(
-                        HttpMethod.GET, HttpMethod.HEAD
-                )
-        ).isFalse();
+                        HttpMethod.GET, HttpMethod.HEAD)).isFalse();
         assertThat(HttpMethod.POST.isAny()).isFalse();
     }
 }

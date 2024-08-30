@@ -55,8 +55,7 @@ class FeaturedImageProcessorTest {
 
     @WithCrawlerTest
     void testProcessFeaturedImage(
-            ClientAndServer client, Crawler crawler
-    )
+            ClientAndServer client, Crawler crawler)
             throws IOException {
         WebsiteMock.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
         WebsiteMock.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);
@@ -82,18 +81,15 @@ class FeaturedImageProcessorTest {
                 CrawlerEvent.builder()
                         .name("test")
                         .source(crawler)
-                        .build()
-        );
+                        .build());
 
         // biggest
         var doc = newDoc(docUrl);
         fip.accept(fetcher, doc);
         var img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path"))
-        );
+                Paths.get(doc.getMetadata().getString("image-path")));
         assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
-                baseUrl + "/640x480.png"
-        );
+                baseUrl + "/640x480.png");
         assertThat(img.getDimension()).isEqualTo(new Dimension(640, 480));
 
         // first over 200x200, scaled 50% down
@@ -104,11 +100,9 @@ class FeaturedImageProcessorTest {
                 .setScaleDimensions(new Dimension(160, 160));
         fip.accept(fetcher, doc);
         assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
-                baseUrl + "/page/320x240.png"
-        );
+                baseUrl + "/page/320x240.png");
         img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path"))
-        );
+                Paths.get(doc.getMetadata().getString("image-path")));
         assertThat(img.getDimension()).isEqualTo(new Dimension(160, 120));
 
         // Can fail due to cache... set to memory when testing
@@ -122,8 +116,7 @@ class FeaturedImageProcessorTest {
                 .setScaleDimensions(null);
         fip.accept(fetcher, doc);
         img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path"))
-        );
+                Paths.get(doc.getMetadata().getString("image-path")));
         assertThat(img.getDimension()).isEqualTo(new Dimension(5, 5));
     }
 
@@ -151,8 +144,7 @@ class FeaturedImageProcessorTest {
                 .setStorageUrlField("urlField");
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(p)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(p));
 
         //TODO migrate this:
 
@@ -188,7 +180,6 @@ class FeaturedImageProcessorTest {
     private CrawlDoc newDoc(String docUrl) {
         return CrawlDocStubs.crawlDoc(
                 docUrl,
-                ContentType.HTML, ResourceLoader.getHtmlStream(getClass())
-        );
+                ContentType.HTML, ResourceLoader.getHtmlStream(getClass()));
     }
 }

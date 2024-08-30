@@ -73,8 +73,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             LOG.debug(
                     "Skipping resolution of sitemap "
                             + "location (stop requested): {}",
-                    location
-            );
+                    location);
             return;
         }
         doResolve(ctx, new HashSet<>());
@@ -101,9 +100,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             if (statusCode == HttpStatus.SC_OK) {
                 childSitemaps.addAll(
                         processFetchedSitemap(
-                                ctx, sitemapRec, sitemapDoc
-                        )
-                );
+                                ctx, sitemapRec, sitemapDoc));
                 LOG.info("         Resolved: {}", location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 LOG.debug("Sitemap not found : {}", location);
@@ -111,14 +108,12 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
                 LOG.error(
                         "Could not obtain sitemap: {}. Expected status "
                                 + "code {}, but got {}.",
-                        location, HttpStatus.SC_OK, statusCode
-                );
+                        location, HttpStatus.SC_OK, statusCode);
             }
         } catch (Exception e) {
             LOG.error(
                     "Cannot fetch sitemap: {} ({})",
-                    location, e.getMessage(), e
-            );
+                    location, e.getMessage(), e);
         } finally {
             if (sitemapRec != null) {
                 sitemapStore.save(location, sitemapRec);
@@ -128,16 +123,14 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             } catch (IOException e) {
                 LOG.error(
                         "Could not dispose of sitemap file for: {}",
-                        location, e
-                );
+                        location, e);
             }
         }
 
         for (SitemapRecord child : childSitemaps) {
             if (!resolvedIndices.contains(child.getLocation())) {
                 doResolve(
-                        ctx.withLocation(child.getLocation()), resolvedIndices
-                );
+                        ctx.withLocation(child.getLocation()), resolvedIndices);
             } else {
                 LOG.debug("Sitemap already processed: {}", child.getLocation());
             }
@@ -145,8 +138,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     }
 
     private List<SitemapRecord> processFetchedSitemap(
-            SitemapContext ctx, SitemapRecord sitemapRec, CrawlDoc sitemapDoc
-    )
+            SitemapContext ctx, SitemapRecord sitemapRec, CrawlDoc sitemapDoc)
             throws IOException {
         var location = sitemapDoc.getReference();
         var cachedRec = sitemapStore.find(location).orElse(null);
@@ -170,16 +162,14 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     // Follow redirects
     private HttpFetchResponse httpGet(
             HttpFetcher fetcher,
-            CrawlDoc doc
-    ) throws IOException {
+            CrawlDoc doc) throws IOException {
         return httpGet(fetcher, doc, 0);
     }
 
     private HttpFetchResponse httpGet(
             HttpFetcher fetcher,
             CrawlDoc doc,
-            int loop
-    ) throws IOException {
+            int loop) throws IOException {
 
         var location = doc.getReference();
         var response = fetcher.fetch(new HttpFetchRequest(doc, HttpMethod.GET));
@@ -190,8 +180,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
                 LOG.error(
                         "Sitemap redirect loop detected. "
                                 + "Last redirect: {} --> {}",
-                        location, redirectUrl
-                );
+                        location, redirectUrl);
                 return response;
             }
             LOG.info("         Redirect: {} --> {}", location, redirectUrl);
@@ -216,8 +205,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     protected void onCrawlerRunBegin(CrawlerEvent event) {
         sitemapStore = event.getSource()
                 .getDataStoreEngine().openStore(
-                        SITEMAP_STORE_NAME, SitemapRecord.class
-                );
+                        SITEMAP_STORE_NAME, SitemapRecord.class);
     }
 
     @Override

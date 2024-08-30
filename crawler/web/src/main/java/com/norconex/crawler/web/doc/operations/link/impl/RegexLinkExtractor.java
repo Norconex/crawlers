@@ -135,8 +135,7 @@ public class RegexLinkExtractor
 
         if (!getConfiguration().getRestrictions().isEmpty()
                 && !getConfiguration().getRestrictions().matches(
-                        doc.getMetadata()
-                )) {
+                        doc.getMetadata())) {
             return Collections.emptySet();
         }
 
@@ -148,16 +147,13 @@ public class RegexLinkExtractor
                     .forEach(
                             val -> extractLinks(
                                     links, val,
-                                    doc.getReference()
-                            )
-                    );
+                                    doc.getReference()));
         } else {
             // Body
             var sb = new StringBuilder();
             int ch;
             try (var reader = new TextReader(
-                    new InputStreamReader(doc.getInputStream())
-            )) {
+                    new InputStreamReader(doc.getInputStream()))) {
                 while ((ch = reader.read()) != -1) {
                     sb.append((char) ch);
                     if (sb.length() >= MAX_BUFFER_SIZE) {
@@ -175,8 +171,7 @@ public class RegexLinkExtractor
     }
 
     private void extractLinks(
-            Set<Link> links, String content, String referrer
-    ) {
+            Set<Link> links, String content, String referrer) {
         configuration.getPatterns().forEach(p -> {
             var pattern = p.getMatch();
             var repl = p.getReplace();

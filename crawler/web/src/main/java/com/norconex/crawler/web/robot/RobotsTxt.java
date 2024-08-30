@@ -45,11 +45,9 @@ public class RobotsTxt {
     RobotsTxt(
             @Singular List<RobotsTxtFilter> filters,
             @Singular List<String> sitemapLocations,
-            float crawlDelay
-    ) {
+            float crawlDelay) {
         this.sitemapLocations = Collections.unmodifiableList(
-                ListUtils.emptyIfNull(sitemapLocations)
-        );
+                ListUtils.emptyIfNull(sitemapLocations));
         this.crawlDelay = crawlDelay;
 
         List<RobotsTxtFilter> disallows = new ArrayList<>();

@@ -235,9 +235,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
 
     private final List<HttpMethod> httpMethods = new ArrayList<>(
             Arrays.asList(
-                    HttpMethod.GET, HttpMethod.HEAD
-            )
-    );
+                    HttpMethod.GET, HttpMethod.HEAD));
 
     // Security settings
 
@@ -284,8 +282,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param validStatusCodes valid status codes
      */
     public GenericHttpFetcherConfig setValidStatusCodes(
-            List<Integer> validStatusCodes
-    ) {
+            List<Integer> validStatusCodes) {
         CollectionUtil.setAll(this.validStatusCodes, validStatusCodes);
         return this;
     }
@@ -304,8 +301,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param notFoundStatusCodes "Not found" codes
      */
     public final GenericHttpFetcherConfig setNotFoundStatusCodes(
-            List<Integer> notFoundStatusCodes
-    ) {
+            List<Integer> notFoundStatusCodes) {
         CollectionUtil.setAll(this.notFoundStatusCodes, notFoundStatusCodes);
         return this;
     }
@@ -318,8 +314,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param value HTTP request header value
      */
     public GenericHttpFetcherConfig setRequestHeader(
-            String name, String value
-    ) {
+            String name, String value) {
         requestHeaders.put(name, value);
         return this;
     }
@@ -331,8 +326,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param headers map of header names and values
      */
     public GenericHttpFetcherConfig setRequestHeaders(
-            Map<String, String> headers
-    ) {
+            Map<String, String> headers) {
         CollectionUtil.setAll(requestHeaders, headers);
         return this;
     }
@@ -357,8 +351,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     @JsonIgnore
     public List<String> getRequestHeaderNames() {
         return Collections.unmodifiableList(
-                new ArrayList<>(requestHeaders.keySet())
-        );
+                new ArrayList<>(requestHeaders.keySet()));
     }
 
     /**
@@ -397,8 +390,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param sslProtocols SSL/TLS protocols supported
      */
     public GenericHttpFetcherConfig setSslProtocols(
-            List<String> sslProtocols
-    ) {
+            List<String> sslProtocols) {
         CollectionUtil.setAll(this.sslProtocols, sslProtocols);
         return this;
     }
@@ -418,8 +410,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * @param httpMethods HTTP methods
      */
     public GenericHttpFetcherConfig setHttpMethods(
-            List<HttpMethod> httpMethods
-    ) {
+            List<HttpMethod> httpMethods) {
         CollectionUtil.setAll(this.httpMethods, httpMethods);
         return this;
     }

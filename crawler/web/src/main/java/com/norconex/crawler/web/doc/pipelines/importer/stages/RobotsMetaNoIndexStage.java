@@ -38,8 +38,7 @@ public class RobotsMetaNoIndexStage extends AbstractImporterStage {
                             .source(ctx.getCrawler())
                             .subject(ctx.getRobotsMeta())
                             .docContext(ctx.getDoc().getDocContext())
-                            .build()
-            );
+                            .build());
             ctx.getDoc().getDocContext().setState(CrawlDocState.REJECTED);
             return false;
         }

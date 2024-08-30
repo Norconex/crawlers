@@ -102,14 +102,12 @@ public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
     private long waitForElementTimeout;
 
     public Map<String, String> getCapabilities(
-            Map<String, String> capabilities
-    ) {
+            Map<String, String> capabilities) {
         return Collections.unmodifiableMap(capabilities);
     }
 
     public WebDriverHttpFetcherConfig setCapabilities(
-            Map<String, String> capabilities
-    ) {
+            Map<String, String> capabilities) {
         CollectionUtil.setAll(this.capabilities, capabilities);
         return this;
     }

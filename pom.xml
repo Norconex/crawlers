@@ -620,9 +620,11 @@
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>${maven-javadoc-plugin.version}</version>
           <configuration>
-            <reportOutputDirectory>${project.build.directory}/site</reportOutputDirectory>
-            <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
-            <stylesheetfile>${project.build.directory}/site/apidocs/norconex-javadoc.css</stylesheetfile>
+            <reportOutputDirectory>${project.build.directory}/apidocs</reportOutputDirectory>
+            <outputDirectory>${project.build.directory}/apidocs</outputDirectory>
+            <!--
+            <stylesheetfile>${project.build.directory}/apidocs/norconex-javadoc.css</stylesheetfile>
+            -->
             
             <!-- Until Lombok fixes JavaDoc generation with @SuperBuilder:
                  https://github.com/projectlombok/lombok/issues/3147 -->
@@ -641,6 +643,7 @@
               TODO: check if we still need to run scripts in our JavaDoc
               and/or if those flags are still needed/supported by Java 17+. 
               -->
+            <!--
             <additionalJOptions>
               <additionalJOption>&#45;&#45;allow-script-in-comments</additionalJOption>
               <additionalJOption>-J-Dbasedir=${basedir}</additionalJOption>
@@ -671,6 +674,7 @@
               <script src="{@docRoot}/norconex-javadoc.js" type="text/javascript"></script>
             ]]>
             </footer>
+            -->
             <show>protected</show>
             <nodeprecated>false</nodeprecated>
             <source>${maven.compiler.source}</source>
@@ -709,7 +713,10 @@
             <!-- For IncludeTaglet to work on external source files, the 
                  "-sources.jar" artifact must be present in local Maven 
                  repository or needs to be explicitly added as a JavaDoc
-                 additional dependency. 
+                 additional dependency.
+                 
+                 Do we still need those taglets?
+                  
                  -->
             <taglets>
               <taglet><tagletClass>com.norconex.commons.lang.javadoc.IncludeTaglet</tagletClass></taglet>

@@ -282,21 +282,17 @@ public class DomLinkExtractorConfig {
     }
 
     public DomLinkExtractorConfig addLinkSelector(
-            String selector, String extract
-    ) {
+            String selector, String extract) {
         linkSelectors.add(
                 new LinkSelector(
                         trim(selector),
-                        isBlank(extract) ? "text" : trim(extract)
-                )
-        );
+                        isBlank(extract) ? "text" : trim(extract)));
         return this;
     }
 
     public DomLinkExtractorConfig removeLinkSelector(String selector) {
         linkSelectors.removeIf(
-                ls -> Objects.equals(ls.getSelector(), trim(selector))
-        );
+                ls -> Objects.equals(ls.getSelector(), trim(selector)));
         return this;
     }
 
@@ -324,15 +320,13 @@ public class DomLinkExtractorConfig {
     }
 
     public DomLinkExtractorConfig setNoExtractSelectors(
-            List<String> selectors
-    ) {
+            List<String> selectors) {
         CollectionUtil.setAll(noExtractSelectors, selectors);
         return this;
     }
 
     public DomLinkExtractorConfig addNoExtractSelectors(
-            List<String> selectors
-    ) {
+            List<String> selectors) {
         noExtractSelectors.addAll(selectors);
         return this;
     }

@@ -62,8 +62,7 @@ public final class CrawlerConfigStubs {
      */
     public static WebCrawlerConfig randomMemoryCrawlerConfig(Path workDir) {
         var cfg = (WebCrawlerConfig) WebTestUtil.randomize(
-                WebCrawlerConfig.class
-        )
+                WebCrawlerConfig.class)
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
@@ -75,8 +74,7 @@ public final class CrawlerConfigStubs {
 
     public static Path writeConfigToDir(
             Path workDir,
-            @NonNull Consumer<WebCrawlerConfig> c
-    ) {
+            @NonNull Consumer<WebCrawlerConfig> c) {
         var config = memoryCrawlerConfig(workDir);
         c.accept(config);
         var file = config

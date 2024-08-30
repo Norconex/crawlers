@@ -50,7 +50,6 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.text.StringUtil;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -76,78 +75,16 @@ import lombok.extern.slf4j.Slf4j;
  * on its "id" field. In addition, certain characters are not allowed.
  * By default, an error will result from trying to submit
  * documents with an invalid ID. You can get around this by
- * setting {@link #setFixBadIds(boolean)} to <code>true</code>.  It will
+ * setting {@link AmazonCloudSearchCommitterConfig#setFixBadIds(boolean)}
+ * to <code>true</code>.  It will
  * truncate references that are too long and append a hash code to it
  * to keep uniqueness.  It will also convert invalid
  * characters to underscore.  This approach is not 100%
  * collision-free (uniqueness), but it should safely cover the vast
  * majority of cases.
  * </p>
- *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.cloudsearch.CloudSearchCommitter">
- *
- *   <!-- Mandatory: -->
- *   <serviceEndpoint>(CloudSearch service endpoint)</serviceEndpoint>
- *
- *   <!-- Mandatory if not configured elsewhere: -->
- *   <accessKey>
- *     (Optional CloudSearch access key. Will be taken from environment
- *      when blank.)
- *   </accessKey>
- *   <secretKey>
- *     (Optional CloudSearch secret key. Will be taken from environment
- *      when blank.)
- *   </secretKey>
- *
- *   <!-- Optional settings: -->
- *   <fixBadIds>
- *     [false|true](Forces references to fit into a CloudSearch id field.)
- *   </fixBadIds>
- *   <signingRegion>(CloudSearch signing region)</signingRegion>
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
- *   </proxySettings>
- *
- *   <sourceIdField>
- *     (Optional document field name containing the value that will be stored
- *     in CloudSearch "id" field. Default is the document reference.)
- *   </sourceIdField>
- *   <targetContentField>
- *     (Optional CloudSearch field name to store the document
- *     content/body. Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.cloudsearch.CloudSearchCommitter">
- *   <serviceEndpoint>search-example-xyz.some-region.cloudsearch.amazonaws.com</serviceEndpoint>
- * </committer>
- * }
- *
- * <p>
- * The above example uses the minimum required settings (relying on environment
- * variables for AWS keys).
- * </p>
- *
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @Slf4j

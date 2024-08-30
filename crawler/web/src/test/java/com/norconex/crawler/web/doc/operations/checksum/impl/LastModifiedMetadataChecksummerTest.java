@@ -38,8 +38,6 @@ class LastModifiedMetadataChecksummerTest {
         assertThatNoException()
                 .isThrownBy(
                         () -> BeanMapper.DEFAULT.assertWriteRead(
-                                new LastModifiedMetadataChecksummer()
-                        )
-                );
+                                new LastModifiedMetadataChecksummer()));
     }
 }

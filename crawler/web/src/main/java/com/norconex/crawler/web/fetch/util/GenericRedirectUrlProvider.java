@@ -112,11 +112,9 @@ public class GenericRedirectUrlProvider
     @Override
     public String provideRedirectURL(
             HttpRequest request,
-            HttpResponse response, HttpContext context
-    ) {
+            HttpResponse response, HttpContext context) {
         var currentReq = (HttpRequest) context.getAttribute(
-                HttpCoreContext.HTTP_REQUEST
-        );
+                HttpCoreContext.HTTP_REQUEST);
         String originalURL = null;
         try {
             originalURL = currentReq.getUri().toString();
@@ -131,8 +129,7 @@ public class GenericRedirectUrlProvider
             //TODO should throw exception instead?
             LOG.error(
                     "Redirect detected to a null Location for: {}",
-                    originalURL
-            );
+                    originalURL);
             return null;
         }
         var redirectLocation = hl.getValue();
@@ -144,8 +141,7 @@ public class GenericRedirectUrlProvider
             var contentType = hc.getValue();
             if (contentType.contains(";")) {
                 charset = StringUtils.substringAfterLast(
-                        contentType, "charset="
-                );
+                        contentType, "charset=");
             }
         }
         if (StringUtils.isBlank(charset)) {
@@ -164,8 +160,7 @@ public class GenericRedirectUrlProvider
 
     //TODO is there value in moving this method to somewhere re-usable?
     private String resolveRedirectURL(
-            final String redirectURL, final String nonAsciiCharset
-    ) {
+            final String redirectURL, final String nonAsciiCharset) {
 
         var url = redirectURL;
 
@@ -198,8 +193,7 @@ public class GenericRedirectUrlProvider
                     LOG.warn(
                             "Could not fix badly encoded URL with charset "
                                     + "\"{}\". Redirect URL: {}",
-                            charset, redirectURL, e
-                    );
+                            charset, redirectURL, e);
                 }
             }
         }

@@ -15,6 +15,7 @@
 package com.norconex.committer.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
@@ -33,24 +35,12 @@ class AbstractCommitterTest {
         try (var c = new MemoryCommitter()) {
             var cfg = c.getConfiguration()
                     .addRestriction(
-                            new PropertyMatcher(TextMatcher.basic("blah1"))
-                    )
-                    .addRestrictions(
-                            Arrays.asList(
-                                    new PropertyMatcher(
-                                            TextMatcher.basic("blah2")
-                                    ),
-                                    new PropertyMatcher(
-                                            TextMatcher.basic("blah3")
-                                    ),
-                                    new PropertyMatcher(
-                                            TextMatcher.basic("yo1")
-                                    ),
-                                    new PropertyMatcher(
-                                            TextMatcher.basic("yo2")
-                                    )
-                            )
-                    );
+                            new PropertyMatcher(TextMatcher.basic("blah1")))
+                    .addRestrictions(Arrays.asList(
+                            new PropertyMatcher(TextMatcher.basic("blah2")),
+                            new PropertyMatcher(TextMatcher.basic("blah3")),
+                            new PropertyMatcher(TextMatcher.basic("yo1")),
+                            new PropertyMatcher(TextMatcher.basic("yo2"))));
 
             assertThat((List<?>) cfg.getRestrictions()).hasSize(5);
 
@@ -58,8 +48,7 @@ class AbstractCommitterTest {
             assertThat((List<?>) cfg.getRestrictions()).hasSize(4);
 
             cfg.removeRestriction(
-                    new PropertyMatcher(TextMatcher.basic("blah3"))
-            );
+                    new PropertyMatcher(TextMatcher.basic("blah3")));
             assertThat((List<?>) cfg.getRestrictions()).hasSize(3);
 
             cfg.clearRestrictions();
@@ -68,25 +57,14 @@ class AbstractCommitterTest {
             // test accept
             cfg.addRestriction(
                     new PropertyMatcher(
-                            TextMatcher.basic("field"), TextMatcher.basic("yes")
-                    )
-            );
+                            TextMatcher.basic("field"),
+                            TextMatcher.basic("yes")));
             c.init(CommitterContext.builder().build());
 
-            assertThat(
-                    c.accept(
-                            TestUtil.upsertRequest(
-                                    "ref", "content", "field", "yes"
-                            )
-                    )
-            ).isTrue();
-            assertThat(
-                    c.accept(
-                            TestUtil.upsertRequest(
-                                    "ref", "content", "field", "no"
-                            )
-                    )
-            ).isFalse();
+            assertThat(c.accept(TestUtil.upsertRequest(
+                    "ref", "content", "field", "yes"))).isTrue();
+            assertThat(c.accept(TestUtil.upsertRequest(
+                    "ref", "content", "field", "no"))).isFalse();
         }
     }
 
@@ -99,9 +77,7 @@ class AbstractCommitterTest {
                             MapUtil.toMap(
                                     "fromField2", "toField2",
                                     "fromField3", "toField3",
-                                    "fromField4", "toField4"
-                            )
-                    );
+                                    "fromField4", "toField4"));
             assertThat(cfg.getFieldMappings()).hasSize(4);
 
             cfg.removeFieldMapping("fromField2");
@@ -115,27 +91,36 @@ class AbstractCommitterTest {
             cfg.setFieldMapping("fromFieldB", "toFieldB");
             c.init(CommitterContext.builder().build());
 
-            c.upsert(
-                    TestUtil.upsertRequest(
-                            "refA", "content", "fromFieldA", "valueA"
-                    )
-            );
-            c.delete(
-                    TestUtil.deleteRequest(
-                            "refB", "fromFieldB", "valueB"
-                    )
-            );
+            c.upsert(TestUtil.upsertRequest(
+                    "refA", "content", "fromFieldA", "valueA"));
+            c.delete(TestUtil.deleteRequest(
+                    "refB", "fromFieldB", "valueB"));
 
-            assertThat(
-                    c.getUpsertRequests().get(0).getMetadata().getString(
-                            "toFieldA"
-                    )
-            ).isEqualTo("valueA");
-            assertThat(
-                    c.getDeleteRequests().get(0).getMetadata().getString(
-                            "toFieldB"
-                    )
-            ).isEqualTo("valueB");
+            assertThat(c.getUpsertRequests().get(0).getMetadata().getString(
+                    "toFieldA")).isEqualTo("valueA");
+            assertThat(c.getDeleteRequests().get(0).getMetadata().getString(
+                    "toFieldB")).isEqualTo("valueB");
         }
+
+    }
+    @Test
+    void testWriteRead() {
+        var committer = new MemoryCommitter();
+        committer.getConfiguration()
+                .setFieldMapping("fromField1", "toField1")
+                .setFieldMappings(
+                        MapUtil.toMap(
+                                "fromField2", "toField2",
+                                "fromField3", "toField3",
+                                "fromField4", "toField4"))
+                .addRestriction(
+                        new PropertyMatcher(TextMatcher.basic("blah1")))
+                .addRestrictions(Arrays.asList(
+                        new PropertyMatcher(TextMatcher.basic("blah2")),
+                        new PropertyMatcher(TextMatcher.basic("blah3")),
+                        new PropertyMatcher(TextMatcher.basic("yo1")),
+                        new PropertyMatcher(TextMatcher.basic("yo2"))));
+        assertThatNoException().isThrownBy(() ->
+        BeanMapper.DEFAULT.assertWriteRead(committer));
     }
 }

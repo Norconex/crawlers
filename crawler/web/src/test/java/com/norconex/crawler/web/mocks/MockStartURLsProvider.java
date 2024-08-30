@@ -31,7 +31,6 @@ public class MockStartURLsProvider implements ReferencesProvider {
         return new ObjectArrayIterator<>(
                 "http://www.provided1.com",
                 "http://www.provided2.com",
-                "http://www.provided3.com"
-        );
+                "http://www.provided3.com");
     }
 }

@@ -102,8 +102,7 @@ public class XmlFeedLinkExtractor
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString()
-        )) {
+                doc.getDocContext().getContentType().toString())) {
             return Set.of();
         }
 
@@ -123,15 +122,13 @@ public class XmlFeedLinkExtractor
             extractFeedLinks(
                     links,
                     new InputStreamReader(doc.getInputStream()),
-                    doc.getReference()
-            );
+                    doc.getReference());
         }
         return links;
     }
 
     private void extractFeedLinks(
-            Set<Link> links, Reader reader, String referrerUrl
-    )
+            Set<Link> links, Reader reader, String referrerUrl)
             throws IOException {
         try (reader) {
             var xmlReader = XMLUtil.createXMLReader();
@@ -141,8 +138,7 @@ public class XmlFeedLinkExtractor
             xmlReader.parse(new InputSource(reader));
         } catch (SAXException e) {
             throw new CrawlerException(
-                    "Could not parse XML Feed: " + referrerUrl, e
-            );
+                    "Could not parse XML Feed: " + referrerUrl, e);
         }
     }
 
@@ -160,8 +156,7 @@ public class XmlFeedLinkExtractor
         @Override
         public void startElement(
                 String uri, String localName, String qName,
-                Attributes attributes
-        ) throws SAXException {
+                Attributes attributes) throws SAXException {
             if ("link".equalsIgnoreCase(localName)) {
                 isInLink = true;
                 var href = attributes.getValue("href");
@@ -175,8 +170,7 @@ public class XmlFeedLinkExtractor
 
         @Override
         public void characters(
-                char[] chars, int start, int len
-        ) throws SAXException {
+                char[] chars, int start, int len) throws SAXException {
             if (isInLink && len > 0) {
                 stringLink = stringLink + new String(chars, start, len);
 

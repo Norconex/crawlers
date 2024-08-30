@@ -46,8 +46,7 @@ public final class Web {
     public static void fireIfUrlOutOfScope(
             Crawler crawler,
             WebCrawlDocContext docContext,
-            UrlScope urlScope
-    ) {
+            UrlScope urlScope) {
         if (!urlScope.isInScope()) {
             crawler.fire(
                     CrawlerEvent
@@ -57,8 +56,7 @@ public final class Web {
                             .subject(Web.config(crawler).getUrlScopeResolver())
                             .docContext(docContext)
                             .message(urlScope.outOfScopeReason())
-                            .build()
-            );
+                            .build());
         }
     }
 
@@ -110,8 +108,7 @@ public final class Web {
     //TODO could probably move this where needed since generically,
     // we would get the fetcher wrapper directly from crawler.
     public static List<HttpFetcher> toHttpFetcher(
-            @NonNull Collection<Fetcher<?, ?>> fetchers
-    ) {
+            @NonNull Collection<Fetcher<?, ?>> fetchers) {
         return fetchers.stream()
                 .map(HttpFetcher.class::cast)
                 .toList();
@@ -126,8 +123,7 @@ public final class Web {
     }
 
     public static WebCrawlDocContext cachedDocContext(
-            @NonNull CrawlDoc crawlDoc
-    ) {
+            @NonNull CrawlDoc crawlDoc) {
         return (WebCrawlDocContext) crawlDoc.getCachedDocContext();
     }
 
@@ -137,9 +133,7 @@ public final class Web {
                 .map(
                         rb -> rb.getRobotsTxt(
                                 (HttpFetcher) crawler.getFetcher(),
-                                reference
-                        )
-                )
+                                reference))
                 .orElse(null);
     }
 
@@ -150,8 +144,7 @@ public final class Web {
             return wholeStr;
         }
         return wholeStr.replaceAll(
-                "\\s*(" + Pattern.quote(subStr) + ")\\s*", "$1"
-        );
+                "\\s*(" + Pattern.quote(subStr) + ")\\s*", "$1");
     }
 
     public static String trimBeforeSubString(String wholeStr, String subStr) {
@@ -201,8 +194,7 @@ public final class Web {
      * @return attributes (never <code>null</code>)
      */
     public static Properties parseDomAttributes(
-            String attribsStr, boolean caseInsensitive
-    ) {
+            String attribsStr, boolean caseInsensitive) {
         var props = new Properties(caseInsensitive);
         if (StringUtils.isBlank(attribsStr)) {
             return props;
@@ -216,14 +208,12 @@ public final class Web {
                         .replaceAll("\\s+", " ")
                         .replace(" =", "=")
                         .replace("= ", "="),
-                props
-        );
+                props);
         return props;
     }
 
     private static void doParseDomAttributes(
-            String attribsStr, Properties attribs
-    ) {
+            String attribsStr, Properties attribs) {
         var m = Pattern.compile("^([\\w-]+)=(.+)")
                 .matcher(attribsStr.trim());
         if (m.find()) {
@@ -235,8 +225,7 @@ public final class Web {
                             // no quotes
                             ? "^.*?=(.+?)(\\s|>|$)"
                             // with quotes
-                            : "^.*?=%1$s(.*?)%1$s".formatted(quote)
-            )
+                            : "^.*?=%1$s(.*?)%1$s".formatted(quote))
                     .matcher(attribsStr);
             if (m.find()) {
                 var value = m.group(1);

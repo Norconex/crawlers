@@ -12,24 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core;
+package com.norconex.crawler.web.doc.operations.delay.impl;
 
-import com.norconex.crawler.core.CrawlerCommandExecuter.CommandExecution;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
-/**
- * Provides access to class/methods normally hidden, for testing.
- */
-public final class CrawlerCoreTestUtil {
-
-    private CrawlerCoreTestUtil() {
-    }
-
-    public static void initCrawler(Crawler crawler) {
-        CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
-    }
-
-    public static void destroyCrawler(Crawler crawler) {
-        CrawlerCommandExecuter.orderlyShutdown(
-                new CommandExecution(crawler, "TEST"));
-    }
+@Data
+@Accessors(chain = true)
+@AllArgsConstructor
+@NoArgsConstructor
+public class DelayRange<T> {
+    private T start;
+    private T end;
 }

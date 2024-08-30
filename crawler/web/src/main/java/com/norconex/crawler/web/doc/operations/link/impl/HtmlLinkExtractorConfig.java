@@ -359,8 +359,7 @@ public class HtmlLinkExtractorConfig {
      * @param betweens extract between patterns
      */
     public HtmlLinkExtractorConfig setExtractBetweens(
-            List<RegexPair> betweens
-    ) {
+            List<RegexPair> betweens) {
         CollectionUtil.setAll(extractBetweens, betweens);
         return this;
     }
@@ -373,8 +372,7 @@ public class HtmlLinkExtractorConfig {
      * @param ignoreCase whether the patterns are case sensitive or not
      */
     public HtmlLinkExtractorConfig addExtractBetween(
-            String start, String end, boolean ignoreCase
-    ) {
+            String start, String end, boolean ignoreCase) {
         extractBetweens.add(new RegexPair(start, end, ignoreCase));
         return this;
     }
@@ -394,8 +392,7 @@ public class HtmlLinkExtractorConfig {
      * @param betweens extract between patterns
      */
     public HtmlLinkExtractorConfig setNoExtractBetweens(
-            List<RegexPair> betweens
-    ) {
+            List<RegexPair> betweens) {
         CollectionUtil.setAll(noExtractBetweens, betweens);
         return this;
     }
@@ -408,8 +405,7 @@ public class HtmlLinkExtractorConfig {
      * @param ignoreCase whether the patterns are case sensitive or not
      */
     public HtmlLinkExtractorConfig addNoExtractBetween(
-            String start, String end, boolean ignoreCase
-    ) {
+            String start, String end, boolean ignoreCase) {
         noExtractBetweens.add(new RegexPair(start, end, ignoreCase));
         return this;
     }
@@ -429,8 +425,7 @@ public class HtmlLinkExtractorConfig {
      * @param selectors selectors
      */
     public HtmlLinkExtractorConfig setExtractSelectors(
-            List<String> selectors
-    ) {
+            List<String> selectors) {
         CollectionUtil.setAll(extractSelectors, selectors);
         return this;
     }
@@ -441,8 +436,7 @@ public class HtmlLinkExtractorConfig {
      * @param selectors selectors
      */
     public HtmlLinkExtractorConfig addExtractSelectors(
-            List<String> selectors
-    ) {
+            List<String> selectors) {
         extractSelectors.addAll(selectors);
         return this;
     }
@@ -462,8 +456,7 @@ public class HtmlLinkExtractorConfig {
      * @param selectors selectors
      */
     public HtmlLinkExtractorConfig setNoExtractSelectors(
-            List<String> selectors
-    ) {
+            List<String> selectors) {
         CollectionUtil.setAll(noExtractSelectors, selectors);
         return this;
     }
@@ -474,8 +467,7 @@ public class HtmlLinkExtractorConfig {
      * @param selectors selectors
      */
     public HtmlLinkExtractorConfig addNoExtractSelectors(
-            List<String> selectors
-    ) {
+            List<String> selectors) {
         noExtractSelectors.addAll(selectors);
         return this;
     }
@@ -517,15 +509,13 @@ public class HtmlLinkExtractorConfig {
     //--- Public methods -------------------------------------------------------
 
     public synchronized HtmlLinkExtractorConfig addLinkTag(
-            String tagName, String attribute
-    ) {
+            String tagName, String attribute) {
         tagAttribs.add(tagName, attribute);
         return this;
     }
 
     public synchronized HtmlLinkExtractorConfig removeLinkTag(
-            String tagName, String attribute
-    ) {
+            String tagName, String attribute) {
         if (attribute == null) {
             tagAttribs.remove(tagName);
         } else {
@@ -557,8 +547,7 @@ public class HtmlLinkExtractorConfig {
         public RegexPair(
                 @JsonProperty(value = "start") String start,
                 @JsonProperty(value = "end") String end,
-                @JsonProperty(value = "ignoreCase") boolean ignoreCase
-        ) {
+                @JsonProperty(value = "ignoreCase") boolean ignoreCase) {
             this.start = start;
             this.end = end;
             this.ignoreCase = ignoreCase;

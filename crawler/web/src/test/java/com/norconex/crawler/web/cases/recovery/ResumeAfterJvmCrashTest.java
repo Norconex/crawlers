@@ -44,8 +44,7 @@ class ResumeAfterJvmCrashTest {
 
     @Test
     void testResumeAfterJvmCrash(
-            ClientAndServer client, @TempDir Path tempDir
-    ) {
+            ClientAndServer client, @TempDir Path tempDir) {
         var path = "/resumeAfterJvmCrash";
 
         WebsiteMock.whenInfiniteDepth(client);
@@ -72,15 +71,11 @@ class ResumeAfterJvmCrashTest {
         assertThat(outcome.getReturnValue()).isNotZero();
         assertThat(
                 outcome.getCommitterAfterLaunch()
-                        .getUpsertCount()
-        ).isEqualTo(6);
+                        .getUpsertCount()).isEqualTo(6);
         assertThat(
                 WebTestUtil.lastSortedRequestReference(
-                        outcome.getCommitterAfterLaunch()
-                )
-        ).isEqualTo(
-                WebsiteMock.serverUrl(client, path + "/0005")
-        );
+                        outcome.getCommitterAfterLaunch())).isEqualTo(
+                                WebsiteMock.serverUrl(client, path + "/0005"));
 
         // Second run, it should resume and finish normally, crawling
         // an additional 10 max docs, totaling 16.
@@ -92,23 +87,18 @@ class ResumeAfterJvmCrashTest {
         assertThat(outcome.getReturnValue()).isZero();
         assertThat(
                 outcome.getCommitterAfterLaunch()
-                        .getUpsertCount()
-        ).isEqualTo(10);
+                        .getUpsertCount()).isEqualTo(10);
         assertThat(
                 outcome.getCommitterCombininedLaunches()
-                        .getUpsertCount()
-        ).isEqualTo(16);
+                        .getUpsertCount()).isEqualTo(16);
         //Due to thread synching and timing delays, allow one-off.
         assertThat(
                 EqualsUtil.equalsAny(
                         WebTestUtil.lastSortedRequestReference(
-                                outcome.getCommitterAfterLaunch()
-                        ),
+                                outcome.getCommitterAfterLaunch()),
                         WebsiteMock.serverUrl(client, path + "/0014"),
-                        WebsiteMock.serverUrl(client, path + "/0015")
-                )
-        )
-                .isTrue();
+                        WebsiteMock.serverUrl(client, path + "/0015")))
+                                .isTrue();
 
         // Recrawl fresh without crash. Since we do not check for duplicates,
         // it should find 10 "new", added to previous 10.
@@ -118,22 +108,17 @@ class ResumeAfterJvmCrashTest {
         assertThat(outcome.getReturnValue()).isZero();
         assertThat(
                 outcome.getCommitterAfterLaunch()
-                        .getUpsertCount()
-        ).isEqualTo(10);
+                        .getUpsertCount()).isEqualTo(10);
         assertThat(
                 outcome.getCommitterCombininedLaunches()
-                        .getUpsertCount()
-        ).isEqualTo(26);
+                        .getUpsertCount()).isEqualTo(26);
         //Due to thread synching and timing delays, allow one-off.
         assertThat(
                 EqualsUtil.equalsAny(
                         WebTestUtil.lastSortedRequestReference(
-                                outcome.getCommitterAfterLaunch()
-                        ),
+                                outcome.getCommitterAfterLaunch()),
                         WebsiteMock.serverUrl(client, path + "/0024"),
-                        WebsiteMock.serverUrl(client, path + "/0025")
-                )
-        )
-                .isTrue();
+                        WebsiteMock.serverUrl(client, path + "/0025")))
+                                .isTrue();
     }
 }

@@ -70,18 +70,15 @@ public class ExternalCrawlSessionLauncher {
     public static CrawlOutcome launch(
             CrawlerConfig crawlerConfig,
             String action,
-            String... extraArgs
-    ) {
+            String... extraArgs) {
         // make sure things are not happening to fast for our tests
         //Sleeper.sleepMillis(3000);
         var now = ZonedDateTime.now();
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
-                () -> doLaunch(crawlerConfig, action, extraArgs)
-        );
+                () -> doLaunch(crawlerConfig, action, extraArgs));
         var outcome = new CrawlOutcome(captured);
         var c = new TestCommitter(
-                crawlerConfig.getWorkDir().resolve(committerDir)
-        );
+                crawlerConfig.getWorkDir().resolve(committerDir));
         c.fillMemoryCommitters(outcome, now);
         try {
             c.close();
@@ -94,8 +91,7 @@ public class ExternalCrawlSessionLauncher {
     private static int doLaunch(
             CrawlerConfig crawlerConfig,
             String action,
-            String... extraArgs
-    ) {
+            String... extraArgs) {
 
         if ("start".equalsIgnoreCase(action)) {
             addTestCommitterOnce(crawlerConfig);
@@ -125,8 +121,7 @@ public class ExternalCrawlSessionLauncher {
                         + (ArrayUtils.isEmpty(extraArgs) ? ""
                                 : "Extra arguments: '"
                                         + join(" ", extraArgs) + "'."),
-                action
-        );
+                action);
         Throwable caught = null;
         var retValue = 0;
         try {
@@ -151,8 +146,7 @@ public class ExternalCrawlSessionLauncher {
             javaTask.init();
             LOG.info(
                     "Command: {}",
-                    javaTask.getCommandLine().describeCommand()
-            );
+                    javaTask.getCommandLine().describeCommand());
             retValue = javaTask.executeJava();
 
             LOG.info("Done. Return code: {}", retValue);
@@ -171,8 +165,7 @@ public class ExternalCrawlSessionLauncher {
         if (cfg.getCommitters().isEmpty() || cfg.getCommitters()
                 .stream().noneMatch(c -> c instanceof TestCommitter)) {
             var committer = new TestCommitter(
-                    cfg.getWorkDir().resolve(committerDir)
-            );
+                    cfg.getWorkDir().resolve(committerDir));
             committer.init(null);
             List<Committer> committers = new ArrayList<>(cfg.getCommitters());
             committers.add(committer);

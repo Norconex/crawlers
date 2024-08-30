@@ -65,8 +65,7 @@ class DeduplicationTest {
                           </li>
                         </ul>
                         """
-                        .formatted(noDuplPath, metaDuplPath, contentDuplPath)
-        );
+                        .formatted(noDuplPath, metaDuplPath, contentDuplPath));
 
         client
                 .when(request().withPath(noDuplPath))
@@ -75,9 +74,7 @@ class DeduplicationTest {
                                 .withHeader("Last-Modified", staticDate)
                                 .withBody(
                                         "A page with same content as another one.",
-                                        MediaType.HTML_UTF_8
-                                )
-                );
+                                        MediaType.HTML_UTF_8));
 
         client
                 .when(request().withPath(metaDuplPath))
@@ -86,9 +83,7 @@ class DeduplicationTest {
                                 .withHeader("Last-Modified", staticDate)
                                 .withBody(
                                         "Same Last-Modified HTTP response value as \"noDupl\"",
-                                        MediaType.HTML_UTF_8
-                                )
-                );
+                                        MediaType.HTML_UTF_8));
 
         client
                 .when(request().withPath(contentDuplPath))
@@ -97,14 +92,10 @@ class DeduplicationTest {
                                 .withHeader(
                                         "Last-Modified",
                                         Long.toString(
-                                                System.currentTimeMillis()
-                                        )
-                                )
+                                                System.currentTimeMillis()))
                                 .withBody(
                                         "A page with same content as another one.",
-                                        MediaType.HTML_UTF_8
-                                )
-                );
+                                        MediaType.HTML_UTF_8));
 
         // Relying on these crawler defaults:
         //    - LastModifiedMetadataChecksummer
@@ -119,7 +110,6 @@ class DeduplicationTest {
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
                         serverUrl(client, homePath),
-                        serverUrl(client, noDuplPath)
-                );
+                        serverUrl(client, noDuplPath));
     }
 }

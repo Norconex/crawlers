@@ -78,8 +78,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
             var inScopeUrls = docLinks.inScope.toArray(EMPTY_STRING_ARRAY);
             if (linkTypes.contains(ReferencedLinkType.INSCOPE)) {
                 ctx.getDoc().getMetadata().add(
-                        WebDocMetadata.REFERENCED_URLS, inScopeUrls
-                );
+                        WebDocMetadata.REFERENCED_URLS, inScopeUrls);
             }
             ((WebCrawlDocContext) ctx.getDoc().getDocContext())
                     .setReferencedUrls(Arrays.asList(inScopeUrls));
@@ -89,8 +88,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
         if (!docLinks.outScope.isEmpty()) {
             ctx.getDoc().getMetadata().add(
                     WebDocMetadata.REFERENCED_URLS_OUT_OF_SCOPE,
-                    docLinks.outScope.toArray(EMPTY_STRING_ARRAY)
-            );
+                    docLinks.outScope.toArray(EMPTY_STRING_ARRAY));
         }
 
         ctx.getCrawler().fire(
@@ -100,15 +98,13 @@ public class LinkExtractorStage extends AbstractImporterStage {
                         .subject(ctx.getDoc().getReference())
                         .docContext(ctx.getDoc().getDocContext())
                         .message(Integer.toString(docLinks.inScope.size()))
-                        .build()
-        );
+                        .build());
         return true;
     }
 
     private void handleExtractedLink(
             WebImporterPipelineContext ctx,
-            UniqueDocLinks docLinks, Link link
-    ) {
+            UniqueDocLinks docLinks, Link link) {
 
         var linkTypes = Web.config(ctx.getCrawler()).getKeepReferencedLinks();
 
@@ -123,8 +119,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace(
                             "URL in crawl scope: {} (keep: {})",
-                            link.getUrl(), linkTypes
-                    );
+                            link.getUrl(), linkTypes);
                 }
                 var queuedURL = queueURL(link, ctx, docLinks.extracted);
                 if (StringUtils.isNotBlank(queuedURL)) {
@@ -134,8 +129,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace(
                             "URL not in crawl scope: {} (keep: {})",
-                            link.getUrl(), linkTypes
-                    );
+                            link.getUrl(), linkTypes);
                 }
                 if (linkTypes.contains(ReferencedLinkType.OUTSCOPE)) {
                     docLinks.outScope.add(link.getUrl());
@@ -144,8 +138,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
         } catch (Exception e) {
             LOG.warn(
                     "Could not queue extracted URL \"{}.",
-                    link.getUrl(), e
-            );
+                    link.getUrl(), e);
         }
     }
 
@@ -155,8 +148,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
         if (extractors.isEmpty()) {
             LOG.debug(
                     "No configured link extractor.  No links will be "
-                            + "extracted."
-            );
+                            + "extracted.");
             return SetUtils.emptySet();
         }
 
@@ -166,8 +158,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
                 LOG.debug(
                         "No URLs extracted due to Robots nofollow rule "
                                 + "for URL: {}",
-                        reference
-                );
+                        reference);
             }
             return SetUtils.emptySet();
         }
@@ -194,16 +185,14 @@ public class LinkExtractorStage extends AbstractImporterStage {
     // Returns a URL that was not already processed
     private String queueURL(
             Link link,
-            WebImporterPipelineContext ctx, Set<String> uniqueExtractedURLs
-    ) {
+            WebImporterPipelineContext ctx, Set<String> uniqueExtractedURLs) {
 
         //TODO do we want to add all URLs in a page, or just the valid ones?
         // i.e., those properly formatted.  If we do so, can it prevent
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
             var newURL = new WebCrawlDocContext(
-                    link.getUrl(), ctx.getDoc().getDocContext().getDepth() + 1
-            );
+                    link.getUrl(), ctx.getDoc().getDocContext().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());
             if (!link.getMetadata().isEmpty()) {
                 newURL.setReferrerLinkMetadata(link.getMetadata().toString());
@@ -216,8 +205,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
             if (LOG.isDebugEnabled() && !link.getUrl().equals(afterQueueURL)) {
                 LOG.debug(
                         "URL modified from \"{}\" to \"{}\".",
-                        link.getUrl(), afterQueueURL
-                );
+                        link.getUrl(), afterQueueURL);
             }
             return afterQueueURL;
         }

@@ -24,9 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Data
@@ -37,41 +35,30 @@ public class DelaySchedule {
         MON, TUE, WED, THU, FRI, SAT, SUN
     }
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class Range<T> {
-        private T start;
-        private T end;
-    }
-
     // ranges are circular (e.g., could be from 26 to 2 for DoM)
-
-    private Range<DOW> dayOfWeekRange;
-    private Range<Integer> dayOfMonthRange;
-    private Range<LocalTime> timeRange;
+    private DelayRange<DOW> dayOfWeekRange;
+    private DelayRange<Integer> dayOfMonthRange;
+    private DelayRange<LocalTime> timeRange;
     private Duration delay;
 
     // For Jackson serialization
     @JsonSetter(value = "timeRange")
-    void setTimeRangeFromString(Range<String> range) {
+    void setTimeRangeFromString(DelayRange<String> range) {
         if (range == null) {
             timeRange = null;
             return;
         }
-        setTimeRange(
-                new Range<LocalTime>()
-                        .setStart(parseTime(range.getStart()))
-                        .setEnd(parseTime(range.getEnd()))
-        );
+        setTimeRange(new DelayRange<LocalTime>()
+                .setStart(parseTime(range.getStart()))
+                .setEnd(parseTime(range.getEnd())));
     }
 
     @JsonGetter(value = "timeRange")
-    Range<String> getTimeRangeAsString() {
+    DelayRange<String> getTimeRangeAsString() {
         if (timeRange == null) {
             return null;
         }
-        return new Range<String>()
+        return new DelayRange<String>()
                 .setStart(formatTime(timeRange.getStart()))
                 .setEnd(formatTime(timeRange.getEnd()));
     }

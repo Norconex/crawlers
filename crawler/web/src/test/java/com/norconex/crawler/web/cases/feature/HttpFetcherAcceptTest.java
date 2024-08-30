@@ -95,8 +95,7 @@ class HttpFetcherAcceptTest {
             int expectedUpsertCount,
             String expectedMetaValue,
             String expectedDocValue,
-            ClientAndServer client
-    ) throws IOException {
+            ClientAndServer client) throws IOException {
 
         whenHttpMethod(client, HttpMethod.HEAD);
         whenHttpMethod(client, HttpMethod.GET);
@@ -150,22 +149,18 @@ class HttpFetcherAcceptTest {
                 .when(
                         request()
                                 .withMethod(method.name())
-                                .withPath(HOME_PATH)
-                )
+                                .withPath(HOME_PATH))
                 .respond(
                         response()
                                 .withHeader("whatAmI", method.name())
                                 .withBody(
                                         "I am " + method.name(),
-                                        MediaType.HTML_UTF_8
-                                )
-                );
+                                        MediaType.HTML_UTF_8));
     }
 
     private GenericHttpFetcher createFetcher(HttpMethod method) {
         return Configurable.configure(
                 new GenericHttpFetcher(),
-                cfg -> cfg.setHttpMethods(List.of(method))
-        );
+                cfg -> cfg.setHttpMethods(List.of(method)));
     }
 }

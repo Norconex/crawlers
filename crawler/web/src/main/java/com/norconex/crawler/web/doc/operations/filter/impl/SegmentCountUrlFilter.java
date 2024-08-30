@@ -135,8 +135,7 @@ public class SegmentCountUrlFilter implements
     private List<String> getCleanSegments(String url) {
         var path = new HttpURL(url).getPath();
         var allSegments = Pattern.compile(
-                configuration.getSeparator()
-        ).split(path);
+                configuration.getSeparator()).split(path);
         // remove empty/nulls
         List<String> cleanSegments = new ArrayList<>();
         for (String segment : allSegments) {

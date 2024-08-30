@@ -58,8 +58,7 @@ class RedirectRelativeLinksTest {
                 .respond(
                         response()
                                 .withStatusCode(302)
-                                .withHeader("Location", finalUrl)
-                );
+                                .withHeader("Location", finalUrl));
         client
                 .when(request(finalPath))
                 .respond(
@@ -73,17 +72,13 @@ class RedirectRelativeLinksTest {
                                         <a href="page1.html">Page 1 (broken)</a>
                                         <a href="page2.html">Page 2 (broken)</a>
                                         """
-                                        .formatted(finalPath, homePath)
-                        )
-                );
+                                        .formatted(finalPath, homePath)));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setKeepReferencedLinks(
                     Set.of(
                             ReferencedLinkType.INSCOPE,
-                            ReferencedLinkType.MAXDEPTH
-                    )
-            );
+                            ReferencedLinkType.MAXDEPTH));
             cfg.setStartReferences(List.of(serverUrl(client, homePath)));
             cfg.setMaxDepth(0);
         });

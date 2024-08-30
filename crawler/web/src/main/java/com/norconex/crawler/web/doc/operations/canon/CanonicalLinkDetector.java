@@ -63,7 +63,6 @@ public interface CanonicalLinkDetector {
      * @throws IOException problem reading content
      */
     String detectFromContent(
-            String reference, InputStream is, ContentType contentType
-    )
+            String reference, InputStream is, ContentType contentType)
             throws IOException;
 }

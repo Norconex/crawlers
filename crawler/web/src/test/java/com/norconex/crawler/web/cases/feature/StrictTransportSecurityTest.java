@@ -57,8 +57,7 @@ class StrictTransportSecurityTest {
             boolean clientSupportsHSTS,
             boolean serverSupportsHSTS,
             boolean expectsSecureUrl,
-            ClientAndServer client
-    ) {
+            ClientAndServer client) {
 
         var basePath = "/strictTransportSecurity";
         var securePath = basePath + "/secure.html";
@@ -75,9 +74,7 @@ class StrictTransportSecurityTest {
                             response()
                                     .withHeader(
                                             "Strict-Transport-Security",
-                                            "max-age=16070400; includeSubDomains"
-                                    )
-                    );
+                                            "max-age=16070400; includeSubDomains"));
         } else {
             client
                     .when(request().withMethod("HEAD"))
@@ -90,22 +87,18 @@ class StrictTransportSecurityTest {
                                 .withBody(
                                         "Will this <a href=\"%s\">link</a> be secure?"
                                                 .formatted(securableUrl),
-                                        MediaType.HTML_UTF_8
-                                )
-                );
+                                        MediaType.HTML_UTF_8));
 
         client
                 .when(request(securablePath).withSecure(true))
                 .respond(
                         response()
-                                .withBody("I am secure")
-                );
+                                .withBody("I am secure"));
         client
                 .when(request(securablePath).withSecure(false))
                 .respond(
                         response()
-                                .withBody("I am NOT secure")
-                );
+                                .withBody("I am NOT secure"));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(secureUrl));

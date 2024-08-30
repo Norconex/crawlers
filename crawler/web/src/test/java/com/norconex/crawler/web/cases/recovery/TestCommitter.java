@@ -71,9 +71,7 @@ public class TestCommitter implements Committer, XMLConfigurable {
             throws CommitterException {
         FSQueueUtil.toZipFile(
                 upsertRequest, dir.resolve(
-                        "upsert-" + UUID.randomUUID() + ".zip"
-                )
-        );
+                        "upsert-" + UUID.randomUUID() + ".zip"));
     }
 
     @Override
@@ -82,9 +80,7 @@ public class TestCommitter implements Committer, XMLConfigurable {
             throws CommitterException {
         FSQueueUtil.toZipFile(
                 deleteRequest, dir.resolve(
-                        "delete-" + UUID.randomUUID() + ".zip"
-                )
-        );
+                        "delete-" + UUID.randomUUID() + ".zip"));
     }
 
     @Override
@@ -104,28 +100,24 @@ public class TestCommitter implements Committer, XMLConfigurable {
 
     @SneakyThrows
     public void fillMemoryCommitters(
-            CrawlOutcome outcome, ZonedDateTime launchTime
-    ) {
+            CrawlOutcome outcome, ZonedDateTime launchTime) {
         FSQueueUtil.findZipFiles(dir).forEach(zip -> {
             try {
                 CommitterRequest req = FSQueueUtil.fromZipFile(zip);
                 if (Files.getLastModifiedTime(zip).compareTo(
-                        FileTime.from(launchTime.toInstant())
-                ) > 0) {
+                        FileTime.from(launchTime.toInstant())) > 0) {
                     if (req instanceof UpsertRequest upsert) {
                         outcome.committerAfterLaunch.upsert(upsert);
                     } else {
                         outcome.committerAfterLaunch.delete(
-                                (DeleteRequest) req
-                        );
+                                (DeleteRequest) req);
                     }
                 }
                 if (req instanceof UpsertRequest upsert) {
                     outcome.committerCombininedLaunches.upsert(upsert);
                 } else {
                     outcome.committerCombininedLaunches.delete(
-                            (DeleteRequest) req
-                    );
+                            (DeleteRequest) req);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);

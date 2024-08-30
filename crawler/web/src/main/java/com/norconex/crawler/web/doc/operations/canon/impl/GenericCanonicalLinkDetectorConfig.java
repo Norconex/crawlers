@@ -30,8 +30,7 @@ public class GenericCanonicalLinkDetectorConfig {
     private final List<ContentType> contentTypes = new ArrayList<>();
 
     public GenericCanonicalLinkDetectorConfig(
-            List<ContentType> defaultContentTypes
-    ) {
+            List<ContentType> defaultContentTypes) {
         contentTypes.addAll(defaultContentTypes);
     }
 
@@ -45,8 +44,7 @@ public class GenericCanonicalLinkDetectorConfig {
      * @return canonical link detector
      */
     public GenericCanonicalLinkDetectorConfig setContentTypes(
-            List<ContentType> contentTypes
-    ) {
+            List<ContentType> contentTypes) {
         CollectionUtil.setAll(this.contentTypes, contentTypes);
         return this;
     }

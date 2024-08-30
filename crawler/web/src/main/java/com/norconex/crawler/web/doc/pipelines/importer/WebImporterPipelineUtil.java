@@ -38,8 +38,7 @@ public final class WebImporterPipelineUtil {
     public static synchronized void queueRedirectURL(
             ImporterPipelineContext context,
             HttpFetchResponse response,
-            String redirectURL
-    ) {
+            String redirectURL) {
 
         var ctx = (WebImporterPipelineContext) context;
         var docTracker = ctx.getCrawler().getServices().getDocTrackerService();
@@ -57,8 +56,7 @@ public final class WebImporterPipelineUtil {
                 .crawlDocState(WebCrawlDocState.REDIRECT)
                 .reasonPhrase(
                         response.getReasonPhrase()
-                                + " (target: " + redirectURL + ")"
-                )
+                                + " (target: " + redirectURL + ")")
                 //TODO are these method calls below needed?
                 .redirectTarget(response.getRedirectTarget())
                 .statusCode(response.getStatusCode())
@@ -73,10 +71,8 @@ public final class WebImporterPipelineUtil {
                         .docContext(docContext)
                         .message(
                                 newResponse.getStatusCode()
-                                        + " " + newResponse.getReasonPhrase()
-                        )
-                        .build()
-        );
+                                        + " " + newResponse.getReasonPhrase())
+                        .build());
 
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
@@ -98,8 +94,7 @@ public final class WebImporterPipelineUtil {
                 LOG.trace(
                         "Redirect encountered for 3rd time, "
                                 + "rejecting: {}",
-                        redirectURL
-                );
+                        redirectURL);
                 rejectRedirectDup("processed", sourceURL, redirectURL);
                 return;
             }
@@ -116,8 +111,7 @@ public final class WebImporterPipelineUtil {
                     LOG.trace(
                             "Redirect URL was previously processed and "
                                     + "is valid, rejecting: {}",
-                            redirectURL
-                    );
+                            redirectURL);
                     rejectRedirectDup("processed", sourceURL, redirectURL);
                     return;
                 }
@@ -137,8 +131,7 @@ public final class WebImporterPipelineUtil {
 
         //--- Fresh URL, queue it! ---
         var newRec = new WebCrawlDocContext(
-                redirectURL, docContext.getDepth()
-        );
+                redirectURL, docContext.getDepth());
         newRec.setReferrerReference(docContext.getReferrerReference());
         newRec.setReferrerLinkMetadata(docContext.getReferrerLinkMetadata());
         newRec.setRedirectTrail(docContext.getRedirectTrail());
@@ -150,8 +143,7 @@ public final class WebImporterPipelineUtil {
 
         var urlScope = Web.config(ctx.getCrawler())
                 .getUrlScopeResolver().resolve(
-                        docContext.getReference(), newRec
-                );
+                        docContext.getReference(), newRec);
         Web.fireIfUrlOutOfScope(ctx.getCrawler(), newRec, urlScope);
         if (urlScope.isInScope()) {
             ctx.getCrawler()
@@ -166,11 +158,9 @@ public final class WebImporterPipelineUtil {
 
     private static void rejectRedirectDup(
             String action,
-            String originalURL, String redirectURL
-    ) {
+            String originalURL, String redirectURL) {
         LOG.debug(
                 "Redirect target URL is already {}: {} (from: {}).",
-                action, redirectURL, originalURL
-        );
+                action, redirectURL, originalURL);
     }
 }

@@ -70,8 +70,7 @@ class RedirectTrailTest {
                         baseUrl + "?index=2",
                         baseUrl + "?index=3",
                         baseUrl + "?index=4",
-                        baseUrl + "?index=5"
-                );
+                        baseUrl + "?index=5");
     }
 
     public static class Callback implements ExpectationResponseCallback {
@@ -80,16 +79,13 @@ class RedirectTrailTest {
         @Override
         public HttpResponse handle(HttpRequest req) {
             var index = NumberUtils.toInt(
-                    req.getFirstQueryStringParameter("index")
-            );
+                    req.getFirstQueryStringParameter("index"));
             if (index <= maxRedirects) {
                 return response()
                         .withStatusCode(302)
                         .withHeader(
                                 "Location", serverUrl(
-                                        req, PATH + "?index=" + (index + 1)
-                                )
-                        );
+                                        req, PATH + "?index=" + (index + 1)));
             }
             return response().withBody("""
                     <h1>Multi-redirects test page</h1>

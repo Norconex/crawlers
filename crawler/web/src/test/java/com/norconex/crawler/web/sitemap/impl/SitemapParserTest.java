@@ -43,12 +43,10 @@ class SitemapParserTest {
                     CrawlDocStubs.crawlDoc(
                             "https://example.com/index.html",
                             ContentType.XML,
-                            is
-                    ),
+                            is),
                     d -> {
                         extractedLinks.add(d);
-                    }
-            );
+                    });
             assertThat(childSitemaps).isEmpty();
         }
 
@@ -58,22 +56,18 @@ class SitemapParserTest {
                         "https://example.com/linkA",
                         "https://example.com/linkB",
                         "https://example.com/linkC",
-                        "https://example.com/linkD"
-                ),
+                        "https://example.com/linkD"),
                 extractedLinks.stream()
                         .map(WebCrawlDocContext::getReference)
-                        .collect(Collectors.toList())
-        );
+                        .collect(Collectors.toList()));
 
         // test second one:
         var doc = extractedLinks.get(1);
         Assertions.assertEquals(
-                "https://example.com/linkB", doc.getReference()
-        );
+                "https://example.com/linkB", doc.getReference());
         Assertions.assertEquals(
                 "2021-04-01",
-                doc.getSitemapLastMod().toLocalDate().toString()
-        );
+                doc.getSitemapLastMod().toLocalDate().toString());
         Assertions.assertEquals("daily", doc.getSitemapChangeFreq());
         Assertions.assertEquals(1f, doc.getSitemapPriority());
     }

@@ -693,11 +693,9 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public WebCrawlerConfig setStartReferencesSitemaps(
-            List<String> startReferencesSitemaps
-    ) {
+            List<String> startReferencesSitemaps) {
         CollectionUtil.setAll(
-                this.startReferencesSitemaps, startReferencesSitemaps
-        );
+                this.startReferencesSitemaps, startReferencesSitemaps);
         CollectionUtil.removeBlanks(this.startReferencesSitemaps);
         return this;
     }
@@ -721,8 +719,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public WebCrawlerConfig setKeepReferencedLinks(
-            Set<ReferencedLinkType> keepReferencedLinks
-    ) {
+            Set<ReferencedLinkType> keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
         return this;
     }
@@ -741,8 +738,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public WebCrawlerConfig setLinkExtractors(
-            List<LinkExtractor> linkExtractors
-    ) {
+            List<LinkExtractor> linkExtractors) {
         CollectionUtil.setAll(this.linkExtractors, linkExtractors);
         return this;
     }

@@ -107,17 +107,14 @@ class IfNoneMatchTest {
                                 .withPath(path)
                                 .withHeader(
                                         HttpHeaders.IF_NONE_MATCH,
-                                        serverEtag
-                                ),
-                        Times.once()
-                )
+                                        serverEtag),
+                        Times.once())
                 .respond(
                         response()
                                 .withHeader(HttpHeaders.ETAG, serverEtag)
                                 .withStatusCode(
-                                        HttpStatusCode.NOT_MODIFIED_304.code()
-                                )
-                );
+                                        HttpStatusCode.NOT_MODIFIED_304
+                                                .code()));
 
         // When NOT matching server Etag
         client
@@ -127,15 +124,11 @@ class IfNoneMatchTest {
                                 .withHeader(
                                         optionalHeader(
                                                 HttpHeaders.IF_NONE_MATCH,
-                                                "!" + serverEtag
-                                        )
-                                ),
-                        Times.once()
-                )
+                                                "!" + serverEtag)),
+                        Times.once())
                 .respond(
                         response()
                                 .withHeader(HttpHeaders.ETAG, serverEtag)
-                                .withBody("Doc modified.")
-                );
+                                .withBody("Doc modified."));
     }
 }

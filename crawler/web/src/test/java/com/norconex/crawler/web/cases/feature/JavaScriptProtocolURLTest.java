@@ -76,8 +76,7 @@ class JavaScriptProtocolURLTest {
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
                         serverUrl(client, firstPath),
-                        serverUrl(client, secondPath)
-                );
+                        serverUrl(client, secondPath));
 
         crawler.clean();
     }

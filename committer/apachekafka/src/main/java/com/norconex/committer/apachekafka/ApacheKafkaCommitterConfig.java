@@ -65,47 +65,36 @@ import lombok.experimental.Accessors;
  *
  * @author Harinder Hanjan
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class ApacheKafkaCommitterConfig extends BaseBatchCommitterConfig {
 
     /**
      * The topic name to which documents will be sent
-     * @param   topicName   name of the topic
-     * @return name of the topic
      */
     private String topicName;
 
     /**
-     * The Apache Kafka broker list
-     * @param   servers a CSV list of Kafka brokers of format
-     *                  host1:port1,host2:port2,...
-     * @return the list of Kafka brokers
+     * The Apache Kafka broker list, comma-separated
+     * (e.g., host1:port1,host2:port2,...).
      */
     private String bootstrapServers;
 
     /**
-     * Whether to create the topic in Apache Kafka
+     * Whether to create the topic in Apache Kafka.
      * It will be created only if it is not already present.
-     * @param   createTopic whether topic should be created
-     * @return  <code>true</code> if topic should be created
      */
     private boolean createTopic;
 
     /**
      * The number of partitions for the new topic.
-     * Required if {@see #createTopic} is set to <code>true</code>
-     * @param   numOfPartitions   number of partitions
-     * @return number of partitions
+     * Required if {@link #isCreateTopic()} is <code>true</code>
      */
     private int partitions;
 
     /**
      * Gets the replication factor for the new topic.
-     * Required if {@see #createTopic} is set to <code>true</code>
-     * @param replicationFactor replication factor
-     * @return replication factor
+     * Required if {@link #isCreateTopic()} is <code>true</code>
      */
     private short replicationFactor;
 }

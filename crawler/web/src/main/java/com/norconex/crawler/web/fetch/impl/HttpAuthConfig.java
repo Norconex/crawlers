@@ -256,7 +256,6 @@ public class HttpAuthConfig {
     @JsonIgnore
     public List<String> getFormParamNames() {
         return Collections.unmodifiableList(
-                new ArrayList<>(formParams.keySet())
-        );
+                new ArrayList<>(formParams.keySet()));
     }
 }

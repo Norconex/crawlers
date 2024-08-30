@@ -55,7 +55,6 @@ public class HttpFetcherProvider
                         .exception(ex)
                         .build(),
                 cfg.getFetchersMaxRetries(),
-                cfg.getFetchersRetryDelay()
-        );
+                cfg.getFetchersRetryDelay());
     }
 }

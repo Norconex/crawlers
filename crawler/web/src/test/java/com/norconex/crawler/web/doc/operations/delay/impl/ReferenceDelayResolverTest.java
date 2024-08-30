@@ -35,9 +35,7 @@ class ReferenceDelayResolverTest {
         List<DelayReferencePattern> delayPatterns = new ArrayList<>();
         delayPatterns.add(
                 new DelayReferencePattern(
-                        "http://example\\.com/.*", Duration.ofSeconds(1)
-                )
-        );
+                        "http://example\\.com/.*", Duration.ofSeconds(1)));
 
         var r = new ReferenceDelayResolver();
         r.getConfiguration()
@@ -54,8 +52,7 @@ class ReferenceDelayResolverTest {
     void testValidate() {
         assertThatNoException().isThrownBy(
                 () -> new XML(ResourceLoader.getXmlReader(getClass()))
-                        .validate(ReferenceDelayResolver.class)
-        );
+                        .validate(ReferenceDelayResolver.class));
     }
 
     @Test
@@ -64,20 +61,14 @@ class ReferenceDelayResolverTest {
         r.getConfiguration().setDelayReferencePatterns(
                 List.of(
                         new DelayReferencePattern(
-                                ".*abc.*", Duration.ofMillis(123)
-                        ),
+                                ".*abc.*", Duration.ofMillis(123)),
                         new DelayReferencePattern(
-                                ".*def.*", Duration.ofMillis(456)
-                        )
-                )
-        );
+                                ".*def.*", Duration.ofMillis(456))));
 
         assertThat(r.resolveExplicitDelay("http://abc.com")).isEqualTo(
-                Duration.ofMillis(123)
-        );
+                Duration.ofMillis(123));
         assertThat(r.resolveExplicitDelay("http://def.com")).isEqualTo(
-                Duration.ofMillis(456)
-        );
+                Duration.ofMillis(456));
         assertThat(r.resolveExplicitDelay("http://ghi.com")).isNull();
     }
 }

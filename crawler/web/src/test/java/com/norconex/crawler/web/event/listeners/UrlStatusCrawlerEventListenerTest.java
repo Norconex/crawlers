@@ -42,8 +42,7 @@ class UrlStatusCrawlerEventListenerTest {
 
     @Test
     void testURLStatusCrawlerEventListener(
-            ClientAndServer client, @TempDir Path tempDir
-    ) throws IOException {
+            ClientAndServer client, @TempDir Path tempDir) throws IOException {
 
         var urlStatusListener = new UrlStatusCrawlerEventListener();
         urlStatusListener.getConfiguration()
@@ -70,10 +69,8 @@ class UrlStatusCrawlerEventListenerTest {
                         response()
                                 .withStatusCode(
                                         HttpStatusCode.INTERNAL_SERVER_ERROR_500
-                                                .code()
-                                )
-                                .withReasonPhrase("Kaput!")
-                );
+                                                .code())
+                                .withReasonPhrase("Kaput!"));
 
         WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(
@@ -81,15 +78,12 @@ class UrlStatusCrawlerEventListenerTest {
                             serverUrl(client, ok1Path),
                             serverUrl(client, notFoundPath),
                             serverUrl(client, ok2Path),
-                            serverUrl(client, errorPath)
-                    )
-            )
+                            serverUrl(client, errorPath)))
                     .addEventListener(urlStatusListener);
         });
 
         var file = FileUtils.listFiles(
-                tempDir.resolve("statuses").toFile(), null, false
-        )
+                tempDir.resolve("statuses").toFile(), null, false)
                 .stream()
                 .findFirst()
                 .orElseThrow();
@@ -101,11 +95,9 @@ class UrlStatusCrawlerEventListenerTest {
                 "\"\",%serror.html,500,Kaput!".formatted(baseUrl),
                 "\"\",%snotFound.html,404,Not Found".formatted(baseUrl),
                 "\"\",%sok1.html,200,OK".formatted(baseUrl),
-                "\"\",%sok2.html,404,Not Found".formatted(baseUrl)
-        );
+                "\"\",%sok2.html,404,Not Found".formatted(baseUrl));
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(urlStatusListener)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(urlStatusListener));
     }
 }

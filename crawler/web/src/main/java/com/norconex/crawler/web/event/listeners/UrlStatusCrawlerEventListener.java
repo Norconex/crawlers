@@ -181,8 +181,7 @@ public class UrlStatusCrawlerEventListener implements
     }
 
     private synchronized void printCSVRecord(
-            CSVPrinter csv, Object[] csvRecord
-    ) {
+            CSVPrinter csv, Object[] csvRecord) {
         try {
             csv.printRecord(csvRecord);
         } catch (IOException e) {
@@ -196,8 +195,7 @@ public class UrlStatusCrawlerEventListener implements
         var timestamp = "";
         if (configuration.isTimestamped()) {
             timestamp = LocalDateTime.now().truncatedTo(
-                    ChronoUnit.MILLIS
-            ).toString();
+                    ChronoUnit.MILLIS).toString();
             timestamp = timestamp.replace(':', '-');
         }
 
@@ -216,8 +214,7 @@ public class UrlStatusCrawlerEventListener implements
     }
 
     private void resolveStatusCodeRange(
-            List<Integer> parsedCodes, String range
-    ) {
+            List<Integer> parsedCodes, String range) {
         var endPoints = StringUtils.split(range.trim(), '-');
         if (endPoints.length == 1) {
             parsedCodes.add(toInt(endPoints[0]));
@@ -227,8 +224,7 @@ public class UrlStatusCrawlerEventListener implements
             if (start >= end) {
                 throw new IllegalArgumentException(
                         "Invalid statusCode range: " + range
-                                + ". Start value must be higher than end value."
-                );
+                                + ". Start value must be higher than end value.");
             }
             while (start <= end) {
                 parsedCodes.add(start);
@@ -236,8 +232,7 @@ public class UrlStatusCrawlerEventListener implements
             }
         } else {
             throw new IllegalArgumentException(
-                    "Invalid statusCode range: " + range
-            );
+                    "Invalid statusCode range: " + range);
         }
     }
 
@@ -250,15 +245,13 @@ public class UrlStatusCrawlerEventListener implements
 
     private CSVPrinter createCSVPrinter(Path dir, String id, String suffix) {
         var prefix = StringUtils.defaultString(
-                configuration.getFileNamePrefix()
-        );
+                configuration.getFileNamePrefix());
         var safeSuffix = "";
         if (StringUtils.isNotBlank(suffix)) {
             safeSuffix = "-" + suffix;
         }
         var file = dir.resolve(
-                prefix + FileUtil.toSafeFileName(id) + safeSuffix + ".csv"
-        );
+                prefix + FileUtil.toSafeFileName(id) + safeSuffix + ".csv");
         try {
             Files.createDirectories(dir);
             var csv = new CSVPrinter(
@@ -266,16 +259,13 @@ public class UrlStatusCrawlerEventListener implements
                             file,
                             StandardOpenOption.CREATE,
                             StandardOpenOption.TRUNCATE_EXISTING,
-                            StandardOpenOption.WRITE
-                    ),
-                    CSVFormat.EXCEL
-            );
+                            StandardOpenOption.WRITE),
+                    CSVFormat.EXCEL);
             csv.printRecord("Referrer", "URL", "Status", "Reason");
             return csv;
         } catch (IOException e) {
             throw new CrawlerException(
-                    "Cannot create output directory for file: " + file, e
-            );
+                    "Cannot create output directory for file: " + file, e);
         }
     }
 
@@ -286,8 +276,7 @@ public class UrlStatusCrawlerEventListener implements
             throw new IllegalArgumentException(
                     "The statusCodes attribute "
                             + "can only contain valid numbers. This number is invalid: "
-                            + num
-            );
+                            + num);
         }
     }
 }

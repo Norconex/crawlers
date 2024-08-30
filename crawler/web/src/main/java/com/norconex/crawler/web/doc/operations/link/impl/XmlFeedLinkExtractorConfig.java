@@ -93,8 +93,7 @@ public class XmlFeedLinkExtractorConfig {
     private final TextMatcher fieldMatcher = new TextMatcher();
 
     public XmlFeedLinkExtractorConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
@@ -107,8 +106,7 @@ public class XmlFeedLinkExtractorConfig {
      * @return this
      */
     public XmlFeedLinkExtractorConfig setContentTypeMatcher(
-            TextMatcher matcher
-    ) {
+            TextMatcher matcher) {
         contentTypeMatcher.copyFrom(matcher);
         return this;
     }

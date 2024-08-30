@@ -92,8 +92,7 @@ class ModifiedFileDetectionTest {
     }
 
     private void whenLastModified(
-            ClientAndServer client, int dynaDaysOffset
-    ) {
+            ClientAndServer client, int dynaDaysOffset) {
         client.reset();
         client
                 .when(request().withPath(homePath))
@@ -101,8 +100,7 @@ class ModifiedFileDetectionTest {
                         response()
                                 .withHeader(
                                         LAST_MODIFIED,
-                                        WebTestUtil.rfcFormat(twentyDaysAgo)
-                                )
+                                        WebTestUtil.rfcFormat(twentyDaysAgo))
                                 .withBody(
                                         """
                                                 <h1>Home page.</h1>
@@ -115,11 +113,8 @@ class ModifiedFileDetectionTest {
                                                 .formatted(
                                                         dynaDatePath,
                                                         dynaContentPath,
-                                                        dynaDateContentPath
-                                                ),
-                                        HTML_UTF_8
-                                )
-                );
+                                                        dynaDateContentPath),
+                                        HTML_UTF_8));
         client
                 .when(request().withPath(dynaDatePath))
                 .respond(
@@ -127,24 +122,21 @@ class ModifiedFileDetectionTest {
                                 .withHeader(
                                         LAST_MODIFIED,
                                         WebTestUtil
-                                                .daysAgoRFC(15 - dynaDaysOffset)
-                                )
+                                                .daysAgoRFC(
+                                                        15 - dynaDaysOffset))
                                 .withBody(
                                         """
                                                 This page content is the same, but header should
                                                 be different each time (according to offset).
                                                 """,
-                                        HTML_UTF_8
-                                )
-                );
+                                        HTML_UTF_8));
         client
                 .when(request().withPath(dynaContentPath))
                 .respond(
                         response()
                                 .withHeader(
                                         LAST_MODIFIED,
-                                        WebTestUtil.rfcFormat(twentyDaysAgo)
-                                )
+                                        WebTestUtil.rfcFormat(twentyDaysAgo))
                                 .withBody(
                                         """
                                                 This page content should be different (according to offset)
@@ -153,12 +145,8 @@ class ModifiedFileDetectionTest {
                                                 """
                                                 .formatted(
                                                         WebTestUtil.daysAgoRFC(
-                                                                10 - dynaDaysOffset
-                                                        )
-                                                ),
-                                        HTML_UTF_8
-                                )
-                );
+                                                                10 - dynaDaysOffset)),
+                                        HTML_UTF_8));
         client
                 .when(request().withPath(dynaDateContentPath))
                 .respond(
@@ -166,8 +154,7 @@ class ModifiedFileDetectionTest {
                                 .withHeader(
                                         LAST_MODIFIED,
                                         WebTestUtil
-                                                .daysAgoRFC(5 - dynaDaysOffset)
-                                )
+                                                .daysAgoRFC(5 - dynaDaysOffset))
                                 .withBody(
                                         """
                                                 Both content and header should be different
@@ -176,11 +163,7 @@ class ModifiedFileDetectionTest {
                                                 """
                                                 .formatted(
                                                         WebTestUtil.daysAgoRFC(
-                                                                5 - dynaDaysOffset
-                                                        )
-                                                ),
-                                        HTML_UTF_8
-                                )
-                );
+                                                                5 - dynaDaysOffset)),
+                                        HTML_UTF_8));
     }
 }

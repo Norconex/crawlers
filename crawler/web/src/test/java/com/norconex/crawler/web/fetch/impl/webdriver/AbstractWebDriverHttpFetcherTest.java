@@ -86,8 +86,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
             capabilities = new FirefoxOptions();
         } else {
             throw new IllegalArgumentException(
-                    "Only Chrome and Firefox are supported for testing."
-            );
+                    "Only Chrome and Firefox are supported for testing.");
         }
         this.browserType = browserType;
     }
@@ -110,18 +109,15 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(
-            ExtensionContext ctx
-    ) {
+            ExtensionContext ctx) {
         try {
             DockerClientFactory.instance().client();
             return ConditionEvaluationResult.enabled(
-                    "Docker found: WebDriverHttpFetcher tests will run."
-            );
+                    "Docker found: WebDriverHttpFetcher tests will run.");
         } catch (Throwable ex) {
             return ConditionEvaluationResult.enabled(
                     "Docker NOT found: WebDriverHttpFetcher tests will be "
-                            + "disabled and will not run."
-            );
+                            + "disabled and will not run.");
         }
     }
 
@@ -163,9 +159,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
         var img = MutableImage.fromBase64String(
                 mem.getUpsertRequests().get(0).getMetadata().getString(
-                        "myimage"
-                )
-        );
+                        "myimage"));
         assertThat(img).isNotNull();
         // Chrome, and maybe others, may resize the image to make it smaller
         // so that affects the max crop we can get. That's why we don't
@@ -187,8 +181,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 .respond(
                         response()
                                 .withHeader(
-                                        "multiKey", "multiVal1", "multiVal2"
-                                )
+                                        "multiKey", "multiVal1", "multiVal2")
                                 .withHeader("singleKey", "singleValue")
                                 .withBody(
                                         WebsiteMock
@@ -196,12 +189,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
                                                 .body(
                                                         RandomStringUtils
                                                                 .randomAlphanumeric(
-                                                                        LARGE_CONTENT_MIN_SIZE
-                                                                )
-                                                )
-                                                .build()
-                                )
-                );
+                                                                        LARGE_CONTENT_MIN_SIZE))
+                                                .build()));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             var sniffer = new HttpSniffer();
@@ -212,11 +201,9 @@ public abstract class AbstractWebDriverHttpFetcherTest
             snifCfg.setMaxBufferSize(6 * 1024 * 1024);
             LOG.debug(
                     "Random HTTP Sniffer proxy port: {}",
-                    snifCfg.getPort()
-            );
+                    snifCfg.getPort());
             Testcontainers.exposeHostPorts(
-                    client.getPort(), snifCfg.getPort()
-            );
+                    client.getPort(), snifCfg.getPort());
             var fetcher = createWebDriverHttpFetcher();
             fetcher.getConfiguration().setHttpSniffer(sniffer);
             cfg.setFetchers(List.of(fetcher));
@@ -227,8 +214,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         assertThat(mem.getUpsertRequests()).hasSize(1);
         var meta = mem.getUpsertRequests().get(0).getMetadata();
         assertThat(meta.getStrings("multiKey")).containsExactly(
-                "multiVal1", "multiVal2"
-        );
+                "multiVal1", "multiVal2");
         assertThat(meta.getString("singleKey")).isEqualTo("singleValue");
 
         assertThat(WebTestUtil.docText(mem.getUpsertRequests().get(0)).length())
@@ -250,18 +236,14 @@ public abstract class AbstractWebDriverHttpFetcherTest
                                                         """
                                                                 <h1>Page Script Test</h1>
                                                                 <p>H1 above should be replaced.</p>
-                                                                """
-                                                )
+                                                                """)
                                                 .build(),
-                                        HTML_UTF_8
-                                )
-                );
+                                        HTML_UTF_8));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             var f = createWebDriverHttpFetcher();
             f.getConfiguration().setEarlyPageScript(
-                    "document.title='Awesome!';"
-            );
+                    "document.title='Awesome!';");
             f.getConfiguration().setLatePageScript("""
                     document.getElementsByTagName('h1')[0].innerHTML='Melon';
                     """);
@@ -273,9 +255,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         var doc = mem.getUpsertRequests().get(0);
         assertThat(
                 doc.getMetadata().getString(
-                        "dc:title"
-                )
-        ).isEqualTo("Awesome!");
+                        "dc:title")).isEqualTo("Awesome!");
         assertThat(WebTestUtil.docText(doc)).contains("Melon");
     }
 
@@ -291,12 +271,9 @@ public abstract class AbstractWebDriverHttpFetcherTest
                                         WebsiteMock
                                                 .htmlPage()
                                                 .body(
-                                                        "<p>Should grab user agent from browser.</p>"
-                                                )
+                                                        "<p>Should grab user agent from browser.</p>")
                                                 .build(),
-                                        HTML_UTF_8
-                                )
-                );
+                                        HTML_UTF_8));
 
         var fetcher = createWebDriverHttpFetcher();
         WebTestUtil.runWithConfig(tempDir, cfg -> {
@@ -321,21 +298,17 @@ public abstract class AbstractWebDriverHttpFetcherTest
         var response = new WebDriverHttpFetcher().fetch(
                 new HttpFetchRequest(
                         CrawlDocStubs.crawlDocHtml("http://example.com"),
-                        HttpMethod.HEAD
-                )
-        );
+                        HttpMethod.HEAD));
         assertThat(response.getReasonPhrase()).contains("To obtain headers");
         assertThat(response.getCrawlDocState()).isEqualTo(
-                CrawlDocState.UNSUPPORTED
-        );
+                CrawlDocState.UNSUPPORTED);
     }
 
     @Test
     void testWriteRead() {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT
-                        .assertWriteRead(new WebDriverHttpFetcher())
-        );
+                        .assertWriteRead(new WebDriverHttpFetcher()));
     }
 
     //--- Private/Protected ----------------------------------------------------
@@ -344,14 +317,12 @@ public abstract class AbstractWebDriverHttpFetcherTest
         return Configurable.configure(
                 new WebDriverHttpFetcher(), cfg -> cfg
                         .setBrowser(browserType)
-                        .setRemoteURL(browser.getSeleniumAddress())
-        );
+                        .setRemoteURL(browser.getSeleniumAddress()));
     }
 
     private String hostUrl(ClientAndServer client, String path) {
         return "http://host.testcontainers.internal:%s%s".formatted(
-                client.getLocalPort(), path
-        );
+                client.getLocalPort(), path);
     }
 
     private int freePort() {
@@ -364,8 +335,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @SuppressWarnings("resource")
     protected static BrowserWebDriverContainer<?> createWebDriverContainer(
-            Capabilities capabilities
-    ) {
+            Capabilities capabilities) {
         return new BrowserWebDriverContainer<>()
                 .withCapabilities(capabilities)
                 .withAccessToHost(true)

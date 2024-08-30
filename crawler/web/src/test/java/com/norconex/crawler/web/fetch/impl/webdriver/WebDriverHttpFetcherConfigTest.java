@@ -57,9 +57,7 @@ class WebDriverHttpFetcherConfigTest {
         c.setCapabilities(
                 MapUtil.toMap(
                         "cap1", "val1",
-                        "cap2", "val2"
-                )
-        );
+                        "cap2", "val2"));
 
         var snif = new HttpSniffer();
         snif.getConfiguration()
@@ -68,9 +66,7 @@ class WebDriverHttpFetcherConfigTest {
                 .getRequestHeaders().putAll(
                         MapUtil.toMap(
                                 "rh1", "hrval1",
-                                "rh2", "hrval2"
-                        )
-                );
+                                "rh2", "hrval2"));
         c.setHttpSniffer(snif);
 
         c.setReferenceFilters(
@@ -78,11 +74,7 @@ class WebDriverHttpFetcherConfigTest {
                         configure(
                                 new GenericReferenceFilter(), cfg -> cfg
                                         .setValueMatcher(
-                                                TextMatcher.regex("test.*")
-                                        )
-                        )
-                )
-        );
+                                                TextMatcher.regex("test.*")))));
 
         var sh = new ScreenshotHandler();
         sh.getConfiguration()

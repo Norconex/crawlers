@@ -263,39 +263,31 @@ public class FeaturedImageProcessor
                 Files.createDirectories(resolvedImageCacheDir);
                 LOG.info(
                         "Featured image cache directory: {}",
-                        resolvedImageCacheDir
-                );
+                        resolvedImageCacheDir);
             } catch (IOException e) {
                 throw new CrawlerException(
-                        "Could not create featured image cache directory.", e
-                );
+                        "Could not create featured image cache directory.", e);
             }
             cache = IMG_CACHES.computeIfAbsent(
                     resolvedImageCacheDir, dir -> new ImageCache(
                             configuration.getImageCacheSize(),
-                            resolvedImageCacheDir
-                    )
-            );
+                            resolvedImageCacheDir));
         }
 
         // Initialize image directory
         if (configuration.getStorage().contains(Storage.DISK)) {
             resolvedStorageDiskDir = ofNullable(
-                    configuration.getStorageDiskDir()
-            ).orElseGet(
-                    () -> workDir.resolve(DEFAULT_STORAGE_DISK_DIR)
-            );
+                    configuration.getStorageDiskDir()).orElseGet(
+                            () -> workDir.resolve(DEFAULT_STORAGE_DISK_DIR));
             try {
                 Files.createDirectories(resolvedStorageDiskDir);
                 LOG.info(
                         "Featured image storage directory: {}",
-                        resolvedStorageDiskDir
-                );
+                        resolvedStorageDiskDir);
             } catch (IOException e) {
                 throw new CrawlerException(
                         "Could not create featured image storage directory.",
-                        e
-                );
+                        e);
             }
         }
     }
@@ -321,30 +313,25 @@ public class FeaturedImageProcessor
                     ofNullable(doc.getDocContext().getCharset())
                             .map(Charset::toString)
                             .orElse(null),
-                    doc.getReference()
-            );
+                    doc.getReference());
             var img = findFeaturedImage(
-                    dom, fetcher, configuration.isLargest()
-            );
+                    dom, fetcher, configuration.isLargest());
 
             // Save the image
             if (img != null) {
                 LOG.debug(
                         "Featured image is \"{}\" for \"{}\"",
-                        img.getUrl(), doc.getReference()
-                );
+                        img.getUrl(), doc.getReference());
                 storeImage(img, doc);
             } else {
                 LOG.debug(
                         "No featured image found for: {}",
-                        doc.getReference()
-                );
+                        doc.getReference());
             }
         } catch (IOException e) {
             LOG.error(
                     "Could not extract featured image from document: {}",
-                    doc.getReference(), e
-            );
+                    doc.getReference(), e);
         }
     }
 
@@ -355,18 +342,15 @@ public class FeaturedImageProcessor
             doc.getMetadata().add(
                     Objects.toString(
                             configuration.getStorageUrlField(),
-                            COLLECTOR_FEATURED_IMAGE_URL
-                    ), img.getUrl()
-            );
+                            COLLECTOR_FEATURED_IMAGE_URL),
+                    img.getUrl());
         }
         if (configuration.getStorage().contains(Storage.INLINE)) {
             doc.getMetadata().add(
                     Objects.toString(
                             configuration.getStorageInlineField(),
-                            COLLECTOR_FEATURED_IMAGE_INLINE
-                    ),
-                    img.toHTMLInlineString(imgFormat)
-            );
+                            COLLECTOR_FEATURED_IMAGE_INLINE),
+                    img.toHTMLInlineString(imgFormat));
         }
         if (configuration.getStorage().contains(Storage.DISK)) {
             Path imageFile = null;
@@ -374,18 +358,14 @@ public class FeaturedImageProcessor
                     .getStorageDiskStructure() == StorageDiskStructure.DATE) {
                 var fileId = Long.toString(TimeIdGenerator.next());
                 imageFile = FileUtil.createDateDirs(
-                        resolvedStorageDiskDir.toFile()
-                ).toPath().resolve(
-                        fileId + "." + imgFormat
-                );
+                        resolvedStorageDiskDir.toFile()).toPath().resolve(
+                                fileId + "." + imgFormat);
             } else if (configuration
                     .getStorageDiskStructure() == StorageDiskStructure.DATETIME) {
                 var fileId = Long.toString(TimeIdGenerator.next());
                 imageFile = FileUtil.createDateTimeDirs(
-                        resolvedStorageDiskDir.toFile()
-                ).toPath().resolve(
-                        fileId + "." + imgFormat
-                );
+                        resolvedStorageDiskDir.toFile()).toPath().resolve(
+                                fileId + "." + imgFormat);
             } else {
                 String filePath = null;
                 if (StringUtils.startsWith(img.getUrl(), "data:")) {
@@ -393,18 +373,15 @@ public class FeaturedImageProcessor
                             resolvedStorageDiskDir.toFile(),
                             doc.getReference() + "/base64-"
                                     + img.getUrl().hashCode(),
-                            true
-                    )
+                            true)
                             .getAbsolutePath();
                 } else {
                     filePath = FileUtil.createURLDirs(
-                            resolvedStorageDiskDir.toFile(), img.getUrl(), true
-                    )
+                            resolvedStorageDiskDir.toFile(), img.getUrl(), true)
                             .getAbsolutePath();
                 }
                 if (!endsWithIgnoreCase(
-                        filePath, "." + imgFormat
-                )) {
+                        filePath, "." + imgFormat)) {
                     filePath += "." + imgFormat;
                 }
                 imageFile = Paths.get(filePath);
@@ -413,10 +390,8 @@ public class FeaturedImageProcessor
             doc.getMetadata().add(
                     Objects.toString(
                             configuration.getStorageDiskField(),
-                            COLLECTOR_FEATURED_IMAGE_PATH
-                    ),
-                    imageFile.toFile().getAbsolutePath()
-            );
+                            COLLECTOR_FEATURED_IMAGE_PATH),
+                    imageFile.toFile().getAbsolutePath());
         }
     }
 
@@ -426,8 +401,7 @@ public class FeaturedImageProcessor
     }
 
     private FeaturedImage findFeaturedImage(
-            Document dom, HttpFetcher fetcher, boolean largest
-    ) {
+            Document dom, HttpFetcher fetcher, boolean largest) {
         var els = isNotBlank(configuration.getDomSelector())
                 ? dom.select(configuration.getDomSelector())
                 : dom.getElementsByTag("img");
@@ -470,8 +444,7 @@ public class FeaturedImageProcessor
                     }
                     img = new FeaturedImage(
                             url, mutableImg.getDimension(),
-                            mutableImg.toImage()
-                    );
+                            mutableImg.toImage());
                 } else {
                     var bi = fetchImage(fetcher, url);
                     if (bi == null) {
@@ -530,15 +503,12 @@ public class FeaturedImageProcessor
         // some files from having a colored background (instead of transparency)
         // or to not be saved properly (e.g. png to bmp).
         if (EqualsUtil.equalsNoneIgnoreCase(
-                configuration.getImageFormat(), "png", "gif"
-        )) {
+                configuration.getImageFormat(), "png", "gif")) {
             var fixedImg = new BufferedImage(
                     newImg.getWidth(), newImg.getHeight(),
-                    BufferedImage.TYPE_INT_RGB
-            );
+                    BufferedImage.TYPE_INT_RGB);
             fixedImg.createGraphics().drawImage(
-                    newImg, 0, 0, Color.WHITE, null
-            );
+                    newImg, 0, 0, Color.WHITE, null);
             newImg = fixedImg;
         }
         return newImg;
@@ -551,8 +521,7 @@ public class FeaturedImageProcessor
             var doc = new CrawlDoc(new WebCrawlDocContext(uri.toString()));
 
             FetchResponse resp = fetcher.fetch(
-                    new HttpFetchRequest(doc, HttpMethod.GET)
-            );
+                    new HttpFetchRequest(doc, HttpMethod.GET));
             if (resp != null
                     && resp.getCrawlDocState() != null
                     && resp.getCrawlDocState().isGoodState()) {
@@ -563,8 +532,7 @@ public class FeaturedImageProcessor
                             "Image could not be read: '{}.' "
                                     + "Detected format: '{}'.",
                             url,
-                            doc.getDocContext().getContentType()
-                    );
+                            doc.getDocContext().getContentType());
                 }
                 return bufImage;
             }
@@ -572,8 +540,7 @@ public class FeaturedImageProcessor
             LOG.debug("Could not load image: {}", url, e);
         }
         LOG.debug(
-                "Image was not recognized or could not be downloaded: {}", url
-        );
+                "Image was not recognized or could not be downloaded: {}", url);
         return null;
     }
 

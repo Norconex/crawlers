@@ -44,8 +44,7 @@ class SitemapParser {
     private final MutableBoolean stopping;
 
     List<SitemapRecord> parse(
-            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer
-    ) {
+            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer) {
 
         var location = sitemapDoc.getReference();
         List<SitemapRecord> children = new ArrayList<>();
@@ -58,8 +57,7 @@ class SitemapParser {
                         if (stopping.isTrue()) {
                             LOG.debug(
                                     "Sitemap not entirely parsed due to "
-                                            + "crawler being stopped."
-                            );
+                                            + "crawler being stopped.");
                             return false;
                         }
                         return true;
@@ -77,13 +75,11 @@ class SitemapParser {
             LOG.error(
                     "Cannot fetch sitemap: {} -- Likely an invalid sitemap "
                             + "XML format causing a parsing error (actual error:{}).",
-                    location, e.getMessage()
-            );
+                    location, e.getMessage());
         } catch (IOException e) {
             LOG.error(
                     "Cannot fetch sitemap: {} ({})",
-                    location, e.getMessage(), e
-            );
+                    location, e.getMessage(), e);
         }
         return children;
     }
@@ -102,8 +98,7 @@ class SitemapParser {
     }
 
     private Optional<WebCrawlDocContext> toDocRecord(
-            XML xml, String sitemapLocationDir
-    ) {
+            XML xml, String sitemapLocationDir) {
         var url = xml.getString("loc");
 
         // Is URL valid?
@@ -112,8 +107,7 @@ class SitemapParser {
             LOG.debug(
                     "Sitemap URL invalid for location directory."
                             + " URL: {}  Location directory: {}",
-                    url, sitemapLocationDir
-            );
+                    url, sitemapLocationDir);
             return Optional.empty();
         }
 

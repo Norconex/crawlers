@@ -157,8 +157,7 @@ public class RegexLinkExtractorConfig {
     }
 
     public RegexLinkExtractorConfig setPatterns(
-            List<ExtractionPattern> patterns
-    ) {
+            List<ExtractionPattern> patterns) {
         CollectionUtil.setAll(this.patterns, patterns);
         return this;
     }

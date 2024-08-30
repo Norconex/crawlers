@@ -42,30 +42,24 @@ class SegmentCountUrlFilterTest {
         f = configure(
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(5)
-                        .setOnMatch(OnMatch.EXCLUDE)
-        );
+                        .setOnMatch(OnMatch.EXCLUDE));
         Assertions.assertFalse(
                 f.acceptReference(url),
-                "URL wrongfully rejected."
-        );
+                "URL wrongfully rejected.");
         f = configure(
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(6)
-                        .setOnMatch(OnMatch.EXCLUDE)
-        );
+                        .setOnMatch(OnMatch.EXCLUDE));
         Assertions.assertFalse(
                 f.acceptReference(url),
-                "URL wrongfully accepted."
-        );
+                "URL wrongfully accepted.");
         f = configure(
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(7)
-                        .setOnMatch(OnMatch.EXCLUDE)
-        );
+                        .setOnMatch(OnMatch.EXCLUDE));
         Assertions.assertTrue(
                 f.acceptReference(url),
-                "URL wrongfully rejected."
-        );
+                "URL wrongfully rejected.");
 
         //--- Test proper duplicate counts ---
         url = "http://www.example.com/aa/bb/aa/cc/bb/aa/aa/bb/cc/dd.html";
@@ -73,32 +67,26 @@ class SegmentCountUrlFilterTest {
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(3)
                         .setOnMatch(OnMatch.EXCLUDE)
-                        .setDuplicate(true)
-        );
+                        .setDuplicate(true));
         Assertions.assertFalse(
                 f.acceptReference(url),
-                "URL wrongfully rejected."
-        );
+                "URL wrongfully rejected.");
         f = configure(
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(4)
                         .setOnMatch(OnMatch.EXCLUDE)
-                        .setDuplicate(true)
-        );
+                        .setDuplicate(true));
         Assertions.assertFalse(
                 f.acceptReference(url),
-                "URL wrongfully accepted."
-        );
+                "URL wrongfully accepted.");
         f = configure(
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(5)
                         .setOnMatch(OnMatch.EXCLUDE)
-                        .setDuplicate(true)
-        );
+                        .setDuplicate(true));
         Assertions.assertTrue(
                 f.acceptReference(url),
-                "URL wrongfully rejected."
-        );
+                "URL wrongfully rejected.");
 
         //--- Test custom separator (query string ---
         url = "http://www.example.com/one/two_three|four-five/page.html";
@@ -106,32 +94,26 @@ class SegmentCountUrlFilterTest {
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(5)
                         .setOnMatch(OnMatch.EXCLUDE)
-                        .setSeparator("[/_|-]")
-        );
+                        .setSeparator("[/_|-]"));
         Assertions.assertFalse(
                 f.acceptReference(url),
-                "URL wrongfully rejected."
-        );
+                "URL wrongfully rejected.");
         f = configure(
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(6)
                         .setOnMatch(OnMatch.EXCLUDE)
-                        .setSeparator("[/_|-]")
-        );
+                        .setSeparator("[/_|-]"));
         Assertions.assertFalse(
                 f.acceptReference(url),
-                "URL wrongfully accepted."
-        );
+                "URL wrongfully accepted.");
         f = configure(
                 new SegmentCountUrlFilter(), c -> c
                         .setCount(7)
                         .setOnMatch(OnMatch.EXCLUDE)
-                        .setSeparator("[/_|-]")
-        );
+                        .setSeparator("[/_|-]"));
         Assertions.assertTrue(
                 f.acceptReference(url),
-                "URL wrongfully rejected."
-        );
+                "URL wrongfully rejected.");
     }
 
     @Test

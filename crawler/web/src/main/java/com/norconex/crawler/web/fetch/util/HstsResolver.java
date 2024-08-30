@@ -68,8 +68,7 @@ public final class HstsResolver {
 
     public static void resolve(
             HttpClient httpClient,
-            WebCrawlDocContext docRecord
-    ) {
+            WebCrawlDocContext docRecord) {
 
         // The idea: "public" suffixes are "effective" top-level domains
         // under which new domains can be registered. When considering a root
@@ -81,8 +80,7 @@ public final class HstsResolver {
         // See: https://github.com/Norconex/collector-http/issues/785
 
         var rootDomain = docRecord.getReference().replaceFirst(
-                "(?i)^https?://([^/\\?#]+).*", "$1"
-        );
+                "(?i)^https?://([^/\\?#]+).*", "$1");
         var isSubdomain = false;
         if (InternetDomainName.isValid(rootDomain)) {
             var dn = InternetDomainName.from(rootDomain);
@@ -109,8 +107,7 @@ public final class HstsResolver {
     }
 
     private static synchronized void applyHstsSupport(
-            WebCrawlDocContext docRecord, String domain, boolean isSubdomain
-    ) {
+            WebCrawlDocContext docRecord, String domain, boolean isSubdomain) {
         var support = DOMAIN_HSTS.getOrDefault(domain, HstsSupport.NO);
         if (support == HstsSupport.INCLUDE_SUBDOMAINS
                 || (support == HstsSupport.DOMAIN_ONLY && !isSubdomain)) {
@@ -122,15 +119,12 @@ public final class HstsResolver {
             docRecord.setOriginalReference(docRecord.getReference());
             docRecord.setReference(
                     docRecord.getReference().replaceFirst(
-                            "(?i)^http://", "https://"
-                    )
-            );
+                            "(?i)^http://", "https://"));
         }
     }
 
     private static synchronized void resolveHstsSupport(
-            HttpClient httpClient, String domain
-    ) {
+            HttpClient httpClient, String domain) {
 
         var exceptionMsg = """
                 Attempt to verify if the site supports\s\
@@ -148,34 +142,28 @@ public final class HstsResolver {
                                 .of(response.getHeaders())
                                 .filter(
                                         h -> HSTS_HEADER
-                                                .equalsIgnoreCase(h.getName())
-                                )
+                                                .equalsIgnoreCase(h.getName()))
                                 .findAny()
-                                .orElse(null)
-                );
+                                .orElse(null));
                 if (header == null) {
                     LOG.info(
                             "No Strict-Transport-Security (HSTS) support "
                                     + "detected for domain \"{}\".",
-                            domain
-                    );
+                            domain);
                     return HstsSupport.NO;
                 }
                 if (header.getValue().matches(
-                        "(?i).*\\bincludeSubDomains\\b.*"
-                )) {
+                        "(?i).*\\bincludeSubDomains\\b.*")) {
                     LOG.info(
                             "Strict-Transport-Security (HSTS) support "
                                     + "detected for domain \"{}\" and its sub-domains.",
-                            domain
-                    );
+                            domain);
                     return HstsSupport.INCLUDE_SUBDOMAINS;
                 }
                 LOG.info(
                         "Strict-Transport-Security (HSTS) support "
                                 + "detected for domain \"{}\" (sub-domains excluded).",
-                        domain
-                );
+                        domain);
                 return HstsSupport.DOMAIN_ONLY;
             } catch (IOException e) {
                 LOG.warn(exceptionMsg, e);

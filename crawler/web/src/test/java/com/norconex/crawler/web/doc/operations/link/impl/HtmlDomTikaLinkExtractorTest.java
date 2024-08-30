@@ -57,8 +57,7 @@ class HtmlDomTikaLinkExtractorTest {
         return Stream.of(
                 hle,
                 new DomLinkExtractor(),
-                new TikaLinkExtractor()
-        );
+                new TikaLinkExtractor());
     }
 
     //--- Common tests ---------------------------------------------------------
@@ -120,12 +119,10 @@ class HtmlDomTikaLinkExtractorTest {
         }
 
         var is = getClass().getResourceAsStream(
-                "LinkExtractorTest.html"
-        );
+                "LinkExtractorTest.html");
 
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(docURL, ContentType.HTML, is)
-        );
+                CrawlDocStubs.crawlDoc(docURL, ContentType.HTML, is));
         is.close();
 
         var actualUrls = links.stream().map(Link::getUrl).toList();
@@ -136,8 +133,7 @@ class HtmlDomTikaLinkExtractorTest {
 
     @LinkExtractorsTest
     void testBaseHrefLinkExtraction(
-            LinkExtractor extractor
-    ) throws IOException {
+            LinkExtractor extractor) throws IOException {
         var docURL = "http://www.example.com/test/absolute/"
                 + "LinkBaseHrefTest.html";
         var host = "http://www.sample.com";
@@ -153,8 +149,7 @@ class HtmlDomTikaLinkExtractorTest {
 
         var is = getClass().getResourceAsStream("LinkBaseHrefTest.html");
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(docURL, ContentType.HTML, is)
-        );
+                CrawlDocStubs.crawlDoc(docURL, ContentType.HTML, is));
         is.close();
 
         var actualUrls = links.stream().map(Link::getUrl).toList();
@@ -163,8 +158,7 @@ class HtmlDomTikaLinkExtractorTest {
 
     @LinkExtractorsTest
     void testRelativeBaseHrefLinkExtraction(
-            LinkExtractor extractor
-    ) throws IOException {
+            LinkExtractor extractor) throws IOException {
 
         if (extractor instanceof TikaLinkExtractor) {
             // TikaLinkExtractor does not support all the same test cases
@@ -184,11 +178,9 @@ class HtmlDomTikaLinkExtractorTest {
         };
 
         var is = getClass().getResourceAsStream(
-                "LinkRelativeBaseHrefTest.html"
-        );
+                "LinkRelativeBaseHrefTest.html");
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(docURL, ContentType.HTML, is)
-        );
+                CrawlDocStubs.crawlDoc(docURL, ContentType.HTML, is));
         is.close();
 
         var actualUrls = links.stream().map(Link::getUrl).toList();
@@ -203,24 +195,20 @@ class HtmlDomTikaLinkExtractorTest {
         Set<Link> expectedLinks = new HashSet<>(
                 Arrays.asList(
                         linkWithReferrer(
-                                "1-notitle-notext.html", null, null, null
-                        ),
+                                "1-notitle-notext.html", null, null, null),
                         linkWithReferrer(
                                 "2-notitle-yestext.html",
                                 "2 Yes Text",
                                 null,
-                                null
-                        ),
+                                null),
                         linkWithReferrer(
                                 "3-yestitle-yestext.html",
                                 "3 Yes Text",
                                 null,
-                                "3 Yes Title"
-                        ),
+                                "3 Yes Title"),
                         linkWithReferrer(
                                 "4-yestitle-notext.html", null, null,
-                                "4 Yes Title"
-                        ),
+                                "4 Yes Title"),
                         // Link 5 should not be there (no href).
                         linkWithReferrer(
                                 "6-yestitle-yestexthtml.html",
@@ -228,20 +216,14 @@ class HtmlDomTikaLinkExtractorTest {
                                 (extractor instanceof TikaLinkExtractor)
                                         ? null
                                         : "[<font color=\"red\">6</font>]Yes Text",
-                                "6 Yes Title"
-                        )
-                )
-        );
+                                "6 Yes Title")));
 
         var is = getClass().getResourceAsStream(
-                "LinkKeepReferrerTest.html"
-        );
+                "LinkKeepReferrerTest.html");
         var links = extractor.extractLinks(
                 CrawlDocStubs.crawlDoc(
                         "http://www.site.com/parent.html",
-                        ContentType.HTML, is
-                )
-        );
+                        ContentType.HTML, is));
         is.close();
 
         assertThat(links).containsExactlyInAnyOrderElementsOf(expectedLinks);
@@ -255,8 +237,7 @@ class HtmlDomTikaLinkExtractorTest {
     }
 
     private Link linkWithReferrer(
-            String relURL, String text, String markup, String title
-    ) {
+            String relURL, String text, String markup, String title) {
         var link = new Link("http://www.site.com/" + relURL);
         link.setReferrer("http://www.site.com/parent.html");
         link.getMetadata().set("tag", "a");

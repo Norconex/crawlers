@@ -46,16 +46,12 @@ class WebImporterPipelineTest {
         var doc = new CrawlDoc(
                 new WebCrawlDocContext(reference, 0), null,
                 new CachedStreamFactory(1000, 1000).newInputStream(
-                        new ByteArrayInputStream(contentValid.getBytes())
-                ),
-                false
-        );
+                        new ByteArrayInputStream(contentValid.getBytes())),
+                false);
         var ctx = new WebImporterPipelineContext(crawler, doc);
         Assertions.assertTrue(
                 new CanonicalStage(
-                        FetchDirective.DOCUMENT
-                ).test(ctx)
-        );
+                        FetchDirective.DOCUMENT).test(ctx));
     }
 
     @Test
@@ -63,15 +59,12 @@ class WebImporterPipelineTest {
         var reference = "http://www.example.com/file.pdf";
         var doc = new CrawlDoc(
                 new WebCrawlDocContext(reference, 0), null,
-                new CachedStreamFactory(1, 1).newInputStream(), false
-        );
+                new CachedStreamFactory(1, 1).newInputStream(), false);
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
         var ctx = new WebImporterPipelineContext(crawler, doc);
         Assertions.assertTrue(
                 new CanonicalStage(
-                        FetchDirective.METADATA
-                ).test(ctx)
-        );
+                        FetchDirective.METADATA).test(ctx));
     }
 
     @Test
@@ -86,10 +79,8 @@ class WebImporterPipelineTest {
         var doc = new CrawlDoc(
                 docRecord, null,
                 new CachedStreamFactory(1000, 1000).newInputStream(
-                        new ByteArrayInputStream(content.getBytes())
-                ),
-                false
-        );
+                        new ByteArrayInputStream(content.getBytes())),
+                false);
         doc.getMetadata().set(DocMetadata.CONTENT_TYPE, "text/html");
 
         var ctx = new WebImporterPipelineContext(crawler, doc);
@@ -101,21 +92,16 @@ class WebImporterPipelineTest {
         stage.test(ctx);
         Assertions.assertEquals(
                 0, doc.getMetadata().getStrings(
-                        WebDocMetadata.REFERENCED_URLS
-                ).size()
-        );
+                        WebDocMetadata.REFERENCED_URLS).size());
 
         // Here 1 URL shouled be extracted even if max depth is reached.
         Web.config(ctx.getCrawler()).setKeepReferencedLinks(
                 Set.of(
-                        ReferencedLinkType.INSCOPE, ReferencedLinkType.MAXDEPTH
-                )
-        );
+                        ReferencedLinkType.INSCOPE,
+                        ReferencedLinkType.MAXDEPTH));
         stage.test(ctx);
         Assertions.assertEquals(
                 1, doc.getMetadata().getStrings(
-                        WebDocMetadata.REFERENCED_URLS
-                ).size()
-        );
+                        WebDocMetadata.REFERENCED_URLS).size());
     }
 }

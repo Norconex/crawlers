@@ -209,9 +209,7 @@ public class GenericUrlNormalizerConfig {
                         Normalization.UPPERCASE_ESCAPESEQUENCE,
                         Normalization.DECODE_UNRESERVED_CHARACTERS,
                         Normalization.REMOVE_DEFAULT_PORT,
-                        Normalization.ENCODE_NON_URI_CHARACTERS
-                )
-        );
+                        Normalization.ENCODE_NON_URI_CHARACTERS));
     }
 
     public List<Normalization> getNormalizations() {
@@ -219,8 +217,7 @@ public class GenericUrlNormalizerConfig {
     }
 
     public GenericUrlNormalizerConfig setNormalizations(
-            List<Normalization> normalizations
-    ) {
+            List<Normalization> normalizations) {
         CollectionUtil.setAll(this.normalizations, normalizations);
         return this;
     }
@@ -230,8 +227,7 @@ public class GenericUrlNormalizerConfig {
     }
 
     public GenericUrlNormalizerConfig setReplacements(
-            List<NormalizationReplace> replacements
-    ) {
+            List<NormalizationReplace> replacements) {
         CollectionUtil.setAll(this.replacements, replacements);
         return this;
     }
@@ -249,8 +245,7 @@ public class GenericUrlNormalizerConfig {
         @JsonCreator
         public NormalizationReplace(
                 @JsonProperty("match") String match,
-                @JsonProperty("value") String replacement
-        ) {
+                @JsonProperty("value") String replacement) {
             this.match = match;
             value = replacement;
         }

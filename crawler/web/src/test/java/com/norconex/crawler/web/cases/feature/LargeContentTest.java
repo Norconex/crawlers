@@ -54,8 +54,7 @@ class LargeContentTest {
         });
 
         var txt = IOUtils.toString(
-                mem.getUpsertRequests().get(0).getContent(), UTF_8
-        );
+                mem.getUpsertRequests().get(0).getContent(), UTF_8);
 
         assertThat(txt).hasSizeGreaterThanOrEqualTo(minSize);
     }

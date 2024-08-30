@@ -140,9 +140,10 @@ public class ApacheKafkaCommitter
             );
 
         } else if (!kafkaAdmin.isTopicExists(configuration.getTopicName())) {
-            var msg = String.format(
-                    "Topic `%s` does not exist in Kafka. "
-                            + "Either create the topic manually or set `%s` to true.",
+            var msg = String.format("""
+                    Topic `%s` does not exist in Kafka. \
+                    Either create the topic manually or set \
+                    `%s` to true.""",
                     configuration.getTopicName(), CREATE_TOPIC_CONFIG
             );
             LOG.error(msg);

@@ -64,15 +64,11 @@ class ResumeAfterStopTest {
         assertThat(outcome.getReturnValue()).isZero();
         assertThat(
                 outcome.getCommitterAfterLaunch()
-                        .getUpsertCount()
-        ).isEqualTo(7);
+                        .getUpsertCount()).isEqualTo(7);
         assertThat(
                 WebTestUtil.lastSortedRequestReference(
-                        outcome.getCommitterAfterLaunch()
-                )
-        ).isEqualTo(
-                WebsiteMock.serverUrl(client, path + "/0006")
-        );
+                        outcome.getCommitterAfterLaunch())).isEqualTo(
+                                WebsiteMock.serverUrl(client, path + "/0006"));
 
         // Second run, it should resume and finish normally, crawling
         // 10 docs in this session.
@@ -83,19 +79,14 @@ class ResumeAfterStopTest {
         assertThat(outcome.getReturnValue()).isZero();
         assertThat(
                 outcome.getCommitterAfterLaunch()
-                        .getUpsertCount()
-        ).isEqualTo(10);
+                        .getUpsertCount()).isEqualTo(10);
         assertThat(
                 outcome.getCommitterCombininedLaunches()
-                        .getUpsertCount()
-        ).isEqualTo(17);
+                        .getUpsertCount()).isEqualTo(17);
         assertThat(
                 WebTestUtil.lastSortedRequestReference(
-                        outcome.getCommitterAfterLaunch()
-                )
-        ).isEqualTo(
-                WebsiteMock.serverUrl(client, path + "/0016")
-        );
+                        outcome.getCommitterAfterLaunch())).isEqualTo(
+                                WebsiteMock.serverUrl(client, path + "/0016"));
 
         // Recrawl fresh without crash. Since we do not check for duplicates,
         // it should find 10 "new", added to previous 10.
@@ -105,18 +96,13 @@ class ResumeAfterStopTest {
         assertThat(outcome.getReturnValue()).isZero();
         assertThat(
                 outcome.getCommitterAfterLaunch()
-                        .getUpsertCount()
-        ).isEqualTo(10);
+                        .getUpsertCount()).isEqualTo(10);
         assertThat(
                 outcome.getCommitterCombininedLaunches()
-                        .getUpsertCount()
-        ).isEqualTo(27);
+                        .getUpsertCount()).isEqualTo(27);
         assertThat(
                 WebTestUtil.lastSortedRequestReference(
-                        outcome.getCommitterAfterLaunch()
-                )
-        ).isEqualTo(
-                WebsiteMock.serverUrl(client, path + "/0026")
-        );
+                        outcome.getCommitterAfterLaunch())).isEqualTo(
+                                WebsiteMock.serverUrl(client, path + "/0026"));
     }
 }

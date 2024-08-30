@@ -61,8 +61,7 @@ public class WebCrawler {
                 .get()
                 .configuration(
                         Optional.ofNullable(crawlerConfig)
-                                .orElseGet(WebCrawlerConfig::new)
-                )
+                                .orElseGet(WebCrawlerConfig::new))
                 .build();
     }
 

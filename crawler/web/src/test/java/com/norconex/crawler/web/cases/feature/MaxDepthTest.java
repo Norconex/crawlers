@@ -44,8 +44,7 @@ class MaxDepthTest {
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(
-                    List.of(serverUrl(client, "/maxDepth/0000"))
-            );
+                    List.of(serverUrl(client, "/maxDepth/0000")));
             cfg.setMaxDepth(10);
         });
 

@@ -75,8 +75,7 @@ class SitemapResolutionStageTest {
         var sitemap = SITEMAP_XML.formatted(
                 baseUrl + "0001",
                 baseUrl + "0002",
-                baseUrl + "0003"
-        );
+                baseUrl + "0003");
         client
                 .when(request().withPath("/sitemap.xml"))
                 .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
@@ -86,8 +85,7 @@ class SitemapResolutionStageTest {
             cfg.setSitemapLocator(new GenericSitemapLocator())
                     .setSitemapResolver(new GenericSitemapResolver())
                     .setStartReferences(
-                            List.of(serverUrl(client, "/stayOnSitemap"))
-                    )
+                            List.of(serverUrl(client, "/stayOnSitemap")))
                     .setNumThreads(1)
                     .setMaxDocuments(10);
             ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
@@ -107,8 +105,7 @@ class SitemapResolutionStageTest {
         var sitemap = SITEMAP_XML.formatted(
                 baseUrl + "0001",
                 baseUrl + "0002",
-                baseUrl + "0003"
-        );
+                baseUrl + "0003");
         client
                 .when(request().withPath("/sitemap.xml"))
                 .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
