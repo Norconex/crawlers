@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.cli;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 
@@ -110,8 +109,6 @@ public abstract class CliSubCommandBase implements Runnable {
                         .append(".\n"));
                 throw new CliException(b.toString());
             }
-        } catch (IOException e) {
-            throw new CliException("Could not load crawler configuration.", e);
         }
     }
 }
