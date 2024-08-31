@@ -28,7 +28,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.i18n.UncheckedException;
 
-import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.io.IoUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -61,7 +61,7 @@ public class WriteAdapter {
     public Writer asWriter(Charset charset) {
         var os = outputSupplier.get();
         var writer = new OutputStreamWriter(
-                IOUtil.toNonNullOutputStream(os),
+                IoUtil.toNonNullOutputStream(os),
                 ObjectUtils.firstNonNull(
                         charset, defaultCharset, StandardCharsets.UTF_8
                 )

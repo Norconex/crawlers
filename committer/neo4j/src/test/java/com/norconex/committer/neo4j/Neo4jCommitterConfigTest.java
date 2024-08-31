@@ -21,7 +21,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -34,7 +34,7 @@ class Neo4jCommitterConfigTest {
     void testWriteRead() throws Exception {
         var c = new Neo4jCommitter();
 
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration().setBatchSize(10);
         q.getConfiguration().setMaxPerFolder(5);
         c.getConfiguration().setQueue(q);

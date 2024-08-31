@@ -16,7 +16,7 @@ package com.norconex.committer.core.batch;
 
 import com.norconex.committer.core.BaseCommitterConfig;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -25,5 +25,5 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class BaseBatchCommitterConfig extends BaseCommitterConfig {
 
-    private CommitterQueue queue = new FSQueue();
+    private CommitterQueue queue = new FsQueue();
 }

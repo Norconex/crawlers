@@ -25,7 +25,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.xml.ErrorHandlerCapturer;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 class CommitterTest {
     @Test
@@ -36,7 +36,7 @@ class CommitterTest {
                 )
         )) {
             var eh = new ErrorHandlerCapturer();
-            var xml = XML.of(r).setErrorHandler(eh).create();
+            var xml = Xml.of(r).setErrorHandler(eh).create();
 
             List<Committer> committers = xml.getObjectListImpl(
                     Committer.class,

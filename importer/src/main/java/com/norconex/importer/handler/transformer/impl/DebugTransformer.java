@@ -26,7 +26,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
 
-import com.norconex.commons.lang.SLF4JUtil;
+import com.norconex.commons.lang.Slf4jUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.HandlerContext;
@@ -102,7 +102,7 @@ public class DebugTransformer
         }
 
         if (configuration.isLogContent()) {
-            SLF4JUtil.log(
+            Slf4jUtil.log(
                     LOG, level,
                     StringUtils.trimToEmpty(configuration.getPrefix())
                             + "CONTENT={}",
@@ -123,7 +123,7 @@ public class DebugTransformer
                 b.append(value);
             }
         }
-        SLF4JUtil.log(
+        Slf4jUtil.log(
                 LOG, level, trimToEmpty(configuration.getPrefix())
                         + "{}={}",
                 fieldName, b.toString()

@@ -29,7 +29,7 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,7 +49,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
     private static final String PROP_CONTENT_STREAM_LENGTH =
             "cmis:contentStreamLength";
 
-    private XML document;
+    private Xml document;
 
     protected CmisAtomFileObject(
             AbstractFileName name, CmisAtomFileSystem fileSystem
@@ -82,11 +82,11 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
         return (CmisAtomFileSystem) super.getFileSystem();
     }
 
-    public XML getDocument() {
+    public Xml getDocument() {
         return document;
     }
 
-    private XML createDocument(final FileName fileName)
+    private Xml createDocument(final FileName fileName)
             throws FileSystemException {
         return getSession().getDocumentByPath(fileName.getPath());
     }

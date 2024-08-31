@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.convert.GenericConverter;
-import com.norconex.commons.lang.url.URLNormalizer;
+import com.norconex.commons.lang.url.UrlNormalizer;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 
@@ -35,7 +35,7 @@ import lombok.experimental.Accessors;
  * <p>
  * Generic implementation of {@link WebUrlNormalizer} that should satisfy
  * most URL normalization needs.  This implementation relies on
- * {@link URLNormalizer}.  Please refer to it for complete documentation and
+ * {@link UrlNormalizer}.  Please refer to it for complete documentation and
  * examples.
  * </p>
  * <p>
@@ -64,37 +64,37 @@ import lombok.experimental.Accessors;
  * name to get a full description from {@link WebUrlNormalizer}:
  * </p>
  * <ul>
- *   <li>{@link URLNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash} (since 2.6.0)</li>
- *   <li>{@link URLNormalizer#addDomainTrailingSlash() addDomainTrailingSlash} (since 2.6.1)</li>
- *   <li>{@link URLNormalizer#addWWW() addWWW}</li>
- *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
- *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters}</li>
- *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces}</li>
- *   <li>{@link URLNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQueryParameterNames()
+ *   <li>{@link UrlNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link UrlNormalizer#addDomainTrailingSlash() addDomainTrailingSlash} (since 2.6.1)</li>
+ *   <li>{@link UrlNormalizer#addWWW() addWWW}</li>
+ *   <li>{@link UrlNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
+ *   <li>{@link UrlNormalizer#encodeNonURICharacters() encodeNonURICharacters}</li>
+ *   <li>{@link UrlNormalizer#encodeSpaces() encodeSpaces}</li>
+ *   <li>{@link UrlNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
+ *   <li>{@link UrlNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
+ *   <li>{@link UrlNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
+ *   <li>{@link UrlNormalizer#lowerCaseQueryParameterNames()
  *        lowerCaseQueryParameterNames} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQueryParameterValues()
+ *   <li>{@link UrlNormalizer#lowerCaseQueryParameterValues()
  *        lowerCaseQueryParameterValues} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
- *   <li>{@link URLNormalizer#removeDefaultPort() removeDefaultPort}</li>
- *   <li>{@link URLNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
- *   <li>{@link URLNormalizer#removeDotSegments() removeDotSegments}</li>
- *   <li>{@link URLNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
- *   <li>{@link URLNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
- *   <li>{@link URLNormalizer#removeFragment() removeFragment}</li>
- *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li>
- *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
- *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
- *   <li>{@link URLNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
- *   <li>{@link URLNormalizer#removeWWW() removeWWW}</li>
- *   <li>{@link URLNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
- *   <li>{@link URLNormalizer#secureScheme() secureScheme}</li>
- *   <li>{@link URLNormalizer#sortQueryParameters() sortQueryParameters}</li>
- *   <li>{@link URLNormalizer#unsecureScheme() unsecureScheme}</li>
- *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
+ *   <li>{@link UrlNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
+ *   <li>{@link UrlNormalizer#removeDefaultPort() removeDefaultPort}</li>
+ *   <li>{@link UrlNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
+ *   <li>{@link UrlNormalizer#removeDotSegments() removeDotSegments}</li>
+ *   <li>{@link UrlNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
+ *   <li>{@link UrlNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
+ *   <li>{@link UrlNormalizer#removeFragment() removeFragment}</li>
+ *   <li>{@link UrlNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
+ *   <li>{@link UrlNormalizer#removeSessionIds() removeSessionIds}</li>
+ *   <li>{@link UrlNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
+ *   <li>{@link UrlNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link UrlNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
+ *   <li>{@link UrlNormalizer#removeWWW() removeWWW}</li>
+ *   <li>{@link UrlNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
+ *   <li>{@link UrlNormalizer#secureScheme() secureScheme}</li>
+ *   <li>{@link UrlNormalizer#sortQueryParameters() sortQueryParameters}</li>
+ *   <li>{@link UrlNormalizer#unsecureScheme() unsecureScheme}</li>
+ *   <li>{@link UrlNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
  * </ul>
  * <p>
  *   In addition, this class allows you to specify any number of URL
@@ -151,44 +151,44 @@ import lombok.experimental.Accessors;
 public class GenericUrlNormalizerConfig {
 
     public enum Normalization {
-        ADD_DIRECTORY_TRAILING_SLASH(URLNormalizer::addDirectoryTrailingSlash),
-        ADD_DOMAIN_TRAILING_SLASH(URLNormalizer::addDomainTrailingSlash),
-        ADD_WWW(URLNormalizer::addWWW),
-        DECODE_UNRESERVED_CHARACTERS(URLNormalizer::decodeUnreservedCharacters),
-        ENCODE_NON_URI_CHARACTERS(URLNormalizer::encodeNonURICharacters),
-        ENCODE_SPACES(URLNormalizer::encodeSpaces),
-        LOWERCASE(URLNormalizer::lowerCase),
-        LOWERCASE_PATH(URLNormalizer::lowerCasePath),
-        LOWERCASE_QUERY(URLNormalizer::lowerCaseQuery),
+        ADD_DIRECTORY_TRAILING_SLASH(UrlNormalizer::addDirectoryTrailingSlash),
+        ADD_DOMAIN_TRAILING_SLASH(UrlNormalizer::addDomainTrailingSlash),
+        ADD_WWW(UrlNormalizer::addWWW),
+        DECODE_UNRESERVED_CHARACTERS(UrlNormalizer::decodeUnreservedCharacters),
+        ENCODE_NON_URI_CHARACTERS(UrlNormalizer::encodeNonURICharacters),
+        ENCODE_SPACES(UrlNormalizer::encodeSpaces),
+        LOWERCASE(UrlNormalizer::lowerCase),
+        LOWERCASE_PATH(UrlNormalizer::lowerCasePath),
+        LOWERCASE_QUERY(UrlNormalizer::lowerCaseQuery),
         LOWERCASE_QUERY_PARAMETER_NAMES(
-                URLNormalizer::lowerCaseQueryParameterNames),
+                UrlNormalizer::lowerCaseQueryParameterNames),
         LOWERCASE_QUERY_PARAMETER_VALUES(
-                URLNormalizer::lowerCaseQueryParameterValues),
-        LOWERCASE_SCHEME_HOST(URLNormalizer::lowerCaseSchemeHost),
-        REMOVE_DEFAULT_PORT(URLNormalizer::removeDefaultPort),
-        REMOVE_DIRECTORY_INDEX(URLNormalizer::removeDirectoryIndex),
-        REMOVE_DOT_SEGMENTS(URLNormalizer::removeDotSegments),
-        REMOVE_DUPLICATE_SLASHES(URLNormalizer::removeDuplicateSlashes),
-        REMOVE_EMPTY_PARAMETERS(URLNormalizer::removeEmptyParameters),
-        REMOVE_FRAGMENT(URLNormalizer::removeFragment),
-        REMOVE_QUERY_STRING(URLNormalizer::removeQueryString),
-        REMOVE_SESSION_IDS(URLNormalizer::removeSessionIds),
+                UrlNormalizer::lowerCaseQueryParameterValues),
+        LOWERCASE_SCHEME_HOST(UrlNormalizer::lowerCaseSchemeHost),
+        REMOVE_DEFAULT_PORT(UrlNormalizer::removeDefaultPort),
+        REMOVE_DIRECTORY_INDEX(UrlNormalizer::removeDirectoryIndex),
+        REMOVE_DOT_SEGMENTS(UrlNormalizer::removeDotSegments),
+        REMOVE_DUPLICATE_SLASHES(UrlNormalizer::removeDuplicateSlashes),
+        REMOVE_EMPTY_PARAMETERS(UrlNormalizer::removeEmptyParameters),
+        REMOVE_FRAGMENT(UrlNormalizer::removeFragment),
+        REMOVE_QUERY_STRING(UrlNormalizer::removeQueryString),
+        REMOVE_SESSION_IDS(UrlNormalizer::removeSessionIds),
         REMOVE_TRAILING_QUESTION_MARK(
-                URLNormalizer::removeTrailingQuestionMark),
-        REMOVE_TRAILING_SLASH(URLNormalizer::removeTrailingSlash),
-        REMOVE_TRAILING_HASH(URLNormalizer::removeTrailingHash),
-        REMOVE_WWW(URLNormalizer::removeWWW),
-        REPLACE_IP_WITH_DOMAIN_NAME(URLNormalizer::replaceIPWithDomainName),
-        SECURE_SCHEME(URLNormalizer::secureScheme),
-        SORT_QUERY_PARAMETERS(URLNormalizer::sortQueryParameters),
-        UNSECURE_SCHEME(URLNormalizer::unsecureScheme),
-        UPPERCASE_ESCAPESEQUENCE(URLNormalizer::upperCaseEscapeSequence),
+                UrlNormalizer::removeTrailingQuestionMark),
+        REMOVE_TRAILING_SLASH(UrlNormalizer::removeTrailingSlash),
+        REMOVE_TRAILING_HASH(UrlNormalizer::removeTrailingHash),
+        REMOVE_WWW(UrlNormalizer::removeWWW),
+        REPLACE_IP_WITH_DOMAIN_NAME(UrlNormalizer::replaceIPWithDomainName),
+        SECURE_SCHEME(UrlNormalizer::secureScheme),
+        SORT_QUERY_PARAMETERS(UrlNormalizer::sortQueryParameters),
+        UNSECURE_SCHEME(UrlNormalizer::unsecureScheme),
+        UPPERCASE_ESCAPESEQUENCE(UrlNormalizer::upperCaseEscapeSequence),
         ;
 
         @Getter
-        private final Consumer<URLNormalizer> consumer;
+        private final Consumer<UrlNormalizer> consumer;
 
-        Normalization(Consumer<URLNormalizer> c) {
+        Normalization(Consumer<UrlNormalizer> c) {
             consumer = c;
         }
 

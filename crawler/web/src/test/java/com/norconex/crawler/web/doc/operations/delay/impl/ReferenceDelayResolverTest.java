@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 
 class ReferenceDelayResolverTest {
@@ -51,7 +51,7 @@ class ReferenceDelayResolverTest {
     @Test
     void testValidate() {
         assertThatNoException().isThrownBy(
-                () -> new XML(ResourceLoader.getXmlReader(getClass()))
+                () -> new Xml(ResourceLoader.getXmlReader(getClass()))
                         .validate(ReferenceDelayResolver.class));
     }
 

@@ -17,7 +17,7 @@ package com.norconex.committer.elasticsearch;
 import com.norconex.committer.core.*;
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.commons.lang.map.Properties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -99,7 +99,7 @@ class ElasticsearchCommitterTest {
 
     @AfterAll
     static void afterAll() {
-        IOUtil.closeQuietly(restClient);
+        IoUtil.closeQuietly(restClient);
     }
 
     @Test

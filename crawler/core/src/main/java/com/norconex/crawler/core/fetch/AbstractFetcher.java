@@ -19,7 +19,7 @@ import java.util.Optional;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.xml.XmlConfigurable;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
  * startup and shutdown events.
  * </p>
  * <h3>XML configuration usage:</h3>
- * Subclasses inherit this {@link XMLConfigurable} configuration:
+ * Subclasses inherit this {@link XmlConfigurable} configuration:
  *
  * {@nx.xml.usage #referenceFilters
  * <referenceFilters>

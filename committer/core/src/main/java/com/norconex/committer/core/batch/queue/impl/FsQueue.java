@@ -92,45 +92,11 @@ import lombok.extern.slf4j.Slf4j;
  * "maxRetry", the later then represents how many times to retry each new
  * smaller batches created.
  * </p>
- *
- * {@nx.xml.usage
- * <queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
- *   <batchSize>
- *     (Optional number of documents queued after which we process a batch.
- *      Default is 20.)
- *   </batchSize>
- *   <maxPerFolder>
- *     (Optional maximum number of files or directories that can be queued
- *      in a single folder before a new one gets created. Default is 500.)
- *   </maxPerFolder>
- *   <commitLeftoversOnInit>
- *     (Optionally force to commit any leftover documents from a previous
- *      execution. E.g., prematurely ended.  Default is "false").
- *   </commitLeftoversOnInit>
- *   <onCommitFailure>
- *     <splitBatch>[OFF|HALF|ONE]</splitBatch>
- *     <maxRetries>
- *       (Max retries upon commit failures. Default is 0.)
- *     </maxRetries>
- *     <retryDelay>
- *       (Delay in milliseconds between retries. Default is 0.)
- *     </retryDelay>
- *     <ignoreErrors>
- *       [false|true]
- *       (When true, non-critical exceptions when interacting with the target
- *        repository won't be thrown to try continue the execution with other
- *        files to be committed. Instead, errors will be logged.
- *        In both cases the failing batch/files are moved to an
- *        "error" folder. Other types of exceptions may still be thrown.)
- *     </ignoreErrors>
- *   </onCommitFailure>
- * </queue>
- * }
  */
 @EqualsAndHashCode
 @ToString
 @Slf4j
-public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
+public class FsQueue implements CommitterQueue, Configurable<FsQueueConfig> {
 
     public enum SplitBatch {
         OFF, HALF, ONE
@@ -161,7 +127,7 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
     private Retrier retrier = new Retrier(0);
 
     @Getter
-    private final FSQueueConfig configuration = new FSQueueConfig();
+    private final FsQueueConfig configuration = new FsQueueConfig();
 
     @Override
     public void init(
@@ -276,7 +242,7 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
 
         var totalConsumed = 0;
         var attemptDocConsumed = Math.max(1, configuration.getBatchSize());
-        var batch = new FSBatch(streamFactory, dir, -1);
+        var batch = new FsBatch(streamFactory, dir, -1);
         var batchHadFailures = false;
         var batchRanSuccessfully = false;
         while (!FSQueueUtil.isEmpty(dir)) {
@@ -294,7 +260,7 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
                     moveUnrecoverableBatchError(batch, e);
                     break;
                 }
-                batch = new FSBatch(streamFactory, dir, attemptDocConsumed);
+                batch = new FsBatch(streamFactory, dir, attemptDocConsumed);
             }
         }
 
@@ -320,7 +286,7 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
         return totalConsumed;
     }
 
-    private int consumeRetriableBatch(FSBatch batch)
+    private int consumeRetriableBatch(FsBatch batch)
             throws CommitterQueueException {
         try {
             return retrier.execute(() -> {
@@ -342,7 +308,7 @@ public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
     }
 
     private void moveUnrecoverableBatchError(
-            FSBatch batch, Exception e
+            FsBatch batch, Exception e
     ) throws CommitterQueueException {
         try {
             batch.move(errorDir);

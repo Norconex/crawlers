@@ -33,18 +33,18 @@ import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
 
-class FSQueueTest {
+class FsQueueTest {
 
     @TempDir
     static Path folder;
 
     private CommitterContext ctx;
-    private FSQueue queue;
+    private FsQueue queue;
 
     @BeforeEach
     public void setup() {
         ctx = CommitterContext.builder().setWorkDir(folder).build();
-        queue = new FSQueue();
+        queue = new FsQueue();
     }
 
     @Test
@@ -92,7 +92,7 @@ class FSQueueTest {
 
     @Test
     void testWriteRead() {
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration()
                 .setBatchSize(50)
                 .setMaxPerFolder(100)

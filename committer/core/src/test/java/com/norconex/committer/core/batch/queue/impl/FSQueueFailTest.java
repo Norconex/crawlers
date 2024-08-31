@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
 import com.norconex.committer.core.batch.FailingBatchCommitter;
-import com.norconex.committer.core.batch.queue.impl.FSQueue.SplitBatch;
+import com.norconex.committer.core.batch.queue.impl.FsQueue.SplitBatch;
 
 /**
  */
@@ -185,7 +185,7 @@ class FSQueueFailTest {
 
     // Build & run Committer all at once
     FailingBatchCommitter commitFailure(
-            int failAtDoc, int recoverAtAttempt, Consumer<FSQueue> c
+            int failAtDoc, int recoverAtAttempt, Consumer<FsQueue> c
     )
             throws CommitterException {
         var committer =
@@ -196,13 +196,13 @@ class FSQueueFailTest {
 
     // Build Committer
     FailingBatchCommitter buildCommitter(
-            int failAtDoc, int recoverAtAttempt, Consumer<FSQueue> c
+            int failAtDoc, int recoverAtAttempt, Consumer<FsQueue> c
     )
             throws CommitterException {
         var committer = new FailingBatchCommitter(
                 failAtDoc, recoverAtAttempt
         );
-        var fsqueue = (FSQueue) committer.getConfiguration().getQueue();
+        var fsqueue = (FsQueue) committer.getConfiguration().getQueue();
         c.accept(fsqueue);
         return committer;
     }

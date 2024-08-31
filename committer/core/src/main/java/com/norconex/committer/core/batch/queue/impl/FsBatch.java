@@ -32,7 +32,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
  * it and delete it. Not thread-safe.  Meant to be used on a directory
  * whose content is handled by a single thread (this one).
  */
-class FSBatch implements Iterable<CommitterRequest> {
+class FsBatch implements Iterable<CommitterRequest> {
 
     private CachedStreamFactory streamFactory;
     private final Path dir;
@@ -45,7 +45,7 @@ class FSBatch implements Iterable<CommitterRequest> {
      * @param max Maximum number of committer request to iterate through. A
      *     value lower or equal to zero matches all requests found in directory
      */
-    FSBatch(CachedStreamFactory streamFactory, Path dir, long max) {
+    FsBatch(CachedStreamFactory streamFactory, Path dir, long max) {
         this.streamFactory = streamFactory;
         this.dir = dir;
         this.max = max;

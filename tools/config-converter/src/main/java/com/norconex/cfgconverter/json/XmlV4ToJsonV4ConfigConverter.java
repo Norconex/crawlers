@@ -17,12 +17,12 @@ package com.norconex.cfgconverter.json;
 import java.io.Writer;
 
 import com.norconex.cfgconverter.ConfigConverter;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 public class XmlV4ToJsonV4ConfigConverter implements ConfigConverter {
 
     @Override
-    public void convert(XML input, Writer output) {
+    public void convert(Xml input, Writer output) {
 
         //TODO May actually not be need it at all since Jackson lib does it well 
 

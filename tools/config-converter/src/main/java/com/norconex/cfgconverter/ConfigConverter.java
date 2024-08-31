@@ -16,9 +16,9 @@ package com.norconex.cfgconverter;
 
 import java.io.Writer;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 public interface ConfigConverter {
 
-    void convert(XML input, Writer output);
+    void convert(Xml input, Writer output);
 }

@@ -27,7 +27,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
@@ -146,7 +146,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
                 "/entry/object/properties//"
                         + "*[starts-with(local-name(), 'property')]"
         );
-        for (XML propXml : propXmlList) {
+        for (Xml propXml : propXmlList) {
             var propId = propXml.getString("@propertyDefinitionId");
             if (StringUtils.isBlank(propId)) {
                 propId = "undefined_property";
@@ -163,7 +163,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
         var permXmlList = ctx.document.getXMLList(
                 "/entry/object/acl/permission"
         );
-        for (XML permXml : permXmlList) {
+        for (Xml permXml : permXmlList) {
             var principalId = permXml.getString("principal/principalId");
             permXml.getStringList("permission").forEach(p -> {
                 if (StringUtils.isNotBlank(p)) {
@@ -181,7 +181,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
 
     private static class Context {
         private final FileSystemOptions vfsOptions;
-        private final XML document;
+        private final Xml document;
         private final Properties metadata;
         private final CmisAtomSession session;
         private final CmisAtomFileSystemConfigBuilder cfg =

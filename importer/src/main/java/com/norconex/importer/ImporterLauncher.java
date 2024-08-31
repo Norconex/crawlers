@@ -40,7 +40,7 @@ import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XMLValidationException;
+import com.norconex.commons.lang.xml.XmlValidationException;
 import com.norconex.importer.response.ImporterResponse;
 
 /**
@@ -162,7 +162,7 @@ public final class ImporterLauncher {
                     .build()
                     .toObject(configFile, ImporterConfig.class);
             out().println("No XML configuration errors.");
-        } catch (XMLValidationException e) {
+        } catch (XmlValidationException e) {
             err().println(
                     "There were " + e.getErrors().size()
                             + " XML configuration error(s).");

@@ -14,24 +14,22 @@
  */
 package com.norconex.committer.core.batch.queue.impl;
 
-import com.norconex.committer.core.batch.queue.impl.FSQueue.SplitBatch;
+import com.norconex.committer.core.batch.queue.impl.FsQueue.SplitBatch;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@SuppressWarnings("javadoc")
-public class FSQueueConfig {
+public class FsQueueConfig {
 
     public static final int DEFAULT_BATCH_SIZE = 20;
     public static final int DEFAULT_MAX_PER_FOLDER = 500;
 
     /**
      * The number of documents to be queued in a batch on disk before
-     * consuming that batch.
-     * @param batchSize the batch size
-     * @return batch size
+     * consuming that batch. Default
+     * is {@value FsQueueConfig#DEFAULT_BATCH_SIZE}.
      */
     private int batchSize = DEFAULT_BATCH_SIZE;
 
@@ -40,25 +38,21 @@ public class FSQueueConfig {
      * A batch size can sometimes be too big for some file systems to handle
      * efficiently.  Having this number lower than the batch size allows
      * to have large batches without having too many files in a single
-     * directory.
-     * @param maxPerFolder number of files queued per directory
-     * @return maximum number of files queued per directory
+     * directory. Default
+     * is {@value FsQueueConfig#DEFAULT_MAX_PER_FOLDER}.
      */
     private int maxPerFolder = DEFAULT_MAX_PER_FOLDER;
 
     /**
-     * Whether to attempt committing any file leftovers in the committer
-     * queue from a previous session when the committer is initialized.
-     * Leftovers are typically associated with an abnormal termination.
-     * @param commitLeftoversOnInit <code>true</code> to commit leftovers
-     * @return <code>true</code> if committing leftovers
+     * During initialization, whether to attempt committing any leftover
+     * files in the committer queue from a previous crawl session.
+     * Leftovers are typically associated with an abnormal termination
+     * (E.g., prematurely ended).
      */
     private boolean commitLeftoversOnInit = false;
 
     /**
-     * Configuration only applicable when a commit fails.
-     * @param onCommitFailure commit failure configuration
-     * @return commit failure configuration
+     * Establishes how to handle commit failures.
      */
     private final OnCommitFailure onCommitFailure = new OnCommitFailure();
 
@@ -66,32 +60,24 @@ public class FSQueueConfig {
     @Accessors(chain = true)
     public static class OnCommitFailure {
         /**
-         * Whether and how to split batches when re-attempting them.
-         * See class documentation for details.
-         * @param splitBatch split batch strategy
-         * @return split batch strategy
+         * Whether and how to split batches when re-attempting them
+         * when they fail See class documentation for details.
          */
         private SplitBatch splitBatch = SplitBatch.OFF;
 
         /**
          * Maximum retries upon commit failures. Default is 0 (does not retry).
-         * @param maxRetries maximum number of retries
-         * @return maximum number of retries
          */
         private int maxRetries;
 
         /**
          * Delay in milliseconds between retries. Default is 0 (does not wait).
-         * @param retryDelay delay between retries
-         * @return delay between retries
          */
         private long retryDelay;
 
         /**
          * Whether to ignore non-critical errors in an attempt to keep going.
          * See class documentation for more details.
-         * @param ignoreErrors <code>true</code> to ignore errors
-         * @return <code>true</code> if ignoring errors
          */
         private boolean ignoreErrors;
     }

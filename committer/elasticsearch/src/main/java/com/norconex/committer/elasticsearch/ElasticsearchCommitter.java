@@ -47,7 +47,7 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.commons.lang.time.DurationParser;
 
@@ -280,8 +280,8 @@ public class ElasticsearchCommitter
 
     @Override
     protected void closeBatchCommitter() throws CommitterException {
-        IOUtil.closeQuietly(sniffer);
-        IOUtil.closeQuietly(client);
+        IoUtil.closeQuietly(sniffer);
+        IoUtil.closeQuietly(client);
         client = null;
         sniffer = null;
         LOG.info("Elasticsearch RestClient closed.");

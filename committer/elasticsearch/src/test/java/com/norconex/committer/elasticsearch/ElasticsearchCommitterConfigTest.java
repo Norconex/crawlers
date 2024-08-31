@@ -29,7 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -45,7 +45,7 @@ class ElasticsearchCommitterConfigTest {
         var c = new ElasticsearchCommitter();
         var cfg = c.getConfiguration();
 
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration()
                 .setBatchSize(10)
                 .setMaxPerFolder(5);
@@ -124,7 +124,7 @@ class ElasticsearchCommitterConfigTest {
         );
 
         cfg.setIndexName("index");
-        var fsQueue = new FSQueue();
+        var fsQueue = new FsQueue();
         fsQueue.getConfiguration().setBatchSize(1);
         cfg.setQueue(fsQueue);
         cfg.setDiscoverNodes(true);

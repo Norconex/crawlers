@@ -25,7 +25,7 @@ import org.apache.commons.io.IOUtils;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.fs.AbstractFSCommitter;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.EnhancedXmlStreamWriter;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -100,7 +100,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class XMLFileCommitter extends
-        AbstractFSCommitter<EnhancedXMLStreamWriter, XMLFileCommitterConfig> {
+        AbstractFSCommitter<EnhancedXmlStreamWriter, XMLFileCommitterConfig> {
 
     @Getter
     private final XMLFileCommitterConfig configuration =
@@ -112,9 +112,9 @@ public class XMLFileCommitter extends
     }
 
     @Override
-    protected EnhancedXMLStreamWriter createDocWriter(Writer writer)
+    protected EnhancedXmlStreamWriter createDocWriter(Writer writer)
             throws IOException {
-        var xml = new EnhancedXMLStreamWriter(
+        var xml = new EnhancedXmlStreamWriter(
                 writer, false, configuration.getIndent()
         );
         xml.writeStartDocument();
@@ -124,7 +124,7 @@ public class XMLFileCommitter extends
 
     @Override
     protected void writeUpsert(
-            EnhancedXMLStreamWriter xml,
+            EnhancedXmlStreamWriter xml,
             UpsertRequest upsertRequest
     ) throws IOException {
 
@@ -156,7 +156,7 @@ public class XMLFileCommitter extends
 
     @Override
     protected void writeDelete(
-            EnhancedXMLStreamWriter xml,
+            EnhancedXmlStreamWriter xml,
             DeleteRequest deleteRequest
     ) throws IOException {
 
@@ -181,7 +181,7 @@ public class XMLFileCommitter extends
     }
 
     @Override
-    protected void closeDocWriter(EnhancedXMLStreamWriter xml)
+    protected void closeDocWriter(EnhancedXmlStreamWriter xml)
             throws IOException {
         if (xml != null) {
             xml.writeEndElement();

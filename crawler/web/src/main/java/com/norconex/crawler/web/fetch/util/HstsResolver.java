@@ -26,7 +26,7 @@ import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 
 import com.google.common.net.InternetDomainName;
-import com.norconex.commons.lang.url.URLNormalizer;
+import com.norconex.commons.lang.url.UrlNormalizer;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * <p>
  * To always convert "http" to "https" regardless of a site support for HSTS,
- * you should rely on {@link URLNormalizer#secureScheme}
+ * you should rely on {@link UrlNormalizer#secureScheme}
  * instead.
  * </p>
  * @since 3.0.0

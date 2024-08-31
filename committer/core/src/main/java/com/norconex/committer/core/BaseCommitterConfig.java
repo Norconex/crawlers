@@ -29,10 +29,8 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * A base implementation taking care of basic plumbing, such as
- * firing main Committer events (including exceptions),
- * storing the Committer context (available via {@link #getCommitterContext()}),
- * and adding support for filtering unwanted requests.
+ * A base implementation taking care of basic plumbing for field mappings
+ * and restrictions for filtering unwanted requests.
  * </p>
  *
  * {@nx.block #restrictTo
@@ -41,7 +39,7 @@ import lombok.experimental.Accessors;
  * Optionally apply a committer only to certain type of documents.
  * Documents are restricted based on their
  * metadata field names and values. This option can be used to
- * perform document routing when you have multiple committers defined.
+ * perform document routing when you have multiple Committers defined.
  * </p>
  * }
  *

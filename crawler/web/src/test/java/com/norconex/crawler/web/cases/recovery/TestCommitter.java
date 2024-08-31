@@ -28,15 +28,15 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.impl.FSQueueUtil;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.xml.Xml;
+import com.norconex.commons.lang.xml.XmlConfigurable;
 import com.norconex.crawler.web.cases.recovery.ExternalCrawlSessionLauncher.CrawlOutcome;
 
 import lombok.Data;
 import lombok.SneakyThrows;
 
 @Data
-public class TestCommitter implements Committer, XMLConfigurable {
+public class TestCommitter implements Committer, XmlConfigurable {
     private Path dir;
 
     public TestCommitter() {
@@ -89,12 +89,12 @@ public class TestCommitter implements Committer, XMLConfigurable {
     }
 
     @Override
-    public void loadFromXML(XML xml) {
+    public void loadFromXML(Xml xml) {
         setDir(xml.getPath("dir", dir));
     }
 
     @Override
-    public void saveToXML(XML xml) {
+    public void saveToXML(Xml xml) {
         xml.addElement("dir", dir);
     }
 

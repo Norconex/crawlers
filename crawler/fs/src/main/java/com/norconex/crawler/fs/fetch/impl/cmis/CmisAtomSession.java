@@ -28,7 +28,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ public class CmisAtomSession {
     private String objectByPathTemplate;
     private String queryTemplate;
 
-    public XML getDocumentByPath(String path) throws FileSystemException {
+    public Xml getDocumentByPath(String path) throws FileSystemException {
         return getDocument(
                 objectByPathTemplate.replace(
                         "{path}",
@@ -55,8 +55,8 @@ public class CmisAtomSession {
         );
     }
 
-    public XML getDocument(String fullURL) throws FileSystemException {
-        return new XML(new InputStreamReader(getStream(fullURL), UTF_8));
+    public Xml getDocument(String fullURL) throws FileSystemException {
+        return new Xml(new InputStreamReader(getStream(fullURL), UTF_8));
     }
 
     public InputStream getStream(String fullURL) throws FileSystemException {

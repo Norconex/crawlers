@@ -26,7 +26,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.function.FailableBiFunction;
 
-import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.commons.lang.io.TextReader;
 
 import lombok.Data;
@@ -62,7 +62,7 @@ public class ReadAdapter {
 
     public Reader asReader(Charset charset) {
         return new InputStreamReader(
-                IOUtil.toNonNullInputStream(
+                IoUtil.toNonNullInputStream(
                         inputSupplier.get()
                 ),
                 ObjectUtils.firstNonNull(

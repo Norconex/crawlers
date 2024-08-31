@@ -43,7 +43,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -166,7 +166,7 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
         var repoXPath = REPOSITORY_XPATH;
         var repoId = cmis.getRepositoryId(opts);
         var doc = session.getDocument(atomURL);
-        XML repoNode;
+        Xml repoNode;
         if (StringUtils.isNotBlank(repoId)) {
             LOG.info("Using CMIS repository matching id: " + repoId);
             repoNode = doc.getXML(
@@ -188,7 +188,7 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
         session.setQueryTemplate(getTemplateURL(doc, "query"));
     }
 
-    private String getTemplateURL(XML doc, String type) {
+    private String getTemplateURL(Xml doc, String type) {
         // We always use some of the same defaults, so we can already replace
         // parts of the URL
         var tmplURL = doc.getString(

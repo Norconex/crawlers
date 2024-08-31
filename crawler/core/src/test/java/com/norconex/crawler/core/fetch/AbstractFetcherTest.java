@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -114,7 +114,7 @@ class AbstractFetcherTest {
     void testWriteRead() {
         var f = new MockFetcher();
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(f, "fetcher")
+                () -> Xml.assertWriteRead(f, "fetcher")
         );
     }
 }

@@ -28,7 +28,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.commons.lang.xml.XmlUtil;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
@@ -131,7 +131,7 @@ public class XmlFeedLinkExtractor
             Set<Link> links, Reader reader, String referrerUrl)
             throws IOException {
         try (reader) {
-            var xmlReader = XMLUtil.createXMLReader();
+            var xmlReader = XmlUtil.createXMLReader();
             var handler = new FeedHandler(referrerUrl, links);
             xmlReader.setContentHandler(handler);
             xmlReader.setErrorHandler(handler);

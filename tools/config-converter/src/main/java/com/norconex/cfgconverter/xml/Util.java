@@ -19,7 +19,7 @@ import java.util.function.UnaryOperator;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.NonNull;
 
@@ -27,13 +27,13 @@ final class Util {
     private Util() {}
 
     public static void setClass(
-            @NonNull XML xml,
+            @NonNull Xml xml,
             @NonNull UnaryOperator<String> replacer) {
         setAttr(xml, "class", replacer);
     }
 
     public static void setAttr(
-            @NonNull XML xml,
+            @NonNull Xml xml,
             @NonNull String attr,
             @NonNull UnaryOperator<String> replacer) {
         Optional.ofNullable(xml.getString("@" + attr)).ifPresent(val -> {
@@ -42,7 +42,7 @@ final class Util {
     }
 
     public static void setElemValue(
-            @NonNull XML xml,
+            @NonNull Xml xml,
             @NonNull String elemName,
             @NonNull UnaryOperator<String> replacer) {
         xml.ifXML(elemName,

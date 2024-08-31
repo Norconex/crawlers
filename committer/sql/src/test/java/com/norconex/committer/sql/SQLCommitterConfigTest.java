@@ -21,7 +21,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -32,7 +32,7 @@ class SQLCommitterConfigTest {
 
     @Test
     void testWriteRead() throws Exception {
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration()
                 .setBatchSize(10)
                 .setMaxPerFolder(5);

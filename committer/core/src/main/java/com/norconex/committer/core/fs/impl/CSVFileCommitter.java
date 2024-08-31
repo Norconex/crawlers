@@ -45,7 +45,8 @@ import lombok.experimental.FieldNameConstants;
  * and "delete-" (for deletions).
  * A request "type" field is always added when both upserts and deletes are
  * added to the same file.  Default header name for it is <code>type</code>,
- * but you can supply your own name with {@link #setTypeHeader(String)}.
+ * but you can supply your own name with
+ * {@link CSVFileCommitterConfig#setTypeHeader(String)}.
  * </p>
  * <p>
  * The generated files are never updated.  Sending a modified document with the

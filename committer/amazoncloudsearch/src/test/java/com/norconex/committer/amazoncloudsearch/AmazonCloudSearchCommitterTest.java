@@ -53,7 +53,7 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
-import com.norconex.commons.lang.url.URLStreamer;
+import com.norconex.commons.lang.url.UrlStreamer;
 
 /**
  * AmazonCloudSearch main tests.
@@ -334,7 +334,7 @@ class AmazonCloudSearchCommitterTest {
     private String httpGET(String path) {
         var url = cloudSearchEndpoint + StringUtils.removeStart(path, "/");
         LOG.debug("CloudSearch test GET request: {}", url);
-        return URLStreamer.streamToString(url);
+        return UrlStreamer.streamToString(url);
     }
 
     private void httpDelete(String path) throws CommitterException {

@@ -25,8 +25,8 @@ import org.apache.tika.metadata.filter.FieldNameMappingFilter;
 import org.apache.tika.parser.ocr.TesseractOCRParser;
 import org.w3c.dom.Element;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.commons.lang.xml.Xml;
+import com.norconex.commons.lang.xml.XmlUtil;
 
 final class DefTikaConfigurer {
 
@@ -38,9 +38,9 @@ final class DefTikaConfigurer {
     // and: https://cwiki.apache.org/confluence/display/TIKA/Metadata+Filters
     static TikaConfig configure(DefaultParserConfig config) throws IOException {
         try {
-            var docBuilderfactory = XMLUtil.createDocumentBuilderFactory();
+            var docBuilderfactory = XmlUtil.createDocumentBuilderFactory();
             docBuilderfactory.setNamespaceAware(true);
-            var tikaXml = XML.of("properties")
+            var tikaXml = Xml.of("properties")
                     .setDocumentBuilderFactory(docBuilderfactory)
                     .create();
 
@@ -140,9 +140,9 @@ final class DefTikaConfigurer {
     }
 
     static class TesseractParserConfigBuilder {
-        private final XML parser = new XML("parser")
+        private final Xml parser = new Xml("parser")
                 .setAttribute("class", TesseractOCRParser.class.getName());
-        private final XML params = parser.addElement("params");
+        private final Xml params = parser.addElement("params");
 
         TesseractParserConfigBuilder append(String name, Boolean value) {
             if (value != null) {
@@ -190,7 +190,7 @@ final class DefTikaConfigurer {
             return this;
         }
 
-        public XML build() {
+        public Xml build() {
             return parser;
         }
     }

@@ -34,7 +34,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.commons.lang.xml.XmlUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
@@ -157,7 +157,7 @@ public class XmlStreamSplitter
                             )
                     ), docCtx.childDocs()
             );
-            XMLUtil.createSaxParserFactory().newSAXParser().parse(is, h);
+            XmlUtil.createSaxParserFactory().newSAXParser().parse(is, h);
         } catch (SAXException | IOException | ParserConfigurationException e) {
             throw new DocumentHandlerException(
                     "Could not split XML document: " + docCtx.reference(), e

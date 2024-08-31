@@ -27,8 +27,8 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.xml.Xml;
+import com.norconex.commons.lang.xml.XmlConfigurable;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +100,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 public class GenericRedirectUrlProvider
-        implements RedirectUrlProvider, XMLConfigurable {
+        implements RedirectUrlProvider, XmlConfigurable {
 
     public static final String DEFAULT_FALLBACK_CHARSET =
             StandardCharsets.UTF_8.toString();
@@ -202,12 +202,12 @@ public class GenericRedirectUrlProvider
     }
 
     @Override
-    public void loadFromXML(XML xml) {
+    public void loadFromXML(Xml xml) {
         setFallbackCharset(xml.getString("@fallbackCharset", fallbackCharset));
     }
 
     @Override
-    public void saveToXML(XML xml) {
+    public void saveToXML(Xml xml) {
         xml.setAttribute("fallbackCharset", fallbackCharset);
     }
 }
