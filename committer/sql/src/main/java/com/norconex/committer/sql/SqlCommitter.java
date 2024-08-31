@@ -23,7 +23,6 @@ import org.apache.commons.lang3.builder.ToStringExclude;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -79,125 +78,8 @@ import lombok.ToString;
  *
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.sql.SqlCommitter">
- *   <!-- Mandatory settings -->
- *   <driverClass>
- *     (Class name of the JDBC driver to use.)
- *   </driverClass>
- *   <connectionUrl>
- *     (JDBC connection URL.)
- *   </connectionUrl>
- *   <tableName>
- *     (The target database table name where documents will be committed.)
- *   </tableName>
- *   <primaryKey>
- *     (The name of the table primary key field where the document
- *     reference will be stored, unless it is already set by a field of
- *     the same name in the source document. At a minimum, this "primaryKey"
- *     field name should be "unique", ideally indexed.).
- *   </primaryKey>
- *
- *   <!-- Other settings -->
- *   <driverPath>
- *     (Path to JDBC driver. Not required if already in classpath.)
- *   </driverPath>
- *   <properties>
- *     <property name="(property name)">(Property value.)</property>
- *     <!-- You can have multiple property. -->
- *   </properties>
- *
- *   <createTableSQL>
- *     <!--
- *       The CREATE statement used to create a table if it does not
- *       already exist. If you need fields of specific data types,
- *       specify them here. You can use the variable placeholders {tableName}
- *       and {primaryKey} which will be replaced with the configuration option
- *       of the same name. If you do not use those variables, make sure you use
- *       the same names.
- *       See usage sample.
- *       -->
- *   </createTableSQL>
- *   <createFieldSQL>
- *     <!--
- *       The ALTER statement used to create missing table fields.
- *       The {tableName} variable will be replaced with
- *       the configuration option of the same name. The {fieldName}
- *       variable will be replaced by newly encountered field names.
- *       See usage sample.
- *       -->
- *   </createFieldSQL>
- *   <multiValuesJoiner>
- *     (One or more characters to join multi-value fields.
- *     Default is "|".)
- *   </multiValuesJoiner>
- *   <fixFieldNames>
- *     [false|true]
- *     (Attempts to prevent insertion errors by converting characters that
- *     are not underscores or alphanumeric to underscores.
- *     Will also remove all non-alphabetic characters that prefixes
- *     a field name.)
- *   </fixFieldNames>
- *   <fixFieldValues>
- *     [false|true]
- *     (Attempts to prevent insertion errors by truncating values
- *     that are larger than their defined maximum field length.)
- *   </fixFieldValues>
- *
- *   <!-- Use the following if authentication is required. -->
- *   <credentials>
- *     {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   </credentials>
- *
- *   <targetContentField>
- *     (Table field name where to store the document content stream.
- *     Make it empty or a self-closed tag if you do not want to store the
- *     document content. Since document content can sometimes be quite
- *     large, a CLOB field is usually advised.
- *     If there is already a document field with the same name, that
- *     document field takes precedence and the content stream is ignored.
- *     Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.sql.SqlCommitter">
- *   <driverPath>/path/to/driver/h2.jar</driverPath>
- *   <driverClass>org.h2.Driver</driverClass>
- *   <connectionUrl>jdbc:h2:file:///path/to/db/h2</connectionUrl>
- *   <tableName>test_table</tableName>
- *   <createTableSQL>
- *     CREATE TABLE {tableName} (
- *         {primaryKey} VARCHAR(32672) NOT NULL,
- *         content CLOB,
- *         PRIMARY KEY ( {primaryKey} ),
- *         title   VARCHAR(256)
- *         author  VARCHAR(256)
- *     )
- *   </createTableSQL>
- *   <createFieldSQL>
- *     ALTER TABLE {tableName} ADD {fieldName} VARCHAR(5000)
- *   </createFieldSQL>
- *   <fixFieldValues>true</fixFieldValues>
- * </committer>
- * }
- * <p>
- * The above example uses an H2 database and creates the table and fields
- * as they are encountered, storing all new fields as VARCHAR, making sure
- * those new fields are no longer than 5000 characters.
- * </p>
- *
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class SqlCommitter extends AbstractBatchCommitter<SqlCommitterConfig> {

@@ -27,7 +27,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine2;
+import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
@@ -54,7 +54,7 @@ class ResumeAfterJvmCrashTest {
         var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
         cfg.setStartReferences(List.of(serverUrl(client, path + "/0000")));
         cfg.setWorkDir(tempDir);
-        var storeCfg = ((MvStoreDataStoreEngine2) cfg.getDataStoreEngine())
+        var storeCfg = ((MvStoreDataStoreEngine) cfg.getDataStoreEngine())
                 .getConfiguration();
         storeCfg.setAutoCommitDelay(1L);
         cfg.setNumThreads(1);

@@ -41,21 +41,81 @@ public class SqlCommitterConfig
     /** Default multi-value join string */
     public static final String DEFAULT_MULTI_VALUES_JOINER = "|";
 
+    /**
+     * Path to JDBC driver. Not required if already in classpath.
+     */
     private String driverPath;
+    /**
+     * Class name of the JDBC driver to use.
+     */
     private String driverClass;
+    /**
+     * JDBC connection URL.
+     */
     private String connectionUrl;
+    /**
+     * Database credentials.
+     */
     private final Credentials credentials = new Credentials();
+    /**
+     * Extra connection properties as per database vendor.
+     */
     private final Properties properties = new Properties();
 
+    /**
+     * The target database table name where documents will be committed.
+     */
     private String tableName;
+    /**
+     * The name of the table primary key field where the document
+     * reference will be stored, unless it is already set by a field of
+     * the same name in the source document. At a minimum, this "primaryKey"
+     * field name should be "unique", ideally indexed.
+     */
     private String primaryKey;
+    /**
+     * The CREATE statement used to create a table if it does not
+     * already exist. If you need fields of specific data types,
+     * specify them here. You can use the variable placeholders {tableName}
+     * and {primaryKey} which will be replaced with the configuration option
+     * of the same name. If you do not use those variables, make sure you use
+     * the same names.
+     */
     private String createTableSQL;
+    /**
+     * The ALTER statement used to create missing table fields.
+     * The {tableName} variable will be replaced with
+     * the configuration option of the same name. The {fieldName}
+     * variable will be replaced by newly encountered field names.
+     */
     private String createFieldSQL;
 
+    /**
+     * Whether to attempt preventing insertion errors by converting characters
+     * that are not underscores or alphanumeric to underscores.
+     * Will also remove all non-alphabetic characters that prefixes
+     * a field name.
+     */
     private boolean fixFieldNames;
+    /**
+     * Attempts to prevent insertion errors by truncating values
+     * that are larger than their defined maximum field length.
+     */
     private boolean fixFieldValues;
+    /**
+     * One or more characters to join multi-value fields. Default is "|".
+     */
     private String multiValuesJoiner = DEFAULT_MULTI_VALUES_JOINER;
 
+    /**
+     * Table field name where to store the document content stream.
+     * Make it empty or a self-closed tag if you do not want to store the
+     * document content. Since document content can sometimes be quite
+     * large, a CLOB field is usually advised.
+     * If there is already a document field with the same name, that
+     * document field takes precedence and the content stream is ignored.
+     * Default is "content".
+     */
     private String targetContentField = DEFAULT_SQL_CONTENT_FIELD;
 
     public Credentials getCredentials() {
