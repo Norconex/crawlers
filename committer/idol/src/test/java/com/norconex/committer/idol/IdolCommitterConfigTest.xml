@@ -54,7 +54,7 @@
     <mapping><source>whatever1</source><target>wherever1</target></mapping>
     <mapping source="whatever2" target="wherever2"/>
   </fieldMappings>
-	<queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
+	<queue class="com.norconex.committer.core.batch.queue.impl.FsQueue">
 		<batchSize>40</batchSize>
 		<maxPerFolder>10</maxPerFolder>
 	</queue>
