@@ -37,7 +37,6 @@ import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -104,48 +103,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
  *
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.solr.SolrCommitter">
- *   <solrClientType>
- *     (See class documentation for options. Default: HttpSolrClient.)
- *   </solrClientType>
- *   <solrURL>(URL to Solr)</solrURL>
- *   <solrUpdateURLParams>
- *     <param name="(parameter name)">(parameter value)</param>
- *     <!-- multiple param tags allowed -->
- *   </solrUpdateURLParams>
- *   <solrCommitDisabled>[false|true]</solrCommitDisabled>
- *
- *   <!-- Use the following if authentication is required. -->
- *   <credentials>
- *     {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   </credentials>
- *
- *   <sourceIdField>
- *     (Optional document field name containing the value that will be stored
- *     in Solr target ID field. Default is the document reference.)
- *   </sourceIdField>
- *   <targetIdField>
- *     (Optional name of Solr field where to store a document unique
- *     identifier (sourceIdField).  If not specified, default is "id".)
- *   </targetIdField>
- *   <targetContentField>
- *     (Optional Solr field name to store document content/body.
- *     Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @Slf4j

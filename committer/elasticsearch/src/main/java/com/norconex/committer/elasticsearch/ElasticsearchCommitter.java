@@ -196,13 +196,13 @@ public class ElasticsearchCommitter
                 } else if (req instanceof DeleteRequest delete) {
                     appendDeleteRequest(json, delete);
                 } else {
-                    throw new CommitterException(
-                            "Unsupported request: " + req);
+                    throw new CommitterException("Unsupported request: " + req);
                 }
                 docCount++;
             }
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("JSON POST:\n{}", StringUtils.trim(json.toString()));
+            if (LOG.isTraceEnabled()) { //NOSONAR
+                LOG.trace("JSON POST:\n{}", //NOSONAR
+                        StringUtils.trim(json.toString())); //NOSONAR
             }
 
             var request = new Request("POST", "/_bulk");
@@ -233,8 +233,9 @@ public class ElasticsearchCommitter
         if (respEntity != null) {
             var responseAsString = IOUtils.toString(
                     respEntity.getContent(), StandardCharsets.UTF_8);
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Elasticsearch response:\n{}", responseAsString);
+            if (LOG.isTraceEnabled()) { //NOSONAR
+                LOG.trace("Elasticsearch response:\n{}", //NOSONAR
+                        responseAsString); //NOSONAR
             }
 
             // We have no need to parse the JSON if successful
@@ -250,9 +251,8 @@ public class ElasticsearchCommitter
             }
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    "Elasticsearch response status: {}",
-                    response.getStatusLine());
+            LOG.debug("Elasticsearch response status: {}", //NOSONAR
+                    response.getStatusLine()); //NOSONAR
         }
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new CommitterException(
@@ -378,8 +378,9 @@ public class ElasticsearchCommitter
                         work on IDs containing multi-byte characters.""");
                 v = StringUtil.truncateWithHash(value, 512, "!");
             }
-            if (LOG.isDebugEnabled() && !value.equals(v)) {
-                LOG.debug("Fixed document id from \"{}\" to \"{}\".", value, v);
+            if (LOG.isDebugEnabled() && !value.equals(v)) { //NOSONAR
+                LOG.debug("Fixed document id from \"{}\" to \"{}\".", //NOSONAR
+                        value, v); //NOSONAR
             }
             return v;
         }
@@ -397,19 +398,14 @@ public class ElasticsearchCommitter
         builder.setFailureListener(new FailureListener() {
             @Override
             public void onFailure(Node node) {
-                LOG.error(
-                        "Failure occured on node: \"{}\". Check node logs.",
+                LOG.error("Failure occured on node: \"{}\". Check node logs.",
                         node.getName());
             }
         });
-        builder.setRequestConfigCallback(
-                rcb -> rcb
-                        .setConnectTimeout(
-                                (int) configuration.getConnectionTimeout()
-                                        .toMillis())
-                        .setSocketTimeout(
-                                (int) configuration.getSocketTimeout()
-                                        .toMillis()));
+        builder.setRequestConfigCallback(rcb -> rcb.setConnectTimeout(
+                (int) configuration.getConnectionTimeout().toMillis())
+                .setSocketTimeout(
+                        (int) configuration.getSocketTimeout().toMillis()));
 
         var credentials = configuration.getCredentials();
         if (credentials.isSet()) {
