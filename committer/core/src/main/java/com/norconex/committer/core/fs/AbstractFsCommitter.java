@@ -35,27 +35,12 @@ import lombok.ToString;
 
 /**
  * <p>
- * Base class for committers writing to the local file system.
+ * Base class for Committers writing to the local file system.
  * </p>
- *
- * <h3>XML configuration usage:</h3>
- * <p>
- * The following are configuration options inherited by subclasses:
- * </p>
- * {@nx.xml #options
- *   <directory>(path where to save the files)</directory>
- *   <docsPerFile>(max number of docs per file)</docsPerFile>
- *   <compress>[false|true]</compress>
- *   <splitUpsertDelete>[false|true]</splitUpsertDelete>
- *   <fileNamePrefix>(optional prefix to created file names)</fileNamePrefix>
- *   <fileNameSuffix>(optional suffix to created file names)</fileNameSuffix>
- *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
- * }
  *
  * @param <T> type of file serializer
  * @param <C> type of configuration object
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
@@ -71,7 +56,6 @@ public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
     /**
      * The directly from configuration, else, from the committer context
      * working directory.
-     * @return directory used to store files to be committed
      */
     @Getter
     private Path resolvedDirectory;

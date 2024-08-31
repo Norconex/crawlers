@@ -19,7 +19,7 @@ import static org.apache.commons.collections4.MultiMapUtils.newListValuedHashMap
 import org.apache.commons.collections4.MultiValuedMap;
 
 import com.norconex.committer.core.Committer;
-import com.norconex.committer.sql.SQLCommitter;
+import com.norconex.committer.sql.SqlCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 
@@ -28,13 +28,13 @@ import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
  * For auto registering in {@link BeanMapper}.
  * </p>
  */
-public class SQLCommitterPtProvider
+public class SqlCommitterPtProvider
         implements PolymorphicTypeProvider {
 
     @Override
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         MultiValuedMap<Class<?>, Class<?>> map = newListValuedHashMap();
-        map.put(Committer.class, SQLCommitter.class);
+        map.put(Committer.class, SqlCommitter.class);
         return map;
     }
 }

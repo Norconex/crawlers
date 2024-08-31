@@ -28,7 +28,7 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
 
-class SQLCommitterConfigTest {
+class SqlCommitterConfigTest {
 
     @Test
     void testWriteRead() throws Exception {
@@ -37,7 +37,7 @@ class SQLCommitterConfigTest {
                 .setBatchSize(10)
                 .setMaxPerFolder(5);
 
-        var c = new SQLCommitter();
+        var c = new SqlCommitter();
         c.getConfiguration()
                 .setDriverPath("driverPath")
                 .setDriverClass("driverClass")
@@ -77,7 +77,7 @@ class SQLCommitterConfigTest {
     void testValidation() throws IOException {
         Assertions.assertDoesNotThrow(() -> {
             try (var r = ResourceLoader.getXmlReader(this.getClass())) {
-                BeanMapper.DEFAULT.read(SQLCommitter.class, r, Format.XML);
+                BeanMapper.DEFAULT.read(SqlCommitter.class, r, Format.XML);
             }
         });
     }

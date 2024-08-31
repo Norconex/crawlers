@@ -23,33 +23,15 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Base class for committers writing to the local file system.
+ * Base class for Committers writing to the local file system.
  * </p>
- *
- * <h3>XML configuration usage:</h3>
- * <p>
- * The following are configuration options inherited by subclasses:
- * </p>
- * {@nx.xml #options
- *   <directory>(path where to save the files)</directory>
- *   <docsPerFile>(max number of docs per file)</docsPerFile>
- *   <compress>[false|true]</compress>
- *   <splitUpsertDelete>[false|true]</splitUpsertDelete>
- *   <fileNamePrefix>(optional prefix to created file names)</fileNamePrefix>
- *   <fileNameSuffix>(optional suffix to created file names)</fileNameSuffix>
- *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
- * }
- *
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class BaseFsCommitterConfig extends BaseCommitterConfig {
 
     /**
      * The directory where files are committed.
-     * @param directory a directory
-     * @return a directory
      */
     private Path directory;
     private int docsPerFile;
@@ -57,14 +39,10 @@ public class BaseFsCommitterConfig extends BaseCommitterConfig {
     private boolean splitUpsertDelete;
     /**
      * The file name prefix (default is <code>null</code>).
-     * @param fileNamePrefix file name prefix
-     * @return file name prefix
      */
     private String fileNamePrefix;
     /**
      * The file name suffix (default is <code>null</code>).
-     * @param fileNameSuffix file name suffix
-     * @return file name suffix
      */
     private String fileNameSuffix;
 

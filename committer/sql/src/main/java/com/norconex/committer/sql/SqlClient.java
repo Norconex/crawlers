@@ -52,11 +52,11 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  * </p>
  * @author Pascal Essiembre
  */
-class SQLClient {
+class SqlClient {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SQLClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SqlClient.class);
 
-    private final SQLCommitterConfig cfg;
+    private final SqlCommitterConfig cfg;
 
     // When we create missing ones... so we do not check if exists each time.
     // key = field name; value = field size
@@ -66,7 +66,7 @@ class SQLClient {
 
     //--- INIT -----------------------------------------------------------------
 
-    public SQLClient(SQLCommitterConfig config) throws CommitterException {
+    public SqlClient(SqlCommitterConfig config) throws CommitterException {
         cfg = config;
         if (StringUtils.isBlank(cfg.getDriverClass())) {
             throw new CommitterException("No driver class specified.");

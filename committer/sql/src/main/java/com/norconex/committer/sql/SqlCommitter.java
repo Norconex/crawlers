@@ -45,8 +45,8 @@ import lombok.ToString;
  * <p>
  * Alternatively, you can provide the necessary SQLs to create a new
  * table as well as new fields as needed using
- * {@link SQLCommitterConfig#setCreateTableSQL(String)} and
- * {@link SQLCommitterConfig#setCreateFieldSQL(String)}
+ * {@link SqlCommitterConfig#setCreateTableSQL(String)} and
+ * {@link SqlCommitterConfig#setCreateFieldSQL(String)}
  * respectively. Make sure to use the following placeholder variables
  * as needed in the provided SQL(s) table and field creation, respectively:
  * </p>
@@ -56,12 +56,12 @@ import lombok.ToString;
  *   <dt>{tableName}</dt>
  *   <dd>
  *     Your table name, to be replaced with the value supplied with
- *     {@link SQLCommitterConfig#setTableName(String)}.
+ *     {@link SqlCommitterConfig#setTableName(String)}.
  *   </dd>
  *   <dt>{primaryKey}</dt>
  *   <dd>
  *     Your table primary key field name, to be replaced with the value
- *     supplied with {@link SQLCommitterConfig#setPrimaryKey(String)}.
+ *     supplied with {@link SqlCommitterConfig#setPrimaryKey(String)}.
  *   </dd>
  * </dl>
  * <h4>Field creation</h4>
@@ -80,7 +80,7 @@ import lombok.ToString;
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * {@nx.xml.usage
- * <committer class="com.norconex.committer.sql.SQLCommitter">
+ * <committer class="com.norconex.committer.sql.SqlCommitter">
  *   <!-- Mandatory settings -->
  *   <driverClass>
  *     (Class name of the JDBC driver to use.)
@@ -169,7 +169,7 @@ import lombok.ToString;
  * </p>
  *
  * {@nx.xml.example
- * <committer class="com.norconex.committer.sql.SQLCommitter">
+ * <committer class="com.norconex.committer.sql.SqlCommitter">
  *   <driverPath>/path/to/driver/h2.jar</driverPath>
  *   <driverClass>org.h2.Driver</driverClass>
  *   <connectionUrl>jdbc:h2:file:///path/to/db/h2</connectionUrl>
@@ -200,19 +200,19 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class SQLCommitter extends AbstractBatchCommitter<SQLCommitterConfig> {
+public class SqlCommitter extends AbstractBatchCommitter<SqlCommitterConfig> {
 
     @Getter
-    private final SQLCommitterConfig configuration = new SQLCommitterConfig();
+    private final SqlCommitterConfig configuration = new SqlCommitterConfig();
 
     @ToStringExclude
     @HashCodeExclude
     @EqualsExclude
-    private SQLClient client;
+    private SqlClient client;
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        client = new SQLClient(configuration);
+        client = new SqlClient(configuration);
     }
 
     @Override

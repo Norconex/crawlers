@@ -20,19 +20,19 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.CommitterException;
 
-class SQLClientTest {
+class SqlClientTest {
 
     @Test
     void testNoDriverThrowingException() {
         assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
-            new SQLClient(new SQLCommitterConfig());
+            new SqlClient(new SqlCommitterConfig());
         });
     }
 
     @Test
     void testWrongDriverPathThrowingException() {
         assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
-            new SQLClient(new SQLCommitterConfig()
+            new SqlClient(new SqlCommitterConfig()
                     .setDriverClass("blah")
                     .setConnectionUrl("blah")
                     .setTableName("blah")

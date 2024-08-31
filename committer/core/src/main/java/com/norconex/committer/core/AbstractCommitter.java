@@ -58,29 +58,8 @@ import lombok.ToString;
  * deletes are actually performed.
  * </p>
  * }
- *
- * {@nx.xml.usage
- * <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
- * <restrictTo>
- *   <fieldMatcher
- *     {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *       (field-matching expression)
- *   </fieldMatcher>
- *   <valueMatcher
- *     {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *       (value-matching expression)
- *   </valueMatcher>
- * </restrictTo>
- * <fieldMappings>
- *   <!-- Add as many field mappings as needed -->
- *   <mapping fromField="(source field name)" toField="(target field name)"/>
- * </fieldMappings>
- * }
- * <p>
- * Implementing classes inherit the above XML configuration.
- * </p>
+ * @param <T> The type of the committer configuration class
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public abstract class AbstractCommitter<T extends BaseCommitterConfig>

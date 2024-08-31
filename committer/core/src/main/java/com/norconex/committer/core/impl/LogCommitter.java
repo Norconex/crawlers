@@ -54,20 +54,7 @@ import lombok.extern.slf4j.Slf4j;
  * you do not use in a production environment. At a minimum, if you are
  * logging to file, make sure to rotate/clean the logs regularly.
  * </p>
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.core.impl.LogCommitter">
- *   <logLevel>[TRACE|DEBUG|INFO|WARN|ERROR|STDOUT|STDERR]</logLevel>
- *   <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (Expression matching fields to log. Default logs all.)
- *   </fieldMatcher>
- *   <ignoreContent>[false|true]</ignoreContent>
- *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
- * </committer>
- * }
- *
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @Data
 public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {

@@ -107,30 +107,7 @@ import lombok.experimental.FieldNameConstants;
  * Other formatting options you explicitely configure will overwrite
  * the corresponding setting for the chosen format.
  * </p>
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.core.fs.impl.CSVFileCommitter"
- *     format="(see class documentation)"
- *     showHeaders="[false|true]"
- *     delimiter="(single delimiter character)"
- *     quote="(single quote character)"
- *     escape="(single escape character)"
- *     multiValueJoinDelimiter="(delimiter string)"
- *     typeHeader="(header name for commit request type column)"
- *     truncateAt="(truncate after N characters, default: 5096, unlimited: -1)">
- *   <!-- Repeat "col" for every desired column. -->
- *   <col
- *       field="(source field name, omit or leave blank for document content)"
- *       header="(optional column header name)"
- *       truncateAt="(overwrite truncate)"/>
- *
- *   {@nx.include com.norconex.committer.core.fs.AbstractFSCommitter#options}
- *
- * </committer>
- * }
- *
  */
-@SuppressWarnings("javadoc")
 @Data
 @FieldNameConstants
 public class CsvFileCommitter

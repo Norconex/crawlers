@@ -95,29 +95,9 @@ import lombok.experimental.FieldNameConstants;
  * More information on those can be obtained on
  * <a href="https://commons.apache.org/proper/commons-csv/user-guide.html">
  * Apache Commons CSV</a> website.
- * Other formatting options you explicitely configure will overwrite
+ * Other formatting options you explicitly configure will overwrite
  * the corresponding setting for the chosen format.
  * </p>
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.core.fs.impl.CSVFileCommitter"
- *     format="(see class documentation)"
- *     showHeaders="[false|true]"
- *     delimiter="(single delimiter character)"
- *     quote="(single quote character)"
- *     escape="(single escape character)"
- *     multiValueJoinDelimiter="(delimiter string)"
- *     typeHeader="(header name for commit request type column)"
- *     truncateAt="(truncate after N characters, default: 5096, unlimited: -1)">
- *   <!-- Repeat "col" for every desired column. -->
- *   <col
- *       field="(source field name, omit or leave blank for document content)"
- *       header="(optional column header name)"
- *       truncateAt="(overwrite truncate)"/>
- *
- *   {@nx.include com.norconex.committer.core.fs.AbstractFSCommitter#options}
- *
- * </committer>
  * }
  *
  */
@@ -145,15 +125,32 @@ public class CsvFileCommitterConfig extends BaseFsCommitterConfig {
         TDF,
     }
 
+    /**
+     * Optional base CSV formatter to use. Settings explicitly set will
+     * overwrite these defaults ("quote", "escape", etc.).
+     */
     private CsvFormat format;
+    /** Delimiter character to use. */
     private Character delimiter;
+    /** Quote character to use. */
     private Character quote;
+    /** Whether to write column names on the first line. */
     private boolean showHeaders;
+    /** Escape character. */
     private Character escape;
+    /**
+     * Number of characters from which long text will be truncated.
+     * Default is {@value CsvFileCommitterConfig#DEFAULT_TRUNCATE_AT}
+     */
     private int truncateAt = DEFAULT_TRUNCATE_AT;
+    /** String used as delimiter when joining multi-value fields. */
     private String multiValueJoinDelimiter;
+    /**
+     * When generating CSV files containing both upserts and deletes requests,
+     * what column name to use to display the request type.
+     */
     private String typeHeader;
-
+    /** CSV columns to be written. */
     private final List<CsvColumn> columns = new ArrayList<>();
 
     public List<CsvColumn> getColumns() {

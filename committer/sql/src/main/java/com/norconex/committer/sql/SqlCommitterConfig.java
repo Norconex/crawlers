@@ -31,7 +31,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-public class SQLCommitterConfig
+public class SqlCommitterConfig
         extends BaseBatchCommitterConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -62,7 +62,7 @@ public class SQLCommitterConfig
         return credentials;
     }
 
-    public SQLCommitterConfig setCredentials(Credentials credentials) {
+    public SqlCommitterConfig setCredentials(Credentials credentials) {
         this.credentials.copyFrom(credentials);
         return this;
     }
@@ -71,7 +71,7 @@ public class SQLCommitterConfig
         return properties;
     }
 
-    public SQLCommitterConfig setProperties(Properties properties) {
+    public SqlCommitterConfig setProperties(Properties properties) {
         CollectionUtil.setAll(this.properties, properties);
         return this;
     }

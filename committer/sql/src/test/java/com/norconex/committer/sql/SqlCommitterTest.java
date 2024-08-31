@@ -46,10 +46,10 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.security.Credentials;
 
-class SQLCommitterTest {
+class SqlCommitterTest {
 
     private static final Logger LOG =
-            LoggerFactory.getLogger(SQLCommitterTest.class);
+            LoggerFactory.getLogger(SqlCommitterTest.class);
 
     private static final String TEST_ID = "3";
     private static final String TEST_CONTENT = "This is test content.";
@@ -329,9 +329,9 @@ class SQLCommitterTest {
                 .build();
     }
 
-    private SQLCommitter createSQLCommitterNoInit()
+    private SqlCommitter createSQLCommitterNoInit()
             throws CommitterException {
-        var committer = new SQLCommitter();
+        var committer = new SqlCommitter();
         var config = committer.getConfiguration();
         config.setConnectionUrl(connectionURL);
         config.setDriverClass(DRIVER_CLASS);
@@ -356,7 +356,7 @@ class SQLCommitterTest {
         return committer;
     }
 
-    private SQLCommitter withinCommitterSession(CommitterConsumer c)
+    private SqlCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
         var committer = createSQLCommitterNoInit();
         committer.init(createCommitterContext());
@@ -371,7 +371,7 @@ class SQLCommitterTest {
         return committer;
     }
 
-    private SQLCommitter withinCommitterSessionEmptyConnUrl(
+    private SqlCommitter withinCommitterSessionEmptyConnUrl(
             CommitterConsumer c) throws CommitterException {
 
         var committer = createSQLCommitterEmptyConnUrl();
@@ -387,8 +387,8 @@ class SQLCommitterTest {
         return committer;
     }
 
-    private SQLCommitter createSQLCommitterEmptyConnUrl() {
-        var committer = new SQLCommitter();
+    private SqlCommitter createSQLCommitterEmptyConnUrl() {
+        var committer = new SqlCommitter();
         var config = committer.getConfiguration();
         config.setConnectionUrl("");
         config.setDriverClass(DRIVER_CLASS);
@@ -396,7 +396,7 @@ class SQLCommitterTest {
         return committer;
     }
 
-    private SQLCommitter withinCommitterSessionEmptyTableName(
+    private SqlCommitter withinCommitterSessionEmptyTableName(
             CommitterConsumer c) throws CommitterException {
 
         var committer = createSQLCommitterEmptyTableName();
@@ -412,8 +412,8 @@ class SQLCommitterTest {
         return committer;
     }
 
-    private SQLCommitter createSQLCommitterEmptyTableName() {
-        var committer = new SQLCommitter();
+    private SqlCommitter createSQLCommitterEmptyTableName() {
+        var committer = new SqlCommitter();
         var config = committer.getConfiguration();
         config.setConnectionUrl(connectionURL);
         config.setDriverClass(DRIVER_CLASS);
@@ -422,7 +422,7 @@ class SQLCommitterTest {
         return committer;
     }
 
-    private SQLCommitter withinCommitterSessionEmptyPrimaryKey(
+    private SqlCommitter withinCommitterSessionEmptyPrimaryKey(
             CommitterConsumer c) throws CommitterException {
 
         var committer = createSQLCommitterEmptyPrimaryKey();
@@ -438,8 +438,8 @@ class SQLCommitterTest {
         return committer;
     }
 
-    private SQLCommitter createSQLCommitterEmptyPrimaryKey() {
-        var committer = new SQLCommitter();
+    private SqlCommitter createSQLCommitterEmptyPrimaryKey() {
+        var committer = new SqlCommitter();
         var config = committer.getConfiguration();
         config.setConnectionUrl(connectionURL);
         config.setDriverClass(DRIVER_CLASS);
@@ -461,7 +461,7 @@ class SQLCommitterTest {
 
     @FunctionalInterface
     private interface CommitterConsumer {
-        void accept(SQLCommitter c) throws Exception;
+        void accept(SqlCommitter c) throws Exception;
     }
 
     @FunctionalInterface

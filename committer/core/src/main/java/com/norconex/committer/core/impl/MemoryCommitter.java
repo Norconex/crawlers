@@ -50,15 +50,7 @@ import lombok.extern.slf4j.Slf4j;
  * Given this committer can eat up memory pretty quickly, its use is strongly
  * discouraged for regular production use.
  * </p>
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.core.impl.MemoryCommitter">
- *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
- * </committer>
- * }
- *
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
 public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
