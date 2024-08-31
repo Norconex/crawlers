@@ -29,7 +29,6 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-@SuppressWarnings("javadoc")
 public class IdolCommitterConfig extends BaseBatchCommitterConfig
         implements Serializable {
 
@@ -39,35 +38,28 @@ public class IdolCommitterConfig extends BaseBatchCommitterConfig
 
     /**
      * Gets the <code>DREADDDATA</code> optional URL parameters.
-     * @return URL parameters (key=parameter name; value=parameter value)
      */
     private final Map<String, String> dreAddDataParams = new HashMap<>();
 
     /**
-     * Gets the <code>DREDELETEREF</code> optional URL parameters.
-     * @return URL parameters (key=parameter name; value=parameter value)
+     * The <code>DREDELETEREF</code> optional URL parameters.
      */
     private final Map<String, String> dreDeleteRefParams = new HashMap<>();
 
     /**
      * The IDOL database name.
-     * @param databaseName IDOL database name
-     * @return IDOL database name
      */
     private String databaseName;
 
     /**
-     * The IDOL index URL (default is <code>http://localhost:9001</code>).
-     * @param url the IDOL URL
-     * @return IDOL URL
+     * The IDOL/DIH/CFS index action URL. Default is
+     * <code>http://localhost:9001</code>.
      */
     private String url = DEFAULT_URL;
 
     /**
      * Whether the IDOL index URL points to a Connector Framework Server
      * (CFS).
-     * @param cfs <code>true</code> if committing to a CFS server
-     * @return <code>true</code> if committing to a CFS server
      */
     private boolean cfs;
 
@@ -75,9 +67,6 @@ public class IdolCommitterConfig extends BaseBatchCommitterConfig
      * The document field name containing the value to be stored
      * in IDOL <code>DREREFERENCE</code> field. Set to <code>null</code>
      * in order to use the document reference instead of a field (default).
-     * @param sourceReferenceField name of field containing reference value,
-     *        or <code>null</code>
-     * @return name of field containing id value
      */
     private String sourceReferenceField;
 
@@ -85,9 +74,6 @@ public class IdolCommitterConfig extends BaseBatchCommitterConfig
      * The document field name containing the value to be stored
      * in IDOL <code>DRECONTENT</code> field. Set to <code>null</code> in
      * order to use the document content stream instead of a field (default).
-     * @param sourceContentField name of field containing content value,
-     *        or <code>null</code>
-     * @return name of field containing content value
      */
     private String sourceContentField;
 }

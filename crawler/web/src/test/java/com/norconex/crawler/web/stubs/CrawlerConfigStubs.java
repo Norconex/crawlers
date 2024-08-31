@@ -58,6 +58,7 @@ public final class CrawlerConfigStubs {
      *   <li>1 Memory Committer</li>
      *   <li>Random values for everything else.</li>
      * </ul>
+     * @param workDir working directory
      * @return random crawler config
      */
     public static WebCrawlerConfig randomMemoryCrawlerConfig(Path workDir) {
