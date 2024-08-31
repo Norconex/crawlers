@@ -29,7 +29,6 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@SuppressWarnings("javadoc")
 public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
 
     public static final String DEFAULT_ELASTICSEARCH_CONTENT_FIELD =
@@ -45,23 +44,17 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
     /**
      * One or more Elasticsearch nodes to connect to.
      * Defaults to {@value ElasticsearchCommitterConfig#DEFAULT_NODE}
-     * @param nodes elastic nodes
-     * @return elastic nodes
      */
     private final List<String> nodes = new ArrayList<>(List.of(DEFAULT_NODE));
 
     /**
      * The Elasticsearch index name.
-     * @param indexName the index name
-     * @return index name
      */
     private String indexName;
 
     /**
      * The type name. Type name is deprecated if you
      * are using Elasticsearch 7.0 or higher and should be <code>null</code>.
-     * @param typeName type name
-     * @return type name
      */
     private String typeName;
 
@@ -69,57 +62,42 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
      * Whether to ignore response errors.  By default, an exception is
      * thrown if the Elasticsearch response contains an error.
      * When <code>true</code> the errors are logged instead.
-     * @param ignoreResponseErrors <code>true</code> when ignoring response
-     *        errors
-     * @return <code>true</code> when ignoring response errors
      */
     private boolean ignoreResponseErrors;
 
     /**
      * Whether automatic discovery of Elasticsearch cluster nodes should be
      * enabled.
-     * @param discoverNodes <code>true</code> if enabled
-     * @return <code>true</code> if enabled
      */
     private boolean discoverNodes;
 
     /**
      * Elasticsearch credentials, if applicable.
-     * @param credentials Elasticsearch credentials
-     * @return Elasticsearch credentials
      */
     private final Credentials credentials = new Credentials();
 
     /**
      * The character used to replace dots in field names.
      * Default is <code>null</code> (does not replace dots).
-     * @param dotReplacement replacement character or <code>null</code>
-     * @return replacement character or <code>null</code>
      */
     private String dotReplacement;
 
     /**
      * The regular expression matching fields that contains a JSON
      * object for its value (as opposed to a regular string).
-     * Default is <code>null</code>.
-     * @param jsonFieldsPattern regular expression
-     * @return regular expression
+     * Default is <code>null</code> (not matching any fields).
      */
     private String jsonFieldsPattern;
 
     /**
      * Elasticsearch connection timeout. Defaults to
-     * {@link ElasticsearchCommitterConfig#DEFAULT_CONNECTION_TIMEOUT}
-     * @param connectionTimeout connection timeout duration
-     * @return connection duration
+     * {@value ElasticsearchCommitterConfig#DEFAULT_CONNECTION_TIMEOUT}
      */
     @NonNull
     private Duration connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
 
     /**
      * Elasticsearch socket timeout.
-     * @param socketTimeout socket timeout duration
-     * @return socket timeout duration
      */
     @NonNull
     private Duration socketTimeout = DEFAULT_SOCKET_TIMEOUT;
@@ -129,8 +107,6 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
      * ID limitation (512 bytes max). If <code>true</code>,
      * long IDs will be truncated and a hash code representing the
      * truncated part will be appended.
-     * @param fixBadIds <code>true</code> to fix IDs that are too long
-     * @return <code>true</code> to fix IDs that are too long
      */
     private boolean fixBadIds;
 
@@ -138,9 +114,6 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
      * The document field name containing the value to be stored
      * in Elasticsearch "_id" field. Set to <code>null</code> to use the
      * document reference instead of a field (default).
-     * @param sourceIdField name of source document field containing id value,
-     *        or <code>null</code>
-     * @return name of field containing id value
      */
     private String sourceIdField;
 
@@ -148,8 +121,6 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
      * The name of the Elasticsearch field where content will be stored.
      * Default is "content". A <code>null</code> value disables storing
      * the content.
-     * @param targetContentField Elasticsearch content field name
-     * @return Elasticsearch content field name
      */
     private String targetContentField = DEFAULT_ELASTICSEARCH_CONTENT_FIELD;
 

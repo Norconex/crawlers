@@ -49,7 +49,6 @@ import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.commons.lang.text.StringUtil;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -75,9 +74,9 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * By default the "body" of a document is read as an input stream
  * and stored in a "content" field.  You can change that target field name
- * with {@link #setTargetContentField(String)}.  If you set the target
- * content field to <code>null</code>, it will effectively skip storing
- * the content stream.
+ * with {@link ElasticsearchCommitterConfig#setTargetContentField(String)}.
+ * If you set the target content field to <code>null</code>, it will
+ * effectively skip storing the content stream.
  * </p>
  *
  * <h3>Dots (.) in field names</h3>
@@ -85,8 +84,9 @@ import lombok.extern.slf4j.Slf4j;
  * Your Elasticsearch installation may consider dots in field names
  * to be representing "objects", which may not always be what you want.
  * If having dots is causing you issues, make sure not to submit fields
- * with dots, or use {@link #setDotReplacement(String)} to replace dots
- * with a character of your choice (e.g., underscore).
+ * with dots, or use
+ * {@link ElasticsearchCommitterConfig#setDotReplacement(String)} to replace
+ * dots with a character of your choice (e.g., underscore).
  * If your dot represents a nested object, keep reading.
  * </p>
  *
@@ -94,9 +94,10 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * It is possible to provide a regular expression
  * that will identify one or more fields containing a JSON object rather
- * than a regular string ({@link #setJsonFieldsPattern(String)}). For example,
- * this is a useful way to store nested objects.  While very flexible,
- * it can be challenging to come up with the JSON structure.  You may
+ * than a regular string
+ * ({@link ElasticsearchCommitterConfig#setJsonFieldsPattern(String)}).
+ * For example, this is a useful way to store nested objects. While very
+ * flexible, it can be challenging to come up with the JSON structure. You may
  * want to consider custom code.
  * For this to work properly, make sure you define your Elasticsearch
  * field mappings on your index beforehand.
@@ -108,8 +109,9 @@ import lombok.extern.slf4j.Slf4j;
  * limitation on its "_id" field.
  * By default, an error (from Elasticsearch) will result from trying to submit
  * documents with an invalid ID. You can get around this by
- * setting {@link #setFixBadIds(boolean)} to <code>true</code>.  It will
- * truncate references that are too long and append a hash code to it
+ * setting {@link ElasticsearchCommitterConfig#setFixBadIds(boolean)} to
+ * <code>true</code>.  It will truncate references that are too long and
+ * append a hash code to it
  * representing the truncated part. This approach is not 100%
  * collision-free (uniqueness), but it should safely cover the vast
  * majority of cases.
@@ -141,66 +143,8 @@ import lombok.extern.slf4j.Slf4j;
  *
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.elasticsearch.ElasticsearchCommitter">
- *   <nodes>
- *     (Comma-separated list of Elasticsearch node URLs.
- *     Defaults to http://localhost:9200)
- *   </nodes>
- *   <indexName>(Name of the index to use)</indexName>
- *   <typeName>
- *     (Name of the type to use. Deprecated since Elasticsearch v7.)
- *   </typeName>
- *   <ignoreResponseErrors>[false|true]</ignoreResponseErrors>
- *   <discoverNodes>[false|true]</discoverNodes>
- *   <dotReplacement>
- *     (Optional value replacing dots in field names)
- *   </dotReplacement>
- *   <jsonFieldsPattern>
- *     (Optional regular expression to identify fields containing JSON
- *     objects instead of regular strings)
- *   </jsonFieldsPattern>
- *   <connectionTimeout>(milliseconds)</connectionTimeout>
- *   <socketTimeout>(milliseconds)</socketTimeout>
- *   <fixBadIds>
- *     [false|true](Forces references to fit into Elasticsearch _id field.)
- *   </fixBadIds>
- *
- *   <!-- Use the following if authentication is required. -->
- *   <credentials>
- *     {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   </credentials>
- *
- *   <sourceIdField>
- *     (Optional document field name containing the value that will be stored
- *     in Elasticsearch "_id" field. Default is the document reference.)
- *   </sourceIdField>
- *   <targetContentField>
- *     (Optional Elasticsearch field name to store the document
- *     content/body. Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.elasticsearch.ElasticsearchCommitter">
- *   <indexName>some_index</indexName>
- * </committer>
- * }
- *
- * <p>
- * The above example uses the minimum required settings, on the local host.
- * </p>
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @Slf4j
