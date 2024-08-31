@@ -27,7 +27,7 @@ import com.norconex.committer.core.batch.queue.impl.FsQueue.SplitBatch;
 
 /**
  */
-class FSQueueFailTest {
+class FsQueueFailTest {
 
     // write 8 upserts and 3 deletes.
     private final int[] commitRequests =

@@ -23,7 +23,7 @@ import org.json.JSONObject;
 
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.committer.core.fs.AbstractFSCommitter;
+import com.norconex.committer.core.fs.AbstractFsCommitter;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -99,16 +99,16 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class JSONFileCommitter
-        extends AbstractFSCommitter<Writer, JSONFileCommitterConfig> {
+public class JsonFileCommitter
+        extends AbstractFsCommitter<Writer, JsonFileCommitterConfig> {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private boolean first = true;
 
     @Getter
-    private final JSONFileCommitterConfig configuration =
-            new JSONFileCommitterConfig();
+    private final JsonFileCommitterConfig configuration =
+            new JsonFileCommitterConfig();
 
     @Override
     protected String getFileExtension() {

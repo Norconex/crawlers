@@ -316,7 +316,7 @@
 
 
     <committers>
-      <committer class="com.norconex.committer.core3.fs.impl.JSONFileCommitter">
+      <committer class="com.norconex.committer.core3.fs.impl.JsonFileCommitter">
         <directory>/tmp/somepath</directory>
       </committer>
     </committers>

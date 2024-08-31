@@ -37,7 +37,7 @@ import com.norconex.committer.core.TestUtil;
  * <p>CSV File Committer tests.</p>
  *
  */
-class CSVFileCommitterTest {
+class CsvFileCommitterTest {
 
     @TempDir
     public Path folder;
@@ -100,7 +100,7 @@ class CSVFileCommitterTest {
         Assertions.assertEquals(expectedDelete, actualDelete);
     }
 
-    private CSVFileCommitter commitSampleData(
+    private CsvFileCommitter commitSampleData(
             boolean splitUpsertDelete
     ) throws CommitterException {
         List<CommitterRequest> reqs = new ArrayList<>();
@@ -132,19 +132,19 @@ class CSVFileCommitterTest {
                 )
         );
 
-        var c = new CSVFileCommitter();
+        var c = new CsvFileCommitter();
         // write 5 upserts and 2 deletes.
         // max docs per file being 2, so should generate 4 files.
         c.getConfiguration()
                 .setColumns(
                         List.of(
-                                new CSVColumn()
+                                new CsvColumn()
                                         .setField("document.reference")
                                         .setHeader("URL"),
-                                new CSVColumn()
+                                new CsvColumn()
                                         .setField("title")
                                         .setHeader("title"),
-                                new CSVColumn()
+                                new CsvColumn()
                         )
                 )
                 .setShowHeaders(true)
@@ -159,24 +159,24 @@ class CSVFileCommitterTest {
 
     @Test
     void testWriteRead() throws CommitterException {
-        var c = new CSVFileCommitter();
+        var c = new CsvFileCommitter();
         c.getConfiguration()
                 .setColumns(
                         List.of(
-                                new CSVColumn()
+                                new CsvColumn()
                                         .setField("document.reference")
                                         .setHeader("URL")
                                         .setTruncateAt(2000),
-                                new CSVColumn()
+                                new CsvColumn()
                                         .setField("title")
                                         .setHeader("My Title")
                                         .setTruncateAt(100),
-                                new CSVColumn()
+                                new CsvColumn()
                                         .setHeader("My content")
                                         .setTruncateAt(200)
                         )
                 )
-                .setFormat(CSVFileCommitterConfig.CSVFormat.EXCEL)
+                .setFormat(CsvFileCommitterConfig.CSVFormat.EXCEL)
                 .setDelimiter('|')
                 .setQuote('!')
                 .setShowHeaders(true)

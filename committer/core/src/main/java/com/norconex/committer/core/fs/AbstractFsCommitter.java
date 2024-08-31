@@ -58,16 +58,16 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public abstract class AbstractFSCommitter<T, C extends BaseFSCommitterConfig>
+public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
         extends AbstractCommitter<C> {
 
     // These will share the same instance if not split.
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private FSDocWriterHandler<T> upsertHandler;
+    private FsDocWriterHandler<T> upsertHandler;
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private FSDocWriterHandler<T> deleteHandler;
+    private FsDocWriterHandler<T> deleteHandler;
     /**
      * The directly from configuration, else, from the committer context
      * working directory.
@@ -99,12 +99,12 @@ public abstract class AbstractFSCommitter<T, C extends BaseFSCommitterConfig>
         );
         if (getConfiguration().isSplitUpsertDelete()) {
             upsertHandler =
-                    new FSDocWriterHandler<>(this, "upsert-" + fileBaseName);
+                    new FsDocWriterHandler<>(this, "upsert-" + fileBaseName);
             deleteHandler =
-                    new FSDocWriterHandler<>(this, "delete-" + fileBaseName);
+                    new FsDocWriterHandler<>(this, "delete-" + fileBaseName);
         } else {
             // when using same file for both upsert and delete, share instance.
-            upsertHandler = new FSDocWriterHandler<>(this, fileBaseName);
+            upsertHandler = new FsDocWriterHandler<>(this, fileBaseName);
             deleteHandler = upsertHandler;
         }
     }

@@ -35,14 +35,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
-import com.norconex.committer.core.fs.AbstractFSCommitter;
+import com.norconex.committer.core.fs.AbstractFsCommitter;
 import com.norconex.commons.lang.bean.BeanUtil;
 
 /**
  * <p>Common File Committer tests.</p>
  *
  */
-public class AbstractFSCommitterTest {
+public class AbstractFsCommitterTest {
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -57,9 +57,9 @@ public class AbstractFSCommitterTest {
 
     static Stream<Arguments> committerProvider() {
         return Stream.of(
-                TestUtil.args(new XMLFileCommitter()),
-                TestUtil.args(new JSONFileCommitter()),
-                TestUtil.args(new CSVFileCommitter())
+                TestUtil.args(new XmlFileCommitter()),
+                TestUtil.args(new JsonFileCommitter()),
+                TestUtil.args(new CsvFileCommitter())
         );
     }
 
@@ -68,7 +68,7 @@ public class AbstractFSCommitterTest {
 
     @CommitterTest
     public void testMergedFileCommitter(
-            AbstractFSCommitter<?, ?> c, String name
+            AbstractFsCommitter<?, ?> c, String name
     )
             throws CommitterException {
         // write 5 upserts and 2 deletes.
@@ -96,7 +96,7 @@ public class AbstractFSCommitterTest {
 
     @CommitterTest
     public void testSplitFileCommitter(
-            AbstractFSCommitter<?, ?> c, String name
+            AbstractFsCommitter<?, ?> c, String name
     )
             throws CommitterException {
         // write 5 upserts and 2 deletes.
@@ -128,7 +128,7 @@ public class AbstractFSCommitterTest {
     }
 
     @CommitterTest
-    public void testWriteRead(AbstractFSCommitter<?, ?> c, String name)
+    public void testWriteRead(AbstractFsCommitter<?, ?> c, String name)
             throws CommitterException {
 
         c.getConfiguration()
@@ -145,7 +145,7 @@ public class AbstractFSCommitterTest {
     }
 
     @CommitterTest
-    public void testErrors(AbstractFSCommitter<?, ?> c, String name)
+    public void testErrors(AbstractFsCommitter<?, ?> c, String name)
             throws CommitterException, IOException {
         var fileNotFolder = folder.resolve("file");
         Files.createFile(fileNotFolder);
@@ -155,7 +155,7 @@ public class AbstractFSCommitterTest {
         });
     }
 
-    private void setIndentIfPresent(AbstractFSCommitter<?, ?> c, int indent) {
+    private void setIndentIfPresent(AbstractFsCommitter<?, ?> c, int indent) {
         if (BeanUtil.isWritable(c, "indent")) {
             BeanUtil.setValue(c, "indent", indent);
         }

@@ -356,7 +356,7 @@
       <mapping state="ERROR" strategy="IGNORE" />
     </spoiledReferenceStrategizer>
     <committers>
-      <committer class="com.norconex.committer.core.fs.impl.JSONFileCommitter">
+      <committer class="com.norconex.committer.core.fs.impl.JsonFileCommitter">
         <directory>/tmp/somepath</directory>
       </committer>
     </committers>

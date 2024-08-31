@@ -383,10 +383,10 @@
            This step calls the Committer module.  The
            committer is a different module with its own set of XML configuration
            options.  Please refer to committer for complete documentation.
-           Below is an example using the XMLFileCommitter.
+           Below is an example using the XmlFileCommitter.
            -->
       <committers>
-        <committer class="XMLFileCommitter">
+        <committer class="XmlFileCommitter">
         </committer>
       </committers>
 

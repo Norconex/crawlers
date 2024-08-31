@@ -26,7 +26,7 @@ import lombok.experimental.FieldNameConstants;
 @Accessors(chain = true)
 @FieldNameConstants
 @NoArgsConstructor
-public class CSVColumn {
+public class CsvColumn {
     private String field;
     private String header;
     private int truncateAt; // -1 is unlimited, 0 is using default.

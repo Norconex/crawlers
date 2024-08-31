@@ -17,7 +17,7 @@
 -->
 <committers>
 
-  <committer class="CSVFileCommitter"
+  <committer class="CsvFileCommitter"
       format="EXCEL"
       showHeaders="true"
       delimiter="|"
@@ -52,11 +52,11 @@
     </fieldMappings>
   </committer>
 
-  <committer class="JSONFileCommitter">
+  <committer class="JsonFileCommitter">
     <indent>8</indent>
   </committer>
 
-  <committer class="XMLFileCommitter">
+  <committer class="XmlFileCommitter">
     <indent>6</indent>
   </committer>
 

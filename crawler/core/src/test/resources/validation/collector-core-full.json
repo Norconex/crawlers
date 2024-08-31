@@ -146,7 +146,7 @@
       "committers": {
         "committer": {
           "directory": "/tmp/somepath",
-          "class": "com.norconex.committer.core.fs.impl.JSONFileCommitter"
+          "class": "com.norconex.committer.core.fs.impl.JsonFileCommitter"
         }
       },
       "documentChecksummer": {

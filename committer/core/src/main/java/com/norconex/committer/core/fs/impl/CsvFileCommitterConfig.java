@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.norconex.committer.core.fs.BaseFSCommitterConfig;
+import com.norconex.committer.core.fs.BaseFsCommitterConfig;
 import com.norconex.commons.lang.collection.CollectionUtil;
 
 import lombok.Data;
@@ -126,7 +126,7 @@ import lombok.experimental.FieldNameConstants;
 @Accessors(chain = true)
 @FieldNameConstants
 @NoArgsConstructor
-public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
+public class CsvFileCommitterConfig extends BaseFsCommitterConfig {
 
     public static final int DEFAULT_TRUNCATE_AT = 5096;
 
@@ -154,13 +154,13 @@ public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
     private String multiValueJoinDelimiter;
     private String typeHeader;
 
-    private final List<CSVColumn> columns = new ArrayList<>();
+    private final List<CsvColumn> columns = new ArrayList<>();
 
-    public List<CSVColumn> getColumns() {
+    public List<CsvColumn> getColumns() {
         return Collections.unmodifiableList(columns);
     }
 
-    public CSVFileCommitterConfig setColumns(List<CSVColumn> columns) {
+    public CsvFileCommitterConfig setColumns(List<CsvColumn> columns) {
         CollectionUtil.setAll(this.columns, columns);
         return this;
     }

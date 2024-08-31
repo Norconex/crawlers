@@ -44,7 +44,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class BaseFSCommitterConfig extends BaseCommitterConfig {
+public class BaseFsCommitterConfig extends BaseCommitterConfig {
 
     /**
      * The directory where files are committed.

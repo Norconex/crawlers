@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.committer.core.fs.AbstractFSCommitter;
+import com.norconex.committer.core.fs.AbstractFsCommitter;
 import com.norconex.commons.lang.convert.EnumConverter;
 
 import lombok.Data;
@@ -46,7 +46,7 @@ import lombok.experimental.FieldNameConstants;
  * A request "type" field is always added when both upserts and deletes are
  * added to the same file.  Default header name for it is <code>type</code>,
  * but you can supply your own name with
- * {@link CSVFileCommitterConfig#setTypeHeader(String)}.
+ * {@link CsvFileCommitterConfig#setTypeHeader(String)}.
  * </p>
  * <p>
  * The generated files are never updated.  Sending a modified document with the
@@ -133,13 +133,13 @@ import lombok.experimental.FieldNameConstants;
 @SuppressWarnings("javadoc")
 @Data
 @FieldNameConstants
-public class CSVFileCommitter
-        extends AbstractFSCommitter<CSVPrinter, CSVFileCommitterConfig> {
+public class CsvFileCommitter
+        extends AbstractFsCommitter<CSVPrinter, CsvFileCommitterConfig> {
 
     public static final int DEFAULT_TRUNCATE_AT = 5096;
 
-    private final CSVFileCommitterConfig configuration =
-            new CSVFileCommitterConfig();
+    private final CsvFileCommitterConfig configuration =
+            new CsvFileCommitterConfig();
 
     @Override
     protected String getFileExtension() {
@@ -186,7 +186,7 @@ public class CSVFileCommitter
                             : "type"
             );
         }
-        for (CSVColumn col : configuration.getColumns()) {
+        for (CsvColumn col : configuration.getColumns()) {
             var header = col.getHeader();
             if (StringUtils.isBlank(header)) {
                 header = "content";
@@ -205,7 +205,7 @@ public class CSVFileCommitter
                 || !configuration.isSplitUpsertDelete()) {
             csv.print("upsert");
         }
-        for (CSVColumn col : configuration.getColumns()) {
+        for (CsvColumn col : configuration.getColumns()) {
             var field = col.getField();
             String value;
             // if blank field, we are dealing with content
@@ -233,7 +233,7 @@ public class CSVFileCommitter
                 || !configuration.isSplitUpsertDelete()) {
             csv.print("delete");
         }
-        for (CSVColumn col : configuration.getColumns()) {
+        for (CsvColumn col : configuration.getColumns()) {
             var field = col.getField();
             // if blank field, we are dealing with content but delete has none,
             // so we store a blank value.

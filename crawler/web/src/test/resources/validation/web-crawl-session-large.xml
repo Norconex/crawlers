@@ -414,7 +414,7 @@
   </spoiledReferenceStrategizer>
 
   <committers>
-    <committer class="JSONFileCommitter">
+    <committer class="JsonFileCommitter">
       <directory>/tmp/somepath</directory>
     </committer>
   </committers>

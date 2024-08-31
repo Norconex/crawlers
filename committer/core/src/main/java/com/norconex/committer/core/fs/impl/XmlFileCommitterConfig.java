@@ -14,7 +14,7 @@
  */
 package com.norconex.committer.core.fs.impl;
 
-import com.norconex.committer.core.fs.BaseFSCommitterConfig;
+import com.norconex.committer.core.fs.BaseFsCommitterConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -89,6 +89,6 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class XMLFileCommitterConfig extends BaseFSCommitterConfig {
+public class XmlFileCommitterConfig extends BaseFsCommitterConfig {
     private int indent = -1;
 }

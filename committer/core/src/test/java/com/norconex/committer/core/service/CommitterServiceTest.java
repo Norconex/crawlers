@@ -36,9 +36,9 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.StringListConverter;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.committer.core.fs.AbstractFSCommitter;
-import com.norconex.committer.core.fs.impl.JSONFileCommitter;
-import com.norconex.committer.core.fs.impl.XMLFileCommitter;
+import com.norconex.committer.core.fs.AbstractFsCommitter;
+import com.norconex.committer.core.fs.impl.JsonFileCommitter;
+import com.norconex.committer.core.fs.impl.XmlFileCommitter;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatcher;
@@ -373,7 +373,7 @@ class CommitterServiceTest {
         // added.  It should still be possible to overwrite and give
         // a specific path.
 
-        var overwrittenPath = new XMLFileCommitter();
+        var overwrittenPath = new XmlFileCommitter();
         overwrittenPath.getConfiguration().setDirectory(
                 tempDir.resolve("customOne")
         );
@@ -381,10 +381,10 @@ class CommitterServiceTest {
         var service = CommitterService.builder()
                 .committers(
                         List.of(
-                                new XMLFileCommitter(),
-                                new JSONFileCommitter(),
+                                new XmlFileCommitter(),
+                                new JsonFileCommitter(),
                                 overwrittenPath,
-                                new XMLFileCommitter()
+                                new XmlFileCommitter()
                         )
                 )
                 .upsertRequestBuilder(
@@ -406,16 +406,16 @@ class CommitterServiceTest {
         );
 
         var actualDirNames = service.getCommitters().stream()
-                .map(AbstractFSCommitter.class::cast)
+                .map(AbstractFsCommitter.class::cast)
                 .map(c -> c.getResolvedDirectory().getFileName().toString())
                 .toList();
         assertThat(actualDirNames).containsExactly(
-                "XMLFileCommitter",
-                "JSONFileCommitter",
+                "XmlFileCommitter",
+                "JsonFileCommitter",
                 "customOne",
                 // we expect this one to be _3, not _2, since it is the 3rd XML
                 // committer, after the "customOne".
-                "XMLFileCommitter_3"
+                "XmlFileCommitter_3"
         );
     }
 }

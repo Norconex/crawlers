@@ -24,7 +24,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.committer.core.fs.AbstractFSCommitter;
+import com.norconex.committer.core.fs.AbstractFsCommitter;
 import com.norconex.commons.lang.xml.EnhancedXmlStreamWriter;
 
 import lombok.EqualsAndHashCode;
@@ -99,12 +99,12 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
-public class XMLFileCommitter extends
-        AbstractFSCommitter<EnhancedXmlStreamWriter, XMLFileCommitterConfig> {
+public class XmlFileCommitter extends
+        AbstractFsCommitter<EnhancedXmlStreamWriter, XmlFileCommitterConfig> {
 
     @Getter
-    private final XMLFileCommitterConfig configuration =
-            new XMLFileCommitterConfig();
+    private final XmlFileCommitterConfig configuration =
+            new XmlFileCommitterConfig();
 
     @Override
     protected String getFileExtension() {

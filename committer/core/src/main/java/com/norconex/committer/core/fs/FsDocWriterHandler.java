@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @EqualsAndHashCode
 @ToString
-class FSDocWriterHandler<T> implements AutoCloseable {
+class FsDocWriterHandler<T> implements AutoCloseable {
     private final String fileBaseName;
     private int writeCount;
     // start file numbering at 1
@@ -47,11 +47,11 @@ class FSDocWriterHandler<T> implements AutoCloseable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private final AbstractFSCommitter<T,
-            ? extends BaseFSCommitterConfig> committer;
+    private final AbstractFsCommitter<T,
+            ? extends BaseFsCommitterConfig> committer;
 
-    FSDocWriterHandler(
-            AbstractFSCommitter<T, ? extends BaseFSCommitterConfig> committer,
+    FsDocWriterHandler(
+            AbstractFsCommitter<T, ? extends BaseFsCommitterConfig> committer,
             String fileBaseName
     ) {
         this.committer = committer;
