@@ -92,7 +92,9 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
     @Override
     protected void doClose() throws CommitterException {
         try {
-            initializedQueue.close();
+            if (initializedQueue != null) {
+                initializedQueue.close();
+            }
         } finally {
             closeBatchCommitter();
         }

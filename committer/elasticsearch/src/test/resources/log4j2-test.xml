@@ -7,6 +7,9 @@
     </Console>
   </Appenders>
   <Loggers>
+    <Logger name="com.norconex.committer.elasticsearch" level="TRACE" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.norconex.committer" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

@@ -31,22 +31,12 @@ import lombok.Data;
  * </p>
  * <p>
  * You have the option to keep the checksum as a document metadata field.
- * When {@link #setKeep(boolean)} is <code>true</code>, the checksum will be
+ * When {@link GenericMetadataChecksummerConfig#setKeep(boolean)} is
+ * <code>true</code>, the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
  * {@link CrawlDocMetadata#CHECKSUM_METADATA}.
  * </p>
- * {@nx.xml.usage
- * <metadataChecksummer
- *     class="com.norconex.crawler.core.checksum.impl.GenericMetadataChecksummer"
- *     keep="[false|true]"
- *     toField="(optional field to store the checksum)">
- *
- *   <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (expression matching fields used to create the checksum)
- *   </fieldMatcher>
- * </metadataChecksummer>
- * }
  *
  * <p>
  * <code>toField</code> is ignored unless the <code>keep</code>
@@ -62,13 +52,7 @@ import lombok.Data;
  * The above example uses a combination of two (fictitious) fields called
  * "docLastModified" and "docSize" to make the checksum.
  * </p>
- *
- * <p>
- * A self-closing <code>&lt;metadataChecksummer/&gt;</code> tag without
- * any attributes is used to disable checksum generation.
- * </p>
  */
-@SuppressWarnings("javadoc")
 @Data
 public class GenericMetadataChecksummer
         extends AbstractMetadataChecksummer<GenericMetadataChecksummerConfig> {

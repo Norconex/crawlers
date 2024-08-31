@@ -176,9 +176,8 @@ public class ElasticsearchCommitter
     }
 
     private String extractId(CommitterRequest req) throws CommitterException {
-        return fixBadIdValue(
-                CommitterUtil.extractSourceIdValue(
-                        req, configuration.getSourceIdField()));
+        return fixBadIdValue(CommitterUtil.extractSourceIdValue(
+                req, configuration.getSourceIdField()));
     }
 
     @Override
@@ -200,9 +199,9 @@ public class ElasticsearchCommitter
                 }
                 docCount++;
             }
-            if (LOG.isTraceEnabled()) { //NOSONAR
-                LOG.trace("JSON POST:\n{}", //NOSONAR
-                        StringUtils.trim(json.toString())); //NOSONAR
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("JSON POST:\n{}",
+                        StringUtils.trim(json.toString()));
             }
 
             var request = new Request("POST", "/_bulk");
@@ -233,9 +232,9 @@ public class ElasticsearchCommitter
         if (respEntity != null) {
             var responseAsString = IOUtils.toString(
                     respEntity.getContent(), StandardCharsets.UTF_8);
-            if (LOG.isTraceEnabled()) { //NOSONAR
-                LOG.trace("Elasticsearch response:\n{}", //NOSONAR
-                        responseAsString); //NOSONAR
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Elasticsearch response:\n{}",
+                        responseAsString);
             }
 
             // We have no need to parse the JSON if successful
@@ -251,8 +250,8 @@ public class ElasticsearchCommitter
             }
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Elasticsearch response status: {}", //NOSONAR
-                    response.getStatusLine()); //NOSONAR
+            LOG.debug("Elasticsearch response status: {}",
+                    response.getStatusLine());
         }
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new CommitterException(
@@ -378,9 +377,8 @@ public class ElasticsearchCommitter
                         work on IDs containing multi-byte characters.""");
                 v = StringUtil.truncateWithHash(value, 512, "!");
             }
-            if (LOG.isDebugEnabled() && !value.equals(v)) { //NOSONAR
-                LOG.debug("Fixed document id from \"{}\" to \"{}\".", //NOSONAR
-                        value, v); //NOSONAR
+            if (LOG.isDebugEnabled() && !value.equals(v)) {
+                LOG.debug("Fixed document id from \"{}\" to \"{}\".", value, v);
             }
             return v;
         }

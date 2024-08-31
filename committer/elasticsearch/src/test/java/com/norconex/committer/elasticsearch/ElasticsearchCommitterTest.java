@@ -17,6 +17,8 @@ package com.norconex.committer.elasticsearch;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,6 +60,7 @@ import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.security.Credentials;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -137,6 +140,40 @@ class ElasticsearchCommitterTest {
 
         // Check that it's removed from ES
         assertFalse(isFound(getDocument(TEST_ID)), "Was not deleted.");
+    }
+
+    @Test
+    void testBadCommmitterRequest() {
+        assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
+            try (var c = new ElasticsearchCommitter()) {
+                var it = List.<CommitterRequest>of(new CommitterRequest() {
+                    @Override
+                    public String getReference() {
+                        return TEST_ID;
+                    }
+                    @Override
+                    public Properties getMetadata() {
+                        return new Properties();
+                    }
+                }).iterator();
+                c.commitBatch(it);
+            }
+        }).withMessageContaining("Unsupported request");
+    }
+
+    @Test
+    void testInitWithCredentials() {
+        assertThatNoException().isThrownBy(() -> {
+            try (var c = new ElasticsearchCommitter()) {
+                c.getConfiguration()
+                .setIndexName("someIndex")
+                .setCredentials(
+                        new Credentials()
+                        .setUsername("john")
+                        .setPassword("subtle"));
+                c.initBatchCommitter();
+            }
+        });
     }
 
     @Test
