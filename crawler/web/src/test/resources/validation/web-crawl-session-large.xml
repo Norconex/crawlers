@@ -97,7 +97,7 @@
     </schedules>
   </delayResolver>    
 
-  <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine">
+  <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine">
     <pageSplitSize>1000</pageSplitSize>
     <compress>1</compress>
     <cacheConcurrency>0</cacheConcurrency>

@@ -40,22 +40,22 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @Slf4j
-public class MVStoreDataStoreEngine
-        implements DataStoreEngine, Configurable<MVStoreDataStoreEngineConfig> {
+public class MvStoreDataStoreEngine
+        implements DataStoreEngine, Configurable<MvStoreDataStoreEngineConfig> {
 
     private static final String STORE_TYPES_KEY =
-            MVStoreDataStoreEngine.class.getSimpleName() + "--storetypes";
+            MvStoreDataStoreEngine.class.getSimpleName() + "--storetypes";
 
     @JsonProperty(Configurable.PROPERTY)
-    private final MVStoreDataStoreEngineConfig cfg =
-            new MVStoreDataStoreEngineConfig();
+    private final MvStoreDataStoreEngineConfig cfg =
+            new MvStoreDataStoreEngineConfig();
 
     private MVStore mvstore;
     private Path engineDir;
     private MVMap<String, Class<?>> storeTypes;
 
     @Override
-    public MVStoreDataStoreEngineConfig getConfiguration() {
+    public MvStoreDataStoreEngineConfig getConfiguration() {
         return cfg;
     }
 
@@ -182,7 +182,7 @@ public class MVStoreDataStoreEngine
     public synchronized <T> DataStore<T> openStore(
             String name, Class<? extends T> type) {
         storeTypes.put(name, type);
-        return new MVStoreDataStore<>(mvstore, name, type);
+        return new MvStoreDataStore<>(mvstore, name, type);
     }
 
     @Override
@@ -201,7 +201,7 @@ public class MVStoreDataStoreEngine
 
     @Override
     public boolean renameStore(DataStore<?> store, String newName) {
-        MVStoreDataStore<?> mvDateStore = (MVStoreDataStore<?>) store;
+        MvStoreDataStore<?> mvDateStore = (MvStoreDataStore<?>) store;
         var hadMap = false;
         if (mvstore.hasMap(newName)) {
             hadMap = true;

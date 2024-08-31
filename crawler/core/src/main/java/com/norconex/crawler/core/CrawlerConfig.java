@@ -42,7 +42,7 @@ import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
+import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
 import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;
@@ -284,7 +284,7 @@ public class CrawlerConfig {
      * @param dataStoreEngine crawl data store factory.
      * @return crawl data store factory.
      */
-    private DataStoreEngine dataStoreEngine = new MVStoreDataStoreEngine();
+    private DataStoreEngine dataStoreEngine = new MvStoreDataStoreEngine();
 
     /**
      * Whether the start references should be loaded asynchronously. When

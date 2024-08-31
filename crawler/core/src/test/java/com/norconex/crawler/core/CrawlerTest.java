@@ -36,7 +36,7 @@ import com.norconex.crawler.core.mocks.MockFetcher;
 import com.norconex.crawler.core.mocks.MockNoopDataStore;
 import com.norconex.crawler.core.mocks.MockNoopDataStoreEngine;
 import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
+import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
 
 class CrawlerTest {
@@ -61,7 +61,7 @@ class CrawlerTest {
         var mem = CrawlerTestUtil.runWithConfig(
                 tempDir,
                 cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
-                        .setDataStoreEngine(new MVStoreDataStoreEngine() {
+                        .setDataStoreEngine(new MvStoreDataStoreEngine() {
                             @Override
                             public <T> DataStore<T> openStore(
                                     String storeName, Class<? extends T> type) {

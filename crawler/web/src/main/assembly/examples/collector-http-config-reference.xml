@@ -208,7 +208,7 @@
            com.norconex.crawler.core.data.store.ICrawlURLDatabaseFactory.  
            Default implementation is the following.
            -->
-      <dataStoreEngine class="MVStoreDataStoreEngine" />
+      <dataStoreEngine class="MvStoreDataStoreEngine" />
   
       <!-- One or more HTTP Fetchers, responsible for making HTTP requests
            and fetching associated content. Fetchers are defined in execution 

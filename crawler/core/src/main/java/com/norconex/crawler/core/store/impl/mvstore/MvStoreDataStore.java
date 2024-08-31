@@ -30,13 +30,13 @@ import com.norconex.crawler.core.store.impl.SerialUtil;
 
 import lombok.NonNull;
 
-public class MVStoreDataStore<T> implements DataStore<T> {
+public class MvStoreDataStore<T> implements DataStore<T> {
 
     private final MVMap<String, String> map;
     private String storeName;
     private final Class<? extends T> type;
 
-    protected MVStoreDataStore(
+    protected MvStoreDataStore(
             @NonNull MVStore mvstore,
             @NonNull String storeName,
             @NonNull Class<? extends T> type) {

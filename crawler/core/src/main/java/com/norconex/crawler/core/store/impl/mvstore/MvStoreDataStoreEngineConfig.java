@@ -40,7 +40,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class MVStoreDataStoreEngineConfig {
+public class MvStoreDataStoreEngineConfig {
 
     /**
      * The max memory page size in bytes before splitting it.

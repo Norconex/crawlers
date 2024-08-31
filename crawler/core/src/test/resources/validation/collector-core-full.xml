@@ -38,7 +38,7 @@
     <numThreads>1</numThreads>
     <maxDocuments>111</maxDocuments>
     <orphansStrategy>PROCESS</orphansStrategy>
-    <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine" />
+    <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine" />
     <referenceFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
           onMatch="exclude" ignoreCase="false">xml,pdf,doc</filter>

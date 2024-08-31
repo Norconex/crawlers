@@ -25,7 +25,7 @@
       "maxDocuments": "111",
       "orphansStrategy": "PROCESS",
       "dataStoreEngine": {
-        "class": "com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine"
+        "class": "com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine"
       },
       "referenceFilters": {
         "filter": [

@@ -17,11 +17,11 @@ package com.norconex.crawler.core.store.impl.mvstore;
 import com.norconex.crawler.core.store.AbstractDataStoreEngineTest;
 import com.norconex.crawler.core.store.DataStoreEngine;
 
-class MVStoreDataStoreEngineTest extends AbstractDataStoreEngineTest {
+class MvStoreDataStoreEngineTest extends AbstractDataStoreEngineTest {
 
     @Override
     protected DataStoreEngine createEngine() {
-        return new MVStoreDataStoreEngine();
+        return new MvStoreDataStoreEngine();
     }
 
 }

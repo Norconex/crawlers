@@ -30,7 +30,7 @@ import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
+import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine2;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
@@ -192,7 +192,7 @@ import lombok.experimental.FieldNameConstants;
  * crawled, caching of document checksums, etc.
  * For this, the crawler uses a database we refer to as a data store engine.
  * The default implementation uses the local file system to store these
- * (see {@link MVStoreDataStoreEngine}). While very capable and suitable
+ * (see {@link MvStoreDataStoreEngine}). While very capable and suitable
  * for most sites, if you need a larger storage system, you can change
  * the default implementation or provide your own
  * with {@link #setDataStoreEngine(IDataStoreEngine)}.

@@ -63,6 +63,7 @@ class Neo4jCommitterTest {
     private static final String TEST_CONTENT =
             "This is a movie about something.";
 
+    @SuppressWarnings("resource")
     @Container
     private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(
             DockerImageName.parse("neo4j").withTag(NEO4J_VERSION))
