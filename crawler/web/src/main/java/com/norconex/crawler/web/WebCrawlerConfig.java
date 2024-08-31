@@ -27,7 +27,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
@@ -418,7 +418,7 @@ import lombok.experimental.FieldNameConstants;
  * a modified document. There are two checksums at play, tested at
  * different times. One obtained from
  * a document metadata (default is {@link LastModifiedMetadataChecksummer},
- * and one from the document itself {@link MD5DocumentChecksummer}. You can
+ * and one from the document itself {@link Md5DocumentChecksummer}. You can
  * provide your own implementation. See:
  * {@link #setMetadataChecksummer(MetadataChecksummer)} and
  * {@link #setDocumentChecksummer(DocumentChecksummer)}.

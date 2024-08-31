@@ -49,7 +49,7 @@ import lombok.experimental.Accessors;
  * <p>Should be used as a pre-parse handler.</p>
  *
  * {@nx.xml.usage
- *  <handler class="com.norconex.importer.handler.splitter.impl.PDFPageSplitter">
+ *  <handler class="com.norconex.importer.handler.splitter.impl.PdfPageSplitter">
  *    {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
 
  *    <referencePagePrefix>
@@ -61,7 +61,7 @@ import lombok.experimental.Accessors;
  * }
  *
  * {@nx.xml.example
- * <handler class="PDFPageSplitter">
+ * <handler class="PdfPageSplitter">
  *   <referencePagePrefix>#page</referencePagePrefix>
  * </handler>
  * }
@@ -72,10 +72,10 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class PDFPageSplitterConfig extends BaseDocumentSplitterConfig {
+public class PdfPageSplitterConfig extends BaseDocumentSplitterConfig {
 
     private String referencePagePrefix =
-            PDFPageSplitter.DEFAULT_REFERENCE_PAGE_PREFIX;
+            PdfPageSplitter.DEFAULT_REFERENCE_PAGE_PREFIX;
 
     /**
      * The matcher of content types to apply splitting on. No attempt to
@@ -94,7 +94,7 @@ public class PDFPageSplitterConfig extends BaseDocumentSplitterConfig {
      * @param contentTypeMatcher content type matcher
      * @return this
      */
-    public PDFPageSplitterConfig setContentTypeMatcher(TextMatcher matcher) {
+    public PdfPageSplitterConfig setContentTypeMatcher(TextMatcher matcher) {
         contentTypeMatcher.copyFrom(matcher);
         return this;
     }

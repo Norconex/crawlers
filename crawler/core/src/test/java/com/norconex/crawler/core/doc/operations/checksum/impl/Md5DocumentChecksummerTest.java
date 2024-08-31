@@ -30,7 +30,7 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.doc.Doc;
 
-class MD5DocumentChecksummerTest {
+class Md5DocumentChecksummerTest {
 
     @Test
     void testCreateDocumentChecksumFromContent() throws IOException {
@@ -38,7 +38,7 @@ class MD5DocumentChecksummerTest {
         var content = "Some content";
         var is = new CachedStreamFactory(1024, 1024).newInputStream(content);
         var doc = new Doc("N/A", is);
-        var cs = new MD5DocumentChecksummer();
+        var cs = new Md5DocumentChecksummer();
         var checksum = cs.createDocumentChecksum(doc);
         is.dispose();
         assertThat(checksum).isEqualTo("b53227da4280f0e18270f21dd77c91d0");
@@ -53,7 +53,7 @@ class MD5DocumentChecksummerTest {
         props.add("field1", "value1");
         props.add("field2", "value2");
         var doc = new Doc("N/A", is, props);
-        var cs = new MD5DocumentChecksummer();
+        var cs = new Md5DocumentChecksummer();
         cs.getConfiguration().setCombineFieldsAndContent(true);
         var checksum = cs.createDocumentChecksum(doc);
         is.dispose();
@@ -71,7 +71,7 @@ class MD5DocumentChecksummerTest {
         var doc = new Doc("N/A", is);
         doc.getMetadata().add("field1", "value1.1", "value1.2");
         doc.getMetadata().add("field2", "value2");
-        var cs = new MD5DocumentChecksummer();
+        var cs = new Md5DocumentChecksummer();
 
         // 2 matching fields
         cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field1,field2"));
@@ -125,7 +125,7 @@ class MD5DocumentChecksummerTest {
         var doc = new Doc("N/A", is);
         doc.getMetadata().add("field1", "value1.1", "value1.2");
         doc.getMetadata().add("field2", "value2");
-        var cs = new MD5DocumentChecksummer();
+        var cs = new Md5DocumentChecksummer();
 
         // With no source fields, should use content only.
         var contentChecksum = cs.createDocumentChecksum(doc);
@@ -160,7 +160,7 @@ class MD5DocumentChecksummerTest {
 
     @Test
     void testWriteRead() {
-        var c = new MD5DocumentChecksummer();
+        var c = new Md5DocumentChecksummer();
         c.getConfiguration()
                 .setFieldMatcher(TextMatcher.csv("field1,field2"))
                 .setCombineFieldsAndContent(true)

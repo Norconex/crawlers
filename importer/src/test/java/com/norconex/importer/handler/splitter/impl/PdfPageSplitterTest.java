@@ -30,14 +30,14 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 
-class PDFPageSplitterTest {
+class PdfPageSplitterTest {
 
     private InputStream input;
 
     @BeforeEach
     void setup() {
-        input = PDFPageSplitterTest.class.getResourceAsStream(
-                PDFPageSplitterTest.class.getSimpleName() + ".pdf"
+        input = PdfPageSplitterTest.class.getResourceAsStream(
+                PdfPageSplitterTest.class.getSimpleName() + ".pdf"
         );
     }
 
@@ -48,7 +48,7 @@ class PDFPageSplitterTest {
 
     @Test
     void testSplit() throws IOException {
-        var s = new PDFPageSplitter();
+        var s = new PdfPageSplitter();
         var pages = split(s);
 
         Assertions.assertEquals(3, pages.size(), "Invalid number of pages.");
@@ -58,18 +58,18 @@ class PDFPageSplitterTest {
     }
 
     private int getPageNo(Doc doc) {
-        return doc.getMetadata().getInteger(PDFPageSplitter.DOC_PDF_PAGE_NO);
+        return doc.getMetadata().getInteger(PdfPageSplitter.DOC_PDF_PAGE_NO);
     }
 
     @Test
     void testWriteRead() {
-        var splitter = new PDFPageSplitter();
+        var splitter = new PdfPageSplitter();
         splitter.getConfiguration().setReferencePagePrefix("#page");
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(splitter));
     }
 
-    private List<Doc> split(PDFPageSplitter splitter)
+    private List<Doc> split(PdfPageSplitter splitter)
             throws IOException {
         var metadata = new Properties();
         var docCtx = TestUtil.newHandlerContext("n/a", input, metadata);

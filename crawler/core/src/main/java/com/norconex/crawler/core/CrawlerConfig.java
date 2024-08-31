@@ -32,7 +32,7 @@ import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
@@ -463,7 +463,7 @@ public class CrawlerConfig {
      * @return document checksummer or <code>null</code> when disabled
      */
     private DocumentChecksummer documentChecksummer =
-            new MD5DocumentChecksummer();
+            new Md5DocumentChecksummer();
 
     /**
      * The spoiled state strategy resolver.

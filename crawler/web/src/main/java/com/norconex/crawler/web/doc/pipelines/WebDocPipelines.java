@@ -48,7 +48,7 @@ import com.norconex.crawler.web.doc.pipelines.importer.stages.RobotsMetaNoIndexS
 import com.norconex.crawler.web.doc.pipelines.queue.SitemapQueueInitializer;
 import com.norconex.crawler.web.doc.pipelines.queue.stages.RobotsTxtFiltersStage;
 import com.norconex.crawler.web.doc.pipelines.queue.stages.SitemapResolutionStage;
-import com.norconex.crawler.web.doc.pipelines.queue.stages.URLNormalizerStage;
+import com.norconex.crawler.web.doc.pipelines.queue.stages.UrlNormalizerStage;
 
 public final class WebDocPipelines {
 
@@ -70,7 +70,7 @@ public final class WebDocPipelines {
                                                     new DepthValidationStage(),
                                                     new ReferenceFiltersStage(),
                                                     new RobotsTxtFiltersStage(),
-                                                    new URLNormalizerStage(),
+                                                    new UrlNormalizerStage(),
                                                     new SitemapResolutionStage(),
                                                     new QueueReferenceStage()))
                                     .build())

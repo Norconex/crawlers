@@ -21,7 +21,7 @@ import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.util.Web;
 
-public class URLNormalizerStage implements Predicate<QueuePipelineContext> {
+public class UrlNormalizerStage implements Predicate<QueuePipelineContext> {
     @Override
     public boolean test(QueuePipelineContext ctx) {
         var cfg = Web.config(ctx.getCrawler());

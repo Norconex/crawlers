@@ -14,13 +14,20 @@
  */
 package com.norconex.crawler.core.doc.operations.checksum.impl;
 
+import java.io.IOException;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.text.TextMatcher.Method;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.doc.operations.checksum.BaseChecksummerConfig;
+import com.norconex.crawler.core.doc.operations.checksum.AbstractDocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.ChecksumUtil;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
+import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
-import lombok.experimental.Accessors;
 
 /**
  * <p>Implementation of {@link DocumentChecksummer} which
@@ -65,7 +72,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * {@nx.xml.example
- * <documentChecksummer class="MD5DocumentChecksummer" />
+ * <documentChecksummer class="Md5DocumentChecksummer" />
  * }
  *
  * <p>
@@ -80,29 +87,55 @@ import lombok.experimental.Accessors;
  */
 @SuppressWarnings("javadoc")
 @Data
-@Accessors(chain = true)
-public class MD5DocumentChecksummerConfig extends BaseChecksummerConfig {
+public class Md5DocumentChecksummer
+        extends AbstractDocumentChecksummer<Md5DocumentChecksummerConfig> {
 
-    /**
-     * The field matcher.
-     * @param fieldMatcher field matcher
-     * @return field matcher
-     */
-    private final TextMatcher fieldMatcher = new TextMatcher();
+    private final Md5DocumentChecksummerConfig configuration =
+            new Md5DocumentChecksummerConfig();
 
-    public MD5DocumentChecksummerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
-        return this;
+    @Override
+    public String doCreateDocumentChecksum(Doc document) {
+
+        // fields
+        var fm = new TextMatcher(getConfiguration().getFieldMatcher());
+        var isSourceFieldsSet = isFieldMatcherSet();
+        if (getConfiguration().isCombineFieldsAndContent()
+                && !isSourceFieldsSet) {
+            fm.setMethod(Method.REGEX);
+            fm.setPattern(".*");
+        }
+        var b = new StringBuilder();
+        if (isSourceFieldsSet
+                || getConfiguration().isCombineFieldsAndContent()) {
+            var checksum = ChecksumUtil.metadataChecksumMD5(
+                    document.getMetadata(), fm
+            );
+            if (checksum != null) {
+                b.append(checksum);
+                b.append('|');
+            }
+        }
+
+        // document
+        if (getConfiguration().isCombineFieldsAndContent()
+                || !isSourceFieldsSet) {
+            try {
+                b.append(ChecksumUtil.checksumMD5(document.getInputStream()));
+            } catch (IOException e) {
+                throw new CrawlerException(
+                        "Cannot create document checksum on : "
+                                + document.getReference(),
+                        e
+                );
+            }
+        }
+
+        return StringUtils.trimToNull(b.toString());
     }
 
-    /**
-     * Whether we are combining the fields and content checksums.
-     * @param combineFieldsAndContent <code>true</code> if combining fields
-     *        and content checksums
-     * @return <code>true</code> if combining fields and content checksums
-     */
-    private boolean combineFieldsAndContent;
-
+    private boolean isFieldMatcherSet() {
+        return StringUtils.isNotBlank(
+                getConfiguration().getFieldMatcher().getPattern()
+        );
+    }
 }

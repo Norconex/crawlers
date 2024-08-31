@@ -62,7 +62,7 @@ import lombok.Data;
  * <p>Should be used as a pre-parse handler.</p>
  *
  * {@nx.xml.usage
- *  <handler class="com.norconex.importer.handler.splitter.impl.PDFPageSplitter">
+ *  <handler class="com.norconex.importer.handler.splitter.impl.PdfPageSplitter">
  *    {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
 
  *    <referencePagePrefix>
@@ -74,7 +74,7 @@ import lombok.Data;
  * }
  *
  * {@nx.xml.example
- * <handler class="PDFPageSplitter">
+ * <handler class="PdfPageSplitter">
  *   <referencePagePrefix>#page</referencePagePrefix>
  * </handler>
  * }
@@ -84,8 +84,8 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class PDFPageSplitter
-        extends AbstractDocumentSplitter<PDFPageSplitterConfig> {
+public class PdfPageSplitter
+        extends AbstractDocumentSplitter<PdfPageSplitterConfig> {
 
     public static final String DOC_PDF_PAGE_NO = "document.pdf.pageNumber";
     public static final String DOC_PDF_TOTAL_PAGES =
@@ -93,8 +93,8 @@ public class PDFPageSplitter
 
     public static final String DEFAULT_REFERENCE_PAGE_PREFIX = "#";
 
-    private final PDFPageSplitterConfig configuration =
-            new PDFPageSplitterConfig();
+    private final PdfPageSplitterConfig configuration =
+            new PdfPageSplitterConfig();
 
     @Override
     public void split(HandlerContext docCtx) throws DocumentHandlerException {

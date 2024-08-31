@@ -99,7 +99,7 @@ class DeduplicationTest {
 
         // Relying on these crawler defaults:
         //    - LastModifiedMetadataChecksummer
-        //    - MD5DocumentChecksummer
+        //    - Md5DocumentChecksummer
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, homePath)));
             cfg.setMetadataDeduplicate(true);
