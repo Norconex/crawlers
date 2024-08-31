@@ -64,12 +64,12 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class UUIDTransformer
+public class UuidTransformer
         extends BaseDocumentHandler
-        implements Configurable<UUIDTransformerConfig> {
+        implements Configurable<UuidTransformerConfig> {
 
-    private final UUIDTransformerConfig configuration =
-            new UUIDTransformerConfig();
+    private final UuidTransformerConfig configuration =
+            new UuidTransformerConfig();
 
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
@@ -77,7 +77,7 @@ public class UUIDTransformer
         var uuid = UUID.randomUUID().toString();
         var finalField = configuration.getToField();
         if (StringUtils.isBlank(finalField)) {
-            finalField = UUIDTransformerConfig.DEFAULT_FIELD;
+            finalField = UuidTransformerConfig.DEFAULT_FIELD;
         }
         PropertySetter.orAppend(configuration.getOnSet()).apply(
                 docCtx.metadata(), finalField, uuid);

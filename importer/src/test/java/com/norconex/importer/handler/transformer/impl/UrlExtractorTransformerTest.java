@@ -28,11 +28,11 @@ import com.norconex.importer.TestUtil;
 import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
-class URLExtractorTransformerTest {
+class UrlExtractorTransformerTest {
 
     @Test
     void testWriteRead() {
-        var t = new URLExtractorTransformer();
+        var t = new UrlExtractorTransformer();
         t.getConfiguration()
                 .setFieldMatcher(TextMatcher.basic("blah"))
                 .setMaxReadSize(10)
@@ -46,7 +46,7 @@ class URLExtractorTransformerTest {
 
     @Test
     void testURLExtractorTagger() throws IOException {
-        var t = new URLExtractorTransformer();
+        var t = new UrlExtractorTransformer();
         t.getConfiguration()
                 .setToField("result");
 

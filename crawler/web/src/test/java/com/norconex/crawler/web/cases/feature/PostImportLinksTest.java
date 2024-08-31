@@ -34,7 +34,7 @@ import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
-import com.norconex.importer.handler.transformer.impl.URLExtractorTransformer;
+import com.norconex.importer.handler.transformer.impl.UrlExtractorTransformer2;
 
 /**
  * Test that links can be specified for crawling after importing.
@@ -73,7 +73,7 @@ class PostImportLinksTest {
                                             .setExtensions(List.of("pdf"))
                                             .setOnMatch(OnMatch.INCLUDE))));
             // Create a field with post-import PDF URLs.
-            var tagger = new URLExtractorTransformer();
+            var tagger = new UrlExtractorTransformer2();
             tagger.getConfiguration().setToField("myPostImportURLs");
             cfg.getImporterConfig().setHandlers(
                     List.of(

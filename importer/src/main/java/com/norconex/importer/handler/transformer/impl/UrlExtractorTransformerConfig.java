@@ -94,7 +94,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class URLExtractorTransformerConfig implements ChunkedTextSupport {
+public class UrlExtractorTransformerConfig implements ChunkedTextSupport {
 
     private final TextMatcher fieldMatcher = new TextMatcher();
     private String toField;
@@ -126,7 +126,7 @@ public class URLExtractorTransformerConfig implements ChunkedTextSupport {
      * Sets the field matcher for fields containing text.
      * @param fieldMatcher field matcher
      */
-    public URLExtractorTransformerConfig setFieldMatcher(
+    public UrlExtractorTransformerConfig setFieldMatcher(
             TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;

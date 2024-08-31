@@ -101,15 +101,15 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class URLExtractorTransformer
+public class UrlExtractorTransformer
         extends BaseDocumentHandler
-        implements Configurable<URLExtractorTransformerConfig> {
+        implements Configurable<UrlExtractorTransformerConfig> {
 
     private static final Pattern URL_PATTERN =
             Regex.compileDotAll("\\b(https?:|www\\.)[^\\s]+", true);
 
-    private final URLExtractorTransformerConfig configuration =
-            new URLExtractorTransformerConfig();
+    private final UrlExtractorTransformerConfig configuration =
+            new UrlExtractorTransformerConfig();
 
     @Override
     public void handle(HandlerContext docCtx) throws IOException {

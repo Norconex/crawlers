@@ -27,11 +27,11 @@ import com.norconex.importer.TestUtil;
 import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
-class UUIDTransformerTest {
+class UuidTransformerTest {
 
     @Test
     void testWriteRead() {
-        var t = new UUIDTransformer();
+        var t = new UuidTransformer();
         t.getConfiguration()
                 .setToField("field1")
                 .setOnSet(PropertySetter.REPLACE);
@@ -41,7 +41,7 @@ class UUIDTransformerTest {
 
     @Test
     void testUUIDTagger() throws IOException {
-        var t = new UUIDTransformer();
+        var t = new UuidTransformer();
         t.getConfiguration()
                 .setToField("result");
         var props = new Properties();

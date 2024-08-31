@@ -58,7 +58,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class UUIDTransformerConfig {
+public class UuidTransformerConfig {
 
     public static final String DEFAULT_FIELD = "document.uuid";
 
