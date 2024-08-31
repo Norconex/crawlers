@@ -48,16 +48,12 @@ class AzureSearchMocker {
                                 .withMethod("POST")
                                 .withPath(INDEX_PATH)
                                 .withContentType(
-                                        MediaType.APPLICATION_JSON_UTF_8
-                                )
+                                        MediaType.APPLICATION_JSON_UTF_8)
                                 .withHeader("api-key", MOCK_API_KEY)
                                 .withQueryStringParameters(
                                         Parameter.param(
                                                 "api-version",
-                                                DEFAULT_API_VERSION
-                                        )
-                                )
-                )
+                                                DEFAULT_API_VERSION)))
                 .respond(
                         req -> {
                             var resp = index(db, req);
@@ -65,8 +61,7 @@ class AzureSearchMocker {
                                     .withStatusCode(resp.code)
                                     .withReasonPhrase(resp.reason)
                                     .withBody(JsonBody.json(resp.body));
-                        }
-                );
+                        });
     }
 
     public Doc getDoc(int docIndex) {
@@ -91,8 +86,7 @@ class AzureSearchMocker {
 
     private static MockResponse index(Map<String, Doc> db, HttpRequest req) {
         var commitRequests = new JSONObject(
-                req.getBodyAsJsonOrXmlString()
-        ).getJSONArray("value");
+                req.getBodyAsJsonOrXmlString()).getJSONArray("value");
 
         var responseStatus = HttpStatus.SC_OK;
         var respArray = new JSONArray();
@@ -111,10 +105,7 @@ class AzureSearchMocker {
                                         "First object key must be '@search.action'. Was '"
                                                 + actionField + "' with value '"
                                                 + action
-                                                + "'."
-                                )
-                        )
-                );
+                                                + "'.")));
                 break;
             }
 
@@ -139,9 +130,7 @@ class AzureSearchMocker {
                 if (previousDoc == null) {
                     respArray.put(
                             docOpResponse(
-                                    key, MockResponse.created(null)
-                            )
-                    );
+                                    key, MockResponse.created(null)));
                 } else {
                     respArray.put(docOpResponse(key, MockResponse.ok(null)));
                 }
@@ -153,10 +142,7 @@ class AzureSearchMocker {
                 respArray.put(
                         docOpResponse(
                                 key, MockResponse.badRequest(
-                                        "Unsupported action: " + action
-                                )
-                        )
-                );
+                                        "Unsupported action: " + action)));
             }
         }
 
@@ -170,8 +156,7 @@ class AzureSearchMocker {
         }
         return new MockResponse(
                 HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                "Internal Server Error", null
-        );
+                "Internal Server Error", null);
     }
 
     private static JSONObject docOpResponse(String key, MockResponse docResp) {
@@ -232,8 +217,7 @@ class AzureSearchMocker {
 
         static MockResponse multiStatus(String body) {
             return new MockResponse(
-                    HttpStatus.SC_MULTI_STATUS, "Multi-Status", body
-            );
+                    HttpStatus.SC_MULTI_STATUS, "Multi-Status", body);
         }
 
         static MockResponse badRequest(String reason) {

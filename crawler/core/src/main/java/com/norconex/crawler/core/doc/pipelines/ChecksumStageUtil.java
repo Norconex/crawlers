@@ -33,14 +33,12 @@ public final class ChecksumStageUtil {
     }
 
     public static boolean resolveMetaChecksum(
-            String newChecksum, CrawlDoc doc
-    ) {
+            String newChecksum, CrawlDoc doc) {
         return resolveChecksum(true, newChecksum, doc);
     }
 
     public static boolean resolveDocumentChecksum(
-            String newChecksum, CrawlDoc doc
-    ) {
+            String newChecksum, CrawlDoc doc) {
         return resolveChecksum(false, newChecksum, doc);
     }
 
@@ -48,8 +46,7 @@ public final class ChecksumStageUtil {
     private static boolean resolveChecksum(
             boolean isMeta,
             String newChecksum,
-            CrawlDoc doc
-    ) {
+            CrawlDoc doc) {
         var docContext = doc.getDocContext();
 
         // Set new checksum on crawlData + metadata
@@ -71,8 +68,7 @@ public final class ChecksumStageUtil {
                 || CrawlDocState.DELETED.isOneOf(cachedDocInfo.getState())) {
             LOG.debug(
                     "ACCEPTED {} checkum (new): Reference={}",
-                    type, docContext.getReference()
-            );
+                    type, docContext.getReference());
 
             // Prevent not having status when finalizing document on embedded
             // docs (which otherwise do not have a status.
@@ -96,8 +92,7 @@ public final class ChecksumStageUtil {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(
                         "REJECTED {} checkum (unmodified): Reference={}",
-                        type, docContext.getReference()
-                );
+                        type, docContext.getReference());
             }
             docContext.setState(CrawlDocState.UNMODIFIED);
 
@@ -120,8 +115,7 @@ public final class ChecksumStageUtil {
         docContext.setState(CrawlDocState.MODIFIED);
         LOG.debug(
                 "ACCEPTED {} checksum (modified): Reference={}",
-                type, docContext.getReference()
-        );
+                type, docContext.getReference());
         return true;
     }
 }

@@ -36,8 +36,7 @@ class ForceSingleValueTransformerTest {
                 .setAction("keepFirst")
                 .getFieldMatcher().setPattern("field1|field2|field3");
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -49,19 +48,22 @@ class ForceSingleValueTransformerTest {
         var props = new Properties();
         props.add("a", 1, 2, 3);
         t.getConfiguration().setAction("keepFirst");
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
         assertThat(props.getIntegers("a")).containsExactly(1);
 
         props = new Properties();
         props.add("a", 1, 2, 3);
         t.getConfiguration().setAction("keepLast");
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
         assertThat(props.getIntegers("a")).containsExactly(3);
 
         props = new Properties();
         props.add("a", 1, 2, 3);
         t.getConfiguration().setAction("mergeWith:-");
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
         assertThat(props.getString("a")).isEqualTo("1-2-3");
     }
 }

@@ -44,9 +44,7 @@ class RenameTransformerTest {
                         new RenameOperation()
                                 .setFieldMatcher(TextMatcher.basic("from2"))
                                 .setToField("to2")
-                                .setOnSet(APPEND)
-                )
-        );
+                                .setOnSet(APPEND)));
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
@@ -64,18 +62,14 @@ class RenameTransformerTest {
                 List.of(
                         new RenameOperation()
                                 .setFieldMatcher(
-                                        TextMatcher.basic("regularFrom1")
-                                )
+                                        TextMatcher.basic("regularFrom1"))
                                 .setToField("regularTo1")
                                 .setOnSet(APPEND),
                         new RenameOperation()
                                 .setFieldMatcher(
-                                        TextMatcher.regex(".*(From)(\\d+).*")
-                                )
+                                        TextMatcher.regex(".*(From)(\\d+).*"))
                                 .setToField("$1Regex$2")
-                                .setOnSet(APPEND)
-                )
-        );
+                                .setOnSet(APPEND)));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 

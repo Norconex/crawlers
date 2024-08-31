@@ -184,8 +184,7 @@ public abstract class AbstractDataStoreEngineTest {
         inNewStoreSession(store -> {
             Assertions.assertEquals(
                     "newVal3",
-                    store.find("areference").get().getContentChecksum()
-            );
+                    store.find("areference").get().getContentChecksum());
         });
     }
 
@@ -210,16 +209,13 @@ public abstract class AbstractDataStoreEngineTest {
         inNewStoreSession(store -> {
             Assertions.assertEquals(
                     "checksumvalue",
-                    store.find("areference").get().getContentChecksum()
-            );
+                    store.find("areference").get().getContentChecksum());
             Assertions.assertEquals(
                     "newVal",
-                    store.find("breference").get().getContentChecksum()
-            );
+                    store.find("breference").get().getContentChecksum());
             Assertions.assertEquals(
                     "newVal",
-                    store.find("creference").get().getContentChecksum()
-            );
+                    store.find("creference").get().getContentChecksum());
         });
     }
 
@@ -256,8 +252,7 @@ public abstract class AbstractDataStoreEngineTest {
                             "STOREB",
                             "STOREA",
                             "PROCESSED",
-                            "CACHED"
-                    );
+                            "CACHED");
             engine.clean();
             assertThat(engine.getStoreNames()).isEmpty();
         });
@@ -295,9 +290,7 @@ public abstract class AbstractDataStoreEngineTest {
         LOG.debug("Start data store test...");
         c.accept(
                 crawler.getDataStoreEngine().openStore(
-                        TEST_STORE_NAME, TestObject.class
-                )
-        );
+                        TEST_STORE_NAME, TestObject.class));
         LOG.debug("Data store test done.");
         CrawlerTestUtil.destroyCrawler(crawler);
     }

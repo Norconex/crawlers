@@ -48,9 +48,7 @@ class DebugTransformerTest {
         assertThatNoException().isThrownBy(() -> {
             t.accept(
                     TestUtil.newHandlerContext(
-                            "ref", nullInputStream(), props, PRE
-                    )
-            );
+                            "ref", nullInputStream(), props, PRE));
         });
     }
 }

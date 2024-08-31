@@ -78,16 +78,14 @@ public class ConfigRenderCommand extends CliSubCommandBase {
             crawler.getServices().getBeanMapper().write(
                     crawler.getConfiguration(),
                     out,
-                    f
-            );
+                    f);
             if (output == null) {
                 out().println(((StringWriter) out).toString());
             }
         } catch (InvalidPathException | IOException e) {
             err().println(
                     "Could not render config: "
-                            + ExceptionUtil.getFormattedMessages(e)
-            );
+                            + ExceptionUtil.getFormattedMessages(e));
         }
     }
 }

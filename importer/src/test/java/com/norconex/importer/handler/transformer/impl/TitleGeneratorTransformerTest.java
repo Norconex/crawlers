@@ -52,8 +52,7 @@ class TitleGeneratorTransformerTest {
 
         Assertions.assertNull(
                 metadata.getString(DocMetadata.GENERATED_TITLE),
-                "Title should be null"
-        );
+                "Title should be null");
     }
 
     @Test
@@ -70,9 +69,7 @@ class TitleGeneratorTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
         t.accept(
                 TestUtil.newHandlerContext(
-                        file.getAbsolutePath(), is, metadata, ParseState.POST
-                )
-        );
+                        file.getAbsolutePath(), is, metadata, ParseState.POST));
         is.close();
 
         var title = metadata.getString("mytitle");
@@ -82,8 +79,7 @@ class TitleGeneratorTransformerTest {
                 "that Alice had begun to think that very few things "
                         + "indeed were really impossible.",
                 title,
-                "Wrong title."
-        );
+                "Wrong title.");
     }
 
     @Test
@@ -100,9 +96,7 @@ class TitleGeneratorTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
         t.accept(
                 TestUtil.newHandlerContext(
-                        file.getAbsolutePath(), is, metadata, ParseState.POST
-                )
-        );
+                        file.getAbsolutePath(), is, metadata, ParseState.POST));
         is.close();
 
         var title = metadata.getString(DocMetadata.GENERATED_TITLE);
@@ -116,25 +110,21 @@ class TitleGeneratorTransformerTest {
         var t = new TitleGeneratorTransformer();
 
         InputStream is = new ByteArrayInputStream(
-                "This is the first line. This is another line.".getBytes()
-        );
+                "This is the first line. This is another line.".getBytes());
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
 
         t.accept(
                 TestUtil.newHandlerContext(
-                        "test.txt", is, metadata, ParseState.POST
-                )
-        );
+                        "test.txt", is, metadata, ParseState.POST));
         is.close();
 
         var title = metadata.getString(DocMetadata.GENERATED_TITLE);
 
         LOG.debug("TITLE IS: {}", title);
         Assertions.assertEquals(
-                "This is the first line.", title, "Wrong title."
-        );
+                "This is the first line.", title, "Wrong title.");
     }
 
     @Test
@@ -149,7 +139,6 @@ class TitleGeneratorTransformerTest {
                 .setDetectHeadingMaxLength(200)
                 .setDetectHeadingMinLength(20);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

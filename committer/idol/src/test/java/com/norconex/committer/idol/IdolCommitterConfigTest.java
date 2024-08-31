@@ -46,15 +46,11 @@ class IdolCommitterConfigTest {
         c.getConfiguration().getRestrictions().add(
                 new PropertyMatcher(
                         TextMatcher.basic("document.reference"),
-                        TextMatcher.wildcard("*.pdf")
-                )
-        );
+                        TextMatcher.wildcard("*.pdf")));
         c.getConfiguration().getRestrictions().add(
                 new PropertyMatcher(
                         TextMatcher.basic("title"),
-                        TextMatcher.wildcard("Nah!")
-                )
-        );
+                        TextMatcher.wildcard("Nah!")));
 
         var cfg = c.getConfiguration();
         cfg.setUrl("http://somehost:9001");

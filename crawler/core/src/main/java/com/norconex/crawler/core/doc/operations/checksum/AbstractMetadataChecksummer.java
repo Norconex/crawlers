@@ -66,8 +66,7 @@ public abstract class AbstractMetadataChecksummer<
                 field = CrawlDocMetadata.CHECKSUM_METADATA;
             }
             PropertySetter.orAppend(getConfiguration().getOnSet()).apply(
-                    metadata, field, checksum
-            );
+                    metadata, field, checksum);
             LOG.debug("Meta checksum stored in {}", field);
         }
         return checksum;

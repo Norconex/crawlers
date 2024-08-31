@@ -51,8 +51,7 @@ public class CharsetDetector {
     public CharsetDetector(
             Charset declaredCharset,
             Charset fallbackCharset,
-            Supplier<Object> priorityCharset
-    ) {
+            Supplier<Object> priorityCharset) {
         this.declaredCharset = declaredCharset;
         this.fallbackCharset = ofNullable(fallbackCharset).orElse(UTF_8);
         if (priorityCharset != null) {
@@ -118,8 +117,7 @@ public class CharsetDetector {
             return fallbackCharset;
         }
         return detect(
-                doc.getInputStream(), doc.getDocContext().getCharset()
-        );
+                doc.getInputStream(), doc.getDocContext().getCharset());
     }
 
     /**
@@ -230,8 +228,7 @@ public class CharsetDetector {
         if (!input.markSupported()) {
             LOG.warn(
                     "mark/reset not supported on input stream. "
-                            + "Will not attempt to detect encoding."
-            );
+                            + "Will not attempt to detect encoding.");
             return fallbackCharset;
         }
 
@@ -262,8 +259,7 @@ public class CharsetDetector {
      * and if so, we return UTF-8 instead.
      */
     private static Charset doDetect(
-            org.apache.tika.parser.txt.CharsetDetector cd
-    ) {
+            org.apache.tika.parser.txt.CharsetDetector cd) {
         var matches = cd.detectAll();
         if (ArrayUtils.isEmpty(matches)) {
             return null;
@@ -320,8 +316,7 @@ public class CharsetDetector {
 
         public CharsetDetector build() {
             return new CharsetDetector(
-                    declaredCharset, fallbackCharset, priorityCharset
-            );
+                    declaredCharset, fallbackCharset, priorityCharset);
         }
 
         public CharsetDetectorBuilder declaredCharset(String charset) {
@@ -349,8 +344,7 @@ public class CharsetDetector {
         }
 
         public CharsetDetectorBuilder priorityCharset(
-                Supplier<Object> charsetSupplier
-        ) {
+                Supplier<Object> charsetSupplier) {
             priorityCharset = charsetSupplier;
             return this;
         }

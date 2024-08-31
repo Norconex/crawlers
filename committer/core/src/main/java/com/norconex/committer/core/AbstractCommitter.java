@@ -110,8 +110,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
         try {
             if (getConfiguration().getRestrictions().isEmpty()
                     || getConfiguration().getRestrictions().matches(
-                            request.getMetadata()
-                    )) {
+                            request.getMetadata())) {
                 fireInfo(CommitterEvent.COMMITTER_ACCEPT_YES);
                 return true;
             }
@@ -125,8 +124,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
 
     @Override
     public final void upsert(
-            UpsertRequest upsertRequest
-    ) throws CommitterException {
+            UpsertRequest upsertRequest) throws CommitterException {
         fireInfo(CommitterEvent.COMMITTER_UPSERT_BEGIN, upsertRequest);
         try {
             applyFieldMappings(upsertRequest);
@@ -140,8 +138,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
 
     @Override
     public final void delete(
-            DeleteRequest deleteRequest
-    ) throws CommitterException {
+            DeleteRequest deleteRequest) throws CommitterException {
         fireInfo(CommitterEvent.COMMITTER_DELETE_BEGIN, deleteRequest);
         try {
             applyFieldMappings(deleteRequest);
@@ -159,8 +156,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
             var fromField = en.getKey();
             if (getConfiguration().getFieldMappings().containsKey(fromField)) {
                 var toField = getConfiguration().getFieldMappings().get(
-                        fromField
-                );
+                        fromField);
                 // if target undefined, do not set
                 if (StringUtils.isNotBlank(toField)) {
                     props.addList(toField, en.getValue());
@@ -237,8 +233,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
                         .source(this)
                         .request(req)
                         .build(),
-                Level.DEBUG
-        );
+                Level.DEBUG);
     }
 
     protected final void fireInfo(String name) {
@@ -252,8 +247,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
                         .source(this)
                         .request(req)
                         .build(),
-                Level.INFO
-        );
+                Level.INFO);
     }
 
     protected final void fireError(String name, Exception e) {
@@ -261,8 +255,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
     }
 
     protected final void fireError(
-            String name, CommitterRequest req, Exception e
-    ) {
+            String name, CommitterRequest req, Exception e) {
         fire(
                 CommitterEvent.builder()
                         .name(name)
@@ -270,8 +263,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
                         .request(req)
                         .exception(e)
                         .build(),
-                Level.ERROR
-        );
+                Level.ERROR);
     }
 
     private void fire(CommitterEvent e, Level level) {

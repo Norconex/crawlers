@@ -68,8 +68,7 @@ public class GenericReferenceFilterConfig {
      * @return this instance
      */
     public GenericReferenceFilterConfig setValueMatcher(
-            TextMatcher valueMatcher
-    ) {
+            TextMatcher valueMatcher) {
         this.valueMatcher.copyFrom(valueMatcher);
         return this;
     }

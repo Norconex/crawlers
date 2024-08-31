@@ -105,8 +105,7 @@ public class ImageTransformer
 
         // only proceed if we are dealing with a supported content type
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docContext()
-        )) {
+                configuration.getContentTypeMatcher(), docCtx.docContext())) {
             return;
         }
 
@@ -131,8 +130,7 @@ public class ImageTransformer
         if (anyNotNull(sheight, swidth)) {
             var dimension = new Dimension(
                     firstNonNull(swidth, sheight),
-                    firstNonNull(sheight, swidth)
-            );
+                    firstNonNull(sheight, swidth));
             if (configuration.getScale().isStretch()) {
                 image.stretch(dimension);
             } else {
@@ -154,9 +152,7 @@ public class ImageTransformer
                             configuration.getCrop().getX(),
                             configuration.getCrop().getY(),
                             firstNonNull(cwidth, cheight),
-                            firstNonNull(cheight, cwidth)
-                    )
-            );
+                            firstNonNull(cheight, cwidth)));
         }
     }
 }

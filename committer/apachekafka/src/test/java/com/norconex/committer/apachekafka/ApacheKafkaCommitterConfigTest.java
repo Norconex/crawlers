@@ -48,19 +48,14 @@ class ApacheKafkaCommitterConfigTest {
                 .addRestriction(
                         new PropertyMatcher(
                                 TextMatcher.basic("document.reference"),
-                                TextMatcher.wildcard("*.pdf")
-                        )
-                )
+                                TextMatcher.wildcard("*.pdf")))
                 .addRestriction(
                         new PropertyMatcher(
                                 TextMatcher.basic("title"),
-                                TextMatcher.wildcard("Nah!")
-                        )
-                );
+                                TextMatcher.wildcard("Nah!")));
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test
@@ -68,8 +63,7 @@ class ApacheKafkaCommitterConfigTest {
         Assertions.assertDoesNotThrow(() -> {
             try (var r = ResourceLoader.getXmlReader(getClass())) {
                 BeanMapper.DEFAULT.read(
-                        ApacheKafkaCommitter.class, r, Format.XML
-                );
+                        ApacheKafkaCommitter.class, r, Format.XML);
             }
         });
     }

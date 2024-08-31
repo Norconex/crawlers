@@ -37,8 +37,7 @@ public class FailingBatchCommitter
     private final int recoverAtAttemptIndex;
 
     public FailingBatchCommitter(
-            int failAtDocIndex, int recoverAtAttemptIndex
-    ) {
+            int failAtDocIndex, int recoverAtAttemptIndex) {
         this.failAtDocIndex = failAtDocIndex;
         this.recoverAtAttemptIndex = recoverAtAttemptIndex;
     }
@@ -67,8 +66,7 @@ public class FailingBatchCommitter
                 exceptionCount++;
                 throw new CommitterException(
                         "Mock committer failure. Attempt #"
-                                + attempts + ". Doc #" + cnt
-                );
+                                + attempts + ". Doc #" + cnt);
             }
         }
         totalSuccessDocs += cnt;

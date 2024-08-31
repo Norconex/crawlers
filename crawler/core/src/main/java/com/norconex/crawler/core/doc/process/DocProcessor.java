@@ -148,8 +148,7 @@ class DocProcessor implements Runnable {
         if (activeEmpty && queueEmpty) {
             LOG.trace(
                     "Queue is empty and no documents are currently"
-                            + "being processed."
-            );
+                            + "being processed.");
             return false;
         }
         Sleeper.sleepMillis(1); // to avoid fast loops taking all CPU
@@ -158,8 +157,7 @@ class DocProcessor implements Runnable {
         // and let parent wait an try again, for as long as the activity timeout
         // is not reached.
         if (activeTimeoutWatcher.isTimedOut(
-                crawler.getConfiguration().getIdleTimeout()
-        )) {
+                crawler.getConfiguration().getIdleTimeout())) {
             LOG.warn(
                     """
                             Crawler thread has been idle for more than {} and will\s\
@@ -167,10 +165,8 @@ class DocProcessor implements Runnable {
                             Documents still being processed by\s\
                             other crawler threads: {}. Crawler queue is empty: {}.""",
                     DurationFormatter.FULL.format(
-                            crawler.getConfiguration().getIdleTimeout()
-                    ),
-                    !activeEmpty, queueEmpty
-            );
+                            crawler.getConfiguration().getIdleTimeout()),
+                    !activeEmpty, queueEmpty);
             return false;
         }
         return true;
@@ -182,8 +178,7 @@ class DocProcessor implements Runnable {
         }
         LOG.info(
                 "References are still being queued. "
-                        + "Waiting for new references..."
-        );
+                        + "Waiting for new references...");
         Sleeper.sleepSeconds(5);
         return true;
     }
@@ -205,11 +200,9 @@ class DocProcessor implements Runnable {
                 docRec,
                 cachedDocRec,
                 crawler.getStreamFactory().newInputStream(),
-                orphan
-        );
+                orphan);
         doc.getMetadata().set(
-                CrawlDocMetadata.IS_CRAWL_NEW, cachedDocRec == null
-        );
+                CrawlDocMetadata.IS_CRAWL_NEW, cachedDocRec == null);
         return doc;
         //    LOG.debug("{} to process: {}", elapsedTime,
         //            docRecord.get().getReference());
@@ -218,8 +211,7 @@ class DocProcessor implements Runnable {
 
     // true to stop crawler
     private boolean handleExceptionAndCheckIfStopCrawler(
-            DocProcessorContext ctx, RuntimeException e
-    ) {
+            DocProcessorContext ctx, RuntimeException e) {
         var stopTheCrawler = true;
         // if an exception was thrown and there is no CrawlDocRecord we
         // stop the crawler since it means we can't no longer read for the
@@ -230,16 +222,14 @@ class DocProcessor implements Runnable {
             LOG.error(
                     "An unrecoverable error was detected. The crawler will "
                             + "stop.",
-                    e
-            );
+                    e);
             crawler.getServices().getEventManager().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.CRAWLER_ERROR)
                             .source(crawler)
                             .docContext(rec)
                             .exception(e)
-                            .build()
-            );
+                            .build());
             return stopTheCrawler;
         }
 
@@ -247,13 +237,11 @@ class DocProcessor implements Runnable {
         if (LOG.isDebugEnabled()) {
             LOG.info(
                     "Could not process document: {} ({})",
-                    ctx.docContext().getReference(), e.getMessage(), e
-            );
+                    ctx.docContext().getReference(), e.getMessage(), e);
         } else {
             LOG.info(
                     "Could not process document: {} ({})",
-                    ctx.docContext().getReference(), e.getMessage()
-            );
+                    ctx.docContext().getReference(), e.getMessage());
         }
         crawler.getServices().getEventManager().fire(
                 CrawlerEvent.builder()
@@ -261,8 +249,7 @@ class DocProcessor implements Runnable {
                         .source(crawler)
                         .docContext(rec)
                         .exception(e)
-                        .build()
-        );
+                        .build());
         DocProcessorFinalize.execute(ctx);
 
         // Rethrow exception if we want the crawler to stop
@@ -274,8 +261,7 @@ class DocProcessor implements Runnable {
                     LOG.error(
                             "Encountered a crawler-stopping exception as "
                                     + "per configuration.",
-                            e
-                    );
+                            e);
                     return stopTheCrawler;
                 }
             }

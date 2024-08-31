@@ -77,21 +77,18 @@ class ReplaceTransformerTest {
                   </operations>
                 </handler>""";
         var response1 = transformTextDocument(
-                preserveTestConfig, "N/A", input
-        );
+                preserveTestConfig, "N/A", input);
         Assertions.assertEquals(expectedOutput, response1);
     }
 
     private String transformTextDocument(
-            String config, String reference, String content
-    )
+            String config, String reference, String content)
             throws IOException, IOException {
 
         var t = new ReplaceTransformer();
 
         try (Reader reader = new InputStreamReader(
-                IOUtils.toInputStream(config, StandardCharsets.UTF_8)
-        )) {
+                IOUtils.toInputStream(config, StandardCharsets.UTF_8))) {
             BeanMapper.DEFAULT.read(t, reader, Format.XML);
         }
 
@@ -100,8 +97,7 @@ class ReplaceTransformerTest {
             var metadata = new Properties();
             metadata.set("document.reference", reference);
             var doc = TestUtil.newHandlerContext(
-                    reference, is, metadata, ParseState.POST
-            );
+                    reference, is, metadata, ParseState.POST);
             t.accept(doc);
             return doc.input().asString();
         }
@@ -113,9 +109,7 @@ class ReplaceTransformerTest {
         t.getConfiguration().setMaxReadSize(128);
         try (Reader reader = new InputStreamReader(
                 IOUtils.toInputStream(
-                        restrictionTestConfig, StandardCharsets.UTF_8
-                )
-        )) {
+                        restrictionTestConfig, StandardCharsets.UTF_8))) {
             BeanMapper.DEFAULT.read(t, reader, Format.XML);
         }
         assertThatNoException()
@@ -140,12 +134,9 @@ class ReplaceTransformerTest {
                                 .setFieldMatcher(basic("test"))
                                 .setToField("regex")
                                 .setValueMatcher(
-                                        regex("\\s+b\\s+").setPartial(true)
-                                )
+                                        regex("\\s+b\\s+").setPartial(true))
                                 .setToValue("")
-                                .setDiscardUnchanged(true)
-                )
-        );
+                                .setDiscardUnchanged(true)));
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
         // normal
@@ -156,9 +147,7 @@ class ReplaceTransformerTest {
                                 .setToField("normal")
                                 .setValueMatcher(basic("b").setPartial(true))
                                 .setToValue("")
-                                .setDiscardUnchanged(true)
-                )
-        );
+                                .setDiscardUnchanged(true)));
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
         Assertions.assertEquals("ac", meta.getString("regex"));
@@ -215,8 +204,7 @@ class ReplaceTransformerTest {
                                 .setFieldMatcher(basic("EXP_NAME+COUNTRY1"))
                                 .setToField("EXP_NAME1")
                                 .setValueMatcher(
-                                        regex("^(.+?)(.?\\[([A-Z]+)\\])?$")
-                                )
+                                        regex("^(.+?)(.?\\[([A-Z]+)\\])?$"))
                                 .setToValue("$1")
                                 .setDiscardUnchanged(false),
 
@@ -224,8 +212,7 @@ class ReplaceTransformerTest {
                                 .setFieldMatcher(basic("EXP_NAME+COUNTRY1"))
                                 .setToField("EXP_COUNTRY1")
                                 .setValueMatcher(
-                                        regex("^(.+?)(.?\\[([A-Z]+)\\])?$")
-                                )
+                                        regex("^(.+?)(.?\\[([A-Z]+)\\])?$"))
                                 .setToValue("$3")
                                 .setDiscardUnchanged(false),
 
@@ -234,8 +221,7 @@ class ReplaceTransformerTest {
                                 .setFieldMatcher(basic("EXP_NAME+COUNTRY2"))
                                 .setToField("EXP_NAME2")
                                 .setValueMatcher(
-                                        regex("^(.+?)(.?\\[([A-Z]+)\\])?$")
-                                )
+                                        regex("^(.+?)(.?\\[([A-Z]+)\\])?$"))
                                 .setToValue("$1")
                                 .setDiscardUnchanged(false),
 
@@ -243,12 +229,9 @@ class ReplaceTransformerTest {
                                 .setFieldMatcher(basic("EXP_NAME+COUNTRY2"))
                                 .setToField("EXP_COUNTRY2")
                                 .setValueMatcher(
-                                        regex("^(.+?)(.?\\[([A-Z]+)\\])?$")
-                                )
+                                        regex("^(.+?)(.?\\[([A-Z]+)\\])?$"))
                                 .setToValue("$3")
-                                .setDiscardUnchanged(false)
-                )
-        );
+                                .setDiscardUnchanged(false)));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
@@ -279,8 +262,7 @@ class ReplaceTransformerTest {
 
                         new ReplaceOperation()
                                 .setValueMatcher(
-                                        basic("fromValue1").setIgnoreCase(true)
-                                )
+                                        basic("fromValue1").setIgnoreCase(true))
                                 .setToValue("toValue1")
                                 .setFieldMatcher(basic("fromName2"))
                                 .setToField("toName2")
@@ -289,14 +271,11 @@ class ReplaceTransformerTest {
 
                         new ReplaceOperation()
                                 .setValueMatcher(
-                                        regex("fromValue3").setIgnoreCase(true)
-                                )
+                                        regex("fromValue3").setIgnoreCase(true))
                                 .setToValue("toValue3")
                                 .setFieldMatcher(basic("fromName3"))
                                 .setToField("toName3")
-                                .setDiscardUnchanged(true)
-                )
-        );
+                                .setDiscardUnchanged(true)));
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
@@ -342,13 +321,10 @@ class ReplaceTransformerTest {
                         new ReplaceOperation()
                                 .setValueMatcher(
                                         basic("value Of mixed case")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("REPLACED")
                                 .setFieldMatcher(basic("caseField"))
-                                .setDiscardUnchanged(true)
-                )
-        );
+                                .setDiscardUnchanged(true)));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
@@ -356,12 +332,10 @@ class ReplaceTransformerTest {
         Assertions.assertNull(meta.getString("partialNoMatchField"));
         Assertions.assertEquals(
                 "replaced to new field",
-                meta.getString("matchNewField")
-        );
+                meta.getString("matchNewField"));
         Assertions.assertEquals(
                 "no match to new field",
-                meta.getString("nomatchOldField")
-        );
+                meta.getString("nomatchOldField"));
         Assertions.assertNull(meta.getString("nomatchNewField"));
         Assertions.assertEquals("REPLACED", meta.getString("caseField"));
     }
@@ -378,16 +352,14 @@ class ReplaceTransformerTest {
                 List.of(
                         new ReplaceOperation()
                                 .setValueMatcher(
-                                        regex("(.*)/.*").setPartial(true)
-                                )
+                                        regex("(.*)/.*").setPartial(true))
                                 .setToValue("$1")
                                 .setFieldMatcher(basic("path1"))
                                 .setDiscardUnchanged(true),
 
                         new ReplaceOperation()
                                 .setValueMatcher(
-                                        regex("(.*)/.*").setPartial(true)
-                                )
+                                        regex("(.*)/.*").setPartial(true))
                                 .setToValue("$1")
                                 .setFieldMatcher(basic("path2"))
                                 .setToField("folder")
@@ -397,24 +369,19 @@ class ReplaceTransformerTest {
                                 .setValueMatcher(
                                         regex("file")
                                                 .setPartial(true)
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("something")
                                 .setFieldMatcher(basic("path3"))
-                                .setDiscardUnchanged(true)
-                )
-        );
+                                .setDiscardUnchanged(true)));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
         Assertions.assertEquals("/this/is/a/path", meta.getString("path1"));
         Assertions.assertEquals("/that/is/a/path", meta.getString("folder"));
         Assertions.assertEquals(
-                "/that/is/a/path/file.doc", meta.getString("path2")
-        );
+                "/that/is/a/path/file.doc", meta.getString("path2"));
         Assertions.assertEquals(
-                "/That/Is/A/Path/something.doc", meta.getString("path3")
-        );
+                "/That/Is/A/Path/something.doc", meta.getString("path3"));
     }
 
     @Test
@@ -433,8 +400,7 @@ class ReplaceTransformerTest {
                         new ReplaceOperation()
                                 .setValueMatcher(
                                         basic("One dog")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("One cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("wholeNrmlInsensitiveUnchanged")
@@ -443,8 +409,7 @@ class ReplaceTransformerTest {
                         new ReplaceOperation()
                                 .setValueMatcher(
                                         basic("One DOG, two DOGS, three DOGS")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("One cat, two cats, three cats")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("wholeNrmlInsensitiveCats")
@@ -460,8 +425,7 @@ class ReplaceTransformerTest {
 
                         new ReplaceOperation()
                                 .setValueMatcher(
-                                        basic("One DOG, two DOGS, three DOGS")
-                                )
+                                        basic("One DOG, two DOGS, three DOGS"))
                                 .setToValue("One cat, two cats, three cats")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("wholeNrmlSensitiveUnchanged2")
@@ -469,8 +433,7 @@ class ReplaceTransformerTest {
 
                         new ReplaceOperation()
                                 .setValueMatcher(
-                                        basic("One dog, two dogs, three dogs")
-                                )
+                                        basic("One dog, two dogs, three dogs"))
                                 .setToValue("One cat, two cats, three cats")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("wholeNrmlSensitiveCats")
@@ -479,8 +442,7 @@ class ReplaceTransformerTest {
                         //--- Whole-match regex replace, case insensitive ------------------
                         new ReplaceOperation()
                                 .setValueMatcher(
-                                        regex("One dog").setIgnoreCase(true)
-                                )
+                                        regex("One dog").setIgnoreCase(true))
                                 .setToValue("One cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("wholeRgxInsensitiveUnchanged")
@@ -488,8 +450,7 @@ class ReplaceTransformerTest {
 
                         new ReplaceOperation()
                                 .setValueMatcher(
-                                        regex("One DOG.*").setIgnoreCase(true)
-                                )
+                                        regex("One DOG.*").setIgnoreCase(true))
                                 .setToValue("One cat, two cats, three cats")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("wholeRgxInsensitiveCats")
@@ -515,8 +476,7 @@ class ReplaceTransformerTest {
                                 .setValueMatcher(
                                         basic("DOG")
                                                 .setPartial(true)
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("partNrmlInsensitive1Cat")
@@ -542,8 +502,7 @@ class ReplaceTransformerTest {
                                 .setValueMatcher(
                                         regex("DOG")
                                                 .setPartial(true)
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("partRgxInsensitive1Cat")
@@ -562,9 +521,7 @@ class ReplaceTransformerTest {
                                 .setToValue("cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("partRgxSensitive1Cat")
-                                .setDiscardUnchanged(true)
-                )
-        );
+                                .setDiscardUnchanged(true)));
 
         //=== Asserts ==========================================================
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
@@ -573,56 +530,48 @@ class ReplaceTransformerTest {
         Assertions.assertNull(meta.getString("wholeNrmlInsensitiveUnchanged"));
         Assertions.assertEquals(
                 "One cat, two cats, three cats",
-                meta.getString("wholeNrmlInsensitiveCats")
-        );
+                meta.getString("wholeNrmlInsensitiveCats"));
 
         //--- Whole-match regular replace, case sensitive ----------------------
         Assertions.assertNull(meta.getString("wholeNrmlSensitiveUnchanged1"));
         Assertions.assertNull(meta.getString("wholeNrmlSensitiveUnchanged2"));
         Assertions.assertEquals(
                 "One cat, two cats, three cats",
-                meta.getString("wholeNrmlSensitiveCats")
-        );
+                meta.getString("wholeNrmlSensitiveCats"));
 
         //--- Whole-match regex replace, case insensitive ----------------------
         Assertions.assertNull(meta.getString("wholeRgxInsensitiveUnchanged"));
         Assertions.assertEquals(
                 "One cat, two cats, three cats",
-                meta.getString("wholeRgxInsensitiveCats")
-        );
+                meta.getString("wholeRgxInsensitiveCats"));
 
         //--- Whole-match regex replace, case sensitive ------------------------
         Assertions.assertNull(meta.getString("wholeRgxSensitiveUnchanged"));
         Assertions.assertEquals(
                 "One cat, two cats, three cats",
-                meta.getString("wholeRgxSensitiveCats")
-        );
+                meta.getString("wholeRgxSensitiveCats"));
 
         //--- Partial-match regular replace, case insensitive ------------------
         Assertions.assertEquals(
                 "One cat, two dogs, three dogs",
-                meta.getString("partNrmlInsensitive1Cat")
-        );
+                meta.getString("partNrmlInsensitive1Cat"));
 
         //--- Partial-match regular replace, case sensitive --------------------
         Assertions.assertNull(meta.getString("partNrmlSensitiveUnchanged"));
         Assertions.assertEquals(
                 "One cat, two dogs, three dogs",
-                meta.getString("partNrmlSensitive1Cat")
-        );
+                meta.getString("partNrmlSensitive1Cat"));
 
         //--- Partial-match regex replace, case insensitive --------------------
         Assertions.assertEquals(
                 "One cat, two dogs, three dogs",
-                meta.getString("partRgxInsensitive1Cat")
-        );
+                meta.getString("partRgxInsensitive1Cat"));
 
         //--- Partial-match regex replace, case sensitive ----------------------
         Assertions.assertNull(meta.getString("partRgxSensitiveUnchanged"));
         Assertions.assertEquals(
                 "One cat, two dogs, three dogs",
-                meta.getString("partRgxSensitive1Cat")
-        );
+                meta.getString("partRgxSensitive1Cat"));
     }
 
     @Test
@@ -642,8 +591,7 @@ class ReplaceTransformerTest {
                                 .setValueMatcher(
                                         basic("dog")
                                                 .setReplaceAll(true)
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("wholeNrmlUnchanged")
@@ -654,8 +602,7 @@ class ReplaceTransformerTest {
                                 .setValueMatcher(
                                         regex("dog")
                                                 .setReplaceAll(true)
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("wholeRegexUnchanged")
@@ -667,8 +614,7 @@ class ReplaceTransformerTest {
                                         basic("DOG")
                                                 .setPartial(true)
                                                 .setReplaceAll(true)
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("partialNrmlCats")
@@ -680,14 +626,11 @@ class ReplaceTransformerTest {
                                         regex("D.G")
                                                 .setPartial(true)
                                                 .setReplaceAll(true)
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setToValue("cat")
                                 .setFieldMatcher(basic("field"))
                                 .setToField("partialRegexCats")
-                                .setDiscardUnchanged(true)
-                )
-        );
+                                .setDiscardUnchanged(true)));
 
         //=== Asserts ==========================================================
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
@@ -696,12 +639,10 @@ class ReplaceTransformerTest {
         Assertions.assertNull(meta.getString("wholeRegexUnchanged"));
         Assertions.assertEquals(
                 "One cat, two cats, three cats",
-                meta.getString("partialNrmlCats")
-        );
+                meta.getString("partialNrmlCats"));
         Assertions.assertEquals(
                 "One cat, two cats, three cats",
-                meta.getString("partialRegexCats")
-        );
+                meta.getString("partialRegexCats"));
     }
 
     @Test
@@ -724,9 +665,7 @@ class ReplaceTransformerTest {
                                 .setValueMatcher(regex("nomatch"))
                                 .setToValue("isaidnomatch")
                                 .setFieldMatcher(basic("test2"))
-                                .setDiscardUnchanged(true)
-                )
-        );
+                                .setDiscardUnchanged(true)));
 
         //=== Asserts ==========================================================
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
@@ -759,8 +698,7 @@ class ReplaceTransformerTest {
                                 .setFieldMatcher(basic("source1"))
                                 .setToField("target1")
                                 .setValueMatcher(
-                                        regex("value").setPartial(true)
-                                )
+                                        regex("value").setPartial(true))
                                 .setToValue("source value")
                                 .setOnSet(PropertySetter.APPEND),
 
@@ -768,8 +706,7 @@ class ReplaceTransformerTest {
                                 .setFieldMatcher(basic("source2"))
                                 .setToField("target2")
                                 .setValueMatcher(
-                                        regex("value").setPartial(true)
-                                )
+                                        regex("value").setPartial(true))
                                 .setToValue("source value")
                                 .setOnSet(PropertySetter.PREPEND),
 
@@ -777,40 +714,32 @@ class ReplaceTransformerTest {
                                 .setFieldMatcher(basic("source3"))
                                 .setToField("target3")
                                 .setValueMatcher(
-                                        regex("value").setPartial(true)
-                                )
+                                        regex("value").setPartial(true))
                                 .setOnSet(PropertySetter.REPLACE)
                                 .setToValue("source value"),
 
                         new ReplaceOperation()
                                 .setToField("target4")
                                 .setValueMatcher(
-                                        regex("value").setPartial(true)
-                                )
+                                        regex("value").setPartial(true))
                                 .setToValue("source value")
                                 .setOnSet(PropertySetter.OPTIONAL)
-                                .setFieldMatcher(basic("source4"))
-                )
-        );
+                                .setFieldMatcher(basic("source4"))));
 
         //=== Asserts ==========================================================
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
         Assertions.assertEquals(
                 "target value 1, source value 1",
-                StringUtils.join(meta.getStrings("target1"), ", ")
-        );
+                StringUtils.join(meta.getStrings("target1"), ", "));
         Assertions.assertEquals(
                 "source value 2, target value 2",
-                StringUtils.join(meta.getStrings("target2"), ", ")
-        );
+                StringUtils.join(meta.getStrings("target2"), ", "));
         Assertions.assertEquals(
                 "source value 3",
-                StringUtils.join(meta.getStrings("target3"), ", ")
-        );
+                StringUtils.join(meta.getStrings("target3"), ", "));
         Assertions.assertEquals(
                 "target value 4",
-                StringUtils.join(meta.getStrings("target4"), ", ")
-        );
+                StringUtils.join(meta.getStrings("target4"), ", "));
     }
 }

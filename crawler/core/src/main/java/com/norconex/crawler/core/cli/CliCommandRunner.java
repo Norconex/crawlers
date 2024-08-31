@@ -114,8 +114,7 @@ public class CliCommandRunner implements Runnable {
     public void run() {
         if (version) {
             spec.commandLine().getOut().println(
-                    About.about(crawlerBuilder.configuration())
-            );
+                    About.about(crawlerBuilder.configuration()));
         }
     }
 

@@ -30,7 +30,6 @@ public final class CrawlerCoreTestUtil {
 
     public static void destroyCrawler(Crawler crawler) {
         CrawlerCommandExecuter.orderlyShutdown(
-                new CommandExecution(crawler, "TEST")
-        );
+                new CommandExecution(crawler, "TEST"));
     }
 }

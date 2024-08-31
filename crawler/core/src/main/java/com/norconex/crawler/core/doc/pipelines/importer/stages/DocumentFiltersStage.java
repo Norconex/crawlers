@@ -42,8 +42,7 @@ public class DocumentFiltersStage
                 .onRejected((f, msg) -> {
                     LOG.debug(
                             "REJECTED document. Reference: {} Filter={}",
-                            doc.getDocContext().getReference(), f
-                    );
+                            doc.getDocContext().getReference(), f);
                     ctx.getCrawler().fire(
                             CrawlerEvent.builder()
                                     .name(CrawlerEvent.REJECTED_FILTER)
@@ -51,8 +50,7 @@ public class DocumentFiltersStage
                                     .docContext(doc.getDocContext())
                                     .subject(f)
                                     .message(msg)
-                                    .build()
-                    );
+                                    .build());
                     doc.getDocContext().setState(CrawlDocState.REJECTED);
                 })
                 .build()

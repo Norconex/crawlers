@@ -84,8 +84,7 @@ public class DocsProcessor implements Runnable {
                             to this resumed session. The combined maximum\s\
                             documents for this run and previous stopped one(s) is: {}
                             """,
-                    cfgMaxDocs, resumableMaxDocs
-            );
+                    cfgMaxDocs, resumableMaxDocs);
         }
     }
 
@@ -124,8 +123,7 @@ public class DocsProcessor implements Runnable {
             progressLogger.stopTracking();
             LOG.info(
                     "Execution Summary:{}",
-                    progressLogger.getExecutionSummary()
-            );
+                    progressLogger.getExecutionSummary());
         } finally {
             if (state.isStopping()) {
                 state.setStopped(true);
@@ -151,8 +149,7 @@ public class DocsProcessor implements Runnable {
                                 .deleting(flags.delete)
                                 .orphan(flags.orphan)
                                 .crawlRunner(this)
-                                .build()
-                );
+                                .build());
             }
             latch.await();
         } catch (InterruptedException e) {
@@ -182,8 +179,7 @@ public class DocsProcessor implements Runnable {
         if (isMax) {
             LOG.info(
                     "Maximum documents reached for this crawling session: {}",
-                    resumableMaxDocs
-            );
+                    resumableMaxDocs);
         }
         return isMax;
     }
@@ -194,8 +190,7 @@ public class DocsProcessor implements Runnable {
         } else {
             LOG.info(
                     "JMX support disabled. To enable, set -DenableJMX=true "
-                            + "system property as a JVM argument."
-            );
+                            + "system property as a JVM argument.");
         }
     }
 

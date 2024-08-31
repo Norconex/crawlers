@@ -103,6 +103,7 @@ class AbstractCommitterTest {
         }
 
     }
+
     @Test
     void testWriteRead() {
         var committer = new MemoryCommitter();
@@ -120,7 +121,7 @@ class AbstractCommitterTest {
                         new PropertyMatcher(TextMatcher.basic("blah3")),
                         new PropertyMatcher(TextMatcher.basic("yo1")),
                         new PropertyMatcher(TextMatcher.basic("yo2"))));
-        assertThatNoException().isThrownBy(() ->
-        BeanMapper.DEFAULT.assertWriteRead(committer));
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(committer));
     }
 }

@@ -45,8 +45,7 @@ class FsQueueFailTest {
                             .setBatchSize(20)
                             .getOnCommitFailure()
                             .setMaxRetries(3);
-                }
-        );
+                });
 
         Assertions.assertEquals(3, c.getAttemptCount());
         Assertions.assertEquals(2, c.getExceptionCount());
@@ -65,8 +64,7 @@ class FsQueueFailTest {
                             .getOnCommitFailure()
                             .setMaxRetries(0)
                             .setSplitBatch(SplitBatch.HALF);
-                }
-        );
+                });
 
         // attempted batch sizes: 20, 10, 5, 3, 2(x6)
         Assertions.assertEquals(10, c.getAttemptCount());
@@ -86,8 +84,7 @@ class FsQueueFailTest {
                             .getOnCommitFailure()
                             .setMaxRetries(0)
                             .setSplitBatch(SplitBatch.HALF);
-                }
-        );
+                });
 
         // attempted batch sizes: 20, 10, 5, 3, 2, 1(x11)
         Assertions.assertEquals(16, c.getAttemptCount());
@@ -107,8 +104,7 @@ class FsQueueFailTest {
                             .getOnCommitFailure()
                             .setMaxRetries(0)
                             .setSplitBatch(SplitBatch.ONE);
-                }
-        );
+                });
 
         // attempted batch sizes: 20, 1(x11)
         Assertions.assertEquals(12, c.getAttemptCount());
@@ -127,8 +123,7 @@ class FsQueueFailTest {
                             .getOnCommitFailure()
                             .setMaxRetries(3)
                             .setSplitBatch(SplitBatch.ONE);
-                }
-        );
+                });
 
         // attempted batch sizes: 20, 1(x11)    + 3 retry
         Assertions.assertEquals(15, c.getAttemptCount());
@@ -147,8 +142,7 @@ class FsQueueFailTest {
                             .getOnCommitFailure()
                             .setMaxRetries(0)
                             .setSplitBatch(SplitBatch.OFF);
-                }
-        );
+                });
         try {
             runCommitter(c);
             Assertions.fail("A CommitterException should have been thrown.");
@@ -171,22 +165,19 @@ class FsQueueFailTest {
                             .setMaxRetries(0)
                             .setSplitBatch(SplitBatch.OFF)
                             .setIgnoreErrors(true);
-                }
-        );
+                });
 
         // attempted batch sizes: 3(x4)
         Assertions.assertEquals(4, c.getAttemptCount());
         // exceptions first 1 fails, rest OK
         Assertions.assertEquals(1, c.getExceptionCount());
         Assertions.assertEquals(
-                commitRequests.length - 3, c.getTotalSuccessDocs()
-        );
+                commitRequests.length - 3, c.getTotalSuccessDocs());
     }
 
     // Build & run Committer all at once
     FailingBatchCommitter commitFailure(
-            int failAtDoc, int recoverAtAttempt, Consumer<FsQueue> c
-    )
+            int failAtDoc, int recoverAtAttempt, Consumer<FsQueue> c)
             throws CommitterException {
         var committer =
                 buildCommitter(failAtDoc, recoverAtAttempt, c);
@@ -196,12 +187,10 @@ class FsQueueFailTest {
 
     // Build Committer
     FailingBatchCommitter buildCommitter(
-            int failAtDoc, int recoverAtAttempt, Consumer<FsQueue> c
-    )
+            int failAtDoc, int recoverAtAttempt, Consumer<FsQueue> c)
             throws CommitterException {
         var committer = new FailingBatchCommitter(
-                failAtDoc, recoverAtAttempt
-        );
+                failAtDoc, recoverAtAttempt);
         var fsqueue = (FsQueue) committer.getConfiguration().getQueue();
         c.accept(fsqueue);
         return committer;
@@ -221,8 +210,7 @@ class FsQueueFailTest {
         ctx.getEventManager().setStacktraceLoggingDisabled(true);
         committer.init(ctx);
         TestUtil.commitRequests(
-                committer, TestUtil.mixedRequests(commitRequests)
-        );
+                committer, TestUtil.mixedRequests(commitRequests));
         committer.close();
     }
 }

@@ -68,8 +68,7 @@ public class DeleteTransformer
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (String field : docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()
-            ).keySet()) {
+                    configuration.getFieldMatcher()).keySet()) {
                 docCtx.metadata().remove(field);
                 LOG.debug("Deleted field: {}", field);
             }

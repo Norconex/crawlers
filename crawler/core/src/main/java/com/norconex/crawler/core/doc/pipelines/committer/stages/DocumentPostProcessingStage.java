@@ -34,8 +34,7 @@ public class DocumentPostProcessingStage
                             .source(ctx.getCrawler())
                             .subject(postProc)
                             .docContext(ctx.getDoc().getDocContext())
-                            .build()
-            );
+                            .build());
         }
         return true;
     }

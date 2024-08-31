@@ -86,9 +86,7 @@ public class DebugTransformer
 
         var level = Level.valueOf(
                 ObjectUtils.defaultIfNull(
-                        configuration.getLogLevel(), "debug"
-                ).toUpperCase()
-        );
+                        configuration.getLogLevel(), "debug").toUpperCase());
 
         if (configuration.getLogFields().isEmpty()) {
             for (Entry<String, List<String>> entry : docCtx.metadata()
@@ -106,8 +104,7 @@ public class DebugTransformer
                     LOG, level,
                     StringUtils.trimToEmpty(configuration.getPrefix())
                             + "CONTENT={}",
-                    IOUtils.toString(docCtx.input().asInputStream(), UTF_8)
-            );
+                    IOUtils.toString(docCtx.input().asInputStream(), UTF_8));
         }
     }
 
@@ -126,7 +123,6 @@ public class DebugTransformer
         Slf4jUtil.log(
                 LOG, level, trimToEmpty(configuration.getPrefix())
                         + "{}={}",
-                fieldName, b.toString()
-        );
+                fieldName, b.toString());
     }
 }

@@ -146,16 +146,13 @@ public class Importer {
             LOG.warn("Importer request failed: {}", req, e);
             return new ImporterResponse(
                     req.getReference(),
-                    ImporterResponse.Status.ERROR
-            )
-                    .setException(
-                            new ImporterException(
-                                    "Failed to import document for request: "
-                                            + req,
-                                    e
-                            )
-                    )
-                    .setDescription(e.getLocalizedMessage());
+                    ImporterResponse.Status.ERROR)
+                            .setException(
+                                    new ImporterException(
+                                            "Failed to import document for request: "
+                                                    + req,
+                                            e))
+                            .setDescription(e.getLocalizedMessage());
         }
     }
 
@@ -212,9 +209,8 @@ public class Importer {
                     .setDoc(document)
                     .setException(
                             new ImporterException(
-                                    "Could not import document: " + document, e
-                            )
-                    );
+                                    "Could not import document: " + document,
+                                    e));
         } finally {
             destroyHandlersOnce();
         }
@@ -228,12 +224,10 @@ public class Importer {
                         t.init();
                     } catch (IOException e) {
                         throw new ImporterRuntimeException(
-                                "Coult not initialize handler: " + t, e
-                        );
+                                "Coult not initialize handler: " + t, e);
                     }
                 },
-                DocumentHandler.class
-        );
+                DocumentHandler.class);
     }
 
     private synchronized void destroyHandlersOnce() {
@@ -244,12 +238,10 @@ public class Importer {
                         t.destroy();
                     } catch (IOException e) {
                         throw new ImporterRuntimeException(
-                                "Coult not initialize handler: " + t, e
-                        );
+                                "Coult not initialize handler: " + t, e);
                     }
                 },
-                DocumentHandler.class
-        );
+                DocumentHandler.class);
     }
 
     private void prepareDocumentForImporting(Doc document) {
@@ -260,14 +252,12 @@ public class Importer {
         if (ct == null || StringUtils.isBlank(ct.toString())) {
             try {
                 ct = ContentTypeDetector.detect(
-                        document.getInputStream(), document.getReference()
-                );
+                        document.getInputStream(), document.getReference());
             } catch (IOException e) {
                 LOG.warn(
                         "Could not detect content type. Defaulting to "
                                 + "\"application/octet-stream\".",
-                        e
-                );
+                        e);
                 ct = ContentType.valueOf("application/octet-stream");
             }
             docRecord.setContentType(ct);
@@ -285,8 +275,7 @@ public class Importer {
         } catch (IOException e) {
             LOG.debug(
                     "Problem detecting encoding for: {}",
-                    docRecord.getReference(), e
-            );
+                    docRecord.getReference(), e);
         }
 
         //--- Add basic metadata for what we know so far ---
@@ -300,8 +289,7 @@ public class Importer {
         if (docRecord.getCharset() != null) {
             meta.set(
                     DocMetadata.CONTENT_ENCODING,
-                    docRecord.getCharset().toString()
-            );
+                    docRecord.getCharset().toString());
         }
     }
 
@@ -315,26 +303,22 @@ public class Importer {
         if (req.getInputStream() != null) {
             // From input stream
             is = CachedInputStream.cache(
-                    req.getInputStream(), requestStreamFactory
-            );
+                    req.getInputStream(), requestStreamFactory);
         } else if (req.getFile() != null) {
             // From file
             if (!req.getFile().toFile().isFile()) {
                 throw new ImporterException(
                         "File does not exists or is not a file: "
-                                + req.getFile().toAbsolutePath()
-                );
+                                + req.getFile().toAbsolutePath());
             }
             try {
                 is = requestStreamFactory.newInputStream(
-                        new FileInputStream(req.getFile().toFile())
-                );
+                        new FileInputStream(req.getFile().toFile()));
             } catch (IOException e) {
                 throw new ImporterException(
                         "Could not import file: "
                                 + req.getFile().toAbsolutePath(),
-                        e
-                );
+                        e);
             }
             if (StringUtils.isBlank(ref)) {
                 ref = req.getFile().toFile().getAbsolutePath();
@@ -366,15 +350,13 @@ public class Importer {
                 throw new ImporterRuntimeException(
                         "Cannot create importer temporary directory: "
                                 + tempDir,
-                        e
-                );
+                        e);
             }
         }
         requestStreamFactory = new CachedStreamFactory(
                 (int) configuration.getMaxMemoryPool(),
                 (int) configuration.getMaxMemoryInstance(),
-                configuration.getTempDir()
-        );
+                configuration.getTempDir());
     }
 
     private void processResponse(ImporterResponse response) {
@@ -386,8 +368,7 @@ public class Importer {
     }
 
     private ImporterResponse executeHandlers(
-            Doc doc, List<Doc> childDocsHolder
-    ) throws ImporterException {
+            Doc doc, List<Doc> childDocsHolder) throws ImporterException {
 
         var resp = new ImporterResponse(doc);
 
@@ -408,8 +389,7 @@ public class Importer {
             } catch (IOException e) {
                 LOG.error(
                         "Could not flush document stream for {}",
-                        ctx.reference(), e
-                );
+                        ctx.reference(), e);
             }
         }
         childDocsHolder.addAll(ctx.childDocs());

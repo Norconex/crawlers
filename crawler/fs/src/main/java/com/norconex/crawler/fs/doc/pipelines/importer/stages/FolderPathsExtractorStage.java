@@ -51,13 +51,11 @@ public class FolderPathsExtractorStage extends AbstractImporterStage {
                 throw new CrawlerException(
                         "Could not fetch child paths of: "
                                 + docContext.getReference(),
-                        e
-                );
+                        e);
             }
             for (FsPath fsPath : paths) {
                 var newPath = new FsCrawlDocContext(
-                        fsPath.getUri(), docContext.getDepth() + 1
-                );
+                        fsPath.getUri(), docContext.getDepth() + 1);
                 newPath.setFile(fsPath.isFile());
                 newPath.setFolder(fsPath.isFolder());
                 ctx.getCrawler()
@@ -65,9 +63,7 @@ public class FolderPathsExtractorStage extends AbstractImporterStage {
                         .getQueuePipeline()
                         .accept(
                                 new QueuePipelineContext(
-                                        ctx.getCrawler(), newPath
-                                )
-                        );
+                                        ctx.getCrawler(), newPath));
             }
         }
 

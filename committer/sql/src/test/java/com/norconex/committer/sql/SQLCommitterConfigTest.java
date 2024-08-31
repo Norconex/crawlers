@@ -56,15 +56,11 @@ class SQLCommitterConfigTest {
                 .addRestriction(
                         new PropertyMatcher(
                                 TextMatcher.basic("document.reference"),
-                                TextMatcher.wildcard("*.pdf")
-                        )
-                )
+                                TextMatcher.wildcard("*.pdf")))
                 .addRestriction(
                         new PropertyMatcher(
                                 TextMatcher.basic("title"),
-                                TextMatcher.wildcard("Nah!")
-                        )
-                );
+                                TextMatcher.wildcard("Nah!")));
 
         c.getConfiguration().getProperties().set("key1", "value1");
         c.getConfiguration().getProperties().set("key2", "value2");
@@ -74,8 +70,7 @@ class SQLCommitterConfigTest {
                 .setPassword("Prime");
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test

@@ -40,8 +40,7 @@ class StripBeforeTransformerTest {
         t.getConfiguration()
                 .setStripBeforeMatcher(
                         TextMatcher.regex("So she set to work")
-                                .setIgnoreCase(true)
-                )
+                                .setIgnoreCase(true))
                 .setInclusive(false);
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
@@ -50,15 +49,13 @@ class StripBeforeTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         var doc = TestUtil.newHandlerContext(
                 htmlFile.getAbsolutePath(),
-                is, metadata, ParseState.PRE
-        );
+                is, metadata, ParseState.PRE);
         t.accept(doc);
 
         Assertions.assertEquals(
                 360,
                 doc.input().asString().replace("\r", "").length(),
-                "Length of doc content after transformation is incorrect."
-        );
+                "Length of doc content after transformation is incorrect.");
 
         is.close();
     }
@@ -70,9 +67,7 @@ class StripBeforeTransformerTest {
                 .setInclusive(false)
                 .setStripBeforeMatcher(
                         TextMatcher.regex(
-                                "So she set to work"
-                        ).setIgnoreCase(true)
-                );
+                                "So she set to work").setIgnoreCase(true));
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }

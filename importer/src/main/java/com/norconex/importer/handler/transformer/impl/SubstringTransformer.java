@@ -80,8 +80,7 @@ public class SubstringTransformer
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()
-            ).entrySet()) {
+                    configuration.getFieldMatcher()).entrySet()) {
                 var fld = en.getKey();
                 var values = en.getValue();
                 List<String> newVals = new ArrayList<>();
@@ -97,11 +96,9 @@ public class SubstringTransformer
         } else {
             // Body
             try (var input = docCtx.input().asReader(
-                    configuration.getSourceCharset()
-            );
+                    configuration.getSourceCharset());
                     var output = docCtx.output().asWriter(
-                            configuration.getSourceCharset()
-                    )) {
+                            configuration.getSourceCharset())) {
                 doSubstring(input, output);
             }
         }
@@ -115,8 +112,7 @@ public class SubstringTransformer
                 throw new IOException(
                         "\"end\" cannot be smaller than \"begin\" "
                                 + "(begin:" + configuration.getBegin()
-                                + "; end:" + configuration.getEnd()
-                );
+                                + "; end:" + configuration.getEnd());
             }
             length = configuration.getEnd()
                     - Math.max(configuration.getBegin(), 0);

@@ -49,14 +49,10 @@ class NumericConditionTest {
         var cfg = cond.getConfiguration();
         cfg.setValueMatcher(
                 new NumericValueMatcher(
-                        Operator.GREATER_EQUAL, 20
-                )
-        );
+                        Operator.GREATER_EQUAL, 20));
         cfg.setValueMatcherRangeEnd(
                 new NumericValueMatcher(
-                        Operator.LOWER_THAN, 30
-                )
-        );
+                        Operator.LOWER_THAN, 30));
         cfg.setFieldMatcher(TextMatcher.basic("lowerthan"));
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isFalse();
 
@@ -74,9 +70,7 @@ class NumericConditionTest {
 
         cfg.setValueMatcher(
                 new NumericValueMatcher(
-                        Operator.EQUALS, 6.5
-                )
-        );
+                        Operator.EQUALS, 6.5));
         cfg.setFieldMatcher(TextMatcher.basic("equal"));
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isTrue();
     }
@@ -87,11 +81,9 @@ class NumericConditionTest {
             cfg
                     .setFieldMatcher(TextMatcher.basic("field1"))
                     .setValueMatcher(
-                            new NumericValueMatcher(Operator.GREATER_EQUAL, 20)
-                    )
+                            new NumericValueMatcher(Operator.GREATER_EQUAL, 20))
                     .setValueMatcherRangeEnd(
-                            new NumericValueMatcher(Operator.LOWER_THAN, 30)
-                    );
+                            new NumericValueMatcher(Operator.LOWER_THAN, 30));
         });
         BeanMapper.DEFAULT.assertWriteRead(cond);
     }

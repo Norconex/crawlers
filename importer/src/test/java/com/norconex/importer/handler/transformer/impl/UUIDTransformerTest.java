@@ -47,9 +47,7 @@ class UUIDTransformerTest {
         var props = new Properties();
         t.accept(
                 TestUtil.newHandlerContext(
-                        "ref", nullInputStream(), props, ParseState.POST
-                )
-        );
+                        "ref", nullInputStream(), props, ParseState.POST));
         assertThat(props.getStrings("result")).isNotEmpty();
     }
 }

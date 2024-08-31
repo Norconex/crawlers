@@ -84,9 +84,7 @@ public final class CommonAttributesResolver {
             try {
                 docRecord.setContentType(
                         ContentTypeDetector.detect(
-                                doc.getInputStream(), doc.getReference()
-                        )
-                );
+                                doc.getInputStream(), doc.getReference()));
             } catch (IOException e) {
                 LOG.warn("Could not perform content type detection.", e);
             }
@@ -114,9 +112,7 @@ public final class CommonAttributesResolver {
             try {
                 docRecord.setCharset(
                         CharsetDetector.builder().build().detect(
-                                doc.getInputStream()
-                        )
-                );
+                                doc.getInputStream()));
             } catch (IOException e) {
                 LOG.warn("Could not perform character encoding detection.", e);
             }

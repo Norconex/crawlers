@@ -134,8 +134,7 @@ public class DeleteRejectedEventListener implements
         // of on completion in case users want to keep a record.
         crawler.getDataStoreEngine().dropStore("rejected-refs");
         refStore = crawler.getDataStoreEngine().openStore(
-                "rejected-refs", Boolean.class
-        );
+                "rejected-refs", Boolean.class);
     }
 
     private void close() {
@@ -157,8 +156,7 @@ public class DeleteRejectedEventListener implements
             LOG.warn(
                     "Listening for reference rejections on a crawler event "
                             + "that has no reference: {}",
-                    event.getName()
-            );
+                    event.getName());
             return;
         }
 
@@ -179,17 +177,15 @@ public class DeleteRejectedEventListener implements
         if (LOG.isInfoEnabled()) {
             LOG.info(
                     "Committing {} rejected references for deletion...",
-                    refStore.count()
-            );
+                    refStore.count());
         }
         refStore.forEach((ref, sent) -> {
             if (Boolean.FALSE.equals(sent)) {
                 crawler.getServices().getCommitterService().delete(
                         new CrawlDoc(
                                 new CrawlDocContext(ref),
-                                CachedInputStream.cache(new NullInputStream())
-                        )
-                );
+                                CachedInputStream
+                                        .cache(new NullInputStream())));
             }
             return true;
         });

@@ -81,8 +81,7 @@ public class GenericMetadataChecksummerConfig extends BaseChecksummerConfig {
     private final TextMatcher fieldMatcher = new TextMatcher();
 
     public GenericMetadataChecksummerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

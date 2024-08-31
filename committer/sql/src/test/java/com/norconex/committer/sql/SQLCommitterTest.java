@@ -238,8 +238,7 @@ class SQLCommitterTest {
                     StringUtils.repeat("a", 10),
                     StringUtils.repeat("b", 10),
                     StringUtils.repeat("c", 10),
-                    StringUtils.repeat("d", 10)
-            );
+                    StringUtils.repeat("d", 10));
 
             var config = c.getConfiguration();
             config.setFixFieldValues(true);
@@ -263,8 +262,7 @@ class SQLCommitterTest {
                 .isEqualTo(
                         StringUtils.repeat("a", 10) + "-"
                                 + StringUtils.repeat("b", 10) + "-"
-                                + StringUtils.repeat("c", 8)
-                );
+                                + StringUtils.repeat("c", 8));
     }
 
     @Test
@@ -305,14 +303,12 @@ class SQLCommitterTest {
     }
 
     private UpsertRequest upsertRequest(
-            String id, String content, Properties metadata
-    ) {
+            String id, String content, Properties metadata) {
         var p = metadata == null ? new Properties() : metadata;
         return new UpsertRequest(
                 id, p, content == null
                         ? new NullInputStream(0)
-                        : toInputStream(content, UTF_8)
-        );
+                        : toInputStream(content, UTF_8));
     }
 
     private void assertTestDoc(Map<String, Object> doc) {
@@ -329,9 +325,7 @@ class SQLCommitterTest {
                 .setWorkDir(
                         new File(
                                 tempDir,
-                                "work-" + TimeIdGenerator.next()
-                        ).toPath()
-                )
+                                "work-" + TimeIdGenerator.next()).toPath())
                 .build();
     }
 
@@ -355,11 +349,9 @@ class SQLCommitterTest {
                           {primaryKey} VARCHAR(32672) NOT NULL,\s\
                           content CLOB,\s\
                           PRIMARY KEY ({primaryKey})\s\
-                        )"""
-        );
+                        )""");
         config.setCreateFieldSQL(
-                "ALTER TABLE {tableName} ADD {fieldName} VARCHAR(30)"
-        );
+                "ALTER TABLE {tableName} ADD {fieldName} VARCHAR(30)");
 
         return committer;
     }
@@ -380,8 +372,7 @@ class SQLCommitterTest {
     }
 
     private SQLCommitter withinCommitterSessionEmptyConnUrl(
-            CommitterConsumer c
-    ) throws CommitterException {
+            CommitterConsumer c) throws CommitterException {
 
         var committer = createSQLCommitterEmptyConnUrl();
         committer.init(createCommitterContext());
@@ -406,8 +397,7 @@ class SQLCommitterTest {
     }
 
     private SQLCommitter withinCommitterSessionEmptyTableName(
-            CommitterConsumer c
-    ) throws CommitterException {
+            CommitterConsumer c) throws CommitterException {
 
         var committer = createSQLCommitterEmptyTableName();
         committer.init(createCommitterContext());
@@ -433,8 +423,7 @@ class SQLCommitterTest {
     }
 
     private SQLCommitter withinCommitterSessionEmptyPrimaryKey(
-            CommitterConsumer c
-    ) throws CommitterException {
+            CommitterConsumer c) throws CommitterException {
 
         var committer = createSQLCommitterEmptyPrimaryKey();
         committer.init(createCommitterContext());
@@ -484,9 +473,7 @@ class SQLCommitterTest {
         return withinDbSession(
                 qr -> qr.query(
                         "SELECT * FROM " + TEST_TABLE,
-                        new MapListHandler(new ClobAwareRowProcessor())
-                )
-        );
+                        new MapListHandler(new ClobAwareRowProcessor())));
     }
 
     class ClobAwareRowProcessor extends BasicRowProcessor {

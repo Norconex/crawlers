@@ -33,14 +33,11 @@ public class CrawlerMonitor implements CrawlerMonitorMXBean {
 
     public CrawlerMonitor(
             @NonNull DocTrackerService docTrackerService,
-            @NonNull EventManager eventManager
-    ) {
+            @NonNull EventManager eventManager) {
         this.docTrackerService = docTrackerService;
         eventManager.addListener(
                 e -> eventCounts.computeIfAbsent(
-                        e.getName(), k -> new AtomicLong()
-                ).incrementAndGet()
-        );
+                        e.getName(), k -> new AtomicLong()).incrementAndGet());
     }
 
     @Override

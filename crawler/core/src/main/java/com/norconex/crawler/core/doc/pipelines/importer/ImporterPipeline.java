@@ -34,8 +34,7 @@ public class ImporterPipeline
     private ImporterPipeline(
             Predicates<ImporterPipelineContext> stages,
             Function<ImporterPipelineContext,
-                    ? extends ImporterPipelineContext> contextAdapter
-    ) {
+                    ? extends ImporterPipelineContext> contextAdapter) {
         this.stages = stages;
         this.contextAdapter = contextAdapter;
     }

@@ -41,8 +41,7 @@ class URLExtractorTransformerTest {
                 .setToField("there");
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -60,12 +59,9 @@ class URLExtractorTransformerTest {
         t.accept(
                 TestUtil.newHandlerContext(
                         "ref", TestUtil.toInputStream(text), props,
-                        ParseState.POST
-                )
-        );
+                        ParseState.POST));
         assertThat(props.getStrings("result")).containsExactlyInAnyOrder(
                 "http://example.com/",
-                "https://www.example.com/blah.html"
-        ); // https is prepended
+                "https://www.example.com/blah.html"); // https is prepended
     }
 }

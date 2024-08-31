@@ -82,8 +82,7 @@ class CfsIngestAddsAction implements IIdolIndexAction {
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Could not convert committer batch to CFS XML.", e
-            );
+                    "Could not convert committer batch to CFS XML.", e);
         }
     }
 
@@ -124,8 +123,7 @@ class CfsIngestAddsAction implements IIdolIndexAction {
                 throw new CommitterException(
                         "Source reference field '"
                                 + refField + "' has no value for document: "
-                                + req.getReference()
-                );
+                                + req.getReference());
             }
         }
         xml.writeStartElement("reference");
@@ -163,17 +161,14 @@ class CfsIngestAddsAction implements IIdolIndexAction {
             content = StringUtils.trimToEmpty(
                     String.join(
                             "\n\n",
-                            req.getMetadata().getStrings(contentField)
-                    )
-            );
+                            req.getMetadata().getStrings(contentField)));
         } else {
             content = IOUtils.toString(req.getContent(), UTF_8);
         }
         xml.writeStartElement("source");
         xml.writeAttribute(
                 "content",
-                Base64.encodeBase64String(content.getBytes(UTF_8))
-        );
+                Base64.encodeBase64String(content.getBytes(UTF_8)));
         xml.writeEndElement();
 
         xml.writeEndElement(); // end "add"

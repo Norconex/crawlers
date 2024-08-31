@@ -114,6 +114,6 @@ class ScriptConditionTest {
 
         var ctx = TestUtil.newHandlerContext("ref", "potato");
         assertThatExceptionOfType(IOException.class)
-            .isThrownBy(() -> cond.evaluate(ctx));
+                .isThrownBy(() -> cond.evaluate(ctx));
     }
 }

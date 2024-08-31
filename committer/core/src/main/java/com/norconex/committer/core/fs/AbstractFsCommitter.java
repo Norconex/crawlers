@@ -90,13 +90,11 @@ public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
             throw new CommitterException(
                     "Could not create resolvedDirectory: "
                             + resolvedDirectory.toAbsolutePath(),
-                    e
-            );
+                    e);
         }
 
         var fileBaseName = DateFormatUtils.format(
-                System.currentTimeMillis(), "yyyy-MM-dd'T'hh-mm-ss-SSS"
-        );
+                System.currentTimeMillis(), "yyyy-MM-dd'T'hh-mm-ss-SSS");
         if (getConfiguration().isSplitUpsertDelete()) {
             upsertHandler =
                     new FsDocWriterHandler<>(this, "upsert-" + fileBaseName);
@@ -117,8 +115,7 @@ public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
         } catch (IOException e) {
             throw new CommitterException(
                     "Could not write upsert request for: "
-                            + upsertRequest.getReference()
-            );
+                            + upsertRequest.getReference());
         }
     }
 
@@ -130,8 +127,7 @@ public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
         } catch (IOException e) {
             throw new CommitterException(
                     "Could not write delete request for: "
-                            + deleteRequest.getReference()
-            );
+                            + deleteRequest.getReference());
         }
     }
 
@@ -161,12 +157,10 @@ public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
     protected abstract T createDocWriter(Writer writer) throws IOException;
 
     protected abstract void writeUpsert(
-            T docWriter, UpsertRequest upsertRequest
-    ) throws IOException;
+            T docWriter, UpsertRequest upsertRequest) throws IOException;
 
     protected abstract void writeDelete(
-            T docWriter, DeleteRequest deleteRequest
-    ) throws IOException;
+            T docWriter, DeleteRequest deleteRequest) throws IOException;
 
     protected abstract void closeDocWriter(T docWriter)
             throws IOException;

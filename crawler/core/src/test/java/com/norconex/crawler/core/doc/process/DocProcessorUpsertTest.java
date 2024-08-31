@@ -36,19 +36,11 @@ class DocProcessorUpsertTest {
                                     List.of(
                                             new ImporterResponse(
                                                     CrawlDocStubs.crawlDoc(
-                                                            "childResponse1"
-                                                    )
-                                            ),
+                                                            "childResponse1")),
                                             new ImporterResponse(
                                                     CrawlDocStubs
                                                             .crawlDoc(
-                                                                    "childResponse2"
-                                                            )
-                                            )
-                                    )
-                            )
-                    )
-            );
+                                                                    "childResponse2"))))));
         }
     }
 

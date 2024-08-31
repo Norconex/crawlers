@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.committer.apachekafka;
 
 import java.util.Arrays;

@@ -113,8 +113,7 @@ public class RegexTransformerConfig implements ChunkedTextSupport {
      * @param patterns field extractor pattern
      */
     public RegexTransformerConfig setPatterns(
-            List<RegexFieldValueExtractor> patterns
-    ) {
+            List<RegexFieldValueExtractor> patterns) {
         CollectionUtil.setAll(this.patterns, patterns);
         return this;
     }
@@ -141,8 +140,7 @@ public class RegexTransformerConfig implements ChunkedTextSupport {
      * @param fieldMatcher field matcher
      */
     public RegexTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

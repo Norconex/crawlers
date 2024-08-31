@@ -63,9 +63,7 @@ public class WriteAdapter {
         var writer = new OutputStreamWriter(
                 IoUtil.toNonNullOutputStream(os),
                 ObjectUtils.firstNonNull(
-                        charset, defaultCharset, StandardCharsets.UTF_8
-                )
-        );
+                        charset, defaultCharset, StandardCharsets.UTF_8));
         //NOTE: we wrap this writer to overwrite the write() methods.
         // That is necessary to "write" empty strings to the underlying
         // output stream. Without this, the CachedOutputStream will not be

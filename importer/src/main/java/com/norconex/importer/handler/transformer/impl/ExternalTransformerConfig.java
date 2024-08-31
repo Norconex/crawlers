@@ -319,8 +319,7 @@ public class ExternalTransformerConfig {
      * @return this instance
      */
     public ExternalTransformerConfig setExtractionPatterns(
-            List<RegexFieldValueExtractor> extractionPatterns
-    ) {
+            List<RegexFieldValueExtractor> extractionPatterns) {
         CollectionUtil.setAll(this.extractionPatterns, extractionPatterns);
         return this;
     }

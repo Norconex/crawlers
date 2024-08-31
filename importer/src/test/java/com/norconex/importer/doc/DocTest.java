@@ -36,14 +36,12 @@ class DocTest {
     void testDoc() {
         var doc = new Doc("ref.html", toCachedInputStream("a test"));
         assertThat(doc.getReference()).isEqualTo(
-                doc.getDocContext().getReference()
-        );
+                doc.getDocContext().getReference());
         assertThat(TestUtil.contentAsString(doc)).isEqualTo("a test");
 
         doc = new Doc(
                 new DocContext("ref.html"),
-                toCachedInputStream("a test")
-        );
+                toCachedInputStream("a test"));
         assertThat(doc.getReference()).isEqualTo("ref.html");
 
         var props = new Properties();
@@ -51,8 +49,7 @@ class DocTest {
         doc = new Doc(
                 new DocContext("ref.html"),
                 CachedInputStream.cache(InputStream.nullInputStream()),
-                props
-        );
+                props);
         assertThat(doc.getMetadata().size()).isOne();
         assertThat(doc.getMetadata().getString("test")).isEqualTo("value");
     }
@@ -81,8 +78,7 @@ class DocTest {
         // setting both a CachedInputStream or other stream should be OK
         var doc = new Doc(
                 "ref.html",
-                CachedInputStream.cache(InputStream.nullInputStream())
-        );
+                CachedInputStream.cache(InputStream.nullInputStream()));
 
         doc.setInputStream(doc.getStreamFactory().newInputStream("a test"));
         assertThat(TestUtil.contentAsString(doc)).isEqualTo("a test");
@@ -93,9 +89,8 @@ class DocTest {
         // IO exceptions should come back as importer runtime exception
         assertThatExceptionOfType(ImporterRuntimeException.class)
                 .isThrownBy(
-                    //NOSONAR
+                        //NOSONAR
                         () -> doc
-                                .setInputStream(TestUtil.failingInputStream())
-                );
+                                .setInputStream(TestUtil.failingInputStream()));
     }
 }

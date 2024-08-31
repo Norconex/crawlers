@@ -79,8 +79,7 @@ public class MVStoreDataStoreEngine
         if (cfg.getCacheSize() != null) {
             //MVStore expects it as megabytes
             builder.cacheSize(
-                    DataUnit.B.to(cfg.getCacheSize(), DataUnit.MB).intValue()
-            );
+                    DataUnit.B.to(cfg.getCacheSize(), DataUnit.MB).intValue());
         }
         if (cfg.getAutoCompactFillRate() != null) {
             builder.autoCompactFillRate(cfg.getAutoCompactFillRate());
@@ -89,9 +88,8 @@ public class MVStoreDataStoreEngine
             //MVStore expects it as kilobytes
             builder.autoCommitBufferSize(
                     DataUnit.B.to(
-                            cfg.getAutoCommitBufferSize(), DataUnit.KB
-                    ).intValue()
-            );
+                            cfg.getAutoCommitBufferSize(), DataUnit.KB)
+                            .intValue());
         }
         if (Long.valueOf(0).equals(cfg.getAutoCommitDelay())) {
             builder.autoCommitDisabled();
@@ -107,12 +105,10 @@ public class MVStoreDataStoreEngine
                 throw new DataStoreException(
                         "Cannot create data store engine directory: "
                                 + engineDir,
-                        e
-                );
+                        e);
             }
             builder.fileName(
-                    engineDir.resolve("mvstore").toAbsolutePath().toString()
-            );
+                    engineDir.resolve("mvstore").toAbsolutePath().toString());
         }
 
         try {
@@ -125,8 +121,7 @@ public class MVStoreDataStoreEngine
                             execution of the crawler. An attempt will be made to recover.\s\
                             It is advised to back-up the store engine if you want to\s\
                             preserve the crawl history.""",
-                    e
-            );
+                    e);
             builder.recoveryMode();
             mvstore = builder.open();
             LOG.warn("Store engine recovery appears to be successful.");
@@ -163,8 +158,7 @@ public class MVStoreDataStoreEngine
             FileUtils.deleteDirectory(dirToDelete);
         } catch (IOException e) {
             throw new DataStoreException(
-                    "Could not delete data store directory.", e
-            );
+                    "Could not delete data store directory.", e);
         }
         return hadStores;
     }
@@ -186,8 +180,7 @@ public class MVStoreDataStoreEngine
 
     @Override
     public synchronized <T> DataStore<T> openStore(
-            String name, Class<? extends T> type
-    ) {
+            String name, Class<? extends T> type) {
         storeTypes.put(name, type);
         return new MVStoreDataStore<>(mvstore, name, type);
     }

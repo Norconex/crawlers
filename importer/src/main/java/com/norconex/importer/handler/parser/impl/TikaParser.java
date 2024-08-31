@@ -60,8 +60,7 @@ public class TikaParser
     public void init() throws IOException {
         try {
             parser = new AutoDetectParser(
-                    new TikaConfig(configuration.getTikaConfigFile())
-            );
+                    new TikaConfig(configuration.getTikaConfigFile()));
         } catch (TikaException | IOException | SAXException e) {
             throw new IOException("Could not initialize TikaParser.", e);
         }
@@ -74,8 +73,7 @@ public class TikaParser
             var tikaMetadata = new Metadata();
             tikaMetadata.set(
                     TikaCoreProperties.RESOURCE_NAME_KEY,
-                    ctx.reference()
-            );
+                    ctx.reference());
             var context = new ParseContext();
             context.set(Parser.class, parser);
             try {
@@ -83,12 +81,10 @@ public class TikaParser
                         input,
                         new BodyContentHandler(output),
                         tikaMetadata,
-                        context
-                );
+                        context);
             } catch (IOException | SAXException | TikaException e) {
                 throw new IOException(
-                        "Could not parse file: " + ctx.reference(), e
-                );
+                        "Could not parse file: " + ctx.reference(), e);
             }
             addTikaToImporterMetadata(tikaMetadata, ctx.metadata());
         }
@@ -96,8 +92,7 @@ public class TikaParser
     }
 
     private void addTikaToImporterMetadata(
-            Metadata tikaMeta, Properties metadata
-    ) {
+            Metadata tikaMeta, Properties metadata) {
         var names = tikaMeta.names();
         for (String name : names) {
             if (TikaCoreProperties.RESOURCE_NAME_KEY.equals(name)) {
@@ -116,13 +111,11 @@ public class TikaParser
     }
 
     private boolean containsSameValue(
-            String name, List<String> nxValues, String tikaValue
-    ) {
+            String name, List<String> nxValues, String tikaValue) {
         if (EqualsUtil.equalsAnyIgnoreCase(
                 name,
                 HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.CONTENT_ENCODING
-        )) {
+                HttpHeaders.CONTENT_ENCODING)) {
             var tk = tikaValue.replaceAll("[\\s]", "");
             for (String nxValue : nxValues) {
                 if (nxValue.replaceAll("[\\s]", "").equalsIgnoreCase(tk)) {

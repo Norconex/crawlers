@@ -59,8 +59,7 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
         } catch (IOException e) {
             fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
             throw new UncheckedIOException(
-                    "Importer failure for handler: " + this, e
-            );
+                    "Importer failure for handler: " + this, e);
         }
         fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
     }
@@ -72,8 +71,7 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
     }
 
     private void fireEvent(
-            HandlerContext ctx, String eventName, Exception e
-    ) {
+            HandlerContext ctx, String eventName, Exception e) {
         ctx.eventManager().fire(
                 ImporterEvent.builder()
                         .name(eventName)
@@ -81,7 +79,6 @@ public abstract class BaseDocumentHandler implements DocumentHandler {
                         .document(ctx.doc())
                         .parseState(ctx.parseState())
                         .exception(e)
-                        .build()
-        );
+                        .build());
     }
 }

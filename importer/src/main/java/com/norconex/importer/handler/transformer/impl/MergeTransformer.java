@@ -134,9 +134,7 @@ public class MergeTransformer
             if (op.isSingleValue()) {
                 docCtx.metadata().set(
                         op.getToField(), StringUtils.join(
-                                mergedValues, op.getSingleValueSeparator()
-                        )
-                );
+                                mergedValues, op.getSingleValueSeparator()));
             } else {
                 docCtx.metadata().put(op.getToField(), mergedValues);
             }

@@ -122,8 +122,7 @@ public class ExternalApp {
                 p.loadFromProperties(r);
                 for (Entry<String, List<String>> entry : p.entrySet()) {
                     var values = entry.getValue().toArray(
-                            ArrayUtils.EMPTY_STRING_ARRAY
-                    );
+                            ArrayUtils.EMPTY_STRING_ARRAY);
                     for (var i = 0; i < values.length; i++) {
                         values[i] = reverseWords(values[i]);
                     }
@@ -185,8 +184,7 @@ public class ExternalApp {
             javaTask.setFailonerror(true);
             javaTask.setClassname(ExternalApp.class.getName());
             javaTask.setClasspath(
-                    new Path(project, SystemUtils.JAVA_CLASS_PATH)
-            );
+                    new Path(project, SystemUtils.JAVA_CLASS_PATH));
             var arg = javaTask.getCommandLine().createArgument();
             arg.setPrefix("\"");
             arg.setLine(args);
@@ -214,8 +212,7 @@ public class ExternalApp {
         var cp = cmd.replaceFirst(
                 ".*\\s+-cp\\s+(.*)\\s+"
                         + ExternalApp.class.getName() + ".*",
-                "$1"
-        );
+                "$1");
         var isQuoted = false;
         if (cp.matches("^\".*\"$")) {
             isQuoted = true;
@@ -242,17 +239,15 @@ public class ExternalApp {
         return cmd.replaceFirst(
                 "(.*\\s+-cp\\s+)(.*)(\\s+"
                         + ExternalApp.class.getName() + ".*)",
-                "$1" + cp + "$3"
-        );
+                "$1" + cp + "$3");
     }
 
     private static String getTestClassPath() {
         try {
             return File.pathSeparatorChar + new File(
                     ExternalApp.class.getProtectionDomain()
-                            .getCodeSource().getLocation().toURI()
-            )
-                    .getAbsolutePath();
+                            .getCodeSource().getLocation().toURI())
+                                    .getAbsolutePath();
         } catch (URISyntaxException e) {
             throw new RuntimeException("Could not obtain test classpath.", e);
         }
@@ -291,24 +286,19 @@ public class ExternalApp {
         var options = new Options();
         options.addOption(
                 ARG_INFILE_CONTENT, true,
-                "Input file (default uses STDIN)."
-        );
+                "Input file (default uses STDIN).");
         options.addOption(
                 ARG_OUTFILE_CONTENT, true,
-                "Output file (default uses STDOUT)."
-        );
+                "Output file (default uses STDOUT).");
         options.addOption(
                 ARG_INFILE_META, true,
-                "Input metadata file (default does not expect metadata)."
-        );
+                "Input metadata file (default does not expect metadata).");
         options.addOption(
                 ARG_OUTFILE_META, true,
-                "Output metadata file (default to STDOUT/STDERR)."
-        );
+                "Output metadata file (default to STDOUT/STDERR).");
         options.addOption(
                 ARG_REFERENCE, true,
-                "Document reference."
-        );
+                "Document reference.");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;

@@ -148,8 +148,7 @@ public class CrawlDocState implements Serializable {
 
     @JsonCreator
     public static synchronized CrawlDocState valueOf(
-            @JsonProperty("state") String state
-    ) {
+            @JsonProperty("state") String state) {
         var refState = STATUSES.get(state);
         if (refState == null) {
             refState = new CrawlDocState(state);

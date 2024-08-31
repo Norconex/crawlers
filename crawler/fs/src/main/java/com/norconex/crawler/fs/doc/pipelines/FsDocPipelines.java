@@ -53,11 +53,8 @@ public final class FsDocPipelines {
                                             Predicates.allOf(
                                                     new DepthValidationStage(),
                                                     new ReferenceFiltersStage(),
-                                                    new QueueReferenceStage()
-                                            )
-                                    )
-                                    .build()
-                    )
+                                                    new QueueReferenceStage()))
+                                    .build())
                     .importerPipeline(
                             ImporterPipeline
                                     .builder()
@@ -67,47 +64,34 @@ public final class FsDocPipelines {
                                                     // When the metadata fetch directive is enabled,
                                                     // the following is executed
                                                     new FileFetchStage(
-                                                            METADATA
-                                                    ),
+                                                            METADATA),
                                                     new MetadataFiltersStage(
-                                                            METADATA
-                                                    ),
+                                                            METADATA),
                                                     // Child folders done right after filter to give a
                                                     // chance to reject the folder before getting its
                                                     // children.
                                                     new FolderPathsExtractorStage(
-                                                            METADATA
-                                                    ),
+                                                            METADATA),
                                                     new MetadataChecksumStage(
-                                                            METADATA
-                                                    ),
+                                                            METADATA),
                                                     new MetadataDedupStage(
-                                                            FetchDirective.METADATA
-                                                    ),
+                                                            FetchDirective.METADATA),
 
                                                     //--- DOCUMENT ---
                                                     new FileFetchStage(
-                                                            DOCUMENT
-                                                    ),
+                                                            DOCUMENT),
                                                     new MetadataFiltersStage(
-                                                            DOCUMENT
-                                                    ),
+                                                            DOCUMENT),
                                                     new FolderPathsExtractorStage(
-                                                            DOCUMENT
-                                                    ),
+                                                            DOCUMENT),
                                                     new MetadataChecksumStage(
-                                                            DOCUMENT
-                                                    ),
+                                                            DOCUMENT),
                                                     new MetadataDedupStage(
-                                                            DOCUMENT
-                                                    ),
+                                                            DOCUMENT),
                                                     new DocumentFiltersStage(),
                                                     new DocumentPreProcessingStage(),
-                                                    new ImportModuleStage()
-                                            )
-                                    )
-                                    .build()
-                    )
+                                                    new ImportModuleStage()))
+                                    .build())
                     .committerPipeline(
                             CommitterPipeline
                                     .builder()
@@ -116,11 +100,8 @@ public final class FsDocPipelines {
                                                     new DocumentChecksumStage(),
                                                     new DocumentDedupStage(),
                                                     new DocumentPostProcessingStage(),
-                                                    new CommitModuleStage()
-                                            )
-                                    )
-                                    .build()
-                    )
+                                                    new CommitModuleStage()))
+                                    .build())
                     .build();
 
     private FsDocPipelines() {

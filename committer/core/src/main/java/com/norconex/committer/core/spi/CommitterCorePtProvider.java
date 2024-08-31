@@ -38,16 +38,12 @@ public class CommitterCorePtProvider implements PolymorphicTypeProvider {
                 CommitterQueue.class,
                 ClassFinder.findSubTypes(
                         CommitterQueue.class,
-                        nm -> nm.startsWith("com.norconex.committer.")
-                )
-        );
+                        nm -> nm.startsWith("com.norconex.committer.")));
         map.putAll(
                 Committer.class,
                 ClassFinder.findSubTypes(
                         Committer.class,
-                        nm -> nm.startsWith("com.norconex.committer.")
-                )
-        );
+                        nm -> nm.startsWith("com.norconex.committer.")));
         return map;
     }
 }

@@ -74,8 +74,7 @@ public final class CommitterContext {
     }
 
     public CommitterContext withStreamFactory(
-            CachedStreamFactory streamFactory
-    ) {
+            CachedStreamFactory streamFactory) {
         return CommitterContext.builder()
                 .setEventManager(eventManager)
                 .setWorkDir(workDir)
@@ -112,8 +111,7 @@ public final class CommitterContext {
             if (ctx.workDir == null) {
                 ctx.workDir = new File(
                         FileUtils.getTempDirectory(),
-                        "committer-" + TimeIdGenerator.next()
-                ).toPath();
+                        "committer-" + TimeIdGenerator.next()).toPath();
             }
             if (ctx.eventManager == null) {
                 ctx.eventManager = new EventManager();

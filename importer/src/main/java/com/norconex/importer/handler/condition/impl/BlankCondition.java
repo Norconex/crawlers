@@ -92,8 +92,7 @@ public class BlankCondition
 
         // If no values returned, call it blank
         var values = docCtx.metadata().matchKeys(
-                configuration.getFieldMatcher()
-        ).valueList();
+                configuration.getFieldMatcher()).valueList();
         if (values.isEmpty()) {
             return true;
         }

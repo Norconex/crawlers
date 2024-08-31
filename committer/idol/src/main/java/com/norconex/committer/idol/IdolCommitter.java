@@ -105,8 +105,7 @@ public class IdolCommitter
         idolClient = new IdolClient(configuration);
         LOG.info(
                 "IDOL {}URL: {}",
-                configuration.isCfs() ? "CFS " : "", configuration.getUrl()
-        );
+                configuration.isCfs() ? "CFS " : "", configuration.getUrl());
     }
 
     @Override

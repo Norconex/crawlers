@@ -101,12 +101,10 @@ final class DocProcessorUpsert {
                     childDocRec, childCachedDocRec,
                     childResponseDoc == null
                             ? CachedInputStream.cache(new NullInputStream(0))
-                            : childResponseDoc.getInputStream()
-            );
+                            : childResponseDoc.getInputStream());
             if (childResponseDoc != null) {
                 childCrawlDoc.getMetadata().putAll(
-                        childResponseDoc.getMetadata()
-                );
+                        childResponseDoc.getMetadata());
             }
 
             var childCtx = new DocProcessorContext()
@@ -139,11 +137,9 @@ final class DocProcessorUpsert {
                             .docContext(docRecord)
                             .subject(response)
                             .message(msg)
-                            .build()
-            );
+                            .build());
             ctx.crawler().getDocPipelines().getCommitterPipeline().accept(
-                    new CommitterPipelineContext(ctx.crawler(), ctx.doc())
-            );
+                    new CommitterPipelineContext(ctx.crawler(), ctx.doc()));
             return true;
         }
 
@@ -155,13 +151,11 @@ final class DocProcessorUpsert {
                         .docContext(docRecord)
                         .subject(response)
                         .message(msg)
-                        .build()
-        );
+                        .build());
         LOG.debug(
                 "Importing unsuccessful for \"{}\": {}",
                 docRecord.getReference(),
-                response.getDescription()
-        );
+                response.getDescription());
 
         return false;
 

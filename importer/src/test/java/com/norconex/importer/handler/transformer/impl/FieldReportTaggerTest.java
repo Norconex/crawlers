@@ -48,8 +48,7 @@ class FieldReportTaggerTest {
                 .setWithOccurences(true);
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(t));
 
         t.getConfiguration().setWithHeaders(false);
         var props = new Properties();
@@ -59,20 +58,26 @@ class FieldReportTaggerTest {
         props.add("d", "d1111111");
         props.add("e", "e1111111");
         props.add("f", "f1111111");
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
 
         props = new Properties();
         props.add("a", "a2222222");
         props.add("b", "b2222222");
         props.add("g", "g2222222");
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
 
         props = new Properties();
         props.add("a", "a3333333");
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
-        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
 
         assertThat(Files.readString(reportFile)).isEqualToIgnoringNewLines("""
                 a,6,a11,a22

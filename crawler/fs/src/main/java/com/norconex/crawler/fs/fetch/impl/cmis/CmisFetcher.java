@@ -144,8 +144,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
     private void fetchProperties(Context ctx) {
         var propXmlList = ctx.document.getXMLList(
                 "/entry/object/properties//"
-                        + "*[starts-with(local-name(), 'property')]"
-        );
+                        + "*[starts-with(local-name(), 'property')]");
         for (Xml propXml : propXmlList) {
             var propId = propXml.getString("@propertyDefinitionId");
             if (StringUtils.isBlank(propId)) {
@@ -153,16 +152,14 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
             }
             ctx.addMeta(
                     "property." + propId,
-                    propXml.getString("value/text()")
-            );
+                    propXml.getString("value/text()"));
         }
     }
 
     private void fetchAcl(Context ctx) {
         var permissions = new Properties();
         var permXmlList = ctx.document.getXMLList(
-                "/entry/object/acl/permission"
-        );
+                "/entry/object/acl/permission");
         for (Xml permXml : permXmlList) {
             var principalId = permXml.getString("principal/principalId");
             permXml.getStringList("permission").forEach(p -> {

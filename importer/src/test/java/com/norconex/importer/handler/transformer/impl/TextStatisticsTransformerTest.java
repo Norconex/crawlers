@@ -67,44 +67,34 @@ class TextStatisticsTransformerTest {
 
         Assertions.assertEquals(
                 616,
-                (int) meta.getInteger("document.stat.characterCount")
-        );
+                (int) meta.getInteger("document.stat.characterCount"));
         Assertions.assertEquals(
                 115,
-                (int) meta.getInteger("document.stat.wordCount")
-        );
+                (int) meta.getInteger("document.stat.wordCount"));
         Assertions.assertEquals(
                 8,
-                (int) meta.getInteger("document.stat.sentenceCount")
-        );
+                (int) meta.getInteger("document.stat.sentenceCount"));
         Assertions.assertEquals(
                 4,
-                (int) meta.getInteger("document.stat.paragraphCount")
-        );
+                (int) meta.getInteger("document.stat.paragraphCount"));
         Assertions.assertEquals(
                 "4.2",
-                meta.getString("document.stat.averageWordCharacterCount")
-        );
+                meta.getString("document.stat.averageWordCharacterCount"));
         Assertions.assertEquals(
                 "77.0",
-                meta.getString("document.stat.averageSentenceCharacterCount")
-        );
+                meta.getString("document.stat.averageSentenceCharacterCount"));
         Assertions.assertEquals(
                 "14.4",
-                meta.getString("document.stat.averageSentenceWordCount")
-        );
+                meta.getString("document.stat.averageSentenceWordCount"));
         Assertions.assertEquals(
                 "154.0",
-                meta.getString("document.stat.averageParagraphCharacterCount")
-        );
+                meta.getString("document.stat.averageParagraphCharacterCount"));
         Assertions.assertEquals(
                 "2.0",
-                meta.getString("document.stat.averageParagraphSentenceCount")
-        );
+                meta.getString("document.stat.averageParagraphSentenceCount"));
         Assertions.assertEquals(
                 "28.8",
-                meta.getString("document.stat.averageParagraphWordCount")
-        );
+                meta.getString("document.stat.averageParagraphWordCount"));
     }
 
     @Test

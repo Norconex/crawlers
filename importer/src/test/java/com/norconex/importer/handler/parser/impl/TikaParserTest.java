@@ -34,8 +34,7 @@ class TikaParserTest {
     void testWriteRead() {
         var parser = Configurable.configure(
                 new TikaParser(),
-                cfg -> cfg.setTikaConfigFile(null)
-        );
+                cfg -> cfg.setTikaConfigFile(null));
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(parser));
     }
@@ -48,8 +47,7 @@ class TikaParserTest {
 
         var parser = Configurable.configure(
                 new TikaParser(),
-                cfg -> cfg.setTikaConfigFile(tikaConfig.toString())
-        );
+                cfg -> cfg.setTikaConfigFile(tikaConfig.toString()));
         parser.init();
 
         var ctx = TestUtil.newHandlerContext("index.html",

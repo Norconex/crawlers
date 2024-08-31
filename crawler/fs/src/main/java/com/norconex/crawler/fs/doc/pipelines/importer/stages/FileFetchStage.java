@@ -64,15 +64,12 @@ public class FileFetchStage extends AbstractImporterStage {
         try {
             response = fetcher.fetch(
                     new FileFetchRequest(
-                            ctx.getDoc(), getFetchDirective()
-                    )
-            );
+                            ctx.getDoc(), getFetchDirective()));
         } catch (FetchException e) {
             throw new CrawlerException(
                     "Could not fetch file: "
                             + ctx.getDoc().getDocContext().getReference(),
-                    e
-            );
+                    e);
         }
         var originalCrawlDocState = docRecord.getState();
 
@@ -94,16 +91,13 @@ public class FileFetchStage extends AbstractImporterStage {
                     CrawlerEvent.builder()
                             .name(
                                     FetchDirective.METADATA.is(
-                                            getFetchDirective()
-                                    )
-                                            ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
-                                            : CrawlerEvent.DOCUMENT_FETCHED
-                            )
+                                            getFetchDirective())
+                                                    ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
+                                                    : CrawlerEvent.DOCUMENT_FETCHED)
                             .source(ctx.getCrawler())
                             .subject(response)
                             .docContext(docRecord)
-                            .build()
-            );
+                            .build());
             return true;
         }
 
@@ -120,14 +114,12 @@ public class FileFetchStage extends AbstractImporterStage {
                         .source(ctx.getCrawler())
                         .subject(response)
                         .docContext(docRecord)
-                        .build()
-        );
+                        .build());
 
         // At this stage, the ref is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning
         // false or true) depends on http fetch methods supported.
         return FetchUtil.shouldContinueOnBadStatus(
-                ctx.getCrawler(), originalCrawlDocState, getFetchDirective()
-        );
+                ctx.getCrawler(), originalCrawlDocState, getFetchDirective());
     }
 }

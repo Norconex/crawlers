@@ -56,8 +56,7 @@ class TruncateTransformerTest {
                 "Another long string to test similar with suffix and no hash",
                 "Another long string to test similar without suffix, a hash",
                 "Another long string to test similar without suffix, no hash",
-                "A small one"
-        );
+                "A small one");
 
         var t = new TruncateTransformer();
         t.getConfiguration()
@@ -71,13 +70,11 @@ class TruncateTransformerTest {
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
-                metadata.getStrings("to").get(0)
-        );
+                metadata.getStrings("to").get(0));
         Assertions.assertNotEquals(
                 "Must have different hashes",
                 metadata.getStrings("to").get(1),
-                metadata.getStrings("to").get(2)
-        );
+                metadata.getStrings("to").get(2));
 
         // no hash + suffix
         t.getConfiguration()
@@ -86,8 +83,7 @@ class TruncateTransformerTest {
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
                 "Another long string to test similar with suffix...",
-                metadata.getStrings("to").get(1)
-        );
+                metadata.getStrings("to").get(1));
 
         // no hash + suffix
         t.getConfiguration()
@@ -96,8 +92,7 @@ class TruncateTransformerTest {
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
                 "Another long string to test similar with0939281732",
-                metadata.getStrings("to").get(2)
-        );
+                metadata.getStrings("to").get(2));
 
         // no hash + no suffix
         t.getConfiguration()
@@ -106,8 +101,7 @@ class TruncateTransformerTest {
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
                 "Another long string to test similar without suffix",
-                metadata.getStrings("to").get(3)
-        );
+                metadata.getStrings("to").get(3));
 
         // too small for truncate
         t.getConfiguration()
@@ -115,8 +109,7 @@ class TruncateTransformerTest {
                 .setSuffix(null);
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
         Assertions.assertEquals(
-                "A small one", metadata.getStrings("to").get(4)
-        );
+                "A small one", metadata.getStrings("to").get(4));
     }
 
     @Test
@@ -126,8 +119,7 @@ class TruncateTransformerTest {
 
         // hash + suffix
         docCtx = TestUtil.newHandlerContext(
-                "Please truncate me before you start thinking I am too long."
-        );
+                "Please truncate me before you start thinking I am too long.");
         t.getConfiguration()
                 .setToField("to")
                 .setMaxLength(50)
@@ -137,47 +129,40 @@ class TruncateTransformerTest {
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
-                docCtx.metadata().getString("to")
-        );
+                docCtx.metadata().getString("to"));
 
         // no hash + suffix
         docCtx = TestUtil.newHandlerContext(
-                "Another long string to test similar with suffix and no hash"
-        );
+                "Another long string to test similar with suffix and no hash");
         t.getConfiguration()
                 .setAppendHash(false)
                 .setSuffix("...");
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar with suffix...",
-                docCtx.metadata().getString("to")
-        );
+                docCtx.metadata().getString("to"));
 
         // hash + no suffix
         docCtx = TestUtil.newHandlerContext(
-                "Another long string to test similar without suffix, a hash"
-        );
+                "Another long string to test similar without suffix, a hash");
         t.getConfiguration()
                 .setAppendHash(true)
                 .setSuffix(null);
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar with0939281732",
-                docCtx.metadata().getString("to")
-        );
+                docCtx.metadata().getString("to"));
 
         // no hash + no suffix
         docCtx = TestUtil.newHandlerContext(
-                "Another long string to test similar without suffix, no hash"
-        );
+                "Another long string to test similar without suffix, no hash");
         t.getConfiguration()
                 .setAppendHash(false)
                 .setSuffix(null);
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar without suffix",
-                docCtx.metadata().getString("to")
-        );
+                docCtx.metadata().getString("to"));
 
         // too small for truncate
         docCtx = TestUtil.newHandlerContext("A small one");
@@ -186,13 +171,11 @@ class TruncateTransformerTest {
                 .setSuffix(null);
         t.accept(docCtx);
         Assertions.assertEquals(
-                "A small one", docCtx.metadata().getString("to")
-        );
+                "A small one", docCtx.metadata().getString("to"));
 
         // hash + suffix, replacing body
         docCtx = TestUtil.newHandlerContext(
-                "Please truncate me before you start thinking I am too long."
-        );
+                "Please truncate me before you start thinking I am too long.");
         t = new TruncateTransformer();
         t.getConfiguration()
                 .setToField(null)
@@ -203,8 +186,7 @@ class TruncateTransformerTest {
         t.accept(docCtx);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
-                docCtx.input().asString()
-        );
+                docCtx.input().asString());
 
         // doing fields, without "to" field
         docCtx = TestUtil.newHandlerContext("Content");

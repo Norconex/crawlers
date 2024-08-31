@@ -315,6 +315,7 @@ public final class ImporterLauncher {
     private static PrintStream err() {
         return System.err; //NOSONAR
     }
+
     private static PrintStream out() {
         return System.out; //NOSONAR
     }

@@ -60,19 +60,14 @@ class AmazonCloudSearchCommitterConfigTest {
                 .addRestriction(
                         new PropertyMatcher(
                                 TextMatcher.basic("document.reference"),
-                                TextMatcher.wildcard("*.pdf")
-                        )
-                )
+                                TextMatcher.wildcard("*.pdf")))
                 .addRestriction(
                         new PropertyMatcher(
                                 TextMatcher.basic("title"),
-                                TextMatcher.wildcard("Nah!")
-                        )
-                );
+                                TextMatcher.wildcard("Nah!")));
 
         c.getConfiguration().getProxySettings().setHost(
-                new Host("example.com", 1234)
-        );
+                new Host("example.com", 1234));
 
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(c));
@@ -83,8 +78,7 @@ class AmazonCloudSearchCommitterConfigTest {
         assertThatNoException().isThrownBy(() -> {
             try (var r = ResourceLoader.getXmlReader(this.getClass())) {
                 BeanMapper.DEFAULT.read(
-                        AmazonCloudSearchCommitter.class, r, Format.XML
-                );
+                        AmazonCloudSearchCommitter.class, r, Format.XML);
             }
         });
     }

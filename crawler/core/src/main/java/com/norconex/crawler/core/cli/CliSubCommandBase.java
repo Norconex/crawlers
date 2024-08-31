@@ -100,13 +100,13 @@ public abstract class CliSubCommandBase implements Runnable {
                         + " configuration errors detected:\n");
                 e.getConstraintViolations().forEach(
                         cv -> b
-                        .append("\"")
-                        .append(cv.getPropertyPath())
-                        .append("\" ")
-                        .append(cv.getMessage())
-                        .append(". Invalid value: ")
-                        .append(cv.getInvalidValue())
-                        .append(".\n"));
+                                .append("\"")
+                                .append(cv.getPropertyPath())
+                                .append("\" ")
+                                .append(cv.getMessage())
+                                .append(". Invalid value: ")
+                                .append(cv.getInvalidValue())
+                                .append(".\n"));
                 throw new CliException(b.toString());
             }
         }

@@ -85,18 +85,15 @@ public class RenameTransformer
     public void handle(HandlerContext docCtx) throws IOException {
         for (RenameOperation op : configuration.getOperations()) {
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                    op.getFieldMatcher()
-            ).entrySet()) {
+                    op.getFieldMatcher()).entrySet()) {
                 var field = en.getKey();
                 var values = en.getValue();
                 var newField = op.getFieldMatcher().replace(
-                        field, op.getToField()
-                );
+                        field, op.getToField());
                 if (!Objects.equals(field, newField)) {
                     docCtx.metadata().remove(field);
                     PropertySetter.orAppend(op.getOnSet()).apply(
-                            docCtx.metadata(), newField, values
-                    );
+                            docCtx.metadata(), newField, values);
                 }
             }
         }

@@ -29,8 +29,7 @@ class TikaUtil {
     }
 
     static void metadataToProperties(
-            Metadata tikaMeta, Properties metadata
-    ) {
+            Metadata tikaMeta, Properties metadata) {
         var names = tikaMeta.names();
         for (String name : names) {
             if (TikaCoreProperties.RESOURCE_NAME_KEY.equals(name)) {
@@ -49,13 +48,11 @@ class TikaUtil {
     }
 
     private static boolean containsSameValue(
-            String name, List<String> nxValues, String tikaValue
-    ) {
+            String name, List<String> nxValues, String tikaValue) {
         if (EqualsUtil.equalsAnyIgnoreCase(
                 name,
                 HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.CONTENT_ENCODING
-        )) {
+                HttpHeaders.CONTENT_ENCODING)) {
             var tk = tikaValue.replaceAll("[\\s]", "");
             for (String nxValue : nxValues) {
                 if (nxValue.replaceAll("[\\s]", "").equalsIgnoreCase(tk)) {

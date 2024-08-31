@@ -59,8 +59,7 @@ public class AbstractFsCommitterTest {
         return Stream.of(
                 TestUtil.args(new XmlFileCommitter()),
                 TestUtil.args(new JsonFileCommitter()),
-                TestUtil.args(new CsvFileCommitter())
-        );
+                TestUtil.args(new CsvFileCommitter()));
     }
 
     @TempDir
@@ -68,8 +67,7 @@ public class AbstractFsCommitterTest {
 
     @CommitterTest
     public void testMergedFileCommitter(
-            AbstractFsCommitter<?, ?> c, String name
-    )
+            AbstractFsCommitter<?, ?> c, String name)
             throws CommitterException {
         // write 5 upserts and 2 deletes.
         // max docs per file being 2, so should generate 4 files.
@@ -84,20 +82,15 @@ public class AbstractFsCommitterTest {
         assertEquals(4, TestUtil.listFSFiles(c.getResolvedDirectory()).size());
         assertEquals(
                 0, TestUtil.listFSUpsertFiles(
-                        c.getResolvedDirectory()
-                ).size()
-        );
+                        c.getResolvedDirectory()).size());
         assertEquals(
                 0, TestUtil.listFSDeleteFiles(
-                        c.getResolvedDirectory()
-                ).size()
-        );
+                        c.getResolvedDirectory()).size());
     }
 
     @CommitterTest
     public void testSplitFileCommitter(
-            AbstractFsCommitter<?, ?> c, String name
-    )
+            AbstractFsCommitter<?, ?> c, String name)
             throws CommitterException {
         // write 5 upserts and 2 deletes.
         // max docs per file being 2, so should generate 3 upsert files
@@ -112,19 +105,13 @@ public class AbstractFsCommitterTest {
 
         assertEquals(
                 4, TestUtil.listFSFiles(
-                        c.getResolvedDirectory()
-                ).size()
-        );
+                        c.getResolvedDirectory()).size());
         assertEquals(
                 3, TestUtil.listFSUpsertFiles(
-                        c.getResolvedDirectory()
-                ).size()
-        );
+                        c.getResolvedDirectory()).size());
         assertEquals(
                 1, TestUtil.listFSDeleteFiles(
-                        c.getResolvedDirectory()
-                ).size()
-        );
+                        c.getResolvedDirectory()).size());
     }
 
     @CommitterTest
@@ -140,8 +127,7 @@ public class AbstractFsCommitterTest {
                 .setSplitUpsertDelete(true);
         setIndentIfPresent(c, 3);
         assertThatNoException().isThrownBy(
-                () -> TestUtil.beanMapper().assertWriteRead(c)
-        );
+                () -> TestUtil.beanMapper().assertWriteRead(c));
     }
 
     @CommitterTest

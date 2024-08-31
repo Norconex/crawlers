@@ -124,8 +124,7 @@ public class XmlStreamSplitterConfig extends BaseDocumentSplitterConfig {
      * @return this
      */
     public XmlStreamSplitterConfig setContentTypeMatcher(
-            TextMatcher matcher
-    ) {
+            TextMatcher matcher) {
         contentTypeMatcher.copyFrom(matcher);
         return this;
     }

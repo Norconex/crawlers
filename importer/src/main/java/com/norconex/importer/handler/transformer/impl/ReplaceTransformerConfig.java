@@ -77,8 +77,7 @@ public class ReplaceTransformerConfig {
     }
 
     public ReplaceTransformerConfig setOperations(
-            List<ReplaceOperation> operations
-    ) {
+            List<ReplaceOperation> operations) {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }

@@ -34,8 +34,7 @@ class JdbcDataStoreEngineTest extends AbstractDataStoreEngineTest {
             var dbPath = StringUtils.removeStart(
                     getTempDir().toAbsolutePath().toUri().toURL()
                             + "test",
-                    "file:"
-            );
+                    "file:");
             if (SystemUtils.IS_OS_WINDOWS) {
                 dbPath = StringUtils.removeStart(dbPath, "/");
             }

@@ -63,8 +63,7 @@ public class ExtensionReferenceFilterConfig {
     }
 
     public ExtensionReferenceFilterConfig setExtensions(
-            List<String> extensions
-    ) {
+            List<String> extensions) {
         CollectionUtil.setAll(this.extensions, extensions);
         return this;
     }

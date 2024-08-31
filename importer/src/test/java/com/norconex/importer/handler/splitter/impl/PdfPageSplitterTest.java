@@ -37,8 +37,7 @@ class PdfPageSplitterTest {
     @BeforeEach
     void setup() {
         input = PdfPageSplitterTest.class.getResourceAsStream(
-                PdfPageSplitterTest.class.getSimpleName() + ".pdf"
-        );
+                PdfPageSplitterTest.class.getSimpleName() + ".pdf");
     }
 
     @AfterEach

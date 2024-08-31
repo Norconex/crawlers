@@ -69,8 +69,8 @@ class MetadataChecksumStageTest {
 
         var checksummer = new GenericMetadataChecksummer();
         checksummer
-        .getConfiguration()
-        .setFieldMatcher(TextMatcher.wildcard("*"));
+                .getConfiguration()
+                .setFieldMatcher(TextMatcher.wildcard("*"));
 
         var meta = new Properties();
         meta.add("key", "value");

@@ -92,8 +92,7 @@ public class CollapseRepeatingTransformerConfig implements ChunkedTextSupport {
     }
 
     public CollapseRepeatingTransformerConfig setStrings(
-            List<String> strings
-    ) {
+            List<String> strings) {
         CollectionUtil.setAll(this.strings, strings);
         return this;
     }
@@ -112,8 +111,7 @@ public class CollapseRepeatingTransformerConfig implements ChunkedTextSupport {
      * @return this instance
      */
     public CollapseRepeatingTransformerConfig setIgnoreCase(
-            boolean ignoreCase
-    ) {
+            boolean ignoreCase) {
         this.ignoreCase = ignoreCase;
         return this;
     }
@@ -135,8 +133,7 @@ public class CollapseRepeatingTransformerConfig implements ChunkedTextSupport {
      * @return this instance
      */
     public CollapseRepeatingTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

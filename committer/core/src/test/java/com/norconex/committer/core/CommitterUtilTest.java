@@ -26,28 +26,22 @@ class CommitterUtilTest {
     void testGetContentAsString() throws CommitterException {
         assertThat(
                 CommitterUtil.getContentAsString(
-                        TestUtil.upsertRequest("ref", "gotit")
-                )
-        ).isEqualTo("gotit");
+                        TestUtil.upsertRequest("ref", "gotit")))
+                                .isEqualTo("gotit");
         assertThat(
                 CommitterUtil.getContentAsString(
-                        TestUtil.deleteRequest("ref")
-                )
-        ).isNull();
+                        TestUtil.deleteRequest("ref"))).isNull();
         assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
             CommitterUtil.getContentAsString(
                     new UpsertRequest(
-                            "ref", null, new BrokenInputStream()
-                    )
-            );
+                            "ref", null, new BrokenInputStream()));
         });
     }
 
     @Test
     void testExtractSourceIdValueCommitterRequestString() {
         var req = TestUtil.upsertRequest(
-                "someRef", "content", "srcField", "srcValue"
-        );
+                "someRef", "content", "srcField", "srcValue");
 
         // get source id from request ref
         assertThat(CommitterUtil.extractSourceIdValue(req, null))
@@ -84,8 +78,7 @@ class CommitterUtilTest {
     void testApplyTargetId() {
         var req = TestUtil.upsertRequest(
                 "someRef", "content",
-                "fromId", "myValue"
-        );
+                "fromId", "myValue");
 
         // test storing the content stream into a field
         CommitterUtil.applyTargetId(req, "fromId", "toId");

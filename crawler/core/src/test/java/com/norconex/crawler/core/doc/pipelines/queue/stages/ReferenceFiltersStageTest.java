@@ -47,12 +47,8 @@ class ReferenceFiltersStageTest {
                         configure(
                                 new GenericReferenceFilter(), cfg -> cfg
                                         .setValueMatcher(
-                                                TextMatcher.basic("ref")
-                                        )
-                                        .setOnMatch(OnMatch.INCLUDE)
-                        )
-                )
-        );
+                                                TextMatcher.basic("ref"))
+                                        .setOnMatch(OnMatch.INCLUDE))));
         var ctx1 = new QueuePipelineContext(crawler, docRecord);
         assertThat(stage.test(ctx1)).isTrue();
 
@@ -62,12 +58,8 @@ class ReferenceFiltersStageTest {
                         configure(
                                 new GenericReferenceFilter(), cfg -> cfg
                                         .setValueMatcher(
-                                                TextMatcher.basic("ref")
-                                        )
-                                        .setOnMatch(OnMatch.EXCLUDE)
-                        )
-                )
-        );
+                                                TextMatcher.basic("ref"))
+                                        .setOnMatch(OnMatch.EXCLUDE))));
         var ctx2 = new QueuePipelineContext(crawler, docRecord);
         assertThat(stage.test(ctx2)).isFalse();
 
@@ -78,12 +70,8 @@ class ReferenceFiltersStageTest {
                         configure(
                                 new GenericReferenceFilter(), cfg -> cfg
                                         .setValueMatcher(
-                                                TextMatcher.basic("noref")
-                                        )
-                                        .setOnMatch(OnMatch.INCLUDE)
-                        )
-                )
-        );
+                                                TextMatcher.basic("noref"))
+                                        .setOnMatch(OnMatch.INCLUDE))));
         var ctx3 = new QueuePipelineContext(crawler, docRecord);
         assertThat(stage.test(ctx3)).isFalse();
     }

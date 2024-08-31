@@ -136,12 +136,10 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
         if (!configuration.isIgnoreContent() && reqContent != null) {
             try {
                 memContent = new ByteArrayInputStream(
-                        IOUtils.toByteArray(reqContent)
-                );
+                        IOUtils.toByteArray(reqContent));
             } catch (IOException e) {
                 throw new CommitterException(
-                        "Could not do upsert for " + memReference
-                );
+                        "Could not do upsert for " + memReference);
             }
         }
 
@@ -171,14 +169,11 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
                         reqMetadata.entrySet().stream()
                                 .filter(
                                         en -> configuration.getFieldMatcher()
-                                                .matches(en.getKey())
-                                )
+                                                .matches(en.getKey()))
                                 .collect(
                                         Collectors.toMap(
-                                                Entry::getKey, Entry::getValue
-                                        )
-                                )
-                );
+                                                Entry::getKey,
+                                                Entry::getValue)));
             }
         }
         return memMetadata;

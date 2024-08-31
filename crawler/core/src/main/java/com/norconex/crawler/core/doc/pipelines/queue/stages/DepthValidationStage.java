@@ -34,8 +34,7 @@ public class DepthValidationStage implements Predicate<QueuePipelineContext> {
             LOG.debug(
                     "URL too deep to process ({}): {}",
                     docCtx.getDepth(),
-                    docCtx.getReference()
-            );
+                    docCtx.getReference());
             docCtx.setState(CrawlDocState.TOO_DEEP);
             ctx.getCrawler().fire(
                     CrawlerEvent.builder()
@@ -43,8 +42,7 @@ public class DepthValidationStage implements Predicate<QueuePipelineContext> {
                             .source(ctx.getCrawler())
                             .subject(docCtx.getDepth())
                             .docContext(docCtx)
-                            .build()
-            );
+                            .build());
             return false;
         }
         return true;

@@ -52,8 +52,7 @@ class ImageParserTest {
         // as http://www.exiv2.org
         // Currently parsed by Tika using Jempbox
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer-xmp.jpg")
-        )
+                resourceAsFile(folder, "/parser/image/importer-xmp.jpg"))
                 .hasContentType("image/jpeg")
                 .hasContentFamily("Image")
                 .hasExtension("jpg")
@@ -68,8 +67,7 @@ class ImageParserTest {
     @Test
     void testPSD() throws Exception {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer.psd")
-        )
+                resourceAsFile(folder, "/parser/image/importer.psd"))
                 .hasContentType("image/vnd.adobe.photoshop")
                 .hasContentFamily("Image")
                 .hasExtension("psd");
@@ -78,8 +76,7 @@ class ImageParserTest {
     @Test
     void testTIF() throws Exception {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer.tif")
-        )
+                resourceAsFile(folder, "/parser/image/importer.tif"))
                 .hasContentType("image/tiff")
                 .hasContentFamily("Image")
                 .hasExtension("tiff");
@@ -88,8 +85,7 @@ class ImageParserTest {
     @Test
     void testJBIG2() throws Exception {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer.jb2")
-        )
+                resourceAsFile(folder, "/parser/image/importer.jb2"))
                 .hasContentType("image/x-jbig2")
                 .hasContentFamily("Image")
                 .hasExtension("jb2")
@@ -100,8 +96,7 @@ class ImageParserTest {
     private void testParsing(String contentType, String extension)
             throws Exception {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/image/importer." + extension)
-        )
+                resourceAsFile(folder, "/parser/image/importer." + extension))
                 .hasContentType(contentType)
                 .hasContentFamily("Image")
                 .hasExtension(extension);

@@ -117,8 +117,7 @@ public class DateFormatTransformer
         validateArguments();
 
         var fromDates = docCtx.metadata().getStrings(
-                configuration.getFromField()
-        );
+                configuration.getFromField());
         List<String> toDates = new ArrayList<>(fromDates.size());
         for (String fromDate : fromDates) {
             var toDate = formatDate(fromDate);
@@ -131,12 +130,10 @@ public class DateFormatTransformer
 
         if (StringUtils.isBlank(configuration.getToField())) {
             PropertySetter.REPLACE.apply(
-                    docCtx.metadata(), configuration.getFromField(), toDates
-            );
+                    docCtx.metadata(), configuration.getFromField(), toDates);
         } else {
             PropertySetter.orAppend(configuration.getOnSet()).apply(
-                    docCtx.metadata(), configuration.getToField(), toDates
-            );
+                    docCtx.metadata(), configuration.getToField(), toDates);
         }
     }
 
@@ -156,8 +153,7 @@ public class DateFormatTransformer
                         .format(nullIfEpoch(fromFormat))
                         .locale(
                                 ofNullable(configuration.getFromLocale())
-                                        .orElse(Locale.ENGLISH)
-                        )
+                                        .orElse(Locale.ENGLISH))
                         .build()
                         .parse(fromDate);
                 if (nullIfEpoch(configuration.getToFormat()) == null) {
@@ -170,11 +166,8 @@ public class DateFormatTransformer
                                         .localizedBy(
                                                 ofNullable(
                                                         configuration
-                                                                .getToLocale()
-                                                )
-                                                        .orElse(Locale.ENGLISH)
-                                        )
-                        );
+                                                                .getToLocale())
+                                                                        .orElse(Locale.ENGLISH)));
                 if (StringUtils.isNotBlank(toDate)) {
                     return toDate;
                 }
@@ -183,8 +176,7 @@ public class DateFormatTransformer
                         "Could not parse date '{}' with format '{}' "
                                 + "and locale {}.",
                         fromDate, fromFormat,
-                        configuration.getFromLocale()
-                );
+                        configuration.getFromLocale());
             }
         }
         return null;
@@ -193,14 +185,12 @@ public class DateFormatTransformer
     private void validateArguments() {
         if (StringUtils.isBlank(configuration.getFromField())) {
             throw new IllegalArgumentException(
-                    "\"fromField\" cannot be empty."
-            );
+                    "\"fromField\" cannot be empty.");
         }
         if (StringUtils.isBlank(configuration.getFromField())
                 && StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException(
-                    "One of \"fromField\" or \"toField\" is required."
-            );
+                    "One of \"fromField\" or \"toField\" is required.");
         }
     }
 

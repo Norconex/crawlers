@@ -108,8 +108,7 @@ public class TextCondition
         // field(s)
         return new PropertyMatcher(
                 configuration.getFieldMatcher(),
-                configuration.getValueMatcher()
-        )
-                .matches(docCtx.metadata());
+                configuration.getValueMatcher())
+                        .matches(docCtx.metadata());
     }
 }

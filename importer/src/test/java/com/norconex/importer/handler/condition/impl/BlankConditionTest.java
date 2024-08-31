@@ -62,8 +62,7 @@ class BlankConditionTest {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
         assertThat(c.evaluate(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(
-                TextMatcher.regex("field4\\.[123]")
-        );
+                TextMatcher.regex("field4\\.[123]"));
         assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
         assertThat(c.evaluate(docCtx)).isFalse();
@@ -80,8 +79,7 @@ class BlankConditionTest {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
         assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(
-                TextMatcher.regex("field4\\.[123]")
-        );
+                TextMatcher.regex("field4\\.[123]"));
         assertThat(c.evaluate(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
         assertThat(c.evaluate(docCtx)).isTrue();
@@ -95,8 +93,7 @@ class BlankConditionTest {
 
         // Test write read
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     private HandlerContext newDocContext() {
@@ -120,9 +117,7 @@ class BlankConditionTest {
                                 body == null
                                         ? emptyInput
                                         : toCachedInputStream(body),
-                                props
-                        )
-                )
+                                props))
                 .parseState(ParseState.PRE)
                 .eventManager(new EventManager())
                 .build();

@@ -188,14 +188,12 @@ public class ScriptRunner<T> {
 
     public ScriptRunner(
             @NonNull String engineName,
-            @NonNull String script
-    ) {
+            @NonNull String script) {
         this(createEngine(engineName), engineName, script);
     }
 
     private ScriptRunner(
-            ScriptEngine engine, String engineName, String script
-    ) {
+            ScriptEngine engine, String engineName, String script) {
         this.engine = engine;
         this.engineName = engineName;
         this.script = script;
@@ -226,8 +224,7 @@ public class ScriptRunner<T> {
             // a return statement outside a function.
             if (returnValue == null
                     && EqualsUtil.equalsAnyIgnoreCase(
-                            engineName, JAVASCRIPT_ENGINE, LUA_ENGINE
-                    )) {
+                            engineName, JAVASCRIPT_ENGINE, LUA_ENGINE)) {
                 returnValue = scriptOutput;
             }
 
@@ -258,8 +255,7 @@ public class ScriptRunner<T> {
     }
 
     private static CompiledScript compileScript(
-            ScriptEngine engine, String script
-    ) {
+            ScriptEngine engine, String script) {
         if (engine instanceof Compilable compileEngine) {
             try {
                 return compileEngine.compile(script);
@@ -267,8 +263,7 @@ public class ScriptRunner<T> {
                 throw new IllegalArgumentException(
                         "Invalid script argument. Could not compile. Possibly "
                                 + "a syntax error.",
-                        e
-                );
+                        e);
             }
         }
         return null;
@@ -295,11 +290,9 @@ public class ScriptRunner<T> {
         LOG.error(
                 "Invalid Script Engine \"{}\". "
                         + "Detected Script Engines are:\n{}",
-                name, b.toString()
-        );
+                name, b.toString());
         throw new IllegalArgumentException(
                 "No JSR 223 Script Engine found matching the "
-                        + "name \"" + name + "\"."
-        );
+                        + "name \"" + name + "\".");
     }
 }

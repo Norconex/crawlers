@@ -49,8 +49,7 @@ public class DocumentChecksumStage
         var newDocChecksum = checksummer.createDocumentChecksum(ctx.getDoc());
 
         var accepted = ChecksumStageUtil.resolveDocumentChecksum(
-                newDocChecksum, ctx.getDoc()
-        );
+                newDocChecksum, ctx.getDoc());
         if (!accepted) {
             var s = new StringBuilder()
                     .append(checksummer.getClass().getSimpleName())
@@ -64,8 +63,7 @@ public class DocumentChecksumStage
                             .docContext(ctx.getDoc().getDocContext())
                             .subject(checksummer)
                             .message(s.toString())
-                            .build()
-            );
+                            .build());
         }
         return accepted;
     }

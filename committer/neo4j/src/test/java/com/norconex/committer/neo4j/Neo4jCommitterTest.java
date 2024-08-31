@@ -65,9 +65,8 @@ class Neo4jCommitterTest {
 
     @Container
     private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(
-            DockerImageName.parse("neo4j").withTag(NEO4J_VERSION)
-    )
-            .withoutAuthentication();
+            DockerImageName.parse("neo4j").withTag(NEO4J_VERSION))
+                    .withoutAuthentication();
     private static Driver driver;
     private static Session session;
     @TempDir
@@ -76,8 +75,7 @@ class Neo4jCommitterTest {
     @BeforeAll
     static void beforeAll() throws Exception {
         driver = GraphDatabase.driver(
-                neo4jContainer.getBoltUrl(), AuthTokens.none()
-        );
+                neo4jContainer.getBoltUrl(), AuthTokens.none());
     }
 
     @BeforeEach
@@ -135,8 +133,7 @@ class Neo4jCommitterTest {
         assertThat(actors).containsExactlyInAnyOrder(
                 "Keanu Reeves", "Charlize Theron", "Al Pacino",
                 "Carrie-Anne Moss", "Laurence Fishburne",
-                "Hugo Weaving"
-        );
+                "Hugo Weaving");
 
         // Check all producers are there
         records = session.run("""
@@ -158,8 +155,7 @@ class Neo4jCommitterTest {
             directors.add(prop(rec, "dir.name"));
         }
         assertThat(directors).containsExactlyInAnyOrder(
-                "Taylor Hackford", "Lilly Wachowski", "Lana Wachowski"
-        );
+                "Taylor Hackford", "Lilly Wachowski", "Lana Wachowski");
     }
 
     @Test
@@ -235,21 +231,18 @@ class Neo4jCommitterTest {
         var meta = new Properties();
         meta.loadFromProperties(
                 getClass().getResourceAsStream(
-                        "/movies/" + movieId + ".properties"
-                ), ", "
-        );
+                        "/movies/" + movieId + ".properties"),
+                ", ");
         return upsertRequest(movieId, TEST_CONTENT, meta);
     }
 
     private UpsertRequest upsertRequest(
-            String id, String content, Properties metadata
-    ) {
+            String id, String content, Properties metadata) {
         var p = metadata == null ? new Properties() : metadata;
         return new UpsertRequest(
                 id, p, content == null
                         ? new NullInputStream(0)
-                        : toInputStream(content, UTF_8)
-        );
+                        : toInputStream(content, UTF_8));
     }
 
     protected Neo4jCommitter createNeo4jCommitter() throws CommitterException {
@@ -257,9 +250,7 @@ class Neo4jCommitterTest {
                 .setWorkDir(
                         new File(
                                 tempDir,
-                                "" + TimeIdGenerator.next()
-                        ).toPath()
-                )
+                                "" + TimeIdGenerator.next()).toPath())
                 .build();
         var committer = new Neo4jCommitter();
         var cfg = committer.getConfiguration();

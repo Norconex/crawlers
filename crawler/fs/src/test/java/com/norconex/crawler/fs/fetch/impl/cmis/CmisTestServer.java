@@ -79,8 +79,7 @@ public class CmisTestServer {
         servlet.setInitParameter("cmisVersion", "1.0");
         servlet.setInitParameter(
                 "callContextHandler", "org.apache.chemistry."
-                        + "opencmis.server.shared.BasicAuthCallContextHandler"
-        );
+                        + "opencmis.server.shared.BasicAuthCallContextHandler");
         webappContext.addServlet(servlet, "/atom/*");
 
         // CMIS Atom 1.1
@@ -88,8 +87,7 @@ public class CmisTestServer {
         servlet.setInitParameter("cmisVersion", "1.1");
         servlet.setInitParameter(
                 "callContextHandler", "org.apache.chemistry."
-                        + "opencmis.server.shared.BasicAuthCallContextHandler"
-        );
+                        + "opencmis.server.shared.BasicAuthCallContextHandler");
         webappContext.addServlet(servlet, "/atom11/*");
 
         // CMIS Browser
@@ -97,8 +95,7 @@ public class CmisTestServer {
         servlet.setInitParameter("cmisVersion", "1.1");
         servlet.setInitParameter(
                 "callContextHandler", "org.apache.chemistry."
-                        + "opencmis.server.impl.browser.token.TokenCallContextHandler"
-        );
+                        + "opencmis.server.impl.browser.token.TokenCallContextHandler");
         webappContext.addServlet(servlet, "/browser/*");
 
         // CMIS Endpoints
@@ -111,8 +108,7 @@ public class CmisTestServer {
     private ResourceHandler buildStaticResourcesHandler() {
         var staticHandler = new ResourceHandler();
         var staticResources = CmisTestServer.class.getClassLoader().getResource(
-                "cmis/webapp"
-        );
+                "cmis/webapp");
         staticHandler.setResourceBase(staticResources.toExternalForm());
         staticHandler.setWelcomeFiles(new String[] { "index.html" });
         staticHandler.setDirectoriesListed(false);
@@ -144,8 +140,7 @@ public class CmisTestServer {
                 ((ServerConnector) server.getConnectors()[0]).getLocalPort();
         System.out.println(
                 "Test CMIS server has successfully started on port "
-                        + localPort
-        );
+                        + localPort);
 
         //        server.join();
     }
@@ -210,23 +205,19 @@ public class CmisTestServer {
 
         @Override
         public CmisEndpointsDocument getCmisEndpointsDocument(
-                HttpServletRequest req, HttpServletResponse resp
-        ) {
+                HttpServletRequest req, HttpServletResponse resp) {
             if (endpointsDocument == null) {
                 // we don't have a template
                 return null;
             }
             var url = new UrlBuilder(
                     req.getScheme(), req.getServerName(),
-                    req.getServerPort(), null
-            );
+                    req.getServerPort(), null);
             url.addPath(req.getContextPath());
             try {
                 return readCmisEndpointsDocument(
                         endpointsDocument.replaceAll(
-                                "\\{webapp\\}", url.toString()
-                        )
-                );
+                                "\\{webapp\\}", url.toString()));
             } catch (JSONParseException e) {
                 LOG.error("Invalid JSON!", e);
                 return null;

@@ -54,8 +54,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ElasticsearchCommitterTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            ElasticsearchCommitterTest.class
-    );
+            ElasticsearchCommitterTest.class);
 
     private static final String TEST_ES_VERSION = "8.7.1";
     private static final String TEST_INDEX = "tests";
@@ -71,19 +70,16 @@ class ElasticsearchCommitterTest {
     @Container
     static ElasticsearchContainer container = new ElasticsearchContainer(
             DockerImageName.parse(
-                    "docker.elastic.co/elasticsearch/elasticsearch"
-            )
-                    .withTag(TEST_ES_VERSION)
-    )
-            .withEnv("xpack.security.enabled", "false");
+                    "docker.elastic.co/elasticsearch/elasticsearch")
+                    .withTag(TEST_ES_VERSION))
+                            .withEnv("xpack.security.enabled", "false");
 
     private static RestClient restClient;
 
     @BeforeAll
     static void beforeAll() throws Exception {
         restClient = RestClient.builder(
-                HttpHost.create(container.getHttpHostAddress())
-        ).build();
+                HttpHost.create(container.getHttpHostAddress())).build();
     }
 
     @BeforeEach
@@ -117,11 +113,9 @@ class ElasticsearchCommitterTest {
     void testCommitDelete() throws Exception {
         // Add a document directly to ES
         var request = new Request(
-                "PUT", INDEX_ENDPOINT + "_doc/" + TEST_ID
-        );
+                "PUT", INDEX_ENDPOINT + "_doc/" + TEST_ID);
         request.setJsonEntity(
-                "{\"" + CONTENT_FIELD + "\":\"" + TEST_CONTENT + "\"}"
-        );
+                "{\"" + CONTENT_FIELD + "\":\"" + TEST_CONTENT + "\"}");
         restClient.performRequest(request);
 
         assertTrue(isFound(getDocument(TEST_ID)), "Not properly added.");
@@ -179,8 +173,7 @@ class ElasticsearchCommitterTest {
         assertTrue(isFound(doc), "Not found.");
         assertTrue(hasTestContent(doc), "Bad content.");
         assertFalse(
-                hasField(doc, sourceIdField), "sourceIdField was not removed."
-        );
+                hasField(doc, sourceIdField), "sourceIdField was not removed.");
     }
 
     @Test
@@ -203,12 +196,10 @@ class ElasticsearchCommitterTest {
         // not in the default field
         assertEquals(
                 TEST_CONTENT, getFieldValue(doc, targetContentField),
-                "targetContentField was not saved."
-        );
+                "targetContentField was not saved.");
         assertFalse(
                 hasField(doc, CONTENT_FIELD),
-                "Default content field was saved."
-        );
+                "Default content field was saved.");
     }
 
     @Test
@@ -228,8 +219,7 @@ class ElasticsearchCommitterTest {
         // Check multi values are still there
         assertEquals(
                 3, getFieldValues(doc, fieldname).size(),
-                "Multi-value not saved properly."
-        );
+                "Multi-value not saved properly.");
     }
 
     @Test
@@ -253,8 +243,7 @@ class ElasticsearchCommitterTest {
         // Check the dots were replaced
         assertEquals(
                 fieldValue, getFieldValue(doc, fieldNameNoDots),
-                "Dots not replaced."
-        );
+                "Dots not replaced.");
         assertFalse(hasField(doc, fieldNameDots), "Dots still present.");
     }
 
@@ -300,9 +289,8 @@ class ElasticsearchCommitterTest {
             assertEquals(
                     2, StringUtils.countMatches(
                             ExceptionUtil.getFormattedMessages(e),
-                            "\"error\":"
-                    ), "Wrong error count."
-            );
+                            "\"error\":"),
+                    "Wrong error count.");
         }
     }
 
@@ -317,8 +305,7 @@ class ElasticsearchCommitterTest {
         UpsertRequest upsertReq = new UpsertRequest(
                 StringUtils.repeat("a", 513),
                 props,
-                InputStream.nullInputStream()
-        );
+                InputStream.nullInputStream());
 
         List<CommitterRequest> upsert = new ArrayList<>();
         upsert.add(upsertReq);
@@ -382,8 +369,7 @@ class ElasticsearchCommitterTest {
             httpResponse = e.getResponse();
         }
         var response = IOUtils.toString(
-                httpResponse.getEntity().getContent(), StandardCharsets.UTF_8
-        );
+                httpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
         var json = new JSONObject(response);
         LOG.info("Response status: {}", httpResponse.getStatusLine());
         LOG.debug("Response body: {}", json);
@@ -395,23 +381,19 @@ class ElasticsearchCommitterTest {
     }
 
     private UpsertRequest upsertRequest(
-            String id, String content, Properties metadata
-    ) {
+            String id, String content, Properties metadata) {
         var p = metadata == null ? new Properties() : metadata;
         return new UpsertRequest(
                 id, p, content == null
                         ? new NullInputStream(0)
-                        : toInputStream(content, UTF_8)
-        );
+                        : toInputStream(content, UTF_8));
     }
 
     private List<File> listFiles(ElasticsearchCommitter c) {
         return new ArrayList<>(
                 FileUtils.listFiles(
                         c.getCommitterContext().getWorkDir().toFile(), null,
-                        true
-                )
-        );
+                        true));
     }
 
     protected ElasticsearchCommitter createESCommitter()
@@ -421,14 +403,11 @@ class ElasticsearchCommitterTest {
                 .setWorkDir(
                         new File(
                                 tempDir,
-                                "" + TimeIdGenerator.next()
-                        ).toPath()
-                )
+                                "" + TimeIdGenerator.next()).toPath())
                 .build();
         var committer = new ElasticsearchCommitter();
         committer.getConfiguration().setNodes(
-                List.of(container.getHttpHostAddress())
-        );
+                List.of(container.getHttpHostAddress()));
         committer.getConfiguration().setIndexName(TEST_INDEX);
         committer.init(ctx);
         return committer;

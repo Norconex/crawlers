@@ -30,8 +30,7 @@ public class DocumentPreProcessingStage extends AbstractImporterStage {
                             .source(ctx.getCrawler())
                             .subject(preProc)
                             .docContext(ctx.getDoc().getDocContext())
-                            .build()
-            );
+                            .build());
         }
         return true;
     }

@@ -82,9 +82,7 @@ class DomTransformerTest {
                                         .setDelete(true)
                                         .setSelector("#childOneId")
                                         .setExtract("outerHtml")
-                                        .setToField("toField1")
-                        )
-                );
+                                        .setToField("toField1")));
 
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         InputStream content = new NullInputStream(0);
@@ -121,9 +119,7 @@ class DomTransformerTest {
                         List.of(
                                 new DomOperation()
                                         .setDelete(true)
-                                        .setSelector("div")
-                        )
-                );
+                                        .setSelector("div")));
 
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         InputStream content = new NullInputStream(0);
@@ -163,9 +159,7 @@ class DomTransformerTest {
                                         .setSelector("tr td:nth-of-type(2)")
                                         .setToField("TEST_DESC")
                                         .setOnSet(REPLACE)
-                                        .setExtract("ownText")
-                        )
-                );
+                                        .setExtract("ownText")));
 
         var xml = """
                 <tr>\
@@ -216,9 +210,7 @@ class DomTransformerTest {
                                 .setToField("blanksOFFDefault")
                                 .setOnSet(APPEND)
                                 .setMatchBlanks(false)
-                                .setDefaultValue("Joe")
-                )
-        );
+                                .setDefaultValue("Joe")));
 
         var xml = """
                 <test>\
@@ -241,11 +233,9 @@ class DomTransformerTest {
         Assertions.assertArrayEquals(new String[] { "John" }, blanksOFF);
 
         Assertions.assertArrayEquals(
-                new String[] { "", "", "John" }, blanksONDefault
-        );
+                new String[] { "", "", "John" }, blanksONDefault);
         Assertions.assertArrayEquals(
-                new String[] { "Joe", "Joe", "John" }, blanksOFFDefault
-        );
+                new String[] { "Joe", "Joe", "John" }, blanksOFFDefault);
     }
 
     // This is a test for: https://github.com/Norconex/importer/issues/39
@@ -315,9 +305,7 @@ class DomTransformerTest {
                                 .setSelector("div.contact")
                                 .setToField("htmlContacts")
                                 .setOnSet(APPEND)
-                                .setExtract("html")
-                )
-        );
+                                .setExtract("html")));
         performTransform(metadata, parentTransformer, html);
 
         var childTransformer = new DomTransformer();
@@ -336,9 +324,7 @@ class DomTransformerTest {
                                         .setToField("lastName")
                                         .setOnSet(APPEND)
                                         .setExtract("html")
-                                        .setDefaultValue("NoLastName")
-                        )
-                );
+                                        .setDefaultValue("NoLastName")));
 
         performTransform(metadata, childTransformer, html);
 
@@ -347,14 +333,12 @@ class DomTransformerTest {
 
         Assertions.assertEquals(
                 Arrays.asList(
-                        "JoeFirstOnly", "John", "NoFirstName"
-                ), firstNames
-        );
+                        "JoeFirstOnly", "John", "NoFirstName"),
+                firstNames);
         Assertions.assertEquals(
                 Arrays.asList(
-                        "NoLastName", "Smith", "JackLastOnly"
-                ), lastNames
-        );
+                        "NoLastName", "Smith", "JackLastOnly"),
+                lastNames);
     }
 
     // This is a test for: https://github.com/Norconex/importer/issues/21
@@ -376,9 +360,7 @@ class DomTransformerTest {
                         new DomOperation()
                                 .setSelector("div.class3")
                                 .setToField("match3")
-                                .setOnSet(APPEND)
-                )
-        );
+                                .setOnSet(APPEND)));
 
         var html = """
                 <html><body>\
@@ -413,9 +395,7 @@ class DomTransformerTest {
                                 .setSelector("a[href]")
                                 .setToField("links")
                                 .setOnSet(REPLACE)
-                                .setExtract("html")
-                )
-        );
+                                .setExtract("html")));
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         try (InputStream is =
@@ -424,24 +404,19 @@ class DomTransformerTest {
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
             t.accept(
                     TestUtil.newHandlerContext(
-                            htmlFile.getAbsolutePath(), is, metadata
-                    )
-            );
+                            htmlFile.getAbsolutePath(), is, metadata));
             var headings = metadata.getStrings("headings");
             var links = metadata.getStrings("links");
             Assertions.assertEquals(2, headings.size(), "Wrong <h2> count.");
             Assertions.assertEquals(
                     4, links.size(),
-                    "Wrong <img src=\"...\"> count."
-            );
+                    "Wrong <img src=\"...\"> count.");
             Assertions.assertEquals(
                     "CHAPTER I", headings.get(0),
-                    "Did not extract first heading"
-            );
+                    "Did not extract first heading");
             Assertions.assertEquals(
                     "Down the Rabbit-Hole", headings.get(1),
-                    "Did not extract second heading"
-            );
+                    "Did not extract second heading");
         }
     }
 
@@ -465,9 +440,7 @@ class DomTransformerTest {
                                 .setSelector("head")
                                 .setToField("ftext")
                                 .setOnSet(APPEND)
-                                .setExtract("text")
-                )
-        );
+                                .setExtract("text")));
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         try (InputStream is =
@@ -476,9 +449,7 @@ class DomTransformerTest {
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
             t.accept(
                     TestUtil.newHandlerContext(
-                            htmlFile.getAbsolutePath(), is, metadata
-                    )
-            );
+                            htmlFile.getAbsolutePath(), is, metadata));
 
             var expectedText = "Alice's Adventures in Wonderland -- Chapter I";
             var expectedHtml = "<meta http-equiv=\"content-type\" "
@@ -489,12 +460,10 @@ class DomTransformerTest {
             Assertions.assertEquals(expectedText, metadata.getString("ftext"));
             Assertions.assertEquals(
                     expectedHtml,
-                    cleanHTML(metadata.getString("fhtml"))
-            );
+                    cleanHTML(metadata.getString("fhtml")));
             Assertions.assertEquals(
                     expectedOuter,
-                    cleanHTML(metadata.getString("fouter"))
-            );
+                    cleanHTML(metadata.getString("fouter")));
         }
     }
 
@@ -508,26 +477,22 @@ class DomTransformerTest {
                         domOperation("div.parent", "text", APPEND, "text"),
                         domOperation("span.child1", "html", APPEND, "html"),
                         domOperation(
-                                "span.child1", "outerHtml", APPEND, "outerHtml"
-                        ),
+                                "span.child1", "outerHtml", APPEND,
+                                "outerHtml"),
                         domOperation("script", "data", APPEND, "data"),
                         domOperation("div.parent", "id", APPEND, "id"),
                         domOperation(
-                                "div.parent", "ownText", APPEND, "ownText"
-                        ),
+                                "div.parent", "ownText", APPEND, "ownText"),
                         domOperation(
-                                "div.parent", "tagName", APPEND, "tagName"
-                        ),
+                                "div.parent", "tagName", APPEND, "tagName"),
                         domOperation(".formElement", "val", APPEND, "val"),
                         domOperation(
-                                "textarea", "className", APPEND, "className"
-                        ),
+                                "textarea", "className", APPEND, "className"),
                         domOperation(
-                                ".child2", "cssSelector", APPEND, "cssSelector"
-                        ),
-                        domOperation("textarea", "attr", APPEND, "attr(title)")
-                )
-        );
+                                ".child2", "cssSelector", APPEND,
+                                "cssSelector"),
+                        domOperation("textarea", "attr", APPEND,
+                                "attr(title)")));
 
         var content = """
                 <html><body>\
@@ -560,13 +525,11 @@ class DomTransformerTest {
 
             Assertions.assertEquals(
                     "Parent text.Child text 1.Child text 2.",
-                    text
-            );
+                    text);
             Assertions.assertEquals("Child text <b>1</b>.", html);
             Assertions.assertEquals(
                     "<span class=\"child1\">Child text <b>1</b>.</span>",
-                    outerHtml
-            );
+                    outerHtml);
             Assertions.assertEquals("This is data, not HTML.", data);
             Assertions.assertEquals("content", id);
             Assertions.assertEquals("Parent text.", ownText);
@@ -585,16 +548,14 @@ class DomTransformerTest {
                 .setOperations(
                         List.of(
                                 domOperation(
-                                        "p.blah > a", "myField", REPLACE, "text"
-                                ),
+                                        "p.blah > a", "myField", REPLACE,
+                                        "text"),
                                 domOperation(
                                         "div.blah > a", "myOtherField", REPLACE,
-                                        "html"
-                                )
-                                        .setDefaultValue("myDefaultValue")
-                                        .setDelete(true)
-                        )
-                )
+                                        "html")
+                                                .setDefaultValue(
+                                                        "myDefaultValue")
+                                                .setDelete(true)))
                 .setFieldMatcher(TextMatcher.basic("myfromfield"));
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
@@ -620,8 +581,7 @@ class DomTransformerTest {
         Assertions.assertNotSame(oper1, oper2);
         Assertions.assertNotEquals(oper1.toString(), oper2.toString());
         Assertions.assertDoesNotThrow(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -643,13 +603,10 @@ class DomTransformerTest {
                                         .setSelector("parentD > childD1")
                                         .setDefaultValue("Child D1"),
                                 new DomOperation() // no match: no default
-                                        .setSelector("parentE > childE1")
-                        )
-                );
+                                        .setSelector("parentE > childE1")));
 
         Assertions.assertEquals(
-                "Child A1\nchild1\nChild D1", transformPreserve(t)
-        );
+                "Child A1\nchild1\nChild D1", transformPreserve(t));
 
         // Test batch #2
         t.getConfiguration()
@@ -660,15 +617,12 @@ class DomTransformerTest {
                                         .setExtract("html"),
                                 new DomOperation() // preserve: tag outerHtml
                                         .setSelector("childA2")
-                                        .setExtract("outerHtml")
-                        )
-                );
+                                        .setExtract("outerHtml")));
 
         Assertions.assertEquals(
                 "<extra>Child A2</extra>\n"
                         + "<childA2><extra>Child A2</extra></childA2>",
-                transformPreserve(t)
-        );
+                transformPreserve(t));
 
         // Test batch #3
         t.getConfiguration()
@@ -682,13 +636,10 @@ class DomTransformerTest {
                                         .setExtract("data"),
                                 new DomOperation() // preserve: ownText
                                         .setSelector("parentC")
-                                        .setExtract("ownText")
-                        )
-                );
+                                        .setExtract("ownText")));
         Assertions.assertEquals(
                 "I'm Data\nParent C Before Parent C After",
-                transformPreserve(t)
-        );
+                transformPreserve(t));
 
         // Test batch #4
         t.getConfiguration()
@@ -699,17 +650,14 @@ class DomTransformerTest {
                                         .setExtract("tagName"),
                                 new DomOperation() // preserve: cssSelector
                                         .setSelector("childC")
-                                        .setExtract("cssSelector")
-                        )
-                );
+                                        .setExtract("cssSelector")));
         Assertions.assertEquals(
                 """
                         childB1
                         childC
                         DomTransformerTest > parentC > childC:nth-child(1)
                         DomTransformerTest > parentC > childC:nth-child(2)""",
-                transformPreserve(t)
-        );
+                transformPreserve(t));
     }
 
     //--- Body delete tests ----------------------------------------------------
@@ -737,9 +685,7 @@ class DomTransformerTest {
                         List.of(
                                 new DomOperation()
                                         .setSelector("#childOneId")
-                                        .setDelete(true)
-                        )
-                );
+                                        .setDelete(true)));
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
@@ -774,9 +720,7 @@ class DomTransformerTest {
                         List.of(
                                 new DomOperation()
                                         .setSelector("div")
-                                        .setDelete(true)
-                        )
-                );
+                                        .setDelete(true)));
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
@@ -798,9 +742,7 @@ class DomTransformerTest {
                         List.of(
                                 new DomOperation()
                                         .setSelector("p.blah > a")
-                                        .setDelete(true)
-                        )
-                );
+                                        .setDelete(true)));
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
 
@@ -824,8 +766,7 @@ class DomTransformerTest {
             String selector,
             String toField,
             PropertySetter setter,
-            String extract
-    ) {
+            String extract) {
         return new DomOperation()
                 .setSelector(selector)
                 .setToField(toField)
@@ -840,8 +781,7 @@ class DomTransformerTest {
     }
 
     private void performTransform(
-            Properties metadata, DomTransformer t, String html
-    )
+            Properties metadata, DomTransformer t, String html)
             throws IOException, IOException {
         try (InputStream is = new ByteArrayInputStream(html.getBytes())) {
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");

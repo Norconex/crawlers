@@ -51,8 +51,7 @@ public class ChunkedTextReader {
     private final boolean skipEmpty;
 
     public static ChunkedTextReader from(
-            ChunkedTextSupport chunkedTextSupport
-    ) {
+            ChunkedTextSupport chunkedTextSupport) {
         return new ChunkedTextReaderBuilder()
                 .fieldMatcher(chunkedTextSupport.getFieldMatcher())
                 .maxChunkSize(chunkedTextSupport.getMaxReadSize())
@@ -74,8 +73,7 @@ public class ChunkedTextReader {
     public boolean read(
             @NonNull HandlerContext docCtx,
             @NonNull FailableFunction<TextChunk, Boolean,
-                    IOException> textConsumer
-    )
+                    IOException> textConsumer)
             throws IOException {
 
         var aborted = false;
@@ -94,8 +92,7 @@ public class ChunkedTextReader {
 
     private boolean readField(
             FailableFunction<TextChunk, Boolean, IOException> textConsumer,
-            boolean aborted, Entry<String, List<String>> en
-    )
+            boolean aborted, Entry<String, List<String>> en)
             throws IOException {
         for (var i = 0; i < en.getValue().size(); i++) {
             var val = en.getValue().get(i);
@@ -104,14 +101,11 @@ public class ChunkedTextReader {
                         en.getKey(),
                         i,
                         new ReadAdapter(
-                                new ByteArrayInputStream(val.getBytes())
-                        ),
-                        textConsumer
-                );
+                                new ByteArrayInputStream(val.getBytes())),
+                        textConsumer);
             } else {
                 textConsumer.apply(
-                        new TextChunk(en.getKey(), i, 0, val)
-                );
+                        new TextChunk(en.getKey(), i, 0, val));
             }
         }
         return aborted;
@@ -121,20 +115,16 @@ public class ChunkedTextReader {
             String fieldName,
             int fieldValueIndex,
             ReadAdapter readAdapter,
-            FailableFunction<TextChunk, Boolean, IOException> textConsumer
-    )
+            FailableFunction<TextChunk, Boolean, IOException> textConsumer)
             throws IOException {
         return readAdapter.asChunkedText(
                 (idx, text) -> textConsumer.apply(
                         new TextChunk(
-                                fieldName, fieldValueIndex, idx, text
-                        )
-                ),
+                                fieldName, fieldValueIndex, idx, text)),
                 new ChunkedReadOptions()
                         .charset(charset)
                         .maxChunkSize(maxChunkSize)
-                        .skipEmpty(skipEmpty)
-        );
+                        .skipEmpty(skipEmpty));
 
     }
 }

@@ -125,15 +125,12 @@ public class URLExtractorTransformer
         } else {
             extractContentURLs(
                     urls, docCtx.input().asReader(
-                            configuration.getSourceCharset()
-                    )
-            );
+                            configuration.getSourceCharset()));
         }
 
         if (!urls.isEmpty()) {
             PropertySetter.orAppend(configuration.getOnSet()).apply(
-                    docCtx.metadata(), configuration.getToField(), urls
-            );
+                    docCtx.metadata(), configuration.getToField(), urls);
         }
     }
 

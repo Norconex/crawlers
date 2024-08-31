@@ -114,8 +114,7 @@ public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
         var ftp = FtpsFileSystemConfigBuilder.getInstance();
         ftp.setFtpsMode(opts, cfg.getConnectionMode());
         ftp.setDataChannelProtectionLevel(
-                opts, cfg.getDataChannelProtectionLevel()
-        );
+                opts, cfg.getDataChannelProtectionLevel());
         ftp.setAutodetectUtf8(opts, cfg.isAutodetectUtf8());
         ftp.setConnectTimeout(opts, cfg.getConnectTimeout());
         ftp.setControlEncoding(opts, cfg.getControlEncoding());
@@ -124,25 +123,21 @@ public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
         ftp.setFileType(opts, cfg.getFileType());
         ftp.setPassiveMode(opts, cfg.isPassiveMode());
         Optional.ofNullable(cfg.getProxySettings().toProxy()).ifPresent(
-                p -> ftp.setProxy(opts, p)
-        );
+                p -> ftp.setProxy(opts, p));
         ftp.setRecentDateFormat(opts, cfg.getRecentDateFormat());
         ftp.setRemoteVerification(opts, !cfg.isRemoteVerificationDisabled());
         ftp.setServerLanguageCode(opts, cfg.getServerLanguageCode());
         ftp.setServerTimeZoneId(opts, cfg.getServerTimeZoneId());
         ftp.setShortMonthNames(
                 opts,
-                cfg.getShortMonthNames().toArray(EMPTY_STRING_ARRAY)
-        );
+                cfg.getShortMonthNames().toArray(EMPTY_STRING_ARRAY));
         ftp.setSoTimeout(opts, cfg.getSocketTimeout());
         ftp.setControlKeepAliveTimeout(opts, cfg.getControlKeepAliveTimeout());
         ftp.setControlKeepAliveReplyTimeout(
-                opts, cfg.getControlKeepAliveReplyTimeout()
-        );
+                opts, cfg.getControlKeepAliveReplyTimeout());
         ftp.setUserDirIsRoot(opts, cfg.isUserDirIsRoot());
         ftp.setTransferAbortedOkReplyCodes(
-                opts, cfg.getTransferAbortedOkReplyCodes()
-        );
+                opts, cfg.getTransferAbortedOkReplyCodes());
         ftp.setMdtmLastModifiedTime(opts, cfg.isMdtmLastModifiedTime());
 
         //NOTE: Override this method if there is a need to set additional

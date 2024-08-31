@@ -44,15 +44,13 @@ public class MockFetcher extends AbstractFetcher<
             throws FetchException {
         var resp = new MockFetchResponseImpl();
         resp.setCrawlDocState(
-                returnBadStatus ? CrawlDocState.BAD_STATUS : CrawlDocState.NEW
-        );
+                returnBadStatus ? CrawlDocState.BAD_STATUS : CrawlDocState.NEW);
         var content = randomDocContent
                 ? "Fake content for: " + fetchRequest.getRef()
                         + "\nRandomness: " + TimeIdGenerator.next()
                 : "Fake content for: " + fetchRequest.getRef();
         fetchRequest.getDoc().setInputStream(
-                new ByteArrayInputStream(content.getBytes())
-        );
+                new ByteArrayInputStream(content.getBytes()));
         return resp;
     }
 

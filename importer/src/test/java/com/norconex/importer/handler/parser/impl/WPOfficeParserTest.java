@@ -31,8 +31,7 @@ class WPOfficeParserTest {
     @Test
     void test_WPOffice_QuattroPro_qpw() throws IOException {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/wordperfect/quattropro.qpw")
-        )
+                resourceAsFile(folder, "/parser/wordperfect/quattropro.qpw"))
                 .hasContentType("application/x-quattro-pro; version=9")
                 .hasContentFamily("Spreadsheet")
                 .hasExtension("qpw")
@@ -43,8 +42,7 @@ class WPOfficeParserTest {
     @Test
     void test_WPOffice_WordPerfect_wpd() throws IOException {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/wordperfect/wordperfect.wpd")
-        )
+                resourceAsFile(folder, "/parser/wordperfect/wordperfect.wpd"))
                 .hasContentType("application/vnd.wordperfect; version=6.x")
                 .hasContentFamily("Word Processor")
                 .hasExtension("wpd")

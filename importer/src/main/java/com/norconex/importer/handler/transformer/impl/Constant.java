@@ -41,8 +41,7 @@ public class Constant {
     }
 
     public static Constant of(
-            @NonNull String name, @NonNull List<String> values
-    ) {
+            @NonNull String name, @NonNull List<String> values) {
         return of(name, values, null);
     }
 
@@ -50,8 +49,7 @@ public class Constant {
     public static Constant of(
             @JsonProperty("name") @NonNull String name,
             @JsonProperty("values") @NonNull List<String> values,
-            @JsonProperty("onSet") PropertySetter onSet
-    ) {
+            @JsonProperty("onSet") PropertySetter onSet) {
         return new Constant(name, values, onSet);
     }
 }

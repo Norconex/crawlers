@@ -50,47 +50,31 @@ class ImporterConfigTest {
                                         cfg -> cfg.setConstants(
                                                 List.of(
                                                         Constant.of(
-                                                                "test1", "abc"
-                                                        )
-                                                )
-                                        )
-                                ),
+                                                                "test1",
+                                                                "abc")))),
                                 configure(new DefaultParser(), cfg -> {
                                     cfg.setErrorsSaveDir(
-                                            tempDir.resolve("saveDir")
-                                    );
+                                            tempDir.resolve("saveDir"));
                                     cfg.getEmbeddedConfig()
                                             .setMaxEmbeddedDepth(2)
                                             .setSkipEmbeddedContentTypes(
                                                     List.of(
                                                             TextMatcher.basic(
-                                                                    "one"
-                                                            ),
+                                                                    "one"),
                                                             TextMatcher.regex(
-                                                                    ".*two.*"
-                                                            )
-                                                    )
-                                            )
+                                                                    ".*two.*")))
                                             .setSkipEmbeddedOfContentTypes(
                                                     List.of(
                                                             TextMatcher.basic(
-                                                                    "three"
-                                                            ),
+                                                                    "three"),
                                                             TextMatcher.regex(
-                                                                    ".*four.*"
-                                                            )
-                                                    )
-                                            )
+                                                                    ".*four.*")))
                                             .setSplitContentTypes(
                                                     List.of(
                                                             TextMatcher.basic(
-                                                                    "five"
-                                                            ),
+                                                                    "five"),
                                                             TextMatcher.regex(
-                                                                    ".*six.*"
-                                                            )
-                                                    )
-                                            );
+                                                                    ".*six.*")));
                                     cfg.getOcrConfig()
                                             .setApplyRotation(true)
                                             .setColorSpace("blah")
@@ -101,13 +85,8 @@ class ImporterConfigTest {
                                         cfg -> cfg.setConstants(
                                                 List.of(
                                                         Constant.of(
-                                                                "test2", "def"
-                                                        )
-                                                )
-                                        )
-                                )
-                        )
-                )
+                                                                "test2",
+                                                                "def"))))))
                 .setResponseProcessors(List.of(new DummyResponseProcessor()))
                 .setTempDir(tempDir.resolve("temp"));
 
@@ -115,10 +94,8 @@ class ImporterConfigTest {
                 () -> BeanMapper.builder()
                         .polymorphicType(
                                 ImporterResponseProcessor.class,
-                                n -> n.endsWith("DummyResponseProcessor")
-                        )
+                                n -> n.endsWith("DummyResponseProcessor"))
                         .build()
-                        .assertWriteRead(config)
-        );
+                        .assertWriteRead(config));
     }
 }

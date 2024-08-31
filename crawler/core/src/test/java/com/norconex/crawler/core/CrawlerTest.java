@@ -64,14 +64,12 @@ class CrawlerTest {
                         .setDataStoreEngine(new MVStoreDataStoreEngine() {
                             @Override
                             public <T> DataStore<T> openStore(
-                                    String storeName, Class<? extends T> type
-                            ) {
+                                    String storeName, Class<? extends T> type) {
                                 return new MockNoopDataStore<>() {
                                     @Override
                                     public Optional<T> deleteFirst() {
                                         throw new UnsupportedOperationException(
-                                                "TEST"
-                                        );
+                                                "TEST");
                                     }
                                 };
                             }
@@ -81,13 +79,11 @@ class CrawlerTest {
                             if (evt.is(CrawlerEvent.CRAWLER_ERROR)) {
                                 exception.setValue(evt.getException());
                             }
-                        })
-        );
+                        }));
 
         assertThat(mem.getUpsertCount()).isZero();
         assertThat(exception.getValue()).isInstanceOf(
-                UnsupportedOperationException.class
-        );
+                UnsupportedOperationException.class);
         assertThat(exception.getValue().getMessage()).isEqualTo("TEST");
     }
 
@@ -100,8 +96,7 @@ class CrawlerTest {
                 cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
                         .setNumThreads(2)
                         .setStopOnExceptions(
-                                List.of(IllegalStateException.class)
-                        )
+                                List.of(IllegalStateException.class))
                         .addEventListener(evt -> {
                             if (evt.is(CrawlerEvent.DOCUMENT_IMPORTED)) {
                                 throw new IllegalStateException("DOC_ERROR");
@@ -112,13 +107,11 @@ class CrawlerTest {
                             if (evt.is(CrawlerEvent.CRAWLER_STOP_END)) {
                                 stopped.setValue(true);
                             }
-                        })
-        );
+                        }));
 
         assertThat(mem.getUpsertCount()).isLessThan(3);
         assertThat(exception.getValue()).isInstanceOf(
-                IllegalStateException.class
-        );
+                IllegalStateException.class);
         assertThat(exception.getValue().getMessage()).isEqualTo("DOC_ERROR");
         assertThat(stopped.getValue()).isTrue();
     }
@@ -135,8 +128,7 @@ class CrawlerTest {
                             if (evt.is(CrawlerEvent.CRAWLER_STOP_END)) {
                                 stopped.setValue(true);
                             }
-                        })
-        );
+                        }));
 
         assertThat(mem.getUpsertCount()).isLessThan(3);
         assertThat(stopped.getValue()).isTrue();
@@ -148,12 +140,9 @@ class CrawlerTest {
                 tempDir,
                 cfg -> cfg.setStartReferences(
                         List.of(
-                                "ref1", "ref2", "ref3", "ref4", "ref5", "ref6"
-                        )
-                )
+                                "ref1", "ref2", "ref3", "ref4", "ref5", "ref6"))
                         .setNumThreads(2)
-                        .setStartReferencesAsync(true)
-        );
+                        .setStartReferencesAsync(true));
         assertThat(mem.getUpsertCount()).isEqualTo(6);
     }
 
@@ -169,8 +158,7 @@ class CrawlerTest {
                         // it to loop forever.
                         .setDataStoreEngine(new MockNoopDataStoreEngine())
                         .setNumThreads(2)
-                        .setIdleTimeout(Duration.ofMillis(100))
-        );
+                        .setIdleTimeout(Duration.ofMillis(100)));
         assertThat(mem.getUpsertCount()).isZero();
     }
 
@@ -178,15 +166,12 @@ class CrawlerTest {
     void testLifeCycle() {
         var builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
         builder.fetcherProvider(
-                crawler -> new MockFetcher().setRandomDocContent(true)
-        );
+                crawler -> new MockFetcher().setRandomDocContent(true));
         builder.configuration()
                 .setStartReferences(
                         List.of(
                                 "mock:ref1", "mock:ref2", "mock:ref3",
-                                "mock:ref4"
-                        )
-                )
+                                "mock:ref4"))
                 .setWorkDir(tempDir);
         var crawler1 = builder.build();
         var mem = CrawlerTestUtil.firstCommitter(crawler1);
@@ -198,8 +183,7 @@ class CrawlerTest {
         assertThat(mem.getAllRequests())
                 .allMatch(req -> req.getReference().startsWith("mock:ref"))
                 .allMatch(
-                        req -> !req.getMetadata().getBoolean("mock.alsoCached")
-                )
+                        req -> !req.getMetadata().getBoolean("mock.alsoCached"))
                 .hasSize(4);
 
         // Export
@@ -216,15 +200,12 @@ class CrawlerTest {
         // New session with 1 new 2 modified, and 1 orphan
         builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
         builder.fetcherProvider(
-                crawler -> new MockFetcher().setRandomDocContent(true)
-        );
+                crawler -> new MockFetcher().setRandomDocContent(true));
         builder.configuration()
                 .setStartReferences(
                         List.of(
                                 "mock:ref2", "mock:ref3", "mock:ref4",
-                                "mock:ref5"
-                        )
-                )
+                                "mock:ref5"))
                 .setWorkDir(tempDir);
         var crawler2 = builder.build();
         mem = CrawlerTestUtil.firstCommitter(crawler2);
@@ -244,48 +225,38 @@ class CrawlerTest {
                         new Condition<>(
                                 req -> req.getMetadata()
                                         .getBoolean("mock.alsoCached"),
-                                ""
-                        )
-                )
+                                ""))
                 .areExactly(
                         1,
                         new Condition<>(
                                 req -> req.getMetadata().getBoolean(
-                                        "collector.is-crawl-new"
-                                ), ""
-                        )
-                )
+                                        "collector.is-crawl-new"),
+                                ""))
                 .map(CommitterRequest::getReference)
                 // ref1 is last because orphans are processed last
                 .containsExactly(
                         "mock:ref2", "mock:ref3", "mock:ref4",
                         "mock:ref5",
-                        "mock:ref1"
-                );
+                        "mock:ref1");
     }
 
     @Test
     void testErrors() {
         assertThatExceptionOfType(CrawlerException.class).isThrownBy(
                 () -> CrawlerTestUtil.runWithConfig(
-                        tempDir, cfg -> cfg.setId(null).setWorkDir(tempDir)
-                )
-        );
+                        tempDir, cfg -> cfg.setId(null).setWorkDir(tempDir)));
     }
 
     @Test
     void testOrphanDeletion() {
         var builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
         builder.fetcherProvider(
-                crawler -> new MockFetcher().setRandomDocContent(true)
-        );
+                crawler -> new MockFetcher().setRandomDocContent(true));
         builder.configuration()
                 .setStartReferences(
                         List.of(
                                 "mock:ref1", "mock:ref2", "mock:ref3",
-                                "mock:ref4"
-                        )
-                );
+                                "mock:ref4"));
         var crawler = builder.build();
 
         crawler.start();
@@ -296,11 +267,8 @@ class CrawlerTest {
                 cfg -> cfg.setStartReferences(
                         List.of(
                                 "mock:ref2", "mock:ref3", "mock:ref4",
-                                "mock:ref5"
-                        )
-                )
-                        .setOrphansStrategy(OrphansStrategy.DELETE)
-        );
+                                "mock:ref5"))
+                        .setOrphansStrategy(OrphansStrategy.DELETE));
 
         crawler.start();
 

@@ -61,9 +61,7 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
                         LocalFetcher.class,
                         SftpFetcher.class,
                         SmbFetcher.class,
-                        WebDavFetcher.class
-                )
-        );
+                        WebDavFetcher.class));
 
         // For unit test
         //        addPolyType(map, EventListener.class, "session.recovery");
@@ -75,17 +73,14 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
     private void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
             Class<?> baseClass,
-            String corePkg
-    ) {
+            String corePkg) {
         polyTypes.putAll(
                 baseClass, ClassFinder.findSubTypes(
                         baseClass,
                         corePkg == null
                                 ? nm -> nm
                                         .startsWith(baseClass.getPackageName())
-                                : filter(corePkg)
-                )
-        );
+                                : filter(corePkg)));
     }
 
     private Predicate<String> filter(String corePkg) {

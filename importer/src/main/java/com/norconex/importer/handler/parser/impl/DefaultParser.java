@@ -70,8 +70,7 @@ public class DefaultParser
     public void init() throws IOException {
         fixTikaInitWarning();
         tikaParser = new AutoDetectParser(
-                DefTikaConfigurer.configure(configuration)
-        );
+                DefTikaConfigurer.configure(configuration));
     }
 
     //TODO document this one is based on tika parser, and only support
@@ -93,22 +92,19 @@ public class DefaultParser
         tikaMetadata.set(HttpHeaders.CONTENT_TYPE, contentType.toString());
         tikaMetadata.set(
                 TikaCoreProperties.RESOURCE_NAME_KEY,
-                ctx.reference()
-        );
+                ctx.reference());
         tikaMetadata.set(
                 HttpHeaders.CONTENT_ENCODING,
                 ofNullable(ctx.docContext().getCharset())
                         .map(Charset::toString)
-                        .orElse(null)
-        );
+                        .orElse(null));
 
         try (var input = CachedInputStream.cache(ctx.input().asInputStream());
                 var output = ctx.output().asWriter(UTF_8)) {
 
             tikaMetadata.set(
                     HttpHeaders.CONTENT_LENGTH,
-                    Long.toString(input.length())
-            );
+                    Long.toString(input.length()));
 
             var recursiveParser =
                     createRecursiveParser(ctx, output, embeddedDocs);
@@ -125,8 +121,7 @@ public class DefaultParser
             context.set(PDFParserConfig.class, pdfConfig);
             recursiveParser.parse(
                     input,
-                    new BodyContentHandler(output), tikaMetadata, context
-            );
+                    new BodyContentHandler(output), tikaMetadata, context);
         } catch (ZeroByteFileException e) {
             LOG.warn("Document has no content: {}", ctx.reference());
         } catch (IOException e) {
@@ -139,27 +134,23 @@ public class DefaultParser
     }
 
     protected Parser createRecursiveParser(
-            HandlerContext docCtx, Writer output, List<Doc> embeddedDocs
-    ) {
+            HandlerContext docCtx, Writer output, List<Doc> embeddedDocs) {
         // if the current file (container) matches, we extract (split)
         // its embedded documents (else, we merge).
         if (TextMatcher.anyMatches(
                 configuration.getEmbeddedConfig().getSplitContentTypes(),
-                docCtx.docContext().getContentType().toBaseTypeString()
-        )) {
+                docCtx.docContext().getContentType().toBaseTypeString())) {
             return new RecursiveEmbeddedSplitter(
                     tikaParser,
                     docCtx,
                     embeddedDocs,
-                    configuration.getEmbeddedConfig()
-            );
+                    configuration.getEmbeddedConfig());
         }
         return new RecursiveEmbeddedMerger(
                 tikaParser,
                 output,
                 docCtx,
-                configuration.getEmbeddedConfig()
-        );
+                configuration.getEmbeddedConfig());
     }
 
     private void fixTikaInitWarning() {
@@ -169,13 +160,11 @@ public class DefaultParser
         // via Importer config only.
         try {
             FieldUtils.writeStaticField(
-                    TesseractOCRParser.class, "HAS_WARNED", true, true
-            );
+                    TesseractOCRParser.class, "HAS_WARNED", true, true);
         } catch (IllegalAccessException | IllegalArgumentException e) {
             LOG.warn(
                     "Could not disable invalid Tessaract OCR warning. "
-                            + "If you see such warning, you can ignore."
-            );
+                            + "If you see such warning, you can ignore.");
         }
     }
 }

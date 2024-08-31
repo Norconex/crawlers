@@ -39,13 +39,11 @@ class SmbFetcherTest extends AbstractFileFetcherTest {
                     .withFileSystemBind(
                             new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
                             "/share/joefiles",
-                            BindMode.READ_ONLY
-                    )
+                            BindMode.READ_ONLY)
                     .withCopyToContainer(
                             MountableFile
                                     .forClasspathResource("/smb/config.json"),
-                            "/share/config/config.json"
-                    );
+                            "/share/config/config.json");
 
     @BeforeAll
     static void beforeAll() {

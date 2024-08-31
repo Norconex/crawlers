@@ -73,8 +73,7 @@ public class GenericMetadataFilterConfig {
      * @return this instance
      */
     public GenericMetadataFilterConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
@@ -93,8 +92,7 @@ public class GenericMetadataFilterConfig {
      * @return this instance
      */
     public GenericMetadataFilterConfig setValueMatcher(
-            TextMatcher valueMatcher
-    ) {
+            TextMatcher valueMatcher) {
         this.valueMatcher.copyFrom(valueMatcher);
         return this;
     }

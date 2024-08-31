@@ -47,8 +47,7 @@ public abstract class AbstractExternalTest {
     private final Supplier<Configurable<ExternalTransformerConfig>> supplier;
 
     protected AbstractExternalTest(
-            Supplier<Configurable<ExternalTransformerConfig>> supplier
-    ) {
+            Supplier<Configurable<ExternalTransformerConfig>> supplier) {
         this.supplier = supplier;
     }
 
@@ -72,9 +71,8 @@ public abstract class AbstractExternalTest {
                                 new RegexFieldValueExtractor("aaa.*", "111"),
                                 new RegexFieldValueExtractor("bbb.*", "222"),
                                 new RegexFieldValueExtractor("ccc.*", "333"),
-                                new RegexFieldValueExtractor("ddd.*", "444", 2)
-                        )
-                )
+                                new RegexFieldValueExtractor("ddd.*", "444",
+                                        2)))
                 .setEnvironmentVariables(setEnvs);
 
         assertThatNoException()
@@ -125,13 +123,11 @@ public abstract class AbstractExternalTest {
         var metadata = new Properties();
         if (metaFiles) {
             metadata.set(
-                    "metaFileField1", "this is a first test"
-            );
+                    "metaFileField1", "this is a first test");
             metadata.set(
                     "metaFileField2",
                     "this is a second test value1",
-                    "this is a second test value2"
-            );
+                    "this is a second test value2");
         }
 
         var t = supplier.get();
@@ -144,8 +140,7 @@ public abstract class AbstractExternalTest {
                 .setOnSet(PropertySetter.REPLACE);
         var doc = TestUtil.newHandlerContext(
                 "c:\\ref with spaces\\doc.txt", input,
-                metadata, ParseState.PRE
-        );
+                metadata, ParseState.PRE);
         ((BaseDocumentHandler) t).accept(doc);
 
         var content = doc.input().asString();
@@ -165,16 +160,13 @@ public abstract class AbstractExternalTest {
 
     private void assertMetadataFiles(Properties meta) {
         Assertions.assertEquals(
-                "test first a is this", meta.getString("metaFileField1")
-        );
+                "test first a is this", meta.getString("metaFileField1"));
         Assertions.assertEquals(
                 "value1 test second a is this",
-                meta.getStrings("metaFileField2").get(0)
-        );
+                meta.getStrings("metaFileField2").get(0));
         Assertions.assertEquals(
                 "value2 test second a is this",
-                meta.getStrings("metaFileField2").get(1)
-        );
+                meta.getStrings("metaFileField2").get(1));
     }
 
     private void assertMetadata(Properties meta, boolean testReference) {
@@ -182,14 +174,12 @@ public abstract class AbstractExternalTest {
         Assertions.assertEquals("StdoutAfter", meta.getString("field2"));
         Assertions.assertEquals(
                 "field3 StdErrBefore",
-                meta.getString("field3")
-        );
+                meta.getString("field3"));
         Assertions.assertEquals("StdErrAfter", meta.getString("field4"));
         if (testReference) {
             Assertions.assertEquals(
                     "c:\\ref with spaces\\doc.txt",
-                    meta.getString("reference")
-            );
+                    meta.getString("reference"));
         }
     }
 
@@ -206,17 +196,12 @@ public abstract class AbstractExternalTest {
                         new RegexFieldValueExtractor("^(f.*):(.*)", 1, 2),
                         new RegexFieldValueExtractor(
                                 "^<field2>(.*)</field2>", "field2",
-                                1
-                        ),
+                                1),
                         new RegexFieldValueExtractor(
-                                "^f.*StdErr.*", "field3", 1
-                        ),
+                                "^f.*StdErr.*", "field3", 1),
                         new RegexFieldValueExtractor("^(S.*?):(.*)", 2, 1),
                         new RegexFieldValueExtractor(
-                                "^(reference)\\=(.*)", 1, 2
-                        )
-                )
-        );
+                                "^(reference)\\=(.*)", 1, 2)));
     }
 
     private InputStream inputAsStream() {

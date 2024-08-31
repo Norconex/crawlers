@@ -46,6 +46,5 @@ public interface SpoiledReferenceStrategizer {
      * @return a spoiled reference strategy
      */
     SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
-            String reference, CrawlDocState state
-    );
+            String reference, CrawlDocState state);
 }

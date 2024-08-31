@@ -115,8 +115,7 @@ public class XmlFileCommitter extends
     protected EnhancedXmlStreamWriter createDocWriter(Writer writer)
             throws IOException {
         var xml = new EnhancedXmlStreamWriter(
-                writer, false, configuration.getIndent()
-        );
+                writer, false, configuration.getIndent());
         xml.writeStartDocument();
         xml.writeStartElement("docs");
         return xml;
@@ -125,8 +124,7 @@ public class XmlFileCommitter extends
     @Override
     protected void writeUpsert(
             EnhancedXmlStreamWriter xml,
-            UpsertRequest upsertRequest
-    ) throws IOException {
+            UpsertRequest upsertRequest) throws IOException {
 
         xml.writeStartElement("upsert");
 
@@ -146,9 +144,8 @@ public class XmlFileCommitter extends
 
         xml.writeElementString(
                 "content", IOUtils.toString(
-                        upsertRequest.getContent(), StandardCharsets.UTF_8
-                ).trim()
-        );
+                        upsertRequest.getContent(), StandardCharsets.UTF_8)
+                        .trim());
 
         xml.writeEndElement(); // </upsert>
         xml.flush();
@@ -157,8 +154,7 @@ public class XmlFileCommitter extends
     @Override
     protected void writeDelete(
             EnhancedXmlStreamWriter xml,
-            DeleteRequest deleteRequest
-    ) throws IOException {
+            DeleteRequest deleteRequest) throws IOException {
 
         xml.writeStartElement("delete");
 

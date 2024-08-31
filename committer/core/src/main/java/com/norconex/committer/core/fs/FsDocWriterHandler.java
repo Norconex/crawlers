@@ -52,8 +52,7 @@ class FsDocWriterHandler<T> implements AutoCloseable {
 
     FsDocWriterHandler(
             AbstractFsCommitter<T, ? extends BaseFsCommitterConfig> committer,
-            String fileBaseName
-    ) {
+            String fileBaseName) {
         this.committer = committer;
         this.fileBaseName = fileBaseName;
     }
@@ -70,15 +69,12 @@ class FsDocWriterHandler<T> implements AutoCloseable {
         if (writeCount == 0) {
             file = new File(
                     committer.getResolvedDirectory().toFile(),
-                    buildFileName()
-            );
+                    buildFileName());
             LOG.info("Creating file: {}", file);
             if (committer.getConfiguration().isCompress()) {
                 writer = new OutputStreamWriter(
                         new GZIPOutputStream(
-                                new FileOutputStream(file), true
-                        )
-                );
+                                new FileOutputStream(file), true));
             } else {
                 writer = new FileWriter(file);
             }
@@ -92,14 +88,11 @@ class FsDocWriterHandler<T> implements AutoCloseable {
     private String buildFileName() {
         var fileName = stripToEmpty(
                 toSafeFileName(
-                        committer.getConfiguration().getFileNamePrefix()
-                )
-        )
+                        committer.getConfiguration().getFileNamePrefix()))
                 + fileBaseName + stripToEmpty(
                         toSafeFileName(
-                                committer.getConfiguration().getFileNameSuffix()
-                        )
-                )
+                                committer.getConfiguration()
+                                        .getFileNameSuffix()))
                 + "_" + fileNumber + "." + committer.getFileExtension();
         if (committer.getConfiguration().isCompress()) {
             fileName += ".gz";

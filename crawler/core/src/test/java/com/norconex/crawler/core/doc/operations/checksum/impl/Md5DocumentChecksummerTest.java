@@ -59,8 +59,7 @@ class Md5DocumentChecksummerTest {
         is.dispose();
         assertThat(checksum).isEqualTo(
                 "e75e091aff05a39a9c585e2b4b18c9bc"
-                        + "|b53227da4280f0e18270f21dd77c91d0"
-        );
+                        + "|b53227da4280f0e18270f21dd77c91d0");
     }
 
     @Test
@@ -78,40 +77,35 @@ class Md5DocumentChecksummerTest {
         var checksum1 = cs.createDocumentChecksum(doc);
         Assertions.assertTrue(
                 StringUtils.isNotBlank(checksum1),
-                "No checksum was generated for two matching fields."
-        );
+                "No checksum was generated for two matching fields.");
 
         // 1 out of 2 matching fields
         cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field1,field3"));
         var checksum2 = cs.createDocumentChecksum(doc);
         Assertions.assertTrue(
                 StringUtils.isNotBlank(checksum2),
-                "No checksum was generated for 1 of two matching fields."
-        );
+                "No checksum was generated for 1 of two matching fields.");
 
         // No matching fields
         cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field4,field5"));
         var checksum3 = cs.createDocumentChecksum(doc);
         Assertions.assertNull(
                 checksum3,
-                "Checksum for no matching fields should have been null."
-        );
+                "Checksum for no matching fields should have been null.");
 
         // Regex
         cs.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         var checksum4 = cs.createDocumentChecksum(doc);
         Assertions.assertTrue(
                 StringUtils.isNotBlank(checksum4),
-                "No checksum was generated."
-        );
+                "No checksum was generated.");
 
         // Regex only no match
         cs.getConfiguration().setFieldMatcher(TextMatcher.regex("NOfield.*"));
         var checksum5 = cs.createDocumentChecksum(doc);
         Assertions.assertNull(
                 checksum5,
-                "Checksum for no matching regex should have been null."
-        );
+                "Checksum for no matching regex should have been null.");
 
         is.dispose();
     }
@@ -141,16 +135,13 @@ class Md5DocumentChecksummerTest {
         // The 3 checksums should be non-null, but different.
         Assertions.assertNotNull(
                 contentChecksum,
-                "Null content checksum."
-        );
+                "Null content checksum.");
         Assertions.assertNotNull(
                 fieldsChecksum,
-                "Null fields checksum."
-        );
+                "Null fields checksum.");
         Assertions.assertNotNull(
                 combinedChecksum,
-                "Null combined checksum."
-        );
+                "Null combined checksum.");
 
         Assertions.assertNotEquals(contentChecksum, fieldsChecksum);
         Assertions.assertNotEquals(fieldsChecksum, combinedChecksum);
@@ -168,7 +159,6 @@ class Md5DocumentChecksummerTest {
                 .setToField("myToField")
                 .setOnSet(PropertySetter.PREPEND);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 }

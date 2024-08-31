@@ -84,11 +84,9 @@ class CharsetTransformerTest {
 
         var targetStartWith = Arrays.copyOf(
                 IOUtils.toByteArray(doc.input().asInputStream()),
-                startWith.length
-        );
+                startWith.length);
         Assertions.assertArrayEquals(
-                startWith, targetStartWith, "ISO-8859-1 > UTF-8"
-        );
+                startWith, targetStartWith, "ISO-8859-1 > UTF-8");
     }
 
     @Test
@@ -111,8 +109,7 @@ class CharsetTransformerTest {
         if (Arrays.equals(startWith, targetStartWith)) {
             Assertions.fail(
                     "Transformation with bad source must not be equal. "
-                            + "KOI8-R > UTF-8"
-            );
+                            + "KOI8-R > UTF-8");
         }
     }
 
@@ -123,16 +120,13 @@ class CharsetTransformerTest {
                 .setSourceCharset(null)
                 .setTargetCharset(null);
         assertThatExceptionOfType(
-                UncheckedIOException.class
-        ).isThrownBy(
-            //NOSONAR
-                () -> t.accept(
-                        TestUtil.newHandlerContext(
-                                "N/A", TestUtil.failingCachedInputStream(),
-                                new Properties()
-                        )
-                )
-        );
+                UncheckedIOException.class).isThrownBy(
+                        //NOSONAR
+                        () -> t.accept(
+                                TestUtil.newHandlerContext(
+                                        "N/A",
+                                        TestUtil.failingCachedInputStream(),
+                                        new Properties())));
     }
 
     @Test
@@ -166,8 +160,7 @@ class CharsetTransformerTest {
     }
 
     private void testCharsetFieldTransformer(
-            String inCharset, String outCharset
-    )
+            String inCharset, String outCharset)
             throws IOException, UnsupportedEncodingException {
 
         var fromCharset = Charset.forName(inCharset);
@@ -188,9 +181,7 @@ class CharsetTransformerTest {
         InputStream is = new NullInputStream(0);
         t.accept(
                 TestUtil.newHandlerContext(
-                        "ref-" + fromCharset + "-" + toCharset, is, metadata
-                )
-        );
+                        "ref-" + fromCharset + "-" + toCharset, is, metadata));
 
         var convertedValue = metadata.getString("field1");
         var convertedBytes = convertedValue.getBytes(toCharset);
@@ -207,13 +198,11 @@ class CharsetTransformerTest {
                 .println("converted bytes: " + Arrays.toString(convertedBytes));
 
         Assertions.assertArrayEquals(
-                targetBytes, convertedBytes, fromCharset + " > " + toCharset
-        );
+                targetBytes, convertedBytes, fromCharset + " > " + toCharset);
     }
 
     private void testCharsetBodyTransformer(
-            String inCharset, String outCharset, boolean detect
-    )
+            String inCharset, String outCharset, boolean detect)
             throws IOException, IOException {
 
         var fromCharset = Charset.forName(inCharset);
@@ -242,8 +231,7 @@ class CharsetTransformerTest {
         //        System.out.println(Arrays.toString(targetStartWith));
 
         Assertions.assertArrayEquals(
-                startWith, targetStartWith, fromCharset + " > " + toCharset
-        );
+                startWith, targetStartWith, fromCharset + " > " + toCharset);
     }
 
     private InputStream getFileStream(String resourcePath) {

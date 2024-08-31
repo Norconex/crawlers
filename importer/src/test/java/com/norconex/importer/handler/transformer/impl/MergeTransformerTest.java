@@ -49,9 +49,7 @@ class MergeTransformerTest {
                                 .setFieldMatcher(TextMatcher.regex("(3|4)"))
                                 .setSingleValue(false)
                                 .setSingleValueSeparator(null)
-                                .setToField("toAnotherField")
-                )
-        );
+                                .setToField("toAnotherField")));
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
@@ -72,40 +70,32 @@ class MergeTransformerTest {
                         new MergeOperation()
                                 .setDeleteFromFields(false)
                                 .setFieldMatcher(
-                                        TextMatcher.regex("(fld4|fld6|field.*)")
-                                )
+                                        TextMatcher
+                                                .regex("(fld4|fld6|field.*)"))
                                 .setSingleValue(false)
                                 .setToField("toField"),
                         new MergeOperation()
                                 .setDeleteFromFields(true)
                                 .setFieldMatcher(
-                                        TextMatcher.regex("(fld4|fld6|field.*)")
-                                )
+                                        TextMatcher
+                                                .regex("(fld4|fld6|field.*)"))
                                 .setSingleValue(true)
                                 .setSingleValueSeparator("-")
-                                .setToField("fld4")
-                )
-        );
+                                .setToField("fld4")));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
         Set<String> expected = new TreeSet<>(
                 Arrays.asList(
-                        "1.1", "1.2", "2", "3", "4", "6"
-                )
-        );
+                        "1.1", "1.2", "2", "3", "4", "6"));
 
         Assertions.assertEquals(
                 expected,
-                new TreeSet<>(meta.getStrings("toField"))
-        );
+                new TreeSet<>(meta.getStrings("toField")));
         Assertions.assertEquals(
                 expected, new TreeSet<>(
                         Arrays.asList(
-                                meta.getString("fld4").split("-")
-                        )
-                )
-        );
+                                meta.getString("fld4").split("-"))));
     }
 
     @Test
@@ -120,9 +110,7 @@ class MergeTransformerTest {
                                 .setDeleteFromFields(false)
                                 .setFieldMatcher(TextMatcher.basic("field"))
                                 .setSingleValue(true)
-                                .setToField("field")
-                )
-        );
+                                .setToField("field")));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 

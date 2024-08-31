@@ -138,8 +138,7 @@ public final class DomUtil {
         LOG.warn(
                 "\"{}\" is not a supported extract type. "
                         + "\"text\" will be used.",
-                extract
-        );
+                extract);
         return element.text();
     }
 }

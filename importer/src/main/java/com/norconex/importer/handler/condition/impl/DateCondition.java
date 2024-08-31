@@ -231,18 +231,15 @@ public class DateCondition
     public boolean evaluate(HandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().getPattern() == null) {
             throw new IllegalArgumentException(
-                    "\"fieldMatcher\" pattern cannot be empty."
-            );
+                    "\"fieldMatcher\" pattern cannot be empty.");
         }
         for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                configuration.getFieldMatcher()
-        ).entrySet()) {
+                configuration.getFieldMatcher()).entrySet()) {
             for (String value : en.getValue()) {
                 if (matches(configuration.getValueMatcher(), en.getKey(), value)
                         && matches(
                                 configuration.getValueMatcherRangeEnd(),
-                                en.getKey(), value
-                        )) {
+                                en.getKey(), value)) {
                     return true;
                 }
             }
@@ -251,8 +248,7 @@ public class DateCondition
     }
 
     private boolean matches(
-            DateValueMatcher matcher, String fieldName, String fieldValue
-    ) {
+            DateValueMatcher matcher, String fieldName, String fieldValue) {
         if (matcher == null) {
             return true;
         }
@@ -273,8 +269,7 @@ public class DateCondition
                 fieldValue,
                 matcher.getOperator(),
                 matcher.getDateProvider().getDateTime(),
-                evalResult
-        );
+                evalResult);
         return evalResult;
     }
 }

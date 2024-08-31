@@ -127,32 +127,23 @@ public class Crawler {
                                         doc -> new UpsertRequest(
                                                 doc.getReference(),
                                                 doc.getMetadata(),
-                                                doc.getInputStream()
-                                        )
-                                ) // Closed by
+                                                doc.getInputStream())) // Closed by
                                 // caller
                                 .deleteRequestBuilder(
                                         doc -> new DeleteRequest(
                                                 doc.getReference(),
-                                                doc.getMetadata()
-                                        )
-                                )
-                                .build()
-                )
+                                                doc.getMetadata()))
+                                .build())
                 .docTrackerService(trackerService)
                 .importer(
                         new Importer(
                                 configuration.getImporterConfig(),
-                                eventManager
-                        )
-                )
+                                eventManager))
                 .monitor(monitor)
                 .progressLogger(
                         new CrawlerProgressLogger(
                                 monitor,
-                                configuration.getMinProgressLoggingInterval()
-                        )
-                )
+                                configuration.getMinProgressLoggingInterval()))
                 .build();
         fetcher = b.fetcherProvider().apply(this);
         docPipelines = b.docPipelines();
@@ -208,8 +199,7 @@ public class Crawler {
                         .name(eventName)
                         .source(this)
                         .subject(subject)
-                        .build()
-        );
+                        .build());
     }
 
     @Override
@@ -224,8 +214,7 @@ public class Crawler {
                 new CommandExecution(this, "RUN")
                         .command(new DocsProcessor(this))
                         .lock(true)
-                        .logIntro(true)
-        );
+                        .logIntro(true));
     }
 
     public void stop() {
@@ -237,8 +226,7 @@ public class Crawler {
         } else {
             LOG.info(
                     "CANNOT STOP: the targetted crawler does not appear "
-                            + "to be running on on this host."
-            );
+                            + "to be running on on this host.");
         }
     }
 
@@ -248,12 +236,9 @@ public class Crawler {
                         .failableCommand(
                                 () -> DataStoreExporter.exportDataStore(
                                         this,
-                                        exportDir
-                                )
-                        )
+                                        exportDir))
                         .lock(true)
-                        .logIntro(true)
-        );
+                        .logIntro(true));
     }
 
     public void importDataStore(Path file) {
@@ -261,11 +246,9 @@ public class Crawler {
                 new CommandExecution(this, "STORE_IMPORT")
                         .failableCommand(
                                 () -> DataStoreImporter
-                                        .importDataStore(this, file)
-                        )
+                                        .importDataStore(this, file))
                         .lock(true)
-                        .logIntro(true)
-        );
+                        .logIntro(true));
     }
 
     /**
@@ -281,7 +264,6 @@ public class Crawler {
                             FileUtils.deleteDirectory(getWorkDir().toFile());
                         })
                         .lock(true)
-                        .logIntro(true)
-        );
+                        .logIntro(true));
     }
 }

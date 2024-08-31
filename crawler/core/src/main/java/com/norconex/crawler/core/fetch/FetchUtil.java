@@ -30,8 +30,7 @@ public final class FetchUtil {
     public static boolean shouldContinueOnBadStatus(
             @NonNull Crawler crawler,
             CrawlDocState originalCrawlDocState,
-            @NonNull FetchDirective fetchDirective
-    ) {
+            @NonNull FetchDirective fetchDirective) {
         // Note: a disabled directive should never get here,
         // and when both are enabled, DOCUMENT always comes after METADATA.
         var metaSupport = crawler.getConfiguration().getMetadataFetchSupport();

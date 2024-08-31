@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.committer.idol;
 
 import java.io.Writer;

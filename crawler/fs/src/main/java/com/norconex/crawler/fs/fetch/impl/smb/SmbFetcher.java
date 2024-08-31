@@ -144,8 +144,7 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
     }
 
     private void metaSet(
-            Properties metadata, int index, String suffix, Object value
-    ) {
+            Properties metadata, int index, String suffix, Object value) {
         var v = StringUtils.trimToNull(Objects.toString(value, null));
         if (v != null) {
             metadata.set(key(index, suffix), v);
@@ -173,25 +172,20 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
         try {
             authData = UserAuthenticatorUtils.authenticate(
                     fileObject.getFileSystem().getFileSystemOptions(),
-                    SmbFileProvider.AUTHENTICATOR_TYPES
-            );
+                    SmbFileProvider.AUTHENTICATOR_TYPES);
 
             NtlmPasswordAuthentication auth = null;
             if (authData != null) {
                 auth = new NtlmPasswordAuthentication(
                         authToString(
                                 authData, UserAuthenticationData.DOMAIN,
-                                smbFileName.getDomain()
-                        ),
+                                smbFileName.getDomain()),
                         authToString(
                                 authData, UserAuthenticationData.USERNAME,
-                                smbFileName.getUserName()
-                        ),
+                                smbFileName.getUserName()),
                         authToString(
                                 authData, UserAuthenticationData.PASSWORD,
-                                smbFileName.getPassword()
-                        )
-                );
+                                smbFileName.getPassword()));
             }
 
             // if auth == null SmbFile uses default credentials
@@ -207,12 +201,9 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
     }
 
     private String authToString(
-            UserAuthenticationData authData, Type type, String part
-    ) {
+            UserAuthenticationData authData, Type type, String part) {
         return UserAuthenticatorUtils.toString(
                 UserAuthenticatorUtils.getData(
-                        authData, type, UserAuthenticatorUtils.toChar(part)
-                )
-        );
+                        authData, type, UserAuthenticatorUtils.toChar(part)));
     }
 }

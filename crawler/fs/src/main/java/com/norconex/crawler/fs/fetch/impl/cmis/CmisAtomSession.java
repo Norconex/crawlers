@@ -50,9 +50,7 @@ public class CmisAtomSession {
         return getDocument(
                 objectByPathTemplate.replace(
                         "{path}",
-                        URLEncoder.encode(path, UTF_8)
-                )
-        );
+                        URLEncoder.encode(path, UTF_8)));
     }
 
     public Xml getDocument(String fullURL) throws FileSystemException {
@@ -64,22 +62,18 @@ public class CmisAtomSession {
             var resp = httpClient.execute(new HttpGet(fullURL));
             if (resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 var consumedContent = IOUtils.toString(
-                        resp.getEntity().getContent(), UTF_8
-                );
+                        resp.getEntity().getContent(), UTF_8);
                 LOG.debug(
                         "Could not consume HTTP content. Response content: "
-                                + consumedContent
-                );
+                                + consumedContent);
                 throw new IOException(
                         "Invalid HTTP response \""
-                                + resp.getStatusLine() + "\" from " + fullURL
-                );
+                                + resp.getStatusLine() + "\" from " + fullURL);
             }
             return resp.getEntity().getContent();
         } catch (UnsupportedOperationException | IOException e) {
             throw new FileSystemException(
-                    "Could not get stream from " + fullURL, e
-            );
+                    "Could not get stream from " + fullURL, e);
         }
     }
 
@@ -89,8 +83,7 @@ public class CmisAtomSession {
                 httpClient.close();
             } catch (IOException e) {
                 throw new UncheckedIOException(
-                        "Error closing CMIS Atom HTTP client", e
-                );
+                        "Error closing CMIS Atom HTTP client", e);
             }
         }
     }

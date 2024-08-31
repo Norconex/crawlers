@@ -89,8 +89,8 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
             var fetcher = new WebDavFetcher();
             var cfg = fetcher.getConfiguration();
             cfg.getProxySettings()
-                .setCredentials(new Credentials("one", "two"))
-                .setHost(new Host("0.0.0.0", 0));
+                    .setCredentials(new Credentials("one", "two"))
+                    .setHost(new Host("0.0.0.0", 0));
             fetcher.applyFileSystemOptions(new FileSystemOptions());
         });
     }

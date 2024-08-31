@@ -36,8 +36,7 @@ class LogCommitterTest {
             var c = new LogCommitter();
             c.init(TestUtil.committerContext(null));
             TestUtil.commitRequests(
-                    c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1)
-            );
+                    c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1));
             c.close();
         });
     }

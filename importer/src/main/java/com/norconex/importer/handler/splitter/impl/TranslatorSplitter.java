@@ -177,15 +177,12 @@ public class TranslatorSplitter
                             throws DocumentHandlerException {
                         if (StringUtils.isAnyBlank(
                                 configuration.getClientId(),
-                                configuration.getClientSecret()
-                        )) {
+                                configuration.getClientSecret())) {
                             throw new DocumentHandlerException(
-                                    "Both clientId and clientSecret must be specified."
-                            );
+                                    "Both clientId and clientSecret must be specified.");
                         }
                     }
-                }
-        );
+                });
         translators.put(
                 TranslatorSplitterConfig.API_GOOGLE,
                 new TranslatorStrategy() {
@@ -201,12 +198,10 @@ public class TranslatorSplitter
                             throws DocumentHandlerException {
                         if (StringUtils.isAnyBlank(configuration.getApiKey())) {
                             throw new DocumentHandlerException(
-                                    "apiKey must be specified."
-                            );
+                                    "apiKey must be specified.");
                         }
                     }
-                }
-        );
+                });
         translators.put(
                 TranslatorSplitterConfig.API_LINGO24,
                 new TranslatorStrategy() {
@@ -223,12 +218,10 @@ public class TranslatorSplitter
                         if (StringUtils
                                 .isAnyBlank(configuration.getUserKey())) {
                             throw new DocumentHandlerException(
-                                    "userKey must be specified."
-                            );
+                                    "userKey must be specified.");
                         }
                     }
-                }
-        );
+                });
         translators.put(
                 TranslatorSplitterConfig.API_MOSES,
                 new TranslatorStrategy() {
@@ -236,8 +229,7 @@ public class TranslatorSplitter
                     public Translator createTranslator() {
                         return new MosesTranslator(
                                 configuration.getSmtPath(),
-                                configuration.getScriptPath()
-                        );
+                                configuration.getScriptPath());
                     }
 
                     @Override
@@ -245,15 +237,12 @@ public class TranslatorSplitter
                             throws DocumentHandlerException {
                         if (StringUtils.isAnyBlank(
                                 configuration.getSmtPath(),
-                                configuration.getScriptPath()
-                        )) {
+                                configuration.getScriptPath())) {
                             throw new DocumentHandlerException(
-                                    "Both smtPath and scriptPath must be specified."
-                            );
+                                    "Both smtPath and scriptPath must be specified.");
                         }
                     }
-                }
-        );
+                });
         translators.put(
                 TranslatorSplitterConfig.API_YANDEX,
                 new TranslatorStrategy() {
@@ -269,12 +258,10 @@ public class TranslatorSplitter
                             throws DocumentHandlerException {
                         if (StringUtils.isAnyBlank(configuration.getApiKey())) {
                             throw new DocumentHandlerException(
-                                    "apiKey must be specified."
-                            );
+                                    "apiKey must be specified.");
                         }
                     }
-                }
-        );
+                });
     }
 
     @Override
@@ -299,8 +286,7 @@ public class TranslatorSplitter
                 throw new DocumentHandlerException(
                         "Could not translate document: "
                                 + docCtx.reference(),
-                        e
-                );
+                        e);
             }
         } else {
             // Body
@@ -311,8 +297,7 @@ public class TranslatorSplitter
                             : docCtx.streamFactory().newInputStream(input)) {
                 for (String lang : configuration.getTargetLanguages()) {
                     var translatedDoc = translateDocumentFromStream(
-                            docCtx, cachedInput, lang
-                    );
+                            docCtx, cachedInput, lang);
                     if (translatedDoc != null) {
                         translatedDocs.add(translatedDoc);
                     }
@@ -323,8 +308,7 @@ public class TranslatorSplitter
                 throw new DocumentHandlerException(
                         "Could not translate document: "
                                 + docCtx.reference(),
-                        e
-                );
+                        e);
             }
         }
     }
@@ -332,8 +316,7 @@ public class TranslatorSplitter
     private Doc translateDocumentFromStream(
             HandlerContext docCtx,
             CachedInputStream cachedInput,
-            String targetLang
-    )
+            String targetLang)
             throws DocumentHandlerException {
         if (Objects.equals(configuration.getSourceLanguage(), targetLang)) {
             return null;
@@ -341,14 +324,12 @@ public class TranslatorSplitter
         cachedInput.rewind();
         try (var reader = new TextReader(
                 new InputStreamReader(cachedInput, StandardCharsets.UTF_8),
-                getTranslatorStrategy().getReadSize()
-        )) {
+                getTranslatorStrategy().getReadSize())) {
             return translateDocumentFromReader(docCtx, targetLang, reader);
         } catch (Exception e) {
             var extra = "";
             if (TranslatorSplitterConfig.API_GOOGLE.equals(
-                    configuration.getApi()
-            )
+                    configuration.getApi())
                     && e instanceof IndexOutOfBoundsException) {
                 extra = " \"apiKey\" is likely invalid.";
             }
@@ -358,16 +339,13 @@ public class TranslatorSplitter
                                     configuration.getSourceLanguage(),
                                     targetLang,
                                     docCtx.reference(),
-                                    extra
-                            ),
-                    e
-            );
+                                    extra),
+                    e);
         }
     }
 
     private Doc translateDocumentFromReader(
-            HandlerContext docCtx, String targetLang, TextReader reader
-    )
+            HandlerContext docCtx, String targetLang, TextReader reader)
             throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
@@ -381,8 +359,7 @@ public class TranslatorSplitter
             String text = null;
             while ((text = reader.readText()) != null) {
                 var txt = translator.translate(
-                        text, sourceLang, targetLang
-                );
+                        text, sourceLang, targetLang);
                 childContent.write(txt.getBytes(StandardCharsets.UTF_8));
                 childContent.flush();
             }
@@ -410,8 +387,7 @@ public class TranslatorSplitter
     }
 
     private Properties translateFields(
-            HandlerContext docCtx, String targetLang
-    ) throws Exception {
+            HandlerContext docCtx, String targetLang) throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
         var sourceLang = getResolvedSourceLanguage(docCtx);
@@ -462,8 +438,7 @@ public class TranslatorSplitter
         var strategy = translators.get(configuration.getApi());
         if (strategy == null) {
             throw new ImporterRuntimeException(
-                    "Unsupported translation api: " + configuration.getApi()
-            );
+                    "Unsupported translation api: " + configuration.getApi());
         }
         return strategy;
     }
@@ -472,26 +447,22 @@ public class TranslatorSplitter
             throws DocumentHandlerException {
         if (StringUtils.isBlank(configuration.getApi())) {
             throw new DocumentHandlerException(
-                    "Must specify a translation api."
-            );
+                    "Must specify a translation api.");
         }
         if (configuration.getTargetLanguages().isEmpty()) {
             throw new DocumentHandlerException(
-                    "No translation target language(s) specified."
-            );
+                    "No translation target language(s) specified.");
         }
 
         var sourceLang = getResolvedSourceLanguage(doc);
         if (sourceLang == null || Language.fromString(sourceLang) == null) {
             throw new DocumentHandlerException(
-                    "Unsupported source language: \"" + sourceLang + "\""
-            );
+                    "Unsupported source language: \"" + sourceLang + "\"");
         }
         for (String targetLang : configuration.getTargetLanguages()) {
             if (Language.fromString(targetLang) == null) {
                 throw new DocumentHandlerException(
-                        "Unsupported target language: \"" + targetLang + "\""
-                );
+                        "Unsupported target language: \"" + targetLang + "\"");
             }
         }
         getTranslatorStrategy().validateProperties();
@@ -499,8 +470,7 @@ public class TranslatorSplitter
 
     private String getResolvedSourceLanguage(HandlerContext docCtx) {
         var lang = docCtx.metadata().getString(
-                configuration.getSourceLanguageField()
-        );
+                configuration.getSourceLanguageField());
         if (StringUtils.isBlank(lang)) {
             lang = configuration.getSourceLanguage();
         }

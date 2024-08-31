@@ -51,8 +51,7 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
             Parser parser,
             Writer writer,
             HandlerContext docCtx,
-            EmbeddedConfig embeddedConfig
-    ) {
+            EmbeddedConfig embeddedConfig) {
         super(parser);
         this.writer = writer;
         this.docCtx = docCtx;
@@ -64,8 +63,7 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
             InputStream stream,
             ContentHandler handler,
             Metadata tikaMeta,
-            ParseContext context
-    )
+            ParseContext context)
             throws IOException, SAXException, TikaException {
 
         var resName = tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY);
@@ -77,8 +75,7 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
             LOG.debug(
                     "Skipping embedded document {} which is over max "
                             + "depth: {}",
-                    maxDepth, resName
-            );
+                    maxDepth, resName);
             return;
         }
 
@@ -88,13 +85,11 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
                 .orElse(null);
         if (!isMasterDoc && TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedOfContentTypes(),
-                parentType
-        )) {
+                parentType)) {
             LOG.debug(
                     "Skipping embedded document {} "
                             + "of parent content type: {}.",
-                    resName, parentType
-            );
+                    resName, parentType);
             return;
         }
 
@@ -110,13 +105,11 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
         // Don't parse if unwanted embedded content type
         if (TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedContentTypes(),
-                currentType.toBaseTypeString()
-        )) {
+                currentType.toBaseTypeString())) {
             LOG.debug(
                     "Skipping embedded document {} "
                             + "with content type: {}.",
-                    resName, currentType
-            );
+                    resName, currentType);
             return;
         }
 
@@ -124,8 +117,7 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
         typesHierarchy.add(currentType);
         super.parse(
                 stream,
-                new BodyContentHandler(writer), tikaMeta, context
-        );
+                new BodyContentHandler(writer), tikaMeta, context);
         TikaUtil.metadataToProperties(tikaMeta, docCtx.metadata());
         typesHierarchy.pollLast();
     }

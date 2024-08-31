@@ -36,8 +36,7 @@ public final class FileFetchUtil {
      *     of the supplied prefixes
      */
     public static boolean referenceStartsWith(
-            FileFetchRequest req, String... prefixes
-    ) {
+            FileFetchRequest req, String... prefixes) {
 
         return Optional.ofNullable(req)
                 .map(FileFetchRequest::getDoc)

@@ -66,6 +66,7 @@ class AzureSearchClientTest {
                 public CommitterRequest next() {
                     throw new UnsupportedOperationException("Fake exception");
                 }
+
                 @Override
                 public boolean hasNext() {
                     return true;
@@ -85,6 +86,7 @@ class AzureSearchClientTest {
                 public String getReference() {
                     return "BLAH";
                 }
+
                 @Override
                 public Properties getMetadata() {
                     return new Properties();
@@ -97,12 +99,12 @@ class AzureSearchClientTest {
     @Test
     void testHandleResponse() {
         assertThatNoException().isThrownBy(() -> {
-        var committer = createAzureSearchCommitter(1234);
-        var cfg = committer.getConfiguration();
-        cfg.setIgnoreResponseErrors(true);
-        var client = new AzureSearchClient(cfg);
-        client.handleResponse(new BasicClassicHttpResponse(
-                500, "-External- Server Error."));
+            var committer = createAzureSearchCommitter(1234);
+            var cfg = committer.getConfiguration();
+            cfg.setIgnoreResponseErrors(true);
+            var client = new AzureSearchClient(cfg);
+            client.handleResponse(new BasicClassicHttpResponse(
+                    500, "-External- Server Error."));
         });
     }
 

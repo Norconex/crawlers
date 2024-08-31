@@ -156,8 +156,7 @@ public class DomCondition
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                docCtx.docContext().getContentType().toString()
-        )) {
+                docCtx.docContext().getContentType().toString())) {
             return false;
         }
 
@@ -173,9 +172,8 @@ public class DomCondition
                             Jsoup.parse(
                                     chunk.getText(),
                                     docCtx.reference(),
-                                    toJSoupParser(configuration.getParser())
-                            )
-                    )) {
+                                    toJSoupParser(
+                                            configuration.getParser())))) {
                         matches.setTrue();
                     }
                     return true;

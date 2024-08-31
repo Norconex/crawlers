@@ -69,11 +69,9 @@ class CharacterCaseTransformerTest {
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
-                "DOIT ÊTRE UPPER", meta.getStrings("field1").get(0)
-        );
+                "DOIT ÊTRE UPPER", meta.getStrings("field1").get(0));
         Assertions.assertEquals(
-                "MUST BE UPPER", meta.getStrings("field1").get(1)
-        );
+                "MUST BE UPPER", meta.getStrings("field1").get(1));
         Assertions.assertEquals("doit être lower", meta.getString("field2"));
     }
 
@@ -112,9 +110,7 @@ class CharacterCaseTransformerTest {
             Assertions.assertTrue(
                     EqualsUtil.equalsAny(
                             field, "FIELDMUSTBEUPPER", "fieldmustbelower",
-                            "FieldMustBeCapitalized"
-                    )
-            );
+                            "FieldMustBeCapitalized"));
         }
     }
 
@@ -136,8 +132,7 @@ class CharacterCaseTransformerTest {
 
         Assertions.assertEquals(
                 "vALuE sWAP. \n  ok.",
-                meta.getString("fieldMustBeSwapped")
-        );
+                meta.getString("fieldMustBeSwapped"));
     }
 
     @Test
@@ -172,16 +167,13 @@ class CharacterCaseTransformerTest {
 
         Assertions.assertEquals(
                 "Normal String. another One.",
-                meta.getString("string1")
-        );
+                meta.getString("string1"));
         Assertions.assertEquals(
                 " String starting with a Space.",
-                meta.getString("string2")
-        );
+                meta.getString("string2"));
         Assertions.assertEquals(
                 "1 string starting with a Number.",
-                meta.getString("string3")
-        );
+                meta.getString("string3"));
     }
 
     @Test
@@ -217,16 +209,13 @@ class CharacterCaseTransformerTest {
 
         Assertions.assertEquals(
                 "Normal string. another one.",
-                meta.getString("string1")
-        );
+                meta.getString("string1"));
         Assertions.assertEquals(
                 " String starting with a space.",
-                meta.getString("string2")
-        );
+                meta.getString("string2"));
         Assertions.assertEquals(
                 "1 string starting with a number.",
-                meta.getString("string3")
-        );
+                meta.getString("string3"));
     }
 
     @Test
@@ -262,16 +251,13 @@ class CharacterCaseTransformerTest {
 
         Assertions.assertEquals(
                 "Normal String. Another One.",
-                meta.getString("string1")
-        );
+                meta.getString("string1"));
         Assertions.assertEquals(
                 " String StarTing With A Space.",
-                meta.getString("string2")
-        );
+                meta.getString("string2"));
         Assertions.assertEquals(
                 "1 String StarTing With A Number.",
-                meta.getString("string3")
-        );
+                meta.getString("string3"));
     }
 
     @Test
@@ -307,16 +293,13 @@ class CharacterCaseTransformerTest {
 
         Assertions.assertEquals(
                 "Normal String. Another One.",
-                meta.getString("string1")
-        );
+                meta.getString("string1"));
         Assertions.assertEquals(
                 " String Starting With A Space.",
-                meta.getString("string2")
-        );
+                meta.getString("string2"));
         Assertions.assertEquals(
                 "1 String Starting With A Number.",
-                meta.getString("string3")
-        );
+                meta.getString("string3"));
     }
 
     @Test
@@ -359,16 +342,13 @@ class CharacterCaseTransformerTest {
 
         Assertions.assertEquals(
                 "Normal String. Another One.",
-                meta.getString("string1")
-        );
+                meta.getString("string1"));
         Assertions.assertEquals(
                 " String starTing with a Space.",
-                meta.getString("string2")
-        );
+                meta.getString("string2"));
         Assertions.assertEquals(
                 "1 string starTing with a Number. PLUS this",
-                meta.getString("string3")
-        );
+                meta.getString("string3"));
         Assertions.assertEquals("Yes.no. Yes. . ", meta.getString("string4"));
     }
 
@@ -405,16 +385,13 @@ class CharacterCaseTransformerTest {
 
         Assertions.assertEquals(
                 "Normal string. Another one.",
-                meta.getString("string1")
-        );
+                meta.getString("string1"));
         Assertions.assertEquals(
                 " String starting with a space.",
-                meta.getString("string2")
-        );
+                meta.getString("string2"));
         Assertions.assertEquals(
                 "1 string starting with a number. Plus this",
-                meta.getString("string3")
-        );
+                meta.getString("string3"));
     }
 
     @Test

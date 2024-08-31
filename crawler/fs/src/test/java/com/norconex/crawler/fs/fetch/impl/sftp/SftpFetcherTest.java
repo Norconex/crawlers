@@ -39,8 +39,7 @@ class SftpFetcherTest extends AbstractFileFetcherTest {
                     .withFileSystemBind(
                             new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
                             "/home/user/download",
-                            BindMode.READ_ONLY
-                    )
+                            BindMode.READ_ONLY)
                     .withCommand("user:unsecure:1001::::::download");
 
     @BeforeAll

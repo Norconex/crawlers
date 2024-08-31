@@ -81,11 +81,8 @@ class FsQueueTest {
                 0, Files.find(
                         folder, 1,
                         (f, a) -> f.toFile().getName().endsWith(
-                                FSQueueUtil.EXT
-                        )
-                )
-                        .count()
-        );
+                                FSQueueUtil.EXT))
+                        .count());
 
         assertThat(queue.getBatchConsumer()).isNotNull();
     }

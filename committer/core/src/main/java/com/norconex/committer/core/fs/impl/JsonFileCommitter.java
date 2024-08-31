@@ -124,8 +124,7 @@ public class JsonFileCommitter
 
     @Override
     protected synchronized void writeUpsert(
-            Writer writer, UpsertRequest upsertRequest
-    ) throws IOException {
+            Writer writer, UpsertRequest upsertRequest) throws IOException {
 
         if (!first) {
             writer.write(',');
@@ -137,9 +136,8 @@ public class JsonFileCommitter
         doc.put("metadata", new JSONObject(upsertRequest.getMetadata()));
         doc.put(
                 "content", IOUtils.toString(
-                        upsertRequest.getContent(), StandardCharsets.UTF_8
-                ).trim()
-        );
+                        upsertRequest.getContent(), StandardCharsets.UTF_8)
+                        .trim());
 
         var upsertObj = new JSONObject();
         upsertObj.put("upsert", doc);
@@ -155,8 +153,7 @@ public class JsonFileCommitter
 
     @Override
     protected synchronized void writeDelete(
-            Writer writer, DeleteRequest deleteRequest
-    ) throws IOException {
+            Writer writer, DeleteRequest deleteRequest) throws IOException {
 
         if (!first) {
             writer.write(',');

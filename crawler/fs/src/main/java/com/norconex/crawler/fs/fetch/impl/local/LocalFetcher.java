@@ -104,11 +104,9 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
         return referenceStartsWith(
                 fetchRequest,
                 "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
-                "tar:", "tgz:", "tbz2:", "zip:", "mime:"
-        )
+                "tar:", "tgz:", "tbz2:", "zip:", "mime:")
                 || fetchRequest.getDoc().getDocContext().getReference().matches(
-                        "(?i)^[a-z]{1,2}:[/\\\\].*"
-                );
+                        "(?i)^[a-z]{1,2}:[/\\\\].*");
     }
 
     @Override
@@ -127,12 +125,10 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
             var localFileName = (LocalFileName) localFile.getName();
             var file = new File(
                     localFileName.getRootFile()
-                            + localFileName.getPathDecoded()
-            ).toPath();
+                            + localFileName.getPathDecoded()).toPath();
 
             var aclFileAttributes = Files.getFileAttributeView(
-                    file, AclFileAttributeView.class
-            );
+                    file, AclFileAttributeView.class);
 
             if (aclFileAttributes == null) {
                 LOG.debug("No ACL file attributes on " + file);
@@ -143,8 +139,7 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
                     && aclFileAttributes.getOwner().getName() != null) {
                 metadata.add(
                         FsDocMetadata.ACL + ".owner",
-                        aclFileAttributes.getOwner().getName()
-                );
+                        aclFileAttributes.getOwner().getName());
             }
 
             for (AclEntry aclEntry : aclFileAttributes.getAcl()) {
@@ -154,15 +149,13 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
                     metadata.add(
                             FsDocMetadata.ACL + "." + type
                                     + "." + perm.name(),
-                            principal
-                    );
+                            principal);
                 }
                 for (AclEntryFlag flag : aclEntry.flags()) {
                     metadata.add(
                             FsDocMetadata.ACL + "." + type
                                     + ".flag." + flag.name(),
-                            principal
-                    );
+                            principal);
                 }
             }
         } catch (IOException e) {

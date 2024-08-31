@@ -52,8 +52,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
     private Xml document;
 
     protected CmisAtomFileObject(
-            AbstractFileName name, CmisAtomFileSystem fileSystem
-    ) {
+            AbstractFileName name, CmisAtomFileSystem fileSystem) {
         super(name, fileSystem);
     }
 
@@ -132,8 +131,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
 
         var childrenURL = document.getString(
                 "/entry/link[@rel='down' and "
-                        + "@type='application/atom+xml;type=feed']/@href"
-        );
+                        + "@type='application/atom+xml;type=feed']/@href");
 
         if (StringUtils.isBlank(childrenURL)) {
             return ArrayUtils.EMPTY_STRING_ARRAY;
@@ -149,8 +147,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
         if (childrenDoc.getInteger("/feed/numItems", -1) > MAX_ITEMS) {
             LOG.warn(
                     "TOO many items under {}. Will only process the first {}.",
-                    getName().getPathDecoded(), MAX_ITEMS
-            );
+                    getName().getPathDecoded(), MAX_ITEMS);
         }
         var xmlList = childrenDoc.getXMLList("/feed/entry/pathSegment/text()");
         xmlList.forEach(x -> {
@@ -168,8 +165,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
     @Override
     protected long doGetContentSize() throws Exception {
         return NumberUtils.toLong(
-                getPropertyValue(PROP_CONTENT_STREAM_LENGTH), -1
-        );
+                getPropertyValue(PROP_CONTENT_STREAM_LENGTH), -1);
     }
 
     /**
@@ -208,7 +204,6 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
                         /entry/object/properties/\
                         *[starts-with(local-name(), 'property')]\
                         [@propertyDefinitionId='%s']/value/text()"""
-                        .formatted(propertyDefId)
-        );
+                        .formatted(propertyDefId));
     }
 }

@@ -37,10 +37,8 @@ public class FsCrawler {
                             CrawlerCallbacks
                                     .builder()
                                     .beforeCrawlerExecution(
-                                            new BeforeFsCrawlerExecution()
-                                    )
-                                    .build()
-                    )
+                                            new BeforeFsCrawlerExecution())
+                                    .build())
                     .docPipelines(FsDocPipelines.get())
                     .docContextType(FsCrawlDocContext.class);
 
@@ -68,8 +66,7 @@ public class FsCrawler {
                 .get()
                 .configuration(
                         Optional.ofNullable(crawlerConfig)
-                                .orElseGet(CrawlerConfig::new)
-                )
+                                .orElseGet(CrawlerConfig::new))
                 .build();
     }
 }

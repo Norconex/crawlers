@@ -74,8 +74,7 @@ class AzureSearchClient {
 
     public AzureSearchClient(AzureSearchCommitterConfig config) {
         this.config = Objects.requireNonNull(
-                config, "'config' must not be null"
-        );
+                config, "'config' must not be null");
         if (StringUtils.isBlank(config.getEndpoint())) {
             throw new IllegalArgumentException("Endpoint is undefined.");
         }
@@ -88,8 +87,7 @@ class AzureSearchClient {
 
         var version = ObjectUtils.defaultIfNull(
                 config.getApiVersion(),
-                AzureSearchCommitterConfig.DEFAULT_API_VERSION
-        );
+                AzureSearchCommitterConfig.DEFAULT_API_VERSION);
         LOG.info("Azure Search API Version: {}", version);
 
         client = createHttpClient();
@@ -112,8 +110,7 @@ class AzureSearchClient {
             var host = new HttpHost(
                     proxy.getScheme(),
                     proxy.getHost().getName(),
-                    proxy.getHost().getPort()
-            );
+                    proxy.getHost().getPort());
             builder.setProxy(host);
             var creds = proxy.getCredentials();
             if (creds.isSet()) {
@@ -124,10 +121,7 @@ class AzureSearchClient {
                                 creds.getUsername(),
                                 EncryptionUtil.decrypt(
                                         creds.getPassword(),
-                                        creds.getPasswordKey()
-                                ).toCharArray()
-                        )
-                );
+                                        creds.getPasswordKey()).toCharArray()));
                 builder.setDefaultCredentialsProvider(cp);
             }
         }
@@ -163,8 +157,7 @@ class AzureSearchClient {
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Could not commit JSON batch to CloudSearch.", e
-            );
+                    "Could not commit JSON batch to CloudSearch.", e);
         }
     }
 
@@ -177,14 +170,11 @@ class AzureSearchClient {
             throws CommitterException {
         var keyField = Optional.ofNullable(
                 trimToNull(
-                        config.getTargetKeyField()
-                )
-        ).orElse(
-                AzureSearchCommitterConfig.DEFAULT_AZURE_KEY_FIELD
-        );
+                        config.getTargetKeyField()))
+                .orElse(
+                        AzureSearchCommitterConfig.DEFAULT_AZURE_KEY_FIELD);
         var keyValue = CommitterUtil.extractSourceIdValue(
-                req, config.getSourceKeyField()
-        );
+                req, config.getSourceKeyField());
         // Key value encoding
         if (!config.isDisableDocKeyEncoding()) {
             keyValue = Base64.encodeBase64URLSafeString(keyValue.getBytes());
@@ -205,8 +195,7 @@ class AzureSearchClient {
         }
 
         var requestEntity = new StringEntity(
-                json.toString(), ContentType.APPLICATION_JSON
-        );
+                json.toString(), ContentType.APPLICATION_JSON);
         var post = new HttpPost(restURL);
         post.addHeader("api-key", config.getApiKey());
         post.setEntity(requestEntity);
@@ -215,12 +204,10 @@ class AzureSearchClient {
             handleResponse(response);
             LOG.info(
                     "Done sending {} upserts/deletes to Azure Search.",
-                    documentBatch.length()
-            );
+                    documentBatch.length());
         } catch (IOException e) {
             throw new CommitterException(
-                    "Could not commit JSON batch to Azure Search.", e
-            );
+                    "Could not commit JSON batch to Azure Search.", e);
         }
     }
 
@@ -238,14 +225,12 @@ class AzureSearchClient {
                 && statusCode != HttpStatus.SC_CREATED) {
             responseError(
                     "Invalid HTTP response: \"" + res.getReasonPhrase()
-                            + "\". Azure Response: " + responseAsString
-            );
+                            + "\". Azure Response: " + responseAsString);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(
                         "Azure Search response status: {} - {}",
-                        res.getCode(), res.getReasonPhrase()
-                );
+                        res.getCode(), res.getReasonPhrase());
             }
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Azure Search response:\n{}", responseAsString);
@@ -254,8 +239,7 @@ class AzureSearchClient {
     }
 
     private JSONObject toJsonDocUpsert(
-            UpsertRequest req, KeyValue<String, String> docKeyField
-    )
+            UpsertRequest req, KeyValue<String, String> docKeyField)
             throws CommitterException {
 
         CommitterUtil.applyTargetContent(req, config.getTargetContentField());
@@ -298,8 +282,7 @@ class AzureSearchClient {
         }
         if (config.isArrayFieldsRegex()) {
             return Pattern.compile(
-                    config.getArrayFields()
-            ).matcher(field).matches();
+                    config.getArrayFields()).matcher(field).matches();
         }
 
         var arrayOfArrayFields = config.getArrayFields().split(",");
@@ -314,23 +297,20 @@ class AzureSearchClient {
         if (field.startsWith("azureSearch")) {
             validationError(
                     "Document field cannot begin "
-                            + "with \"azureSearch\": " + field
-            );
+                            + "with \"azureSearch\": " + field);
             return false;
         }
         if (!field.matches("[\\w]+")) {
             validationError(
                     "Document field cannot have "
                             + "one or more characters other than letters, "
-                            + "numbers and underscores: " + field
-            );
+                            + "numbers and underscores: " + field);
             return false;
         }
         if (field.length() > 128) {
             validationError(
                     "Document field cannot be "
-                            + "longer than 128 characters: " + field
-            );
+                            + "longer than 128 characters: " + field);
             return false;
         }
         return true;
@@ -341,16 +321,14 @@ class AzureSearchClient {
         if (docId.startsWith("_")) {
             validationError(
                     "Document key cannot start "
-                            + "with an underscore character: " + docId
-            );
+                            + "with an underscore character: " + docId);
             return false;
         }
         if (!docId.matches("[A-Za-z0-9_\\-=]+")) {
             validationError(
                     "Document key cannot have one or more "
                             + "characters other than letters, numbers, dashes, "
-                            + "underscores, and equal signs: " + docId
-            );
+                            + "underscores, and equal signs: " + docId);
             return false;
         }
         return true;

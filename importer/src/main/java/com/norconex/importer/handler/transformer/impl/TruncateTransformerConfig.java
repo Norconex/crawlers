@@ -113,8 +113,7 @@ public class TruncateTransformerConfig {
      * @param fieldMatcher field matcher
      */
     public TruncateTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

@@ -84,8 +84,7 @@ public class BaseFetcherConfig {
      * @return this instance
      */
     public BaseFetcherConfig setReferenceFilters(
-            List<ReferenceFilter> referenceFilters
-    ) {
+            List<ReferenceFilter> referenceFilters) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
         CollectionUtil.removeNulls(this.referenceFilters);
         return this;

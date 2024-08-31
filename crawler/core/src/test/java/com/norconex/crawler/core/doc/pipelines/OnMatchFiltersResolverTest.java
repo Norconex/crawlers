@@ -52,10 +52,7 @@ class OnMatchFiltersResolverTest {
                         configure(
                                 new GenericReferenceFilter(), cfg -> cfg
                                         .setValueMatcher(basic("ref"))
-                                        .setOnMatch(OnMatch.INCLUDE)
-                        )
-                )
-        );
+                                        .setOnMatch(OnMatch.INCLUDE))));
         var ctx1 = new ImporterPipelineContext(crawler, doc);
         crawler.getDocPipelines().getImporterPipeline().apply(ctx1);
 
@@ -68,10 +65,7 @@ class OnMatchFiltersResolverTest {
                         configure(
                                 new GenericReferenceFilter(), cfg -> cfg
                                         .setValueMatcher(basic("ref"))
-                                        .setOnMatch(OnMatch.EXCLUDE)
-                        )
-                )
-        );
+                                        .setOnMatch(OnMatch.EXCLUDE))));
         var ctx2 = new ImporterPipelineContext(crawler, doc);
         crawler.getDocPipelines().getImporterPipeline().apply(ctx2);
         assertThat(ctx2.getDoc().getDocContext().getState())
@@ -83,10 +77,7 @@ class OnMatchFiltersResolverTest {
                         configure(
                                 new GenericReferenceFilter(), cfg -> cfg
                                         .setValueMatcher(basic("noref"))
-                                        .setOnMatch(OnMatch.INCLUDE)
-                        )
-                )
-        );
+                                        .setOnMatch(OnMatch.INCLUDE))));
         var ctx3 = new ImporterPipelineContext(crawler, doc);
         crawler.getDocPipelines().getImporterPipeline().apply(ctx3);
         assertThat(ctx3.getDoc().getDocContext().getState())
@@ -141,8 +132,7 @@ class OnMatchFiltersResolverTest {
             FetchDirectiveSupport metaSupport,
             FetchDirectiveSupport docSupport,
             FetchDirective currentDirective,
-            boolean expected
-    ) {
+            boolean expected) {
         CrawlDocStubs.crawlDocWithCache("ref", "content");
         var crawler = CrawlerStubs.memoryCrawler(tempDir);
         var cfg = crawler.getConfiguration();
@@ -153,8 +143,6 @@ class OnMatchFiltersResolverTest {
                 FetchUtil.shouldContinueOnBadStatus(
                         crawler,
                         originalDocState,
-                        currentDirective
-                )
-        ).isEqualTo(expected);
+                        currentDirective)).isEqualTo(expected);
     }
 }

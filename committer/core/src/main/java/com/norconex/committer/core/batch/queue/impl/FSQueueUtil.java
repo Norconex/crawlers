@@ -71,18 +71,15 @@ public final class FSQueueUtil {
         return Files
                 .find(
                         dir, Integer.MAX_VALUE,
-                        (f, a) -> FILTER.accept(f.toFile())
-                )
+                        (f, a) -> FILTER.accept(f.toFile()))
                 .sorted();
     }
 
     public static void toZipFile(
-            CommitterRequest request, Path targetFile
-    ) throws IOException {
+            CommitterRequest request, Path targetFile) throws IOException {
 
         try (var zipOS = new ZipOutputStream(
-                IOUtils.buffer(Files.newOutputStream(targetFile)), UTF_8
-        )) {
+                IOUtils.buffer(Files.newOutputStream(targetFile)), UTF_8)) {
             // Reference
             zipOS.putNextEntry(new ZipEntry("reference"));
             IOUtils.write(request.getReference(), zipOS, UTF_8);
@@ -111,8 +108,7 @@ public final class FSQueueUtil {
     }
 
     public static CommitterRequest fromZipFile(
-            Path sourceFile, CachedStreamFactory streamFactory
-    )
+            Path sourceFile, CachedStreamFactory streamFactory)
             throws IOException {
         String ref = null;
         var meta = new Properties();
@@ -130,10 +126,8 @@ public final class FSQueueUtil {
                         meta.loadFromProperties(is);
                     } else if ("content".equals(name)) {
                         var csf = Optional.ofNullable(
-                                streamFactory
-                        ).orElseGet(
-                                CachedStreamFactory::new
-                        );
+                                streamFactory).orElseGet(
+                                        CachedStreamFactory::new);
                         content = csf.newInputStream(is); //NOSONAR returns it
                         content.enforceFullCaching();
                         content.rewind();
@@ -144,8 +138,7 @@ public final class FSQueueUtil {
         if (ref == null) {
             throw new IOException(
                     "Committer queue zip contains no "
-                            + "\"reference\" file: " + sourceFile
-            );
+                            + "\"reference\" file: " + sourceFile);
         }
 
         if (content == null) {

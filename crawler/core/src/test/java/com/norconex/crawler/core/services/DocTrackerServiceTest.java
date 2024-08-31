@@ -70,13 +70,11 @@ class DocTrackerServiceTest {
         assertThat(service.getProcessedCount()).isOne();
         assertThat(service.getProcessed("p-ref")).isPresent();
         assertThat(service.getProcessingStage("p-ref")).isSameAs(
-                Stage.PROCESSED
-        );
+                Stage.PROCESSED);
         assertThat(service.isProcessedEmpty()).isFalse();
         assertThat(service.forEachCached((s, r) -> false)).isTrue();
         assertThat(service.getProcessingStage("q-ref")).isSameAs(
-                Stage.QUEUED
-        );
+                Stage.QUEUED);
         assertThat(service.getQueueCount()).isOne();
         assertThat(service.pollQueue()).isPresent();
         service.close();

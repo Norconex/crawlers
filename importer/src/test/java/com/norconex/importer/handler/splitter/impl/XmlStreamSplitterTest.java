@@ -75,18 +75,15 @@ class XmlStreamSplitterTest {
         // test failing stream
         assertThatExceptionOfType(UncheckedIOException.class)
                 .isThrownBy(
-                    //NOSONAR
-                        () -> splitter.accept(TestUtil.newHandlerContext())
-                );
+                        //NOSONAR
+                        () -> splitter.accept(TestUtil.newHandlerContext()));
 
         // Test non applicable
         splitter.getConfiguration().setContentTypeMatcher(
-                TextMatcher.basic("IdontExists")
-        );
+                TextMatcher.basic("IdontExists"));
         var docCtx = TestUtil.newHandlerContext(
                 "N/A",
-                TestUtil.toCachedInputStream(sampleXML)
-        );
+                TestUtil.toCachedInputStream(sampleXML));
         splitter.accept(docCtx);
         assertThat(docCtx.childDocs()).isEmpty();
     }
@@ -107,8 +104,7 @@ class XmlStreamSplitterTest {
         splitter.getConfiguration()
                 .setPath("blah")
                 .setContentTypeMatcher(
-                        TextMatcher.basic("value").partial().ignoreCase()
-                );
+                        TextMatcher.basic("value").partial().ignoreCase());
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(splitter));
     }

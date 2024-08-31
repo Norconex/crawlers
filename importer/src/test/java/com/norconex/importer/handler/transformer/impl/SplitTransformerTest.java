@@ -66,9 +66,7 @@ class SplitTransformerTest {
                                 .setToField("toName5")
                                 .setSeparator("sep5")
                                 .setSeparatorRegex(true)
-                                .setOnSet(PropertySetter.OPTIONAL)
-                )
-        );
+                                .setOnSet(PropertySetter.OPTIONAL)));
 
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
@@ -83,94 +81,75 @@ class SplitTransformerTest {
         meta.add("metaNoSplitNewField", "Joe Jack William Avrel");
         meta.add(
                 "metaMultiSameField",
-                "Joe, Jack", "William, Avrel"
-        );
+                "Joe, Jack", "William, Avrel");
         meta.add(
                 "metaMultiNewField",
-                "Joe, Jack", "William, Avrel"
-        );
+                "Joe, Jack", "William, Avrel");
 
         var t = new SplitTransformer();
         t.getConfiguration().setOperations(
                 List.of(
                         new SplitOperation()
                                 .setFieldMatcher(
-                                        new TextMatcher("metaToSplitSameField")
-                                )
+                                        new TextMatcher("metaToSplitSameField"))
                                 .setSeparator(", ")
                                 .setSeparatorRegex(false),
 
                         new SplitOperation()
                                 .setFieldMatcher(
-                                        new TextMatcher("metaNoSplitSameField")
-                                )
+                                        new TextMatcher("metaNoSplitSameField"))
                                 .setSeparator(", ")
                                 .setSeparatorRegex(false),
 
                         new SplitOperation()
                                 .setFieldMatcher(
-                                        new TextMatcher("metaToSplitNewField")
-                                )
+                                        new TextMatcher("metaToSplitNewField"))
                                 .setToField("toSplitNewField")
                                 .setSeparator(", ")
                                 .setSeparatorRegex(false),
 
                         new SplitOperation()
                                 .setFieldMatcher(
-                                        new TextMatcher("metaNoSplitNewField")
-                                )
+                                        new TextMatcher("metaNoSplitNewField"))
                                 .setToField("noSplitNewField")
                                 .setSeparator(", ")
                                 .setSeparatorRegex(false),
 
                         new SplitOperation()
                                 .setFieldMatcher(
-                                        new TextMatcher("metaMultiSameField")
-                                )
+                                        new TextMatcher("metaMultiSameField"))
                                 .setSeparator(", ")
                                 .setSeparatorRegex(false),
 
                         new SplitOperation()
                                 .setFieldMatcher(
-                                        new TextMatcher("metaMultiNewField")
-                                )
+                                        new TextMatcher("metaMultiNewField"))
                                 .setToField("multiNewField")
                                 .setSeparator(", ")
-                                .setSeparatorRegex(false)
-                )
-        );
+                                .setSeparatorRegex(false)));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
         List<String> toSplitExpect = Arrays.asList(
-                "Joe", "Jack", "William", "Avrel"
-        );
+                "Joe", "Jack", "William", "Avrel");
         List<String> noSplitExpect = Arrays.asList(
-                "Joe Jack William Avrel"
-        );
+                "Joe Jack William Avrel");
 
         Assertions.assertEquals(
-                toSplitExpect, meta.getStrings("metaToSplitSameField")
-        );
+                toSplitExpect, meta.getStrings("metaToSplitSameField"));
         Assertions.assertEquals(
-                noSplitExpect, meta.getStrings("metaNoSplitSameField")
-        );
+                noSplitExpect, meta.getStrings("metaNoSplitSameField"));
         Assertions.assertEquals(
-                toSplitExpect, meta.getStrings("toSplitNewField")
-        );
+                toSplitExpect, meta.getStrings("toSplitNewField"));
         Assertions.assertEquals(
-                noSplitExpect, meta.getStrings("metaNoSplitNewField")
-        );
+                noSplitExpect, meta.getStrings("metaNoSplitNewField"));
         Assertions.assertEquals(
-                toSplitExpect, meta.getStrings("metaMultiSameField")
-        );
+                toSplitExpect, meta.getStrings("metaMultiSameField"));
         Assertions.assertEquals(
-                toSplitExpect, meta.getStrings("multiNewField")
-        );
+                toSplitExpect, meta.getStrings("multiNewField"));
 
         Assertions.assertEquals(
-                noSplitExpect, meta.getStrings("metaNoSplitSameField")
-        );
+                noSplitExpect, meta.getStrings("metaNoSplitSameField"));
     }
 
     @Test
@@ -191,20 +170,16 @@ class SplitTransformerTest {
                                 .setFieldMatcher(new TextMatcher("path2"))
                                 .setToField("file2")
                                 .setSeparator("[, ;]+")
-                                .setSeparatorRegex(true)
-                )
-        );
+                                .setSeparatorRegex(true)));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
         Assertions.assertEquals(
                 Arrays.asList("a", "path", "file.doc"),
-                meta.getStrings("path1")
-        );
+                meta.getStrings("path1"));
         Assertions.assertEquals(
                 Arrays.asList("a", "b", "c", "d", "e", "f"),
-                meta.getStrings("file2")
-        );
+                meta.getStrings("file2"));
     }
 
     @Test
@@ -216,19 +191,15 @@ class SplitTransformerTest {
                 List.of(
                         new SplitOperation()
                                 .setToField("targetField")
-                                .setSeparator(", ")
-                )
-        );
+                                .setSeparator(", ")));
 
         var is = IOUtils.toInputStream(
-                "Joe, Jack, William, Avrel", StandardCharsets.UTF_8
-        );
+                "Joe, Jack, William, Avrel", StandardCharsets.UTF_8);
         t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
 
         Assertions.assertEquals(
                 Arrays.asList("Joe", "Jack", "William", "Avrel"),
-                meta.getStrings("targetField")
-        );
+                meta.getStrings("targetField"));
     }
 
     @Test
@@ -240,15 +211,12 @@ class SplitTransformerTest {
                         new SplitOperation()
                                 .setToField("targetField")
                                 .setSeparator("[, ;]+")
-                                .setSeparatorRegex(true)
-                )
-        );
+                                .setSeparatorRegex(true)));
 
         var is = IOUtils.toInputStream("a, b,c d;e, f", StandardCharsets.UTF_8);
         t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         Assertions.assertEquals(
                 Arrays.asList("a", "b", "c", "d", "e", "f"),
-                meta.getStrings("targetField")
-        );
+                meta.getStrings("targetField"));
     }
 }

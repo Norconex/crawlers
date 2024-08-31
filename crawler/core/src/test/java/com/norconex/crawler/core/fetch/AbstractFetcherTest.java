@@ -42,11 +42,7 @@ class AbstractFetcherTest {
                         Configurable.configure(
                                 new GenericReferenceFilter(),
                                 cfg -> cfg.setValueMatcher(
-                                        TextMatcher.basic("ref")
-                                )
-                        )
-                )
-        );
+                                        TextMatcher.basic("ref")))));
         assertThat(f.accept(new MockFetchRequest("ref"))).isTrue();
         assertThat(f.accept(new MockFetchRequest("potato"))).isFalse();
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();
@@ -80,41 +76,35 @@ class AbstractFetcherTest {
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
                         .source(crawler)
-                        .build()
-        );
+                        .build());
         f.accept(
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.CRAWLER_RUN_END)
                         .source(crawler)
-                        .build()
-        );
+                        .build());
         f.accept(
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                         .source(crawler)
                         .subject(Thread.currentThread())
-                        .build()
-        );
+                        .build());
         f.accept(
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
                         .source(crawler)
                         .subject(Thread.currentThread())
-                        .build()
-        );
+                        .build());
         assertThat(methodsCalled).containsExactly(
                 "fetcherStartup",
                 "fetcherShutdown",
                 "fetcherThreadBegin",
-                "fetcherThreadEnd"
-        );
+                "fetcherThreadEnd");
     }
 
     @Test
     void testWriteRead() {
         var f = new MockFetcher();
         assertThatNoException().isThrownBy(
-                () -> Xml.assertWriteRead(f, "fetcher")
-        );
+                () -> Xml.assertWriteRead(f, "fetcher"));
     }
 }

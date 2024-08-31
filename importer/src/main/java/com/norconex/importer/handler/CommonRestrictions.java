@@ -42,8 +42,7 @@ public final class CommonRestrictions {
      */
     public static PropertyMatchers xmlFeedContentTypes(String field) {
         return basicMatcherIgnoreCase(
-                field, CommonMatchers.XML_FEED_CONTENT_TYPES
-        );
+                field, CommonMatchers.XML_FEED_CONTENT_TYPES);
     }
 
     /**
@@ -98,21 +97,18 @@ public final class CommonRestrictions {
          */
     public static PropertyMatchers imageIOStandardContentTypes(String field) {
         return basicMatcherIgnoreCase(
-                field, CommonMatchers.IMAGE_IO_CONTENT_TYPES
-        );
+                field, CommonMatchers.IMAGE_IO_CONTENT_TYPES);
     }
 
     private static PropertyMatchers basicMatcherIgnoreCase(
-            String key, Collection<String> contentTypes
-    ) {
+            String key, Collection<String> contentTypes) {
         var matchers = new PropertyMatchers();
         for (String contentType : contentTypes) {
             matchers.add(
                     new PropertyMatcher(
                             TextMatcher.basic(key).setIgnoreCase(true),
-                            TextMatcher.basic(contentType).setIgnoreCase(true)
-                    )
-            );
+                            TextMatcher.basic(contentType)
+                                    .setIgnoreCase(true)));
         }
         return matchers;
     }

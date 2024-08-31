@@ -38,17 +38,13 @@ class GenericMetadataFilterTest {
         assertThat(f.acceptDocument(doc1)).isTrue();
         assertThat(
                 f.acceptMetadata(
-                        doc1.getReference(), doc1.getMetadata()
-                )
-        ).isTrue();
+                        doc1.getReference(), doc1.getMetadata())).isTrue();
 
         var doc2 = CrawlDocStubs.crawlDoc("ref", "blah", "field2", "value2");
         assertThat(f.acceptDocument(doc2)).isFalse();
         assertThat(
                 f.acceptMetadata(
-                        doc2.getReference(), doc2.getMetadata()
-                )
-        ).isFalse();
+                        doc2.getReference(), doc2.getMetadata())).isFalse();
 
         // null documents are considered a match
         assertThat(f.acceptDocument(null)).isTrue();
@@ -62,7 +58,6 @@ class GenericMetadataFilterTest {
                 .setFieldMatcher(TextMatcher.basic("title"))
                 .setValueMatcher(TextMatcher.regex(".*blah.*"));
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(f)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(f));
     }
 }

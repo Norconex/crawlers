@@ -233,8 +233,9 @@ class AmazonCloudSearchCommitterTest {
             withinCommitterSession(
                     cfg -> {
                         cfg.getProxySettings()
-                            .setHost(new Host("there", 99))
-                            .setCredentials(new Credentials("cool", "dude"));
+                                .setHost(new Host("there", 99))
+                                .setCredentials(
+                                        new Credentials("cool", "dude"));
                     }, committer -> {
                         committer.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
                     });

@@ -38,17 +38,12 @@ public class ImporterPtProvider implements PolymorphicTypeProvider {
                 DocumentHandler.class,
                 ClassFinder.findSubTypes(
                         DocumentHandler.class,
-                        nm -> nm.startsWith("com.norconex.importer.handler")
-                )
-        );
+                        nm -> nm.startsWith("com.norconex.importer.handler")));
         map.putAll(
                 Condition.class,
                 ClassFinder.findSubTypes(
                         Condition.class, nm -> nm.startsWith(
-                                "com.norconex.importer.handler.condition"
-                        )
-                )
-        );
+                                "com.norconex.importer.handler.condition")));
         return map;
     }
 }

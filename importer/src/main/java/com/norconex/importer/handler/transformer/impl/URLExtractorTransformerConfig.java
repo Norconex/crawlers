@@ -127,8 +127,7 @@ public class URLExtractorTransformerConfig implements ChunkedTextSupport {
      * @param fieldMatcher field matcher
      */
     public URLExtractorTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

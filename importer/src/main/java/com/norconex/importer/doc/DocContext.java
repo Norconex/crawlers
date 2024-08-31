@@ -102,11 +102,9 @@ public class DocContext implements Serializable {
     }
 
     public void setEmbeddedParentReferences(
-            List<String> embeddedParentReferences
-    ) {
+            List<String> embeddedParentReferences) {
         CollectionUtil.setAll(
-                this.embeddedParentReferences, embeddedParentReferences
-        );
+                this.embeddedParentReferences, embeddedParentReferences);
     }
 
     public void addEmbeddedParentReference(String embeddedParentReference) {

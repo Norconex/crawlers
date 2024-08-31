@@ -58,8 +58,7 @@ class CsvFileCommitterTest {
         Assertions.assertEquals(1, files.size());
 
         var actual = FileUtils.readFileToString(
-                files.iterator().next(), StandardCharsets.UTF_8
-        );
+                files.iterator().next(), StandardCharsets.UTF_8);
 
         Assertions.assertEquals(expected, actual);
     }
@@ -85,24 +84,19 @@ class CsvFileCommitterTest {
 
         var actualUpsert = FileUtils.readFileToString(
                 TestUtil.listFSUpsertFiles(
-                        c.getResolvedDirectory()
-                ).iterator().next(),
-                UTF_8
-        );
+                        c.getResolvedDirectory()).iterator().next(),
+                UTF_8);
         var actualDelete = FileUtils.readFileToString(
                 TestUtil.listFSDeleteFiles(
-                        c.getResolvedDirectory()
-                ).iterator().next(),
-                UTF_8
-        );
+                        c.getResolvedDirectory()).iterator().next(),
+                UTF_8);
 
         Assertions.assertEquals(expectedUpsert, actualUpsert);
         Assertions.assertEquals(expectedDelete, actualDelete);
     }
 
     private CsvFileCommitter commitSampleData(
-            boolean splitUpsertDelete
-    ) throws CommitterException {
+            boolean splitUpsertDelete) throws CommitterException {
         List<CommitterRequest> reqs = new ArrayList<>();
         reqs.add(
                 TestUtil.upsertRequest(
@@ -110,27 +104,21 @@ class CsvFileCommitterTest {
                         "type", "upsert",
                         "document.reference", "http://example.com/1",
                         "title", "title 1",
-                        "noise", "blah1"
-                )
-        );
+                        "noise", "blah1"));
         reqs.add(
                 TestUtil.deleteRequest(
                         "http://example.com/2",
                         "type", "delete",
                         "document.reference", "http://example.com/2",
                         "title", "title 2",
-                        "noise", "blah2"
-                )
-        );
+                        "noise", "blah2"));
         reqs.add(
                 TestUtil.upsertRequest(
                         "http://example.com/3", "content 3",
                         "type", "upsert",
                         "document.reference", "http://example.com/3",
                         "title", "title 3",
-                        "noise", "blah3"
-                )
-        );
+                        "noise", "blah3"));
 
         var c = new CsvFileCommitter();
         // write 5 upserts and 2 deletes.
@@ -144,9 +132,7 @@ class CsvFileCommitterTest {
                                 new CsvColumn()
                                         .setField("title")
                                         .setHeader("title"),
-                                new CsvColumn()
-                        )
-                )
+                                new CsvColumn()))
                 .setShowHeaders(true)
                 .setDocsPerFile(20)
                 .setSplitUpsertDelete(splitUpsertDelete);
@@ -173,10 +159,8 @@ class CsvFileCommitterTest {
                                         .setTruncateAt(100),
                                 new CsvColumn()
                                         .setHeader("My content")
-                                        .setTruncateAt(200)
-                        )
-                )
-                .setFormat(CsvFileCommitterConfig.CSVFormat.EXCEL)
+                                        .setTruncateAt(200)))
+                .setFormat(CsvFileCommitterConfig.CsvFormat.EXCEL)
                 .setDelimiter('|')
                 .setQuote('!')
                 .setShowHeaders(true)
@@ -192,7 +176,6 @@ class CsvFileCommitterTest {
                 .setCompress(true);
 
         assertThatNoException().isThrownBy(
-                () -> TestUtil.beanMapper().assertWriteRead(c)
-        );
+                () -> TestUtil.beanMapper().assertWriteRead(c));
     }
 }

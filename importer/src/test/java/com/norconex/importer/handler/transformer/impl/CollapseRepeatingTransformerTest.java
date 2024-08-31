@@ -53,23 +53,19 @@ class CollapseRepeatingTransformerTest {
         var t = new CollapseRepeatingTransformer();
 
         try (Reader reader = new InputStreamReader(
-                IOUtils.toInputStream(xml, StandardCharsets.UTF_8)
-        )) {
+                IOUtils.toInputStream(xml, StandardCharsets.UTF_8))) {
             BeanMapper.DEFAULT.read(t, reader, Format.XML);
         }
 
         try (var is = IOUtils.toInputStream(
-                text, StandardCharsets.UTF_8
-        )) {
+                text, StandardCharsets.UTF_8)) {
             var doc = TestUtil.newHandlerContext(
-                    "dummyRef", is, new Properties(), ParseState.POST
-            );
+                    "dummyRef", is, new Properties(), ParseState.POST);
             t.accept(doc);
             var response = IOUtils.toString(doc.input().asReader());
             Assertions.assertEquals(
                     "\tthis is the text i want to modify.\n\r too much space.",
-                    response.toLowerCase()
-            );
+                    response.toLowerCase());
         }
     }
 
@@ -77,8 +73,7 @@ class CollapseRepeatingTransformerTest {
     void testWriteRead() throws IOException {
         var t = new CollapseRepeatingTransformer();
         try (Reader reader = new InputStreamReader(
-                IOUtils.toInputStream(xml, StandardCharsets.UTF_8)
-        )) {
+                IOUtils.toInputStream(xml, StandardCharsets.UTF_8))) {
             BeanMapper.DEFAULT.read(t, reader, Format.XML);
         }
         assertThatNoException()

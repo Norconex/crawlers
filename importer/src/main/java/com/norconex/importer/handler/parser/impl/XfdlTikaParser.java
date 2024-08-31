@@ -62,9 +62,7 @@ public class XfdlTikaParser extends XMLParser {
                             // application/uwi_form
                             // application/vnd.ufdl
                             // application/x-xfdl
-                            )
-                    )
-            );
+                            )));
 
     @Override
     public Set<MediaType> getSupportedTypes(ParseContext context) {
@@ -74,8 +72,7 @@ public class XfdlTikaParser extends XMLParser {
     @Override
     public void parse(
             InputStream stream, ContentHandler handler,
-            Metadata metadata, ParseContext context
-    )
+            Metadata metadata, ParseContext context)
             throws IOException, SAXException, TikaException {
 
         InputStream is = IOUtils.buffer(stream);
@@ -94,13 +91,11 @@ public class XfdlTikaParser extends XMLParser {
     @Override
     protected ContentHandler getContentHandler(
             ContentHandler handler,
-            Metadata metadata, ParseContext context
-    ) {
+            Metadata metadata, ParseContext context) {
 
         return new TeeContentHandler(
                 super.getContentHandler(handler, metadata, context),
-                new XFDLHandler(metadata)
-        );
+                new XFDLHandler(metadata));
     }
 
     private static class XFDLHandler extends DefaultHandler {
@@ -118,16 +113,14 @@ public class XfdlTikaParser extends XMLParser {
             if ("xfdl".equals(prefix)) {
                 metadata.add(
                         "xfdl:version",
-                        StringUtils.substringAfterLast(uri, "/")
-                );
+                        StringUtils.substringAfterLast(uri, "/"));
             }
         }
 
         @Override
         public void startElement(
                 String uri, String localName, String qName,
-                Attributes attrs
-        ) throws SAXException {
+                Attributes attrs) throws SAXException {
             path.append('/');
             path.append(localName);
 

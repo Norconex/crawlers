@@ -73,8 +73,7 @@ public class CommitterServiceEvent extends Event {
                 .append(
                         "committers", '[' + committers.stream()
                                 .map(c -> c.getClass().getSimpleName())
-                                .collect(Collectors.joining(",")) + ']'
-                )
+                                .collect(Collectors.joining(",")) + ']')
                 .append("subject", subject)
                 .build();
     }

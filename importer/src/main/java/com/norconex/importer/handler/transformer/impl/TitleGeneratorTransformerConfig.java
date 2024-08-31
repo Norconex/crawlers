@@ -156,8 +156,7 @@ public class TitleGeneratorTransformerConfig implements ChunkedTextSupport {
      * @param fieldMatcher field matcher
      */
     public TitleGeneratorTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

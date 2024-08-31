@@ -543,8 +543,7 @@ public class CrawlerConfig {
      *     references
      */
     public CrawlerConfig setStartReferencesFiles(
-            List<Path> startReferencesFiles
-    ) {
+            List<Path> startReferencesFiles) {
         CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
         return this;
     }
@@ -566,11 +565,9 @@ public class CrawlerConfig {
      * @param startReferencesProviders start references provider
      */
     public CrawlerConfig setStartReferencesProviders(
-            List<ReferencesProvider> startReferencesProviders
-    ) {
+            List<ReferencesProvider> startReferencesProviders) {
         CollectionUtil.setAll(
-                this.startReferencesProviders, startReferencesProviders
-        );
+                this.startReferencesProviders, startReferencesProviders);
         CollectionUtil.removeNulls(this.startReferencesProviders);
         return this;
     }
@@ -603,8 +600,7 @@ public class CrawlerConfig {
      *         encountered
      */
     public CrawlerConfig setStopOnExceptions(
-            List<Class<? extends Exception>> stopOnExceptions
-    ) {
+            List<Class<? extends Exception>> stopOnExceptions) {
         CollectionUtil.setAll(this.stopOnExceptions, stopOnExceptions);
         return this;
     }
@@ -622,8 +618,7 @@ public class CrawlerConfig {
      * @param referenceFilters the referenceFilters to set
      */
     public CrawlerConfig setReferenceFilters(
-            List<ReferenceFilter> referenceFilters
-    ) {
+            List<ReferenceFilter> referenceFilters) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
         return this;
     }
@@ -641,8 +636,7 @@ public class CrawlerConfig {
      * @param documentFilters document filters
      */
     public CrawlerConfig setDocumentFilters(
-            List<DocumentFilter> documentFilters
-    ) {
+            List<DocumentFilter> documentFilters) {
         CollectionUtil.setAll(this.documentFilters, documentFilters);
         return this;
     }
@@ -660,8 +654,7 @@ public class CrawlerConfig {
      * @param metadataFilters metadata filters
      */
     public CrawlerConfig setMetadataFilters(
-            List<MetadataFilter> metadataFilters
-    ) {
+            List<MetadataFilter> metadataFilters) {
         CollectionUtil.setAll(this.metadataFilters, metadataFilters);
         return this;
     }
@@ -702,8 +695,7 @@ public class CrawlerConfig {
      * @param eventListeners event listeners.
      */
     public CrawlerConfig setEventListeners(
-            List<EventListener<?>> eventListeners
-    ) {
+            List<EventListener<?>> eventListeners) {
         CollectionUtil.setAll(this.eventListeners, eventListeners);
         return this;
     }
@@ -715,8 +707,7 @@ public class CrawlerConfig {
      * @param eventListeners event listeners.
      */
     public CrawlerConfig addEventListeners(
-            List<EventListener<?>> eventListeners
-    ) {
+            List<EventListener<?>> eventListeners) {
         this.eventListeners.addAll(eventListeners);
         return this;
     }
@@ -765,8 +756,7 @@ public class CrawlerConfig {
      * @param preImportConsumers pre-import consumers
      */
     public CrawlerConfig setPreImportConsumers(
-            List<DocumentConsumer> preImportConsumers
-    ) {
+            List<DocumentConsumer> preImportConsumers) {
         CollectionUtil.setAll(preImportConsumers, preImportConsumers);
         CollectionUtil.removeNulls(preImportConsumers);
         return this;
@@ -785,8 +775,7 @@ public class CrawlerConfig {
      * @param postImportConsumers post-import consumers
      */
     public CrawlerConfig setPostImportConsumers(
-            List<DocumentConsumer> postImportConsumers
-    ) {
+            List<DocumentConsumer> postImportConsumers) {
         CollectionUtil.setAll(postImportConsumers, postImportConsumers);
         CollectionUtil.removeNulls(postImportConsumers);
         return this;

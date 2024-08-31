@@ -58,8 +58,7 @@ class CrawlerEventTest {
     }
 
     private CrawlerEvent event(
-            Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>> c
-    ) {
+            Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>> c) {
         CrawlerEvent.CrawlerEventBuilder<?, ?> b = CrawlerEvent.builder()
                 .docContext(new CrawlDocContext("someref"))
                 .exception(new CliException("someexception"))

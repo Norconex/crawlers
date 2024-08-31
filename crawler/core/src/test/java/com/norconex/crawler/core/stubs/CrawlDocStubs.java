@@ -43,14 +43,11 @@ public final class CrawlDocStubs {
     }
 
     public static CrawlDoc crawlDoc(
-            String ref, String content, Object... metaKeyValues
-    ) {
+            String ref, String content, Object... metaKeyValues) {
         var doc = new CrawlDoc(
                 new CrawlDocContext(ref),
                 new CachedStreamFactory().newInputStream(
-                        IOUtils.toInputStream(content, UTF_8)
-                )
-        );
+                        IOUtils.toInputStream(content, UTF_8)));
         if (ArrayUtils.isNotEmpty(metaKeyValues)) {
             doc.getMetadata().loadFromMap(MapUtil.toMap(metaKeyValues));
         }
@@ -58,15 +55,12 @@ public final class CrawlDocStubs {
     }
 
     public static CrawlDoc crawlDocWithCache(
-            String ref, String content, Object... metaKeyValues
-    ) {
+            String ref, String content, Object... metaKeyValues) {
         var doc = new CrawlDoc(
                 new CrawlDocContext(ref),
                 new CrawlDocContext(ref),
                 new CachedStreamFactory().newInputStream(
-                        IOUtils.toInputStream(content, UTF_8)
-                )
-        );
+                        IOUtils.toInputStream(content, UTF_8)));
         if (ArrayUtils.isNotEmpty(metaKeyValues)) {
             doc.getMetadata().loadFromMap(MapUtil.toMap(metaKeyValues));
         }

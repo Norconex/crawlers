@@ -40,8 +40,7 @@ public abstract class BaseCondition implements Condition {
         } catch (IOException e) {
             //            fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
             throw new UncheckedIOException(
-                    "Importer failure for handler: " + this, e
-            );
+                    "Importer failure for handler: " + this, e);
         }
         //        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
     }

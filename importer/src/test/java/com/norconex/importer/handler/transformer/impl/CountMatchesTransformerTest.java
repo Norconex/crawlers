@@ -158,8 +158,7 @@ class CountMatchesTransformerTest {
         t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.POST));
         assertEquals(
                 3,
-                (int) meta.getInteger("vegetableCountInsensitiveRegex")
-        );
+                (int) meta.getInteger("vegetableCountInsensitiveRegex"));
     }
 
     @Test
@@ -213,9 +212,7 @@ class CountMatchesTransformerTest {
                 .setMethod(Method.REGEX).setPartial(true);
         t.accept(
                 TestUtil.newHandlerContext(
-                        "n/a", nullInputStream(), meta, ParseState.POST
-                )
-        );
+                        "n/a", nullInputStream(), meta, ParseState.POST));
         // we should get the sum of both oranges and apples
         assertEquals(5, (int) meta.getInteger("fruitCount"));
 
@@ -227,9 +224,7 @@ class CountMatchesTransformerTest {
         cfg.getCountMatcher().setPattern("potato").setPartial(true);
         t.accept(
                 TestUtil.newHandlerContext(
-                        "n/a", nullInputStream(), meta, ParseState.POST
-                )
-        );
+                        "n/a", nullInputStream(), meta, ParseState.POST));
         // we should get zero (use string to make sure).
         assertEquals("0", meta.getString("potatoCount"));
     }

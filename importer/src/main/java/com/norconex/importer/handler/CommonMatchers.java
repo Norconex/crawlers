@@ -39,8 +39,7 @@ public final class CommonMatchers {
      */
     public static final Set<String> XML_BASE_CONTENT_TYPES = Set.of(
             "application/xml",
-            "text/xml"
-    );
+            "text/xml");
 
     /**
      * <p>ATOM, RDF, RSS, and strict XML content types:</p>
@@ -60,9 +59,7 @@ public final class CommonMatchers {
                             XML_BASE_CONTENT_TYPES,
                             "application/atom+xml",
                             "application/rdf+xml",
-                            "application/rss+xml"
-                    )
-            );
+                            "application/rss+xml"));
 
     /**
      * <p>HTML/XHTML content types:</p>
@@ -77,8 +74,7 @@ public final class CommonMatchers {
     public static final Set<String> HTML_CONTENT_TYPES = Set.of(
             "application/vnd.wap.xhtml+xml",
             "application/xhtml+xml",
-            "text/html"
-    );
+            "text/html");
 
     /**
      * <p>HTML, XHTML, and XML-based content types:</p>
@@ -102,9 +98,7 @@ public final class CommonMatchers {
                             "application/xhtml+xml",
                             "application/xslt+xml",
                             "application/mathml+xml",
-                            "image/svg+xml"
-                    )
-            );
+                            "image/svg+xml"));
 
     /**
      * <p>Content types representing a document object model:</p>
@@ -130,9 +124,7 @@ public final class CommonMatchers {
                             XML_CONTENT_TYPES,
                             HTML_CONTENT_TYPES,
                             "application/mathml+xml",
-                            "application/x-asp"
-                    )
-            );
+                            "application/x-asp"));
 
     /**
      * <p>Content types for natively supported Java ImageIO images.</p>
@@ -153,8 +145,7 @@ public final class CommonMatchers {
             "image/jpeg",
             "image/png",
             "image/vnd.wap.wbmp",
-            "image/x-windows-bmp"
-    );
+            "image/x-windows-bmp");
 
     private CommonMatchers() {
     }

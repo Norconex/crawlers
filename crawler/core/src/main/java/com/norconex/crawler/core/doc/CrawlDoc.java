@@ -55,8 +55,7 @@ public class CrawlDoc extends Doc {
     public CrawlDoc(
             DocContext docContext,
             CrawlDocContext cachedDocContext,
-            CachedInputStream content
-    ) {
+            CachedInputStream content) {
         this(docContext, cachedDocContext, content, false);
     }
 
@@ -64,8 +63,7 @@ public class CrawlDoc extends Doc {
             DocContext docContext,
             CrawlDocContext cachedDocContext,
             CachedInputStream content,
-            boolean orphan
-    ) {
+            boolean orphan) {
         super(docContext, content, null);
         this.cachedDocContext = cachedDocContext;
         this.orphan = orphan;

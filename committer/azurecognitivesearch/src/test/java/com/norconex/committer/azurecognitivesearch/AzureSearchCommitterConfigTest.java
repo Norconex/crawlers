@@ -46,8 +46,7 @@ class AzureSearchCommitterConfigTest {
                 .setTargetContentField("targetContentField")
                 .setProxySettings(
                         new ProxySettings()
-                                .setHost(new Host("there.com", 123))
-                )
+                                .setHost(new Host("there.com", 123)))
                 .setEndpoint("endpoint")
                 .setApiVersion("apiVersion")
                 .setApiKey("apiKey")
@@ -63,19 +62,14 @@ class AzureSearchCommitterConfigTest {
                 .addRestriction(
                         new PropertyMatcher(
                                 TextMatcher.basic("document.reference"),
-                                TextMatcher.wildcard("*.pdf")
-                        )
-                )
+                                TextMatcher.wildcard("*.pdf")))
                 .addRestriction(
                         new PropertyMatcher(
                                 TextMatcher.basic("title"),
-                                TextMatcher.wildcard("Nah!")
-                        )
-                );
+                                TextMatcher.wildcard("Nah!")));
 
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test
@@ -83,8 +77,7 @@ class AzureSearchCommitterConfigTest {
         Assertions.assertDoesNotThrow(() -> {
             try (var r = ResourceLoader.getXmlReader(this.getClass())) {
                 BeanMapper.DEFAULT.read(
-                        AzureSearchCommitter.class, r, Format.XML
-                );
+                        AzureSearchCommitter.class, r, Format.XML);
             }
         });
     }

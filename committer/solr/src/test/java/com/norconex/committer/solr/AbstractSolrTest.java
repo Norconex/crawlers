@@ -66,22 +66,18 @@ public abstract class AbstractSolrTest {
         if (solrServer != null && solrServer.isRunning()) {
             throw new IllegalStateException(
                     "Solr already running on local port "
-                            + solrServer.getLocalPort()
-            );
+                            + solrServer.getLocalPort());
         }
         System.setProperty(
                 "solr.log.dir",
-                new File(solrHome, "solr-test.log").getAbsolutePath()
-        );
+                new File(solrHome, "solr-test.log").getAbsolutePath());
 
         FileUtils.copyDirectory(
                 new File("./src/test/resources/solr-server"),
-                solrHome
-        );
+                solrHome);
 
         solrServer = new JettySolrRunner(
-                solrHome.getAbsolutePath(), "/solr", 0
-        );
+                solrHome.getAbsolutePath(), "/solr", 0);
         solrServer.start();
 
         var seconds = 0;
@@ -96,8 +92,7 @@ public abstract class AbstractSolrTest {
             LOG.warn(
                     "Looks like Solr is not starting on port {}. "
                             + "Please investigate.",
-                    solrServer.getLocalPort()
-            );
+                    solrServer.getLocalPort());
 
         } else {
             LOG.info("Solr started on port {}", solrServer.getLocalPort());
@@ -106,8 +101,7 @@ public abstract class AbstractSolrTest {
         // Solr Client:
         // solrServer.newClient() does not work for some reason, host is null
         solrClient = new Http2SolrClient.Builder(
-                "http://localhost:" + getSolrPort() + "/solr/test"
-        ).build();
+                "http://localhost:" + getSolrPort() + "/solr/test").build();
     }
 
     @BeforeEach
@@ -127,8 +121,7 @@ public abstract class AbstractSolrTest {
     public int getSolrPort() {
         if (solrServer == null) {
             throw new IllegalStateException(
-                    "Cannot get Solr port. Solr Server is not running."
-            );
+                    "Cannot get Solr port. Solr Server is not running.");
         }
         return solrServer.getLocalPort();
     }
@@ -144,8 +137,7 @@ public abstract class AbstractSolrTest {
     public String getSolrBaseURL() {
         if (solrServer == null) {
             throw new IllegalStateException(
-                    "Cannot get Solr base URL. Solr Server is not running."
-            );
+                    "Cannot get Solr base URL. Solr Server is not running.");
         }
         return "http://localhost:" + getSolrPort()
                 + solrServer.getBaseUrl().getPath();
@@ -160,9 +152,7 @@ public abstract class AbstractSolrTest {
                 .setWorkDir(
                         new File(
                                 getSolrHome(),
-                                "" + TimeIdGenerator.next()
-                        ).toPath()
-                )
+                                "" + TimeIdGenerator.next()).toPath())
                 .build();
         var committer = new SolrCommitter();
         committer.getConfiguration().setSolrURL(getSolrTestURL());

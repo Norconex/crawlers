@@ -41,7 +41,6 @@ class CrawlerFsPtProviderTest {
                         LocalFetcher.class,
                         SftpFetcher.class,
                         SmbFetcher.class,
-                        WebDavFetcher.class
-                );
+                        WebDavFetcher.class);
     }
 }

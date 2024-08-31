@@ -83,8 +83,7 @@ public class GenericMetadataFilter implements
                 || isBlank(configuration.getValueMatcher().getPattern())
                 || new PropertyMatcher(
                         configuration.getFieldMatcher(),
-                        configuration.getValueMatcher()
-                ).matches(metadata)) {
+                        configuration.getValueMatcher()).matches(metadata)) {
             return getOnMatch() == OnMatch.INCLUDE;
         }
         return getOnMatch() == OnMatch.EXCLUDE;

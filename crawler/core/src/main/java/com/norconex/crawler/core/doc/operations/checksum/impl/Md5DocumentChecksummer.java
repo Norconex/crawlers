@@ -108,8 +108,7 @@ public class Md5DocumentChecksummer
         if (isSourceFieldsSet
                 || getConfiguration().isCombineFieldsAndContent()) {
             var checksum = ChecksumUtil.metadataChecksumMD5(
-                    document.getMetadata(), fm
-            );
+                    document.getMetadata(), fm);
             if (checksum != null) {
                 b.append(checksum);
                 b.append('|');
@@ -125,8 +124,7 @@ public class Md5DocumentChecksummer
                 throw new CrawlerException(
                         "Cannot create document checksum on : "
                                 + document.getReference(),
-                        e
-                );
+                        e);
             }
         }
 
@@ -135,7 +133,6 @@ public class Md5DocumentChecksummer
 
     private boolean isFieldMatcherSet() {
         return StringUtils.isNotBlank(
-                getConfiguration().getFieldMatcher().getPattern()
-        );
+                getConfiguration().getFieldMatcher().getPattern());
     }
 }

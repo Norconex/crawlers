@@ -47,16 +47,14 @@ public final class DataStoreImporter {
         // Export/Import is normally executed in a controlled environment
         // so not susceptible to Zip Bomb attacks.
         try (var zipIn = new ZipInputStream(
-                IOUtils.buffer(Files.newInputStream(inFile))
-        )) {
+                IOUtils.buffer(Files.newInputStream(inFile)))) {
             var zipEntry = zipIn.getNextEntry(); //NOSONAR
             while (zipEntry != null) {
                 if (!importStore(crawler, zipIn)) {
                     LOG.debug(
                             "Input file \"{}\" not matching crawler "
                                     + "\"{}\". Skipping.",
-                            inFile, crawler.getId()
-                    );
+                            inFile, crawler.getId());
                 }
                 zipIn.closeEntry();
                 zipEntry = zipIn.getNextEntry(); //NOSONAR
@@ -66,8 +64,7 @@ public final class DataStoreImporter {
     }
 
     private static boolean importStore(
-            Crawler crawler, InputStream in
-    ) throws IOException {
+            Crawler crawler, InputStream in) throws IOException {
 
         var parser = SerialUtil.jsonParser(in);
 
@@ -91,8 +88,7 @@ public final class DataStoreImporter {
                     type = Class.forName(typeStr);
                 } catch (ClassNotFoundException e) {
                     throw new IOException(
-                            "Could not instantiate type " + typeStr, e
-                    );
+                            "Could not instantiate type " + typeStr, e);
                 }
 
                 LOG.info("Importing \"{}\".", storeName);
@@ -125,8 +121,7 @@ public final class DataStoreImporter {
         if (LOG.isInfoEnabled() && (cnt % 10000 == 0 ^ done)) {
             LOG.info(
                     "{} imported.",
-                    NumberFormat.getIntegerInstance().format(cnt)
-            );
+                    NumberFormat.getIntegerInstance().format(cnt));
         }
     }
 }

@@ -58,14 +58,12 @@ public class MockFetchStage extends AbstractImporterStage {
             docContext.setState(state);
             ctx.getDoc().getMetadata().set(
                     "mock.alsoCached",
-                    ctx.getDoc().getCachedDocContext() != null
-            );
+                    ctx.getDoc().getCachedDocContext() != null);
         } catch (FetchException e) {
             throw new CrawlerException(
                     "Could not fetch document: "
                             + ctx.getDoc().getReference(),
-                    e
-            );
+                    e);
         }
         return true;
 

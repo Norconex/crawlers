@@ -35,16 +35,12 @@ class CommonRestrictionsTest {
                         "application/rss+xml",
                         "application/rdf+xml",
                         "application/xml",
-                        "text/xml"
-                )
-        ).isTrue();
+                        "text/xml")).isTrue();
 
         assertThat(
                 test(
                         CommonRestrictions::xmlFeedContentTypes,
-                        "text/blah"
-                )
-        ).isFalse();
+                        "text/blah")).isFalse();
     }
 
     @Test
@@ -62,16 +58,12 @@ class CommonRestrictionsTest {
                         "application/xslt+xml",
                         "image/svg+xml",
                         "text/html",
-                        "text/xml"
-                )
-        ).isTrue();
+                        "text/xml")).isTrue();
 
         assertThat(
                 test(
                         CommonRestrictions::domContentTypes,
-                        "text/blah"
-                )
-        ).isFalse();
+                        "text/blah")).isFalse();
     }
 
     @Test
@@ -81,16 +73,12 @@ class CommonRestrictionsTest {
                         CommonRestrictions::htmlContentTypes,
                         "application/vnd.wap.xhtml+xml",
                         "application/xhtml+xml",
-                        "text/html"
-                )
-        ).isTrue();
+                        "text/html")).isTrue();
 
         assertThat(
                 test(
                         CommonRestrictions::htmlContentTypes,
-                        "text/blah"
-                )
-        ).isFalse();
+                        "text/blah")).isFalse();
     }
 
     @Test
@@ -105,16 +93,12 @@ class CommonRestrictionsTest {
                         "application/xml",
                         "application/xslt+xml",
                         "image/svg+xml",
-                        "text/xml"
-                )
-        ).isTrue();
+                        "text/xml")).isTrue();
 
         assertThat(
                 test(
                         CommonRestrictions::xmlContentTypes,
-                        "text/blah"
-                )
-        ).isFalse();
+                        "text/blah")).isFalse();
     }
 
     @Test
@@ -127,22 +111,17 @@ class CommonRestrictionsTest {
                         "image/jpeg",
                         "image/png",
                         "image/vnd.wap.wbmp",
-                        "image/x-windows-bmp"
-                )
-        ).isTrue();
+                        "image/x-windows-bmp")).isTrue();
 
         assertThat(
                 test(
                         CommonRestrictions::imageIOStandardContentTypes,
-                        "text/blah"
-                )
-        ).isFalse();
+                        "text/blah")).isFalse();
     }
 
     private boolean test(
             Function<String, PropertyMatchers> restrictions,
-            String... contentTypes
-    ) {
+            String... contentTypes) {
         var props = new Properties();
         for (String contentType : contentTypes) {
             props.set(DocMetadata.CONTENT_TYPE, contentType);

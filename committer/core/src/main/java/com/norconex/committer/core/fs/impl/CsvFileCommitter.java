@@ -153,9 +153,7 @@ public class CsvFileCommitter
                         ? CSVFormat.newFormat(',')
                         : new EnumConverter().toType(
                                 configuration.getFormat().toString(),
-                                CSVFormat.Predefined.class
-                        ).getFormat()
-        );
+                                CSVFormat.Predefined.class).getFormat());
 
         if (configuration.getDelimiter() != null) {
             builder.setDelimiter(configuration.getDelimiter());
@@ -183,8 +181,7 @@ public class CsvFileCommitter
             csv.print(
                     isNotBlank(configuration.getTypeHeader())
                             ? configuration.getTypeHeader()
-                            : "type"
-            );
+                            : "type");
         }
         for (CsvColumn col : configuration.getColumns()) {
             var header = col.getHeader();
@@ -198,8 +195,7 @@ public class CsvFileCommitter
 
     @Override
     protected void writeUpsert(
-            CSVPrinter csv, UpsertRequest upsertRequest
-    ) throws IOException {
+            CSVPrinter csv, UpsertRequest upsertRequest) throws IOException {
 
         if (isNotBlank(configuration.getTypeHeader())
                 || !configuration.isSplitUpsertDelete()) {
@@ -214,8 +210,7 @@ public class CsvFileCommitter
             } else {
                 value = StringUtils.join(
                         upsertRequest.getMetadata().getStrings(field),
-                        configuration.getMultiValueJoinDelimiter()
-                );
+                        configuration.getMultiValueJoinDelimiter());
             }
             value = truncate(value, col.getTruncateAt());
             csv.print(StringUtils.trimToEmpty(value));
@@ -226,8 +221,7 @@ public class CsvFileCommitter
 
     @Override
     protected void writeDelete(
-            CSVPrinter csv, DeleteRequest deleteRequest
-    ) throws IOException {
+            CSVPrinter csv, DeleteRequest deleteRequest) throws IOException {
 
         if (isNotBlank(configuration.getTypeHeader())
                 || !configuration.isSplitUpsertDelete()) {
@@ -241,8 +235,7 @@ public class CsvFileCommitter
             if (StringUtils.isNotBlank(field)) {
                 value = StringUtils.join(
                         deleteRequest.getMetadata().getStrings(field),
-                        configuration.getMultiValueJoinDelimiter()
-                );
+                        configuration.getMultiValueJoinDelimiter());
             }
             value = truncate(value, col.getTruncateAt());
             csv.print(StringUtils.trimToEmpty(value));

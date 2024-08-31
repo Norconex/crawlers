@@ -39,14 +39,12 @@ public class FileMultiFetchResponse
     @Override
     public boolean isFile() {
         return getLastFetchResponse().map(
-                FileFetchResponse::isFile
-        ).orElse(false);
+                FileFetchResponse::isFile).orElse(false);
     }
 
     @Override
     public boolean isFolder() {
         return getLastFetchResponse().map(
-                FileFetchResponse::isFolder
-        ).orElse(false);
+                FileFetchResponse::isFolder).orElse(false);
     }
 }

@@ -56,9 +56,7 @@ class FsBatch implements Iterable<CommitterRequest> {
         try {
             return new CountingIterator<>(
                     new TransformIterator<>(
-                            zipIterator(), this::loadCommitterRequest
-                    )
-            );
+                            zipIterator(), this::loadCommitterRequest));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

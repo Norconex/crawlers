@@ -64,8 +64,7 @@ class CmisAtomFileSystemTest {
                 tempDir,
                 cfg -> cfg
                         .setStartReferences(List.of(ref))
-                        .setFetchers(List.of(new CmisFetcher()))
-        );
+                        .setFetchers(List.of(new CmisFetcher())));
         assertThat(mem.getUpsertCount()).isEqualTo(expectedQty);
     }
 

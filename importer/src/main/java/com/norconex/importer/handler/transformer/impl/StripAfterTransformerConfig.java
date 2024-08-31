@@ -86,8 +86,7 @@ public class StripAfterTransformerConfig implements ChunkedTextSupport {
      * @param fieldMatcher field matcher
      */
     public StripAfterTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
@@ -105,8 +104,7 @@ public class StripAfterTransformerConfig implements ChunkedTextSupport {
      * @param stripAfterMatcher text matcher
      */
     public StripAfterTransformerConfig setStripAfterMatcher(
-            TextMatcher stripAfterMatcher
-    ) {
+            TextMatcher stripAfterMatcher) {
         this.stripAfterMatcher.copyFrom(stripAfterMatcher);
         return this;
     }

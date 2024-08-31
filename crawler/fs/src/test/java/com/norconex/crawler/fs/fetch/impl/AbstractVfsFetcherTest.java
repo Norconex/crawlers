@@ -45,10 +45,10 @@ class AbstractVfsFetcherTest {
     @Test
     void testNoInitFetchMustThrow() {
         assertThatExceptionOfType(IllegalStateException.class)
-            .isThrownBy( //NOSONAR
-                () -> {
-                    new MockVfsFetcher().fetch(mockRequest());
-                });
+                .isThrownBy( //NOSONAR
+                        () -> {
+                            new MockVfsFetcher().fetch(mockRequest());
+                        });
     }
 
     @Test

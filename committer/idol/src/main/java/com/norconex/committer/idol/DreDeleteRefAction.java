@@ -60,16 +60,13 @@ class DreDeleteRefAction implements IIdolIndexAction {
             throws CommitterException {
         url.setPath(
                 StringUtils.appendIfMissing(
-                        url.getPath(), "/"
-                ) + "DREDELETEREF"
-        );
+                        url.getPath(), "/") + "DREDELETEREF");
         url.getQueryString().set("DREDbName", config.getDatabaseName());
         try {
             return addDeletesToUrl(batch, url.toString());
         } catch (MalformedURLException | UnsupportedEncodingException e) {
             throw new CommitterException(
-                    "Could not create CFS Ingest Removes URL.", e
-            );
+                    "Could not create CFS Ingest Removes URL.", e);
         }
     }
 
@@ -88,8 +85,7 @@ class DreDeleteRefAction implements IIdolIndexAction {
                             "Source reference field '{}' has no value "
                                     + "for deletion of document: '{}'. Using that "
                                     + "original document reference instead.",
-                            refField, req.getReference()
-                    );
+                            refField, req.getReference());
                     ref = req.getReference();
                 }
             }

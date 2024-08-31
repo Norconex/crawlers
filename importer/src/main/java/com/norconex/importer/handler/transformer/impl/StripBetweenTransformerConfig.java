@@ -97,8 +97,7 @@ public class StripBetweenTransformerConfig implements ChunkedTextSupport {
      * @param fieldMatcher field matcher
      */
     public StripBetweenTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
@@ -108,8 +107,7 @@ public class StripBetweenTransformerConfig implements ChunkedTextSupport {
     }
 
     public StripBetweenTransformerConfig setOperations(
-            List<StripBetweenOperation> operations
-    ) {
+            List<StripBetweenOperation> operations) {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }

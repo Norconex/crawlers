@@ -25,7 +25,6 @@ class ElasticsearchCommitterPtProviderTest {
         // test that we add 1 entry for the committer
         assertThat(
                 new ElasticsearchCommitterPtProvider()
-                        .getPolymorphicTypes().size()
-        ).isOne();
+                        .getPolymorphicTypes().size()).isOne();
     }
 }

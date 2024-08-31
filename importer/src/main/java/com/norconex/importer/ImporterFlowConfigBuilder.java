@@ -28,15 +28,12 @@ public class ImporterFlowConfigBuilder implements Supplier<FlowMapperConfig> {
         CFG.getConsumerType()
                 .setBaseType(DocumentHandler.class)
                 .setScanFilter(
-                        n -> n.startsWith("com.norconex.importer.handler")
-                );
+                        n -> n.startsWith("com.norconex.importer.handler"));
         CFG.getPredicateType()
                 .setBaseType(BaseCondition.class)
                 .setScanFilter(
                         n -> n.startsWith(
-                                "com.norconex.importer.handler.condition"
-                        )
-                );
+                                "com.norconex.importer.handler.condition"));
     }
 
     @Override

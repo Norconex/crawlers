@@ -58,17 +58,14 @@ class MultiFetchResponseTest {
 
         var gmfr = new MultiFetchResponse<>(
                 List.of(
-                        resp1, resp2
-                )
-        );
+                        resp1, resp2));
 
         assertThat(gmfr.getStatusCode()).isEqualTo(123);
         assertThat(gmfr.getReasonPhrase()).isEqualTo("Just because.");
         assertThat(gmfr.getException().getMessage()).isEqualTo("TEST");
         assertThat(gmfr.getCrawlDocState()).isSameAs(CrawlDocState.MODIFIED);
         assertThat(gmfr.getFetchResponses()).containsExactlyInAnyOrder(
-                resp1, resp2
-        );
+                resp1, resp2);
         assertThat(gmfr.getLastFetchResponse()).containsSame(resp2);
         assertThat(gmfr).hasToString("123 Just because.");
     }
