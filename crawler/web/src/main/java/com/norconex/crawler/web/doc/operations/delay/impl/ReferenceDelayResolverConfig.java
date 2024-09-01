@@ -101,11 +101,9 @@ public class ReferenceDelayResolverConfig extends BaseDelayResolverConfig {
     }
 
     public ReferenceDelayResolverConfig setDelayReferencePatterns(
-            List<DelayReferencePattern> delayReferencePatterns
-    ) {
+            List<DelayReferencePattern> delayReferencePatterns) {
         CollectionUtil.setAll(
-                this.delayReferencePatterns, delayReferencePatterns
-        );
+                this.delayReferencePatterns, delayReferencePatterns);
         return this;
     }
 }

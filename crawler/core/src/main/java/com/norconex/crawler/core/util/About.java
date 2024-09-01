@@ -92,8 +92,7 @@ public final class About {
     private static String committerName(Class<?> cls) {
         return "%s (%s)".formatted(
                 removeEndIgnoreCase(cls.getSimpleName(), "Committer"),
-                PackageManifest.of(cls).getTitle()
-        );
+                PackageManifest.of(cls).getTitle());
     }
 
     private static String releaseVersion(Class<?> cls) {

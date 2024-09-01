@@ -35,9 +35,8 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -104,48 +103,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
  *
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.solr.SolrCommitter">
- *   <solrClientType>
- *     (See class documentation for options. Default: HttpSolrClient.)
- *   </solrClientType>
- *   <solrURL>(URL to Solr)</solrURL>
- *   <solrUpdateURLParams>
- *     <param name="(parameter name)">(parameter value)</param>
- *     <!-- multiple param tags allowed -->
- *   </solrUpdateURLParams>
- *   <solrCommitDisabled>[false|true]</solrCommitDisabled>
- *
- *   <!-- Use the following if authentication is required. -->
- *   <credentials>
- *     {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   </credentials>
- *
- *   <sourceIdField>
- *     (Optional document field name containing the value that will be stored
- *     in Solr target ID field. Default is the document reference.)
- *   </sourceIdField>
- *   <targetIdField>
- *     (Optional name of Solr field where to store a document unique
- *     identifier (sourceIdField).  If not specified, default is "id".)
- *   </targetIdField>
- *   <targetContentField>
- *     (Optional Solr field name to store document content/body.
- *     Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @Slf4j
@@ -166,8 +124,7 @@ public class SolrCommitter
     protected void initBatchCommitter() throws CommitterException {
         solrClient = ObjectUtils.defaultIfNull(
                 configuration.getSolrClientType(),
-                SolrClientType.HTTP2
-        ).create(configuration.getSolrURL());
+                SolrClientType.HTTP2).create(configuration.getSolrURL());
     }
 
     @Override
@@ -210,14 +167,13 @@ public class SolrCommitter
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Cannot push document batch to Solr.", e
-            );
+                    "Cannot push document batch to Solr.", e);
         }
     }
 
     @Override
     protected void closeBatchCommitter() throws CommitterException {
-        IOUtil.closeQuietly(solrClient);
+        IoUtil.closeQuietly(solrClient);
         solrClient = null;
         LOG.info("SolrClient closed.");
     }
@@ -229,9 +185,7 @@ public class SolrCommitter
             solrBatchRequest.setBasicAuthCredentials(
                     configuration.getCredentials().getUsername(),
                     EncryptionUtil.decryptPassword(
-                            configuration.getCredentials()
-                    )
-            );
+                            configuration.getCredentials()));
         }
         for (Entry<String, String> entry : configuration.getUpdateUrlParams()
                 .entrySet()) {
@@ -246,29 +200,24 @@ public class SolrCommitter
     }
 
     protected void addSolrUpsertRequest(
-            UpdateRequest solrBatchRequest, UpsertRequest committerRequest
-    )
+            UpdateRequest solrBatchRequest, UpsertRequest committerRequest)
             throws CommitterException {
 
         CommitterUtil.applyTargetId(
                 committerRequest,
                 configuration.getSourceIdField(),
-                configuration.getTargetIdField()
-        );
+                configuration.getTargetIdField());
         CommitterUtil.applyTargetContent(
-                committerRequest, configuration.getTargetContentField()
-        );
+                committerRequest, configuration.getTargetContentField());
         solrBatchRequest.add(buildSolrDocument(committerRequest.getMetadata()));
     }
 
     protected void addSolrDeleteRequest(
-            UpdateRequest solrBatchRequest, DeleteRequest committerRequest
-    ) {
+            UpdateRequest solrBatchRequest, DeleteRequest committerRequest) {
         CommitterUtil.applyTargetId(
                 committerRequest,
                 configuration.getSourceIdField(),
-                configuration.getTargetIdField()
-        );
+                configuration.getTargetIdField());
         solrBatchRequest.deleteById(committerRequest.getReference());
     }
 
@@ -296,14 +245,12 @@ public class SolrCommitter
         if (headers == null) {
             throw new CommitterException(
                     "No response headers obtained from Solr request. "
-                            + "Response: " + response
-            );
+                            + "Response: " + response);
         }
         var status = Objects.toString(headers.get("status"), null);
         if (!"0".equals(status)) {
             throw new CommitterException(
-                    "Invalid Solr response status: " + status
-            );
+                    "Invalid Solr response status: " + status);
         }
     }
 

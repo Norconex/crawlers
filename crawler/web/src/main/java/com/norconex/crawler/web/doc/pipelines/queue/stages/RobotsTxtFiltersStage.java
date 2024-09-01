@@ -58,13 +58,11 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
                             .source(ctx.getCrawler())
                             .subject(filter)
                             .docContext(ctx.getDocContext())
-                            .build()
-            );
+                            .build());
             LOG.debug(
                     "REJECTED by robots.txt. "
                             + ". Reference={} Filter={}",
-                    ctx.getDocContext().getReference(), filter
-            );
+                    ctx.getDocContext().getReference(), filter);
             return false;
         }
         return true;
@@ -76,12 +74,10 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
      * (logic described here: http://tools.seobook.com/robots-txt/)
      */
     private RobotsTxtFilter findRejectingRobotsFilter(
-            QueuePipelineContext ctx
-    ) {
+            QueuePipelineContext ctx) {
 
         var robotsTxt = Web.robotsTxt(
-                ctx.getCrawler(), ctx.getDocContext().getReference()
-        );
+                ctx.getCrawler(), ctx.getDocContext().getReference());
         if (robotsTxt == null) {
             return null;
         }

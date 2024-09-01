@@ -50,14 +50,10 @@ class TextBetweenTransformerTest {
                                 .setFieldMatcher(TextMatcher.wildcard("fld*"))
                                 .setStartMatcher(
                                         TextMatcher.regex("x")
-                                                .setIgnoreCase(false)
-                                )
+                                                .setIgnoreCase(false))
                                 .setEndMatcher(
                                         TextMatcher.regex("y")
-                                                .setIgnoreCase(false)
-                                )
-                )
-        );
+                                                .setIgnoreCase(false))));
 
         var metadata = new Properties();
         metadata.add("fld1", "x1y", "x2y", "x3y");
@@ -80,8 +76,7 @@ class TextBetweenTransformerTest {
         var t = new TextBetweenTransformer();
         addDetails(
                 t, "field", "http://www\\..*?02a\\.gif", "\\b",
-                true, false, null
-        );
+                true, false, null);
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
@@ -91,17 +86,15 @@ class TextBetweenTransformerTest {
 
         t.accept(
                 TestUtil.newHandlerContext(
-                        htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
-                )
-        );
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
         var field = metadata.getString("field");
 
         Assertions.assertEquals(
-                "http://www.cs.cmu.edu/%7Ergs/alice02a.gif", field
-        );
+                "http://www.cs.cmu.edu/%7Ergs/alice02a.gif", field);
     }
 
     @Test
@@ -120,9 +113,8 @@ class TextBetweenTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         t.accept(
                 TestUtil.newHandlerContext(
-                        htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
-                )
-        );
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -131,8 +123,7 @@ class TextBetweenTransformerTest {
 
         assertThat(headings).contains(
                 "<h2>Down the Rabbit-Hole</h2>",
-                "<h2>CHAPTER I</h2>"
-        );
+                "<h2>CHAPTER I</h2>");
         assertThat(strong).size().isEqualTo(17);
     }
 
@@ -148,9 +139,8 @@ class TextBetweenTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         t.accept(
                 TestUtil.newHandlerContext(
-                        htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
-                )
-        );
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -163,12 +153,10 @@ class TextBetweenTransformerTest {
         var t = new TextBetweenTransformer();
         addDetails(
                 t, "name", "start", "end", true,
-                true, PropertySetter.PREPEND
-        );
+                true, PropertySetter.PREPEND);
         addDetails(
                 t, "headingsame", "<h1>", "</h1>", false,
-                false, PropertySetter.APPEND
-        );
+                false, PropertySetter.APPEND);
         t.getConfiguration().setMaxReadSize(512);
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
@@ -176,13 +164,11 @@ class TextBetweenTransformerTest {
 
     private static void addDetails(
             TextBetweenTransformer t, String toField, String start, String end,
-            boolean inclusive, boolean ignoreCase, PropertySetter onSet
-    ) {
+            boolean inclusive, boolean ignoreCase, PropertySetter onSet) {
         var tbd = new TextBetweenOperation();
         tbd.setToField(toField);
         tbd.setStartMatcher(
-                TextMatcher.regex(start).setIgnoreCase(ignoreCase)
-        );
+                TextMatcher.regex(start).setIgnoreCase(ignoreCase));
         tbd.setEndMatcher(TextMatcher.regex(end).setIgnoreCase(ignoreCase));
         tbd.setInclusive(inclusive);
         tbd.setOnSet(onSet);

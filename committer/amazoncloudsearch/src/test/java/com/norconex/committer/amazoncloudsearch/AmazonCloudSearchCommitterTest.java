@@ -50,11 +50,10 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.exec.RetriableException;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
-import com.norconex.commons.lang.url.URLStreamer;
+import com.norconex.commons.lang.url.UrlStreamer;
 
 /**
  * AmazonCloudSearch main tests.
@@ -77,32 +76,32 @@ class AmazonCloudSearchCommitterTest {
     private static final String TEST_ID = "3";
     private static final String TEST_CONTENT = "This is test content.";
 
+    @SuppressWarnings("resource")
     @Container
-    static DockerComposeContainer<?> container =
-            new DockerComposeContainer<>(
-                    new File("src/test/resources/nozama-cloudsearch.yaml"))
-                            .withExposedService(
-                                    CLOUDSEARCH_NAME,
-                                    CLOUDSEARCH_PORT,
-                                    /*
-                                     * Ensure nozama container gets into a state where
-                                     * it will accept HTTP DELETE requests
-                                     */
-                                    Wait
-                                            .forHttp(API_DEV_DOCUMENTS)
-                                            .withMethod("DELETE")
-                                            .forStatusCode(200)
-                                            .withStartupTimeout(
-                                                    Duration.ofSeconds(60)));
+    static DockerComposeContainer<?> container = new DockerComposeContainer<>(
+            new File("src/test/resources/nozama-cloudsearch.yaml"))
+                    .withExposedService(
+                            CLOUDSEARCH_NAME,
+                            CLOUDSEARCH_PORT,
+                            /*
+                             * Ensure nozama container gets into a state where
+                             * it will accept HTTP DELETE requests
+                             */
+                            Wait
+                                    .forHttp(API_DEV_DOCUMENTS)
+                                    .withMethod("DELETE")
+                                    .forStatusCode(200)
+                                    .withStartupTimeout(
+                                            Duration.ofSeconds(60)));
 
-    private static String CLOUDSEARCH_ENDPOINT;
+    private static String cloudSearchEndpoint;
 
     @TempDir
     static File tempDir;
 
     @BeforeAll
     static void setCloudSearchEndpoint() {
-        CLOUDSEARCH_ENDPOINT =
+        cloudSearchEndpoint =
                 "http://"
                         + container.getServiceHost(
                                 CLOUDSEARCH_NAME,
@@ -234,8 +233,9 @@ class AmazonCloudSearchCommitterTest {
             withinCommitterSession(
                     cfg -> {
                         cfg.getProxySettings()
-                            .setHost(new Host("there", 99))
-                            .setCredentials(new Credentials("cool", "dude"));
+                                .setHost(new Host("there", 99))
+                                .setCredentials(
+                                        new Credentials("cool", "dude"));
                     }, committer -> {
                         committer.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
                     });
@@ -268,7 +268,7 @@ class AmazonCloudSearchCommitterTest {
                         : toInputStream(content, UTF_8));
     }
 
-    private void assertTestDoc(JSONObject doc) throws RetriableException {
+    private void assertTestDoc(JSONObject doc) {
         assertEquals(TEST_ID, doc.getString("id"));
         assertEquals(
                 TEST_CONTENT,
@@ -306,7 +306,7 @@ class AmazonCloudSearchCommitterTest {
                 .build();
         var committer = new AmazonCloudSearchCommitter();
         committer.getConfiguration()
-                .setServiceEndpoint(CLOUDSEARCH_ENDPOINT)
+                .setServiceEndpoint(cloudSearchEndpoint)
                 .setSecretKey("dummySecretKey")
                 .setAccessKey("dummyAccessKey")
                 .setFixBadIds(true);
@@ -333,13 +333,13 @@ class AmazonCloudSearchCommitterTest {
     }
 
     private String httpGET(String path) {
-        var url = CLOUDSEARCH_ENDPOINT + StringUtils.removeStart(path, "/");
+        var url = cloudSearchEndpoint + StringUtils.removeStart(path, "/");
         LOG.debug("CloudSearch test GET request: {}", url);
-        return URLStreamer.streamToString(url);
+        return UrlStreamer.streamToString(url);
     }
 
     private void httpDelete(String path) throws CommitterException {
-        var url = CLOUDSEARCH_ENDPOINT + StringUtils.removeStart(path, "/");
+        var url = cloudSearchEndpoint + StringUtils.removeStart(path, "/");
         LOG.debug("CloudSearch test DELETE request: {}", url);
         HttpURLConnection con = null;
         try {

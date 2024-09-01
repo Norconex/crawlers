@@ -45,10 +45,8 @@ class CurrentDateTransformerTest {
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertTrue(
                 meta.getString(DocMetadata.IMPORTED_DATE).matches(
-                        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"
-                ),
-                "Returned date format does not match"
-        );
+                        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"),
+                "Returned date format does not match");
 
         meta = new Properties();
         t = new CurrentDateTransformer();
@@ -62,10 +60,8 @@ class CurrentDateTransformerTest {
                                 "lundi", "mardi", "mercredi", "jeudi",
                                 "vendredi",
                                 "samedi", "dimanche" },
-                        meta.getString(DocMetadata.IMPORTED_DATE)
-                ),
-                "Returned date format does not match"
-        );
+                        meta.getString(DocMetadata.IMPORTED_DATE)),
+                "Returned date format does not match");
 
         meta = new Properties();
         meta.add("existingField", "1002727941000");
@@ -76,12 +72,10 @@ class CurrentDateTransformerTest {
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(
                 1, meta.getLongs("existingField").size(),
-                "Invalid overwritten number of date values"
-        );
+                "Invalid overwritten number of date values");
         Assertions.assertTrue(
                 meta.getLong("existingField") > now,
-                "Invalid overwritten date created"
-        );
+                "Invalid overwritten date created");
 
         meta = new Properties();
         meta.add("existingField", "1002727941000");
@@ -92,16 +86,14 @@ class CurrentDateTransformerTest {
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(
                 2, meta.getLongs("existingField").size(),
-                "Invalid added number of date values"
-        );
+                "Invalid added number of date values");
         var longs = meta.getLongs("existingField");
         for (Long dateLong : longs) {
             if (dateLong == 1002727941000L) {
                 continue;
             }
             Assertions.assertTrue(
-                    dateLong > now, "Invalid added date created"
-            );
+                    dateLong > now, "Invalid added date created");
         }
     }
 

@@ -73,11 +73,9 @@ public class ConstantTransformer extends BaseDocumentHandler
         configuration.getConstants().forEach(c -> {
             if (c != null) {
                 var setter = ofNullable(
-                        c.getOnSet()
-                ).orElse(configuration.getOnSet());
+                        c.getOnSet()).orElse(configuration.getOnSet());
                 PropertySetter.orAppend(setter).apply(
-                        docCtx.metadata(), c.getName(), c.getValues()
-                );
+                        docCtx.metadata(), c.getName(), c.getValues());
             }
         });
     }

@@ -49,8 +49,7 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
             @NonNull Predicates<QueuePipelineContext> stages,
             Function<QueuePipelineContext,
                     ? extends QueuePipelineContext> contextAdapter,
-            QueueInitializer initializer
-    ) {
+            QueueInitializer initializer) {
         this.stages = stages;
         this.contextAdapter = contextAdapter;
         this.initializer = initializer;
@@ -85,8 +84,7 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
             var queueInitContext = new QueueInitContext(
                     crawler,
                     crawler.getState().isResuming(),
-                    rec -> accept(new QueuePipelineContext(crawler, rec))
-            );
+                    rec -> accept(new QueuePipelineContext(crawler, rec)));
             var cfg = crawler.getConfiguration();
             if (cfg.isStartReferencesAsync()) {
                 queueInitialized = initializeQueueAsync(queueInitContext);

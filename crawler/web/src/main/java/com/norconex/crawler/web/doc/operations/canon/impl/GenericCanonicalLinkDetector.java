@@ -100,9 +100,7 @@ public class GenericCanonicalLinkDetector
                             ContentType.HTML,
                             ContentType.valueOf("application/xhtml+xml"),
                             ContentType.valueOf("vnd.wap.xhtml+xml"),
-                            ContentType.valueOf("x-asp")
-                    )
-            );
+                            ContentType.valueOf("x-asp")));
 
     private final GenericCanonicalLinkDetectorConfig configuration =
             new GenericCanonicalLinkDetectorConfig(DEFAULT_CONTENT_TYPES);
@@ -122,19 +120,15 @@ public class GenericCanonicalLinkDetector
             return Stream.of(StringUtils.split(link, '<'))
                     .filter(
                             lnk -> Pattern.compile(
-                                    "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1"
-                            )
-                                    .matcher(lnk).find()
-                    )
+                                    "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
+                                    .matcher(lnk).find())
                     .findFirst()
                     .map(lnk -> Pattern.compile("^([^>]+)>").matcher(lnk))
                     .filter(Matcher::find)
                     .map(
                             matcher -> toAbsolute(
                                     reference,
-                                    matcher.group(1).trim()
-                            )
-                    )
+                                    matcher.group(1).trim()))
                     .orElse(null);
         }
         return null;
@@ -142,8 +136,7 @@ public class GenericCanonicalLinkDetector
 
     @Override
     public String detectFromContent(
-            String reference, InputStream is, ContentType contentType
-    )
+            String reference, InputStream is, ContentType contentType)
             throws IOException {
         var cTypes = configuration.getContentTypes();
         if (cTypes.isEmpty()) {
@@ -162,18 +155,15 @@ public class GenericCanonicalLinkDetector
                         .replaceAll("\\s+", " ");
                 // if we are past the HTML "head" section, we are done
                 if (EqualsUtil.equalsAnyIgnoreCase(
-                        tag.replaceFirst("^(\\w+)", "$1"), "body", "/head"
-                )) {
+                        tag.replaceFirst("^(\\w+)", "$1"), "body", "/head")) {
                     return null;
                 }
 
                 if (Pattern.compile(
-                        "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1"
-                )
+                        "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
                         .matcher(tag).find()) {
                     var matcher = Pattern.compile(
-                            "(?i)\\bhref\\s?=\\s?([\"'])(.*?)\\s?\\1"
-                    )
+                            "(?i)\\bhref\\s?=\\s?([\"'])(.*?)\\s?\\1")
                             .matcher(tag);
                     if (matcher.find()) {
                         return toAbsolute(reference, matcher.group(2));
@@ -193,7 +183,6 @@ public class GenericCanonicalLinkDetector
         }
 
         return HttpURL.toAbsolute(
-                pageReference, StringEscapeUtils.unescapeHtml4(link)
-        );
+                pageReference, StringEscapeUtils.unescapeHtml4(link));
     }
 }

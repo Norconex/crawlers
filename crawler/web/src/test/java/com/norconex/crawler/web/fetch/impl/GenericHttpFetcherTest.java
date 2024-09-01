@@ -42,18 +42,12 @@ class GenericHttpFetcherTest {
     void testShemePortResolver() throws URISyntaxException {
         assertThat(
                 SCHEME_PORT_RESOLVER.resolve(
-                        HttpHost.create("http://blah.com")
-                )
-        ).isEqualTo(80);
+                        HttpHost.create("http://blah.com"))).isEqualTo(80);
         assertThat(
                 SCHEME_PORT_RESOLVER.resolve(
-                        HttpHost.create("https://blah.com")
-                )
-        ).isEqualTo(443);
+                        HttpHost.create("https://blah.com"))).isEqualTo(443);
         assertThat(
                 SCHEME_PORT_RESOLVER.resolve(
-                        HttpHost.create("ftp://blah.com")
-                )
-        ).isEqualTo(80);
+                        HttpHost.create("ftp://blah.com"))).isEqualTo(80);
     }
 }

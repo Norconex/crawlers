@@ -19,7 +19,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.url.URLNormalizer;
+import com.norconex.commons.lang.url.UrlNormalizer;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
@@ -33,7 +33,7 @@ import lombok.ToString;
  * <p>
  * Generic implementation of {@link WebUrlNormalizer} that should satisfy
  * most URL normalization needs.  This implementation relies on
- * {@link URLNormalizer}.  Please refer to it for complete documentation and
+ * {@link UrlNormalizer}.  Please refer to it for complete documentation and
  * examples.
  * </p>
  * <p>
@@ -62,37 +62,37 @@ import lombok.ToString;
  * name to get a full description from {@link WebUrlNormalizer}:
  * </p>
  * <ul>
- *   <li>{@link URLNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash} (since 2.6.0)</li>
- *   <li>{@link URLNormalizer#addDomainTrailingSlash() addDomainTrailingSlash} (since 2.6.1)</li>
- *   <li>{@link URLNormalizer#addWWW() addWWW}</li>
- *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
- *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters}</li>
- *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces}</li>
- *   <li>{@link URLNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQueryParameterNames()
+ *   <li>{@link UrlNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link UrlNormalizer#addDomainTrailingSlash() addDomainTrailingSlash} (since 2.6.1)</li>
+ *   <li>{@link UrlNormalizer#addWWW() addWWW}</li>
+ *   <li>{@link UrlNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
+ *   <li>{@link UrlNormalizer#encodeNonURICharacters() encodeNonURICharacters}</li>
+ *   <li>{@link UrlNormalizer#encodeSpaces() encodeSpaces}</li>
+ *   <li>{@link UrlNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
+ *   <li>{@link UrlNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
+ *   <li>{@link UrlNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
+ *   <li>{@link UrlNormalizer#lowerCaseQueryParameterNames()
  *        lowerCaseQueryParameterNames} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQueryParameterValues()
+ *   <li>{@link UrlNormalizer#lowerCaseQueryParameterValues()
  *        lowerCaseQueryParameterValues} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
- *   <li>{@link URLNormalizer#removeDefaultPort() removeDefaultPort}</li>
- *   <li>{@link URLNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
- *   <li>{@link URLNormalizer#removeDotSegments() removeDotSegments}</li>
- *   <li>{@link URLNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
- *   <li>{@link URLNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
- *   <li>{@link URLNormalizer#removeFragment() removeFragment}</li>
- *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li>
- *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
- *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
- *   <li>{@link URLNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
- *   <li>{@link URLNormalizer#removeWWW() removeWWW}</li>
- *   <li>{@link URLNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
- *   <li>{@link URLNormalizer#secureScheme() secureScheme}</li>
- *   <li>{@link URLNormalizer#sortQueryParameters() sortQueryParameters}</li>
- *   <li>{@link URLNormalizer#unsecureScheme() unsecureScheme}</li>
- *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
+ *   <li>{@link UrlNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
+ *   <li>{@link UrlNormalizer#removeDefaultPort() removeDefaultPort}</li>
+ *   <li>{@link UrlNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
+ *   <li>{@link UrlNormalizer#removeDotSegments() removeDotSegments}</li>
+ *   <li>{@link UrlNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
+ *   <li>{@link UrlNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
+ *   <li>{@link UrlNormalizer#removeFragment() removeFragment}</li>
+ *   <li>{@link UrlNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
+ *   <li>{@link UrlNormalizer#removeSessionIds() removeSessionIds}</li>
+ *   <li>{@link UrlNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
+ *   <li>{@link UrlNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link UrlNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
+ *   <li>{@link UrlNormalizer#removeWWW() removeWWW}</li>
+ *   <li>{@link UrlNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
+ *   <li>{@link UrlNormalizer#secureScheme() secureScheme}</li>
+ *   <li>{@link UrlNormalizer#sortQueryParameters() sortQueryParameters}</li>
+ *   <li>{@link UrlNormalizer#unsecureScheme() unsecureScheme}</li>
+ *   <li>{@link UrlNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
  * </ul>
  * <p>
  *   In addition, this class allows you to specify any number of URL
@@ -155,7 +155,7 @@ public class GenericUrlNormalizer implements
 
     @Override
     public String normalizeURL(String url) {
-        var normalizer = new URLNormalizer(url);
+        var normalizer = new UrlNormalizer(url);
         for (Normalization n : configuration.getNormalizations()) {
             n.getConsumer().accept(normalizer);
         }

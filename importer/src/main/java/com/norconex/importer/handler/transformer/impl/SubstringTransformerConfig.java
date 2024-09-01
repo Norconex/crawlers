@@ -91,8 +91,7 @@ public class SubstringTransformerConfig {
      * @param fieldMatcher field matcher
      */
     public SubstringTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

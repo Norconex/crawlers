@@ -33,9 +33,7 @@ public final class UrlScope {
     public static UrlScope out(String reason) {
         return new UrlScope(
                 StringUtils.firstNonBlank(
-                        reason, "Unspecified reason."
-                )
-        );
+                        reason, "Unspecified reason."));
     }
 
     public boolean isInScope() {

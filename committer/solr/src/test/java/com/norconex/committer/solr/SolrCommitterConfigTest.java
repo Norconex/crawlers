@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -38,7 +38,7 @@ class SolrCommitterConfigTest {
     void testWriteRead() {
         var c = new SolrCommitter();
 
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration().setBatchSize(10);
         q.getConfiguration().setMaxPerFolder(5);
         c.getConfiguration().setQueue(q);
@@ -54,23 +54,18 @@ class SolrCommitterConfigTest {
         c.getConfiguration().getRestrictions().add(
                 new PropertyMatcher(
                         TextMatcher.basic("document.reference"),
-                        TextMatcher.wildcard("*.pdf")
-                )
-        );
+                        TextMatcher.wildcard("*.pdf")));
         c.getConfiguration().getRestrictions().add(
                 new PropertyMatcher(
                         TextMatcher.basic("title"),
-                        TextMatcher.wildcard("Nah!")
-                )
-        );
+                        TextMatcher.wildcard("Nah!")));
 
         c.getConfiguration().setSourceIdField("sourceId");
         c.getConfiguration().setTargetIdField("targetId");
         c.getConfiguration().setTargetContentField("targetContent");
 
         c.getConfiguration().setSolrClientType(
-                SolrClientType.CONCURRENT_UPDATE_HTTP2
-        );
+                SolrClientType.CONCURRENT_UPDATE_HTTP2);
 
         c.getConfiguration().setSolrCommitDisabled(true);
 
@@ -88,20 +83,13 @@ class SolrCommitterConfigTest {
         Assertions.assertDoesNotThrow(() -> {
             try (var r = ResourceLoader.getXmlReader(this.getClass())) {
                 var committer = BeanMapper.DEFAULT.read(
-                        SolrCommitter.class, r, Format.XML
-                );
-                assertThat(
-                        committer
-                                .getConfiguration()
-                                .getUpdateUrlParam("param1")
-                )
-                        .contains("value1");
-                assertThat(
-                        committer
-                                .getConfiguration()
-                                .getUpdateUrlParamNames()
-                )
-                        .contains("param1", "param2");
+                        SolrCommitter.class, r, Format.XML);
+                assertThat(committer
+                        .getConfiguration()
+                        .getUpdateUrlParam("param1")).contains("value1");
+                assertThat(committer
+                        .getConfiguration()
+                        .getUpdateUrlParamNames()).contains("param1", "param2");
             }
         });
     }

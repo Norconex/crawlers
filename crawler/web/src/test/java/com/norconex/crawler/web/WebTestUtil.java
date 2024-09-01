@@ -116,52 +116,38 @@ public final class WebTestUtil {
                     .randomize(
                             File.class,
                             () -> new File(
-                                    new StringRandomizer(100).getRandomValue()
-                            )
-                    )
+                                    new StringRandomizer(100).getRandomValue()))
                     .randomize(
                             Path.class,
                             () -> Path.of(
-                                    new StringRandomizer(100).getRandomValue()
-                            )
-                    )
+                                    new StringRandomizer(100).getRandomValue()))
                     .randomize(
                             Long.class,
                             () -> Math
-                                    .abs(new LongRandomizer().getRandomValue())
-                    )
+                                    .abs(new LongRandomizer().getRandomValue()))
                     .randomize(
                             Integer.class,
                             () -> Math.abs(
-                                    new IntegerRandomizer().getRandomValue()
-                            )
-                    )
+                                    new IntegerRandomizer().getRandomValue()))
                     .randomize(ImporterConfig.class, ImporterConfig::new)
                     .randomize(
                             UpsertRequest.class,
                             () -> new UpsertRequest(
                                     new StringRandomizer(100).getRandomValue(),
                                     new Properties(),
-                                    new NullInputStream()
-                            )
-                    )
+                                    new NullInputStream()))
                     .randomize(
                             DeleteRequest.class,
                             () -> new DeleteRequest(
                                     new StringRandomizer(100).getRandomValue(),
-                                    new Properties()
-                            )
-                    )
+                                    new Properties()))
                     .randomize(Committer.class, MemoryCommitter::new)
                     .randomize(
                             SpoiledReferenceStrategizer.class,
-                            GenericSpoiledReferenceStrategizer::new
-                    )
+                            GenericSpoiledReferenceStrategizer::new)
                     .randomize(
                             AtomicBoolean.class, () -> new AtomicBoolean(
-                                    new BooleanRandomizer().getRandomValue()
-                            )
-                    )
+                                    new BooleanRandomizer().getRandomValue()))
 
                     .excludeType(DataStoreEngine.class::equals)
                     .excludeType(DataStore.class::equals)
@@ -178,23 +164,18 @@ public final class WebTestUtil {
                         int b = new NumberRandomizer().getRandomValue();
                         return CircularRange.between(
                                 Math.min(a, b),
-                                Math.max(a, b)
-                        );
+                                Math.max(a, b));
                     })
                     .randomize(
                             CachedInputStream.class,
-                            CachedInputStream::nullInputStream
-                    )
+                            CachedInputStream::nullInputStream)
                     .randomize(HttpFetcher.class, GenericHttpFetcher::new)
                     .randomize(
                             RobotsTxtProvider.class,
-                            StandardRobotsTxtProvider::new
-                    )
+                            StandardRobotsTxtProvider::new)
                     .randomize(
                             Pattern.class, () -> Pattern.compile(
-                                    new StringRandomizer(20).getRandomValue()
-                            )
-                    )
+                                    new StringRandomizer(20).getRandomValue()))
                     .randomize(DelayResolver.class, () -> {
                         var resolv = new GenericDelayResolver();
                         resolv.getConfiguration()
@@ -213,16 +194,13 @@ public final class WebTestUtil {
                     })
                     .randomize(
                             f -> "cookieSpec".equals(
-                                    f.getName()
-                            ), () -> CookieSpec.STRICT
-                    )
+                                    f.getName()),
+                            () -> CookieSpec.STRICT)
                     .randomize(
                             named(HttpAuthConfig.Fields.method)
                                     .and(ofType(HttpAuthMethod.class))
                                     .and(inClass(HttpAuthConfig.class)),
-                            randomizerOneOf(HttpAuthMethod.values())
-                    )
-    );
+                            randomizerOneOf(HttpAuthMethod.values())));
 
     public static <T> T randomize(Class<T> cls) {
         return easyRandom.nextObject(cls);
@@ -255,22 +233,19 @@ public final class WebTestUtil {
     }
 
     public static GenericHttpFetcher firstHttpFetcher(
-            @NonNull Crawler crawler
-    ) {
+            @NonNull Crawler crawler) {
         return (GenericHttpFetcher) crawler
                 .getConfiguration().getFetchers().get(0);
     }
 
     public static GenericHttpFetcherConfig firstHttpFetcherConfig(
-            @NonNull CrawlerConfig crawlerConfig
-    ) {
+            @NonNull CrawlerConfig crawlerConfig) {
         return ((GenericHttpFetcher) crawlerConfig
                 .getFetchers().get(0)).getConfiguration();
     }
 
     public static GenericHttpFetcherConfig firstHttpFetcherConfig(
-            @NonNull Crawler crawler
-    ) {
+            @NonNull Crawler crawler) {
         return firstHttpFetcher(crawler).getConfiguration();
     }
 
@@ -355,8 +330,7 @@ public final class WebTestUtil {
     }
 
     public static MemoryCommitter runWithConfig(
-            @NonNull Path workDir, @NonNull Consumer<WebCrawlerConfig> c
-    ) {
+            @NonNull Path workDir, @NonNull Consumer<WebCrawlerConfig> c) {
         var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
         c.accept((WebCrawlerConfig) crawlerBuilder.configuration());
         var crawler = crawlerBuilder.build();

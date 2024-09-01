@@ -24,13 +24,9 @@ class FetchDirectiveTest {
     void testFetchDirective() {
         assertThat(
                 FetchDirective.DOCUMENT.is(
-                        FetchDirective.DOCUMENT
-                )
-        ).isTrue();
+                        FetchDirective.DOCUMENT)).isTrue();
         assertThat(
                 FetchDirective.DOCUMENT.is(
-                        FetchDirective.METADATA
-                )
-        ).isFalse();
+                        FetchDirective.METADATA)).isFalse();
     }
 }

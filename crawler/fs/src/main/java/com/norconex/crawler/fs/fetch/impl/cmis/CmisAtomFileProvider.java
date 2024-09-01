@@ -43,7 +43,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,25 +67,20 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
                             Capability.GET_LAST_MODIFIED,
                             Capability.LIST_CHILDREN,
                             Capability.READ_CONTENT,
-                            Capability.URI
-                    )
-            );
+                            Capability.URI));
 
     @Override
     protected FileSystem doCreateFileSystem(
-            String scheme, FileObject file, FileSystemOptions fileSystemOptions
-    )
+            String scheme, FileObject file, FileSystemOptions fileSystemOptions)
             throws FileSystemException {
         var session = createSession(fileSystemOptions, file);
 
         final FileName rootName = new LayeredFileName(
                 scheme, file.getName(),
-                FileName.ROOT_PATH, FileType.FOLDER
-        );
+                FileName.ROOT_PATH, FileType.FOLDER);
 
         return new CmisAtomFileSystem(
-                rootName, file, fileSystemOptions, session
-        );
+                rootName, file, fileSystemOptions, session);
     }
 
     @Override
@@ -94,8 +89,7 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
     }
 
     private CmisAtomSession createSession(
-            FileSystemOptions opts, FileObject file
-    )
+            FileSystemOptions opts, FileObject file)
             throws FileSystemException {
         LOG.info("Creating new CMIS Atom connection.");
 
@@ -119,14 +113,12 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
     private void resolveDefaultHeaders(HttpClientBuilder httpBuilder) {
         List<Header> headers = new ArrayList<>();
         headers.add(
-                new BasicHeader("Accept", "application/atom+xml;type=feed")
-        );
+                new BasicHeader("Accept", "application/atom+xml;type=feed"));
         httpBuilder.setDefaultHeaders(headers);
     }
 
     private void resolveAuth(
-            HttpClientBuilder httpBuilder, FileSystemOptions opts
-    ) {
+            HttpClientBuilder httpBuilder, FileSystemOptions opts) {
         var auth = DefaultFileSystemConfigBuilder
                 .getInstance().getUserAuthenticator(opts);
         if (auth != null) {
@@ -139,23 +131,16 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
                     AuthScope.ANY, new UsernamePasswordCredentials(
                             new String(
                                     data.getData(
-                                            UserAuthenticationData.USERNAME
-                                    )
-                            ),
+                                            UserAuthenticationData.USERNAME)),
                             new String(
                                     data.getData(
-                                            UserAuthenticationData.PASSWORD
-                                    )
-                            )
-                    )
-            );
+                                            UserAuthenticationData.PASSWORD))));
             httpBuilder.setDefaultCredentialsProvider(cp);
         }
     }
 
     private void resolveRepo(
-            CmisAtomSession session, FileSystemOptions opts, FileObject file
-    )
+            CmisAtomSession session, FileSystemOptions opts, FileObject file)
             throws FileSystemException {
         var cmis =
                 CmisAtomFileSystemConfigBuilder.getInstance();
@@ -166,12 +151,11 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
         var repoXPath = REPOSITORY_XPATH;
         var repoId = cmis.getRepositoryId(opts);
         var doc = session.getDocument(atomURL);
-        XML repoNode;
+        Xml repoNode;
         if (StringUtils.isNotBlank(repoId)) {
             LOG.info("Using CMIS repository matching id: " + repoId);
             repoNode = doc.getXML(
-                    "%s[repositoryId=\"%s\"]".formatted(repoXPath, repoId)
-            );
+                    "%s[repositoryId=\"%s\"]".formatted(repoXPath, repoId));
         } else {
             LOG.info("Using first CMIS repository found.");
             repoNode = doc.getXML(repoXPath + "[1]");
@@ -183,18 +167,16 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
         session.setRepoId(repoNode.getString("repositoryId"));
         session.setRepoName(repoNode.getString("repositoryName"));
         session.setObjectByPathTemplate(
-                getTemplateURL(doc, "objectbypath")
-        );
+                getTemplateURL(doc, "objectbypath"));
         session.setQueryTemplate(getTemplateURL(doc, "query"));
     }
 
-    private String getTemplateURL(XML doc, String type) {
+    private String getTemplateURL(Xml doc, String type) {
         // We always use some of the same defaults, so we can already replace
         // parts of the URL
         var tmplURL = doc.getString(
                 "/service/workspace/uritemplate[type='%s']/template/text()"
-                        .formatted(type)
-        );
+                        .formatted(type));
         Map<String, Object> vars = new HashMap<>();
         vars.put("filter", "");
         vars.put("includeAllowableActions", true);

@@ -81,16 +81,13 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
                 crawlerContext
                         .getResolvedWebsites()
                         .putIfAbsent(
-                                urlRoot, SitemapPresence.RESOLVING
-                        )
-        )
-                .orElse(SitemapPresence.RESOLVING);
+                                urlRoot, SitemapPresence.RESOLVING))
+                                        .orElse(SitemapPresence.RESOLVING);
 
         // Process sitemap
         if (presence == SitemapPresence.RESOLVING) {
             synchronized (lockTable.computeIfAbsent(
-                    urlRoot, k -> new Object()
-            )) {
+                    urlRoot, k -> new Object())) {
                 try {
                     resolveSitemap(urlRoot, ctx);
                 } finally {
@@ -139,8 +136,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
                         .name(WebCrawlerEvent.SITEMAP_RESOLVE_BEGIN)
                         .docContext(docRec)
                         .source(ctx.getCrawler())
-                        .build()
-        );
+                        .build());
 
         // To make sure the initial doc is not rejected just because
         // it is not yet identified as being part of the sitemap, we
@@ -153,8 +149,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
             if (isDocFoundInSitemap.isFalse() && StringUtils.equalsAny(
                     rec.getReference(),
                     docRec.getReference(),
-                    docRec.getOriginalReference()
-            )) {
+                    docRec.getOriginalReference())) {
                 actualRec = docRec;
             }
 
@@ -166,9 +161,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
                     .accept(
                             new QueuePipelineContext(
                                     ctx.getCrawler(),
-                                    actualRec
-                            )
-                    );
+                                    actualRec));
 
             var cnt = urlCount.getAndIncrement();
             if ((cnt == 0)) {
@@ -183,8 +176,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         var cfg = Web.config(ctx.getCrawler());
         var foundLocation = new MutableObject<String>();
         for (String location : cfg.getSitemapLocator().locations(
-                docUrl, ctx.getCrawler()
-        )) {
+                docUrl, ctx.getCrawler())) {
 
             var sitemapCtx = SitemapContext.builder()
                     .fetcher(Web.fetcher(ctx.getCrawler()))
@@ -197,8 +189,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
                 foundLocation.setValue(location);
                 LOG.info(
                         "{} references were extracted from sitemap: {}",
-                        urlCount.intValue(), location
-                );
+                        urlCount.intValue(), location);
                 // we break since we deal with the first one discovered
                 // (we assume there is only one initial sitemap index per site).
                 break;
@@ -226,7 +217,6 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
                         .source(ctx.getCrawler())
                         .subject(urlCount.toInteger())
                         .message(eventMsg)
-                        .build()
-        );
+                        .build());
     }
 }

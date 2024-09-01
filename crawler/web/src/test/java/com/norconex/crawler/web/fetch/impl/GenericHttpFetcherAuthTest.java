@@ -57,25 +57,19 @@ class GenericHttpFetcherAuthTest {
                         request(protectedPath)
                                 .withHeader(
                                         "Authorization",
-                                        "Basic Z29vZHVzZXI6Z29vZHBhc3N3b3Jk"
-                                )
-                )
+                                        "Basic Z29vZHVzZXI6Z29vZHBhc3N3b3Jk"))
                 .respond(
                         response()
-                                .withBody("You got it!")
-                );
+                                .withBody("You got it!"));
         client
                 .when(request(protectedPath))
                 .respond(
                         response()
                                 .withStatusCode(
-                                        HttpStatusCode.UNAUTHORIZED_401.code()
-                                )
+                                        HttpStatusCode.UNAUTHORIZED_401.code())
                                 .withHeader(
                                         "WWW-Authenticate",
-                                        "realm=\"Test Realm\", charset=\"UTF-8\""
-                                )
-                );
+                                        "realm=\"Test Realm\", charset=\"UTF-8\""));
 
         // Good creds
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
@@ -84,8 +78,7 @@ class GenericHttpFetcherAuthTest {
             authCfg.setMethod(HttpAuthMethod.BASIC);
             authCfg.setPreemptive(true);
             authCfg.setCredentials(
-                    new Credentials("gooduser", "goodpassword")
-            );
+                    new Credentials("gooduser", "goodpassword"));
             fetchCfg.setAuthentication(authCfg);
             // Misc. unaffecting params that should not break
             fetchCfg.setSslProtocols(List.of("TLS 1.3"));
@@ -105,8 +98,7 @@ class GenericHttpFetcherAuthTest {
             authCfg.setMethod(HttpAuthMethod.BASIC);
             authCfg.setPreemptive(true);
             authCfg.setCredentials(
-                    new Credentials("baduser", "badpassword")
-            );
+                    new Credentials("baduser", "badpassword"));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             fetchCfg.setAuthentication(authCfg);
             cfg.setStartReferences(List.of(protectedUrl));
@@ -130,9 +122,7 @@ class GenericHttpFetcherAuthTest {
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             fetchCfg.setAuthentication(
                     authConfirm(
-                            loginFormUrl, "gooduser", "goodpassword"
-                    )
-            );
+                            loginFormUrl, "gooduser", "goodpassword"));
         });
         var doc = mem.getUpsertRequests().get(0);
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
@@ -143,9 +133,7 @@ class GenericHttpFetcherAuthTest {
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             fetchCfg.setAuthentication(
                     authConfirm(
-                            loginFormUrl, "baduser", "badpassword"
-                    )
-            );
+                            loginFormUrl, "baduser", "badpassword"));
         });
         assertThat(mem.getUpsertCount()).isZero();
 
@@ -154,8 +142,7 @@ class GenericHttpFetcherAuthTest {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             var authCfg = authConfirm(
-                    loginFormActionUrl, "gooduser", "goodpassword"
-            );
+                    loginFormActionUrl, "gooduser", "goodpassword");
             authCfg.setFormSelector(null);
             fetchCfg.setAuthentication(authCfg);
         });
@@ -168,8 +155,7 @@ class GenericHttpFetcherAuthTest {
             cfg.setStartReferences(List.of(protectedUrl));
             var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
             var authCfg = authConfirm(
-                    loginFormActionUrl, "baduser", "badpassword"
-            );
+                    loginFormActionUrl, "baduser", "badpassword");
             authCfg.setFormSelector(null);
             fetchCfg.setAuthentication(authCfg);
         });
@@ -177,8 +163,7 @@ class GenericHttpFetcherAuthTest {
     }
 
     private HttpAuthConfig authConfirm(
-            String formUrl, String username, String password
-    ) {
+            String formUrl, String username, String password) {
         var authCfg = new HttpAuthConfig();
         authCfg.setCredentials(new Credentials(username, password));
         authCfg.setFormSelector("#thisOne");
@@ -207,18 +192,13 @@ class GenericHttpFetcherAuthTest {
                                                                 """
                                                                 .formatted(
                                                                         wrongFormActionPath,
-                                                                        loginFormActionPath
-                                                                )
-                                                )
+                                                                        loginFormActionPath))
                                                 .build(),
-                                        HTML_UTF_8
-                                )
-                );
+                                        HTML_UTF_8));
         client
                 .when(
                         request(wrongFormActionPath)
-                                .withMethod("POST")
-                )
+                                .withMethod("POST"))
                 .respond(HttpResponse.notFoundResponse());
         client
                 .when(
@@ -228,23 +208,16 @@ class GenericHttpFetcherAuthTest {
                                         params(
                                                 param(
                                                         "THEusername",
-                                                        "gooduser"
-                                                ),
+                                                        "gooduser"),
                                                 param(
                                                         "THEpassword",
-                                                        "goodpassword"
-                                                )
-                                        )
-                                )
-                )
+                                                        "goodpassword"))))
                 .respond(
                         response()
                                 .withStatusCode(
-                                        HttpStatusCode.ACCEPTED_202.code()
-                                )
+                                        HttpStatusCode.ACCEPTED_202.code())
                                 .withBody("LOGIN SUCCESS")
-                                .withCookie("userToken", "joe")
-                );
+                                .withCookie("userToken", "joe"));
 
         client
                 .when(
@@ -255,41 +228,29 @@ class GenericHttpFetcherAuthTest {
                                                 params(
                                                         param(
                                                                 "THEusername",
-                                                                "gooduser"
-                                                        ),
+                                                                "gooduser"),
                                                         param(
                                                                 "THEpassword",
-                                                                "goodpassword"
-                                                        )
-                                                )
-                                        )
-                                )
-                )
+                                                                "goodpassword")))))
                 .respond(
                         response()
                                 .withStatusCode(
-                                        HttpStatusCode.FORBIDDEN_403.code()
-                                )
-                                .withBody("LOGIN FAILED")
-                );
+                                        HttpStatusCode.FORBIDDEN_403.code())
+                                .withBody("LOGIN FAILED"));
 
         client
                 .when(
                         request(protectedPath)
-                                .withCookie("userToken", "joe")
-                )
+                                .withCookie("userToken", "joe"))
                 .respond(
                         response()
-                                .withBody("You got it!")
-                );
+                                .withBody("You got it!"));
         client
                 .when(request(protectedPath))
                 .respond(
                         response()
                                 .withStatusCode(
-                                        HttpStatusCode.FORBIDDEN_403.code()
-                                )
-                                .withBody("DENIED")
-                );
+                                        HttpStatusCode.FORBIDDEN_403.code())
+                                .withBody("DENIED"));
     }
 }

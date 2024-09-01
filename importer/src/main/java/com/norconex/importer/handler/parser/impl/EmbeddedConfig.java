@@ -128,8 +128,7 @@ public class EmbeddedConfig implements Serializable { //{
      * @return this instance
      */
     public EmbeddedConfig setSplitContentTypes(
-            List<TextMatcher> splitContentTypes
-    ) {
+            List<TextMatcher> splitContentTypes) {
         CollectionUtil.setAll(this.splitContentTypes, splitContentTypes);
         return this;
     }
@@ -154,11 +153,9 @@ public class EmbeddedConfig implements Serializable { //{
      * @return this instance
      */
     public EmbeddedConfig setSkipEmbeddedOfContentTypes(
-            List<TextMatcher> skipEmbeddedOfContentTypes
-    ) {
+            List<TextMatcher> skipEmbeddedOfContentTypes) {
         CollectionUtil.setAll(
-                this.skipEmbeddedOfContentTypes, skipEmbeddedOfContentTypes
-        );
+                this.skipEmbeddedOfContentTypes, skipEmbeddedOfContentTypes);
         return this;
     }
 
@@ -180,11 +177,9 @@ public class EmbeddedConfig implements Serializable { //{
      * @return this instance
      */
     public EmbeddedConfig setSkipEmbeddedContentTypes(
-            List<TextMatcher> skipEmbeddedContentTypes
-    ) {
+            List<TextMatcher> skipEmbeddedContentTypes) {
         CollectionUtil.setAll(
-                this.skipEmbeddedContentTypes, skipEmbeddedContentTypes
-        );
+                this.skipEmbeddedContentTypes, skipEmbeddedContentTypes);
         return this;
     }
 }

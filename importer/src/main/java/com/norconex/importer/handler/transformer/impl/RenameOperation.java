@@ -41,8 +41,7 @@ public class RenameOperation {
      * @return this instance
      */
     public RenameOperation setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

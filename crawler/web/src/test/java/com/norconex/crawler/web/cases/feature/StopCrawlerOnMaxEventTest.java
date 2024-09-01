@@ -54,15 +54,12 @@ class StopCrawlerOnMaxEventTest {
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(
-                    List.of(serverUrl(client, "/stopCrawlerOnMaxEvent"))
-            );
+                    List.of(serverUrl(client, "/stopCrawlerOnMaxEvent")));
             var lis = new StopCrawlerOnMaxEventListener();
             lis.getConfiguration().setEventMatcher(
                     TextMatcher.csv(
                             CommitterEvent.COMMITTER_UPSERT_END
-                                    + "," + CrawlerEvent.REJECTED_FILTER
-                    )
-            );
+                                    + "," + CrawlerEvent.REJECTED_FILTER));
             lis.getConfiguration().setMaximum(10);
             lis.getConfiguration().setOnMultiple(OnMultiple.SUM);
             cfg.addEventListeners(List.of(lis));
@@ -76,12 +73,8 @@ class StopCrawlerOnMaxEventTest {
                                     new GenericReferenceFilter(), c -> c
                                             .setValueMatcher(
                                                     TextMatcher
-                                                            .regex(".*[13579]$")
-                                            )
-                                            .setOnMatch(OnMatch.EXCLUDE)
-                            )
-                    )
-            );
+                                                            .regex(".*[13579]$"))
+                                            .setOnMatch(OnMatch.EXCLUDE))));
         });
 
         // Expected: 6 upserts, 0 deletes

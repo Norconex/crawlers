@@ -37,8 +37,7 @@ public class ApacheRedirectCaptureStrategy extends DefaultRedirectStrategy {
     private final RedirectUrlProvider redirectUrlProvider;
 
     public ApacheRedirectCaptureStrategy(
-            RedirectUrlProvider redirectUrlProvider
-    ) {
+            RedirectUrlProvider redirectUrlProvider) {
         this.redirectUrlProvider = redirectUrlProvider;
     }
 
@@ -48,16 +47,14 @@ public class ApacheRedirectCaptureStrategy extends DefaultRedirectStrategy {
     public boolean isRedirected(
             final HttpRequest request,
             final HttpResponse response,
-            final HttpContext context
-    ) throws ProtocolException {
+            final HttpContext context) throws ProtocolException {
 
         //TODO check for max redirects here using config max redirect setting?
 
         var isRedirected = super.isRedirected(request, response, context);
         if (isRedirected) {
             var targetURL = redirectUrlProvider.provideRedirectURL(
-                    request, response, context
-            );
+                    request, response, context);
             if (StringUtils.isNotBlank(targetURL)) {
                 context.setAttribute(TARGET_REDIRECT_CONTEXT_KEY, targetURL);
             }

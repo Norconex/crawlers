@@ -14,17 +14,11 @@
  */
 package com.norconex.committer.idol;
 
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
@@ -44,10 +38,7 @@ import com.norconex.commons.lang.url.HttpURL;
  * _IX_DREDELETEREF.htm%3FTocPath%3DIndex%2520Actions%7CRemove
  * %2520Content%7C_____3
  */
-class DreDeleteRefAction implements IIdolIndexAction {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DreDeleteRefAction.class);
+class DreDeleteRefAction implements IdolIndexAction {
 
     private final IdolCommitterConfig config;
 
@@ -58,46 +49,17 @@ class DreDeleteRefAction implements IIdolIndexAction {
     @Override
     public URL url(List<CommitterRequest> batch, HttpURL url)
             throws CommitterException {
-        url.setPath(
-                StringUtils.appendIfMissing(
-                        url.getPath(), "/"
-                ) + "DREDELETEREF"
-        );
+        url.setPath(StringUtils.appendIfMissing(
+                url.getPath(), "/") + "DREDELETEREF");
         url.getQueryString().set("DREDbName", config.getDatabaseName());
-        try {
-            return addDeletesToUrl(batch, url.toString());
-        } catch (MalformedURLException | UnsupportedEncodingException e) {
-            throw new CommitterException(
-                    "Could not create CFS Ingest Removes URL.", e
-            );
-        }
-    }
-
-    private URL addDeletesToUrl(List<CommitterRequest> batch, String url)
-            throws MalformedURLException, UnsupportedEncodingException {
-        StringBuilder b = new StringBuilder(url);
-        b.append("&Docs=");
-        String sep = "";
-        for (CommitterRequest req : batch) {
-            String refField = config.getSourceReferenceField();
-            String ref = req.getReference();
-            if (StringUtils.isNotBlank(refField)) {
-                ref = req.getMetadata().getString(refField);
-                if (StringUtils.isBlank(ref)) {
-                    LOG.warn(
-                            "Source reference field '{}' has no value "
-                                    + "for deletion of document: '{}'. Using that "
-                                    + "original document reference instead.",
-                            refField, req.getReference()
-                    );
-                    ref = req.getReference();
-                }
-            }
-            b.append(sep);
-            b.append(URLEncoder.encode(ref, StandardCharsets.UTF_8.toString()));
-            sep = "+";
-        }
-        return new URL(b.toString());
+        return IdolUtil
+                .deleteUrlBuilder()
+                .batch(batch)
+                .baseUrl(url)
+                .refField(config.getSourceReferenceField())
+                .refsParamName("Docs")
+                .refsDelimiter("+")
+                .build();
     }
 
     @Override

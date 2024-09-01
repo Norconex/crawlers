@@ -69,15 +69,13 @@ class DocImageHandlerTest {
         var doc = CrawlDocStubs.crawlDoc(
                 "http://site.com/page.html",
                 ContentType.HTML,
-                InputStream.nullInputStream()
-        );
+                InputStream.nullInputStream());
         h.handleImage(TestResource.IMG_320X240_PNG.asInputStream(), doc);
 
         var file = new File(doc.getMetadata().getString("img-path"));
         var img1 = ImageIO.read(file);
         var img2 = MutableImage.fromBase64String(
-                doc.getMetadata().getString("img-64")
-        ).toImage();
+                doc.getMetadata().getString("img-64")).toImage();
 
         var baos1 = new ByteArrayOutputStream();
         ImageIO.write(img1, "jpg", baos1);

@@ -93,8 +93,7 @@ public class ReplaceTransformer
     }
 
     private void doReplaceOnChunk(
-            ReplaceOperation op, HandlerContext docCtx, TextChunk chunk
-    )
+            ReplaceOperation op, HandlerContext docCtx, TextChunk chunk)
             throws IOException {
 
         // About fields:
@@ -128,8 +127,7 @@ public class ReplaceTransformer
         if (chunk.getField() == null) {
             //body
             try (var out = docCtx.output().asWriter(
-                    configuration.getSourceCharset()
-            )) {
+                    configuration.getSourceCharset())) {
                 if (newValues.isEmpty()) {
                     out.write("");
                 } else {
@@ -140,13 +138,11 @@ public class ReplaceTransformer
         if (StringUtils.isNotBlank(op.getToField())) {
             // set on target field
             PropertySetter.orAppend(op.getOnSet()).apply(
-                    docCtx.metadata(), op.getToField(), newValues
-            );
+                    docCtx.metadata(), op.getToField(), newValues);
         } else {
             // overwrite source field
             PropertySetter.REPLACE.apply(
-                    docCtx.metadata(), chunk.getField(), newValues
-            );
+                    docCtx.metadata(), chunk.getField(), newValues);
         }
     }
 }

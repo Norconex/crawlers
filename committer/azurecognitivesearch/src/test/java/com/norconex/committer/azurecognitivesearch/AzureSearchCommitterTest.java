@@ -109,8 +109,7 @@ class AzureSearchCommitterTest {
                 .isInstanceOf(CommitterException.class)
                 .hasRootCauseMessage(
                         "Document key cannot start with an underscore "
-                                + "character: _3"
-                );
+                                + "character: _3");
     }
 
     @Test
@@ -213,8 +212,7 @@ class AzureSearchCommitterTest {
         // Check multi values are still there
         assertEquals(
                 3, doc.getFieldValues(fieldname).size(),
-                "Multi-value not saved properly."
-        );
+                "Multi-value not saved properly.");
     }
 
     @Test
@@ -241,8 +239,7 @@ class AzureSearchCommitterTest {
                 .isInstanceOf(CommitterException.class)
                 .hasRootCauseMessage(
                         """
-                                Document field cannot begin with "azureSearch": azureSearchField"""
-                );
+                                Document field cannot begin with "azureSearch": azureSearchField""");
     }
 
     @Test
@@ -271,8 +268,7 @@ class AzureSearchCommitterTest {
                         """
                                 Document field cannot have one or more\s\
                                 characters other than letters, numbers and underscores:\s\
-                                myField@!"""
-                );
+                                myField@!""");
     }
 
     @Test
@@ -299,8 +295,7 @@ class AzureSearchCommitterTest {
                 .isInstanceOf(CommitterException.class)
                 .hasRootCauseMessage(
                         "Document field cannot be "
-                                + "longer than 128 characters: " + myField
-                );
+                                + "longer than 128 characters: " + myField);
     }
 
     @Test
@@ -375,13 +370,13 @@ class AzureSearchCommitterTest {
         assertThatNoException().isThrownBy(() -> {
             withinCommitterSession(
                     cfg -> cfg.setUseWindowsAuth(true)
-                    .setDisableDocKeyEncoding(false)
-                    .setArrayFields("array_.*")
-                    .setArrayFieldsRegex(true)
-                    ,
+                            .setDisableDocKeyEncoding(false)
+                            .setArrayFields("array_.*")
+                            .setArrayFieldsRegex(true),
                     c -> {
-                c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
-            });
+                        c.upsert(upsertRequest(TEST_ID, "content",
+                                new Properties()));
+                    });
         });
     }
 
@@ -390,14 +385,12 @@ class AzureSearchCommitterTest {
     }
 
     private UpsertRequest upsertRequest(
-            String id, String content, Properties metadata
-    ) {
+            String id, String content, Properties metadata) {
         var p = metadata == null ? new Properties() : metadata;
         return new UpsertRequest(
                 id, p, content == null
                         ? new NullInputStream(0)
-                        : toInputStream(content, UTF_8)
-        );
+                        : toInputStream(content, UTF_8));
     }
 
     private void assertTestDoc(Doc doc) {
@@ -410,13 +403,11 @@ class AzureSearchCommitterTest {
                 .setWorkDir(
                         new File(
                                 tempDir,
-                                "" + TimeIdGenerator.next()
-                        ).toPath()
-                )
+                                "" + TimeIdGenerator.next()).toPath())
                 .build();
     }
 
-    static AzureSearchCommitter createAzureSearchCommitter(int port)  {
+    static AzureSearchCommitter createAzureSearchCommitter(int port) {
         var committer = new AzureSearchCommitter();
         var config = committer.getConfiguration();
         config.setApiKey(AzureSearchMocker.MOCK_API_KEY);
@@ -425,8 +416,7 @@ class AzureSearchCommitterTest {
         config.setIndexName("test");
         config.getProxySettings().setHost(new Host("localhost", port));
         config.getProxySettings().setCredentials(
-                new Credentials("Homer", "simpson")
-        );
+                new Credentials("Homer", "simpson"));
         return committer;
     }
 
@@ -447,27 +437,23 @@ class AzureSearchCommitterTest {
     }
 
     private AzureSearchCommitter withinCommitterSession_emptyEndpoint(
-            CommitterConsumer c
-    ) throws CommitterException {
+            CommitterConsumer c) throws CommitterException {
         return withinCommitterSession(c, ConfigOptions.EmptyEndpoint);
     }
 
     private AzureSearchCommitter withinCommitterSession_emptyApiKey(
-            CommitterConsumer c
-    ) throws CommitterException {
+            CommitterConsumer c) throws CommitterException {
         return withinCommitterSession(c, ConfigOptions.EmptyApiKey);
     }
 
     private AzureSearchCommitter withinCommitterSession_emptyIndexName(
-            CommitterConsumer c
-    ) throws CommitterException {
+            CommitterConsumer c) throws CommitterException {
         return withinCommitterSession(c, ConfigOptions.EmptyIndexName);
     }
 
     private AzureSearchCommitter withinCommitterSession(
             CommitterConsumer c,
-            ConfigOptions options
-    ) throws CommitterException {
+            ConfigOptions options) throws CommitterException {
         var committer = createAzureSearchCommitter(port);
 
         switch (options) {
@@ -494,8 +480,8 @@ class AzureSearchCommitterTest {
 
     private AzureSearchCommitter withinCommitterSession(
             Consumer<AzureSearchCommitterConfig> configConsumer,
-            CommitterConsumer initializedCommitterConsumer
-    ) throws CommitterException {
+            CommitterConsumer initializedCommitterConsumer)
+            throws CommitterException {
         var committer = createAzureSearchCommitter(port);
 
         if (configConsumer != null) {

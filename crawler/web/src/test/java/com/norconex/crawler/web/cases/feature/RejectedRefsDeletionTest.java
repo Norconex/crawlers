@@ -65,9 +65,7 @@ class RejectedRefsDeletionTest {
             drel.getConfiguration().setEventMatcher(
                     TextMatcher.csv(
                             CrawlerEvent.REJECTED_NOTFOUND
-                                    + ", " + CrawlerEvent.REJECTED_BAD_STATUS
-                    )
-            );
+                                    + ", " + CrawlerEvent.REJECTED_BAD_STATUS));
             cfg.addEventListeners(List.of(drel));
             cfg.getImporterConfig().setHandlers(List.of(docCtx -> {
                 if (docCtx.reference().endsWith("page=6-REJECTED_IMPORT")) {
@@ -87,16 +85,14 @@ class RejectedRefsDeletionTest {
                 .containsExactly(
                         startRef,
                         startRef + "?page=1-OK",
-                        startRef + "?page=3-OK"
-                );
+                        startRef + "?page=3-OK");
         assertThat(deletes)
                 .map(DeleteRequest::getReference)
                 .containsExactly(
                         startRef + "?page=2-REJECTED_NOTFOUND",
                         startRef + "?page=4-REJECTED_BAD_STATUS",
                         startRef + "?page=5-REJECTED_NOTFOUND",
-                        startRef + "?page=7-REJECTED_NOTFOUND"
-                );
+                        startRef + "?page=7-REJECTED_NOTFOUND");
     }
 
     public static class Callback implements ExpectationResponseCallback {
@@ -127,8 +123,7 @@ class RejectedRefsDeletionTest {
             }
             if ("6-REJECTED_IMPORT".equals(page)) {
                 return response().withBody(
-                        "Page 6 expected event: REJECTED_IMPORT"
-                );
+                        "Page 6 expected event: REJECTED_IMPORT");
             }
             if ("7-REJECTED_NOTFOUND".equals(page)) {
                 return response()

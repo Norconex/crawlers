@@ -46,19 +46,16 @@ class GenericRecrawlableResolverTest {
 
         var f1 = new MinFrequency(
                 "reference", "monthly",
-                TextMatcher.regex(".*\\.pdf").ignoreCase()
-        );
+                TextMatcher.regex(".*\\.pdf").ignoreCase());
         var f2 = new MinFrequency(
                 "contentType", "1234",
-                TextMatcher.regex(".*")
-        );
+                TextMatcher.regex(".*"));
 
         r.getConfiguration().setMinFrequencies(List.of(f1, f2));
 
         LOG.debug("Writing/Reading this: {}", r);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(r)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(r));
     }
 
     // Test for: https://github.com/Norconex/collector-http/issues/597
@@ -75,8 +72,7 @@ class GenericRecrawlableResolverTest {
         prevCrawl.setCrawlDate(prevCrawlDate);
 
         var f = new MinFrequency(
-                "reference", "120 days", TextMatcher.regex(".*")
-        );
+                "reference", "120 days", TextMatcher.regex(".*"));
 
         r.getConfiguration().setMinFrequencies(List.of(f));
         Assertions.assertFalse(r.isRecrawlable(prevCrawl));
@@ -148,8 +144,7 @@ class GenericRecrawlableResolverTest {
             Integer sitemapLastModDays,
             String minFreqApplyTo,
             String minFreqValue,
-            boolean expected
-    ) {
+            boolean expected) {
         WebCrawlDocContext prevRec;
         var url = "http://test.com/yes.html";
         var resolver = new GenericRecrawlableResolver();
@@ -159,13 +154,11 @@ class GenericRecrawlableResolverTest {
         prevRec.setSitemapChangeFreq(sitemapChangeFreq);
         if (sitemapLastModDays != null) {
             prevRec.setSitemapLastMod(
-                    ZonedDateTime.now().minusDays(sitemapLastModDays)
-            );
+                    ZonedDateTime.now().minusDays(sitemapLastModDays));
         }
 
         resolver.getConfiguration().setSitemapSupport(
-                SitemapSupport.getSitemapSupport(sitemapSupport)
-        );
+                SitemapSupport.getSitemapSupport(sitemapSupport));
 
         var matcher = "reference".equals(minFreqApplyTo)
                 ? TextMatcher.basic(url)
@@ -173,10 +166,7 @@ class GenericRecrawlableResolverTest {
         resolver.getConfiguration().setMinFrequencies(
                 List.of(
                         new MinFrequency(
-                                minFreqApplyTo, minFreqValue, matcher
-                        )
-                )
-        );
+                                minFreqApplyTo, minFreqValue, matcher)));
 
         assertThat(resolver.isRecrawlable(prevRec)).isEqualTo(expected);
     }
@@ -189,8 +179,6 @@ class GenericRecrawlableResolverTest {
         // no last crawl date
         assertThat(
                 new GenericRecrawlableResolver().isRecrawlable(
-                        new WebCrawlDocContext("http://blah.com")
-                )
-        ).isTrue();
+                        new WebCrawlDocContext("http://blah.com"))).isTrue();
     }
 }

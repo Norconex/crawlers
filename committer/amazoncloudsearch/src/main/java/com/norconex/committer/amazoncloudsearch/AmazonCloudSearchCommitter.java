@@ -50,7 +50,6 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.text.StringUtil;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -76,78 +75,16 @@ import lombok.extern.slf4j.Slf4j;
  * on its "id" field. In addition, certain characters are not allowed.
  * By default, an error will result from trying to submit
  * documents with an invalid ID. You can get around this by
- * setting {@link #setFixBadIds(boolean)} to <code>true</code>.  It will
+ * setting {@link AmazonCloudSearchCommitterConfig#setFixBadIds(boolean)}
+ * to <code>true</code>.  It will
  * truncate references that are too long and append a hash code to it
  * to keep uniqueness.  It will also convert invalid
  * characters to underscore.  This approach is not 100%
  * collision-free (uniqueness), but it should safely cover the vast
  * majority of cases.
  * </p>
- *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.cloudsearch.CloudSearchCommitter">
- *
- *   <!-- Mandatory: -->
- *   <serviceEndpoint>(CloudSearch service endpoint)</serviceEndpoint>
- *
- *   <!-- Mandatory if not configured elsewhere: -->
- *   <accessKey>
- *     (Optional CloudSearch access key. Will be taken from environment
- *      when blank.)
- *   </accessKey>
- *   <secretKey>
- *     (Optional CloudSearch secret key. Will be taken from environment
- *      when blank.)
- *   </secretKey>
- *
- *   <!-- Optional settings: -->
- *   <fixBadIds>
- *     [false|true](Forces references to fit into a CloudSearch id field.)
- *   </fixBadIds>
- *   <signingRegion>(CloudSearch signing region)</signingRegion>
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
- *   </proxySettings>
- *
- *   <sourceIdField>
- *     (Optional document field name containing the value that will be stored
- *     in CloudSearch "id" field. Default is the document reference.)
- *   </sourceIdField>
- *   <targetContentField>
- *     (Optional CloudSearch field name to store the document
- *     content/body. Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.cloudsearch.CloudSearchCommitter">
- *   <serviceEndpoint>search-example-xyz.some-region.cloudsearch.amazonaws.com</serviceEndpoint>
- * </committer>
- * }
- *
- * <p>
- * The above example uses the minimum required settings (relying on environment
- * variables for AWS keys).
- * </p>
- *
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @Slf4j
@@ -159,8 +96,7 @@ public class AmazonCloudSearchCommitter
      * the pattern will be replaced by an underscore.
      */
     public static final Pattern FIELD_PATTERN = Pattern.compile(
-            "[a-z0-9][a-z0-9_]{0,63}$"
-    );
+            "[a-z0-9][a-z0-9_]{0,63}$");
 
     /** CloudSearch mandatory ID field */
     public static final String COULDSEARCH_ID_FIELD = "id";
@@ -190,38 +126,29 @@ public class AmazonCloudSearchCommitter
             clientConfig.setProxyPort(proxy.getHost().getPort());
             if (proxy.getCredentials().isSet()) {
                 clientConfig.setProxyUsername(
-                        proxy.getCredentials().getUsername()
-                );
+                        proxy.getCredentials().getUsername());
                 clientConfig.setProxyPassword(
                         EncryptionUtil.decrypt(
                                 proxy.getCredentials().getPassword(),
-                                proxy.getCredentials().getPasswordKey()
-                        )
-                );
+                                proxy.getCredentials().getPasswordKey()));
             }
         }
         b.setClientConfiguration(clientConfig);
         if (StringUtils.isAnyBlank(
                 configuration.getAccessKey(),
-                configuration.getSecretKey()
-        )) {
+                configuration.getSecretKey())) {
             b.withCredentials(new DefaultAWSCredentialsProviderChain());
         } else {
             b.withCredentials(
                     new AWSStaticCredentialsProvider(
                             new BasicAWSCredentials(
                                     configuration.getAccessKey(),
-                                    configuration.getSecretKey()
-                            )
-                    )
-            );
+                                    configuration.getSecretKey())));
         }
         b.withEndpointConfiguration(
                 new EndpointConfiguration(
                         configuration.getServiceEndpoint(),
-                        configuration.getSigningRegion()
-                )
-        );
+                        configuration.getSigningRegion()));
         awsClient = b.build();
     }
 
@@ -246,8 +173,7 @@ public class AmazonCloudSearchCommitter
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Could not commit JSON batch to CloudSearch.", e
-            );
+                    "Could not commit JSON batch to CloudSearch.", e);
         }
     }
 
@@ -279,12 +205,10 @@ public class AmazonCloudSearchCommitter
             LOG.info(
                     "{} upserts and {} deletes sent to the AWS CloudSearch "
                             + "domain.",
-                    result.getAdds(), result.getDeletes()
-            );
+                    result.getAdds(), result.getDeletes());
         } catch (IOException | AmazonServiceException e) {
             throw new CommitterException(
-                    "Could not execute CloudSearch upload request.", e
-            );
+                    "Could not execute CloudSearch upload request.", e);
         }
     }
 
@@ -292,8 +216,7 @@ public class AmazonCloudSearchCommitter
             throws CommitterException {
 
         CommitterUtil.applyTargetContent(
-                req, configuration.getTargetContentField()
-        );
+                req, configuration.getTargetContentField());
 
         Map<String, Object> documentMap = new HashMap<>();
         documentMap.put("type", "add");
@@ -332,9 +255,7 @@ public class AmazonCloudSearchCommitter
     private String extractId(CommitterRequest req) throws CommitterException {
         return fixBadIdValue(
                 CommitterUtil.extractSourceIdValue(
-                        req, configuration.getSourceIdField()
-                )
-        );
+                        req, configuration.getSourceIdField()));
     }
 
     private String fixBadIdValue(String value) throws CommitterException {
@@ -346,8 +267,7 @@ public class AmazonCloudSearchCommitter
             var v = value.replaceAll(
                     "[^a-zA-Z0-9\\-\\_\\/\\#\\:\\.\\;\\&\\=\\?"
                             + "\\@\\$\\+\\!\\*'\\(\\)\\,\\%]",
-                    "_"
-            );
+                    "_");
             v = StringUtil.truncateWithHash(v, 128, "!");
             if (LOG.isDebugEnabled() && !value.equals(v)) {
                 LOG.debug("Fixed document id from \"{}\" to \"{}\".", value, v);
@@ -369,8 +289,7 @@ public class AmazonCloudSearchCommitter
         LOG.warn(
                 "\"{}\" field renamed to \"{}\" as it does not match "
                         + "CloudSearch required pattern: {}",
-                key, fix, FIELD_PATTERN
-        );
+                key, fix, FIELD_PATTERN);
         return fix;
     }
 }

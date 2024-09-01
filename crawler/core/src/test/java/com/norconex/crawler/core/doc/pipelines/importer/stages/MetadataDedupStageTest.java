@@ -63,8 +63,7 @@ class MetadataDedupStageTest {
         doc.getDocContext().setState(CrawlDocState.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getDocContext().getState()).isSameAs(
-                CrawlDocState.REJECTED
-        );
+                CrawlDocState.REJECTED);
 
         // Does not have duplicate meta
         when(dedupService.findOrTrackMetadata(Mockito.any()))

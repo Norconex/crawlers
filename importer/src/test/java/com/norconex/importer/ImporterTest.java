@@ -62,16 +62,14 @@ class ImporterTest {
                             cfg.getEmbeddedConfig()
                                     .setSplitContentTypes(
                                             List.of(
-                                                    TextMatcher.wildcard("*zip")
-                                            )
-                                    )
+                                                    TextMatcher
+                                                            .wildcard("*zip")))
                                     .setSkipEmbeddedContentTypes(
                                             List.of(
                                                     TextMatcher
                                                             .wildcard("*jpeg"),
-                                                    TextMatcher.wildcard("*wmf")
-                                            )
-                                    );
+                                                    TextMatcher
+                                                            .wildcard("*wmf")));
 
                         }),
                         ctx -> {
@@ -84,8 +82,7 @@ class ImporterTest {
                                 txt = StringUtils.replace(txt, " ", "");
                                 txt = StringUtils.replace(
                                         txt, "httppdfreebooksorg",
-                                        ""
-                                );
+                                        "");
                                 txt = StringUtils.replace(txt, "filejpg", "");
                                 txt = StringUtils.replace(txt, "filewmf", "");
                                 ctx.output().asWriter().write(txt);
@@ -93,9 +90,7 @@ class ImporterTest {
                                 throw new UncheckedIOException(e);
                             }
 
-                        }
-                )
-        );
+                        }));
         importer = new Importer(config);
     }
 
@@ -108,17 +103,14 @@ class ImporterTest {
     void testImporter() throws IOException {
         // test that it works with empty contructor
         try (var is = getClass().getResourceAsStream(
-                "/parser/msoffice/word.docx"
-        )) {
+                "/parser/msoffice/word.docx")) {
             Assertions.assertEquals(
                     "Hey Norconex, this is a test.",
                     TestUtil.toString(
                             new Importer().importDocument(
-                                    new ImporterRequest(is)
-                            ).getDoc()
-                                    .getInputStream()
-                    ).trim()
-            );
+                                    new ImporterRequest(is)).getDoc()
+                                    .getInputStream())
+                            .trim());
         }
     }
 
@@ -129,9 +121,8 @@ class ImporterTest {
         Importer.main(new String[] { "-i", inFile, "-o", outFile });
         Assertions.assertTrue(
                 FileUtils.readFileToString(
-                        new File(outFile), UTF_8
-                ).contains("And so it was indeed")
-        );
+                        new File(outFile), UTF_8)
+                        .contains("And so it was indeed"));
     }
 
     @Test
@@ -139,9 +130,7 @@ class ImporterTest {
         Assertions.assertSame(importer, Importer.get());
         Assertions.assertTrue(
                 CollectionUtils.isNotEmpty(
-                        importer.getConfiguration().getHandlers()
-                )
-        );
+                        importer.getConfiguration().getHandlers()));
         Assertions.assertNotNull(importer.getEventManager());
     }
 
@@ -151,20 +140,15 @@ class ImporterTest {
         Assertions.assertEquals(
                 importer.importDocument(
                         new ImporterRequest(
-                                tempDir.resolve("I-do-not-exist")
-                        )
-                )
+                                tempDir.resolve("I-do-not-exist")))
                         .getException().getClass(),
-                ImporterException.class
-        );
+                ImporterException.class);
 
         Assertions.assertEquals(
                 importer.importDocument(
-                        new Doc("ref", TestUtil.failingCachedInputStream())
-                )
+                        new Doc("ref", TestUtil.failingCachedInputStream()))
                         .getException().getClass(),
-                ImporterException.class
-        );
+                ImporterException.class);
     }
 
     @Test
@@ -176,13 +160,10 @@ class ImporterTest {
         writeToFile(
                 importer.importDocument(
                         new ImporterRequest(
-                                TestUtil.getAliceDocxFile().toPath()
-                        )
-                                .setMetadata(metaDocx)
-                )
+                                TestUtil.getAliceDocxFile().toPath())
+                                        .setMetadata(metaDocx))
                         .getDoc(),
-                docxOutput
-        );
+                docxOutput);
 
         // PDF
         var pdfOutput = File.createTempFile("ImporterTest-pdf-", ".txt");
@@ -190,19 +171,16 @@ class ImporterTest {
         writeToFile(
                 importer.importDocument(
                         new ImporterRequest(TestUtil.getAlicePdfFile().toPath())
-                                .setMetadata(metaPdf)
-                )
+                                .setMetadata(metaPdf))
                         .getDoc(),
-                pdfOutput
-        );
+                pdfOutput);
 
         // ZIP/RTF
         var rtfOutput = File.createTempFile("ImporterTest-zip-rtf-", ".txt");
         var metaRtf = new Properties();
         var resp = importer.importDocument(
                 new ImporterRequest(TestUtil.getAliceZipFile().toPath())
-                        .setMetadata(metaRtf)
-        );
+                        .setMetadata(metaRtf));
         //writeToFile(resp.getDoc(), rtfOutput);
         writeToFile(resp.getNestedResponses().get(0).getDoc(), rtfOutput);
 
@@ -216,8 +194,7 @@ class ImporterTest {
                             + "different from each other. They were not deleted to "
                             + "help you troubleshoot under: "
                             + FileUtils.getTempDirectoryPath()
-                            + "ImporterTest-*"
-            );
+                            + "ImporterTest-*");
         } else {
             FileUtils.deleteQuietly(docxOutput);
             FileUtils.deleteQuietly(pdfOutput);
@@ -226,8 +203,7 @@ class ImporterTest {
 
         Assertions.assertTrue(
                 pdfOutput.length() < 10,
-                "Converted file size is too small to be valid."
-        );
+                "Converted file size is too small to be valid.");
     }
 
     //TODO uncomment following to test rejections and validation
@@ -308,15 +284,11 @@ class ImporterTest {
     void testFullConfiguration() throws IOException {
         try (Reader r = new InputStreamReader(
                 getClass().getResourceAsStream(
-                        "/validation/importer-full.yaml"
-                )
-        )) {
+                        "/validation/importer-full.yaml"))) {
             assertThatNoException().isThrownBy(() -> {
                 var importer = new Importer(
                         BeanMapper.DEFAULT.read(
-                                ImporterConfig.class, r, Format.YAML
-                        )
-                );
+                                ImporterConfig.class, r, Format.YAML));
                 BeanMapper.DEFAULT.assertWriteRead(importer);
             });
         }

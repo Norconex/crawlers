@@ -53,8 +53,7 @@ public class MongoDataStore<T> implements DataStore<T> {
         collection = db.getCollection(name);
         collection.createIndex(
                 Indexes.ascending("id"),
-                new IndexOptions().sparse(true).unique(true)
-        );
+                new IndexOptions().sparse(true).unique(true));
     }
 
     @Override
@@ -66,8 +65,7 @@ public class MongoDataStore<T> implements DataStore<T> {
     public boolean save(String id, T object) {
         return collection.replaceOne(
                 idFilter(id), toDocument(id, object),
-                replaceOptions
-        ).getModifiedCount() > 0;
+                replaceOptions).getModifiedCount() > 0;
     }
 
     @Override
@@ -103,9 +101,7 @@ public class MongoDataStore<T> implements DataStore<T> {
         return unwrap(
                 collection.findOneAndDelete(
                         new Document(),
-                        findOneAndDeleteOptions
-                )
-        );
+                        findOneAndDeleteOptions));
     }
 
     @Override
@@ -142,8 +138,7 @@ public class MongoDataStore<T> implements DataStore<T> {
         var oldName = name;
         collection.renameCollection(
                 new MongoNamespace(dbName, newColName),
-                new RenameCollectionOptions().dropTarget(true)
-        );
+                new RenameCollectionOptions().dropTarget(true));
         name = newColName;
         return oldName;
     }
@@ -162,8 +157,7 @@ public class MongoDataStore<T> implements DataStore<T> {
     private static Document toDocument(String id, Object object) {
         return new Document().append("id", id).append(
                 "object",
-                SerialUtil.toJsonString(object)
-        );
+                SerialUtil.toJsonString(object));
     }
 
     private static <T> T fromDocument(Document doc, Class<T> type) {

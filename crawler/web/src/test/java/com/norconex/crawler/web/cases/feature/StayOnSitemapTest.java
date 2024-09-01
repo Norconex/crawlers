@@ -96,10 +96,10 @@ class StayOnSitemapTest {
                             try {
                                 ofNullable(
                                         Web.docContext(
-                                                req.getDoc()
-                                        ).getReferrerReference()
-                                )
-                                        .ifPresent(referrers::add);
+                                                req.getDoc())
+                                                .getReferrerReference())
+                                                        .ifPresent(
+                                                                referrers::add);
                                 return super.fetch(req);
                             } catch (FetchException | RuntimeException e) {
                                 exception.setValue(e);
@@ -134,16 +134,13 @@ class StayOnSitemapTest {
         mem.getUpsertRequests().forEach(req -> {
             assertThat(
                     req.getMetadata().getInteger(
-                            "collector.depth"
-                    )
-            ).isZero();
+                            "collector.depth")).isZero();
             assertThat(req.getReference()).containsAnyOf(
                     page1Path,
                     page2Path,
                     page3Path,
                     page4Path,
-                    page5Path
-            );
+                    page5Path);
         });
 
         mem.clean();
@@ -162,11 +159,8 @@ class StayOnSitemapTest {
                                         serverUrl(client, page2Path),
                                         serverUrl(client, page3Path),
                                         serverUrl(client, page4Path),
-                                        serverUrl(client, page5Path)
-                                ),
-                                MediaType.XML_UTF_8
-                        )
-                );
+                                        serverUrl(client, page5Path)),
+                                MediaType.XML_UTF_8));
 
         // The links in ALL following pages should not be followed when
         // sitemap is present and stayOnSitemap is true.
@@ -183,9 +177,7 @@ class StayOnSitemapTest {
                         """
                         .formatted(
                                 "https://badhost.badhost/externalA",
-                                "https://badhost.badhost/externalB"
-                        )
-        );
+                                "https://badhost.badhost/externalB"));
 
         // PAGE 2: Internal links only, all in sitemap
         WebsiteMock.whenHtml(
@@ -200,9 +192,7 @@ class StayOnSitemapTest {
                         """.formatted(
                         serverUrl(client, page1Path),
                         serverUrl(client, page3Path),
-                        serverUrl(client, page4Path)
-                )
-        );
+                        serverUrl(client, page4Path)));
 
         // PAGE 3: Internal links only, NOT in sitemap
         WebsiteMock.whenHtml(
@@ -217,9 +207,7 @@ class StayOnSitemapTest {
                         """
                         .formatted(
                                 serverUrl(client, page10Path),
-                                serverUrl(client, page11Path)
-                        )
-        );
+                                serverUrl(client, page11Path)));
 
         // PAGE 4: Mix of internal/external not on sitemap and on sitemap
         WebsiteMock.whenHtml(
@@ -236,9 +224,7 @@ class StayOnSitemapTest {
                         .formatted(
                                 "https://badhost.badhost/externalC",
                                 serverUrl(client, page4Path),
-                                serverUrl(client, page12Path)
-                        )
-        );
+                                serverUrl(client, page12Path)));
 
         // PAGE 5: This page is sitemap only, not otherwise referenced.
         WebsiteMock.whenHtml(client, page5Path, """

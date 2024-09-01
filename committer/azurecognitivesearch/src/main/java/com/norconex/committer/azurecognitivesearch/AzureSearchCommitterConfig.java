@@ -31,7 +31,6 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-@SuppressWarnings("javadoc")
 public class AzureSearchCommitterConfig
         extends BaseBatchCommitterConfig implements Serializable {
 
@@ -45,31 +44,23 @@ public class AzureSearchCommitterConfig
     public static final String DEFAULT_AZURE_CONTENT_FIELD = "content";
 
     /**
-     * Gets the Azure Search endpoint
+     * Gets the Azure Search endpoint.
      * (https://[service name].search.windows.net).
-     * @param endpoint Azure Search endpoint
-     * @return Azure Search endpoint
      */
     private String endpoint;
 
     /**
      * The Azure API version. Default is {@link #DEFAULT_API_VERSION}.
-     * @return the Azure API version
-     * @param apiVersion Azure API version
      */
     private String apiVersion = DEFAULT_API_VERSION;
 
     /**
      * The Azure API admin key.
-     * @param apiKey Azure API admin key
-     * @return Azure API admin key
      */
     private String apiKey;
 
     /**
-     * The index name.
-     * @param indexName the index name
-     * @return index name
+     * The target index name.
      */
     private String indexName;
 
@@ -77,9 +68,6 @@ public class AzureSearchCommitterConfig
      * Whether to disable document reference encoding. By default, references
      * are encoded using a URL-safe Base64 encoding.  When <code>true</code>,
      * document references will be sent as is if they pass validation.
-     * @param disableDocKeyEncoding <code>true</code> if disabling
-     *        reference encoding
-     * @return <code>true</code> if disabling reference encoding
      */
     private boolean disableDocKeyEncoding;
 
@@ -88,9 +76,6 @@ public class AzureSearchCommitterConfig
      * thrown if a document contains a field that Azure Search will reject.
      * When <code>true</code> the validation errors are logged
      * instead and the faulty field or document is not committed.
-     * @param ignoreValidationErrors <code>true</code> when ignoring validation
-     *        errors
-     * @return <code>true</code> when ignoring validation errors
      */
     private boolean ignoreValidationErrors;
 
@@ -98,18 +83,13 @@ public class AzureSearchCommitterConfig
      * Whether to ignore response errors.  By default, an exception is
      * thrown if the Azure Search response contains an error.
      * When <code>true</code> the errors are logged instead.
-     * @param ignoreResponseErrors <code>true</code> when ignoring response
-     *        errors
-     * @return <code>true</code> when ignoring response errors
      */
     private boolean ignoreResponseErrors;
 
     /**
      * The fields which values should always be treated as array.
-     * Expects a comma-separated-value list or regular expression, based
-     * on the returned value of {@link #isArrayFieldsRegex()}.
-     * @param arrayFields list of fields or regular expression matching fields
-     * @return list of fields or regular expression matching fields
+     * Expects a comma-separated-value list or regular expression when
+     * the returned value of {@link #isArrayFieldsRegex()} is <code>true</code>.
      * @see #setArrayFieldsRegex(boolean)
      * @see #isArrayFieldsRegex()
      */
@@ -118,8 +98,6 @@ public class AzureSearchCommitterConfig
     /**
      * Whether the list of fields to be always treated as array
      * is represented as regular expression.
-     * @param arrayFieldsRegex <code>true</code> if regular expression
-     * @return <code>true</code> if regular expression
      * @see #setArrayFields(String)
      * @see #getArrayFields()
      */
@@ -127,8 +105,6 @@ public class AzureSearchCommitterConfig
 
     /**
      * Whether to use integrated Windows Authentication (if applicable).
-     * @param useWindowsAuth <code>true</code> if using Windows Authentication
-     * @return <code>true</code> if using Windows Authentication
      */
     private boolean useWindowsAuth;
 
@@ -139,17 +115,12 @@ public class AzureSearchCommitterConfig
      * in Azure Search document key field. Default is not a field
      * (<code>null</code>), but rather
      * the document reference.
-     * @param sourceKeyField name of field containing id value,
-     *        or <code>null</code>
-     * @return name of field containing id value
      */
     private String sourceKeyField;
 
     /**
      * The name of Azure Search key field where to store a
      * document unique identifier (sourceKeyField).  Default is "id".
-     * @param targetKeyField name of Solr ID field
-     * @return name of Solr ID field
      */
     private String targetKeyField = DEFAULT_AZURE_KEY_FIELD;
 
@@ -157,8 +128,6 @@ public class AzureSearchCommitterConfig
      * The name of the Azure Search field where content will be stored.
      * Default is "content".
      * Specifying a <code>null</code> value will disable storing the content.
-     * @param targetContentField field name
-     * @return field name
      */
     private String targetContentField = DEFAULT_AZURE_CONTENT_FIELD;
 
@@ -173,10 +142,10 @@ public class AzureSearchCommitterConfig
     /**
      * Sets the proxy settings.
      * @param proxySettings proxy settings
+     * @return this
      */
     public AzureSearchCommitterConfig setProxySettings(
-            @NonNull ProxySettings proxySettings
-    ) {
+            @NonNull ProxySettings proxySettings) {
         this.proxySettings.copyFrom(proxySettings);
         return this;
     }

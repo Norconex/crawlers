@@ -31,10 +31,8 @@ class CommitModuleStageTest {
     void testCommitModuleStage(@TempDir Path tempDir) {
         var ctx = new CommitterPipelineContext(
                 CrawlerStubs.memoryCrawler(tempDir),
-                CrawlDocStubs.crawlDoc("ref")
-        );
+                CrawlDocStubs.crawlDoc("ref"));
         assertThatNoException().isThrownBy(
-                () -> new CommitModuleStage().test(ctx)
-        );
+                () -> new CommitModuleStage().test(ctx));
     }
 }

@@ -42,13 +42,9 @@ class RegexTransformerTest {
         t.getConfiguration().setPatterns(
                 List.of(
                         new RegexFieldValueExtractor(
-                                "<h2>(.*?)</h2>", "headings", 1
-                        ),
+                                "<h2>(.*?)</h2>", "headings", 1),
                         new RegexFieldValueExtractor(
-                                "\\w+\\sZealand", "country"
-                        )
-                )
-        );
+                                "\\w+\\sZealand", "country")));
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
@@ -56,9 +52,8 @@ class RegexTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         t.accept(
                 TestUtil.newHandlerContext(
-                        htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
-                )
-        );
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -68,18 +63,15 @@ class RegexTransformerTest {
         Assertions.assertEquals(2, headings.size(), "Wrong <h2> count.");
         Assertions.assertEquals(
                 "CHAPTER I", headings.get(0),
-                "Did not extract first heading"
-        );
+                "Did not extract first heading");
         Assertions.assertEquals(
                 "Down the Rabbit-Hole", headings.get(1),
-                "Did not extract second heading"
-        );
+                "Did not extract second heading");
 
         Assertions.assertEquals(1, countries.size(), "Wrong country count.");
         Assertions.assertEquals(
                 "New Zealand", countries.get(0),
-                "Did not extract country"
-        );
+                "Did not extract country");
     }
 
     @Test
@@ -88,18 +80,15 @@ class RegexTransformerTest {
         var t = new RegexTransformer();
         t.getConfiguration().setPatterns(
                 List.of(
-                        new RegexFieldValueExtractor("^.{0,100}", "mytitle")
-                )
-        );
+                        new RegexFieldValueExtractor("^.{0,100}", "mytitle")));
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         t.accept(
                 TestUtil.newHandlerContext(
-                        htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
-                )
-        );
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -120,8 +109,7 @@ class RegexTransformerTest {
                                 .setValueGroup(6)
                                 .setOnSet(PropertySetter.PREPEND)
 
-                )
-        );
+                ));
         t.getConfiguration().setMaxReadSize(512);
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));

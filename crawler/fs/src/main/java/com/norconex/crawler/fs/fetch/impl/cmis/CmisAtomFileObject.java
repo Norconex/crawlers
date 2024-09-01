@@ -29,7 +29,7 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,11 +49,10 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
     private static final String PROP_CONTENT_STREAM_LENGTH =
             "cmis:contentStreamLength";
 
-    private XML document;
+    private Xml document;
 
     protected CmisAtomFileObject(
-            AbstractFileName name, CmisAtomFileSystem fileSystem
-    ) {
+            AbstractFileName name, CmisAtomFileSystem fileSystem) {
         super(name, fileSystem);
     }
 
@@ -82,11 +81,11 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
         return (CmisAtomFileSystem) super.getFileSystem();
     }
 
-    public XML getDocument() {
+    public Xml getDocument() {
         return document;
     }
 
-    private XML createDocument(final FileName fileName)
+    private Xml createDocument(final FileName fileName)
             throws FileSystemException {
         return getSession().getDocumentByPath(fileName.getPath());
     }
@@ -132,8 +131,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
 
         var childrenURL = document.getString(
                 "/entry/link[@rel='down' and "
-                        + "@type='application/atom+xml;type=feed']/@href"
-        );
+                        + "@type='application/atom+xml;type=feed']/@href");
 
         if (StringUtils.isBlank(childrenURL)) {
             return ArrayUtils.EMPTY_STRING_ARRAY;
@@ -149,8 +147,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
         if (childrenDoc.getInteger("/feed/numItems", -1) > MAX_ITEMS) {
             LOG.warn(
                     "TOO many items under {}. Will only process the first {}.",
-                    getName().getPathDecoded(), MAX_ITEMS
-            );
+                    getName().getPathDecoded(), MAX_ITEMS);
         }
         var xmlList = childrenDoc.getXMLList("/feed/entry/pathSegment/text()");
         xmlList.forEach(x -> {
@@ -168,8 +165,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
     @Override
     protected long doGetContentSize() throws Exception {
         return NumberUtils.toLong(
-                getPropertyValue(PROP_CONTENT_STREAM_LENGTH), -1
-        );
+                getPropertyValue(PROP_CONTENT_STREAM_LENGTH), -1);
     }
 
     /**
@@ -208,7 +204,6 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
                         /entry/object/properties/\
                         *[starts-with(local-name(), 'property')]\
                         [@propertyDefinitionId='%s']/value/text()"""
-                        .formatted(propertyDefId)
-        );
+                        .formatted(propertyDefId));
     }
 }

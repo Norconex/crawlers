@@ -35,26 +35,21 @@ class ReferenceConditionTest {
         var cond = new ReferenceCondition();
 
         cond.getConfiguration().setValueMatcher(
-                TextMatcher.regex(".*/login.*")
-        );
+                TextMatcher.regex(".*/login.*"));
 
         assertThat(
                 TestUtil.condition(
                         cond,
                         "http://www.example.com/login", null, meta,
-                        ParseState.PRE
-                )
-        )
-                .isTrue();
+                        ParseState.PRE))
+                                .isTrue();
 
         assertThat(
                 TestUtil.condition(
                         cond,
                         "http://www.example.com/blah", null, meta,
-                        ParseState.PRE
-                )
-        )
-                .isFalse();
+                        ParseState.PRE))
+                                .isFalse();
     }
 
     @Test

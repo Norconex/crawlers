@@ -109,8 +109,7 @@ public class HierarchyTransformer
     public void handle(HandlerContext docCtx) throws IOException {
 
         configuration.getOperations().forEach(
-                op -> breakSegments(docCtx.metadata(), op)
-        );
+                op -> breakSegments(docCtx.metadata(), op));
     }
 
     private void breakSegments(Properties metadata, HierarchyOperation op) {
@@ -187,8 +186,7 @@ public class HierarchyTransformer
         if (StringUtils.isNotBlank(op.getToField())) {
             // set on target field
             PropertySetter.orAppend(op.getOnSet()).apply(
-                    metadata, op.getToField(), paths
-            );
+                    metadata, op.getToField(), paths);
         } else {
             // overwrite source field
             PropertySetter.REPLACE.apply(metadata, op.getFromField(), paths);

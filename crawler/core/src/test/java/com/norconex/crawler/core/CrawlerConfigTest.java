@@ -36,12 +36,9 @@ class CrawlerConfigTest {
                         .builder()
                         .polymorphicTypeImpl(
                                 DataStoreEngine.class,
-                                List.of(MockNoopDataStoreEngine.class)
-                        )
+                                List.of(MockNoopDataStoreEngine.class))
                         .build().assertWriteRead(
                                 CrawlerConfigStubs
-                                        .randomMemoryCrawlerConfig(tempDir)
-                        )
-        );
+                                        .randomMemoryCrawlerConfig(tempDir)));
     }
 }

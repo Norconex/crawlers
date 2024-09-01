@@ -99,8 +99,7 @@ public class CurrentDateTransformer
             finalField = CurrentDateTransformerConfig.DEFAULT_FIELD;
         }
         PropertySetter.orAppend(configuration.getOnSet()).apply(
-                docCtx.metadata(), finalField, dateStr
-        );
+                docCtx.metadata(), finalField, dateStr);
     }
 
     private String nowAsString() {
@@ -115,8 +114,6 @@ public class CurrentDateTransformer
         return ZonedDateTime.now(ZoneOffset.UTC)
                 .format(
                         DateTimeFormatter.ofPattern(
-                                configuration.getFormat(), safeLocale
-                        )
-                );
+                                configuration.getFormat(), safeLocale));
     }
 }

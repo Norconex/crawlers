@@ -75,8 +75,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
     SniffedResponseHeader track(String url) {
         return trackedUrlResponses.computeIfAbsent(
-                url, na -> new SniffedResponseHeader()
-        );
+                url, na -> new SniffedResponseHeader());
     }
 
     void untrack(String url) {
@@ -104,8 +103,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                 mobProxy.chainedProxyAuthorization(
                         creds.getUsername(),
                         EncryptionUtil.decryptPassword(creds),
-                        AuthType.BASIC
-                );
+                        AuthType.BASIC);
                 LOG.info("Chained proxy authorization set.");
             }
         } else {
@@ -114,16 +112,14 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
         // request headers
         configuration.getRequestHeaders().entrySet().forEach(
-                en -> mobProxy.addHeader(en.getKey(), en.getValue())
-        );
+                en -> mobProxy.addHeader(en.getKey(), en.getValue()));
 
         // User agent
         if (StringUtils.isNotBlank(configuration.getUserAgent())) {
             mobProxy.addRequestFilter((request, contents, messageInfo) -> {
                 request.headers().remove("User-Agent");
                 request.headers().add(
-                        "User-Agent", configuration.getUserAgent()
-                );
+                        "User-Agent", configuration.getUserAgent());
                 return null;// Return null to continue with the modified request
             });
         }
@@ -143,17 +139,13 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                                                 en -> trackedResponse.headers
                                                         .put(
                                                                 en.getKey(),
-                                                                en.getValue()
-                                                        )
-                                        );
+                                                                en.getValue()));
                                 trackedResponse.statusCode =
                                         response.status().code();
                                 trackedResponse.reasonPhrase =
                                         response.status().reasonPhrase();
                             }
-                        }, configuration.getMaxBufferSize()
-                )
-        );
+                        }, configuration.getMaxBufferSize()));
 
         mobProxy.start(configuration.getPort());
 
@@ -178,8 +170,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
             // Required since FF v67 to enable a localhost proxy:
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1535581
             profile.setPreference(
-                    "network.proxy.allow_hijacking_localhost", true
-            );
+                    "network.proxy.allow_hijacking_localhost", true);
             ((FirefoxOptions) options).setProfile(profile);
 
         } else if (options instanceof ChromeOptions chromeOptions) {
@@ -200,8 +191,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                     "--disable-sync",
                     "--no-first-run",
                     "--no-default-browser-check",
-                    "--disable-sign-in"
-            );
+                    "--disable-sign-in");
             if (LOG.isDebugEnabled()) {
                 System.setProperty("webdriver.chrome.verboseLogging", "true");
             }

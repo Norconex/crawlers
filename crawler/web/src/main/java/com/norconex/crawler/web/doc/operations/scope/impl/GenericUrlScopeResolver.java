@@ -73,8 +73,7 @@ public class GenericUrlScopeResolver
 
     @Override
     public UrlScope resolve(
-            String inScopeURL, WebCrawlDocContext candidateDocContext
-    ) {
+            String inScopeURL, WebCrawlDocContext candidateDocContext) {
         // if not specifying any scope, candidate URL is good
         if (!configuration.isStayOnProtocol()
                 && !configuration.isStayOnDomain()
@@ -90,36 +89,28 @@ public class GenericUrlScopeResolver
             HttpURL candidate;
             if (candidateURL.startsWith("//")) {
                 candidate = new HttpURL(
-                        inScope.getProtocol() + ':' + candidateURL
-                );
+                        inScope.getProtocol() + ':' + candidateURL);
             } else {
                 candidate = new HttpURL(candidateURL);
             }
             if (configuration.isStayOnProtocol()
                     && !inScope.getProtocol().equalsIgnoreCase(
-                            candidate.getProtocol()
-                    )) {
+                            candidate.getProtocol())) {
                 return UrlScope.out(
                         "Outbound protocol: %s".formatted(
-                                candidate.getProtocol()
-                        )
-                );
+                                candidate.getProtocol()));
             }
             if (configuration.isStayOnDomain()
                     && !isOnDomain(inScope.getHost(), candidate.getHost())) {
                 return UrlScope.out(
                         "Outbound domain: %s".formatted(
-                                candidate.getHost()
-                        )
-                );
+                                candidate.getHost()));
             }
             if (configuration.isStayOnPort()
                     && inScope.getPort() != candidate.getPort()) {
                 return UrlScope.out(
                         "Outbound port: %s".formatted(
-                                candidate.getPort()
-                        )
-                );
+                                candidate.getPort()));
             }
 
             // as this point if the document came from a sitemap, it

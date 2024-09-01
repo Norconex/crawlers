@@ -84,23 +84,19 @@ public class CopyTransformer
             if (op.getFieldMatcher().isSet()) {
                 // From field
                 sourceValues = docCtx.metadata().matchKeys(
-                        op.getFieldMatcher()
-                ).valueList();
+                        op.getFieldMatcher()).valueList();
             } else {
                 // From body
                 sourceValues = List.of(
-                        IOUtils.toString(docCtx.input().asReader())
-                );
+                        IOUtils.toString(docCtx.input().asReader()));
             }
             // Copy field
             var setter = ofNullable(
-                    op.getOnSet()
-            ).orElse(configuration.getOnSet());
+                    op.getOnSet()).orElse(configuration.getOnSet());
             PropertySetter.orAppend(setter).apply(
                     docCtx.metadata(),
                     op.getToField(),
-                    sourceValues
-            );
+                    sourceValues);
         }
     }
 }

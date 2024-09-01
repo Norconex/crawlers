@@ -43,14 +43,11 @@ public class SiteDelay extends AbstractDelay {
         try {
             synchronized (siteLastHitNanos) {
                 sleepState = siteLastHitNanos.computeIfAbsent(
-                        site, k -> new SleepState()
-                );
+                        site, k -> new SleepState());
                 while (sleepState.sleeping) {
                     Sleeper.sleepNanos(
                             Math.min(
-                                    TINY_SLEEP_MS, expectedDelayNanos
-                            )
-                    );
+                                    TINY_SLEEP_MS, expectedDelayNanos));
                 }
                 sleepState.sleeping = true;
             }

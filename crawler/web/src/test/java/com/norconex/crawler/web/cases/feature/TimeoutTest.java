@@ -56,8 +56,7 @@ class TimeoutTest {
             f.getConfiguration().setConnectionTimeout(ofSeconds(1));
             f.getConfiguration().setSocketTimeout(ofSeconds(1));
             f.getConfiguration().setConnectionRequestTimeout(
-                    ofSeconds(1)
-            );
+                    ofSeconds(1));
             cfg.setFetchers(List.of(f));
         });
         var mem = WebTestUtil.firstCommitter(crawler);
@@ -69,8 +68,7 @@ class TimeoutTest {
                 .containsExactlyInAnyOrder(
                         serverUrl(client, homePath),
                         serverUrl(client, basePath + "/child1.html"),
-                        serverUrl(client, basePath + "/child2.html")
-                );
+                        serverUrl(client, basePath + "/child2.html"));
         mem.clean();
 
         // First page should be skipped (timeout) but not children... even
@@ -81,8 +79,7 @@ class TimeoutTest {
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
                         serverUrl(client, basePath + "/child1.html"),
-                        serverUrl(client, basePath + "/child2.html")
-                );
+                        serverUrl(client, basePath + "/child2.html"));
         mem.clean();
 
         crawler.clean();
@@ -104,9 +101,7 @@ class TimeoutTest {
                                                   <li><a href="child1.html">Timeout child page 1</a></li>
                                                   <li><a href="child2.html">Timeout child page 2</a></li>
                                                 </ul>
-                                                """
-                                )
-                );
+                                                """));
 
         client
                 .when(request("!" + homePath))
@@ -118,8 +113,6 @@ class TimeoutTest {
                                                 <p>This page content is never the same.</p>
                                                 <p>Salt: %s</p>"
                                                 """
-                                                .formatted(delay)
-                                )
-                );
+                                                .formatted(delay)));
     }
 }

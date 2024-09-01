@@ -64,8 +64,7 @@ public class CoreQueueInitializer implements QueueInitializer {
         var cnt = 0;
         for (Path refsFile : refsFiles) {
             try (var it = IOUtils.lineIterator(
-                    Files.newInputStream(refsFile), StandardCharsets.UTF_8
-            )) {
+                    Files.newInputStream(refsFile), StandardCharsets.UTF_8)) {
                 while (it.hasNext()) {
                     var ref = StringUtils.trimToNull(it.nextLine());
                     if (ref != null && !ref.startsWith("#")) {
@@ -75,15 +74,13 @@ public class CoreQueueInitializer implements QueueInitializer {
                 }
             } catch (IOException e) {
                 throw new CrawlerException(
-                        "Could not process references file: " + refsFile, e
-                );
+                        "Could not process references file: " + refsFile, e);
             }
         }
         if (cnt > 0) {
             LOG.info(
                     "Queued {} start references from {} files.",
-                    cnt, refsFiles.size()
-            );
+                    cnt, refsFiles.size());
         }
         return cnt;
     };
@@ -105,8 +102,7 @@ public class CoreQueueInitializer implements QueueInitializer {
         if (cnt > 0) {
             LOG.info(
                     "Queued {} start references from {} providers.",
-                    cnt, providers.size()
-            );
+                    cnt, providers.size());
         }
         return cnt;
     };
@@ -121,8 +117,7 @@ public class CoreQueueInitializer implements QueueInitializer {
     }
 
     public CoreQueueInitializer(
-            List<ToIntFunction<QueueInitContext>> initializers
-    ) {
+            List<ToIntFunction<QueueInitContext>> initializers) {
         if (CollectionUtils.isNotEmpty(initializers)) {
             this.initializers.addAll(initializers);
         }
@@ -137,8 +132,7 @@ public class CoreQueueInitializer implements QueueInitializer {
         if (LOG.isInfoEnabled()) {
             LOG.info(
                     "{} start URLs identified.",
-                    NumberFormat.getNumberInstance().format(cnt)
-            );
+                    NumberFormat.getNumberInstance().format(cnt));
         }
     }
 }

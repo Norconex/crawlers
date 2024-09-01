@@ -76,8 +76,7 @@ public class FsMetadataChecksummer
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
         var lastMod = trimToEmpty(
-                metadata.getString(FsDocMetadata.LAST_MODIFIED)
-        );
+                metadata.getString(FsDocMetadata.LAST_MODIFIED));
         var size = trimToEmpty(metadata.getString(FsDocMetadata.FILE_SIZE));
         if (StringUtils.isAllBlank(lastMod, size)) {
             return null;

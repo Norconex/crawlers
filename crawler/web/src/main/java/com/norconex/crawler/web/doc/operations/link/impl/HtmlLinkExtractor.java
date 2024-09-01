@@ -302,9 +302,7 @@ public class HtmlLinkExtractor
                     .map(
                             t -> toCleanAbsoluteURL(
                                     t.referrer,
-                                    tag.bodyText.trim()
-                            )
-                    )
+                                    tag.bodyText.trim()))
                     .map(url -> addAsLink(links, url, tag, null))
                     .filter(Boolean::valueOf)
                     .orElse(false))
@@ -317,21 +315,16 @@ public class HtmlLinkExtractor
                                             .filter(
                                                     t -> t.configAttribNames
                                                             .contains(
-                                                                    HTTP_EQUIV
-                                                            )
-                                            )
+                                                                    HTTP_EQUIV))
                                             .filter(
                                                     t -> t.attribs
                                                             .getStrings(
-                                                                    HTTP_EQUIV
-                                                            )
-                                                            .contains("refresh")
-                                            )
+                                                                    HTTP_EQUIV)
+                                                            .contains(
+                                                                    "refresh"))
                                             .filter(
                                                     t -> t.attribs.containsKey(
-                                                            CONTENT
-                                                    )
-                                            )
+                                                            CONTENT))
                                             // very unlikely that we have more than one redirect directives,
                                             // but loop just in case
                                             .map(
@@ -339,31 +332,23 @@ public class HtmlLinkExtractor
                                                             .getStrings(CONTENT)
                                                             .stream()
                                                             .map(
-                                                                    LinkUtil::extractHttpEquivRefreshContentUrl
-                                                            )
+                                                                    LinkUtil::extractHttpEquivRefreshContentUrl)
                                                             .map(
                                                                     url -> toCleanAbsoluteURL(
                                                                             tag.referrer,
-                                                                            url
-                                                                    )
-                                                            )
+                                                                            url))
                                                             .findFirst()
                                                             .map(
                                                                     url -> addAsLink(
                                                                             links,
                                                                             url,
                                                                             tag,
-                                                                            CONTENT
-                                                                    )
-                                                            )
+                                                                            CONTENT))
                                                             .filter(
-                                                                    Boolean::valueOf
-                                                            )
-                                                            .orElse(false)
-                                            )
+                                                                    Boolean::valueOf)
+                                                            .orElse(false))
                                             .filter(Boolean::valueOf)
-                                            .orElse(false)
-                            )
+                                            .orElse(false))
 
                             //--- From anchor tag ---
                             // E.g.: <a href="...">...</a>
@@ -372,31 +357,23 @@ public class HtmlLinkExtractor
                                             .filter(t -> "a".equals(t.name))
                                             .filter(
                                                     t -> t.configAttribNames
-                                                            .contains("href")
-                                            )
+                                                            .contains("href"))
                                             .filter(
                                                     t -> t.attribs
-                                                            .containsKey("href")
-                                            )
+                                                            .containsKey(
+                                                                    "href"))
                                             .filter(
                                                     t -> !hasActiveDoNotFollow(
-                                                            t
-                                                    )
-                                            )
+                                                            t))
                                             .map(
                                                     t -> toCleanAbsoluteURL(
                                                             t.referrer,
                                                             t.attribs.getString(
-                                                                    "href"
-                                                            )
-                                                    )
-                                            )
+                                                                    "href")))
                                             .map(
                                                     url -> addAsLink(
                                                             links, url, tag,
-                                                            "href"
-                                                    )
-                                            )
+                                                            "href"))
                                             .filter(Boolean::valueOf)
                                             .orElse(hasActiveDoNotFollow(tag)) // skip others if no follow
                             )
@@ -410,57 +387,42 @@ public class HtmlLinkExtractor
                                                             .ofNullable(
                                                                     tag.attribs
                                                                             .getString(
-                                                                                    cfgAttr
-                                                                            )
-                                                            )
+                                                                                    cfgAttr))
                                                             .map(
                                                                     urlStr -> (EqualsUtil
                                                                             .equalsAny(
                                                                                     tag.name,
                                                                                     "object",
-                                                                                    "applet"
-                                                                            )
-                                                                                    ? List.of(
-                                                                                            StringUtils
-                                                                                                    .split(
-                                                                                                            urlStr,
-                                                                                                            ", "
-                                                                                                    )
-                                                                                    )
-                                                                                    : List.of(
-                                                                                            urlStr
-                                                                                    ))
-                                                                                            .stream()
-                                                                                            .map(
-                                                                                                    url -> toCleanAbsoluteURL(
-                                                                                                            tag.referrer,
-                                                                                                            url
-                                                                                                    )
-                                                                                            )
-                                                                                            .map(
-                                                                                                    url -> addAsLink(
-                                                                                                            links,
-                                                                                                            url,
-                                                                                                            tag,
-                                                                                                            cfgAttr
-                                                                                                    )
-                                                                                            )
-                                                                                            .anyMatch(
-                                                                                                    Boolean::valueOf
-                                                                                            )
-                                                            )
-                                            )
+                                                                                    "applet")
+                                                                                            ? List.of(
+                                                                                                    StringUtils
+                                                                                                            .split(
+                                                                                                                    urlStr,
+                                                                                                                    ", "))
+                                                                                            : List.of(
+                                                                                                    urlStr))
+                                                                                                            .stream()
+                                                                                                            .map(
+                                                                                                                    url -> toCleanAbsoluteURL(
+                                                                                                                            tag.referrer,
+                                                                                                                            url))
+                                                                                                            .map(
+                                                                                                                    url -> addAsLink(
+                                                                                                                            links,
+                                                                                                                            url,
+                                                                                                                            tag,
+                                                                                                                            cfgAttr))
+                                                                                                            .anyMatch(
+                                                                                                                    Boolean::valueOf)))
                                             .flatMap(Optional::stream)
-                                            .anyMatch(Boolean::valueOf)
-                            );
+                                            .anyMatch(Boolean::valueOf));
 
     @Override
     public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString()
-        )) {
+                doc.getDocContext().getContentType().toString())) {
             return Set.of();
         }
 
@@ -475,14 +437,11 @@ public class HtmlLinkExtractor
                     .forEach(
                             val -> extractLinksFromText(
                                     links, val, refererUrl,
-                                    true
-                            )
-                    );
+                                    true));
         } else {
             // Body
             try (var r = new TextReader(
-                    new InputStreamReader(doc.getInputStream())
-            )) {
+                    new InputStreamReader(doc.getInputStream()))) {
                 var firstChunk = true;
                 String text = null;
                 while ((text = r.readText()) != null) {
@@ -496,8 +455,7 @@ public class HtmlLinkExtractor
     //--- Non-public methods ---------------------------------------------------
 
     private void extractLinksFromText(
-            Set<Link> links, String text, String url, boolean checkBaseHref
-    ) {
+            Set<Link> links, String text, String url, boolean checkBaseHref) {
         var content = normalizeWhiteSpaces(text);
         var refererUrl = adjustReferer(content, url, checkBaseHref);
         extractLinksFromCleanText(links, content, refererUrl);
@@ -505,8 +463,7 @@ public class HtmlLinkExtractor
 
     private String adjustReferer(
             final String content, final String refererUrl,
-            final boolean firstChunk
-    ) {
+            final boolean firstChunk) {
         var ref = refererUrl;
         if (firstChunk) {
             // make content easier to match by normalizing white spaces
@@ -525,8 +482,7 @@ public class HtmlLinkExtractor
     }
 
     private void extractLinksFromCleanText(
-            Set<Link> links, String theContent, String referrerUrl
-    ) {
+            Set<Link> links, String theContent, String referrerUrl) {
         var content = theContent;
 
         // Eliminate content not matching extract patterns
@@ -535,8 +491,7 @@ public class HtmlLinkExtractor
         // Get rid of <script> tags content to eliminate possibly
         // generated URLs.
         content = content.replaceAll(
-                "(?is)(<script\\b[^>]*>)(.*?)(</script>)", "$1$3"
-        );
+                "(?is)(<script\\b[^>]*>)(.*?)(</script>)", "$1$3");
 
         // Possibly get rid of comments
         if (!configuration.isCommentsEnabled()) {
@@ -548,8 +503,7 @@ public class HtmlLinkExtractor
                         .keySet()
                         .stream()
                         .map(String::toLowerCase)
-                        .toList()
-        );
+                        .toList());
 
         var tagNameMatcher = Pattern.compile("<([\\w-]+)").matcher(content);
         while (tagNameMatcher.find()) {
@@ -596,8 +550,7 @@ public class HtmlLinkExtractor
                         .getStrings(tag.name)
                         .stream()
                         .filter(StringUtils::isNotBlank)
-                        .toList()
-        );
+                        .toList());
 
         return tag;
     }
@@ -614,8 +567,7 @@ public class HtmlLinkExtractor
     }
 
     private boolean addAsLink(
-            Set<Link> links, String url, Tag tag, String attWithUrl
-    ) {
+            Set<Link> links, String url, Tag tag, String attWithUrl) {
         if (StringUtils.isBlank(url)) {
             return false;
         }
@@ -637,8 +589,7 @@ public class HtmlLinkExtractor
         tag.attribs.forEach((attName, attValues) -> {
             if (!Objects.equal(attWithUrl, attName)) {
                 attValues.forEach(
-                        val -> setNonBlank(linkMeta, "attr." + attName, val)
-                );
+                        val -> setNonBlank(linkMeta, "attr." + attName, val));
             }
         });
         return links.add(link);
@@ -651,8 +602,7 @@ public class HtmlLinkExtractor
                         .stream()
                         .anyMatch(
                                 s -> "nofollow"
-                                        .equalsIgnoreCase(trimToEmpty(s))
-                        );
+                                        .equalsIgnoreCase(trimToEmpty(s)));
     }
 
     private void setNonBlank(Properties meta, String key, String value) {
@@ -685,8 +635,7 @@ public class HtmlLinkExtractor
         for (RegexPair regexPair : configuration.getExtractBetweens()) {
             for (Pair<Integer, Integer> pair : matchBetweens(
                     content,
-                    regexPair
-            )) {
+                    regexPair)) {
                 b.append(content.substring(pair.getLeft(), pair.getRight()));
             }
         }
@@ -707,8 +656,7 @@ public class HtmlLinkExtractor
     }
 
     private List<Pair<Integer, Integer>> matchBetweens(
-            String content, RegexPair pair
-    ) {
+            String content, RegexPair pair) {
         var flags = Pattern.DOTALL;
         if (pair.isIgnoreCase()) {
             flags = flags | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
@@ -724,9 +672,7 @@ public class HtmlLinkExtractor
             }
             matches.add(
                     new ImmutablePair<>(
-                            leftMatch.start(), rightMatch.end()
-                    )
-            );
+                            leftMatch.start(), rightMatch.end()));
         }
         return matches;
     }
@@ -756,8 +702,7 @@ public class HtmlLinkExtractor
     }
 
     private String toCleanAbsoluteURL(
-            final String referrerUrl, final String newURL
-    ) {
+            final String referrerUrl, final String newURL) {
         var url = StringUtils.trimToNull(newURL);
         if (!isValidNewURL(url)) {
             return null;
@@ -783,8 +728,7 @@ public class HtmlLinkExtractor
                         url.length(),
                         configuration.getMaxURLLength(),
                         LOGGING_MAX_URL_LENGTH,
-                        StringUtils.substring(url, 0, LOGGING_MAX_URL_LENGTH)
-                );
+                        StringUtils.substring(url, 0, LOGGING_MAX_URL_LENGTH));
             }
             return null;
         }

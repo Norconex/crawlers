@@ -46,8 +46,7 @@ class ImportModuleStageTest {
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                })
-        );
+                }));
         crawler.start();
         var ctx = new ImporterPipelineContext(crawler, doc);
         var stage = new ImportModuleStage();
@@ -56,9 +55,7 @@ class ImportModuleStageTest {
         // no filters is equal to a match
         assertThat(
                 IOUtils.toString(
-                        ctx.getDoc().getInputStream(), UTF_8
-                ).trim()
-        )
-                .isEqualTo("potato");
+                        ctx.getDoc().getInputStream(), UTF_8).trim())
+                                .isEqualTo("potato");
     }
 }

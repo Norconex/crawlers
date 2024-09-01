@@ -71,8 +71,7 @@ public class CrawlerServices implements Closeable {
                         .setEventManager(getEventManager())
                         .setWorkDir(crawler.getWorkDir().resolve("committer"))
                         .setStreamFactory(crawler.getStreamFactory())
-                        .build()
-        );
+                        .build());
 
         dedupService.init(crawler);
     }

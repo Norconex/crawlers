@@ -44,13 +44,11 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
         metadata.add(CrawlDocMetadata.DEPTH, docRecord.getDepth());
         metadata.add(
                 WebDocMetadata.SM_CHANGE_FREQ,
-                docRecord.getSitemapChangeFreq()
-        );
+                docRecord.getSitemapChangeFreq());
         metadata.add(WebDocMetadata.SM_LASTMOD, docRecord.getSitemapLastMod());
         metadata.add(
                 WebDocMetadata.SM_PRORITY,
-                docRecord.getSitemapPriority()
-        );
+                docRecord.getSitemapPriority());
 
         // In case the crawl data supplied is from a URL that was pulled
         // from cache because the parent was skipped and could not be
@@ -65,20 +63,17 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
                 && docRecord.getReferrerReference() != null
                 && Objects.equals(
                         docRecord.getReferrerReference(),
-                        cachedDocRecord.getReferrerReference()
-                )
+                        cachedDocRecord.getReferrerReference())
                 && (docRecord.getReferrerLinkMetadata() == null)) {
             docRecord.setReferrerLinkMetadata(
-                    cachedDocRecord.getReferrerLinkMetadata()
-            );
+                    cachedDocRecord.getReferrerLinkMetadata());
         }
 
         // Add referrer data to metadata
         //TODO move elsewhere, like .core?
         metadata.add(
                 WebDocMetadata.REFERRER_REFERENCE,
-                docRecord.getReferrerReference()
-        );
+                docRecord.getReferrerReference());
         if (docRecord.getReferrerLinkMetadata() != null) {
             var linkMeta = new Properties();
             linkMeta.fromString(docRecord.getReferrerLinkMetadata());
@@ -96,8 +91,7 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
         if (!docRecord.getRedirectTrail().isEmpty()) {
             metadata.setList(
                     WebDocMetadata.REDIRECT_TRAIL,
-                    docRecord.getRedirectTrail()
-            );
+                    docRecord.getRedirectTrail());
         }
     }
 }

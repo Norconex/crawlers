@@ -88,10 +88,8 @@ class SitemapURLDeletionTest {
                 tempDir, cfg -> cfg
                         .setSitemapResolver(new GenericSitemapResolver())
                         .setStartReferencesSitemaps(
-                                List.of(serverUrl(client, sitemapPath))
-                        )
-                        .setOrphansStrategy(OrphansStrategy.PROCESS)
-        );
+                                List.of(serverUrl(client, sitemapPath)))
+                        .setOrphansStrategy(OrphansStrategy.PROCESS));
         var mem = WebTestUtil.firstCommitter(crawler);
 
         // First time, 3 upserts and 0 deletes
@@ -102,8 +100,7 @@ class SitemapURLDeletionTest {
                 .containsExactlyInAnyOrder(
                         serverUrl(client, page1Path),
                         serverUrl(client, page2Path),
-                        serverUrl(client, page3Path)
-                );
+                        serverUrl(client, page3Path));
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
@@ -113,13 +110,11 @@ class SitemapURLDeletionTest {
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
-                        serverUrl(client, page33Path)
-                );
+                        serverUrl(client, page33Path));
         assertThat(mem.getDeleteRequests())
                 .map(DeleteRequest::getReference)
                 .containsExactlyInAnyOrder(
-                        serverUrl(client, page3Path)
-                );
+                        serverUrl(client, page3Path));
         mem.clean();
 
         crawler.clean();
@@ -137,36 +132,27 @@ class SitemapURLDeletionTest {
                                         serverUrl(
                                                 client,
                                                 firstTime ? page3Path
-                                                        : page33Path
-                                        )
-                                ),
-                                MediaType.XML_UTF_8
-                        )
-                );
+                                                        : page33Path)),
+                                MediaType.XML_UTF_8));
         client
                 .when(request(page1Path))
                 .respond(
                         response().withBody(
                                 "Page 1 always there.",
-                                HTML_UTF_8
-                        )
-                );
+                                HTML_UTF_8));
         client
                 .when(request(page2Path))
                 .respond(
                         response().withBody(
                                 "Page 2 always there.",
-                                HTML_UTF_8
-                        )
-                );
+                                HTML_UTF_8));
         if (firstTime) {
             client
                     .when(request(page3Path))
                     .respond(
                             response().withBody(
-                                    "Page 3 there first time only.", HTML_UTF_8
-                            )
-                    );
+                                    "Page 3 there first time only.",
+                                    HTML_UTF_8));
         } else {
             client
                     .when(request(page3Path))
@@ -176,9 +162,7 @@ class SitemapURLDeletionTest {
                     .respond(
                             response().withBody(
                                     "Page 33 there second time only.",
-                                    HTML_UTF_8
-                            )
-                    );
+                                    HTML_UTF_8));
         }
     }
 }

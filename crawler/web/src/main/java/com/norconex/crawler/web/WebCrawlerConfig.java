@@ -27,10 +27,10 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
+import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
@@ -192,7 +192,7 @@ import lombok.experimental.FieldNameConstants;
  * crawled, caching of document checksums, etc.
  * For this, the crawler uses a database we refer to as a data store engine.
  * The default implementation uses the local file system to store these
- * (see {@link MVStoreDataStoreEngine}). While very capable and suitable
+ * (see {@link MvStoreDataStoreEngine}). While very capable and suitable
  * for most sites, if you need a larger storage system, you can change
  * the default implementation or provide your own
  * with {@link #setDataStoreEngine(IDataStoreEngine)}.
@@ -418,7 +418,7 @@ import lombok.experimental.FieldNameConstants;
  * a modified document. There are two checksums at play, tested at
  * different times. One obtained from
  * a document metadata (default is {@link LastModifiedMetadataChecksummer},
- * and one from the document itself {@link MD5DocumentChecksummer}. You can
+ * and one from the document itself {@link Md5DocumentChecksummer}. You can
  * provide your own implementation. See:
  * {@link #setMetadataChecksummer(MetadataChecksummer)} and
  * {@link #setDocumentChecksummer(DocumentChecksummer)}.
@@ -693,11 +693,9 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public WebCrawlerConfig setStartReferencesSitemaps(
-            List<String> startReferencesSitemaps
-    ) {
+            List<String> startReferencesSitemaps) {
         CollectionUtil.setAll(
-                this.startReferencesSitemaps, startReferencesSitemaps
-        );
+                this.startReferencesSitemaps, startReferencesSitemaps);
         CollectionUtil.removeBlanks(this.startReferencesSitemaps);
         return this;
     }
@@ -721,8 +719,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public WebCrawlerConfig setKeepReferencedLinks(
-            Set<ReferencedLinkType> keepReferencedLinks
-    ) {
+            Set<ReferencedLinkType> keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
         return this;
     }
@@ -741,8 +738,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public WebCrawlerConfig setLinkExtractors(
-            List<LinkExtractor> linkExtractors
-    ) {
+            List<LinkExtractor> linkExtractors) {
         CollectionUtil.setAll(this.linkExtractors, linkExtractors);
         return this;
     }

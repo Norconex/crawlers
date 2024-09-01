@@ -93,8 +93,8 @@ class LanguageTransformerTest {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration()
-            .setLanguages(List.of())
-            .setFallbackLanguage("it");
+                .setLanguages(List.of())
+                .setFallbackLanguage("it");
         var meta = new Properties();
         t.accept(TestUtil.newHandlerContext(
                 "n/a",
@@ -104,7 +104,6 @@ class LanguageTransformerTest {
         // should use fallback language
         Assertions.assertEquals("it", meta.getString(DocMetadata.LANGUAGE));
     }
-
 
     @Test
     void testDefaultLanguageDetection() {

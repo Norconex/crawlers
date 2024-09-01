@@ -57,8 +57,7 @@ final class CrawlerCommandExecuter {
             throw new CrawlerException(
                     "An error occured while executing command: "
                             + execution.name,
-                    e
-            );
+                    e);
         } finally {
             orderlyShutdown(execution);
         }
@@ -70,17 +69,14 @@ final class CrawlerCommandExecuter {
         //--- Ensure good state/config ---
         if (StringUtils.isBlank(crawler.getId())) {
             throw new CrawlerException(
-                    "Crawler must be given a unique identifier (id)."
-            );
+                    "Crawler must be given a unique identifier (id).");
         }
         LogUtil.setMdcCrawlerId(crawler.getId());
         Thread.currentThread().setName(
-                crawler.getId() + "/" + execution.name
-        );
+                crawler.getId() + "/" + execution.name);
 
         crawler.getServices().getEventManager().addListenersFromScan(
-                crawler.getConfiguration()
-        );
+                crawler.getConfiguration());
 
         crawler.fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
 
@@ -88,9 +84,7 @@ final class CrawlerCommandExecuter {
                 .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
                 .resolve(
                         FileUtil.toSafeFileName(
-                                crawler.getId()
-                        )
-                );
+                                crawler.getId()));
         // Will also create workdir parent:
         crawler.tempDir = crawler.workDir.resolve("temp");
         try {
@@ -100,14 +94,12 @@ final class CrawlerCommandExecuter {
             throw new CrawlerException(
                     "Could not create directory: "
                             + crawler.tempDir,
-                    e
-            );
+                    e);
         }
         crawler.streamFactory = new CachedStreamFactory(
                 (int) crawler.getConfiguration().getMaxStreamCachePoolSize(),
                 (int) crawler.getConfiguration().getMaxStreamCacheSize(),
-                crawler.tempDir
-        );
+                crawler.tempDir);
 
         if (execution.logIntro) {
             LogUtil.logCommandIntro(LOG, crawler);
@@ -147,8 +139,7 @@ final class CrawlerCommandExecuter {
                                 "Deferred shutdown requested. Pausing for {} "
                                         + "starting from this UTC moment: {}",
                                 DurationFormatter.FULL.format(d),
-                                LocalDateTime.now(ZoneOffset.UTC)
-                        );
+                                LocalDateTime.now(ZoneOffset.UTC));
                         Sleeper.sleepMillis(d.toMillis());
                         LOG.info("Shutdown resumed.");
                     });
@@ -169,8 +160,7 @@ final class CrawlerCommandExecuter {
                     LOG.error(
                             "Could not delete the temporary directory:"
                                     + crawler.tempDir,
-                            e
-                    );
+                            e);
                 }
             }
             MDC.clear();

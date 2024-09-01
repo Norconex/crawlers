@@ -57,8 +57,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
             Parser parser,
             HandlerContext docCtx,
             List<Doc> embeddedDocs,
-            EmbeddedConfig embeddedConfig
-    ) {
+            EmbeddedConfig embeddedConfig) {
         super(parser);
         this.docCtx = docCtx;
         this.embeddedDocs = embeddedDocs;
@@ -70,8 +69,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
             InputStream input,
             ContentHandler handler,
             Metadata tikaMeta,
-            ParseContext context
-    )
+            ParseContext context)
             throws IOException, SAXException, TikaException {
 
         var resName = tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY);
@@ -92,8 +90,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
             LOG.warn(
                     "Skipping embedded document {} which is over max "
                             + "depth: {}",
-                    maxDepth, resName
-            );
+                    maxDepth, resName);
             return;
         }
 
@@ -102,14 +99,12 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
                 .getContentType().toBaseTypeString();
         if (TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedOfContentTypes(),
-                parentType
-        )) {
+                parentType)) {
             LOG.debug(
                     "Skipping embedded document {} "
                             + "of parent content type: {}.",
                     tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY),
-                    parentType
-            );
+                    parentType);
             return;
         }
 
@@ -119,14 +114,12 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         // Don't parse if unwanted embedded content type
         if (TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedContentTypes(),
-                embedContentType.toBaseTypeString()
-        )) {
+                embedContentType.toBaseTypeString())) {
             LOG.debug(
                     "Skipping embedded document {} "
                             + "with content type: {}.",
                     tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY),
-                    embedContentType
-            );
+                    embedContentType);
             return;
         }
 
@@ -134,11 +127,9 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         var embedMeta = new Properties();
         TikaUtil.metadataToProperties(tikaMeta, embedMeta);
         var embedRecord = resolveEmbeddedResourceName(
-                tikaMeta, embedMeta, embedCount
-        );
+                tikaMeta, embedMeta, embedCount);
         embedRecord.setEmbeddedParentReferences(
-                docCtx.docContext().getEmbeddedParentReferences()
-        );
+                docCtx.docContext().getEmbeddedParentReferences());
 
         // Read the steam into cache for reuse since Tika will
         // close the original stream on us causing exceptions later.
@@ -147,16 +138,14 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
             IOUtils.copy(input, embedOutput);
             var embedInput = embedOutput.getInputStream();
             embedRecord.addEmbeddedParentReference(
-                    docCtx.reference()
-            );
+                    docCtx.reference());
             var embedDoc = new Doc(embedRecord, embedInput, embedMeta);
             embeddedDocs.add(embedDoc);
         }
     }
 
     private DocContext resolveEmbeddedResourceName(
-            Metadata tikaMeta, Properties embedMeta, int embedCount
-    ) {
+            Metadata tikaMeta, Properties embedMeta, int embedCount) {
 
         new DocContext();
         docCtx.reference();
@@ -186,8 +175,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
                 return docRecord(
                         "embedded-" + embedCount + "." + ct.getExtension(),
                         embedMeta,
-                        "file-file"
-                );
+                        "file-file");
             }
         }
 
@@ -195,13 +183,11 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         return docRecord(
                 "embedded-" + embedCount + ".unknown",
                 embedMeta,
-                "unknown"
-        );
+                "unknown");
     }
 
     private DocContext docRecord(
-            String embedRef, Properties embedMeta, String embedType
-    ) {
+            String embedRef, Properties embedMeta, String embedType) {
         var docRecord = new DocContext();
         docRecord.setReference(docCtx.reference() + "!" + embedRef);
         embedMeta.set(EMBEDDED_REFERENCE, embedRef);

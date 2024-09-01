@@ -122,8 +122,7 @@ public class CountMatchesTransformerConfig {
      * @param fieldMatcher field matcher
      */
     public CountMatchesTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher = fieldMatcher;
         return this;
     }
@@ -141,8 +140,7 @@ public class CountMatchesTransformerConfig {
      * @param countMatcher count matcher
      */
     public CountMatchesTransformerConfig setCountMatcher(
-            TextMatcher countMatcher
-    ) {
+            TextMatcher countMatcher) {
         this.countMatcher = countMatcher;
         return this;
     }

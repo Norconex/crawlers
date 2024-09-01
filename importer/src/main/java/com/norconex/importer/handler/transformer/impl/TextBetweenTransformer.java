@@ -119,23 +119,19 @@ public class TextBetweenTransformer
                         opExtractions.putAll(
                                 firstNonBlank(
                                         op.getToField(),
-                                        chunk.getField()
-                                ),
-                                doExtractTextBetween(op, chunk.getText())
-                        );
+                                        chunk.getField()),
+                                doExtractTextBetween(op, chunk.getText()));
                         return true;
                     });
             opExtractions.asMap().forEach((fld, vals) -> {
                 PropertySetter.orAppend(
-                        op.getOnSet()
-                ).apply(docCtx.metadata(), fld, vals);
+                        op.getOnSet()).apply(docCtx.metadata(), fld, vals);
             });
         }
     }
 
     private List<String> doExtractTextBetween(
-            TextBetweenOperation op, String text
-    ) {
+            TextBetweenOperation op, String text) {
         List<Pair<Integer, Integer>> matches = new ArrayList<>();
         var leftMatch = op.getStartMatcher().toRegexMatcher(text);
         while (leftMatch.find()) {
@@ -146,23 +142,18 @@ public class TextBetweenTransformer
             if (op.isInclusive()) {
                 matches.add(
                         new ImmutablePair<>(
-                                leftMatch.start(), rightMatch.end()
-                        )
-                );
+                                leftMatch.start(), rightMatch.end()));
             } else {
                 matches.add(
                         new ImmutablePair<>(
-                                leftMatch.end(), rightMatch.start()
-                        )
-                );
+                                leftMatch.end(), rightMatch.start()));
             }
         }
         List<String> values = new ArrayList<>();
         for (var i = matches.size() - 1; i >= 0; i--) {
             var matchPair = matches.get(i);
             var value = text.substring(
-                    matchPair.getLeft(), matchPair.getRight()
-            );
+                    matchPair.getLeft(), matchPair.getRight());
             if (value != null) {
                 values.add(value);
             }

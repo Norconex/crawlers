@@ -90,8 +90,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
                 stmt -> {
                     stmt.setString(1, serializableId(id));
                     stmt.setObject(2, SerialUtil.toJsonString(object));
-                }
-        ) > 0;
+                }) > 0;
     }
 
     @Override
@@ -99,8 +98,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
         return executeRead(
                 sqls.find,
                 stmt -> stmt.setString(1, serializableId(id)),
-                this::firstObject
-        );
+                this::firstObject);
     }
 
     @Override
@@ -108,8 +106,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
         return executeRead(
                 sqls.findFirst,
                 NO_ARGS,
-                this::firstObject
-        );
+                this::firstObject);
     }
 
     @Override
@@ -117,8 +114,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
         return executeRead(
                 sqls.exists,
                 stmt -> stmt.setString(1, serializableId(id)),
-                ResultSet::next
-        );
+                ResultSet::next);
     }
 
     @Override
@@ -131,16 +127,14 @@ public class JdbcDataStore<T> implements DataStore<T> {
                         return rs.getLong(1);
                     }
                     return 0L;
-                }
-        );
+                });
     }
 
     @Override
     public boolean delete(String id) {
         return executeWrite(
                 sqls.delete,
-                stmt -> stmt.setString(1, serializableId(id))
-        ) > 0;
+                stmt -> stmt.setString(1, serializableId(id))) > 0;
     }
 
     @Override
@@ -148,8 +142,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
         Record<T> rec = executeRead(
                 sqls.deleteFirst,
                 NO_ARGS,
-                this::firstRecord
-        );
+                this::firstRecord);
         if (!rec.isEmpty()) {
             delete(rec.id);
         }
@@ -180,8 +173,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
                         }
                     }
                     return true;
-                }
-        );
+                });
     }
 
     @Override
@@ -209,10 +201,8 @@ public class JdbcDataStore<T> implements DataStore<T> {
             throw new DataStoreException(
                     tabled(
                             "Could not create table '<table>' with SQL: "
-                                    + sqls.createTable
-                    ),
-                    e
-            );
+                                    + sqls.createTable),
+                    e);
         }
     }
 
@@ -224,9 +214,8 @@ public class JdbcDataStore<T> implements DataStore<T> {
         }
         executeWrite(
                 "ALTER TABLE %s RENAME TO %s".formatted(
-                        settings.tableName, newTableName
-                ), NO_ARGS
-        );
+                        settings.tableName, newTableName),
+                NO_ARGS);
         settings.storeName = newStoreName;
         settings.tableName = newTableName;
         prepareSqls();
@@ -277,8 +266,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
     private String serializableId(String id) {
         try {
             return StringUtil.truncateBytesWithHash(
-                    id, StandardCharsets.UTF_8, JdbcDialect.ID_MAX_LENGTH
-            );
+                    id, StandardCharsets.UTF_8, JdbcDialect.ID_MAX_LENGTH);
         } catch (CharacterCodingException e) {
             throw new DataStoreException("Could not truncate ID: " + id, e);
         }
@@ -294,8 +282,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
             throw new DataStoreException(
                     "Could not get object from table '%s'."
                             .formatted(settings.tableName),
-                    e
-            );
+                    e);
         }
     }
 
@@ -309,8 +296,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
             throw new DataStoreException(
                     "Could not get record from table '%s'."
                             .formatted(settings.tableName),
-                    e
-            );
+                    e);
         }
     }
 
@@ -343,8 +329,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
     private <R> R executeRead(
             String sql,
             PreparedStatementConsumer psc,
-            ResultSetFunction<R> rsc
-    ) {
+            ResultSetFunction<R> rsc) {
         try (var conn = settings.engine.getConnection()) {
             try (var stmt = conn.prepareStatement(sql)) {
                 psc.accept(stmt);
@@ -356,8 +341,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
             throw new DataStoreException(
                     "Could not read from table '%s' with SQL:%n%s"
                             .formatted(settings.tableName, sql),
-                    e
-            );
+                    e);
         }
     }
 
@@ -375,8 +359,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
             throw new DataStoreException(
                     "Could not write to table '%s' with SQL:%n%s"
                             .formatted(settings.tableName, sql),
-                    e
-            );
+                    e);
         }
     }
 }

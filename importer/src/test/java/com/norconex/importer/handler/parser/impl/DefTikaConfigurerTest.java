@@ -24,15 +24,15 @@ class DefTikaConfigurerTest {
     @Test
     void testDefaultConfig() {
         var cfg = new DefaultParserConfig();
-        assertThatNoException().isThrownBy(() ->
-                DefTikaConfigurer.configure(cfg));
+        assertThatNoException()
+                .isThrownBy(() -> DefTikaConfigurer.configure(cfg));
     }
 
     @Test
     void testBadConfig() {
         var cfg = new DefaultParserConfig();
         cfg.getOcrConfig().setDensity(-1000);
-        assertThatException().isThrownBy(() ->
-                DefTikaConfigurer.configure(cfg));
+        assertThatException()
+                .isThrownBy(() -> DefTikaConfigurer.configure(cfg));
     }
 }

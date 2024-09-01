@@ -86,8 +86,7 @@ public class ForceSingleValueTransformerConfig {
      * @param fieldMatcher field matcher
      */
     public ForceSingleValueTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

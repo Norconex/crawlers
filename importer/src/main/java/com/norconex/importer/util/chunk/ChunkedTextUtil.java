@@ -38,8 +38,7 @@ public final class ChunkedTextUtil {
             @NonNull ChunkedTextSupport cfg,
             @NonNull HandlerContext docCtx,
             @NonNull FailableFunction<TextChunk, String,
-                    IOException> textConsumer
-    )
+                    IOException> textConsumer)
             throws IOException {
         transform(cfg, docCtx, textConsumer, null);
     }
@@ -49,8 +48,7 @@ public final class ChunkedTextUtil {
             @NonNull HandlerContext docCtx,
             @NonNull FailableFunction<TextChunk, String,
                     IOException> textConsumer,
-            Predicate<TextChunk> keepReading
-    )
+            Predicate<TextChunk> keepReading)
             throws IOException {
         ChunkedTextReader.from(cfg).read(docCtx, chunk -> {
             var newValue = textConsumer.apply(chunk);
@@ -65,8 +63,7 @@ public final class ChunkedTextUtil {
     public static void writeBack(
             @NonNull HandlerContext docCtx,
             @NonNull TextChunk originalChunk,
-            String newText
-    )
+            String newText)
             throws IOException {
         if (isNotBlank(originalChunk.getField())) {
             // set on field
@@ -79,8 +76,7 @@ public final class ChunkedTextUtil {
                     var value = values.get(originalChunk.getFieldValueIndex());
                     values.set(
                             originalChunk.getFieldValueIndex(),
-                            value + newText
-                    );
+                            value + newText);
                 }
             }
             docCtx.metadata().setList(originalChunk.getField(), values);

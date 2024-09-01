@@ -138,11 +138,9 @@ public class FtpFetcherConfig extends BaseAuthVfsFetcherConfig {
     }
 
     public final FtpFetcherConfig setTransferAbortedOkReplyCodes(
-            List<Integer> transferAbortedOkReplyCodes
-    ) {
+            List<Integer> transferAbortedOkReplyCodes) {
         CollectionUtil.setAll(
-                this.transferAbortedOkReplyCodes, transferAbortedOkReplyCodes
-        );
+                this.transferAbortedOkReplyCodes, transferAbortedOkReplyCodes);
         return this;
     }
 
@@ -151,8 +149,7 @@ public class FtpFetcherConfig extends BaseAuthVfsFetcherConfig {
     }
 
     public final FtpFetcherConfig setShortMonthNames(
-            List<String> shortMonthNames
-    ) {
+            List<String> shortMonthNames) {
         CollectionUtil.setAll(this.shortMonthNames, shortMonthNames);
         return this;
     }

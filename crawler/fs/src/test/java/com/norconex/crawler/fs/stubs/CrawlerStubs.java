@@ -34,8 +34,7 @@ public final class CrawlerStubs {
     }
 
     public static Crawler memoryCrawler(
-            Path workDir, Consumer<CrawlerConfig> c
-    ) {
+            Path workDir, Consumer<CrawlerConfig> c) {
         return memoryCrawlerBuilder(workDir, c).build();
     }
 
@@ -44,13 +43,11 @@ public final class CrawlerStubs {
     }
 
     public static CrawlerBuilder memoryCrawlerBuilder(
-            Path workDir, Consumer<CrawlerConfig> c
-    ) {
+            Path workDir, Consumer<CrawlerConfig> c) {
         var b = SneakyFsCrawler
                 .builder()
                 .configuration(
-                        CrawlerConfigStubs.memoryCrawlerConfig(workDir)
-                );
+                        CrawlerConfigStubs.memoryCrawlerConfig(workDir));
         if (c != null) {
             c.accept(b.configuration());
         }

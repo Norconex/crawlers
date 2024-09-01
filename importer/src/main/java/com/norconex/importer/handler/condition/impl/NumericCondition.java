@@ -97,16 +97,14 @@ public class NumericCondition
     @Override
     public boolean evaluate(HandlerContext docCtx) throws IOException {
         for (String valueStr : docCtx.metadata().matchKeys(
-                configuration.getFieldMatcher()
-        ).valueList()) {
+                configuration.getFieldMatcher()).valueList()) {
             if (!NumberUtils.isCreatable(valueStr)) {
                 continue;
             }
             var number = NumberUtils.toDouble(valueStr);
             if (matches(configuration.getValueMatcher(), number)
                     && matches(
-                            configuration.getValueMatcherRangeEnd(), number
-                    )) {
+                            configuration.getValueMatcherRangeEnd(), number)) {
                 return true;
             }
         }

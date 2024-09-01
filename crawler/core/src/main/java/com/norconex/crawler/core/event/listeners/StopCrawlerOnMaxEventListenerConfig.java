@@ -129,8 +129,7 @@ public class StopCrawlerOnMaxEventListenerConfig {
      * @return this instance
      */
     public StopCrawlerOnMaxEventListenerConfig setEventMatcher(
-            TextMatcher eventMatcher
-    ) {
+            TextMatcher eventMatcher) {
         this.eventMatcher.copyFrom(eventMatcher);
         return this;
     }

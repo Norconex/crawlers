@@ -80,18 +80,15 @@ class DeleteRejectedEventListenerTest {
                 .map(DeleteRequest::getReference)
                 .containsExactly(
                         "mock:delete1", "mock:delete3",
-                        "mock:delete4"
-                );
+                        "mock:delete4");
     }
 
     @Test
     void testWriteRead() {
         var listener = new DeleteRejectedEventListener();
         listener.getConfiguration().setEventMatcher(
-                TextMatcher.basic("deleteme")
-        );
+                TextMatcher.basic("deleteme"));
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(listener)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(listener));
     }
 }

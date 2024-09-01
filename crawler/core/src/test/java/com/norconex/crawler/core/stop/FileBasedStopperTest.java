@@ -39,9 +39,7 @@ class FileBasedStopperTest {
             cfg.setStartReferences(
                     List.of(
                             "ref1", "ref2", "ref3", "ref4", "ref5",
-                            "ref6", "ref7", "ref8", "ref9", "ref10"
-                    )
-            );
+                            "ref6", "ref7", "ref8", "ref9", "ref10"));
             cfg.setStartReferencesAsync(true);
         });
 
@@ -58,24 +56,19 @@ class FileBasedStopperTest {
                         receiver.listenForStopRequest(crawler);
                         isRunning.setValue(true);
                     } else if (CrawlerEvent.CRAWLER_RUN_BEGIN.equals(
-                            ev.getName()
-                    )) {
+                            ev.getName())) {
                         emmitter.fireStopRequest(crawler);
                     } else if (CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN.equals(
-                            ev.getName()
-                    )) {
+                            ev.getName())) {
                         Sleeper.sleepMillis(1000);
                     } else if (CrawlerEvent.CRAWLER_STOP_BEGIN.equals(
-                            ev.getName()
-                    )) {
+                            ev.getName())) {
                         gotStopBegin.setValue(true);
                     } else if (CrawlerEvent.CRAWLER_STOP_END.equals(
-                            ev.getName()
-                    )) {
+                            ev.getName())) {
                         gotStopEnd.setValue(true);
                     }
-                }
-        );
+                });
         crawler.start();
 
         receiver.destroy();

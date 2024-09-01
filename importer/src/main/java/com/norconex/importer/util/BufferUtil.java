@@ -42,8 +42,7 @@ public final class BufferUtil {
      * @throws IOException when there is a problem flushing the buffer
      */
     public static void flushBuffer(
-            StringBuilder buffer, Writer out, boolean cutWisely
-    )
+            StringBuilder buffer, Writer out, boolean cutWisely)
             throws IOException {
         String remainingText = null;
         if (cutWisely) {

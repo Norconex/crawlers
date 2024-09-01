@@ -102,8 +102,7 @@ public final class DateProviderFactory {
             //1              23            4         5
             "^(NOW|TODAY)\\s*(([-+]{1})\\s*(\\d+)\\s*([YMDhms]{1})\\s*)?"
                     //6
-                    + "(\\*?)$"
-    );
+                    + "(\\*?)$");
 
     private DateProviderFactory() {
     }
@@ -118,8 +117,7 @@ public final class DateProviderFactory {
      * @return zoned date time supplier
      */
     public static DateProvider create(
-            @NonNull String dateStr, ZoneId zoneId
-    ) {
+            @NonNull String dateStr, ZoneId zoneId) {
         // NOW[-+]9[YMDhms][*]
         // TODAY[-+]9[YMDhms][*]
         var d = dateStr.trim();
@@ -137,8 +135,7 @@ public final class DateProviderFactory {
                 unit = TimeUnit.getTimeUnit(unitStr);
                 if (unit == null) {
                     throw new ConfigurationException(
-                            "Invalid time unit: " + unitStr
-                    );
+                            "Invalid time unit: " + unitStr);
                 }
             }
             var fixed = !"*".equals(m.group(6));
@@ -146,12 +143,10 @@ public final class DateProviderFactory {
 
             if (fixed) {
                 return new DynamicFixedDateTimeProvider(
-                        unit, amount, today, zoneId
-                );
+                        unit, amount, today, zoneId);
             }
             return new DynamicFloatingDateTimeProvider(
-                    unit, amount, today, zoneId
-            );
+                    unit, amount, today, zoneId);
         }
 
         //--- Static ---
@@ -194,9 +189,7 @@ public final class DateProviderFactory {
             this.dateTime = dateTime;
             toString = dateTime.format(
                     DateTimeFormatter.ofPattern(
-                            "yyyy-MM-dd'T'HH:mm:ss.nnnZ'['VV']'"
-                    )
-            );
+                            "yyyy-MM-dd'T'HH:mm:ss.nnnZ'['VV']'"));
         }
 
         @Override
@@ -228,8 +221,7 @@ public final class DateProviderFactory {
         private final ZoneId zoneId;
 
         public DynamicFloatingDateTimeProvider(
-                TimeUnit unit, int amount, boolean today, ZoneId zoneId
-        ) {
+                TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
             this.unit = unit;
             this.amount = amount;
             this.today = today;
@@ -269,8 +261,7 @@ public final class DateProviderFactory {
         private ZonedDateTime dateTime;
 
         public DynamicFixedDateTimeProvider(
-                TimeUnit unit, int amount, boolean today, ZoneId zoneId
-        ) {
+                TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
             this.unit = unit;
             this.amount = amount;
             this.today = today;
@@ -305,8 +296,7 @@ public final class DateProviderFactory {
     }
 
     private static ZonedDateTime dynamicDateTime(
-            TimeUnit unit, int amount, boolean today, ZoneId zoneId
-    ) {
+            TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
         var dt = ZonedDateTime.now(zoneIdOrUTC(zoneId));
 
         if (today) {
@@ -322,8 +312,7 @@ public final class DateProviderFactory {
             TimeUnit unit,
             int amount,
             boolean today,
-            boolean floating
-    ) {
+            boolean floating) {
         var b = new StringBuilder();
         if (today) {
             b.append("TODAY");

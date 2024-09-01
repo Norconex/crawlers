@@ -236,8 +236,7 @@ public class LanguageTransformerConfig implements ChunkedTextSupport {
      * @param fieldMatcher field matcher
      */
     public LanguageTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

@@ -49,8 +49,7 @@ class BeforeWebCrawlerExecution implements Consumer<Crawler> {
                     yn(scopeCfg.isIncludeSubdomains()),
                     yn(scopeCfg.isStayOnProtocol()),
                     yn(scopeCfg.isStayOnPort()),
-                    yn(scopeCfg.isStayOnSitemap())
-            );
+                    yn(scopeCfg.isStayOnSitemap()));
         }
 
         LOG.info(
@@ -78,16 +77,12 @@ class BeforeWebCrawlerExecution implements Consumer<Crawler> {
                         yn(cfg.getMetadataChecksummer() != null),
                         yn(
                                 cfg.isMetadataDeduplicate()
-                                        && cfg.getMetadataChecksummer() != null
-                        ),
+                                        && cfg.getMetadataChecksummer() != null),
                         yn(cfg.getDocumentChecksummer() != null),
                         yn(
                                 cfg.isDocumentDeduplicate()
-                                        && cfg.getDocumentChecksummer() != null
-                        ),
-                        scope
-                )
-        );
+                                        && cfg.getDocumentChecksummer() != null),
+                        scope));
     }
 
     private static String yn(boolean value) {

@@ -43,17 +43,15 @@ class IdolClient {
     private static final Logger LOG = LoggerFactory.getLogger(IdolClient.class);
 
     private final IdolCommitterConfig config;
-    private final IIdolIndexAction upsertAction;
-    private final IIdolIndexAction deleteAction;
+    private final IdolIndexAction upsertAction;
+    private final IdolIndexAction deleteAction;
 
     IdolClient(IdolCommitterConfig config) {
         this.config = Objects.requireNonNull(
-                config, "'config' must not be null"
-        );
+                config, "'config' must not be null");
         if (StringUtils.isBlank(config.getUrl())) {
             throw new IllegalArgumentException(
-                    "Configuration 'url' must be provided."
-            );
+                    "Configuration 'url' must be provided.");
         }
         if (config.isCfs()) {
             upsertAction = new CfsIngestAddsAction(config);
@@ -92,14 +90,12 @@ class IdolClient {
 
     private boolean typeChanged(
             Class<? extends CommitterRequest> prevType,
-            CommitterRequest req
-    ) {
+            CommitterRequest req) {
         return prevType != null && !(prevType.equals(req.getClass()));
     }
 
-    private IIdolIndexAction actionForType(
-            Class<? extends CommitterRequest> reqType
-    ) {
+    private IdolIndexAction actionForType(
+            Class<? extends CommitterRequest> reqType) {
         return UpsertRequest.class.isAssignableFrom(reqType)
                 ? upsertAction
                 : deleteAction;
@@ -107,8 +103,7 @@ class IdolClient {
 
     private void doPost(
             List<CommitterRequest> batch,
-            Class<? extends CommitterRequest> reqType
-    )
+            Class<? extends CommitterRequest> reqType)
             throws CommitterException {
         if (batch.isEmpty() || reqType == null) {
             return;
@@ -125,9 +120,7 @@ class IdolClient {
         var con = openConnection(indexAction.url(batch, url));
         try (Writer w = new BufferedWriter(
                 new OutputStreamWriter(
-                        con.getOutputStream(), StandardCharsets.UTF_8
-                )
-        )) {
+                        con.getOutputStream(), StandardCharsets.UTF_8))) {
             indexAction.writeTo(batch, w);
             w.flush();
 
@@ -135,23 +128,19 @@ class IdolClient {
             var responseCode = con.getResponseCode();
             LOG.debug(
                     "Sending {} {} to URL: {}",
-                    batch.size(), reqType.getSimpleName(), config.getUrl()
-            );
+                    batch.size(), reqType.getSimpleName(), config.getUrl());
             LOG.debug("Server Response Code: {}", responseCode);
             var response = IOUtils.toString(
-                    con.getInputStream(), StandardCharsets.UTF_8
-            );
+                    con.getInputStream(), StandardCharsets.UTF_8);
             LOG.debug("Server Response Text: {}", response);
             if ((config.isCfs() && !contains(response, "SUCCESS"))
                     || (!config.isCfs() && !contains(response, "INDEXID"))) {
                 throw new CommitterException(
-                        "Unexpected HTTP response: " + response
-                );
+                        "Unexpected HTTP response: " + response);
             }
         } catch (IOException e) {
             throw new CommitterException(
-                    "Cannot post content to " + config.getUrl(), e
-            );
+                    "Cannot post content to " + config.getUrl(), e);
         } finally {
             con.disconnect();
         }
@@ -171,8 +160,7 @@ class IdolClient {
             throw new CommitterException(
                     "Cannot open HTTP connection to IDOL at: "
                             + config.getUrl(),
-                    e
-            );
+                    e);
         }
     }
 }

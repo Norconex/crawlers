@@ -42,8 +42,7 @@ class HdfsFetcherTest {
         List<Path> paths = List.of(new Path("/path1"), new Path("/path2"));
         List<URL> urls = List.of(
                 new URL("http://url1.com"),
-                new URL("http://url2.com")
-        );
+                new URL("http://url2.com"));
 
         var f = new HdfsFetcher();
         assertThatNoException().isThrownBy(() -> {
@@ -66,20 +65,14 @@ class HdfsFetcherTest {
                 f.acceptRequest(
                         new FileFetchRequest(
                                 new CrawlDoc(
-                                        new DocContext("hdfs://blah")
-                                ), DOCUMENT
-                        )
-                )
-        ).isTrue();
+                                        new DocContext("hdfs://blah")),
+                                DOCUMENT))).isTrue();
         assertThat(
                 f.acceptRequest(
                         new FileFetchRequest(
                                 new CrawlDoc(
-                                        new DocContext("http://blah")
-                                ), DOCUMENT
-                        )
-                )
-        ).isFalse();
+                                        new DocContext("http://blah")),
+                                DOCUMENT))).isFalse();
 
         var opts = new FileSystemOptions();
         f.applyFileSystemOptions(opts);

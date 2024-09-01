@@ -51,14 +51,12 @@ public interface DocumentHandler extends Consumer<HandlerContext> {
     //--- Decorators -----------------------------------------------------------
 
     static DocumentHandler decorate(
-            @NonNull FailableConsumer<HandlerContext, IOException> consumer
-    ) {
+            @NonNull FailableConsumer<HandlerContext, IOException> consumer) {
         return new FailableConsumerWrapper(consumer);
     }
 
     static BaseDocumentHandler decorate(
-            @NonNull Consumer<HandlerContext> consumer
-    ) {
+            @NonNull Consumer<HandlerContext> consumer) {
         return new ConsumerWrapper(consumer);
     }
 

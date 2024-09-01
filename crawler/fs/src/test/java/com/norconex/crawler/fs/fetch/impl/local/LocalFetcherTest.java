@@ -44,8 +44,7 @@ class LocalFetcherTest extends AbstractFileFetcherTest {
         return StringUtils.removeEnd(
                 Path.of(FsTestUtil.TEST_FS_PATH)
                         .toAbsolutePath().toUri().toString(),
-                "/"
-        );
+                "/");
     }
 
     @Test

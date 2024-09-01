@@ -36,9 +36,9 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.StringListConverter;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.committer.core.fs.AbstractFSCommitter;
-import com.norconex.committer.core.fs.impl.JSONFileCommitter;
-import com.norconex.committer.core.fs.impl.XMLFileCommitter;
+import com.norconex.committer.core.fs.AbstractFsCommitter;
+import com.norconex.committer.core.fs.impl.JsonFileCommitter;
+import com.norconex.committer.core.fs.impl.XmlFileCommitter;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatcher;
@@ -110,32 +110,22 @@ class CommitterServiceTest {
         acceptOnlyAAA.getConfiguration().addRestriction(
                 new PropertyMatcher(
                         TextMatcher.basic("document.reference"),
-                        TextMatcher.basic("aaa")
-                )
-        );
+                        TextMatcher.basic("aaa")));
         testContexes.put(
                 "2committers", new TestContext(
                         CommitterService.<TestDoc>builder()
                                 .committers(
                                         List.of(
                                                 new MemoryCommitter(),
-                                                acceptOnlyAAA
-                                        )
-                                )
+                                                acceptOnlyAAA))
                                 .upsertRequestBuilder(
                                         doc -> new UpsertRequest(
                                                 doc.getRef(), doc.getMeta(),
-                                                null
-                                        )
-                                )
+                                                null))
                                 .deleteRequestBuilder(
                                         doc -> new DeleteRequest(
-                                                doc.ref, doc.meta
-                                        )
-                                )
-                                .build()
-                )
-        );
+                                                doc.ref, doc.meta))
+                                .build()));
 
         testContexes.put(
                 "0committers", new TestContext(
@@ -144,17 +134,11 @@ class CommitterServiceTest {
                                 .upsertRequestBuilder(
                                         doc -> new UpsertRequest(
                                                 doc.getRef(), doc.getMeta(),
-                                                null
-                                        )
-                                )
+                                                null))
                                 .deleteRequestBuilder(
                                         doc -> new DeleteRequest(
-                                                doc.ref, doc.meta
-                                        )
-                                )
-                                .build()
-                )
-        );
+                                                doc.ref, doc.meta))
+                                .build()));
     }
 
     @ParameterizedTest
@@ -188,8 +172,7 @@ class CommitterServiceTest {
     )
     void testInit(
             String testCtx,
-            @ConvertWith(StringListConverter.class) String[] expectedEvents
-    ) {
+            @ConvertWith(StringListConverter.class) String[] expectedEvents) {
         var test = testContexes.get(testCtx);
         test.service.init(test.committerContext);
         assertThat(test.events).containsExactly(expectedEvents);
@@ -227,8 +210,7 @@ class CommitterServiceTest {
             String testCtx,
             String reference,
             int expectedUpsertCount,
-            @ConvertWith(StringListConverter.class) String[] expectedEvents
-    )
+            @ConvertWith(StringListConverter.class) String[] expectedEvents)
             throws CommitterException {
 
         var test = testContexes.get(testCtx);
@@ -272,8 +254,7 @@ class CommitterServiceTest {
             String testCtx,
             String reference,
             int expectedDeleteCount,
-            @ConvertWith(StringListConverter.class) String[] expectedEvents
-    )
+            @ConvertWith(StringListConverter.class) String[] expectedEvents)
             throws CommitterException {
         var test = testContexes.get(testCtx);
         test.initService();
@@ -304,8 +285,7 @@ class CommitterServiceTest {
     void testClose(
             String testCtx,
             int expectedCloseCount,
-            @ConvertWith(StringListConverter.class) String[] expectedEvents
-    ) {
+            @ConvertWith(StringListConverter.class) String[] expectedEvents) {
         var test = testContexes.get(testCtx);
         test.initService();
         test.service.close();
@@ -332,8 +312,7 @@ class CommitterServiceTest {
     )
     void testClean(
             String testCtx,
-            @ConvertWith(StringListConverter.class) String[] expectedEvents
-    ) {
+            @ConvertWith(StringListConverter.class) String[] expectedEvents) {
         var test = testContexes.get(testCtx);
         test.initService();
         test.service.clean();
@@ -350,8 +329,7 @@ class CommitterServiceTest {
     void testGetCommitters(String testCtx, int expectedCommitterCount) {
         var test = testContexes.get(testCtx);
         assertThat(test.getService().getCommitters()).hasSize(
-                expectedCommitterCount
-        );
+                expectedCommitterCount);
     }
 
     @ParameterizedTest
@@ -373,49 +351,40 @@ class CommitterServiceTest {
         // added.  It should still be possible to overwrite and give
         // a specific path.
 
-        var overwrittenPath = new XMLFileCommitter();
+        var overwrittenPath = new XmlFileCommitter();
         overwrittenPath.getConfiguration().setDirectory(
-                tempDir.resolve("customOne")
-        );
+                tempDir.resolve("customOne"));
 
         var service = CommitterService.builder()
                 .committers(
                         List.of(
-                                new XMLFileCommitter(),
-                                new JSONFileCommitter(),
+                                new XmlFileCommitter(),
+                                new JsonFileCommitter(),
                                 overwrittenPath,
-                                new XMLFileCommitter()
-                        )
-                )
+                                new XmlFileCommitter()))
                 .upsertRequestBuilder(
                         obj -> new UpsertRequest(
-                                "mock", new Properties(), nullInputStream()
-                        )
-                )
+                                "mock", new Properties(), nullInputStream()))
                 .deleteRequestBuilder(
                         obj -> new DeleteRequest(
-                                "mock", new Properties()
-                        )
-                )
+                                "mock", new Properties()))
                 .build();
 
         service.init(
                 CommitterContext.builder()
                         .setWorkDir(tempDir)
-                        .build()
-        );
+                        .build());
 
         var actualDirNames = service.getCommitters().stream()
-                .map(AbstractFSCommitter.class::cast)
+                .map(AbstractFsCommitter.class::cast)
                 .map(c -> c.getResolvedDirectory().getFileName().toString())
                 .toList();
         assertThat(actualDirNames).containsExactly(
-                "XMLFileCommitter",
-                "JSONFileCommitter",
+                "XmlFileCommitter",
+                "JsonFileCommitter",
                 "customOne",
                 // we expect this one to be _3, not _2, since it is the 3rd XML
                 // committer, after the "customOne".
-                "XMLFileCommitter_3"
-        );
+                "XmlFileCommitter_3");
     }
 }

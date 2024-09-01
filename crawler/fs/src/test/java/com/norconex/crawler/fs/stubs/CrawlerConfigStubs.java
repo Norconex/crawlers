@@ -47,8 +47,7 @@ public final class CrawlerConfigStubs {
 
     public static Path writeConfigToDir(
             Path workDir,
-            @NonNull Consumer<CrawlerConfig> c
-    ) {
+            @NonNull Consumer<CrawlerConfig> c) {
         var config = memoryCrawlerConfig(workDir);
         c.accept(config);
         var file = config

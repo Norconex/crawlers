@@ -118,8 +118,7 @@ class KeepOnlyTransformerTest {
                             <pattern>[Xx]-.*</pattern>
                           </fieldMatcher>
                         </test>"""),
-                Format.XML
-        );
+                Format.XML);
 
         InputStream is = new NullInputStream(0);
         TestUtil.transform(t, "blah", is, meta, ParseState.PRE);

@@ -40,12 +40,9 @@ class TextConditionTest {
                         cond, "n/a",
                         IOUtils.toInputStream(
                                 "a string that matches",
-                                StandardCharsets.UTF_8
-                        ),
-                        null, ParseState.PRE
-                ),
-                "Should have been accepted."
-        );
+                                StandardCharsets.UTF_8),
+                        null, ParseState.PRE),
+                "Should have been accepted.");
     }
 
     @Test
@@ -57,12 +54,9 @@ class TextConditionTest {
                 TestUtil.condition(
                         cond, "n/a", IOUtils.toInputStream(
                                 "a text that does not match",
-                                StandardCharsets.UTF_8
-                        ),
-                        null, ParseState.PRE
-                ),
-                "Should have been rejected."
-        );
+                                StandardCharsets.UTF_8),
+                        null, ParseState.PRE),
+                "Should have been rejected.");
     }
 
     @Test
@@ -79,14 +73,12 @@ class TextConditionTest {
 
         Assertions.assertTrue(
                 TestUtil.condition(cond, "n/a", null, meta, ParseState.PRE),
-                "field1 not conditioned properly."
-        );
+                "field1 not conditioned properly.");
 
         cond.getConfiguration().getFieldMatcher().setPattern("field2");
         Assertions.assertFalse(
                 TestUtil.condition(cond, "n/a", null, meta, ParseState.PRE),
-                "field2 not conditioned properly."
-        );
+                "field2 not conditioned properly.");
     }
 
     @Test
@@ -95,14 +87,12 @@ class TextConditionTest {
         cond.getConfiguration().setFieldMatcher(
                 new TextMatcher()
                         .setMethod(Method.REGEX)
-                        .setPartial(true)
-        );
+                        .setPartial(true));
         cond.getConfiguration().setValueMatcher(
                 new TextMatcher()
                         .setMethod(Method.REGEX)
                         .setPartial(true)
-                        .setPattern("blah")
-        );
+                        .setPattern("blah"));
         BeanMapper.DEFAULT.assertWriteRead(cond);
     }
 

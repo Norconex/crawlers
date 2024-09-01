@@ -72,8 +72,7 @@ public class TestResource {
     public BufferedImage asImage() {
         if (!path.startsWith("img/")) {
             throw new UnsupportedOperationException(
-                    "Path indicates this not an image: " + path
-            );
+                    "Path indicates this not an image: " + path);
         }
         try {
             return ImageIO.read(asInputStream());
@@ -87,7 +86,6 @@ public class TestResource {
         return new FeaturedImage(
                 absolutePath(baseUrl),
                 new Dimension(img.getWidth(), img.getHeight()),
-                img
-        );
+                img);
     }
 }

@@ -58,8 +58,7 @@ class BeforeWebCrawlDocFinalizing
         // accessing child links normally.
         var state = httpData.getState();
         if (!state.isSkipped() && !state.isOneOf(
-                CrawlDocState.BAD_STATUS, CrawlDocState.ERROR
-        )) {
+                CrawlDocState.BAD_STATUS, CrawlDocState.ERROR)) {
             return;
         }
 
@@ -67,8 +66,7 @@ class BeforeWebCrawlDocFinalizing
         if (LOG.isDebugEnabled()) {
             LOG.debug(
                     "Queueing referenced URLs of {}",
-                    httpData.getReference()
-            );
+                    httpData.getReference());
         }
 
         var childDepth = httpData.getDepth() + 1;
@@ -80,12 +78,10 @@ class BeforeWebCrawlDocFinalizing
             if (LOG.isDebugEnabled()) {
                 LOG.debug(
                         "Queueing skipped document's child: {}",
-                        childData.getReference()
-                );
+                        childData.getReference());
             }
             crawler.getDocPipelines().getQueuePipeline().accept(
-                    new QueuePipelineContext(crawler, childData)
-            );
+                    new QueuePipelineContext(crawler, childData));
         }
     }
 }

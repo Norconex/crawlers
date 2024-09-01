@@ -59,8 +59,7 @@ class ApacheHttpUtilTest {
                         .htmlPage()
                         .body(html.formatted("POST", ""))
                         .build(),
-                "http://blah.com"
-        );
+                "http://blah.com");
         var req = (HttpPost) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(req).isNotNull();
         assertThat(req.getEntity()).isInstanceOf(UrlEncodedFormEntity.class);
@@ -72,12 +71,9 @@ class ApacheHttpUtilTest {
                         .body(
                                 html.formatted(
                                         "POST",
-                                        "encType=\"multipart/form-data\""
-                                )
-                        )
+                                        "encType=\"multipart/form-data\""))
                         .build(),
-                "http://blah.com"
-        );
+                "http://blah.com");
         req = (HttpPost) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(req).isNotNull();
         assertThat(req.getEntity().getClass().getSimpleName())
@@ -89,8 +85,7 @@ class ApacheHttpUtilTest {
                         .htmlPage()
                         .body(html.formatted("POST", "encType=\"text/plain\""))
                         .build(),
-                "http://blah.com"
-        );
+                "http://blah.com");
         req = (HttpPost) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(req).isNotNull();
         assertThat(req.getEntity()).isInstanceOf(StringEntity.class);
@@ -101,8 +96,7 @@ class ApacheHttpUtilTest {
                         .htmlPage()
                         .body(html.formatted("GET", ""))
                         .build(),
-                "http://blah.com"
-        );
+                "http://blah.com");
         var get = (HttpGet) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(get).isNotNull();
 
@@ -116,16 +110,14 @@ class ApacheHttpUtilTest {
                         .htmlPage()
                         .body(html.formatted("HEAD", ""))
                         .build(),
-                "http://blah.com"
-        );
+                "http://blah.com");
         var head = (HttpGet) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(head).isNull();
 
         // No form
         assertThat(
                 ApacheHttpUtil.formToRequest(
-                        Jsoup.parse("<html>No form!</html>"), authCfg
-                )
-        ).isNull();
+                        Jsoup.parse("<html>No form!</html>"), authCfg))
+                                .isNull();
     }
 }

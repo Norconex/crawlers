@@ -31,8 +31,7 @@ class XfdlTikaParserTest {
     @Test
     void test_PureEdge_regular_xfdl() throws IOException {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/xfdl/regular.xfdl")
-        )
+                resourceAsFile(folder, "/parser/xfdl/regular.xfdl"))
                 .hasContentType("application/vnd.xfdl")
                 .hasContentFamily("Other")
                 .hasExtension("xfdl")
@@ -40,16 +39,14 @@ class XfdlTikaParserTest {
                 .contains("Orange")
                 .hasMetaValue(
                         "xfdl:formid.title",
-                        "Hey Norconex, this is a test."
-                );
+                        "Hey Norconex, this is a test.");
     }
 
     @Test
     void test_PureEdge_base64_xfdl()
             throws IOException {
         ParseAssertions.assertThat(
-                resourceAsFile(folder, "/parser/xfdl/base64.xfdl")
-        )
+                resourceAsFile(folder, "/parser/xfdl/base64.xfdl"))
                 .hasContentType("application/vnd.xfdl")
                 .hasContentFamily("Other")
                 .hasExtension("xfdl")
@@ -59,7 +56,6 @@ class XfdlTikaParserTest {
                 .hasMetaValuesCount("xfdl:label.LABEL29.value", 3)
                 .hasMetaValue(
                         "xfdl:label.LABEL29.value",
-                        "PART IV - RECOMMENDATIONS/APPROVAL/DISAPPROVAL"
-                );
+                        "PART IV - RECOMMENDATIONS/APPROVAL/DISAPPROVAL");
     }
 }

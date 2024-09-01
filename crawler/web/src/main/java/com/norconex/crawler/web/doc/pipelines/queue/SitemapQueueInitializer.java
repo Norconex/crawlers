@@ -58,14 +58,12 @@ public class SitemapQueueInitializer
                             .fetcher(Web.fetcher(queueInitCtx.getCrawler()))
                             .location(url)
                             .urlConsumer(urlConsumer)
-                            .build()
-            );
+                            .build());
         }
         if (urlCount.intValue() > 0) {
             LOG.info(
                     "Queued {} start references from {} sitemap(s).",
-                    urlCount, sitemapURLs.size()
-            );
+                    urlCount, sitemapURLs.size());
         }
         return urlCount.intValue();
     }

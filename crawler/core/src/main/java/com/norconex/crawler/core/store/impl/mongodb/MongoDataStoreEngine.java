@@ -87,12 +87,9 @@ public class MongoDataStoreEngine
                                 .applicationName(dbName)
                                 .applyToSocketSettings(
                                         b -> b.connectTimeout(
-                                                30, TimeUnit.SECONDS
-                                        )
+                                                30, TimeUnit.SECONDS)
                                                 .readTimeout(
-                                                        30, TimeUnit.SECONDS
-                                                )
-                                )
+                                                        30, TimeUnit.SECONDS))
                                 .codecRegistry(
                                         CodecRegistries.fromRegistries(
                                                 MongoClientSettings
@@ -101,18 +98,12 @@ public class MongoDataStoreEngine
                                                         PojoCodecProvider
                                                                 .builder()
                                                                 .automatic(true)
-                                                                .build()
-                                                )
-                                        )
-                                )
+                                                                .build())))
                                 .applyConnectionString(
                                         new ConnectionString(
                                                 configuration
-                                                        .getConnectionString()
-                                        )
-                                )
-                                .build()
-                );
+                                                        .getConnectionString()))
+                                .build());
 
         database = client.getDatabase(dbName);
 
@@ -142,8 +133,7 @@ public class MongoDataStoreEngine
     public <T> DataStore<T> openStore(String name, Class<? extends T> type) {
         storeTypes.replaceOne(
                 idFilter(name), new Document().append("id", name)
-                        .append("type", type.getName())
-        );
+                        .append("type", type.getName()));
         return new MongoDataStore<>(database, name, type);
     }
 
@@ -166,9 +156,7 @@ public class MongoDataStoreEngine
                 idFilter(oldName),
                 new Document().append("id", newName).append(
                         "type",
-                        mongoStore.getType().getName()
-                )
-        );
+                        mongoStore.getType().getName()));
         return targetExists;
     }
 
@@ -176,8 +164,7 @@ public class MongoDataStoreEngine
     public Set<String> getStoreNames() {
         return new HashSet<>(
                 IteratorUtils
-                        .toList(database.listCollectionNames().iterator())
-        );
+                        .toList(database.listCollectionNames().iterator()));
     }
 
     @Override
@@ -194,8 +181,7 @@ public class MongoDataStoreEngine
         } catch (ClassNotFoundException e) {
             throw new DataStoreException(
                     "Could not determine type of: " + name,
-                    e
-            );
+                    e);
         }
     }
 

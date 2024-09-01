@@ -66,9 +66,7 @@ public final class TestUtil {
                 MapUtil.toMap(
                         "field1", "value1",
                         "field2", "value2",
-                        "field3", List.of("value3.1", "value3.2")
-                )
-        );
+                        "field3", List.of("value3.1", "value3.2")));
         return p;
     }
 
@@ -124,27 +122,22 @@ public final class TestUtil {
 
     public static Importer getTestConfigImporter() throws IOException {
         try (Reader r = new InputStreamReader(
-                TestUtil.class.getResourceAsStream("test-config.xml")
-        )) {
+                TestUtil.class.getResourceAsStream("test-config.xml"))) {
             return new Importer(
                     BeanMapper.DEFAULT.read(
-                            ImporterConfig.class, r, Format.XML
-                    )
-            );
+                            ImporterConfig.class, r, Format.XML));
         }
     }
 
     public static boolean condition(
             BaseCondition cond, String ref,
-            Properties metadata, ParseState parseState
-    ) throws IOException {
+            Properties metadata, ParseState parseState) throws IOException {
         return condition(cond, ref, null, metadata, parseState);
     }
 
     public static boolean condition(
             BaseCondition cond, String ref,
-            InputStream is, Properties metadata, ParseState parseState
-    )
+            InputStream is, Properties metadata, ParseState parseState)
             throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
         return cond.test(newHandlerContext(ref, input, metadata));
@@ -152,16 +145,14 @@ public final class TestUtil {
 
     public static void transform(
             Consumer<HandlerContext> t, String ref,
-            Properties metadata, ParseState parseState
-    )
+            Properties metadata, ParseState parseState)
             throws IOException {
         transform(t, ref, null, metadata, parseState);
     }
 
     public static void transform(
             Consumer<HandlerContext> t, String ref,
-            InputStream is, Properties metadata, ParseState parseState
-    )
+            InputStream is, Properties metadata, ParseState parseState)
             throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
         t.accept(newHandlerContext(ref, input, metadata, parseState));
@@ -171,8 +162,7 @@ public final class TestUtil {
         try {
             return new Doc(
                     file.getAbsolutePath(),
-                    CachedInputStream.cache(new FileInputStream(file))
-            );
+                    CachedInputStream.cache(new FileInputStream(file)));
         } catch (FileNotFoundException e) {
             throw new UncheckedException(e);
         }
@@ -199,8 +189,7 @@ public final class TestUtil {
     }
 
     public static Doc newDoc(
-            String ref, InputStream in, Properties meta
-    ) {
+            String ref, InputStream in, Properties meta) {
         // Remove document.reference for tests that need the same count
         // as values they entered in metadata. Just keep it if explicitely
         // passed.
@@ -223,21 +212,18 @@ public final class TestUtil {
     }
 
     public static HandlerContext newHandlerContext(
-            String ref, InputStream in
-    ) {
+            String ref, InputStream in) {
         return newHandlerContext(ref, in, null, ParseState.PRE);
     }
 
     public static HandlerContext newHandlerContext(
-            String ref, InputStream in, Properties meta
-    ) {
+            String ref, InputStream in, Properties meta) {
         return newHandlerContext(ref, in, meta, ParseState.PRE);
     }
 
     public static HandlerContext newHandlerContext(
             String ref, InputStream in,
-            Properties meta, ParseState state
-    ) {
+            Properties meta, ParseState state) {
         return HandlerContext.builder()
                 .doc(newDoc(ref, in, meta))
                 .parseState(state)
@@ -246,20 +232,19 @@ public final class TestUtil {
     }
 
     public static HandlerContext newHandlerContext(String ref, String body) {
-        return newHandlerContext(ref, new ByteArrayInputStream(body.getBytes()));
+        return newHandlerContext(ref,
+                new ByteArrayInputStream(body.getBytes()));
     }
 
     public static HandlerContext newHandlerContext(String body) {
         return newHandlerContext(
-                "dummy-ref", new ByteArrayInputStream(body.getBytes())
-        );
+                "dummy-ref", new ByteArrayInputStream(body.getBytes()));
     }
 
     public static String contentAsString(Doc doc) {
         try {
             return IOUtils.toString(
-                    doc.getInputStream(), StandardCharsets.UTF_8
-            );
+                    doc.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -299,16 +284,13 @@ public final class TestUtil {
     }
 
     public static Path resourceAsFile(
-            Path folder, String resourcePath
-    ) throws IOException {
+            Path folder, String resourcePath) throws IOException {
         var file = Files.createTempFile(
                 folder, null,
-                StringUtils.substringAfterLast(resourcePath, "/")
-        );
+                StringUtils.substringAfterLast(resourcePath, "/"));
         Files.copy(
                 TestUtil.class.getResourceAsStream(resourcePath), file,
-                StandardCopyOption.REPLACE_EXISTING
-        );
+                StandardCopyOption.REPLACE_EXISTING);
         return file;
     }
 }

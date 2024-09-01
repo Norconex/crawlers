@@ -80,8 +80,7 @@ public class CopyTransformerConfig {
     private PropertySetter onSet;
 
     public CopyTransformerConfig setOperations(
-            List<CopyOperation> operations
-    ) {
+            List<CopyOperation> operations) {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }

@@ -48,14 +48,11 @@ public final class CrawlDocStubs {
     }
 
     public static CrawlDoc crawlDoc(
-            String ref, String content, Object... metaKeyValues
-    ) {
+            String ref, String content, Object... metaKeyValues) {
         var doc = new CrawlDoc(
                 new WebCrawlDocContext(ref),
                 new CachedStreamFactory().newInputStream(
-                        IOUtils.toInputStream(content, UTF_8)
-                )
-        );
+                        IOUtils.toInputStream(content, UTF_8)));
         if (ArrayUtils.isNotEmpty(metaKeyValues)) {
             doc.getMetadata().loadFromMap(MapUtil.toMap(metaKeyValues));
         }
@@ -63,15 +60,12 @@ public final class CrawlDocStubs {
     }
 
     public static CrawlDoc crawlDocWithCache(
-            String ref, String content, Object... metaKeyValues
-    ) {
+            String ref, String content, Object... metaKeyValues) {
         var doc = new CrawlDoc(
                 new WebCrawlDocContext(ref),
                 new WebCrawlDocContext(ref),
                 new CachedStreamFactory().newInputStream(
-                        IOUtils.toInputStream(content, UTF_8)
-                )
-        );
+                        IOUtils.toInputStream(content, UTF_8)));
         if (ArrayUtils.isNotEmpty(metaKeyValues)) {
             doc.getMetadata().loadFromMap(MapUtil.toMap(metaKeyValues));
         }
@@ -85,13 +79,11 @@ public final class CrawlDocStubs {
     public static CrawlDoc crawlDocHtml(String ref, String content) {
         return crawlDoc(
                 ref, ContentType.HTML,
-                IOUtils.toInputStream(content, UTF_8)
-        );
+                IOUtils.toInputStream(content, UTF_8));
     }
 
     public static CrawlDoc crawlDoc(
-            String ref, ContentType ct, InputStream is
-    ) {
+            String ref, ContentType ct, InputStream is) {
         var docRecord = new WebCrawlDocContext(ref);
         docRecord.setContentType(ct);
         var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));

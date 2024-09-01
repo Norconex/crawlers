@@ -135,8 +135,7 @@ public class ImporterResponse {
     //    }
 
     public ImporterResponse setNestedResponses(
-            List<ImporterResponse> nestedResponses
-    ) {
+            List<ImporterResponse> nestedResponses) {
         CollectionUtil.setAll(this.nestedResponses, nestedResponses);
         this.nestedResponses
                 .forEach(nr -> nr.parentResponse = ImporterResponse.this);

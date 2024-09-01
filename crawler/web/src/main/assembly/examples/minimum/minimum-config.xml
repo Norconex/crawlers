@@ -32,7 +32,7 @@
 	<fetchersRetryDelay>100</fetchersRetryDelay>
 
     <committers>
-      <committer class="XMLFileCommitter">
+      <committer class="XmlFileCommitter">
       </committer>
     </committers>
 

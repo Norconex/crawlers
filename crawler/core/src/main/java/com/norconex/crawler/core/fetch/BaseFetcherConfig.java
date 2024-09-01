@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.xml.XmlConfigurable;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 
 import lombok.Data;
@@ -37,7 +37,7 @@ import lombok.experimental.Accessors;
  * startup and shutdown events.
  * </p>
  * <h3>XML configuration usage:</h3>
- * Subclasses inherit this {@link XMLConfigurable} configuration:
+ * Subclasses inherit this {@link XmlConfigurable} configuration:
  *
  * {@nx.xml.usage #referenceFilters
  * <referenceFilters>
@@ -84,8 +84,7 @@ public class BaseFetcherConfig {
      * @return this instance
      */
     public BaseFetcherConfig setReferenceFilters(
-            List<ReferenceFilter> referenceFilters
-    ) {
+            List<ReferenceFilter> referenceFilters) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
         CollectionUtil.removeNulls(this.referenceFilters);
         return this;

@@ -61,7 +61,6 @@ class SolrClientTypeTest {
         // needs a real cluster to be initialized, we don't have on in this
         // test, so should fail.
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(
-                () -> SolrClientType.CLOUD.create(url)
-        );
+                () -> SolrClientType.CLOUD.create(url));
     }
 }

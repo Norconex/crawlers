@@ -55,22 +55,18 @@ class ContentTypeCharsetTest {
         client
                 .when(
                         request()
-                                .withPath(urlPath)
-                )
+                                .withPath(urlPath))
                 .respond(
                         response()
                                 .withContentType(
                                         new MediaType(
                                                 "application",
-                                                "javascript"
-                                        )
-                                                .withCharset("Big5")
-                                )
+                                                "javascript")
+                                                        .withCharset("Big5"))
                                 .withBody(
                                         htmlPage()
                                                 .title(
-                                                        "ContentType + Charset ☺☻"
-                                                )
+                                                        "ContentType + Charset ☺☻")
                                                 .body(
                                                         """
                                                                 This page returns the Content-Type as
@@ -78,12 +74,9 @@ class ContentTypeCharsetTest {
                                                                 while in reality it is
                                                                 "text/html; charset=UTF-8".
                                                                 Éléphant à noël. ☺☻
-                                                                """
-                                                )
+                                                                """)
                                                 .build()
-                                                .getBytes(UTF_8)
-                                )
-                );
+                                                .getBytes(UTF_8)));
 
         //--- First run without detect ---
 

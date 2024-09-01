@@ -50,12 +50,10 @@ class SaveDocumentTransformerTest {
         transform(t, "/with/stripables/");
         assertThat(
                 listFilePaths(
-                        t.getConfiguration().getSaveDir()
-                )
-        ).containsExactlyInAnyOrder(
-                "http/example.com/my_36_file.html",
-                "with/stripables"
-        );
+                        t.getConfiguration().getSaveDir()))
+                                .containsExactlyInAnyOrder(
+                                        "http/example.com/my_36_file.html",
+                                        "with/stripables");
     }
 
     @Test
@@ -76,12 +74,10 @@ class SaveDocumentTransformerTest {
 
         assertThat(
                 listFilePaths(
-                        t.getConfiguration().getSaveDir()
-                )
-        ).containsExactlyInAnyOrder(
-                "some/test/index.html",
-                "some/test/surprise"
-        );
+                        t.getConfiguration().getSaveDir()))
+                                .containsExactlyInAnyOrder(
+                                        "some/test/index.html",
+                                        "some/test/surprise");
     }
 
     @Test
@@ -102,12 +98,10 @@ class SaveDocumentTransformerTest {
 
         assertThat(
                 listFilePaths(
-                        t.getConfiguration().getSaveDir()
-                )
-        ).containsExactlyInAnyOrder(
-                "some/test/file.txt",
-                "some/test/index.html"
-        );
+                        t.getConfiguration().getSaveDir()))
+                                .containsExactlyInAnyOrder(
+                                        "some/test/file.txt",
+                                        "some/test/index.html");
     }
 
     @Test
@@ -132,12 +126,10 @@ class SaveDocumentTransformerTest {
 
         assertThat(
                 listFilePaths(
-                        t.getConfiguration().getSaveDir()
-                )
-        ).containsExactlyInAnyOrder(
-                "some/long/path/for/file1.txt",
-                "some/long/path/for/file2.txt"
-        );
+                        t.getConfiguration().getSaveDir()))
+                                .containsExactlyInAnyOrder(
+                                        "some/long/path/for/file1.txt",
+                                        "some/long/path/for/file2.txt");
 
         // Apply truncation
         t.getConfiguration().setMaxPathLength(saveDirLength + 18);
@@ -179,7 +171,6 @@ class SaveDocumentTransformerTest {
                 .setPathToField("myfield")
                 .setSaveDir(Path.of("/somewhere/"));
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(t)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

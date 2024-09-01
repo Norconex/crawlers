@@ -40,8 +40,7 @@ public class TestMemoryQueue implements CommitterQueue {
     @Override
     public void init(
             CommitterContext committerContext,
-            BatchConsumer batchConsumer
-    ) throws CommitterQueueException {
+            BatchConsumer batchConsumer) throws CommitterQueueException {
         this.batchConsumer = batchConsumer;
     }
 

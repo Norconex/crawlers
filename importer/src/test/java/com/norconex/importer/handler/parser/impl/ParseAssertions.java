@@ -47,8 +47,7 @@ public class ParseAssertions {
 
     private ParseAssertions(
             @NonNull ImporterResponse responseForFile,
-            @NonNull ImporterResponse responseForStream
-    ) {
+            @NonNull ImporterResponse responseForStream) {
         this.responseForFile = responseForFile;
         this.responseForStream = responseForStream;
         responseProvided = null;
@@ -73,8 +72,7 @@ public class ParseAssertions {
     }
 
     private static ParseAssertions doAssertThat(
-            Path file, boolean split
-    ) {
+            Path file, boolean split) {
         Properties metadata;
         var config = new ImporterConfig();
         if (split) {
@@ -86,19 +84,13 @@ public class ParseAssertions {
                                             .setSplitContentTypes(
                                                     List.of(
                                                             TextMatcher
-                                                                    .regex(".*")
-                                                    )
-                                            )
-                            )
-                    )
-            );
+                                                                    .regex(".*"))))));
         }
 
         // File-based parse
         metadata = new Properties();
         var responseForFile = new Importer(config).importDocument(
-                new ImporterRequest(file).setMetadata(metadata)
-        );
+                new ImporterRequest(file).setMetadata(metadata));
         //        doc = response.getDoc();
         //        assertDefaults(doc, "FILE",
         //                resourcePath, contentType, contentRegex, extension, family);
@@ -111,8 +103,7 @@ public class ParseAssertions {
             responseForStream = new Importer(config).importDocument(
                     new ImporterRequest(is)
                             .setMetadata(metadata)
-                            .setReference("guess")
-            );
+                            .setReference("guess"));
         } catch (IOException e) {
             throw new UncheckedException(e);
         }
@@ -126,11 +117,9 @@ public class ParseAssertions {
     public ParseAssertions hasContentType(String contentType) {
         return assertResponses(
                 resp -> Assertions.assertThat(
-                        resp.getDoc().getDocContext().getContentType()
-                ).hasToString(
-                        contentType
-                )
-        );
+                        resp.getDoc().getDocContext().getContentType())
+                        .hasToString(
+                                contentType));
     }
 
     public ParseAssertions hasContentFamily(String contentFamily) {
@@ -138,68 +127,56 @@ public class ParseAssertions {
                 resp -> Assertions.assertThat(
                         resp.getDoc().getDocContext().getContentType()
                                 .getContentFamily()
-                                .getDisplayName(ENGLISH)
-                )
-                        .hasToString(contentFamily)
-        );
+                                .getDisplayName(ENGLISH))
+                        .hasToString(contentFamily));
     }
 
     public ParseAssertions hasExtension(String extension) {
         return assertResponses(
                 resp -> Assertions.assertThat(
                         resp.getDoc().getDocContext().getContentType()
-                                .getExtension()
-                )
-                        .hasToString(extension)
-        );
+                                .getExtension())
+                        .hasToString(extension));
     }
 
     public ParseAssertions hasMetaValue(String field, String value) {
         return assertResponses(
                 resp -> Assertions.assertThat(
-                        resp.getDoc().getMetadata().getStrings(field)
-                ).contains(value)
-        );
+                        resp.getDoc().getMetadata().getStrings(field))
+                        .contains(value));
     }
 
     public ParseAssertions hasMetaValuesCount(String field, int count) {
         return assertResponses(
                 resp -> Assertions.assertThat(
-                        resp.getDoc().getMetadata().getStrings(field)
-                ).hasSize(count)
-        );
+                        resp.getDoc().getMetadata().getStrings(field))
+                        .hasSize(count));
     }
 
     public ParseAssertions contains(String text) {
         return assertResponses(
                 resp -> Assertions
-                        .assertThat(contentAsString(resp)).contains(text)
-        );
+                        .assertThat(contentAsString(resp)).contains(text));
     }
 
     public ParseAssertions doesNotContain(String text) {
         return assertResponses(
                 resp -> Assertions.assertThat(
-                        contentAsString(resp)
-                ).doesNotContain(text)
-        );
+                        contentAsString(resp)).doesNotContain(text));
     }
 
     public ParseAssertions matches(TextMatcher matcher) {
         return assertResponses(
                 resp -> Assertions.assertThat(
-                        contentAsString(resp)
-                ).matches(matcher.toRegexPattern())
-        );
+                        contentAsString(resp))
+                        .matches(matcher.toRegexPattern()));
     }
 
     public ParseAssertions hasValidResponse(
-            Predicate<ImporterResponse> predicate
-    ) {
+            Predicate<ImporterResponse> predicate) {
         return assertResponses(
                 resp -> Assertions.assertThat(resp)
-                        .matches(predicate)
-        );
+                        .matches(predicate));
     }
 
     private ParseAssertions assertResponses(Consumer<ImporterResponse> c) {

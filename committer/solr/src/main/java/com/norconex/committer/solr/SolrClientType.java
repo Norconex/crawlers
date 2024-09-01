@@ -66,8 +66,7 @@ public enum SolrClientType {
      */
     LB_HTTP2("LBHttp2SolrClient", url -> new LBHttp2SolrClient.Builder(
             new Http2SolrClient.Builder().build(),
-            url.split(SolrClientType.CSV_SPLIT_REGEX)
-    ).build()),
+            url.split(SolrClientType.CSV_SPLIT_REGEX)).build()),
 
     /**
      * A client using the HTTP/2 protocol, optimized for mass upload on a
@@ -76,8 +75,7 @@ public enum SolrClientType {
      */
     CONCURRENT_UPDATE_HTTP2("ConcurrentUpdateHttp2SolrClient",
             url -> new ConcurrentUpdateHttp2SolrClient.Builder(
-                    url, new Http2SolrClient.Builder().build()
-            ).build()),
+                    url, new Http2SolrClient.Builder().build()).build()),
 
     /**
      * A client using the JDK’s built-in Http Client. Supports both Http/2
@@ -104,8 +102,7 @@ public enum SolrClientType {
     @Deprecated(since = "4.0.0")
     LB_HTTP("LBHttpSolrClient",
             url -> new LBHttpSolrClient.Builder().withBaseSolrUrls(
-                    url.split(SolrClientType.CSV_SPLIT_REGEX)
-            ).build()),
+                    url.split(SolrClientType.CSV_SPLIT_REGEX)).build()),
     /**
      * A client using the HTTP/1.x protocol, optimized for mass upload on a
      * single node.  Not best for queries.

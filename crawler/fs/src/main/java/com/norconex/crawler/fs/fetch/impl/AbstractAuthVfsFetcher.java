@@ -79,10 +79,7 @@ public abstract class AbstractAuthVfsFetcher<C extends BaseAuthVfsFetcherConfig>
                             getConfiguration().getDomain(),
                             getConfiguration().getCredentials().getUsername(),
                             EncryptionUtil.decryptPassword(
-                                    getConfiguration().getCredentials()
-                            )
-                    )
-            );
+                                    getConfiguration().getCredentials())));
         }
     }
 }

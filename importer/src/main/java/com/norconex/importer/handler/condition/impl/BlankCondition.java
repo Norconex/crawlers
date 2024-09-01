@@ -19,7 +19,7 @@ import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.condition.BaseCondition;
 
@@ -87,13 +87,12 @@ public class BlankCondition
     public boolean evaluate(HandlerContext docCtx) throws IOException {
         // do content
         if (configuration.getFieldMatcher().getPattern() == null) {
-            return IOUtil.isEmpty(docCtx.input().asInputStream());
+            return IoUtil.isEmpty(docCtx.input().asInputStream());
         }
 
         // If no values returned, call it blank
         var values = docCtx.metadata().matchKeys(
-                configuration.getFieldMatcher()
-        ).valueList();
+                configuration.getFieldMatcher()).valueList();
         if (values.isEmpty()) {
             return true;
         }

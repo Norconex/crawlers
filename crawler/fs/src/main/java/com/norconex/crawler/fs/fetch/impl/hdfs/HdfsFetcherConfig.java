@@ -91,8 +91,7 @@ public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
         setConfigPaths(
                 configPaths.stream()
                         .map(Path::new)
-                        .toList()
-        );
+                        .toList());
         return this;
     }
 

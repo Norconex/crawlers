@@ -72,8 +72,7 @@ public class FilterGroupResolver<T> {
             // Deal with exclude and non-OnMatch filters
             if (!accepted) {
                 Optional.ofNullable(onRejected).ifPresent(
-                        c -> c.accept(filter)
-                );
+                        c -> c.accept(filter));
                 return true;
             }
 
@@ -81,8 +80,7 @@ public class FilterGroupResolver<T> {
         }
         if (hasIncludes && !atLeastOneIncludeMatch) {
             Optional.ofNullable(onRejectedNoInclude).ifPresent(
-                    c -> c.accept(filters)
-            );
+                    c -> c.accept(filters));
             return true;
         }
         return false;

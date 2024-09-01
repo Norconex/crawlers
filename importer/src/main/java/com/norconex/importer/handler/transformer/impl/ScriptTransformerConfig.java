@@ -134,8 +134,7 @@ public class ScriptTransformerConfig implements ChunkedTextSupport {
      * @param fieldMatcher field matcher
      */
     public ScriptTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

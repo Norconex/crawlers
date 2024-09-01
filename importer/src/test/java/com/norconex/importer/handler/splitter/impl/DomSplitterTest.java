@@ -80,7 +80,6 @@ class DomSplitterTest {
         Assertions.assertTrue(content.contains("Dalton"));
     }
 
-
     private List<Doc> split(String text, DomSplitter splitter) {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
@@ -94,8 +93,7 @@ class DomSplitterTest {
         var splitter = new DomSplitter();
         splitter.getConfiguration().setSelector("blah");
         splitter.getConfiguration().setContentTypeMatcher(
-                TextMatcher.basic("value").partial().ignoreCase()
-        );
+                TextMatcher.basic("value").partial().ignoreCase());
         BeanMapper.DEFAULT.assertWriteRead(splitter);
     }
 }

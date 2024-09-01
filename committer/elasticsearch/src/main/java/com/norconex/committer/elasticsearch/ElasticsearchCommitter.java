@@ -47,9 +47,8 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.io.IoUtil;
 import com.norconex.commons.lang.text.StringUtil;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -75,9 +74,9 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * By default the "body" of a document is read as an input stream
  * and stored in a "content" field.  You can change that target field name
- * with {@link #setTargetContentField(String)}.  If you set the target
- * content field to <code>null</code>, it will effectively skip storing
- * the content stream.
+ * with {@link ElasticsearchCommitterConfig#setTargetContentField(String)}.
+ * If you set the target content field to <code>null</code>, it will
+ * effectively skip storing the content stream.
  * </p>
  *
  * <h3>Dots (.) in field names</h3>
@@ -85,8 +84,9 @@ import lombok.extern.slf4j.Slf4j;
  * Your Elasticsearch installation may consider dots in field names
  * to be representing "objects", which may not always be what you want.
  * If having dots is causing you issues, make sure not to submit fields
- * with dots, or use {@link #setDotReplacement(String)} to replace dots
- * with a character of your choice (e.g., underscore).
+ * with dots, or use
+ * {@link ElasticsearchCommitterConfig#setDotReplacement(String)} to replace
+ * dots with a character of your choice (e.g., underscore).
  * If your dot represents a nested object, keep reading.
  * </p>
  *
@@ -94,9 +94,10 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * It is possible to provide a regular expression
  * that will identify one or more fields containing a JSON object rather
- * than a regular string ({@link #setJsonFieldsPattern(String)}). For example,
- * this is a useful way to store nested objects.  While very flexible,
- * it can be challenging to come up with the JSON structure.  You may
+ * than a regular string
+ * ({@link ElasticsearchCommitterConfig#setJsonFieldsPattern(String)}).
+ * For example, this is a useful way to store nested objects. While very
+ * flexible, it can be challenging to come up with the JSON structure. You may
  * want to consider custom code.
  * For this to work properly, make sure you define your Elasticsearch
  * field mappings on your index beforehand.
@@ -108,8 +109,9 @@ import lombok.extern.slf4j.Slf4j;
  * limitation on its "_id" field.
  * By default, an error (from Elasticsearch) will result from trying to submit
  * documents with an invalid ID. You can get around this by
- * setting {@link #setFixBadIds(boolean)} to <code>true</code>.  It will
- * truncate references that are too long and append a hash code to it
+ * setting {@link ElasticsearchCommitterConfig#setFixBadIds(boolean)} to
+ * <code>true</code>.  It will truncate references that are too long and
+ * append a hash code to it
  * representing the truncated part. This approach is not 100%
  * collision-free (uniqueness), but it should safely cover the vast
  * majority of cases.
@@ -141,66 +143,8 @@ import lombok.extern.slf4j.Slf4j;
  *
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.elasticsearch.ElasticsearchCommitter">
- *   <nodes>
- *     (Comma-separated list of Elasticsearch node URLs.
- *     Defaults to http://localhost:9200)
- *   </nodes>
- *   <indexName>(Name of the index to use)</indexName>
- *   <typeName>
- *     (Name of the type to use. Deprecated since Elasticsearch v7.)
- *   </typeName>
- *   <ignoreResponseErrors>[false|true]</ignoreResponseErrors>
- *   <discoverNodes>[false|true]</discoverNodes>
- *   <dotReplacement>
- *     (Optional value replacing dots in field names)
- *   </dotReplacement>
- *   <jsonFieldsPattern>
- *     (Optional regular expression to identify fields containing JSON
- *     objects instead of regular strings)
- *   </jsonFieldsPattern>
- *   <connectionTimeout>(milliseconds)</connectionTimeout>
- *   <socketTimeout>(milliseconds)</socketTimeout>
- *   <fixBadIds>
- *     [false|true](Forces references to fit into Elasticsearch _id field.)
- *   </fixBadIds>
- *
- *   <!-- Use the following if authentication is required. -->
- *   <credentials>
- *     {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   </credentials>
- *
- *   <sourceIdField>
- *     (Optional document field name containing the value that will be stored
- *     in Elasticsearch "_id" field. Default is the document reference.)
- *   </sourceIdField>
- *   <targetContentField>
- *     (Optional Elasticsearch field name to store the document
- *     content/body. Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.elasticsearch.ElasticsearchCommitter">
- *   <indexName>some_index</indexName>
- * </committer>
- * }
- *
- * <p>
- * The above example uses the minimum required settings, on the local host.
- * </p>
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @Slf4j
@@ -232,11 +176,8 @@ public class ElasticsearchCommitter
     }
 
     private String extractId(CommitterRequest req) throws CommitterException {
-        return fixBadIdValue(
-                CommitterUtil.extractSourceIdValue(
-                        req, configuration.getSourceIdField()
-                )
-        );
+        return fixBadIdValue(CommitterUtil.extractSourceIdValue(
+                req, configuration.getSourceIdField()));
     }
 
     @Override
@@ -254,14 +195,13 @@ public class ElasticsearchCommitter
                 } else if (req instanceof DeleteRequest delete) {
                     appendDeleteRequest(json, delete);
                 } else {
-                    throw new CommitterException(
-                            "Unsupported request: " + req
-                    );
+                    throw new CommitterException("Unsupported request: " + req);
                 }
                 docCount++;
             }
             if (LOG.isTraceEnabled()) {
-                LOG.trace("JSON POST:\n{}", StringUtils.trim(json.toString()));
+                LOG.trace("JSON POST:\n{}",
+                        StringUtils.trim(json.toString()));
             }
 
             var request = new Request("POST", "/_bulk");
@@ -273,15 +213,14 @@ public class ElasticsearchCommitter
             throw e;
         } catch (Exception e) {
             throw new CommitterException(
-                    "Could not commit JSON batch to Elasticsearch.", e
-            );
+                    "Could not commit JSON batch to Elasticsearch.", e);
         }
     }
 
     @Override
     protected void closeBatchCommitter() throws CommitterException {
-        IOUtil.closeQuietly(sniffer);
-        IOUtil.closeQuietly(client);
+        IoUtil.closeQuietly(sniffer);
+        IoUtil.closeQuietly(client);
         client = null;
         sniffer = null;
         LOG.info("Elasticsearch RestClient closed.");
@@ -292,18 +231,17 @@ public class ElasticsearchCommitter
         var respEntity = response.getEntity();
         if (respEntity != null) {
             var responseAsString = IOUtils.toString(
-                    respEntity.getContent(), StandardCharsets.UTF_8
-            );
+                    respEntity.getContent(), StandardCharsets.UTF_8);
             if (LOG.isTraceEnabled()) {
-                LOG.trace("Elasticsearch response:\n{}", responseAsString);
+                LOG.trace("Elasticsearch response:\n{}",
+                        responseAsString);
             }
 
             // We have no need to parse the JSON if successful
             // (saving on the parsing). We'll do it on errors only
             // to filter out successful ones and report only the errors
             if (StringUtils.substring(
-                    responseAsString, 0, 100
-            ).contains("\"errors\":true")) {
+                    responseAsString, 0, 100).contains("\"errors\":true")) {
                 var error = extractResponseErrors(responseAsString);
                 if (!configuration.isIgnoreResponseErrors()) {
                     throw new CommitterException(error);
@@ -312,15 +250,12 @@ public class ElasticsearchCommitter
             }
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    "Elasticsearch response status: {}",
-                    response.getStatusLine()
-            );
+            LOG.debug("Elasticsearch response status: {}",
+                    response.getStatusLine());
         }
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new CommitterException(
-                    "Invalid HTTP response: " + response.getStatusLine()
-            );
+                    "Invalid HTTP response: " + response.getStatusLine());
         }
     }
 
@@ -347,8 +282,7 @@ public class ElasticsearchCommitter
             throws CommitterException {
 
         CommitterUtil.applyTargetContent(
-                req, configuration.getTargetContentField()
-        );
+                req, configuration.getTargetContentField());
 
         json.append("{\"index\":{");
         append(json, "_index", configuration.getIndexName());
@@ -362,8 +296,7 @@ public class ElasticsearchCommitter
             var field = entry.getKey();
             field = StringUtils.replace(
                     field, ".",
-                    configuration.getDotReplacement()
-            );
+                    configuration.getDotReplacement());
             // Do not store _id as a field since it is passed above already.
             if (ELASTICSEARCH_ID_FIELD.equals(field)) {
                 continue;
@@ -389,8 +322,7 @@ public class ElasticsearchCommitter
     }
 
     private void append(
-            StringBuilder json, String field, List<String> values
-    ) {
+            StringBuilder json, String field, List<String> values) {
         if (values.size() == 1) {
             append(json, field, values.get(0));
             return;
@@ -436,8 +368,7 @@ public class ElasticsearchCommitter
             String v;
             try {
                 v = StringUtil.truncateBytesWithHash(
-                        value, StandardCharsets.UTF_8, 512, "!"
-                );
+                        value, StandardCharsets.UTF_8, 512, "!");
             } catch (CharacterCodingException e) {
                 LOG.error("""
                         Bad id detected (too long), but could not be\s\
@@ -465,23 +396,14 @@ public class ElasticsearchCommitter
         builder.setFailureListener(new FailureListener() {
             @Override
             public void onFailure(Node node) {
-                LOG.error(
-                        "Failure occured on node: \"{}\". Check node logs.",
-                        node.getName()
-                );
+                LOG.error("Failure occured on node: \"{}\". Check node logs.",
+                        node.getName());
             }
         });
-        builder.setRequestConfigCallback(
-                rcb -> rcb
-                        .setConnectTimeout(
-                                (int) configuration.getConnectionTimeout()
-                                        .toMillis()
-                        )
-                        .setSocketTimeout(
-                                (int) configuration.getSocketTimeout()
-                                        .toMillis()
-                        )
-        );
+        builder.setRequestConfigCallback(rcb -> rcb.setConnectTimeout(
+                (int) configuration.getConnectionTimeout().toMillis())
+                .setSocketTimeout(
+                        (int) configuration.getSocketTimeout().toMillis()));
 
         var credentials = configuration.getCredentials();
         if (credentials.isSet()) {
@@ -490,13 +412,9 @@ public class ElasticsearchCommitter
                     AuthScope.ANY, new UsernamePasswordCredentials(
                             credentials.getUsername(), EncryptionUtil.decrypt(
                                     credentials.getPassword(),
-                                    credentials.getPasswordKey()
-                            )
-                    )
-            );
+                                    credentials.getPasswordKey())));
             builder.setHttpClientConfigCallback(
-                    b -> b.setDefaultCredentialsProvider(credsProvider)
-            );
+                    b -> b.setDefaultCredentialsProvider(credsProvider));
         }
         return builder.build();
     }
@@ -508,11 +426,9 @@ public class ElasticsearchCommitter
             NodesSniffer nodesSniffer = new ElasticsearchNodesSniffer(
                     client,
                     ElasticsearchNodesSniffer.DEFAULT_SNIFF_REQUEST_TIMEOUT,
-                    ElasticsearchNodesSniffer.Scheme.HTTPS
-            );
+                    ElasticsearchNodesSniffer.Scheme.HTTPS);
             return Sniffer.builder(
-                    client
-            ).setNodesSniffer(nodesSniffer).build();
+                    client).setNodesSniffer(nodesSniffer).build();
         }
         return Sniffer.builder(client).build();
     }

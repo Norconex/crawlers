@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package com.norconex.committer.core.batch;
 
 import com.norconex.committer.core.BaseCommitterConfig;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -25,5 +25,5 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class BaseBatchCommitterConfig extends BaseCommitterConfig {
 
-    private CommitterQueue queue = new FSQueue();
+    private CommitterQueue queue = new FsQueue();
 }

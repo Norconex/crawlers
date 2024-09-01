@@ -79,8 +79,7 @@ class DisabledMetaChecksummerTest {
     }
 
     private void whenMetaChanges(
-            ClientAndServer client, int daysAgo, String salt
-    ) {
+            ClientAndServer client, int daysAgo, String salt) {
         client.reset();
         client
                 .when(request(path))
@@ -88,19 +87,15 @@ class DisabledMetaChecksummerTest {
                         response()
                                 .withHeader(
                                         "Last-Modified",
-                                        WebTestUtil.daysAgoRFC(daysAgo)
-                                )
+                                        WebTestUtil.daysAgoRFC(daysAgo))
                                 .withBody(
                                         WebsiteMock
                                                 .htmlPage()
                                                 .head(
                                                         "<meta name=\"salt\" content=\""
-                                                                + salt + "\">"
-                                                )
+                                                                + salt + "\">")
                                                 .body("Content never changes.")
                                                 .build(),
-                                        MediaType.HTML_UTF_8
-                                )
-                );
+                                        MediaType.HTML_UTF_8));
     }
 }

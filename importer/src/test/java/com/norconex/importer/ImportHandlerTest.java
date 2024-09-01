@@ -46,13 +46,11 @@ class ImportHandlerTest {
     @Test
     void testHandlers() throws IOException {
         InputStream is = new BufferedInputStream(
-                new FileInputStream(TestUtil.getAliceHtmlFile())
-        );
+                new FileInputStream(TestUtil.getAliceHtmlFile()));
         importer.importDocument(
                 new ImporterRequest(is)
                         .setMetadata(metadata)
-                        .setReference("alice.html")
-        );
+                        .setReference("alice.html"));
         is.close();
 
         // Test Constant

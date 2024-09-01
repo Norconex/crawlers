@@ -102,8 +102,7 @@ public class NumericConditionConfig {
      * @return this instance
      */
     public NumericConditionConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
@@ -113,8 +112,7 @@ public class NumericConditionConfig {
     }
 
     public NumericConditionConfig setValueMatcher(
-            NumericValueMatcher firstValueMatcher
-    ) {
+            NumericValueMatcher firstValueMatcher) {
         valueMatcher = firstValueMatcher;
         return this;
     }
@@ -124,8 +122,7 @@ public class NumericConditionConfig {
     }
 
     public NumericConditionConfig setValueMatcherRangeEnd(
-            NumericValueMatcher secondValueMatcher
-    ) {
+            NumericValueMatcher secondValueMatcher) {
         valueMatcherRangeEnd = secondValueMatcher;
         return this;
     }

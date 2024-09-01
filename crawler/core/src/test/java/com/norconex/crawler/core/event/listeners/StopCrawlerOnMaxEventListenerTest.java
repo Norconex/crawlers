@@ -62,8 +62,7 @@ class StopCrawlerOnMaxEventListenerTest {
             OnMultiple onMultiple,
             String eventMatch,
             int maximum,
-            int expectedUpserts
-    ) {
+            int expectedUpserts) {
         // prefixing with number to ensure they are retrieved in same order
         //MAYBE: ensure crawl store behave like a FIFO queue?
 
@@ -77,9 +76,7 @@ class StopCrawlerOnMaxEventListenerTest {
                                 "4-mock:upsert-2",
                                 "5-mock:upsert-3",
                                 "6-mock:reject-3",
-                                "7-mock:upsert-4"
-                        )
-                );
+                                "7-mock:upsert-4"));
 
         var listener = new StopCrawlerOnMaxEventListener();
         listener.getConfiguration()
@@ -114,7 +111,6 @@ class StopCrawlerOnMaxEventListenerTest {
                 .setMaximum(10)
                 .setOnMultiple(OnMultiple.SUM);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(listener)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(listener));
     }
 }

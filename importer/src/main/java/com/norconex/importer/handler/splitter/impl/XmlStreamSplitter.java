@@ -34,7 +34,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.commons.lang.xml.XmlUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
@@ -128,15 +128,13 @@ public class XmlStreamSplitter
     public void split(HandlerContext docCtx) throws IOException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docContext()
-        )) {
+                configuration.getContentTypeMatcher(), docCtx.docContext())) {
         }
 
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()
-            ).entrySet()) {
+                    configuration.getFieldMatcher()).entrySet()) {
                 for (String val : en.getValue()) {
                     doSplit(docCtx, new ByteArrayInputStream(val.getBytes()));
                 }
@@ -153,15 +151,12 @@ public class XmlStreamSplitter
             var h = new XmlHandler(
                     docCtx, Arrays.asList(
                             StringUtils.split(
-                                    configuration.getPath(), '/'
-                            )
-                    ), docCtx.childDocs()
-            );
-            XMLUtil.createSaxParserFactory().newSAXParser().parse(is, h);
+                                    configuration.getPath(), '/')),
+                    docCtx.childDocs());
+            XmlUtil.createSaxParserFactory().newSAXParser().parse(is, h);
         } catch (SAXException | IOException | ParserConfigurationException e) {
             throw new DocumentHandlerException(
-                    "Could not split XML document: " + docCtx.reference(), e
-            );
+                    "Could not split XML document: " + docCtx.reference(), e);
         }
     }
 
@@ -177,8 +172,7 @@ public class XmlStreamSplitter
         public XmlHandler(
                 HandlerContext xmlDoc,
                 List<String> splitPath,
-                List<Doc> splitDocs
-        ) {
+                List<Doc> splitDocs) {
             this.xmlDoc = xmlDoc;
             this.splitDocs = splitDocs;
             this.splitPath = splitPath;
@@ -187,8 +181,7 @@ public class XmlStreamSplitter
         @Override
         public void startElement(
                 String uri, String localName, String qName,
-                Attributes attributes
-        ) throws SAXException {
+                Attributes attributes) throws SAXException {
 
             currentPath.add(qName);
 
@@ -203,8 +196,7 @@ public class XmlStreamSplitter
                 for (var i = 0; i < attributes.getLength(); i++) {
                     w.print(
                             ' ' + esc(attributes.getQName(i)) + "=\""
-                                    + esc(attributes.getValue(i)) + "\""
-                    );
+                                    + esc(attributes.getValue(i)) + "\"");
                 }
                 w.print('>');
             }
@@ -234,18 +226,15 @@ public class XmlStreamSplitter
                         var childDoc = new Doc(
                                 xmlDoc.reference() + "!" + embedRef,
                                 out.getInputStream(),
-                                childMeta
-                        );
+                                childMeta);
                         w.close();
                         out = null;
                         w = null;
                         var childInfo = childDoc.getDocContext();
                         childInfo.addEmbeddedParentReference(
-                                xmlDoc.reference()
-                        );
+                                xmlDoc.reference());
                         childMeta.set(
-                                DocMetadata.EMBEDDED_REFERENCE, embedRef
-                        );
+                                DocMetadata.EMBEDDED_REFERENCE, embedRef);
                         splitDocs.add(childDoc);
                     }
                 }
@@ -253,8 +242,7 @@ public class XmlStreamSplitter
                 throw new SAXException(
                         "Cannot parse XML for document: "
                                 + xmlDoc.reference(),
-                        e
-                );
+                        e);
             }
 
             if (!currentPath.isEmpty()) {

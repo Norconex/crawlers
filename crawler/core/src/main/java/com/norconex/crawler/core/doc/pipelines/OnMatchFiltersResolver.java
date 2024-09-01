@@ -70,16 +70,14 @@ public class OnMatchFiltersResolver<S, F> {
             // Deal with exclude and non-OnMatch filters
             if (!accepted) {
                 ofNullable(onRejected).ifPresent(
-                        c -> c.accept(List.of(filter), "")
-                );
+                        c -> c.accept(List.of(filter), ""));
                 return false;
             }
             LOG.debug("ACCEPTED Subject={} Filter={}", subject, filter);
         }
         if (hasIncludes && !atLeastOneIncludeMatch) {
             ofNullable(onRejected).ifPresent(
-                    c -> c.accept(filters, "No \"include\" filters matched.")
-            );
+                    c -> c.accept(filters, "No \"include\" filters matched."));
             return false;
         }
         return true;

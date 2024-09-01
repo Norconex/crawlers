@@ -189,8 +189,7 @@ public class ScriptCondition
             if (StringUtils.isBlank(engineName)) {
                 LOG.info(
                         "Script engine name not specified, defaulting to "
-                                + ScriptRunner.JAVASCRIPT_ENGINE
-                );
+                                + ScriptRunner.JAVASCRIPT_ENGINE);
                 engineName = ScriptRunner.JAVASCRIPT_ENGINE;
             }
             scriptRunner =

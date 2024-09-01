@@ -36,9 +36,7 @@ public class CrawlerDelay extends AbstractDelay {
                 while (sleeping) {
                     Sleeper.sleepNanos(
                             Math.min(
-                                    TINY_SLEEP_MS, expectedDelayNanos
-                            )
-                    );
+                                    TINY_SLEEP_MS, expectedDelayNanos));
                 }
                 sleeping = true;
             }

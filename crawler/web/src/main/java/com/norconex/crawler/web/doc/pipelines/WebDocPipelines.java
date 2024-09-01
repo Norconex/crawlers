@@ -48,7 +48,7 @@ import com.norconex.crawler.web.doc.pipelines.importer.stages.RobotsMetaNoIndexS
 import com.norconex.crawler.web.doc.pipelines.queue.SitemapQueueInitializer;
 import com.norconex.crawler.web.doc.pipelines.queue.stages.RobotsTxtFiltersStage;
 import com.norconex.crawler.web.doc.pipelines.queue.stages.SitemapResolutionStage;
-import com.norconex.crawler.web.doc.pipelines.queue.stages.URLNormalizerStage;
+import com.norconex.crawler.web.doc.pipelines.queue.stages.UrlNormalizerStage;
 
 public final class WebDocPipelines {
 
@@ -64,22 +64,16 @@ public final class WebDocPipelines {
                                                             new SitemapQueueInitializer(),
                                                             CoreQueueInitializer.fromList,
                                                             CoreQueueInitializer.fromFiles,
-                                                            CoreQueueInitializer.fromProviders
-                                                    )
-                                            )
-                                    )
+                                                            CoreQueueInitializer.fromProviders)))
                                     .stages(
                                             Predicates.allOf(
                                                     new DepthValidationStage(),
                                                     new ReferenceFiltersStage(),
                                                     new RobotsTxtFiltersStage(),
-                                                    new URLNormalizerStage(),
+                                                    new UrlNormalizerStage(),
                                                     new SitemapResolutionStage(),
-                                                    new QueueReferenceStage()
-                                            )
-                                    )
-                                    .build()
-                    )
+                                                    new QueueReferenceStage()))
+                                    .build())
                     .importerPipeline(
                             ImporterPipeline
                                     .builder()
@@ -87,9 +81,7 @@ public final class WebDocPipelines {
                                             ctx -> ctx instanceof WebImporterPipelineContext wipc
                                                     ? wipc
                                                     : new WebImporterPipelineContext(
-                                                            ctx
-                                                    )
-                                    )
+                                                            ctx))
                                     .stages(
                                             Predicates.allOf(
                                                     // if an orphan is reprocessed, it could be that it
@@ -110,47 +102,34 @@ public final class WebDocPipelines {
                                                     // When HTTP headers are fetched (HTTP "HEAD")
                                                     // before document:
                                                     new HttpFetchStage(
-                                                            FetchDirective.METADATA
-                                                    ),
+                                                            FetchDirective.METADATA),
                                                     new MetadataFiltersStage(
-                                                            FetchDirective.METADATA
-                                                    ),
+                                                            FetchDirective.METADATA),
                                                     new CanonicalStage(
-                                                            FetchDirective.METADATA
-                                                    ),
+                                                            FetchDirective.METADATA),
                                                     new MetadataChecksumStage(
-                                                            FetchDirective.METADATA
-                                                    ),
+                                                            FetchDirective.METADATA),
                                                     new MetadataDedupStage(
-                                                            FetchDirective.METADATA
-                                                    ),
+                                                            FetchDirective.METADATA),
 
                                                     // HTTP "GET" and onward:
                                                     new HttpFetchStage(
-                                                            FetchDirective.DOCUMENT
-                                                    ),
+                                                            FetchDirective.DOCUMENT),
                                                     new CanonicalStage(
-                                                            FetchDirective.DOCUMENT
-                                                    ),
+                                                            FetchDirective.DOCUMENT),
                                                     new RobotsMetaCreateStage(),
                                                     new LinkExtractorStage(),
                                                     new RobotsMetaNoIndexStage(),
                                                     new MetadataFiltersStage(
-                                                            FetchDirective.DOCUMENT
-                                                    ),
+                                                            FetchDirective.DOCUMENT),
                                                     new MetadataChecksumStage(
-                                                            FetchDirective.DOCUMENT
-                                                    ),
+                                                            FetchDirective.DOCUMENT),
                                                     new MetadataDedupStage(
-                                                            FetchDirective.DOCUMENT
-                                                    ),
+                                                            FetchDirective.DOCUMENT),
                                                     new DocumentFiltersStage(),
                                                     new DocumentPreProcessingStage(),
-                                                    new ImportModuleStage()
-                                            )
-                                    )
-                                    .build()
-                    )
+                                                    new ImportModuleStage()))
+                                    .build())
                     .committerPipeline(
                             CommitterPipeline
                                     .builder()
@@ -160,11 +139,8 @@ public final class WebDocPipelines {
                                                     new DocumentDedupStage(),
                                                     new DocumentPostProcessingStage(),
                                                     new PostImportLinksStage(),
-                                                    new CommitModuleStage()
-                                            )
-                                    )
-                                    .build()
-                    )
+                                                    new CommitModuleStage()))
+                                    .build())
                     .build();
 
     private WebDocPipelines() {

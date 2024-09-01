@@ -58,18 +58,14 @@ class SpecialURLsTest {
                                         <a href="co,ma.html?param=a,b&par,am=c,,d">Commas</a><br>
                                         <a href="spa ce.html?param=a b&par am=c d">Spaces</a><br>
                                         """,
-                                HTML_UTF_8
-                        )
-                );
+                                HTML_UTF_8));
 
         client
                 .when(request("!" + homePath))
                 .respond(
                         response().withBody(
                                 "A page to be crawled.",
-                                HTML_UTF_8
-                        )
-                );
+                                HTML_UTF_8));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, homePath)));
@@ -81,7 +77,6 @@ class SpecialURLsTest {
                         baseUrl + "/index.html",
                         baseUrl + "/escaped%2Falready.html",
                         baseUrl + "/co,ma.html?param=a%2Cb&par%2Cam=c%2C%2Cd",
-                        baseUrl + "/spa%20ce.html?param=a+b&par+am=c+d"
-                );
+                        baseUrl + "/spa%20ce.html?param=a+b&par+am=c+d");
     }
 }

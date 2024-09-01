@@ -26,8 +26,7 @@ class DelayReferencePatternTest {
     @Test
     void test() {
         var drp = new DelayReferencePattern(
-                ".*abc\\.html$", Duration.ofHours(2)
-        );
+                ".*abc\\.html$", Duration.ofHours(2));
         assertThat(drp.matches("http://example.com/123abc.html")).isTrue();
         assertThat(drp.matches("http://example.com/123abc.php")).isFalse();
     }

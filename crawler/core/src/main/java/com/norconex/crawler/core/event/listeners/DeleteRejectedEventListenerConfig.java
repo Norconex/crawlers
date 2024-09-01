@@ -103,8 +103,7 @@ public class DeleteRejectedEventListenerConfig {
      * @return this instance
      */
     public DeleteRejectedEventListenerConfig setEventMatcher(
-            TextMatcher eventMatcher
-    ) {
+            TextMatcher eventMatcher) {
         this.eventMatcher.copyFrom(eventMatcher);
         return this;
     }

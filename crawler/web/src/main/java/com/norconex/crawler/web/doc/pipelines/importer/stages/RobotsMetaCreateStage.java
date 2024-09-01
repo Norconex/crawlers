@@ -39,8 +39,7 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
         }
 
         try (var reader = new InputStreamReader(
-                context.getDoc().getInputStream(), StandardCharsets.UTF_8
-        )) {
+                context.getDoc().getInputStream(), StandardCharsets.UTF_8)) {
             ctx.setRobotsMeta(
                     Web.config(ctx.getCrawler())
                             .getRobotsMetaProvider()
@@ -51,9 +50,7 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
                                             .getReference(),
                                     ctx.getDoc().getDocContext()
                                             .getContentType(),
-                                    ctx.getDoc().getMetadata()
-                            )
-            );
+                                    ctx.getDoc().getMetadata()));
             if (ctx.getRobotsMeta() != null) {
                 ctx.getCrawler().fire(
                         CrawlerEvent.builder()
@@ -61,15 +58,13 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
                                 .source(ctx.getCrawler())
                                 .subject(ctx.getRobotsMeta())
                                 .docContext(ctx.getDoc().getDocContext())
-                                .build()
-                );
+                                .build());
             }
         } catch (IOException e) {
             throw new CrawlerException(
                     "Cannot create RobotsMeta for : "
                             + ctx.getDoc().getDocContext().getReference(),
-                    e
-            );
+                    e);
         }
         return true;
     }

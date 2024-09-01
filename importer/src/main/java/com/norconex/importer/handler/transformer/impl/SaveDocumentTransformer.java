@@ -103,23 +103,17 @@ public class SaveDocumentTransformer
                         "/",
                         Stream.of(
                                 docCtx.reference().split(
-                                        configuration.getDirSplitPattern()
-                                )
-                        )
+                                        configuration.getDirSplitPattern()))
                                 .map(
                                         seg -> configuration.isEscape()
                                                 ? FileUtil.toSafeFileName(seg)
-                                                : seg
-                                )
-                                .toList()
-                ),
-                "\\/"
-        );
+                                                : seg)
+                                .toList()),
+                "\\/");
 
         // define file, possibly truncated
         var file = adjustLength(
-                configuration.getSaveDir().resolve(rawRelativePath)
-        );
+                configuration.getSaveDir().resolve(rawRelativePath));
 
         saveFile(docCtx, file);
 
@@ -127,8 +121,7 @@ public class SaveDocumentTransformer
         if (StringUtils.isNotBlank(configuration.getPathToField())) {
             docCtx.metadata().add(
                     configuration.getPathToField(),
-                    file.toAbsolutePath().toString()
-            );
+                    file.toAbsolutePath().toString());
         }
     }
 
@@ -136,14 +129,12 @@ public class SaveDocumentTransformer
     // dealing with default file names vs directory.  A file could be
     // renamed/written while saving occurs in another thread.
     private synchronized void saveFile(
-            HandlerContext docCtx, Path file
-    ) throws IOException {
+            HandlerContext docCtx, Path file) throws IOException {
         // if file already exists as a directory, give it a default file name,
         // within that directory
         if (Files.isDirectory(file)) {
             file = adjustLength(
-                    file.resolve(configuration.getDefaultFileName())
-            );
+                    file.resolve(configuration.getDefaultFileName()));
         }
 
         // safe file
@@ -176,12 +167,9 @@ public class SaveDocumentTransformer
                             conflicts with the creation of a directory of\s\
                             the same name.""",
                     parent, parent.resolve(
-                            configuration.getDefaultFileName()
-                    )
-            );
+                            configuration.getDefaultFileName()));
             var newLocation = parent.resolve(
-                    configuration.getDefaultFileName()
-            );
+                    configuration.getDefaultFileName());
             //TODO use importer temp dir, which should be set by caller
             // (e.g., crawler) or OS default.
             var tmpLocation = Files.createTempFile(null, null);
@@ -207,8 +195,7 @@ public class SaveDocumentTransformer
                 LOG.warn(
                         "The save directory path is too long to apply file "
                                 + "path truncation on saved files. Save directory: {}",
-                        configuration.getSaveDir()
-                );
+                        configuration.getSaveDir());
                 warned = true;
             }
             return file;
@@ -220,13 +207,10 @@ public class SaveDocumentTransformer
             var truncatedFile = Path.of(
                     StringUtil.truncateWithHash(
                             file.toAbsolutePath().toString(),
-                            configuration.getMaxPathLength()
-                    )
-            );
+                            configuration.getMaxPathLength()));
             LOG.debug(
                     "File path '{}' was truncated to '{}'.",
-                    file, truncatedFile
-            );
+                    file, truncatedFile);
             file = truncatedFile;
         }
         return file;

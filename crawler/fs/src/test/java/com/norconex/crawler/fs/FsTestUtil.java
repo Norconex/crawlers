@@ -83,52 +83,38 @@ public final class FsTestUtil {
                     .randomize(
                             File.class,
                             () -> new File(
-                                    new StringRandomizer(100).getRandomValue()
-                            )
-                    )
+                                    new StringRandomizer(100).getRandomValue()))
                     .randomize(
                             Path.class,
                             () -> Path.of(
-                                    new StringRandomizer(100).getRandomValue()
-                            )
-                    )
+                                    new StringRandomizer(100).getRandomValue()))
                     .randomize(
                             Long.class,
                             () -> Math
-                                    .abs(new LongRandomizer().getRandomValue())
-                    )
+                                    .abs(new LongRandomizer().getRandomValue()))
                     .randomize(
                             Integer.class,
                             () -> Math.abs(
-                                    new IntegerRandomizer().getRandomValue()
-                            )
-                    )
+                                    new IntegerRandomizer().getRandomValue()))
                     .randomize(ImporterConfig.class, ImporterConfig::new)
                     .randomize(
                             UpsertRequest.class,
                             () -> new UpsertRequest(
                                     new StringRandomizer(100).getRandomValue(),
                                     new Properties(),
-                                    new NullInputStream()
-                            )
-                    )
+                                    new NullInputStream()))
                     .randomize(
                             DeleteRequest.class,
                             () -> new DeleteRequest(
                                     new StringRandomizer(100).getRandomValue(),
-                                    new Properties()
-                            )
-                    )
+                                    new Properties()))
                     .randomize(Committer.class, MemoryCommitter::new)
                     .randomize(
                             SpoiledReferenceStrategizer.class,
-                            GenericSpoiledReferenceStrategizer::new
-                    )
+                            GenericSpoiledReferenceStrategizer::new)
                     .randomize(
                             AtomicBoolean.class, () -> new AtomicBoolean(
-                                    new BooleanRandomizer().getRandomValue()
-                            )
-                    )
+                                    new BooleanRandomizer().getRandomValue()))
 
                     .excludeType(DataStoreEngine.class::equals)
                     .excludeType(DataStore.class::equals)
@@ -136,8 +122,7 @@ public final class FsTestUtil {
                     .excludeType(FileSystemOptions.class::equals)
                     .excludeType(ReferencesProvider.class::equals)
                     .excludeType(OnMatch.class::equals)
-                    .excludeType(ReferenceFilter.class::equals)
-    );
+                    .excludeType(ReferenceFilter.class::equals));
 
     //MAYBE: maybe move some of the common test classes/methods to core
     // and make it a usable test artifact?
@@ -150,8 +135,7 @@ public final class FsTestUtil {
     }
 
     public static Optional<UpsertRequest> getUpsertRequest(
-            @NonNull MemoryCommitter mem, @NonNull String ref
-    ) {
+            @NonNull MemoryCommitter mem, @NonNull String ref) {
         return mem.getUpsertRequests().stream()
                 .filter(m -> ref.equals(m.getReference()))
                 .findFirst();
@@ -160,24 +144,21 @@ public final class FsTestUtil {
     public static String getUpsertRequestMeta(
             @NonNull MemoryCommitter mem,
             @NonNull String ref,
-            @NonNull String fieldName
-    ) {
+            @NonNull String fieldName) {
         return getUpsertRequest(mem, ref)
                 .map(req -> req.getMetadata().getString(fieldName))
                 .orElse(null);
     }
 
     public static String getUpsertRequestContent(
-            @NonNull MemoryCommitter mem, @NonNull String ref
-    ) {
+            @NonNull MemoryCommitter mem, @NonNull String ref) {
         return getUpsertRequest(mem, ref)
                 .map(FsTestUtil::docText)
                 .orElse(null);
     }
 
     public static Optional<DeleteRequest> getDeleteRequest(
-            @NonNull MemoryCommitter mem, @NonNull String ref
-    ) {
+            @NonNull MemoryCommitter mem, @NonNull String ref) {
         return mem.getDeleteRequests().stream()
                 .filter(m -> ref.equals(m.getReference()))
                 .findFirst();
@@ -265,8 +246,7 @@ public final class FsTestUtil {
     }
 
     public static MemoryCommitter runWithConfig(
-            @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c
-    ) {
+            @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c) {
         var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
         c.accept(crawlerBuilder.configuration());
         var crawler = crawlerBuilder.build();

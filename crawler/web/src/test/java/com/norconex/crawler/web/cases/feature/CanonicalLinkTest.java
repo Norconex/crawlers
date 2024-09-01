@@ -59,41 +59,33 @@ class CanonicalLinkTest {
                 </ul>
                 """.formatted(
                 serverUrl(client, httpHeaderPath),
-                serverUrl(client, linkRelPath)
-        );
+                serverUrl(client, linkRelPath));
 
         WebsiteMock.whenHtml(
-                client, canonicalPath, "<p>Canonical page</p>" + commonBody
-        );
+                client, canonicalPath, "<p>Canonical page</p>" + commonBody);
 
         client
                 .when(
                         request()
-                                .withPath(httpHeaderPath)
-                )
+                                .withPath(httpHeaderPath))
                 .respond(
                         response()
                                 .withHeader(
                                         "Link", "<%s>; rel=\"canonical\""
-                                                .formatted(canonicalUrl)
-                                )
+                                                .formatted(canonicalUrl))
                                 .withBody(
                                         WebsiteMock
                                                 .htmlPage()
                                                 .body(
                                                         "<p>Canonical URL in HTTP header.</p>"
-                                                                + commonBody
-                                                )
+                                                                + commonBody)
                                                 .build(),
-                                        MediaType.HTML_UTF_8
-                                )
-                );
+                                        MediaType.HTML_UTF_8));
 
         client
                 .when(
                         request()
-                                .withPath(linkRelPath)
-                )
+                                .withPath(linkRelPath))
                 .respond(
                         response()
                                 .withBody(
@@ -102,17 +94,12 @@ class CanonicalLinkTest {
                                                 .head(
                                                         "<link rel=\"canonical\" href=\"%s\" />"
                                                                 .formatted(
-                                                                        canonicalUrl
-                                                                )
-                                                )
+                                                                        canonicalUrl))
                                                 .body(
                                                         "<p>Canonical URL in HTML &lt;head&gt;.</p>"
-                                                                + commonBody
-                                                )
+                                                                + commonBody)
                                                 .build(),
-                                        MediaType.HTML_UTF_8
-                                )
-                );
+                                        MediaType.HTML_UTF_8));
 
         canCount.setValue(0);
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {

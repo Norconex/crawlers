@@ -116,8 +116,7 @@ public class HandlerContext {
                 parseState,
                 charset,
                 docContext().getCharset(),
-                StandardCharsets.UTF_8
-        );
+                StandardCharsets.UTF_8);
     }
 
     /**
@@ -151,9 +150,7 @@ public class HandlerContext {
         return new ReadAdapter(
                 doc::getInputStream,
                 CharsetUtil.firstNonNullOrUTF8(
-                        parseState, docContext().getCharset()
-                )
-        );
+                        parseState, docContext().getCharset()));
     }
 
     /**

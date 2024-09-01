@@ -29,8 +29,7 @@ class TestObject extends CrawlDocContext {
 
     TestObject(
             String reference, int count, String checksum,
-            String parentReference
-    ) {
+            String parentReference) {
         super(reference);
         this.count = count;
         setContentChecksum(checksum);

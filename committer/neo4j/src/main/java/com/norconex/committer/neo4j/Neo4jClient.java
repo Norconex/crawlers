@@ -73,10 +73,7 @@ class Neo4jClient {
                             creds.getUsername(),
                             EncryptionUtil.decrypt(
                                     creds.getPassword(),
-                                    creds.getPasswordKey()
-                            )
-                    )
-            );
+                                    creds.getPasswordKey())));
         } else {
             driver = GraphDatabase.driver(config.getUri());
         }
@@ -105,8 +102,7 @@ class Neo4jClient {
                 }
             } catch (IOException e) {
                 throw new CommitterException(
-                        "Cannot perform commit request.", e
-                );
+                        "Cannot perform commit request.", e);
             }
         }
     }
@@ -124,9 +120,7 @@ class Neo4jClient {
         if (StringUtils.isNotBlank(config.getNodeContentProperty())) {
             meta.set(
                     config.getNodeContentProperty(), IOUtils.toString(
-                            req.getContent(), StandardCharsets.UTF_8
-                    )
-            );
+                            req.getContent(), StandardCharsets.UTF_8));
         }
         try (var session = neo4jDriver.session(sessionConfig)) {
             session.executeWrite(tx -> {
@@ -139,8 +133,7 @@ class Neo4jClient {
     private void postDelete(DeleteRequest req) {
         var meta = req.getMetadata();
         Optional.ofNullable(trimToNull(config.getNodeIdProperty())).ifPresent(
-                fld -> meta.set(fld, req.getReference())
-        );
+                fld -> meta.set(fld, req.getReference()));
         try (var session = neo4jDriver.session(sessionConfig)) {
             session.executeWrite(tx -> {
                 tx.run(config.getDeleteCypher(), toObjectMap(meta));
@@ -161,8 +154,7 @@ class Neo4jClient {
 
         // Add optional parameters
         config.getOptionalParameters().forEach(
-                param -> map.computeIfAbsent(param, p -> NullValue.NULL)
-        );
+                param -> map.computeIfAbsent(param, p -> NullValue.NULL));
         return map;
     }
 }

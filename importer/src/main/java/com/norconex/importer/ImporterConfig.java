@@ -107,8 +107,7 @@ public class ImporterConfig {
     @JsonIgnore
     public List<Consumer<HandlerContext>> getHandlers() {
         return Collections.unmodifiableList(
-                (Consumers<HandlerContext>) handler
-        );
+                (Consumers<HandlerContext>) handler);
     }
 
     /**
@@ -180,8 +179,7 @@ public class ImporterConfig {
     }
 
     public ImporterConfig setResponseProcessors(
-            List<ImporterResponseProcessor> responseProcessors
-    ) {
+            List<ImporterResponseProcessor> responseProcessors) {
         CollectionUtil.setAll(this.responseProcessors, responseProcessors);
         CollectionUtil.removeNulls(this.responseProcessors);
         return this;

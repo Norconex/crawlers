@@ -29,8 +29,7 @@ class MongoDataStoreEngineTest extends AbstractDataStoreEngineTest {
 
     @Container
     static MongoDBContainer mongoDBContainer = new MongoDBContainer(
-            DockerImageName.parse("mongo:4.2.0")
-    );
+            DockerImageName.parse("mongo:4.2.0"));
 
     @Override
     protected DataStoreEngine createEngine() {

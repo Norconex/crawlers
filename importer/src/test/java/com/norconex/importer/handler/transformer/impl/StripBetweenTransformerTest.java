@@ -44,38 +44,28 @@ class StripBetweenTransformerTest {
                 List.of(
                         new StripBetweenOperation()
                                 .setStartMatcher(
-                                        regex("<h2>").setIgnoreCase(true)
-                                )
+                                        regex("<h2>").setIgnoreCase(true))
                                 .setEndMatcher(
-                                        regex("</h2>").setIgnoreCase(true)
-                                )
+                                        regex("</h2>").setIgnoreCase(true))
                                 .setInclusive(true),
                         new StripBetweenOperation()
                                 .setStartMatcher(
-                                        regex("<P>").setIgnoreCase(true)
-                                )
+                                        regex("<P>").setIgnoreCase(true))
                                 .setEndMatcher(
-                                        regex("</P>").setIgnoreCase(true)
-                                )
+                                        regex("</P>").setIgnoreCase(true))
                                 .setInclusive(true),
                         new StripBetweenOperation()
                                 .setStartMatcher(
-                                        regex("<head>").setIgnoreCase(true)
-                                )
+                                        regex("<head>").setIgnoreCase(true))
                                 .setEndMatcher(
-                                        regex("</hEad>").setIgnoreCase(true)
-                                )
+                                        regex("</hEad>").setIgnoreCase(true))
                                 .setInclusive(true),
                         new StripBetweenOperation()
                                 .setStartMatcher(
-                                        regex("<Pre>").setIgnoreCase(true)
-                                )
+                                        regex("<Pre>").setIgnoreCase(true))
                                 .setEndMatcher(
-                                        regex("</prE>").setIgnoreCase(true)
-                                )
-                                .setInclusive(true)
-                )
-        );
+                                        regex("</prE>").setIgnoreCase(true))
+                                .setInclusive(true)));
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         try (InputStream is =
@@ -83,14 +73,12 @@ class StripBetweenTransformerTest {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
             var doc = TestUtil.newHandlerContext(
-                    htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE
-            );
+                    htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
             t.accept(doc);
 
             Assertions.assertEquals(
                     443, doc.input().asString().replace("\r", "").length(),
-                    "Length of doc content after transformation is incorrect."
-            );
+                    "Length of doc content after transformation is incorrect.");
         }
     }
 
@@ -102,34 +90,26 @@ class StripBetweenTransformerTest {
                 List.of(
                         new StripBetweenOperation()
                                 .setStartMatcher(
-                                        regex("<body>").setIgnoreCase(true)
-                                )
+                                        regex("<body>").setIgnoreCase(true))
                                 .setEndMatcher(
                                         regex("<\\!-- START -->")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setInclusive(true),
                         new StripBetweenOperation()
                                 .setStartMatcher(
                                         regex("<\\!-- END -->")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setEndMatcher(
                                         regex("<\\!-- START -->")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setInclusive(true),
                         new StripBetweenOperation()
                                 .setStartMatcher(
                                         regex("<\\!-- END -->")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setEndMatcher(
-                                        regex("</body>").setIgnoreCase(true)
-                                )
-                                .setInclusive(true)
-                )
-        );
+                                        regex("</body>").setIgnoreCase(true))
+                                .setInclusive(true)));
 
         var html = """
                 <html>
@@ -147,13 +127,11 @@ class StripBetweenTransformerTest {
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
             var doc = TestUtil.newHandlerContext(
                     "fake.html",
-                    is, metadata, ParseState.PRE
-            );
+                    is, metadata, ParseState.PRE);
             t.accept(doc);
             assertThat(doc.input().asString().replace("\r", ""))
                     .isEqualToIgnoringWhitespace(
-                            "<html>extract me 1extract me 2</html>"
-                    );
+                            "<html>extract me 1extract me 2</html>");
         }
     }
 
@@ -165,25 +143,19 @@ class StripBetweenTransformerTest {
                         new StripBetweenOperation()
                                 .setStartMatcher(
                                         regex("<!-- NO INDEX")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setEndMatcher(
                                         regex("/NOINDEX -->")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setInclusive(true),
                         new StripBetweenOperation()
                                 .setStartMatcher(
                                         regex("<!-- HEADER START")
-                                                .setIgnoreCase(true)
-                                )
+                                                .setIgnoreCase(true))
                                 .setEndMatcher(
                                         regex("HEADER END -->")
-                                                .setIgnoreCase(true)
-                                )
-                                .setInclusive(true)
-                )
-        );
+                                                .setIgnoreCase(true))
+                                .setInclusive(true)));
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }

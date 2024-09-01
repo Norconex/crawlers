@@ -74,8 +74,7 @@ public class CrawlerState implements Closeable {
                     for it to complete or stop it and try again.""");
         } catch (IOException e) {
             throw new CrawlerException(
-                    "Could not create crawler execution lock.", e
-            );
+                    "Could not create crawler execution lock.", e);
         }
         LOG.debug("Crawl session execution locked");
         return lck;

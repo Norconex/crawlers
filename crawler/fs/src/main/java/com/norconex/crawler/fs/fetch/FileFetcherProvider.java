@@ -48,13 +48,11 @@ public class FileFetcherProvider
                         .exception(ex)
                         .build(),
                 cfg.getFetchersMaxRetries(),
-                cfg.getFetchersRetryDelay()
-        );
+                cfg.getFetchersRetryDelay());
     }
 
     public static List<FileFetcher> toFileFetchers(
-            @NonNull Collection<Fetcher<?, ?>> fetchers
-    ) {
+            @NonNull Collection<Fetcher<?, ?>> fetchers) {
         return fetchers.stream()
                 .map(FileFetcher.class::cast)
                 .toList();

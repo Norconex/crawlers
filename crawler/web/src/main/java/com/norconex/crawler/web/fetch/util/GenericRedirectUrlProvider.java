@@ -27,8 +27,8 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.xml.Xml;
+import com.norconex.commons.lang.xml.XmlConfigurable;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +100,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 public class GenericRedirectUrlProvider
-        implements RedirectUrlProvider, XMLConfigurable {
+        implements RedirectUrlProvider, XmlConfigurable {
 
     public static final String DEFAULT_FALLBACK_CHARSET =
             StandardCharsets.UTF_8.toString();
@@ -112,11 +112,9 @@ public class GenericRedirectUrlProvider
     @Override
     public String provideRedirectURL(
             HttpRequest request,
-            HttpResponse response, HttpContext context
-    ) {
+            HttpResponse response, HttpContext context) {
         var currentReq = (HttpRequest) context.getAttribute(
-                HttpCoreContext.HTTP_REQUEST
-        );
+                HttpCoreContext.HTTP_REQUEST);
         String originalURL = null;
         try {
             originalURL = currentReq.getUri().toString();
@@ -131,8 +129,7 @@ public class GenericRedirectUrlProvider
             //TODO should throw exception instead?
             LOG.error(
                     "Redirect detected to a null Location for: {}",
-                    originalURL
-            );
+                    originalURL);
             return null;
         }
         var redirectLocation = hl.getValue();
@@ -144,8 +141,7 @@ public class GenericRedirectUrlProvider
             var contentType = hc.getValue();
             if (contentType.contains(";")) {
                 charset = StringUtils.substringAfterLast(
-                        contentType, "charset="
-                );
+                        contentType, "charset=");
             }
         }
         if (StringUtils.isBlank(charset)) {
@@ -164,8 +160,7 @@ public class GenericRedirectUrlProvider
 
     //TODO is there value in moving this method to somewhere re-usable?
     private String resolveRedirectURL(
-            final String redirectURL, final String nonAsciiCharset
-    ) {
+            final String redirectURL, final String nonAsciiCharset) {
 
         var url = redirectURL;
 
@@ -198,8 +193,7 @@ public class GenericRedirectUrlProvider
                     LOG.warn(
                             "Could not fix badly encoded URL with charset "
                                     + "\"{}\". Redirect URL: {}",
-                            charset, redirectURL, e
-                    );
+                            charset, redirectURL, e);
                 }
             }
         }
@@ -208,12 +202,12 @@ public class GenericRedirectUrlProvider
     }
 
     @Override
-    public void loadFromXML(XML xml) {
+    public void loadFromXML(Xml xml) {
         setFallbackCharset(xml.getString("@fallbackCharset", fallbackCharset));
     }
 
     @Override
-    public void saveToXML(XML xml) {
+    public void saveToXML(Xml xml) {
         xml.setAttribute("fallbackCharset", fallbackCharset);
     }
 }

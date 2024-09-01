@@ -35,8 +35,7 @@ class GenericMetadataChecksummerTest {
                 .setToField("myToField")
                 .setOnSet(PropertySetter.OPTIONAL);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(c)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test
@@ -55,7 +54,6 @@ class GenericMetadataChecksummerTest {
         c.createMetadataChecksum(props);
 
         assertThat(props.getString("myfield")).isEqualTo(
-                "field1=value1;field2=value2;field3=value3;"
-        );
+                "field1=value1;field2=value2;field3=value3;");
     }
 }

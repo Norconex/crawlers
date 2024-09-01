@@ -53,28 +53,23 @@ class XmlFeedLinkExtractorTest {
 
         InputStream is = IOUtils.buffer(
                 getClass().getResourceAsStream(
-                        "XmlFeedLinkExtractorTest.atom"
-                )
-        );
+                        "XmlFeedLinkExtractorTest.atom"));
 
         var ct = ContentTypeDetector.detect(is);
 
         var links = extractor.extractLinks(
-                toCrawlDoc(docURL, ct, is)
-        );
+                toCrawlDoc(docURL, ct, is));
         is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue(
                     contains(links, expectedURL),
-                    "Could not find expected URL: " + expectedURL
-            );
+                    "Could not find expected URL: " + expectedURL);
         }
 
         Assertions.assertEquals(
                 expectedURLs.length, links.size(),
-                "Invalid number of links extracted."
-        );
+                "Invalid number of links extracted.");
     }
 
     @Test
@@ -94,28 +89,23 @@ class XmlFeedLinkExtractorTest {
 
         InputStream is = IOUtils.buffer(
                 getClass().getResourceAsStream(
-                        "XmlFeedLinkExtractorTest.rss"
-                )
-        );
+                        "XmlFeedLinkExtractorTest.rss"));
 
         var ct = ContentTypeDetector.detect(is);
 
         var links = extractor.extractLinks(
-                toCrawlDoc(docURL, ct, is)
-        );
+                toCrawlDoc(docURL, ct, is));
         is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue(
                     contains(links, expectedURL),
-                    "Could not find expected URL: " + expectedURL
-            );
+                    "Could not find expected URL: " + expectedURL);
         }
 
         Assertions.assertEquals(
                 expectedURLs.length, links.size(),
-                "Invalid number of links extracted."
-        );
+                "Invalid number of links extracted.");
     }
 
     @Test
@@ -124,8 +114,7 @@ class XmlFeedLinkExtractorTest {
         //        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ct")));
         //        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ref")));
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(extractor)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(extractor));
     }
 
     private boolean contains(Set<Link> links, String url) {

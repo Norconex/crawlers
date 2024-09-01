@@ -108,8 +108,7 @@ public class MergeTransformerConfig {
     }
 
     public MergeTransformerConfig setOperations(
-            List<MergeOperation> operations
-    ) {
+            List<MergeOperation> operations) {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }

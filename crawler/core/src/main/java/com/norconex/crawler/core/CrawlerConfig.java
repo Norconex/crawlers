@@ -32,7 +32,7 @@ import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
@@ -42,7 +42,7 @@ import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
+import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
 import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;
@@ -284,7 +284,7 @@ public class CrawlerConfig {
      * @param dataStoreEngine crawl data store factory.
      * @return crawl data store factory.
      */
-    private DataStoreEngine dataStoreEngine = new MVStoreDataStoreEngine();
+    private DataStoreEngine dataStoreEngine = new MvStoreDataStoreEngine();
 
     /**
      * Whether the start references should be loaded asynchronously. When
@@ -463,7 +463,7 @@ public class CrawlerConfig {
      * @return document checksummer or <code>null</code> when disabled
      */
     private DocumentChecksummer documentChecksummer =
-            new MD5DocumentChecksummer();
+            new Md5DocumentChecksummer();
 
     /**
      * The spoiled state strategy resolver.
@@ -543,8 +543,7 @@ public class CrawlerConfig {
      *     references
      */
     public CrawlerConfig setStartReferencesFiles(
-            List<Path> startReferencesFiles
-    ) {
+            List<Path> startReferencesFiles) {
         CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
         return this;
     }
@@ -566,11 +565,9 @@ public class CrawlerConfig {
      * @param startReferencesProviders start references provider
      */
     public CrawlerConfig setStartReferencesProviders(
-            List<ReferencesProvider> startReferencesProviders
-    ) {
+            List<ReferencesProvider> startReferencesProviders) {
         CollectionUtil.setAll(
-                this.startReferencesProviders, startReferencesProviders
-        );
+                this.startReferencesProviders, startReferencesProviders);
         CollectionUtil.removeNulls(this.startReferencesProviders);
         return this;
     }
@@ -603,8 +600,7 @@ public class CrawlerConfig {
      *         encountered
      */
     public CrawlerConfig setStopOnExceptions(
-            List<Class<? extends Exception>> stopOnExceptions
-    ) {
+            List<Class<? extends Exception>> stopOnExceptions) {
         CollectionUtil.setAll(this.stopOnExceptions, stopOnExceptions);
         return this;
     }
@@ -622,8 +618,7 @@ public class CrawlerConfig {
      * @param referenceFilters the referenceFilters to set
      */
     public CrawlerConfig setReferenceFilters(
-            List<ReferenceFilter> referenceFilters
-    ) {
+            List<ReferenceFilter> referenceFilters) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
         return this;
     }
@@ -641,8 +636,7 @@ public class CrawlerConfig {
      * @param documentFilters document filters
      */
     public CrawlerConfig setDocumentFilters(
-            List<DocumentFilter> documentFilters
-    ) {
+            List<DocumentFilter> documentFilters) {
         CollectionUtil.setAll(this.documentFilters, documentFilters);
         return this;
     }
@@ -660,8 +654,7 @@ public class CrawlerConfig {
      * @param metadataFilters metadata filters
      */
     public CrawlerConfig setMetadataFilters(
-            List<MetadataFilter> metadataFilters
-    ) {
+            List<MetadataFilter> metadataFilters) {
         CollectionUtil.setAll(this.metadataFilters, metadataFilters);
         return this;
     }
@@ -702,8 +695,7 @@ public class CrawlerConfig {
      * @param eventListeners event listeners.
      */
     public CrawlerConfig setEventListeners(
-            List<EventListener<?>> eventListeners
-    ) {
+            List<EventListener<?>> eventListeners) {
         CollectionUtil.setAll(this.eventListeners, eventListeners);
         return this;
     }
@@ -715,8 +707,7 @@ public class CrawlerConfig {
      * @param eventListeners event listeners.
      */
     public CrawlerConfig addEventListeners(
-            List<EventListener<?>> eventListeners
-    ) {
+            List<EventListener<?>> eventListeners) {
         this.eventListeners.addAll(eventListeners);
         return this;
     }
@@ -765,8 +756,7 @@ public class CrawlerConfig {
      * @param preImportConsumers pre-import consumers
      */
     public CrawlerConfig setPreImportConsumers(
-            List<DocumentConsumer> preImportConsumers
-    ) {
+            List<DocumentConsumer> preImportConsumers) {
         CollectionUtil.setAll(preImportConsumers, preImportConsumers);
         CollectionUtil.removeNulls(preImportConsumers);
         return this;
@@ -785,8 +775,7 @@ public class CrawlerConfig {
      * @param postImportConsumers post-import consumers
      */
     public CrawlerConfig setPostImportConsumers(
-            List<DocumentConsumer> postImportConsumers
-    ) {
+            List<DocumentConsumer> postImportConsumers) {
         CollectionUtil.setAll(postImportConsumers, postImportConsumers);
         CollectionUtil.removeNulls(postImportConsumers);
         return this;

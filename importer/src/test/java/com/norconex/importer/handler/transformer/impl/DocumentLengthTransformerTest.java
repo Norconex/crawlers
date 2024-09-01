@@ -46,9 +46,7 @@ class DocumentLengthTransformerTest {
                             "ref",
                             TestUtil.toCachedInputStream("four"),
                             props,
-                            ParseState.PRE
-                    )
-            );
+                            ParseState.PRE));
         });
         assertThat(props.getLong("theLength")).isEqualTo(4);
 
@@ -58,9 +56,7 @@ class DocumentLengthTransformerTest {
                             "ref",
                             TestUtil.toInputStream("fives"),
                             props,
-                            ParseState.PRE
-                    )
-            );
+                            ParseState.PRE));
         });
         assertThat(props.getLong("theLength")).isEqualTo(5);
     }

@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 import com.norconex.cfgconverter.json.XmlV4ToJsonV4ConfigConverter;
 import com.norconex.cfgconverter.xml.XmlToXmlV4ConfigConverter;
 import com.norconex.cfgconverter.yaml.XmlV4ToYamlV4ConfigConverter;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -123,7 +123,7 @@ public class ConfigConverterLauncher
             return Format.yaml;
         });
 
-        var xml = new XML(inputFile);
+        var xml = new Xml(inputFile);
         try (var writer = Files.newBufferedWriter(outputFile)) {
 
             fmt.converterSupplier.get().convert(xml, writer);

@@ -25,8 +25,8 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLException;
+import com.norconex.commons.lang.xml.Xml;
+import com.norconex.commons.lang.xml.XmlException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.sitemap.SitemapRecord;
@@ -44,8 +44,7 @@ class SitemapParser {
     private final MutableBoolean stopping;
 
     List<SitemapRecord> parse(
-            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer
-    ) {
+            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer) {
 
         var location = sitemapDoc.getReference();
         List<SitemapRecord> children = new ArrayList<>();
@@ -53,13 +52,12 @@ class SitemapParser {
         try (var is = SitemapUtil.uncompressedSitemapStream(sitemapDoc)) {
 
             var sitemapLocationDir = substringBeforeLast(location, "/");
-            XML.stream(is)
+            Xml.stream(is)
                     .takeWhile(c -> {
                         if (stopping.isTrue()) {
                             LOG.debug(
                                     "Sitemap not entirely parsed due to "
-                                            + "crawler being stopped."
-                            );
+                                            + "crawler being stopped.");
                             return false;
                         }
                         return true;
@@ -73,22 +71,20 @@ class SitemapParser {
                                     .ifPresent(urlConsumer::accept);
                         }
                     });
-        } catch (XMLException e) {
+        } catch (XmlException e) {
             LOG.error(
                     "Cannot fetch sitemap: {} -- Likely an invalid sitemap "
                             + "XML format causing a parsing error (actual error:{}).",
-                    location, e.getMessage()
-            );
+                    location, e.getMessage());
         } catch (IOException e) {
             LOG.error(
                     "Cannot fetch sitemap: {} ({})",
-                    location, e.getMessage(), e
-            );
+                    location, e.getMessage(), e);
         }
         return children;
     }
 
-    private Optional<SitemapRecord> toSitemapRecord(XML xml) {
+    private Optional<SitemapRecord> toSitemapRecord(Xml xml) {
         var url = xml.getString("loc");
         if (StringUtils.isBlank(url)) {
             return Optional.empty();
@@ -102,8 +98,7 @@ class SitemapParser {
     }
 
     private Optional<WebCrawlDocContext> toDocRecord(
-            XML xml, String sitemapLocationDir
-    ) {
+            Xml xml, String sitemapLocationDir) {
         var url = xml.getString("loc");
 
         // Is URL valid?
@@ -112,8 +107,7 @@ class SitemapParser {
             LOG.debug(
                     "Sitemap URL invalid for location directory."
                             + " URL: {}  Location directory: {}",
-                    url, sitemapLocationDir
-            );
+                    url, sitemapLocationDir);
             return Optional.empty();
         }
 

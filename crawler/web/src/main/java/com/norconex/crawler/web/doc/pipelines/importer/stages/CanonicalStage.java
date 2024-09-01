@@ -72,42 +72,34 @@ public class CanonicalStage extends AbstractImporterStage {
 
     // Resolves metadata (HTTP headers) canonical link detection
     private boolean resolveFromHeaders(
-            WebImporterPipelineContext ctx, CanonicalLinkDetector detector
-    ) {
+            WebImporterPipelineContext ctx, CanonicalLinkDetector detector) {
         return resolveCanonical(
                 ctx, detector.detectFromMetadata(
                         ctx.getDoc().getReference(),
-                        ctx.getDoc().getMetadata()
-                )
-        );
+                        ctx.getDoc().getMetadata()));
     }
 
     // Proceed with document (<meta>) canonical link detection
     private boolean resolveFromContent(
-            WebImporterPipelineContext ctx, CanonicalLinkDetector detector
-    ) {
+            WebImporterPipelineContext ctx, CanonicalLinkDetector detector) {
         try {
             return resolveCanonical(
                     ctx, detector.detectFromContent(
                             ctx.getDoc().getReference(),
                             ctx.getDoc().getInputStream(),
-                            ctx.getDoc().getDocContext().getContentType()
-                    )
-            );
+                            ctx.getDoc().getDocContext().getContentType()));
         } catch (IOException e) {
             throw new CrawlerException(
                     "Cannot resolve canonical link from content for: "
                             + ctx.getDoc().getReference(),
-                    e
-            );
+                    e);
         }
     }
 
     // return true if we process this doc, false if we don't because we
     // will use a canonical URL instead
     private boolean resolveCanonical(
-            WebImporterPipelineContext ctx, String canURL
-    ) {
+            WebImporterPipelineContext ctx, String canURL) {
 
         if (StringUtils.isBlank(canURL)) {
             return true;
@@ -141,8 +133,7 @@ public class CanonicalStage extends AbstractImporterStage {
             LOG.debug(
                     "Canonical URL detected is the same as document "
                             + "URL. Process normally. URL: {}",
-                    reference
-            );
+                    reference);
             return true;
         }
 
@@ -156,8 +147,7 @@ public class CanonicalStage extends AbstractImporterStage {
                                 URL detected. Will ignore canonical directive and\s\
                                 process URL: "{}". Redirect trail: {}""",
                         reference,
-                        Arrays.toString(docRec.getRedirectTrail().toArray())
-                );
+                        Arrays.toString(docRec.getRedirectTrail().toArray()));
             }
             return true;
         }
@@ -174,8 +164,7 @@ public class CanonicalStage extends AbstractImporterStage {
         if (!urlScope.isInScope()) {
             LOG.debug(
                     "Canonical URL is out of scope and will be ignored: "
-                            + canURL
-            );
+                            + canURL);
             return true;
         }
         // Call Queue pipeline on Canonical URL
@@ -184,8 +173,7 @@ public class CanonicalStage extends AbstractImporterStage {
                         Canonical URL detected is different than\s\
                         document URL. Document will be rejected while\s\
                         canonical URL will be queued for processing: {}""",
-                canURL
-        );
+                canURL);
 
         ctx.getCrawler()
                 .getDocPipelines()
@@ -201,10 +189,8 @@ public class CanonicalStage extends AbstractImporterStage {
                         .docContext(docRec)
                         .message(
                                 detector.getClass().getSimpleName()
-                                        + "[canonical=" + canURL + "]"
-                        )
-                        .build()
-        );
+                                        + "[canonical=" + canURL + "]")
+                        .build());
         return false;
     }
 }

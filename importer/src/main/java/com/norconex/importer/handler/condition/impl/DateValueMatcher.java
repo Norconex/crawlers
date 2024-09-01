@@ -45,8 +45,7 @@ public class DateValueMatcher implements Predicate<ZonedDateTime> {
 
     public DateValueMatcher(
             Operator operator,
-            @NonNull DateProvider dateProvider
-    ) {
+            @NonNull DateProvider dateProvider) {
         this.operator = operator;
         this.dateProvider = dateProvider;
     }
@@ -55,8 +54,7 @@ public class DateValueMatcher implements Predicate<ZonedDateTime> {
     public DateValueMatcher(
             @JsonProperty("operator") Operator operator,
             @JsonProperty("date") String dateTimeExpression,
-            @JsonProperty("zoneId") ZoneId zoneId
-    ) {
+            @JsonProperty("zoneId") ZoneId zoneId) {
         this.operator = operator;
         dateProvider =
                 DateProviderFactory.create(dateTimeExpression, zoneId);
@@ -79,8 +77,7 @@ public class DateValueMatcher implements Predicate<ZonedDateTime> {
         var op = defaultIfNull(operator, EQUALS);
         return op.evaluate(
                 resolvedZdt.toInstant(),
-                dateProvider.getDateTime().toInstant()
-        );
+                dateProvider.getDateTime().toInstant());
     }
 
     @JsonProperty("date")

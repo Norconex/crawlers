@@ -34,13 +34,11 @@ class MultiFetcherTest {
         var mf = multiFetcher(
                 new MockFetcher()
                         .setDenyRequest(false)
-                        .setReturnBadStatus(false)
-        );
+                        .setReturnBadStatus(false));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
         assertThat(
                 ((MultiFetchResponse<?>) resp)
-                        .getFetchResponses()
-        ).hasSize(1);
+                        .getFetchResponses()).hasSize(1);
     }
 
     @Test
@@ -48,13 +46,11 @@ class MultiFetcherTest {
         var mf = multiFetcher(
                 new MockFetcher()
                         .setDenyRequest(false)
-                        .setReturnBadStatus(true)
-        );
+                        .setReturnBadStatus(true));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
         assertThat(
                 ((MultiFetchResponse<?>) resp)
-                        .getFetchResponses()
-        ).hasSize(2);
+                        .getFetchResponses()).hasSize(2);
     }
 
     @Test
@@ -62,22 +58,19 @@ class MultiFetcherTest {
         var mf = multiFetcher(
                 new MockFetcher()
                         .setDenyRequest(true)
-                        .setReturnBadStatus(false)
-        ); // <-- irrelevant
+                        .setReturnBadStatus(false)); // <-- irrelevant
         var resp = mf.fetch(new MockFetchRequest("someRef"));
         // Even though there are no matching fetchers, there is always
         // at least once response returned. In this case, it will be
         // one with status UNSUPPORTED.
         assertThat(
                 ((MultiFetchResponse<?>) resp)
-                        .getFetchResponses()
-        ).hasSize(1);
+                        .getFetchResponses()).hasSize(1);
         assertThat(resp.getCrawlDocState()).isSameAs(CrawlDocState.UNSUPPORTED);
     }
 
     private MultiFetcher<MockFetchRequest, MockFetchResponse> multiFetcher(
-            MockFetcher... fetchers
-    ) {
+            MockFetcher... fetchers) {
         return MultiFetcher
                 .<MockFetchRequest, MockFetchResponse>builder()
                 .fetchers(List.of(fetchers))
@@ -86,8 +79,7 @@ class MultiFetcherTest {
                         (state, msg, ex) -> new MockFetchResponseImpl()
                                 .setCrawlDocState(state)
                                 .setReasonPhrase(msg)
-                                .setException(ex)
-                )
+                                .setException(ex))
                 .maxRetries(1)
                 .retryDelay(Duration.ofMillis(2))
                 .build();
@@ -97,8 +89,7 @@ class MultiFetcherTest {
             extends MultiFetchResponse<MockFetchResponse>
             implements MockFetchResponse {
         public MockMultiFetcherResponse(
-                List<MockFetchResponse> fetchResponses
-        ) {
+                List<MockFetchResponse> fetchResponses) {
             super(fetchResponses);
         }
     }

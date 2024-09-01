@@ -31,7 +31,7 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.LogCommitterConfig.LogLevel;
-import com.norconex.commons.lang.SLF4JUtil;
+import com.norconex.commons.lang.Slf4jUtil;
 import com.norconex.commons.lang.map.Properties;
 
 import lombok.Data;
@@ -54,20 +54,7 @@ import lombok.extern.slf4j.Slf4j;
  * you do not use in a production environment. At a minimum, if you are
  * logging to file, make sure to rotate/clean the logs regularly.
  * </p>
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.core.impl.LogCommitter">
- *   <logLevel>[TRACE|DEBUG|INFO|WARN|ERROR|STDOUT|STDERR]</logLevel>
- *   <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (Expression matching fields to log. Default logs all.)
- *   </fieldMatcher>
- *   <ignoreContent>[false|true]</ignoreContent>
- *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
- * </committer>
- * }
- *
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @Data
 public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {
@@ -104,17 +91,15 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {
         b.append("\n=== DOCUMENT UPSERTED ================================\n");
 
         stringifyRefAndMeta(
-                b, upsertRequest.getReference(), upsertRequest.getMetadata()
-        );
+                b, upsertRequest.getReference(), upsertRequest.getMetadata());
 
         if (!configuration.isIgnoreContent()) {
             b.append("\n--- Content ---------------------------------------\n");
             try {
                 b.append(
                         IOUtils.toString(
-                                upsertRequest.getContent(), UTF_8
-                        )
-                ).append('\n');
+                                upsertRequest.getContent(), UTF_8))
+                        .append('\n');
             } catch (IOException e) {
                 b.append(ExceptionUtils.getStackTrace(e));
             }
@@ -133,8 +118,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {
         var b = new StringBuilder();
         b.append("\n=== DOCUMENT DELETED =================================\n");
         stringifyRefAndMeta(
-                b, deleteRequest.getReference(), deleteRequest.getMetadata()
-        );
+                b, deleteRequest.getReference(), deleteRequest.getMetadata());
         log(b.toString());
 
         removeCount++;
@@ -157,16 +141,14 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {
     }
 
     private void stringifyRefAndMeta(
-            StringBuilder b, String reference, Properties metadata
-    ) {
+            StringBuilder b, String reference, Properties metadata) {
         b.append("REFERENCE = ").append(reference).append('\n');
         if (metadata != null) {
             b.append("\n--- Metadata: -------------------------------------\n");
             for (Entry<String, List<String>> en : metadata.entrySet()) {
                 if (configuration.getFieldMatcher().getPattern() == null
                         || configuration.getFieldMatcher().matches(
-                                en.getKey()
-                        )) {
+                                en.getKey())) {
                     for (String val : en.getValue()) {
                         b.append(en.getKey()).append(" = ")
                                 .append(val).append('\n');
@@ -185,7 +167,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {
         } else if (LogLevel.STDOUT == lvl) {
             System.out.println(txt); //NOSONAR
         } else {
-            SLF4JUtil.log(LOG, lvl.toString(), txt);
+            Slf4jUtil.log(LOG, lvl.toString(), txt);
         }
     }
 }

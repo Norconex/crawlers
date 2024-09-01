@@ -50,10 +50,7 @@ class UserAgentTest {
                                 .withBody(
                                         "The user agent is: "
                                                 + req.getFirstHeader(
-                                                        "User-Agent"
-                                                )
-                                )
-                );
+                                                        "User-Agent")));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, path)));

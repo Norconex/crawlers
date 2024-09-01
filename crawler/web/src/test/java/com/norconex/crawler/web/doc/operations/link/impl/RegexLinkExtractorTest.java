@@ -54,18 +54,13 @@ class RegexLinkExtractorTest {
                 .setPatterns(
                         List.of(
                                 new ExtractionPattern(
-                                        "\\[\\s*(.*?)\\s*\\]", "$1"
-                                ),
+                                        "\\[\\s*(.*?)\\s*\\]", "$1"),
                                 new ExtractionPattern(
                                         "<link>\\s*(.*?)\\s*</link>",
-                                        "$1"
-                                ),
+                                        "$1"),
                                 new ExtractionPattern(
                                         "<a href=\"javascript:;\"[^>]*?id=\"p_(\\d+)\">",
-                                        "/page?id=$1"
-                                )
-                        )
-                );
+                                        "/page?id=$1")));
 
         // All these must be found
         String[] expectedURLs = {
@@ -78,25 +73,21 @@ class RegexLinkExtractorTest {
                 baseURL + "page?id=67890",
         };
         var is = getClass().getResourceAsStream(
-                "RegexLinkExtractorTest.txt"
-        );
+                "RegexLinkExtractorTest.txt");
 
         var links = extractor.extractLinks(
-                toCrawlDoc(docURL, ContentType.TEXT, is)
-        );
+                toCrawlDoc(docURL, ContentType.TEXT, is));
         is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue(
                     contains(links, expectedURL),
-                    "Could not find expected URL: " + expectedURL
-            );
+                    "Could not find expected URL: " + expectedURL);
         }
 
         Assertions.assertEquals(
                 expectedURLs.length, links.size(),
-                "Invalid number of links extracted."
-        );
+                "Invalid number of links extracted.");
     }
 
     @Test
@@ -108,9 +99,7 @@ class RegexLinkExtractorTest {
         var extractor = new RegexLinkExtractor();
         try (Reader r = new InputStreamReader(
                 getClass().getResourceAsStream(
-                        getClass().getSimpleName() + ".cfg.xml"
-                )
-        )) {
+                        getClass().getSimpleName() + ".cfg.xml"))) {
             BeanMapper.DEFAULT.read(extractor, r, Format.XML);
         }
         // All these must be found
@@ -121,24 +110,20 @@ class RegexLinkExtractorTest {
 
         Set<Link> links;
         try (var is = getClass().getResourceAsStream(
-                "RegexLinkExtractorTest.txt"
-        )) {
+                "RegexLinkExtractorTest.txt")) {
             links = extractor.extractLinks(
-                    toCrawlDoc(docURL, ContentType.TEXT, is)
-            );
+                    toCrawlDoc(docURL, ContentType.TEXT, is));
         }
 
         for (String expectedURL : expectedURLs) {
             assertTrue(
                     contains(links, expectedURL),
-                    "Could not find expected URL: " + expectedURL
-            );
+                    "Could not find expected URL: " + expectedURL);
         }
 
         Assertions.assertEquals(
                 expectedURLs.length, links.size(),
-                "Invalid number of links extracted."
-        );
+                "Invalid number of links extracted.");
     }
 
     @Test
@@ -148,14 +133,12 @@ class RegexLinkExtractorTest {
                 .setPatterns(
                         List.of(
                                 new ExtractionPattern("\\[(.*?)\\]", "$1"),
-                                new ExtractionPattern("<link>.*?</link>", "$1")
-                        )
-                )
+                                new ExtractionPattern("<link>.*?</link>",
+                                        "$1")))
                 .setCharset(UTF_8)
                 .setMaxUrlLength(12345);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(extractor)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(extractor));
     }
 
     private boolean contains(Set<Link> links, String url) {

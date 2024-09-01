@@ -239,8 +239,7 @@ public class TranslatorSplitterConfig extends BaseDocumentSplitterConfig {
     }
 
     public TranslatorSplitterConfig setTargetLanguages(
-            List<String> targetLanguages
-    ) {
+            List<String> targetLanguages) {
         CollectionUtil.setAll(this.targetLanguages, targetLanguages);
         return this;
     }

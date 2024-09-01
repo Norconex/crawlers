@@ -60,9 +60,7 @@ class FileNotFoundDeletionTest {
                                                 <a href="%s">Link</a>
                                                 """
                                                 .formatted(TOGGLE_PATH),
-                                        HTML_UTF_8
-                                )
-                );
+                                        HTML_UTF_8));
 
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, HOME_PATH)));
@@ -99,9 +97,7 @@ class FileNotFoundDeletionTest {
                 .respond(
                         response().withBody(
                                 "Page found, move on.",
-                                HTML_UTF_8
-                        )
-                );
+                                HTML_UTF_8));
     }
 
     private void whenPageNotFound(ClientAndServer client) {
@@ -111,7 +107,6 @@ class FileNotFoundDeletionTest {
                         response()
                                 .withStatusCode(NOT_FOUND_404.code())
                                 .withReasonPhrase(NOT_FOUND_404.reasonPhrase())
-                                .withBody("Page not found.", HTML_UTF_8)
-                );
+                                .withBody("Page not found.", HTML_UTF_8));
     }
 }

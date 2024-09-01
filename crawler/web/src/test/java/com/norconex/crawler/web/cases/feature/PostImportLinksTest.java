@@ -34,7 +34,7 @@ import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
-import com.norconex.importer.handler.transformer.impl.URLExtractorTransformer;
+import com.norconex.importer.handler.transformer.impl.UrlExtractorTransformer;
 
 /**
  * Test that links can be specified for crawling after importing.
@@ -55,16 +55,14 @@ class PostImportLinksTest {
                 should be queued for processing.
                 """);
         WebsiteMock.whenPDF(
-                client, "/post-import-links.pdf", TestResource.PDF_WITH_LINKS
-        );
+                client, "/post-import-links.pdf", TestResource.PDF_WITH_LINKS);
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, path)));
             cfg.setMaxDepth(1);
             // Tell it which field will hold post-import URLs.
             cfg.setPostImportLinks(
-                    TextMatcher.basic("myPostImportURLs")
-            );
+                    TextMatcher.basic("myPostImportURLs"));
             cfg.setPostImportLinksKeep(true);
             // Keep only the test PDF.
             cfg.setDocumentFilters(
@@ -73,19 +71,14 @@ class PostImportLinksTest {
                                     new ExtensionReferenceFilter(),
                                     c -> c
                                             .setExtensions(List.of("pdf"))
-                                            .setOnMatch(OnMatch.INCLUDE)
-                            )
-                    )
-            );
+                                            .setOnMatch(OnMatch.INCLUDE))));
             // Create a field with post-import PDF URLs.
-            var tagger = new URLExtractorTransformer();
+            var tagger = new UrlExtractorTransformer();
             tagger.getConfiguration().setToField("myPostImportURLs");
             cfg.getImporterConfig().setHandlers(
                     List.of(
                             new DefaultParser(),
-                            tagger
-                    )
-            );
+                            tagger));
         });
 
         assertThat(mem.getUpsertCount()).isOne();
@@ -101,7 +94,6 @@ class PostImportLinksTest {
                         "https://www.example.com/page2.html",
                         "http://www.example.com/page3.html",
                         "https://www.example.com/page4.html",
-                        "http://www.example.com/page5.html"
-                );
+                        "http://www.example.com/page5.html");
     }
 }

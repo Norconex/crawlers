@@ -39,8 +39,7 @@ public final class CrawlerMonitorJMX {
         var mbs = ManagementFactory.getPlatformMBeanServer();
         try {
             mbs.registerMBean(
-                    crawler.getServices().getMonitor(), objectName(crawler)
-            );
+                    crawler.getServices().getMonitor(), objectName(crawler));
         } catch (MalformedObjectNameException
                 | InstanceAlreadyExistsException
                 | MBeanRegistrationException
@@ -69,7 +68,6 @@ public final class CrawlerMonitorJMX {
         return new ObjectName(
                 crawler.getClass().getName()
                         + ":type=Metrics"
-                        + ",crawler=" + quote(crawler.getId())
-        );
+                        + ",crawler=" + quote(crawler.getId()));
     }
 }

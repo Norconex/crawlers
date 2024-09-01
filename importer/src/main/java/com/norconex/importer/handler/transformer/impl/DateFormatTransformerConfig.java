@@ -136,8 +136,7 @@ public class DateFormatTransformerConfig {
      * @param fromFormats source date formats
      */
     public DateFormatTransformerConfig setFromFormats(
-            List<String> fromFormats
-    ) {
+            List<String> fromFormats) {
         CollectionUtil.setAll(this.fromFormats, fromFormats);
         return this;
     }

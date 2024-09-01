@@ -59,24 +59,21 @@ public final class TestUtil {
     public static Collection<File> listFSFiles(Path path) {
         return FileUtils.listFiles(
                 path.toFile(),
-                TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE
-        );
+                TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
     }
 
     public static Collection<File> listFSUpsertFiles(Path path) {
         return FileUtils.listFiles(
                 path.toFile(),
                 FileFilterUtils.prefixFileFilter("upsert-"),
-                TrueFileFilter.INSTANCE
-        );
+                TrueFileFilter.INSTANCE);
     }
 
     public static Collection<File> listFSDeleteFiles(Path path) {
         return FileUtils.listFiles(
                 path.toFile(),
                 FileFilterUtils.prefixFileFilter("delete-"),
-                TrueFileFilter.INSTANCE
-        );
+                TrueFileFilter.INSTANCE);
     }
 
     public static void commitRequests(Committer c, List<CommitterRequest> crs)
@@ -127,20 +124,16 @@ public final class TestUtil {
                 "http://example.com/page" + index + ".html", meta,
                 IOUtils.toInputStream(
                         "This is fake content for sample document " + index,
-                        StandardCharsets.UTF_8
-                )
-        );
+                        StandardCharsets.UTF_8));
     }
 
     public static UpsertRequest upsertRequest(
-            String reference, String content, Object... metadataPairs
-    ) {
+            String reference, String content, Object... metadataPairs) {
         var meta = new Properties();
         meta.loadFromMap(MapUtil.toMap(metadataPairs));
         return new UpsertRequest(
                 reference, meta,
-                IOUtils.toInputStream(content, StandardCharsets.UTF_8)
-        );
+                IOUtils.toInputStream(content, StandardCharsets.UTF_8));
     }
 
     public static List<DeleteRequest> deleteRequests(int qty) {
@@ -155,13 +148,11 @@ public final class TestUtil {
         var meta = new Properties();
         meta.add("title", "Sample document " + index);
         return new DeleteRequest(
-                "http://example.com/page" + index + ".html", meta
-        );
+                "http://example.com/page" + index + ".html", meta);
     }
 
     public static DeleteRequest deleteRequest(
-            String reference, Object... metadataPairs
-    ) {
+            String reference, Object... metadataPairs) {
         var meta = new Properties();
         meta.loadFromMap(MapUtil.toMap(metadataPairs));
         return new DeleteRequest(reference, meta);

@@ -26,8 +26,7 @@ public final class CliCrawlerLauncher {
     }
 
     public static int launch(
-            @NonNull CrawlerBuilder crawlerBuilder, String... args
-    ) {
+            @NonNull CrawlerBuilder crawlerBuilder, String... args) {
 
         var cmdLine = new CommandLine(new CliCommandRunner(crawlerBuilder));
 
@@ -41,8 +40,7 @@ public final class CliCrawlerLauncher {
                         return -1;
                     }
                     throw ex;
-                }
-        );
+                });
 
         if (args.length == 0) {
             cmdLine.getErr().println("No arguments provided.");

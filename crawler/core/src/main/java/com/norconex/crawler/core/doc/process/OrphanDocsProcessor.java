@@ -65,8 +65,7 @@ class OrphanDocsProcessor {
         if (docProcessor.isMaxDocsReached()) {
             LOG.info(
                     "Max documents reached. "
-                            + "Not reprocessing orphans (if any)."
-            );
+                            + "Not reprocessing orphans (if any).");
             return;
         }
         LOG.info("Reprocessing any cached/orphan references...");
@@ -83,9 +82,7 @@ class OrphanDocsProcessor {
                             .accept(
                                     new QueuePipelineContext(
                                             docProcessor.getCrawler(),
-                                            docInfo
-                                    )
-                            );
+                                            docInfo));
                     count.increment();
                     return true;
                 });

@@ -84,8 +84,7 @@ public class HttpSnifferConfig {
     }
 
     public HttpSnifferConfig setRequestHeaders(
-            Map<String, String> requestHeaders
-    ) {
+            Map<String, String> requestHeaders) {
         this.requestHeaders.clear();
         this.requestHeaders.putAll(requestHeaders);
         return this;

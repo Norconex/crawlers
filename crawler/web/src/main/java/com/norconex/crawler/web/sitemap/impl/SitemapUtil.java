@@ -53,8 +53,7 @@ final class SitemapUtil {
                 // has no time
                 zdt = ZonedDateTime.of(
                         LocalDate.parse(value),
-                        LocalTime.MIDNIGHT, ZoneOffset.UTC
-                );
+                        LocalTime.MIDNIGHT, ZoneOffset.UTC);
             }
         } catch (Exception e) {
             LOG.info("Invalid sitemap date: {}", value);
@@ -65,8 +64,7 @@ final class SitemapUtil {
     // we consider having no cache or no last modified date on cache to
     // mean cache is older
     static boolean shouldProcessSitemap(
-            @NonNull SitemapRecord newRec, SitemapRecord cachedRec
-    ) {
+            @NonNull SitemapRecord newRec, SitemapRecord cachedRec) {
         if (cachedRec == null) {
             return true;
         }

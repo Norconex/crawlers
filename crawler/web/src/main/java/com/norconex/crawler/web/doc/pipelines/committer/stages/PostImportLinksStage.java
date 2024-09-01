@@ -83,14 +83,12 @@ public class PostImportLinksStage
                         .source(ctx.getCrawler())
                         .subject(inScopeUrls)
                         .docContext(ctx.getDoc().getDocContext())
-                        .build()
-        );
+                        .build());
         return true;
     }
 
     private void handlePostImportLink(
-            CommitterPipelineContext ctx, Set<String> inScopeUrls, String url
-    ) {
+            CommitterPipelineContext ctx, Set<String> inScopeUrls, String url) {
 
         var cfg = Web.config(ctx.getCrawler());
         var doc = ctx.getDoc();
@@ -99,31 +97,26 @@ public class PostImportLinksStage
         try {
             var scopedUrlCtx = new WebCrawlDocContext(url);
             var urlScope = cfg.getUrlScopeResolver().resolve(
-                    doc.getReference(), scopedUrlCtx
-            );
+                    doc.getReference(), scopedUrlCtx);
             Web.fireIfUrlOutOfScope(ctx.getCrawler(), scopedUrlCtx, urlScope);
             if (urlScope.isInScope()) {
                 LOG.trace("Post-import URL in crawl scope: {}", url);
                 // only queue if not queued already for this doc
                 if (inScopeUrls.add(url)) {
                     var newDocRec = new WebCrawlDocContext(
-                            url, docRecord.getDepth() + 1
-                    );
+                            url, docRecord.getDepth() + 1);
                     newDocRec.setReferrerReference(doc.getReference());
                     ctx.getCrawler()
                             .getDocPipelines()
                             .getQueuePipeline()
                             .accept(
                                     new QueuePipelineContext(
-                                            ctx.getCrawler(), docRecord
-                                    )
-                            );
+                                            ctx.getCrawler(), docRecord));
                     String afterQueueURL = newDocRec.getReference();
                     if (!url.equals(afterQueueURL)) {
                         LOG.debug(
                                 "URL modified from \"{}\" to \"{}\".",
-                                url, afterQueueURL
-                        );
+                                url, afterQueueURL);
                     }
                     inScopeUrls.add(afterQueueURL);
                 }

@@ -71,14 +71,12 @@ public class HttpFetchStage extends AbstractImporterStage {
         HttpFetchResponse response;
         try {
             response = fetcher.fetch(
-                    new HttpFetchRequest(ctx.getDoc(), httpMethod)
-            );
+                    new HttpFetchRequest(ctx.getDoc(), httpMethod));
         } catch (FetchException e) {
             throw new CrawlerException(
                     "Could not fetch URL: "
                             + ctx.getDoc().getDocContext().getReference(),
-                    e
-            );
+                    e);
         }
         var originalCrawlDocState = docRecord.getState();
 
@@ -90,16 +88,14 @@ public class HttpFetchStage extends AbstractImporterStage {
         meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getCharset());
         meta.set(
                 WebDocMetadata.ORIGINAL_REFERENCE,
-                docRecord.getOriginalReference()
-        );
+                docRecord.getOriginalReference());
 
         //-- Deal with redirects ---
         var redirectURL = response.getRedirectTarget();
 
         if (StringUtils.isNotBlank(redirectURL)) {
             WebImporterPipelineUtil.queueRedirectURL(
-                    ctx, response, redirectURL
-            );
+                    ctx, response, redirectURL);
             return false;
         }
 
@@ -113,8 +109,7 @@ public class HttpFetchStage extends AbstractImporterStage {
                             .source(ctx.getCrawler())
                             .subject(response)
                             .docContext(docRecord)
-                            .build()
-            );
+                            .build());
             return false;
         }
         if (state.isGoodState()) {
@@ -124,13 +119,11 @@ public class HttpFetchStage extends AbstractImporterStage {
                                     FetchDirective.METADATA
                                             .is(getFetchDirective())
                                                     ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
-                                                    : CrawlerEvent.DOCUMENT_FETCHED
-                            )
+                                                    : CrawlerEvent.DOCUMENT_FETCHED)
                             .source(ctx.getCrawler())
                             .subject(response)
                             .docContext(docRecord)
-                            .build()
-            );
+                            .build());
             return true;
         }
 
@@ -147,14 +140,12 @@ public class HttpFetchStage extends AbstractImporterStage {
                         .source(ctx.getCrawler())
                         .subject(response)
                         .docContext(docRecord)
-                        .build()
-        );
+                        .build());
 
         // At this stage, the URL is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning
         // false or true) depends on the fetch directives supported.
         return FetchUtil.shouldContinueOnBadStatus(
-                ctx.getCrawler(), originalCrawlDocState, getFetchDirective()
-        );
+                ctx.getCrawler(), originalCrawlDocState, getFetchDirective());
     }
 }

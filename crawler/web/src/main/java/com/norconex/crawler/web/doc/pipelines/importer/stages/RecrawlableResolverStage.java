@@ -58,8 +58,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(
                         "{} is not ready to be recrawled, skipping it.",
-                        cachedInfo.getReference()
-                );
+                        cachedInfo.getReference());
             }
             ctx.getCrawler().fire(
                     CrawlerEvent.builder()
@@ -67,8 +66,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
                             .source(ctx.getCrawler())
                             .subject(rr)
                             .docContext(ctx.getDoc().getDocContext())
-                            .build()
-            );
+                            .build());
             currentData.setState(CrawlDocState.PREMATURE);
         }
         return isRecrawlable;

@@ -54,11 +54,8 @@ public final class PipelineStubs {
                                         Predicates.allOf(
                                                 new DepthValidationStage(),
                                                 new ReferenceFiltersStage(),
-                                                new QueueReferenceStage()
-                                        )
-                                )
-                                .build()
-                )
+                                                new QueueReferenceStage()))
+                                .build())
                 .importerPipeline(
                         ImporterPipeline
                                 .builder()
@@ -66,31 +63,22 @@ public final class PipelineStubs {
                                         Predicates.allOf(
                                                 new MockFetchStage(METADATA),
                                                 new MetadataFiltersStage(
-                                                        METADATA
-                                                ),
+                                                        METADATA),
                                                 new MetadataChecksumStage(
-                                                        METADATA
-                                                ),
+                                                        METADATA),
                                                 new MetadataDedupStage(
-                                                        METADATA
-                                                ),
+                                                        METADATA),
                                                 new MockFetchStage(DOCUMENT),
                                                 new MetadataFiltersStage(
-                                                        DOCUMENT
-                                                ),
+                                                        DOCUMENT),
                                                 new MetadataChecksumStage(
-                                                        DOCUMENT
-                                                ),
+                                                        DOCUMENT),
                                                 new MetadataDedupStage(
-                                                        DOCUMENT
-                                                ),
+                                                        DOCUMENT),
                                                 new DocumentFiltersStage(),
                                                 new DocumentPreProcessingStage(),
-                                                new ImportModuleStage()
-                                        )
-                                )
-                                .build()
-                )
+                                                new ImportModuleStage()))
+                                .build())
                 .committerPipeline(
                         CommitterPipeline
                                 .builder()
@@ -99,11 +87,8 @@ public final class PipelineStubs {
                                                 new DocumentChecksumStage(),
                                                 new DocumentDedupStage(),
                                                 new DocumentPostProcessingStage(),
-                                                new CommitModuleStage()
-                                        )
-                                )
-                                .build()
-                )
+                                                new CommitModuleStage()))
+                                .build())
                 .build();
     }
 }

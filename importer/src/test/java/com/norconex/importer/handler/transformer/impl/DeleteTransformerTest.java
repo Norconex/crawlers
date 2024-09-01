@@ -61,15 +61,12 @@ class DeleteTransformerTest {
         InputStream is = new NullInputStream(0);
         tagger.accept(
                 TestUtil.newHandlerContext(
-                        "blah", is, meta, ParseState.PRE
-                )
-        );
+                        "blah", is, meta, ParseState.PRE));
 
         Assertions.assertEquals(1, meta.size(), "Invalid field count");
         Assertions.assertEquals(
                 "keep this one", meta.getString("field3"),
-                "Value wrongfully deleted or modified"
-        );
+                "Value wrongfully deleted or modified");
     }
 
     @Test
@@ -108,9 +105,7 @@ class DeleteTransformerTest {
         InputStream is = new NullInputStream(0);
         t.accept(
                 TestUtil.newHandlerContext(
-                        "blah", is, meta, ParseState.PRE
-                )
-        );
+                        "blah", is, meta, ParseState.PRE));
     }
 
     @Test
@@ -139,9 +134,7 @@ class DeleteTransformerTest {
         InputStream is = new NullInputStream(0);
         t.accept(
                 TestUtil.newHandlerContext(
-                        "blah", is, meta, ParseState.PRE
-                )
-        );
+                        "blah", is, meta, ParseState.PRE));
 
         Assertions.assertEquals(3, meta.size(), "Invalid field count");
     }

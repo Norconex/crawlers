@@ -41,14 +41,12 @@ public class HttpMultiFetcher
                     HttpFetchResponse> multiResponseWrapper,
             @NonNull UnsuccessfulResponseFactory<
                     HttpFetchResponse> unsuccessfulResponseAdaptor,
-            int maxRetries, Duration retryDelay
-    ) {
+            int maxRetries, Duration retryDelay) {
         super(
                 fetchers,
                 multiResponseWrapper,
                 unsuccessfulResponseAdaptor,
                 maxRetries,
-                retryDelay
-        );
+                retryDelay);
     }
 }

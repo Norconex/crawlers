@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -39,50 +38,8 @@ import lombok.ToString;
  *
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.idol.IdolCommitter">
- *   <url>
- *     (IDOL/DIH/CFS index action URL. Default is "http://localhost:9001")
- *   </url>
- *   <cfs>[false|true](whether URL points to a Connector Framework Server)</cfs>
- *   <databaseName>
- *     (Optional IDOL Database Name where to store documents)
- *   </databaseName>
- *   <dreAddDataParams>
- *     <param name="(parameter name)">(parameter value)</param>
- *   </dreAddDataParams>
- *   <dreDeleteRefParams>
- *     <param name="(parameter name)">(parameter value)</param>
- *   </dreDeleteRefParams>
- *   <sourceReferenceField>
- *     (Optional name of the field holding the value to be stored in the
- *     IDOL "DREREFERENCE" field. Default is the document reference.)
- *   </sourceReferenceField>
- *   <sourceContentField>
- *     (Optional name of the field holding the value to be stored in the
- *     IDOL "DRECONTENT" field. Default is the document content stream.)
- *   </sourceContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.idol.IdolCommitter">
- *   <url>http://some_host:9100</url>
- *   <databaseName>some_database</databaseName>
- * </committer>
- * }
- *
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class IdolCommitter
@@ -105,8 +62,7 @@ public class IdolCommitter
         idolClient = new IdolClient(configuration);
         LOG.info(
                 "IDOL {}URL: {}",
-                configuration.isCfs() ? "CFS " : "", configuration.getUrl()
-        );
+                configuration.isCfs() ? "CFS " : "", configuration.getUrl());
     }
 
     @Override

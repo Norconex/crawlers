@@ -74,8 +74,7 @@ public enum Browser {
             (location, options) -> new WebDriverBuilder()
                     .driverClass(ChromeDriver.class)
                     .driverSystemProperty(
-                            ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY
-                    )
+                            ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY)
                     .location(location)
                     .options(options)
                     .build(),
@@ -108,12 +107,10 @@ public enum Browser {
                 profile.setPreference("devtools.console.stdout.content", true);
                 profile.setPreference(
                         "browser.privatebrowsing.autostart",
-                        true
-                );
+                        true);
                 profile.setPreference(
                         "browser.aboutHomeSnippets.updateUrl",
-                        ""
-                );
+                        "");
                 profile.setPreference("services.settings.server", EMPTY);
                 profile.setPreference("location.services.mozilla.com", EMPTY);
                 profile.setPreference("shavar.services.mozilla.com", EMPTY);
@@ -127,8 +124,7 @@ public enum Browser {
             (location, options) -> new WebDriverBuilder()
                     .driverClass(FirefoxDriver.class)
                     .driverSystemProperty(
-                            GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY
-                    )
+                            GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY)
                     .location(location)
                     .options(options)
                     .build(),
@@ -141,8 +137,7 @@ public enum Browser {
             (location, options) -> new WebDriverBuilder()
                     .driverClass(EdgeDriver.class)
                     .driverSystemProperty(
-                            EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY
-                    )
+                            EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY)
                     .location(location)
                     .options(options)
                     .build(),
@@ -200,8 +195,7 @@ public enum Browser {
             Function<WebDriverLocation, MutableCapabilities> optionsSupplier,
             BiFunction<WebDriverLocation, MutableCapabilities,
                     WebDriver> driverFactory,
-            BrowserVersion htmlUnitBrowser
-    ) {
+            BrowserVersion htmlUnitBrowser) {
         this.optionsSupplier = optionsSupplier;
         this.driverFactory = driverFactory;
         this.htmlUnitBrowser = htmlUnitBrowser;
@@ -213,8 +207,7 @@ public enum Browser {
 
     public WebDriver createDriver(
             WebDriverLocation location,
-            MutableCapabilities options
-    ) {
+            MutableCapabilities options) {
         return driverFactory.apply(location, options);
     }
 
@@ -270,21 +263,16 @@ public enum Browser {
                             if (location.getRemoteURL() != null) {
                                 LOG.info(
                                         "Creating remote \"{}\" web driver.",
-                                        driverClass.getSimpleName()
-                                );
+                                        driverClass.getSimpleName());
                                 return new RemoteWebDriver(
-                                        location.getRemoteURL(), options
-                                );
+                                        location.getRemoteURL(), options);
                             }
                             LOG.info(
                                     "Creating local \"{}\" web driver.",
-                                    driverClass.getSimpleName()
-                            );
+                                    driverClass.getSimpleName());
                             return ConstructorUtils.invokeExactConstructor(
-                                    driverClass, options
-                            );
-                        }
-                );
+                                    driverClass, options);
+                        });
             } catch (Exception e) {
                 throw new CrawlerException("Could not build web driver", e);
             }

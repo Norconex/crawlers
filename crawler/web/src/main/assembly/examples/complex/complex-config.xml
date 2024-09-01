@@ -46,7 +46,7 @@
       </start>
       #parse("shared/importer-config.xml")
       <committers>
-        <committer class="XMLFileCommitter">
+        <committer class="XmlFileCommitter">
          <fileNamePrefix>complex1_</fileNamePrefix>
         </committer>
       </committers>
@@ -58,7 +58,7 @@
       </start>
       #parse("shared/importer-config.xml")
       <committers>
-        <committer class="XMLFileCommitter">
+        <committer class="XmlFileCommitter">
          <fileNamePrefix>complex2_</fileNamePrefix>
         </committer>
       </committers>

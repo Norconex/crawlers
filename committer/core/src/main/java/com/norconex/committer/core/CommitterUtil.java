@@ -50,8 +50,7 @@ public final class CommitterUtil {
                 throw new CommitterException(
                         "Could not load document content for : "
                                 + req.getReference(),
-                        e
-                );
+                        e);
             }
         }
         return null;
@@ -68,8 +67,7 @@ public final class CommitterUtil {
      * @return the source id value
      */
     public static String extractSourceIdValue(
-            CommitterRequest req, String sourceIdField
-    ) {
+            CommitterRequest req, String sourceIdField) {
         return extractSourceIdValue(req, sourceIdField, false);
     }
 
@@ -86,8 +84,7 @@ public final class CommitterUtil {
     public static String extractSourceIdValue(
             CommitterRequest req,
             String sourceIdField,
-            boolean keepSourceIdField
-    ) {
+            boolean keepSourceIdField) {
         String idValue = null;
         if (StringUtils.isNotBlank(sourceIdField)) {
             idValue = req.getMetadata().getString(sourceIdField);
@@ -100,8 +97,7 @@ public final class CommitterUtil {
                 LOG.warn(
                         "Source ID field \"{}\" has no value. "
                                 + "Falling back to using document reference: {}",
-                        sourceIdField, req.getReference()
-                );
+                        sourceIdField, req.getReference());
             }
         }
         if (StringUtils.isBlank(idValue)) {
@@ -121,8 +117,7 @@ public final class CommitterUtil {
      * @throws CommitterException could not apply target content
      */
     public static void applyTargetContent(
-            CommitterRequest req, String targetContentField
-    )
+            CommitterRequest req, String targetContentField)
             throws CommitterException {
         if (req instanceof UpsertRequest
                 && StringUtils.isNotBlank(targetContentField)) {
@@ -141,8 +136,7 @@ public final class CommitterUtil {
      * @param targetIdField name of the target field holding the document ID
      */
     public static void applyTargetId(
-            CommitterRequest req, String sourceIdField, String targetIdField
-    ) {
+            CommitterRequest req, String sourceIdField, String targetIdField) {
         var sourceIdValue = extractSourceIdValue(req, sourceIdField);
         if (StringUtils.isNoneBlank(targetIdField, sourceIdValue)) {
             req.getMetadata().set(targetIdField, sourceIdValue);

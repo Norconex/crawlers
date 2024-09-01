@@ -74,8 +74,7 @@ public class DocTrackerService implements Closeable {
 
     public DocTrackerService(
             @NonNull Crawler crawler,
-            @NonNull Class<? extends CrawlDocContext> type
-    ) {
+            @NonNull Class<? extends CrawlDocContext> type) {
         this.crawler = crawler;
         this.type = type;
     }
@@ -125,8 +124,7 @@ public class DocTrackerService implements Closeable {
             // Active -> Queued
             LOG.debug(
                     "Moving any {} active URLs back into queue.",
-                    crawler.getId()
-            );
+                    crawler.getId());
             active.forEach((k, v) -> {
                 queue.save(k, v);
                 return true;
@@ -142,10 +140,8 @@ public class DocTrackerService implements Closeable {
                         "RESUMING \"{}\" at {} ({}/{}).",
                         crawler.getId(),
                         PercentFormatter.format(
-                                processedCount, totalCount, 2, Locale.ENGLISH
-                        ),
-                        processedCount, totalCount
-                );
+                                processedCount, totalCount, 2, Locale.ENGLISH),
+                        processedCount, totalCount);
             }
         } else {
             var storeEngine = crawler.getDataStoreEngine();
@@ -178,8 +174,7 @@ public class DocTrackerService implements Closeable {
                     LOG.info(
                             "STARTING an incremental crawl from previous {} "
                                     + "valid references.",
-                            cacheCount
-                    );
+                            cacheCount);
                 } else {
                     LOG.info("STARTING a fresh crawl.");
                 }
@@ -214,8 +209,7 @@ public class DocTrackerService implements Closeable {
     }
 
     public boolean forEachActive(
-            BiPredicate<String, CrawlDocContext> predicate
-    ) {
+            BiPredicate<String, CrawlDocContext> predicate) {
         return active.forEach(predicate);
     }
 
@@ -241,20 +235,17 @@ public class DocTrackerService implements Closeable {
         LOG.debug(
                 "Saved processed: {} "
                         + "(Deleted from cache: {}; Deleted from active: {})",
-                docRec.getReference(), cacheDeleted, activeDeleted
-        );
+                docRec.getReference(), cacheDeleted, activeDeleted);
         crawler.fire(
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.DOCUMENT_PROCESSED)
                         .source(crawler)
                         .docContext(docRec)
-                        .build()
-        );
+                        .build());
     }
 
     public boolean forEachProcessed(
-            BiPredicate<String, CrawlDocContext> predicate
-    ) {
+            BiPredicate<String, CrawlDocContext> predicate) {
         return processed.forEach(predicate);
     }
 
@@ -277,8 +268,7 @@ public class DocTrackerService implements Closeable {
                         .name(CrawlerEvent.DOCUMENT_QUEUED)
                         .source(crawler)
                         .docContext(docRec)
-                        .build()
-        );
+                        .build());
     }
 
     // get and delete and mark as active
@@ -292,8 +282,7 @@ public class DocTrackerService implements Closeable {
     }
 
     public boolean forEachQueued(
-            BiPredicate<String, CrawlDocContext> predicate
-    ) {
+            BiPredicate<String, CrawlDocContext> predicate) {
         return queue.forEach(predicate);
     }
 
@@ -304,8 +293,7 @@ public class DocTrackerService implements Closeable {
     }
 
     public boolean forEachCached(
-            BiPredicate<String, CrawlDocContext> predicate
-    ) {
+            BiPredicate<String, CrawlDocContext> predicate) {
         return cached.forEach(predicate);
     }
 

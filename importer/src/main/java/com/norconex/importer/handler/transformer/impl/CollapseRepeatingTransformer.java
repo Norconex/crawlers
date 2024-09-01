@@ -109,7 +109,6 @@ public class CollapseRepeatingTransformer
 
     private String escapeRegex(String text) {
         return text.replaceAll(
-                "([\\\\\\.\\[\\{\\(\\*\\+\\?\\^\\$\\|])", "\\\\$1"
-        );
+                "([\\\\\\.\\[\\{\\(\\*\\+\\?\\^\\$\\|])", "\\\\$1");
     }
 }

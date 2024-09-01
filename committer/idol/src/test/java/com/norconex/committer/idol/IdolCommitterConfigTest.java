@@ -19,7 +19,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -35,7 +35,7 @@ class IdolCommitterConfigTest {
     void testWriteRead() throws IOException {
         var c = new IdolCommitter();
 
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration().setBatchSize(10);
         q.getConfiguration().setMaxPerFolder(5);
         c.getConfiguration()
@@ -46,15 +46,11 @@ class IdolCommitterConfigTest {
         c.getConfiguration().getRestrictions().add(
                 new PropertyMatcher(
                         TextMatcher.basic("document.reference"),
-                        TextMatcher.wildcard("*.pdf")
-                )
-        );
+                        TextMatcher.wildcard("*.pdf")));
         c.getConfiguration().getRestrictions().add(
                 new PropertyMatcher(
                         TextMatcher.basic("title"),
-                        TextMatcher.wildcard("Nah!")
-                )
-        );
+                        TextMatcher.wildcard("Nah!")));
 
         var cfg = c.getConfiguration();
         cfg.setUrl("http://somehost:9001");

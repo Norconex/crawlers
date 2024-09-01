@@ -39,28 +39,27 @@ class ImporterLauncherTest {
     @Test
     void testLaunch() {
         System.setProperty("tempDir", tempDir.toString());
-        assertThatNoException().isThrownBy(() ->
-            ImporterLauncher.launch(new String[] {
-                    "--config", TEST_CONFIG,
-                    "-i", TEST_PDF,
-                    "-o",  tempDir + "/output.txt"
-            }));
+        assertThatNoException()
+                .isThrownBy(() -> ImporterLauncher.launch(new String[] {
+                        "--config", TEST_CONFIG,
+                        "-i", TEST_PDF,
+                        "-o", tempDir + "/output.txt"
+                }));
     }
-
 
     @Test
     void testLaunchWithVariables() throws IOException {
         System.setProperty("tempDir", tempDir.toString());
         var varFile = tempDir.resolve("variables.properties");
         Files.writeString(varFile, "key=value");
-        assertThatNoException().isThrownBy(() ->
-            ImporterLauncher.launch(new String[] {
-                    "--config", TEST_CONFIG,
-                    "--variables",
-                    varFile.toAbsolutePath().toString(),
-                    "-i", TEST_PDF,
-                    "-o",  tempDir + "/output.txt"
-            }));
+        assertThatNoException()
+                .isThrownBy(() -> ImporterLauncher.launch(new String[] {
+                        "--config", TEST_CONFIG,
+                        "--variables",
+                        varFile.toAbsolutePath().toString(),
+                        "-i", TEST_PDF,
+                        "-o", tempDir + "/output.txt"
+                }));
     }
 
     @Test
@@ -68,13 +67,13 @@ class ImporterLauncherTest {
         // use folder as a file to make it fail
         System.setProperty("tempDir", tempDir.toString());
         var varFile = tempDir;
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
                         "--config", TEST_CONFIG,
                         "--variables",
                         varFile.toAbsolutePath().toString(),
                         "-i", TEST_PDF,
-                        "-o",  tempDir + "/output.txt"
+                        "-o", tempDir + "/output.txt"
                 }));
         assertThat(exit.getReturnValue()).isNotZero();
         assertThat(exit.getStdErr()).contains("Invalid variable file path:");
@@ -85,12 +84,12 @@ class ImporterLauncherTest {
         // use folder as a file to make it fail
         System.setProperty("tempDir", tempDir.toString());
         var cfgFile = tempDir;
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
                         "--config",
                         cfgFile.toAbsolutePath().toString(),
                         "-i", TEST_PDF,
-                        "-o",  tempDir + "/output.txt"
+                        "-o", tempDir + "/output.txt"
                 }));
         assertThat(exit.getReturnValue()).isNotZero();
         assertThat(exit.getStdErr()).contains(
@@ -100,8 +99,8 @@ class ImporterLauncherTest {
     @Test
     void testCheckConfig() {
         System.setProperty("tempDir", tempDir.toString());
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
                         "--config", TEST_CONFIG,
                         "--checkcfg",
                 }));
@@ -113,8 +112,8 @@ class ImporterLauncherTest {
         System.setProperty("tempDir", tempDir.toString());
         var cfgFile = tempDir.resolve("config.xml");
         Files.writeString(cfgFile, "<*&bad>1 i< 2</*&bad>");
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
                         "--config", cfgFile.toString(),
                         "--checkcfg",
                 }));
@@ -130,8 +129,8 @@ class ImporterLauncherTest {
         System.setProperty("tempDir", tempDir.toString());
         var pdfFile = tempDir.resolve("file.pdf");
         Files.copy(Path.of(TEST_PDF), pdfFile);
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
                         "--config", TEST_CONFIG,
                         "-i", pdfFile.toString(),
                 }));
@@ -141,8 +140,8 @@ class ImporterLauncherTest {
     @Test
     void testCliParseError() {
         System.setProperty("tempDir", tempDir.toString());
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
                         "--config" // missing file
                 }));
 
@@ -156,27 +155,26 @@ class ImporterLauncherTest {
         System.setProperty("tempDir", tempDir.toString());
         var cfgFile = tempDir.resolve("config.xml");
         Files.writeString(cfgFile, "<bad><bad></bad></bad>");
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
                         "--config", cfgFile.toString(),
                         "-i", TEST_PDF,
-                        "-o",  tempDir + "/output.txt"
+                        "-o", tempDir + "/output.txt"
                 }));
         assertThat(exit.getStdErr()).contains(
                 "A problem occured loading configuration.");
     }
-
 
     @Test
     void testBadConfigSyntax() throws IOException {
         System.setProperty("tempDir", tempDir.toString());
         var cfgFile = tempDir.resolve("config.xml");
         Files.writeString(cfgFile, "<*&bad>1 i< 2</*&bad>");
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
                         "--config", cfgFile.toString(),
                         "-i", TEST_PDF,
-                        "-o",  tempDir + "/output.txt"
+                        "-o", tempDir + "/output.txt"
                 }));
         System.err.println("ERROR: " + exit.getStdErr());
         assertThat(exit.getStdErr()).contains(
@@ -186,8 +184,8 @@ class ImporterLauncherTest {
     @Test
     void testNoArgs() {
         System.setProperty("tempDir", tempDir.toString());
-        var exit = SystemUtil.callAndCaptureOutput(() ->
-                ImporterLauncher.launch(new String[] {}));
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {}));
         assertThat(exit.getReturnValue()).isNotZero();
         assertThat(exit.getStdOut()).contains("importer[.bat|.sh]");
     }

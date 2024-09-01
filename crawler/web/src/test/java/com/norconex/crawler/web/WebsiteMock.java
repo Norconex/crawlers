@@ -64,8 +64,7 @@ public final class WebsiteMock {
     }
 
     public static ResourceWebSite whenResourceWebSite(
-            ClientAndServer client, String resourceBasePath
-    ) {
+            ClientAndServer client, String resourceBasePath) {
         return new ResourceWebSite(client, resourceBasePath);
     }
 
@@ -74,8 +73,7 @@ public final class WebsiteMock {
         private final ClientAndServer client;
 
         private ResourceWebSite(
-                ClientAndServer client, String resourceBasePath
-        ) {
+                ClientAndServer client, String resourceBasePath) {
             this.client = client;
             this.resourceBasePath = removeEnd(resourceBasePath, "/");
         }
@@ -84,8 +82,7 @@ public final class WebsiteMock {
             var p = prependIfMissing(path, "/");
             WebsiteMock.whenHtml(
                     client, p,
-                    new TestResource(resourceBasePath + p).asString()
-            );
+                    new TestResource(resourceBasePath + p).asString());
             return this;
         }
 
@@ -93,8 +90,7 @@ public final class WebsiteMock {
             var p = prependIfMissing(path, "/");
             WebsiteMock.whenPDF(
                     client, p,
-                    new TestResource(resourceBasePath + p)
-            );
+                    new TestResource(resourceBasePath + p));
             return this;
         }
 
@@ -102,8 +98,7 @@ public final class WebsiteMock {
             var p = prependIfMissing(path, "/");
             WebsiteMock.whenJPG(
                     client, p,
-                    new TestResource(resourceBasePath + p)
-            );
+                    new TestResource(resourceBasePath + p));
             return this;
         }
     }
@@ -119,8 +114,7 @@ public final class WebsiteMock {
             var reqPath = req.getPath().toString();
             var numStr = StringUtils.substringAfterLast(reqPath, "/");
             var basePath = appendIfMissing(
-                    substringBeforeLast(reqPath, "/"), "/"
-            );
+                    substringBeforeLast(reqPath, "/"), "/");
             var curDepth = 0;
             if (NumberUtils.isDigits(numStr)) {
                 curDepth = Integer.parseInt(numStr);
@@ -143,51 +137,41 @@ public final class WebsiteMock {
                                     """
                                     .formatted(
                                             reqPath, prevLink, curDepth,
-                                            nextLink
-                                    )
-                    )
+                                            nextLink))
                             .build(),
-                    HTML_UTF_8
-            );
+                    HTML_UTF_8);
         };
     }
 
     public static String secureServerUrl(
-            ClientAndServer client, String urlPath
-    ) {
+            ClientAndServer client, String urlPath) {
         return serverUrl(client, urlPath).replace("http://", "https://");
     }
 
     public static String serverUrl(ClientAndServer client, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 client.getLocalPort(),
-                StringUtils.prependIfMissing(urlPath, "/")
-        );
+                StringUtils.prependIfMissing(urlPath, "/"));
     }
 
     public static String serverUrl(HttpRequest request, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 StringUtils.substringAfterLast(request.getLocalAddress(), ":"),
-                StringUtils.prependIfMissing(urlPath, "/")
-        );
+                StringUtils.prependIfMissing(urlPath, "/"));
     }
 
     public static Expectation[] whenHtml(
-            ClientAndServer client, String urlPath, String body
-    ) {
+            ClientAndServer client, String urlPath, String body) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 WebsiteMock.htmlPage().body(body).build(),
-                                HTML_UTF_8
-                        )
-                );
+                                HTML_UTF_8));
     }
 
     public static Expectation[] whenHtml(
-            ClientAndServer client, String urlPath, TestResource resource
-    )
+            ClientAndServer client, String urlPath, TestResource resource)
             throws IOException {
         return client
                 .when(request().withPath(urlPath))
@@ -195,46 +179,34 @@ public final class WebsiteMock {
     }
 
     public static Expectation[] whenPNG(
-            ClientAndServer client, String urlPath, TestResource resource
-    )
+            ClientAndServer client, String urlPath, TestResource resource)
             throws IOException {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.PNG
-                                )
-                        )
-                );
+                                        resource.asBytes(), MediaType.PNG)));
     }
 
     public static Expectation[] whenJPG(
-            ClientAndServer client, String urlPath, TestResource resource
-    ) {
+            ClientAndServer client, String urlPath, TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.JPEG
-                                )
-                        )
-                );
+                                        resource.asBytes(), MediaType.JPEG)));
     }
 
     public static Expectation[] whenPDF(
-            ClientAndServer client, String urlPath, TestResource resource
-    ) {
+            ClientAndServer client, String urlPath, TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.PDF
-                                )
-                        )
-                );
+                                        resource.asBytes(), MediaType.PDF)));
     }
 
     @Data

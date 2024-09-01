@@ -103,8 +103,7 @@ public class CharsetTransformer
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()
-            ).entrySet()) {
+                    configuration.getFieldMatcher()).entrySet()) {
                 var key = en.getKey();
                 List<String> newVals = new ArrayList<>();
                 for (String val : en.getValue()) {
@@ -127,8 +126,7 @@ public class CharsetTransformer
 
     // returns final charset
     private Charset doTransform(
-            HandlerContext docCtx, InputStream in, OutputStream out
-    )
+            HandlerContext docCtx, InputStream in, OutputStream out)
             throws IOException {
 
         var inputCharset = detectCharsetIfNull(in);
@@ -143,8 +141,7 @@ public class CharsetTransformer
         if (inputCharset.equals(outputCharset)) {
             LOG.debug(
                     "Source and target encodings are the same for {}",
-                    docCtx.reference()
-            );
+                    docCtx.reference());
             IOUtils.copyLarge(in, out);
             return outputCharset;
         }
@@ -153,14 +150,12 @@ public class CharsetTransformer
         try {
             CharsetUtil.convertCharset(
                     in, inputCharset,
-                    out, outputCharset
-            );
+                    out, outputCharset);
         } catch (IOException e) {
             LOG.warn(
                     "Cannot convert character encoding from {} to {}. "
                             + "Encoding will remain unchanged. Reference: {}",
-                    inputCharset, outputCharset, docCtx.reference(), e
-            );
+                    inputCharset, outputCharset, docCtx.reference(), e);
         }
         return outputCharset;
     }

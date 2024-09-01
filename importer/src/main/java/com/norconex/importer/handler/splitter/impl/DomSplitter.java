@@ -109,8 +109,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
     public void split(HandlerContext docCtx) throws DocumentHandlerException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docContext()
-        )) {
+                configuration.getContentTypeMatcher(), docCtx.docContext())) {
             return;
         }
 
@@ -118,8 +117,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
         if (configuration.getFieldMatcher().isSet()) {
             docCtx.childDocs();
             docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()
-            )
+                    configuration.getFieldMatcher())
                     .forEach(
                             (k, vals) -> vals.forEach(
                                     v -> parse(
@@ -128,31 +126,23 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
                                                     v, docCtx.reference(),
                                                     DomUtil.toJSoupParser(
                                                             configuration
-                                                                    .getParser()
-                                                    )
-                                            )
-                                    )
-                            )
-                    );
+                                                                    .getParser())))));
         } else {
             // Body
             try {
                 var inputCharset = CharsetUtil.firstNonNullOrUTF8(
                         docCtx.parseState(),
                         configuration.getSourceCharset(),
-                        docCtx.docContext().getCharset()
-                );
+                        docCtx.docContext().getCharset());
                 var soupDoc = Jsoup.parse(
                         docCtx.input().asInputStream(),
                         inputCharset.toString(),
                         docCtx.reference(),
-                        DomUtil.toJSoupParser(configuration.getParser())
-                );
+                        DomUtil.toJSoupParser(configuration.getParser()));
                 parse(docCtx, soupDoc);
             } catch (IOException e) {
                 throw new DocumentHandlerException(
-                        "Cannot parse document into a DOM-tree.", e
-                );
+                        "Cannot parse document into a DOM-tree.", e);
             }
         }
     }
@@ -182,8 +172,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
             CachedInputStream content = null;
             if (childContent.length() > 0) {
                 content = docCtx.streamFactory().newInputStream(
-                        childContent
-                );
+                        childContent);
             } else {
                 content = docCtx.streamFactory().newInputStream();
             }

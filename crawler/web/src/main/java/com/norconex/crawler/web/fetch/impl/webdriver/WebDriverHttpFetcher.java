@@ -231,8 +231,7 @@ public class WebDriverHttpFetcher
         location = new WebDriverLocation(
                 configuration.getDriverPath(),
                 configuration.getBrowserPath(),
-                configuration.getRemoteURL()
-        );
+                configuration.getRemoteURL());
 
         options = browser.createOptions(location);
         if (configuration.getHttpSniffer() != null) {
@@ -270,8 +269,7 @@ public class WebDriverHttpFetcher
             var v = browser.getHtmlUnitBrowser();
             if (v == null) {
                 throw new CrawlerException(
-                        "Unsupported HtmlUnit browser version: " + v
-                );
+                        "Unsupported HtmlUnit browser version: " + v);
             }
             driver = new HtmlUnitDriver(v, true);
         } else {
@@ -279,8 +277,7 @@ public class WebDriverHttpFetcher
         }
         if (StringUtils.isBlank(userAgent)) {
             userAgent = (String) ((JavascriptExecutor) driver).executeScript(
-                    "return navigator.userAgent;"
-            );
+                    "return navigator.userAgent;");
         }
         return driver;
     }
@@ -327,8 +324,7 @@ public class WebDriverHttpFetcher
 
         if (configuration.getScreenshotHandler() != null) {
             configuration.getScreenshotHandler().takeScreenshot(
-                    THREADED_DRIVER.get(), doc
-            );
+                    THREADED_DRIVER.get(), doc);
         }
 
         if (fetchResponse != null) {
@@ -340,8 +336,7 @@ public class WebDriverHttpFetcher
                 .statusCode(200)
                 .reasonPhrase(
                         "No exception thrown, but real status code "
-                                + "unknown. Capture headers for real status code."
-                )
+                                + "unknown. Capture headers for real status code.")
                 .userAgent(getUserAgent())
                 .build();
     }
@@ -381,70 +376,56 @@ public class WebDriverHttpFetcher
 
         if (StringUtils.isNotBlank(configuration.getEarlyPageScript())) {
             ((JavascriptExecutor) driver).executeScript(
-                    configuration.getEarlyPageScript()
-            );
+                    configuration.getEarlyPageScript());
         }
 
         if (configuration.getWindowSize() != null) {
             driver.manage().window().setSize(
                     new org.openqa.selenium.Dimension(
                             configuration.getWindowSize().width,
-                            configuration.getWindowSize().height
-                    )
-            );
+                            configuration.getWindowSize().height));
         }
 
         var timeouts = driver.manage().timeouts();
         if (configuration.getPageLoadTimeout() != 0) {
             timeouts.pageLoadTimeout(
-                    ofMillis(configuration.getPageLoadTimeout())
-            );
+                    ofMillis(configuration.getPageLoadTimeout()));
         }
         if (configuration.getImplicitlyWait() != 0) {
             timeouts.implicitlyWait(
-                    ofMillis(configuration.getImplicitlyWait())
-            );
+                    ofMillis(configuration.getImplicitlyWait()));
         }
         if (configuration.getScriptTimeout() != 0) {
             timeouts.scriptTimeout(
-                    ofMillis(configuration.getScriptTimeout())
-            );
+                    ofMillis(configuration.getScriptTimeout()));
         }
 
         if (configuration.getWaitForElementTimeout() != 0
                 && StringUtils.isNotBlank(
-                        configuration.getWaitForElementSelector()
-                )) {
+                        configuration.getWaitForElementSelector())) {
             var elType = ObjectUtils.defaultIfNull(
                     configuration.getWaitForElementType(),
-                    WaitElementType.TAGNAME
-            );
+                    WaitElementType.TAGNAME);
             LOG.debug(
                     "Waiting for element '{}' of type '{}' for '{}'.",
-                    configuration.getWaitForElementSelector(), elType, url
-            );
+                    configuration.getWaitForElementSelector(), elType, url);
 
             var wait = new WebDriverWait(
-                    driver, ofMillis(configuration.getWaitForElementTimeout())
-            );
+                    driver, ofMillis(configuration.getWaitForElementTimeout()));
             wait.until(
                     ExpectedConditions.presenceOfElementLocated(
                             elType.getBy(
-                                    configuration.getWaitForElementSelector()
-                            )
-                    )
-            );
+                                    configuration
+                                            .getWaitForElementSelector())));
 
             LOG.debug(
                     "Done waiting for element '{}' of type '{}' for '{}'.",
-                    configuration.getWaitForElementSelector(), elType, url
-            );
+                    configuration.getWaitForElementSelector(), elType, url);
         }
 
         if (StringUtils.isNotBlank(configuration.getLatePageScript())) {
             ((JavascriptExecutor) driver).executeScript(
-                    configuration.getLatePageScript()
-            );
+                    configuration.getLatePageScript());
         }
 
         if (configuration.getThreadWait() != 0) {
@@ -458,8 +439,7 @@ public class WebDriverHttpFetcher
     }
 
     private HttpFetchResponse resolveDriverResponse(
-            CrawlDoc doc, SniffedResponseHeader sniffedResponse
-    ) {
+            CrawlDoc doc, SniffedResponseHeader sniffedResponse) {
 
         HttpFetchResponse response = null;
         if (sniffedResponse != null) {
@@ -469,8 +449,7 @@ public class WebDriverHttpFetcher
                 if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(k)
                         && !values.isEmpty()) {
                     ApacheHttpUtil.applyContentTypeAndCharset(
-                            values.get(0), doc.getDocContext()
-                    );
+                            values.get(0), doc.getDocContext());
                 }
                 doc.getMetadata().addList(k, values);
             });

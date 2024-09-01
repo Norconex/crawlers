@@ -68,24 +68,18 @@ public final class CrawlerConfigStubs {
                     .randomize(
                             File.class,
                             () -> new File(
-                                    new StringRandomizer(100).getRandomValue()
-                            )
-                    )
+                                    new StringRandomizer(100).getRandomValue()))
                     .randomize(
                             Path.class,
                             () -> Path.of(
-                                    new StringRandomizer(100).getRandomValue()
-                            )
-                    )
+                                    new StringRandomizer(100).getRandomValue()))
                     .randomize(
                             Long.class,
                             () -> Math
-                                    .abs(new LongRandomizer().getRandomValue())
-                    )
+                                    .abs(new LongRandomizer().getRandomValue()))
                     .randomize(
                             DataStoreEngine.class,
-                            MockNoopDataStoreEngine::new
-                    )
+                            MockNoopDataStoreEngine::new)
                     .randomize(DataStore.class, MockNoopDataStore::new)
                     .randomize(ImporterConfig.class, ImporterConfig::new)
                     .randomize(
@@ -93,30 +87,22 @@ public final class CrawlerConfigStubs {
                             () -> new UpsertRequest(
                                     new StringRandomizer(100).getRandomValue(),
                                     new Properties(),
-                                    new NullInputStream()
-                            )
-                    )
+                                    new NullInputStream()))
                     .randomize(
                             DeleteRequest.class,
                             () -> new DeleteRequest(
                                     new StringRandomizer(100).getRandomValue(),
-                                    new Properties()
-                            )
-                    )
+                                    new Properties()))
                     .randomize(Committer.class, MemoryCommitter::new)
                     .randomize(Charset.class, () -> StandardCharsets.UTF_8)
                     .randomize(
                             SpoiledReferenceStrategizer.class,
-                            GenericSpoiledReferenceStrategizer::new
-                    )
+                            GenericSpoiledReferenceStrategizer::new)
                     .randomize(
                             AtomicBoolean.class, () -> new AtomicBoolean(
-                                    new BooleanRandomizer().getRandomValue()
-                            )
-                    )
+                                    new BooleanRandomizer().getRandomValue()))
                     .excludeType(DocumentConsumer.class::equals)
-                    .excludeType(ReferencesProvider.class::equals)
-    );
+                    .excludeType(ReferencesProvider.class::equals));
 
     private CrawlerConfigStubs() {
     }
@@ -139,8 +125,7 @@ public final class CrawlerConfigStubs {
 
     public static Path writeConfigToDir(
             Path workDir,
-            @NonNull Consumer<CrawlerConfig> c
-    ) {
+            @NonNull Consumer<CrawlerConfig> c) {
         var config = memoryCrawlerConfig(workDir);
         c.accept(config);
         var file = config

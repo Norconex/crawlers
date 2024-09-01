@@ -50,8 +50,7 @@ public class Doc {
 
     public Doc(
             @NonNull String reference, CachedInputStream content,
-            Properties metadata
-    ) {
+            Properties metadata) {
         this(new DocContext(reference), content, metadata);
     }
 
@@ -76,8 +75,7 @@ public class Doc {
     public Doc(
             @NonNull DocContext docContext,
             @NonNull CachedInputStream content,
-            Properties metadata
-    ) {
+            Properties metadata) {
         this.docContext = docContext;
         this.content = content;
         if (metadata == null) {
@@ -118,8 +116,7 @@ public class Doc {
             }
         } catch (IOException e) {
             throw new ImporterRuntimeException(
-                    "Could set content input stream.", e
-            );
+                    "Could set content input stream.", e);
         }
     }
 

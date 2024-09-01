@@ -94,8 +94,7 @@ public class CommitterService<T> {
             }
             uniqueDirNames.add(dirName);
             var ctx = baseContext.withWorkdir(
-                    baseContext.getWorkDir().resolve(dirName)
-            );
+                    baseContext.getWorkDir().resolve(dirName));
             c.init(ctx);
         });
 
@@ -189,8 +188,7 @@ public class CommitterService<T> {
             } catch (CommitterException e) {
                 LOG.error(
                         "Could not execute \"{}\" on committer: {}",
-                        operation, committer, e
-                );
+                        operation, committer, e);
                 failures.add(committer.getClass().getSimpleName());
                 exception = e;
             }
@@ -202,8 +200,7 @@ public class CommitterService<T> {
                             + StringUtils.join(failures, ", ")
                             + "\". Cause is the last exception captured. "
                             + "Check the logs for more details.",
-                    exception
-            );
+                    exception);
         }
     }
 
@@ -219,8 +216,7 @@ public class CommitterService<T> {
                         .subject(object)
                         .committers(targets)
                         .message(msg)
-                        .build()
-        );
+                        .build());
     }
 
     @Override

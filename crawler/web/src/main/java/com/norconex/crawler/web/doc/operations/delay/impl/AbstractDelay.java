@@ -52,8 +52,7 @@ public abstract class AbstractDelay {
                 LOG.debug(
                         "Thread {} sleeping for {} seconds.",
                         Thread.currentThread().getName(),
-                        (millis / THOUSAND_MILLIS)
-                );
+                        (millis / THOUSAND_MILLIS));
             }
             Sleeper.sleepNanos(timeToSleepNanos);
         }

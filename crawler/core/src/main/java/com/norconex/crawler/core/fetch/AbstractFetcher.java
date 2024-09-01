@@ -19,7 +19,7 @@ import java.util.Optional;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.xml.XmlConfigurable;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
  * startup and shutdown events.
  * </p>
  * <h3>XML configuration usage:</h3>
- * Subclasses inherit this {@link XMLConfigurable} configuration:
+ * Subclasses inherit this {@link XmlConfigurable} configuration:
  *
  * {@nx.xml.usage #referenceFilters
  * <referenceFilters>
@@ -94,14 +94,12 @@ public abstract class AbstractFetcher<
                 && acceptRequest(fetchRequest)) {
             LOG.debug(
                     "Fetcher {} ACCEPTED request '{}'.",
-                    getClass().getSimpleName(), fetchRequest
-            );
+                    getClass().getSimpleName(), fetchRequest);
             return true;
         }
         LOG.debug(
                 "Fetcher {} REJECTED request '{}'.",
-                getClass().getSimpleName(), fetchRequest
-        );
+                getClass().getSimpleName(), fetchRequest);
         return false;
     }
 
@@ -134,13 +132,11 @@ public abstract class AbstractFetcher<
             fetcherShutdown((Crawler) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                 && Thread.currentThread().equals(
-                        ((CrawlerEvent) event).getSubject()
-                )) {
+                        ((CrawlerEvent) event).getSubject())) {
             fetcherThreadBegin((Crawler) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)
                 && Thread.currentThread().equals(
-                        ((CrawlerEvent) event).getSubject()
-                )) {
+                        ((CrawlerEvent) event).getSubject())) {
             fetcherThreadEnd((Crawler) event.getSource());
         }
     }
@@ -192,22 +188,16 @@ public abstract class AbstractFetcher<
                 .onAccepted(
                         f -> LOG.debug(
                                 "Fetcher {} ACCEPTED reference: '{}'. Filter={}",
-                                getClass().getSimpleName(), ref, f
-                        )
-                )
+                                getClass().getSimpleName(), ref, f))
                 .onRejected(
                         f -> LOG.debug(
                                 "Fetcher {} REJECTED reference: '{}'. Filter={}",
-                                getClass().getSimpleName(), ref, f
-                        )
-                )
+                                getClass().getSimpleName(), ref, f))
                 .onRejectedNoInclude(
                         f -> LOG.debug(
                                 "Fetcher {} REJECTED reference: '{}'. "
                                         + "No 'include' filters matched.",
-                                getClass().getSimpleName(), ref
-                        )
-                )
+                                getClass().getSimpleName(), ref))
                 .build()
                 .accepts(getConfiguration().getReferenceFilters());
     }

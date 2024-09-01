@@ -63,8 +63,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, DelayResolver.class);
         addPolyType(
                 map, DocumentFilter.class,
-                "doc.operations.filter"
-        ); //NOSONAR
+                "doc.operations.filter"); //NOSONAR
         addPolyType(map, MetadataFilter.class, "doc.operations.filter");
         addPolyType(map, ReferenceFilter.class, "doc.operations.filter");
         addPolyType(map, LinkExtractor.class);
@@ -81,9 +80,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         map.putAll(
                 Fetcher.class, List.of(
                         GenericHttpFetcher.class,
-                        WebDriverHttpFetcher.class
-                )
-        );
+                        WebDriverHttpFetcher.class));
 
         // For unit test
         addPolyType(map, EventListener.class, "session.recovery");
@@ -94,25 +91,21 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
 
     private void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
-            Class<?> baseClass
-    ) {
+            Class<?> baseClass) {
         addPolyType(polyTypes, baseClass, null);
     }
 
     private void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
             Class<?> baseClass,
-            String corePkg
-    ) {
+            String corePkg) {
         polyTypes.putAll(
                 baseClass, ClassFinder.findSubTypes(
                         baseClass,
                         corePkg == null
                                 ? nm -> nm
                                         .startsWith(baseClass.getPackageName())
-                                : filter(corePkg)
-                )
-        );
+                                : filter(corePkg)));
     }
 
     private Predicate<String> filter(String corePkg) {

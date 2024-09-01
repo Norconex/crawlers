@@ -38,8 +38,7 @@ class CsvSplitterTest {
     @BeforeEach
     void setup() {
         input = CsvSplitterTest.class.getResourceAsStream(
-                CsvSplitterTest.class.getSimpleName() + ".csv"
-        );
+                CsvSplitterTest.class.getSimpleName() + ".csv");
     }
 
     @AfterEach
@@ -56,10 +55,8 @@ class CsvSplitterTest {
         var docs = split(splitter);
         Assertions.assertEquals(
                 "654-0987", docs.get(2).getMetadata().getString(
-                        DocMetadata.EMBEDDED_REFERENCE
-                ),
-                "Could not find embedded William Dalton phone reference."
-        );
+                        DocMetadata.EMBEDDED_REFERENCE),
+                "Could not find embedded William Dalton phone reference.");
     }
 
     @Test
@@ -72,10 +69,8 @@ class CsvSplitterTest {
         Assertions.assertEquals(
                 "William Dalton",
                 docs.get(3).getMetadata().getString(
-                        DocMetadata.EMBEDDED_REFERENCE
-                ),
-                "Could not find embedded William Dalton reference."
-        );
+                        DocMetadata.EMBEDDED_REFERENCE),
+                "Could not find embedded William Dalton reference.");
     }
 
     @Test
@@ -90,9 +85,7 @@ class CsvSplitterTest {
                 "William Dalton 654-0987",
                 IOUtils.toString(
                         docs.get(2).getInputStream(),
-                        StandardCharsets.UTF_8
-                )
-        );
+                        StandardCharsets.UTF_8));
     }
 
     @Test
@@ -103,14 +96,12 @@ class CsvSplitterTest {
 
         Assertions.assertEquals(
                 4, docs.size(),
-                "Invalid number of docs returned."
-        );
+                "Invalid number of docs returned.");
 
         Assertions.assertEquals(
                 "William Dalton",
                 docs.get(2).getMetadata().getString("clientName"),
-                "Could not find William Dalton by column name."
-        );
+                "Could not find William Dalton by column name.");
     }
 
     private List<Doc> split(CsvSplitter splitter)

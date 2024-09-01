@@ -46,15 +46,11 @@ public class BeforeFsCrawlerExecution implements Consumer<Crawler> {
                         yn(cfg.getMetadataChecksummer() != null),
                         yn(
                                 cfg.isMetadataDeduplicate()
-                                        && cfg.getMetadataChecksummer() != null
-                        ),
+                                        && cfg.getMetadataChecksummer() != null),
                         yn(cfg.getDocumentChecksummer() != null),
                         yn(
                                 cfg.isDocumentDeduplicate()
-                                        && cfg.getDocumentChecksummer() != null
-                        )
-                )
-        );
+                                        && cfg.getDocumentChecksummer() != null)));
     }
 
     private static String yn(boolean value) {

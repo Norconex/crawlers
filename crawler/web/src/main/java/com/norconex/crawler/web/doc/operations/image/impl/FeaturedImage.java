@@ -33,8 +33,7 @@ public class FeaturedImage {
     private final BufferedImage image;
 
     public FeaturedImage(
-            String url, Dimension originalSize, BufferedImage image
-    ) {
+            String url, Dimension originalSize, BufferedImage image) {
         this.url = url;
         this.originalSize = originalSize;
         this.image = image;

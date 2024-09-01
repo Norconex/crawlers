@@ -34,13 +34,11 @@ class GenericSitemapLocatorTest {
 
         var locator = new GenericSitemapLocator();
         assertThat(locator.getConfiguration().getPaths()).contains(
-                "/sitemap.xml", "/sitemap_index.xml"
-        );
+                "/sitemap.xml", "/sitemap_index.xml");
 
         locator.getConfiguration().setPaths(List.of("abc.xml", "def.xml"));
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(locator)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
 
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
             cfg.setStartReferences(List.of("http://example.com/index.html"));
@@ -49,18 +47,14 @@ class GenericSitemapLocatorTest {
         Web.config(crawler).setRobotsTxtProvider(null);
         assertThat(
                 locator.locations(
-                        "http://example.com/index.html", crawler
-                )
-        )
-                .containsExactly(
-                        "http://example.com/abc.xml",
-                        "http://example.com/def.xml"
-                );
+                        "http://example.com/index.html", crawler))
+                                .containsExactly(
+                                        "http://example.com/abc.xml",
+                                        "http://example.com/def.xml");
 
         // try with empty paths
         locator.getConfiguration().setPaths(null);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(locator)
-        );
+                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
     }
 }

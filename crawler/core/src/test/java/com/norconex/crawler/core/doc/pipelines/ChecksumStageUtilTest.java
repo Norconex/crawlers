@@ -78,8 +78,7 @@ class ChecksumStageUtilTest {
         ctx.getDoc().getCachedDocContext().setMetaChecksum("abc");
         assertThat(resolveMetaChecksum("abc", doc)).isFalse();
         assertThat(
-                ctx.getDoc().getDocContext().getState()
-        ).isSameAs(UNMODIFIED);
+                ctx.getDoc().getDocContext().getState()).isSameAs(UNMODIFIED);
 
         // checksum - cache with checksum - different
         ctx.getDoc().getCachedDocContext().setMetaChecksum("cde");
@@ -129,8 +128,7 @@ class ChecksumStageUtilTest {
         ctx.getDoc().getCachedDocContext().setContentChecksum("abc");
         assertThat(resolveDocumentChecksum("abc", doc)).isFalse();
         assertThat(
-                ctx.getDoc().getDocContext().getState()
-        ).isSameAs(UNMODIFIED);
+                ctx.getDoc().getDocContext().getState()).isSameAs(UNMODIFIED);
 
         // checksum - cache with checksum - different
         ctx.getDoc().getCachedDocContext().setContentChecksum("cde");

@@ -53,14 +53,12 @@ public class ImporterPipelineContext {
      * @return <code>true</code> if the metadata directive was executed
      */
     public boolean isMetadataDirectiveExecuted(
-            FetchDirective currentDirective
-    ) {
+            FetchDirective currentDirective) {
         // If both DOCUMENT and METADATA fetching were requested and the
         // current directive is DOCUMENT, then metadata had to be performed.
         return currentDirective == FetchDirective.DOCUMENT
                 && FetchDirectiveSupport.isEnabled(
-                        crawler.getConfiguration().getMetadataFetchSupport()
-                );
+                        crawler.getConfiguration().getMetadataFetchSupport());
     }
 
     /**
@@ -72,12 +70,10 @@ public class ImporterPipelineContext {
     public boolean isFetchDirectiveEnabled(FetchDirective directive) {
         return (directive == FetchDirective.METADATA
                 && FetchDirectiveSupport.isEnabled(
-                        crawler.getConfiguration().getMetadataFetchSupport()
-                ))
+                        crawler.getConfiguration().getMetadataFetchSupport()))
                 || (directive == FetchDirective.DOCUMENT
                         && FetchDirectiveSupport.isEnabled(
                                 crawler.getConfiguration()
-                                        .getDocumentFetchSupport()
-                        ));
+                                        .getDocumentFetchSupport()));
     }
 }

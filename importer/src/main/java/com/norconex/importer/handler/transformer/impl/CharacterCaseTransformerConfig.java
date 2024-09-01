@@ -128,8 +128,7 @@ public class CharacterCaseTransformerConfig {
      * @param fieldMatcher field matcher
      */
     public CharacterCaseTransformerConfig setFieldMatcher(
-            TextMatcher fieldMatcher
-    ) {
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }

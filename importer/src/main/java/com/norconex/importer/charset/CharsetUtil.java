@@ -55,11 +55,9 @@ public final class CharsetUtil {
     public static String convertCharset(
             String input,
             @NonNull Charset inputCharset,
-            @NonNull Charset outputCharset
-    ) throws IOException {
+            @NonNull Charset outputCharset) throws IOException {
         return convertCharset(
-                input, inputCharset.toString(), outputCharset.toString()
-        );
+                input, inputCharset.toString(), outputCharset.toString());
     }
 
     /**
@@ -72,8 +70,7 @@ public final class CharsetUtil {
      */
     public static String convertCharset(
             String input, String inputCharset,
-            String outputCharset
-    ) throws IOException {
+            String outputCharset) throws IOException {
         try (var is =
                 new ByteArrayInputStream(input.getBytes(inputCharset));
                 var os = new ByteArrayOutputStream()) {
@@ -93,13 +90,11 @@ public final class CharsetUtil {
      */
     public static void convertCharset(
             @NonNull InputStream input, @NonNull Charset inputCharset,
-            @NonNull OutputStream output, @NonNull Charset outputCharset
-    )
+            @NonNull OutputStream output, @NonNull Charset outputCharset)
             throws IOException {
         convertCharset(
                 input, inputCharset.toString(),
-                output, outputCharset.toString()
-        );
+                output, outputCharset.toString());
     }
 
     /**
@@ -112,8 +107,7 @@ public final class CharsetUtil {
      */
     public static void convertCharset(
             InputStream input, String inputCharset,
-            OutputStream output, String outputCharset
-    ) throws IOException {
+            OutputStream output, String outputCharset) throws IOException {
         var decoder = Charset.forName(inputCharset).newDecoder();
         decoder.onMalformedInput(CodingErrorAction.REPLACE);
         decoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
@@ -152,8 +146,7 @@ public final class CharsetUtil {
      * @return first non-blank, or UTF-8
      */
     public static String firstNonBlankOrUTF8(
-            ParseState parseState, String... charsets
-    ) {
+            ParseState parseState, String... charsets) {
         if (ParseState.isPost(parseState)) {
             return StandardCharsets.UTF_8.toString();
         }
@@ -184,8 +177,7 @@ public final class CharsetUtil {
      * @return first non-blank, or UTF-8
      */
     public static Charset firstNonNullOrUTF8(
-            ParseState parseState, Charset... charsets
-    ) {
+            ParseState parseState, Charset... charsets) {
         if (ParseState.isPost(parseState)) {
             return StandardCharsets.UTF_8;
         }

@@ -36,14 +36,12 @@ class ConstantTransformerTest {
                 .setConstants(
                         List.of(
                                 Constant.of(
-                                        "constant1", List.of("value1", "value2")
-                                ),
+                                        "constant1",
+                                        List.of("value1", "value2")),
                                 Constant.of(
-                                        "constant2", List.of("valueA", "valueA")
-                                ),
-                                Constant.of("constant3", "valueZ")
-                        )
-                )
+                                        "constant2",
+                                        List.of("valueA", "valueA")),
+                                Constant.of("constant3", "valueZ")))
                 .setOnSet(PropertySetter.REPLACE);
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
@@ -73,8 +71,7 @@ class ConstantTransformerTest {
         Assertions.assertArrayEquals(
                 new String[] {
                         "1", "2", "3", "4" },
-                m.getStrings("test1").toArray()
-        );
+                m.getStrings("test1").toArray());
         // REPLACE
         t.getConfiguration()
                 .setOnSet(PropertySetter.REPLACE)
@@ -84,8 +81,7 @@ class ConstantTransformerTest {
         Assertions.assertArrayEquals(
                 new String[] {
                         "3", "4" },
-                m.getStrings("test2").toArray()
-        );
+                m.getStrings("test2").toArray());
         // OPTIONAL
         t.getConfiguration()
                 .setOnSet(PropertySetter.OPTIONAL)
@@ -95,8 +91,7 @@ class ConstantTransformerTest {
         Assertions.assertArrayEquals(
                 new String[] {
                         "1", "2" },
-                m.getStrings("test3").toArray()
-        );
+                m.getStrings("test3").toArray());
         // PREPEND
         t.getConfiguration()
                 .setOnSet(PropertySetter.PREPEND)
@@ -106,7 +101,6 @@ class ConstantTransformerTest {
         Assertions.assertArrayEquals(
                 new String[] {
                         "3", "4", "1", "2" },
-                m.getStrings("test4").toArray()
-        );
+                m.getStrings("test4").toArray());
     }
 }

@@ -31,8 +31,7 @@ public final class MatchUtil {
      *      type are <code>null</code>
      */
     public static boolean matchesContentType(
-            TextMatcher matcher, DocContext docRecord
-    ) {
+            TextMatcher matcher, DocContext docRecord) {
         if (docRecord == null) {
             return true;
         }
@@ -47,8 +46,7 @@ public final class MatchUtil {
      *      <code>null</code>
      */
     public static boolean matchesContentType(
-            TextMatcher matcher, ContentType contentType
-    ) {
+            TextMatcher matcher, ContentType contentType) {
         if (matcher == null || contentType == null) {
             return true;
         }

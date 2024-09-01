@@ -48,15 +48,13 @@ public class FileMultiFetcher
                     FileFetchResponse> multiResponseWrapper,
             @NonNull UnsuccessfulResponseFactory<
                     FileFetchResponse> unsuccessfulResponseAdaptor,
-            int maxRetries, Duration retryDelay
-    ) {
+            int maxRetries, Duration retryDelay) {
         super(
                 fetchers,
                 multiResponseWrapper,
                 unsuccessfulResponseAdaptor,
                 maxRetries,
-                retryDelay
-        );
+                retryDelay);
     }
 
     @Override
@@ -70,8 +68,7 @@ public class FileMultiFetcher
             // Fetch request is fake here, just so we can invoke "accept"
             var req = new FileFetchRequest(
                     new CrawlDoc(new CrawlDocContext(parentPath)),
-                    FetchDirective.DOCUMENT
-            );
+                    FetchDirective.DOCUMENT);
             if (!fetcher.accept(req)) {
                 continue;
             }
@@ -79,8 +76,7 @@ public class FileMultiFetcher
                 LOG.debug(
                         "Child paths fetcher {} accepted this "
                                 + "reference: \"{}\".",
-                        fetcher.getClass().getSimpleName(), parentPath
-                );
+                        fetcher.getClass().getSimpleName(), parentPath);
             }
             accepted = true;
 
@@ -88,13 +84,11 @@ public class FileMultiFetcher
                 return new Retrier(getMaxRetries())
                         .execute(
                                 () -> ((FileFetcher) fetcher)
-                                        .fetchChildPaths(parentPath)
-                        );
+                                        .fetchChildPaths(parentPath));
             } catch (RetriableException e) {
                 LOG.debug(
                         "Failed to obtain child paths with fetcher: {}.",
-                        fetcher.getClass().getName(), e
-                );
+                        fetcher.getClass().getName(), e);
             }
         }
         if (!accepted) {

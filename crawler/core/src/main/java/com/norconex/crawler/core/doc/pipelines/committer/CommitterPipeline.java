@@ -33,8 +33,7 @@ public class CommitterPipeline implements Consumer<CommitterPipelineContext> {
     private CommitterPipeline(
             Predicates<CommitterPipelineContext> stages,
             Function<CommitterPipelineContext,
-                    ? extends CommitterPipelineContext> contextAdapter
-    ) {
+                    ? extends CommitterPipelineContext> contextAdapter) {
         this.stages = stages;
         this.contextAdapter = contextAdapter;
     }

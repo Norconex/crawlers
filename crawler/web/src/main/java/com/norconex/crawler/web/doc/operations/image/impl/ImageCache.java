@@ -57,13 +57,11 @@ public class ImageCache {
             throw new DataStoreException(
                     "Cannot create image cache directory: "
                             + dir.toAbsolutePath(),
-                    e
-            );
+                    e);
         }
 
         store = MVStore.open(
-                dir.resolve("images").toAbsolutePath().toString()
-        );
+                dir.resolve("images").toAbsolutePath().toString());
         imgCache = store.openMap("imgCache");
         imgCache.clear();
 
@@ -73,19 +71,16 @@ public class ImageCache {
 
                     @Override
                     protected boolean removeLRU(
-                            LinkEntry<String, String> entry
-                    ) {
+                            LinkEntry<String, String> entry) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug(
                                     "Cache full, removing: {}",
-                                    entry.getKey()
-                            );
+                                    entry.getKey());
                         }
                         imgCache.remove(entry.getKey());
                         return super.removeLRU(entry);
                     }
-                }
-        );
+                });
         store.commit();
     }
 
@@ -101,8 +96,7 @@ public class ImageCache {
         lru.put(ref, null);
         return new FeaturedImage(
                 ref, img.getOriginalDimension(),
-                ImageIO.read(new ByteArrayInputStream(img.getImage()))
-        );
+                ImageIO.read(new ByteArrayInputStream(img.getImage())));
     }
 
     public void setImage(FeaturedImage scaledImage)
@@ -112,9 +106,7 @@ public class ImageCache {
         ImageIO.write(scaledImage.getImage(), "png", baos);
         imgCache.put(
                 scaledImage.getUrl(), new MVImage(
-                        scaledImage.getOriginalSize(), baos.toByteArray()
-                )
-        );
+                        scaledImage.getOriginalSize(), baos.toByteArray()));
         store.commit();
     }
 

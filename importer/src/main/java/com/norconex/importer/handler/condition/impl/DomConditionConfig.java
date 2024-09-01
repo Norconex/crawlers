@@ -198,8 +198,7 @@ public class DomConditionConfig {
      * @param contentTypeMatcher content-type matcher
      */
     public DomConditionConfig setContentTypeMatcher(
-            TextMatcher contentTypeMatcher
-    ) {
+            TextMatcher contentTypeMatcher) {
         this.contentTypeMatcher.copyFrom(contentTypeMatcher);
         return this;
     }

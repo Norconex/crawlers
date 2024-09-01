@@ -34,8 +34,7 @@ public class NumericValueMatcher //NOSONAR we want to support null
     @JsonCreator
     public NumericValueMatcher(
             @JsonProperty("operator") Operator operator,
-            @JsonProperty("number") double number
-    ) {
+            @JsonProperty("number") double number) {
         this.operator = operator;
         this.number = number;
     }

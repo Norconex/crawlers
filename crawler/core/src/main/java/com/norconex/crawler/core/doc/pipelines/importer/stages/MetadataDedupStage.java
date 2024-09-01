@@ -55,8 +55,7 @@ public class MetadataDedupStage extends AbstractImporterStage {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(
                         "REJECTED duplicate metadata checkum found for: {}",
-                        docContext.getReference()
-                );
+                        docContext.getReference());
             }
             docContext.setState(CrawlDocState.REJECTED);
             ctx.getCrawler().fire(
@@ -68,10 +67,8 @@ public class MetadataDedupStage extends AbstractImporterStage {
                             .message(
                                     "A document with the same metadata checksum "
                                             + "was already processed: "
-                                            + duplRef.get()
-                            )
-                            .build()
-            );
+                                            + duplRef.get())
+                            .build());
             return false;
         }
         return true;

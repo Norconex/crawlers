@@ -112,8 +112,7 @@ class SolrCommitterTest extends AbstractSolrTest {
         doc.addField(SolrCommitterConfig.DEFAULT_SOLR_ID_FIELD, "1");
         doc.addField(
                 SolrCommitterConfig.DEFAULT_SOLR_CONTENT_FIELD,
-                "Hello world!"
-        );
+                "Hello world!");
         getSolrClient().add(doc);
         getSolrClient().commit();
 
@@ -134,9 +133,7 @@ class SolrCommitterTest extends AbstractSolrTest {
         solrParams.set(
                 "q", String.format(
                         "%s:%s",
-                        SolrCommitterConfig.DEFAULT_SOLR_ID_FIELD, id
-                )
-        );
+                        SolrCommitterConfig.DEFAULT_SOLR_ID_FIELD, id));
         var response = getSolrClient().query(solrParams);
         return response.getResults();
     }
