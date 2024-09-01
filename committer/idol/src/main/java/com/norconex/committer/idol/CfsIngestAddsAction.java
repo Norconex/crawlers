@@ -29,7 +29,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.committer.core.CommitterException;
@@ -156,15 +155,7 @@ class CfsIngestAddsAction implements IdolIndexAction {
         xml.writeEndElement(); // end "document"
 
         //--- Document content ---
-        String content;
-        if (StringUtils.isNotBlank(contentField)) {
-            content = StringUtils.trimToEmpty(
-                    String.join(
-                            "\n\n",
-                            req.getMetadata().getStrings(contentField)));
-        } else {
-            content = IOUtils.toString(req.getContent(), UTF_8);
-        }
+        var content = IdolUtil.resolveDreContent(req, contentField);
         xml.writeStartElement("source");
         xml.writeAttribute(
                 "content",

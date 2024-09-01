@@ -14,7 +14,6 @@
  */
 package com.norconex.committer.idol;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.equalsAny;
 
 import java.io.IOException;
@@ -23,7 +22,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.committer.core.CommitterException;
@@ -65,9 +63,8 @@ class DreAddDataAction implements IdolIndexAction {
     @Override
     public URL url(List<CommitterRequest> batch, HttpURL url)
             throws CommitterException {
-        url.setPath(
-                StringUtils.appendIfMissing(
-                        url.getPath(), "/") + "DREADDDATA");
+        url.setPath(StringUtils.appendIfMissing(
+                url.getPath(), "/") + "DREADDDATA");
         return url.toURL();
     }
 
@@ -88,26 +85,25 @@ class DreAddDataAction implements IdolIndexAction {
     private void writeIdxDocument(Writer w, UpsertRequest req)
             throws CommitterException, IOException {
 
-        String refField = config.getSourceReferenceField();
-        String contentField = config.getSourceContentField();
+        var refField = config.getSourceReferenceField();
+        var contentField = config.getSourceContentField();
 
         //--- Document reference ---
-        String ref = req.getReference();
+        var ref = req.getReference();
         if (StringUtils.isNotBlank(refField)) {
             ref = req.getMetadata().getString(refField);
             if (StringUtils.isBlank(ref)) {
-                throw new CommitterException(
-                        "Source reference field '"
-                                + refField + "' has no value for document: "
-                                + req.getReference());
+                throw new CommitterException("Source reference field '"
+                        + refField + "' has no value for document: "
+                        + req.getReference());
             }
         }
         w.append("\n#DREREFERENCE ").append(ref);
 
         //--- Document metadata ---
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
-            String name = en.getKey();
-            List<String> values = en.getValue();
+            var name = en.getKey();
+            var values = en.getValue();
             if (values == null || equalsAny(name, refField, contentField)) {
                 continue;
             }
@@ -124,17 +120,8 @@ class DreAddDataAction implements IdolIndexAction {
         }
 
         //--- Document content ---
-        String content;
-        if (StringUtils.isNotBlank(contentField)) {
-            content = StringUtils.trimToEmpty(
-                    String.join(
-                            "\n\n",
-                            req.getMetadata().getStrings(contentField)));
-        } else {
-            content = IOUtils.toString(req.getContent(), UTF_8);
-        }
         w.append("\n#DRECONTENT\n");
-        w.append(content);
+        w.append(IdolUtil.resolveDreContent(req, contentField));
         w.append("\n#DREENDDOC ");
 
         w.append("\n");
