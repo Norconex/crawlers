@@ -54,7 +54,7 @@ import com.norconex.commons.lang.url.HttpURL;
  * DIH_12.7_Documentation/Help/#Index%20Actions/IndexData/
  * _IX_DREADDDATA.htm%3FTocPath%3DIndex%2520Actions%7CIndex%2520Data%7C_____2
  */
-class DreAddDataAction implements IIdolIndexAction {
+class DreAddDataAction implements IdolIndexAction {
 
     private final IdolCommitterConfig config;
 

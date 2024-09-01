@@ -23,12 +23,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.commons.lang.url.HttpURL;
+
+import lombok.extern.slf4j.Slf4j;
 
 /* IDOL "DREDELETEREF" index action.
  *
@@ -44,10 +44,8 @@ import com.norconex.commons.lang.url.HttpURL;
  * _IX_DREDELETEREF.htm%3FTocPath%3DIndex%2520Actions%7CRemove
  * %2520Content%7C_____3
  */
-class DreDeleteRefAction implements IIdolIndexAction {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DreDeleteRefAction.class);
+@Slf4j
+class DreDeleteRefAction implements IdolIndexAction {
 
     private final IdolCommitterConfig config;
 
@@ -66,25 +64,26 @@ class DreDeleteRefAction implements IIdolIndexAction {
             return addDeletesToUrl(batch, url.toString());
         } catch (MalformedURLException | UnsupportedEncodingException e) {
             throw new CommitterException(
-                    "Could not create CFS Ingest Removes URL.", e);
+                    "Could not create DRE delete URL.", e);
         }
     }
 
     private URL addDeletesToUrl(List<CommitterRequest> batch, String url)
             throws MalformedURLException, UnsupportedEncodingException {
-        StringBuilder b = new StringBuilder(url);
+        var b = new StringBuilder(url);
         b.append("&Docs=");
-        String sep = "";
+        var sep = "";
         for (CommitterRequest req : batch) {
-            String refField = config.getSourceReferenceField();
-            String ref = req.getReference();
+            var refField = config.getSourceReferenceField();
+            var ref = req.getReference();
             if (StringUtils.isNotBlank(refField)) {
                 ref = req.getMetadata().getString(refField);
                 if (StringUtils.isBlank(ref)) {
                     LOG.warn(
-                            "Source reference field '{}' has no value "
-                                    + "for deletion of document: '{}'. Using that "
-                                    + "original document reference instead.",
+                            """
+                                Source reference field '{}' has no value \
+                                for deletion of document: '{}'. Using that \
+                                original document reference instead.""",
                             refField, req.getReference());
                     ref = req.getReference();
                 }

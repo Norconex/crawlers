@@ -43,8 +43,8 @@ class IdolClient {
     private static final Logger LOG = LoggerFactory.getLogger(IdolClient.class);
 
     private final IdolCommitterConfig config;
-    private final IIdolIndexAction upsertAction;
-    private final IIdolIndexAction deleteAction;
+    private final IdolIndexAction upsertAction;
+    private final IdolIndexAction deleteAction;
 
     IdolClient(IdolCommitterConfig config) {
         this.config = Objects.requireNonNull(
@@ -94,7 +94,7 @@ class IdolClient {
         return prevType != null && !(prevType.equals(req.getClass()));
     }
 
-    private IIdolIndexAction actionForType(
+    private IdolIndexAction actionForType(
             Class<? extends CommitterRequest> reqType) {
         return UpsertRequest.class.isAssignableFrom(reqType)
                 ? upsertAction

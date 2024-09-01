@@ -63,7 +63,7 @@ import com.norconex.commons.lang.url.HttpURL;
  * https://www.microfocus.com/documentation/idol/IDOL_12_0/CFS/Guides/pdf/
  * English/ConnectorFrameworkServer_12.0_Admin_en.pdf (Page 40-41)
  */
-class CfsIngestAddsAction implements IIdolIndexAction {
+class CfsIngestAddsAction implements IdolIndexAction {
 
     private final IdolCommitterConfig config;
 
@@ -94,9 +94,9 @@ class CfsIngestAddsAction implements IIdolIndexAction {
 
     private String toCfsXmlBatch(List<CommitterRequest> batch)
             throws XMLStreamException, CommitterException, IOException {
-        StringWriter w = new StringWriter();
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        XMLStreamWriter xml = factory.createXMLStreamWriter(w);
+        var w = new StringWriter();
+        var factory = XMLOutputFactory.newInstance();
+        var xml = factory.createXMLStreamWriter(w);
         xml.writeStartElement("adds");
         for (CommitterRequest upsert : batch) {
             writeDocUpsert(xml, (UpsertRequest) upsert);
@@ -109,21 +109,21 @@ class CfsIngestAddsAction implements IIdolIndexAction {
 
     private void writeDocUpsert(XMLStreamWriter xml, UpsertRequest req)
             throws XMLStreamException, CommitterException, IOException {
-        String refField = config.getSourceReferenceField();
-        String contentField = config.getSourceContentField();
+        var refField = config.getSourceReferenceField();
+        var contentField = config.getSourceContentField();
 
         xml.writeStartElement("add");
         xml.writeStartElement("document");
 
         //--- Document reference ---
-        String ref = req.getReference();
+        var ref = req.getReference();
         if (StringUtils.isNotBlank(refField)) {
             ref = req.getMetadata().getString(refField);
             if (StringUtils.isBlank(ref)) {
                 throw new CommitterException(
-                        "Source reference field '"
-                                + refField + "' has no value for document: "
-                                + req.getReference());
+                        ("Source reference field '%s' has no value for "
+                        + "document: %s").formatted(
+                                refField, req.getReference()));
             }
         }
         xml.writeStartElement("reference");
@@ -132,8 +132,8 @@ class CfsIngestAddsAction implements IIdolIndexAction {
 
         //--- Document metadata ---
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
-            String name = en.getKey();
-            List<String> values = en.getValue();
+            var name = en.getKey();
+            var values = en.getValue();
             if (values == null || equalsAny(name, refField, contentField)) {
                 continue;
             }

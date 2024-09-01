@@ -26,7 +26,7 @@ import com.norconex.commons.lang.url.HttpURL;
 /* Delete/add params are set by IDOL Client prior to calling
  * "prepare".
  */
-interface IIdolIndexAction {
+interface IdolIndexAction {
 
     URL url(List<CommitterRequest> batch, HttpURL startUrl)
             throws CommitterException;
