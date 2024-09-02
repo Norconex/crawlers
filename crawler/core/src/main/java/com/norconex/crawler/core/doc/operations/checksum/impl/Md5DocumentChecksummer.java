@@ -38,10 +38,11 @@ import lombok.Data;
  * </p>
  * <p>
  * You have the option to keep the checksum as a document metadata field.
- * When {@link #setKeep(boolean)} is <code>true</code>, the checksum will be
+ * When {@link Md5DocumentChecksummerConfig#setKeep(boolean)} is
+ * <code>true</code>, the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
- * {@link CrawlDocMetadata#CHECKSUM_METADATA}.
+ * {@value CrawlDocMetadata#CHECKSUM_METADATA}.
  * </p>
  *
  * <p>
@@ -54,38 +55,11 @@ import lombok.Data;
  * will ignore the content while specifying none will only use the content.
  * </p>
  *
- * {@nx.xml.usage
- * <documentChecksummer
- *     class="com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer"
- *     combineFieldsAndContent="[false|true]"
- *     keep="[false|true]"
- *     toField="(optional metadata field to store the checksum)">
- *
- *   <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (expression matching fields used to create the checksum)
- *   </fieldMatcher>
- * </documentChecksummer>
- * }
  * <p>
  * <code>toField</code> is ignored unless the <code>keep</code>
  * attribute is set to <code>true</code>.
  * </p>
- *
- * {@nx.xml.example
- * <documentChecksummer class="Md5DocumentChecksummer" />
- * }
- *
- * <p>
- * The above example uses the document body (default) to make the checksum.
- * </p>
- *
- * <p>
- * <b>Since 2.0.0</b>, a self-closing
- * <code>&lt;documentChecksummer/&gt;</code> tag without any attributes
- * is used to disable checksum generation.
- * </p>
  */
-@SuppressWarnings("javadoc")
 @Data
 public class Md5DocumentChecksummer
         extends AbstractDocumentChecksummer<Md5DocumentChecksummerConfig> {

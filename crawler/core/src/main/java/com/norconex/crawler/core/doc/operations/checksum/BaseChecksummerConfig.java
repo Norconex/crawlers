@@ -33,12 +33,6 @@ import lombok.experimental.Accessors;
  * Implementors should offer this XML configuration usage:
  * </p>
  *
- * {@nx.xml #usage
- * <metadataChecksummer class="(subclass)">
- *    keep="[false|true]"
- *    toField="(optional metadata field to store the checksum)"
- *    onSet="[append|prepend|replace|optional]" />
- * }
  * <p>
  * <code>toField</code> is ignored unless the <code>keep</code>
  * attribute is set to <code>true</code>.
@@ -46,29 +40,22 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-@SuppressWarnings("javadoc")
 public class BaseChecksummerConfig {
 
     /**
      * Whether to keep the metadata checksum value as a new metadata field.
-     * @param keep <code>true</code> to keep the checksum
-     * @return <code>true</code> to keep the checksum
      */
     private boolean keep;
 
     /**
      * The metadata field to use to store the checksum value.
-     * Default value is set by checksummer implementations.
+     * A default field name may be set by checksummer implementations.
      * Only applicable if {@link #isKeep()} returns {@code true}
-     * @param toField the metadata field name
-     * @return metadata field name
      */
     private String toField;
 
     /**
      * The property setter to use when a value is set.
-     * @param onSet property setter
-     * @return property setter
      */
     private PropertySetter onSet;
 }
