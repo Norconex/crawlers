@@ -34,32 +34,7 @@ import lombok.ToString;
  * Accepts or rejects a reference based on whether one or more
  * metadata field values are matching.
  * </p>
- *
- * {@nx.xml.usage
- * <filter class="com.norconex.crawler.core.filter.impl.GenericMetadataFilter"
- *     onMatch="[include|exclude]">
- *   <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (Expression matching one or more fields to evaluate.)
- *   </fieldMatcher>
- *   <valueMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (Expression matching one or more values from matching fields.)
- *   </valueMatcher>
- * </filter>
- * }
- *
- * {@nx.xml.example
- * <filter class="GenericMetadataFilter" onMatch="exclude">
- *   <fieldMatcher>Content-Type</fieldMatcher>
- *   <valueMatcher>application/zip</valueMatcher>
- * </filter>
- * }
- * <p>
- * Used in a web context, the above example filters out Zip documents base
- * on a "Content-Type" metadata field.
- * </p>
- *
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class GenericMetadataFilter implements

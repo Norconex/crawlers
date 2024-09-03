@@ -35,27 +35,8 @@ import lombok.ToString;
  * <p>
  * Filters URL based on a matching expression.
  * </p>
- *
- * {@nx.xml.usage
- * <filter class="com.norconex.crawler.core.filter.impl.GenericReferenceFilter"
- *     onMatch="[include|exclude]">
- *   <valueMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (Expression matching the document reference.)
- *   </valueMatcher>
- * </filter>
- * }
- *
- * {@nx.xml.example
- * <filter class="GenericReferenceFilter" onMatch="exclude">
- *   <valueMatcher method="regex">.*&#47;login/.*</valueMatcher>
- * </filter>
- * }
- * <p>
- * The above will reject documents having "/login/" in their reference.
- * </p>
  * @see Pattern
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class GenericReferenceFilter implements
