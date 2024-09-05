@@ -67,6 +67,7 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
      * Otherwise the method returns when initial queuing has completed.
      * If no queue initializer was provided, returns right away with
      * <code>true</code> (initialized).
+     * @param crawler the crawler
      * @return queue initialization completion status
      */
     public MutableBoolean initializeQueue(Crawler crawler) {

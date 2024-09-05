@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
  * <code>REJECTED_</code>. To avoid performance issues when dealing with
  * too many deletion requests, it is recommended you can change this behavior
  * to match exactly the events you are interested in with
- * {@link #setEventMatcher(TextMatcher)}.
+ * {@link DeleteRejectedEventListenerConfig#setEventMatcher(TextMatcher)}.
  * Keep limiting events to "rejected" ones to avoid unexpected results.
  * </p>
  *
