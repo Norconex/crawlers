@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -66,12 +67,11 @@ class PostImportLinksTest {
             cfg.setPostImportLinksKeep(true);
             // Keep only the test PDF.
             cfg.setDocumentFilters(
-                    List.of(
-                            Configurable.configure(
-                                    new ExtensionReferenceFilter(),
-                                    c -> c
-                                            .setExtensions(List.of("pdf"))
-                                            .setOnMatch(OnMatch.INCLUDE))));
+                    List.of(Configurable.configure(
+                            new ExtensionReferenceFilter(),
+                            c -> c
+                                    .setExtensions(Set.of("pdf"))
+                                    .setOnMatch(OnMatch.INCLUDE))));
             // Create a field with post-import PDF URLs.
             var tagger = new UrlExtractorTransformer();
             tagger.getConfiguration().setToField("myPostImportURLs");
