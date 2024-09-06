@@ -29,13 +29,11 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-//TODO move to its own class?
 //TODO document the optional ones and their default values
 @Accessors(fluent = true)
 @Setter
 @Getter
 @NonNull
-@SuppressWarnings("javadoc")
 public class CrawlerBuilder {
     private CrawlerConfig configuration = new CrawlerConfig();
     private DocPipelines docPipelines;
@@ -47,8 +45,6 @@ public class CrawlerBuilder {
     /**
      * The exact type of {@link CrawlDocContext} if your crawler is subclassing
      * it. Defaults to {@link CrawlDocContext} class.
-     * @param docContextType crawl doc brief class
-     * @return doc brief class
      */
     private Class<? extends CrawlDocContext> docContextType =
             CrawlDocContext.class;
@@ -56,9 +52,6 @@ public class CrawlerBuilder {
     /**
      * Provides a required fetcher implementation, responsible for obtaining
      * resources being crawled.
-     *
-     * @param fetcherProvider fetcher provider function
-     * @return a function returning a fetcher to associate with a given crawler.
      */
     private Function<Crawler, ? extends Fetcher<? extends FetchRequest,
             ? extends FetchResponse>> fetcherProvider;

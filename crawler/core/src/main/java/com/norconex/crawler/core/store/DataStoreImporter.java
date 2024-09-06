@@ -51,9 +51,8 @@ public final class DataStoreImporter {
             var zipEntry = zipIn.getNextEntry(); //NOSONAR
             while (zipEntry != null) {
                 if (!importStore(crawler, zipIn)) {
-                    LOG.debug(
-                            "Input file \"{}\" not matching crawler "
-                                    + "\"{}\". Skipping.",
+                    LOG.debug("Input file \"{}\" not matching crawler "
+                            + "\"{}\". Skipping.",
                             inFile, crawler.getId());
                 }
                 zipIn.closeEntry();
@@ -119,8 +118,7 @@ public final class DataStoreImporter {
 
     private static void logProgress(long cnt, boolean done) {
         if (LOG.isInfoEnabled() && (cnt % 10000 == 0 ^ done)) {
-            LOG.info(
-                    "{} imported.",
+            LOG.info("{} imported.",
                     NumberFormat.getIntegerInstance().format(cnt));
         }
     }

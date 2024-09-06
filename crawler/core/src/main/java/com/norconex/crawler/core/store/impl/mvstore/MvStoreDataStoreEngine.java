@@ -37,6 +37,13 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <p>
+ * Embedded data store relying on MvStore.
+ * </p>
+ * @since 1.10.0
+ * @author Pascal Essiembre
+ */
 @EqualsAndHashCode
 @ToString
 @Slf4j
@@ -114,13 +121,12 @@ public class MvStoreDataStoreEngine
         try {
             mvstore = builder.open();
         } catch (MVStoreException e) {
-            LOG.warn(
-                    """
-                            An exception occurred while trying to open the store engine.\s\
-                            This could happen due to an abnormal shutdown on a previous\s\
-                            execution of the crawler. An attempt will be made to recover.\s\
-                            It is advised to back-up the store engine if you want to\s\
-                            preserve the crawl history.""",
+            LOG.warn("""
+                An exception occurred while trying to open the store engine.\s\
+                This could happen due to an abnormal shutdown on a previous\s\
+                execution of the crawler. An attempt will be made to recover.\s\
+                It is advised to back-up the store engine if you want to\s\
+                preserve the crawl history.""",
                     e);
             builder.recoveryMode();
             mvstore = builder.open();
@@ -169,8 +175,8 @@ public class MvStoreDataStoreEngine
         if (mvstore != null && !mvstore.isClosed()) {
             LOG.info("Compacting data store...");
             mvstore.commit();
-            //TODO method dropped from MVStore. Any replacemetn?
-            //mvstore.compactMoveChunks();
+            //NOTE: this method was dropped from MVStore. Any replacement?
+            //  mvstore.compactMoveChunks();
             mvstore.close();
         }
         mvstore = null;
@@ -224,33 +230,4 @@ public class MvStoreDataStoreEngine
     public Optional<Class<?>> getStoreType(String name) {
         return Optional.ofNullable(storeTypes.get(name));
     }
-    //
-    //    @Override
-    //    public void loadFromXML(XML xml) {
-    //        cfg.setPageSplitSize(
-    //                xml.getDataSize(Fields.pageSplitSize, cfg.getPageSplitSize()));
-    //        cfg.setCompress(xml.getInteger(Fields.compress, cfg.getCompress()));
-    //        cfg.setCacheConcurrency(xml.getInteger(
-    //                Fields.cacheConcurrency, cfg.getCacheConcurrency()));
-    //        cfg.setCacheSize(xml.getDataSize(Fields.cacheSize, cfg.getCacheSize()));
-    //        cfg.setAutoCompactFillRate(xml.getInteger(
-    //                Fields.autoCompactFillRate, cfg.getAutoCompactFillRate()));
-    //        cfg.setAutoCommitBufferSize(xml.getDataSize(
-    //                Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize()));
-    //        cfg.setAutoCommitDelay(xml.getDurationMillis(
-    //                Fields.autoCommitDelay, cfg.getAutoCommitDelay()));
-    //        cfg.setEphemeral(xml.getBoolean(Fields.ephemeral, cfg.isEphemeral()));
-    //    }
-    //
-    //    @Override
-    //    public void saveToXML(XML xml) {
-    //        xml.addElement(Fields.pageSplitSize, cfg.getPageSplitSize());
-    //        xml.addElement(Fields.compress, cfg.getCompress());
-    //        xml.addElement(Fields.cacheConcurrency, cfg.getCacheConcurrency());
-    //        xml.addElement(Fields.cacheSize, cfg.getCacheSize());
-    //        xml.addElement(Fields.autoCompactFillRate, cfg.getAutoCompactFillRate());
-    //        xml.addElement(Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize());
-    //        xml.addElement(Fields.autoCommitDelay, cfg.getAutoCommitDelay());
-    //        xml.addElement(Fields.ephemeral, cfg.isEphemeral());
-    //    }
 }

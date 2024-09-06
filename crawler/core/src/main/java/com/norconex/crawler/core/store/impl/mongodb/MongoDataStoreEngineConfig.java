@@ -18,12 +18,8 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Data store engine using MongoDB for storing crawl data.
+ * Configuration for {@link MongoDataStoreEngine}.
  * </p>
- *
- * {@nx.xml.usage <dataStoreEngine class="MongoDataStoreEngine" /> <connectionString>(MongoDB
- * connection string.)</connectionString> </dataStoreEngine> }
- *
  */
 @Data
 @Accessors(chain = true)

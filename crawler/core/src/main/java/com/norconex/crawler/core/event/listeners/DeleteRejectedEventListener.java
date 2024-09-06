@@ -68,30 +68,7 @@ import lombok.extern.slf4j.Slf4j;
  * references. Be aware this can cause issues if you are using rules in your
  * committer (e.g., to route requests) based on metadata.
  * <p>
- *
- * {@nx.xml.usage
- * <listener
- *     class="com.norconex.crawler.core.crawler.event.impl.DeleteRejectedEventListener">
- *   <eventMatcher
- *     {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *       (event name-matching expression)
- *   </eventMatcher>
- * </listener>
- * }
- *
- * {@nx.xml.example
- * <listener class="DeleteRejectedEventListener">
- *   <eventMatcher method="csv">REJECTED_NOTFOUND,REJECTED_FILTER</eventMatcher>
- * </listener>
- * }
- * <p>
- * The above example will send deletion requests whenever a reference is not
- * found (e.g., a 404 response from a web server) or if it was filtered out
- * by the crawler.
- * </p>
- *
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @Slf4j

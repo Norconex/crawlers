@@ -59,54 +59,17 @@ import lombok.extern.slf4j.Slf4j;
  * Refer to
  * <a href="https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby">
  * Hikari's documentation</a> for all configuration options.  The Hikari options
- * are passed as-is, via <code>datasource</code> properties as shown below.
+ * are passed as-is, via
+ * {@link JdbcDataStoreEngineConfig#setProperties(java.util.Properties)}.
  * </p>
  * <h3>Data types</h3>
  * <p>
  * This class only use a few data types to store its data in a generic way.
  * It will try to detect what data type to use for your database. If you
  * get errors related to field data types not being supported, you have
- * the option to redefined them.
- * </p>
- *
- * {@nx.xml.usage
- * <dataStoreEngine class="com.norconex.crawler.core.store.impl.jdbc.JdbcDataStoreEngine">
- *   <!-- Hikari datasource configuration properties: -->
- *   <datasource>
- *     <property name="(property name)">(property value)</property>
- *   </datasource>
- *   <tablePrefix>
- *     (Optional prefix used for table creation. Default is the collector
- *      id plus the crawler id, each followed by an underscore character.
- *      The value is first modified to convert spaces to underscores, and
- *      to strip unsupported characters. The supported
- *      characters are: alphanumeric, period, and underscore.
- *      )
- *   </tablePrefix>
- *   <!--
- *     Optionally overwrite default SQL data type used.  You should only
- *     use if you get data type-related errors.
- *     -->
- *   <dataTypes>
- *     <varchar   use="(equivalent data type for your database)" />
- *     <timestamp use="(equivalent data type for your database)" />
- *     <text      use="(equivalent data type for your database)" />
- *   </dataTypes>
- * </dataStoreEngine>
- * }
- *
- * {@nx.xml.example
- * <dataStoreEngine class="JdbcDataStoreEngine">
- *   <datasource>
- *     <property name="jdbcUrl">jdbc:mysql://localhost:33060/sample</property>
- *     <property name="username">dbuser</property>
- *     <property name="password">dbpwd</property>
- *     <property name="connectionTimeout">1000</property>
- *   </datasource>
- * </dataStoreEngine>
- * }
- * <p>
- * The above example contains basic settings for creating a MySQL data source.
+ * the option to provide your own SQL statements for creating tables
+ * and doing "upsert" requests. Refer to {@link JdbcDialect} source code
+ * for SQL examples.
  * </p>
  */
 @Slf4j
@@ -122,7 +85,7 @@ public class JdbcDataStoreEngine
     // table id field is store name
     private JdbcDataStore<String> storeTypes;
     private JdbcDialect dialect;
-    private String tableSessionPrefix;
+    private String resolvedTablePrefix;
 
     @Getter
     private JdbcDataStoreEngineConfig configuration =
@@ -130,11 +93,10 @@ public class JdbcDataStoreEngine
 
     @Override
     public void init(Crawler crawler) {
-        tableSessionPrefix = safeTableName(
-                isBlank(
-                        configuration.getTablePrefix())
-                                ? crawler.getId() + "_"
-                                : configuration.getTablePrefix());
+        resolvedTablePrefix = safeTableName(
+                isBlank(configuration.getTablePrefix())
+                        ? crawler.getId() + "_"
+                        : configuration.getTablePrefix());
 
         // create data source
         datasource = new HikariDataSource(
@@ -231,10 +193,10 @@ public class JdbcDataStoreEngine
                 while (rs.next()) {
                     var tableName = rs.getString(3);
                     if (startsWithIgnoreCase(
-                            tableName, tableSessionPrefix)) {
+                            tableName, resolvedTablePrefix)) {
                         // only add if not the table holding store types
                         var storeName = removeStartIgnoreCase(
-                                tableName, tableSessionPrefix);
+                                tableName, resolvedTablePrefix);
                         if (!STORE_TYPES_NAME.equalsIgnoreCase(storeName)) {
                             names.add(storeName);
                         }
@@ -276,7 +238,7 @@ public class JdbcDataStoreEngine
     }
 
     String toTableName(String storeName) {
-        return tableSessionPrefix + safeTableName(storeName);
+        return resolvedTablePrefix + safeTableName(storeName);
     }
 
     boolean tableExist(String tableName) {

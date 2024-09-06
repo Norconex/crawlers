@@ -51,9 +51,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * Data store engine using MongoDB for storing crawl data.
  * </p>
- * {@nx.xml.usage <dataStoreEngine class="MongoDataStoreEngine" />
- * <connectionString>(MongoDB connection string.)</connectionString>
- * </dataStoreEngine> }
  */
 @Slf4j
 @EqualsAndHashCode
