@@ -36,9 +36,6 @@ import lombok.extern.slf4j.Slf4j;
  * @param <T> fetcher request type
  * @param <R> fetcher response type
  */
-//TODO make it THE fetcher handling multi fetchers transparently and eliminate
-// the concept of many vs single.... there is only 1 many in core to rule them all.
-
 @Slf4j
 public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
         implements Fetcher<T, R> {
@@ -47,26 +44,11 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
 
     private final ResponseListAdapter<R> responseListAdapter;
     private final UnsuccessfulResponseFactory<R> unsuccessfulResponseFactory;
-    //
+
     @Getter
     private final int maxRetries;
     @Getter
     private final Duration retryDelay;
-    //
-    //    @FunctionalInterface
-    //    public interface MultiResponseFactory
-    //            <T extends FetchRequest, R extends FetchResponse> {
-    //        //TODO Document that responses are ordered from first to last
-    //        MultiFetchResponse<R> adapt(Map<R, Fetcher<T, R>> responses);
-    //    }
-    //
-    //    @FunctionalInterface
-    //    public interface UnsuccessfulResponseFactory<R extends FetchResponse> {
-    //        R adapt(CrawlDocState crawlState, String message, Exception e);
-    //    }
-
-    //TODO drop above two interfaces in favor of a single one and let
-    // this class handle collections.
 
     @FunctionalInterface
     public interface UnsuccessfulResponseFactory<R> {
@@ -118,7 +100,6 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
 
         var doc = fetchRequest.getDoc();
 
-        //        Map<R, Fetcher<T, R>> allResponses = new ListOrderedMap<>();
         List<R> allResponses = new ArrayList<>();
         var accepted = false;
         for (Fetcher<T, R> fetcher : fetchers) {
@@ -133,8 +114,6 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
             accepted = true;
             for (var retryCount = 0; retryCount <= maxRetries; retryCount++) {
                 var fetchResponse = doFetch(fetcher, fetchRequest, retryCount);
-
-                //                allResponses.put(fetchResponse, fetcher);
                 allResponses.add(fetchResponse);
 
                 doc.getMetadata().add(
@@ -161,13 +140,12 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
                                     + "' for fetch request: "
                                     + fetchRequest,
                             null));
-            LOG.debug(
-                    """
-                            No fetcher accepted to fetch this\s\
-                            reference: "{}".\s\
-                            For generic reference filtering it is highly recommended you\s\
-                            use a regular reference filtering options, such as reference\s\
-                            filters.""",
+            LOG.debug("""
+                No fetcher accepted to fetch this\s\
+                reference: "{}".\s\
+                For generic reference filtering it is highly recommended you\s\
+                use a regular reference filtering options, such as reference\s\
+                filters.""",
                     doc.getReference());
         }
         return responseListAdapter.adapt(allResponses);

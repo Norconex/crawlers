@@ -54,10 +54,7 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  */
 @Slf4j
-//TODO rename DocProcessingTracker or else?
 public class DocTrackerService implements Closeable {
-
-    //      private static final String PROP_STAGE = "processingStage";
 
     // new ones
     private DataStore<CrawlDocContext> queue;
@@ -95,29 +92,10 @@ public class DocTrackerService implements Closeable {
 
         resuming = !isQueueEmpty() || !isActiveEmpty();
         crawler.getState().setResuming(resuming);
-
-        // XXXXXXXXXXXXXX
-
-        //TODO do not do resume/non-resume activities when exporting/importing
-        // do it only on start()
-
-        // Way to do it.. have open just open and maybe return if
-        // resuming or not but do nothing
-        // then, add a new init() or prepare() method that will only be called
-        // by crawler start()
-
-        // or maybe, move below code out of here.
-
-        // XXXXXXXXXXXXXX
-
     }
-
-    //MAYBE: Move elsewhere since only used once, when starting crawler?
 
     // prepare for processing start
     public void prepareForCrawl() {
-
-        //          var resuming = !isQueueEmpty() || !isActiveEmpty();
 
         if (resuming) {
 

@@ -83,7 +83,7 @@ public final class DataStoreExporter {
             Class<?> type) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);
-        //TODO add "nice" option?
+        //MAYBE add "nice" option?
         //writer.setIndent(" ");
         var qty = store.count();
 

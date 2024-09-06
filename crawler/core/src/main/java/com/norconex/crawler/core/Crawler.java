@@ -96,7 +96,7 @@ public class Crawler {
             ? extends FetchRequest, ? extends FetchResponse> fetcher;
     private final Class<? extends CrawlDocContext> docContextType;
     private CrawlerState state;
-    // TODO remove stopper listener when we are fully using a table?
+    // TODO remove stopper listener when we are fully using an accessible store?
     private CrawlerStopper stopper = new FileBasedStopper();
 
     // --- Set in init ---
@@ -127,8 +127,8 @@ public class Crawler {
                                         doc -> new UpsertRequest(
                                                 doc.getReference(),
                                                 doc.getMetadata(),
-                                                doc.getInputStream())) // Closed by
-                                // caller
+                                                // InputStream closed by caller
+                                                doc.getInputStream()))
                                 .deleteRequestBuilder(
                                         doc -> new DeleteRequest(
                                                 doc.getReference(),
@@ -194,12 +194,11 @@ public class Crawler {
     }
 
     public void fire(String eventName, Object subject) {
-        fire(
-                CrawlerEvent.builder()
-                        .name(eventName)
-                        .source(this)
-                        .subject(subject)
-                        .build());
+        fire(CrawlerEvent.builder()
+                .name(eventName)
+                .source(this)
+                .subject(subject)
+                .build());
     }
 
     @Override
@@ -224,31 +223,26 @@ public class Crawler {
             getState().setStopping(true);
             LOG.info("Stopping the crawler.");
         } else {
-            LOG.info(
-                    "CANNOT STOP: the targetted crawler does not appear "
-                            + "to be running on on this host.");
+            LOG.info("CANNOT STOP: the targetted crawler does not appear "
+                    + "to be running on on this host.");
         }
     }
 
     public void exportDataStore(Path exportDir) {
-        executeCommand(
-                new CommandExecution(this, "STORE_EXPORT")
-                        .failableCommand(
-                                () -> DataStoreExporter.exportDataStore(
-                                        this,
-                                        exportDir))
-                        .lock(true)
-                        .logIntro(true));
+        executeCommand(new CommandExecution(this, "STORE_EXPORT")
+                .failableCommand(() -> DataStoreExporter.exportDataStore(
+                        this,
+                        exportDir))
+                .lock(true)
+                .logIntro(true));
     }
 
     public void importDataStore(Path file) {
-        executeCommand(
-                new CommandExecution(this, "STORE_IMPORT")
-                        .failableCommand(
-                                () -> DataStoreImporter
-                                        .importDataStore(this, file))
-                        .lock(true)
-                        .logIntro(true));
+        executeCommand(new CommandExecution(this, "STORE_IMPORT")
+                .failableCommand(
+                        () -> DataStoreImporter.importDataStore(this, file))
+                .lock(true)
+                .logIntro(true));
     }
 
     /**
@@ -256,14 +250,13 @@ public class Crawler {
      * the crawler was run for the first time.
      */
     public void clean() {
-        executeCommand(
-                new CommandExecution(this, "CLEAN")
-                        .failableCommand(() -> {
-                            getServices().getCommitterService().clean();
-                            dataStoreEngine.clean();
-                            FileUtils.deleteDirectory(getWorkDir().toFile());
-                        })
-                        .lock(true)
-                        .logIntro(true));
+        executeCommand(new CommandExecution(this, "CLEAN")
+                .failableCommand(() -> {
+                    getServices().getCommitterService().clean();
+                    dataStoreEngine.clean();
+                    FileUtils.deleteDirectory(getWorkDir().toFile());
+                })
+                .lock(true)
+                .logIntro(true));
     }
 }

@@ -24,6 +24,7 @@ import lombok.ToString;
 
 /**
  * Empty store that does nothing.
+ * @param <T> data store type
  */
 @EqualsAndHashCode
 @ToString

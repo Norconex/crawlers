@@ -39,6 +39,7 @@ import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.store.DataStoreEngine;
@@ -53,135 +54,14 @@ import lombok.experimental.FieldNameConstants;
 /**
  * <p>
  * Base Crawler configuration. Crawlers usually read this configuration upon
- * starting up.  Once execution has started, it should not be changed
- * to avoid unexpected behaviors.
+ * starting up. While not always enforced, once execution has started, it
+ * should be considered immutable to avoid unexpected behaviors.
  * </p>
- *
  * <p>
  * Concrete implementations inherit the following XML configuration
  * options (typically within a <code>&lt;crawler&gt;</code> tag):
  * </p>
- *
- * {@nx.xml #init
- *
- *   <numThreads>(maximum number of threads)</numThreads>
- *   <maxDocuments>
- *     (maximum number of documents to crawl per session, resuming on next
- *      sessions where it last ended, if crawling was not complete)
- *   </maxDocuments>
- *   <maxDepth>(maximum depth the crawler should go)</maxDepth>
- *   <idleTimeout>(thread inactivity timeout)</idleTimeout>
- *   <minProgressLoggingInterval>
- *     (minimum frequency at which progress is logged)
- *   </minProgressLoggingInterval>
- *   <orphansStrategy>[PROCESS|IGNORE|DELETE]</orphansStrategy>
- *
- *   <stopOnExceptions>
- *     <!-- Repeatable -->
- *     <exception>(fully qualified class name of a an exception)</exception>
- *   </stopOnExceptions>
- *
- *   <eventListeners>
- *     <!-- Repeatable -->
- *     <listener class="(EventListener implementation)"/>
- *   </eventListeners>
- *
- *   <dataStoreEngine class="(DataStoreEngine implementation)" />
- * }
- *
- * {@nx.xml #start-refs
- *   <start>
- *     <!-- All the following tags are repeatable. -->
- *     <ref>(a reference)</ref>
- *     <refsFile>(local path to a file containing references)</refsFile>
- *     <provider class="(StartRefsProvider implementation)"/>
- *   </start>
- * }
- *
- * {@nx.xml #fetchers
- *   <fetchers
- *       maxRetries="(number of times to retry a failed fetch attempt)"
- *       retryDelay="(how many milliseconds to wait between re-attempting)">
- *     <!-- Repeatable -->
- *     <fetcher class="(Fetcher implementation)"/>
- *   </fetchers>
- * }
- *
- * {@nx.xml #pipeline-queue
- *   <referenceFilters>
- *     <!-- Repeatable -->
- *     <filter
- *         class="(ReferenceFilter implementation)"
- *         onMatch="[include|exclude]" />
- *   </referenceFilters>
- * }
- *
- * {@nx.xml #pipeline-import
- *   <metadataFilters>
- *     <!-- Repeatable -->
- *     <filter
- *         class="(MetadataFilter implementation)"
- *         onMatch="[include|exclude]" />
- *   </metadataFilters>
- *
- *   <documentFilters>
- *     <!-- Repeatable -->
- *     <filter class="(DocumentFilter implementation)" />
- *   </documentFilters>
- * }
- *
- * {@nx.xml #import
- *   <importer>
- *     <preParseHandlers>
- *       <!-- Repeatable -->
- *       <handler class="(an handler class from the Importer module)"/>
- *     </preParseHandlers>
- *     <documentParserFactory class="(DocumentParser implementation)" />
- *     <postParseHandlers>
- *       <!-- Repeatable -->
- *       <handler class="(an handler class from the Importer module)"/>
- *     </postParseHandlers>
- *     <responseConsumers>
- *       <!-- Repeatable -->
- *       <responseConsumer
- *              class="(ImporterResponseConsumer implementation)" />
- *     </responseConsumers>
- *   </importer>
- * }
- *
- * {@nx.xml #directive-meta
- *   <metadataFetchSupport>[DISABLED|REQUIRED|OPTIONAL]</metadataFetchSupport>
- * }
- * {@nx.xml #directive-doc
- *   <documentFetchSupport>[REQUIRED|DISABLED|OPTIONAL]</documentFetchSupport>
- * }
- *
- * {@nx.xml #checksum-meta
- *   <metadataChecksummer class="(MetadataChecksummer implementation)" />
- * }
- *
- * {@nx.xml #dedup-meta
- *   <metadataDeduplicate>[false|true]</metadataDeduplicate>
- * }
- *
- * {@nx.xml #checksum-doc
- *   <documentChecksummer class="(DocumentChecksummer implementation)" />
- * }
- *
- * {@nx.xml #dedup-doc
- *   <documentDeduplicate>[false|true]</documentDeduplicate>
- * }
- *
- * {@nx.xml #pipeline-committer
- *   <spoiledReferenceStrategizer
- *       class="(SpoiledReferenceStrategizer implementation)" />
- *
- *   <committers>
- *     <committer class="(Committer implementation)" />
- *   </committers>
- * }
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
@@ -222,8 +102,6 @@ public class CrawlerConfig {
      * crawlers in the same crawl session. On top of avoiding conflicts,
      * it facilitates integration with different systems and facilitates
      * tracking.
-     * @param id unique identifier
-     * @return unique identifier
      */
     @JsonProperty(required = true)
     private String id;
@@ -239,19 +117,14 @@ public class CrawlerConfig {
     /**
      * The base directory location where files generated during execution
      * will reside. When <code>null</code> the collector will use
-     * <code>./work</code> at runtime.
-     * @param workDir working directory path
-     * @return working directory path
+     * <code>./work</code>, relative to the execution "current" directory.
      */
     private Path workDir = DEFAULT_WORKDIR;
 
     /**
      * Maximum number of bytes used for memory caching of all reusable streams
-     * at any given time, for faster processing. Defaults to 1 GB.
+     * combined, at any given time, for faster processing. Defaults to 1 GB.
      * File-caching is used when the maximum is reached.
-     * @param streamCachePoolSize
-     *     maximum number of bytes for all reusable streams combined
-     * @return maximum number of bytes for all reusable streams combined
      */
     private long maxStreamCachePoolSize =
             ImporterConfig.DEFAULT_MAX_STREAM_CACHE_POOL_SIZE;
@@ -260,50 +133,38 @@ public class CrawlerConfig {
      * Maximum number of bytes used for memory caching of a single reusable
      * stream, for faster processing. Defaults to 100 MB. File-caching is
      * used when this maximum is reached for a single file, or when the
-     * pool size has been reached.
-     * @param streamCacheSize
-     *     maximum number of bytes for a single reusable streams
-     * @return maximum number of bytes for a single reusable stream
+     * pool maximum size has been reached.
      */
     private long maxStreamCacheSize =
             ImporterConfig.DEFAULT_MAX_STREAM_CACHE_SIZE;
 
     /**
-     * The amount of time to defer the collector shutdown when it is
+     * The amount of time to defer the crawler shutdown when it is
      * done executing. This is useful for giving external processes
      * with polling intervals enough time to grab the latest state of
      * the collector before it shuts down.  Default is zero (does not
      * wait to shutdown after completion).
-     * @param deferredShutdownDuration duration
-     * @return duration
      */
     private Duration deferredShutdownDuration = Duration.ZERO;
 
     /**
-     * The crawl data store factory.
-     * @param dataStoreEngine crawl data store factory.
-     * @return crawl data store factory.
+     * The data store engine.
      */
     private DataStoreEngine dataStoreEngine = new MvStoreDataStoreEngine();
 
     /**
      * Whether the start references should be loaded asynchronously. When
      * <code>true</code>, the crawler will start processing the start
-     * references in a separate thread as they are added to the queue
-     * (as opposed to wait for queue initialization to be complete).
+     * references in one or more separate threads as they are added to the
+     * queue (as opposed to wait for queue initialization to be complete).
      * While this may speed up crawling, it may have an unexpected effect on
      * accuracy of {@link CrawlDocMetadata#DEPTH}. Use of this option is only
      * recommended when start references take a significant time to load.
-     * @param startReferencesAsync <code>true</code> if initialized
-     *     asynchronously
-     * @return <code>true</code> if initialized asynchronously
      */
     private boolean startReferencesAsync;
 
     /**
      * The maximum number of threads a crawler can use. Default is 2.
-     * @param numThreads number of threads
-     * @return number of threads
      */
     @Min(1)
     private int numThreads = 2;
@@ -322,21 +183,24 @@ public class CrawlerConfig {
      * its documents actively being processed before stopping.
      * </p>
      * <p>
-     * Reaching the maximum value does not terminate the crawl session but
-     * rather pauses it.  On next run, the crawler will resume the same session,
+     * Reaching the maximum value will stop the crawler but it will not
+     * otherwise consider the crawler session "complete", but rather
+     * on "pause".  On next run, the crawler will resume the same session,
      * processing an additional number of documents up to the maximum
      * specified.
      * This maximum allows crawling one or more sources
      * in chunks, processing a maximum number of documents each time.
      * When the session fully completes, the next run will start a new
-     * crawl session. To prevent resuming an partial crawl session,
-     * explicitly clean the crawl session.
+     * crawl session. To prevent resuming a partial crawl session,
+     * explicitly clean the crawl store first.
+     * </p>
+     * <p>
+     * For more control on what events may stop the crawler, consider using
+     * configuring a {@link StopCrawlerOnMaxEventListener}.
      * </p>
      * <p>
      * Default is -1 (unlimited).
      * </p>
-     * @param maxDocuments maximum number of documents that can be processed
-     * @return maximum number of documents that can be processed
      */
     private int maxDocuments = -1;
 
@@ -345,8 +209,6 @@ public class CrawlerConfig {
      * is crawler-specific. Examples: levels of sub-directories,
      * number of URL clicks to reach a page, etc. Refer to specific crawler
      * implementation for details. Default is -1 (unlimited).
-     * @param maxDepth maximum depth or -1 for unlimited depth
-     * @return maximum depth or -1 for unlimited depth
      */
     private int maxDepth = -1;
 
@@ -358,8 +220,6 @@ public class CrawlerConfig {
      * is also considered "inactive". Default is
      * {@value #DEFAULT_IDLE_PROCESSING_TIMEOUT}. A <code>null</code>
      * value means no timeouts.
-     * @param idleTimeout time to wait for a document to be processed
-     * @return time to wait for a document to be processed
      */
     private Duration idleTimeout;
 
@@ -369,9 +229,6 @@ public class CrawlerConfig {
      * Default value is {@value #DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL}.
      * A <code>null</code> value disables progress logging. Minimum value
      * is 1 second.
-     * @param minProgressLoggingInterval time to wait between each logging
-     *     of crawling progress
-     * @return time to wait between each logging of crawling progress
      */
     private Duration minProgressLoggingInterval;
 
@@ -381,13 +238,13 @@ public class CrawlerConfig {
      * current run.  In other words, they are leftovers from a previous run
      * that were not re-encountered in the current.
      * </p><p>
-     * Unless explicitly stated otherwise by an implementing class, the default
-     * strategy is to <code>PROCESS</code> orphans.
+     * Unless explicitly stated otherwise by a crawler implementation, the
+     * default strategy is to <code>PROCESS</code> orphans.
      * Setting a <code>null</code> value is the same as setting
      * <code>IGNORE</code>.
      * </p><p>
      * <b>Be careful:</b> Setting the orphan strategy to <code>DELETE</code>
-     * is NOT recommended in most cases. With some collectors, a temporary
+     * is NOT recommended in most cases. There are times when a temporary
      * failure such as a network outage or a web page timing out, may cause
      * some documents not to be crawled. When this happens, unreachable
      * documents would be considered "orphans" and be deleted while under
@@ -395,8 +252,6 @@ public class CrawlerConfig {
      * (default), is usually the safest approach to confirm they still
      * exist before deleting or updating them.
      * </p>
-     * @param orphansStrategy orphans strategy
-     * @return orphans strategy
      */
     private OrphansStrategy orphansStrategy = OrphansStrategy.PROCESS;
 
@@ -414,15 +269,11 @@ public class CrawlerConfig {
     /**
      * The metadata checksummer.
      * Metadata checksum generation is disabled when <code>null</code>.
-     * @param metadataChecksummer metadata checksummer
-     * @return metadata checksummer or <code>null</code> when disabled
      */
     private MetadataChecksummer metadataChecksummer;
 
     /**
      * The Importer module configuration.
-     * @param importerConfig Importer module configuration
-     * @return Importer module configuration
      */
     @JsonProperty("importer")
     private ImporterConfig importerConfig = new ImporterConfig();
@@ -433,42 +284,35 @@ public class CrawlerConfig {
     private final List<Committer> committers = new ArrayList<>();
 
     /**
-     * Whether to turn on deduplication based on metadata checksum.
+     * Whether to turn ON deduplication based on metadata checksum.
      * To enable, {@link #getMetadataChecksummer()} must not return
      * <code>null</code>.
      * Not recommended unless you know for sure your metadata
      * checksum is acceptably unique.
-     * @param metadataDeduplicate <code>true</code> to turn on
-     *        metadata-based deduplication
-     * @return whether to turn on metadata-based deduplication
      */
     private boolean metadataDeduplicate;
 
     /**
-     * Whether to turn on deduplication based on document checksum.
+     * Whether to turn ON deduplication based on document checksum.
      * To enable, {@link #getDocumentChecksummer()} must not return
      * <code>null</code>.
      * Not recommended unless you know for sure your document
      * checksum is acceptably unique.
-     * @param documentDeduplicate <code>true</code> to turn on
-     *        document-based deduplication
-     * @return whether to turn on document-based deduplication
      */
     private boolean documentDeduplicate;
 
     /**
-     * The document checksummer.
-     * Document checksum generation is disabled when <code>null</code>.
-     * @param documentChecksummer document checksummer
-     * @return document checksummer or <code>null</code> when disabled
+     * The document checksummer. Document checksum generation is disabled
+     * when <code>null</code>.
      */
     private DocumentChecksummer documentChecksummer =
             new Md5DocumentChecksummer();
 
     /**
-     * The spoiled state strategy resolver.
-     * @param spoiledReferenceStrategizer spoiled state strategy resolver
-     * @return spoiled state strategy resolver
+     * The spoiled state strategy resolver. A spoiled document is one that
+     * was crawled properly before but on a subsequent crawl, it can no longer
+     * be crawled for whatever reason (not found, bad status, server error,
+     * etc.).
      */
     private SpoiledReferenceStrategizer spoiledReferenceStrategizer =
             new GenericSpoiledReferenceStrategizer();
@@ -483,16 +327,12 @@ public class CrawlerConfig {
     /**
      * One or more fetchers responsible for obtaining documents and their
      * metadata from a source.
-     * @param fetchers one or more fetchers
-     * @return one or more fetchers
      */
     private final List<Fetcher<?, ?>> fetchers = new ArrayList<>();
 
     /**
      * The maximum number of times a fetcher will re-attempt fetching
      * a resource in case of failures.  Default is zero (won't retry).
-     * @param fetchersMaxRetries maximum number of retries
-     * @return maximum number of retries
      */
     private int fetchersMaxRetries;
 
@@ -500,8 +340,6 @@ public class CrawlerConfig {
      * How long to wait before a failing fetcher re-attempts fetching
      * a resource in case of failures (in milliseconds).
      * Default is zero (no delay).
-     * @param fetchersRetryDelay retry delay
-     * @return retry delay
      */
     private Duration fetchersRetryDelay;
 
@@ -518,6 +356,7 @@ public class CrawlerConfig {
     /**
      * Sets the references to initiate crawling from.
      * @param startReferences start references
+     * @return this
      */
     public CrawlerConfig setStartReferences(List<String> startReferences) {
         CollectionUtil.setAll(this.startReferences, startReferences);
@@ -541,6 +380,7 @@ public class CrawlerConfig {
      * Blank lines and lines starting with # (comment) are ignored.
      * @param startReferencesFiles file paths of seed files containing
      *     references
+     * @return this
      */
     public CrawlerConfig setStartReferencesFiles(
             List<Path> startReferencesFiles) {
@@ -563,6 +403,7 @@ public class CrawlerConfig {
      * Use this approach when references need to be provided
      * dynamically at launch time.
      * @param startReferencesProviders start references provider
+     * @return this
      */
     public CrawlerConfig setStartReferencesProviders(
             List<ReferencesProvider> startReferencesProviders) {
@@ -598,6 +439,7 @@ public class CrawlerConfig {
      * should catch them all).
      * @param stopOnExceptions exceptions that will stop the crawler when
      *         encountered
+     * @return this
      */
     public CrawlerConfig setStopOnExceptions(
             List<Class<? extends Exception>> stopOnExceptions) {
@@ -616,6 +458,7 @@ public class CrawlerConfig {
     /**
      * Sets reference filters.
      * @param referenceFilters the referenceFilters to set
+     * @return this
      */
     public CrawlerConfig setReferenceFilters(
             List<ReferenceFilter> referenceFilters) {
@@ -634,6 +477,7 @@ public class CrawlerConfig {
     /**
      * Sets document filters.
      * @param documentFilters document filters
+     * @return this
      */
     public CrawlerConfig setDocumentFilters(
             List<DocumentFilter> documentFilters) {
@@ -652,6 +496,7 @@ public class CrawlerConfig {
     /**
      * Sets metadata filters.
      * @param metadataFilters metadata filters
+     * @return this
      */
     public CrawlerConfig setMetadataFilters(
             List<MetadataFilter> metadataFilters) {
@@ -672,6 +517,7 @@ public class CrawlerConfig {
      * Sets Committers responsible for persisting information
      * to a target location/repository.
      * @param committers list of Committers
+     * @return this
      */
     public CrawlerConfig setCommitters(List<Committer> committers) {
         CollectionUtil.setAll(this.committers, committers);
@@ -693,6 +539,7 @@ public class CrawlerConfig {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @param eventListeners event listeners.
+     * @return this
      */
     public CrawlerConfig setEventListeners(
             List<EventListener<?>> eventListeners) {
@@ -705,6 +552,7 @@ public class CrawlerConfig {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @param eventListeners event listeners.
+     * @return this
      */
     public CrawlerConfig addEventListeners(
             List<EventListener<?>> eventListeners) {
@@ -717,6 +565,7 @@ public class CrawlerConfig {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @param eventListener event listener.
+     * @return this
      */
     public CrawlerConfig addEventListener(EventListener<?> eventListener) {
         eventListeners.add(eventListener);
@@ -737,6 +586,7 @@ public class CrawlerConfig {
      * Clears all event listeners. The automatically
      * detected configuration objects implementing {@link EventListener}
      * are not cleared.
+     * @return this
      */
     public CrawlerConfig clearEventListeners() {
         eventListeners.clear();
@@ -754,6 +604,7 @@ public class CrawlerConfig {
     /**
      * Sets pre-import consumers.
      * @param preImportConsumers pre-import consumers
+     * @return this
      */
     public CrawlerConfig setPreImportConsumers(
             List<DocumentConsumer> preImportConsumers) {
@@ -773,6 +624,7 @@ public class CrawlerConfig {
     /**
      * Sets post-import consumers.
      * @param postImportConsumers post-import consumers
+     * @return this
      */
     public CrawlerConfig setPostImportConsumers(
             List<DocumentConsumer> postImportConsumers) {
@@ -800,6 +652,7 @@ public class CrawlerConfig {
      * be invoked in their defined order, until the first one that accepts and
      * successfully process a reference (others are not invoked).
      * @param fetchers one or more fetchers
+     * @return this
      */
     public CrawlerConfig setFetchers(List<Fetcher<?, ?>> fetchers) {
         CollectionUtil.setAll(this.fetchers, fetchers);

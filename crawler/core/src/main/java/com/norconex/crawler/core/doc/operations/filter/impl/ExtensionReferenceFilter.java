@@ -39,24 +39,6 @@ import lombok.ToString;
  * Extensions are typically the last characters of a file name, after the
  * last dot.
  * </p>
- *
- * {@nx.xml.usage
- * <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
- *     onMatch="[include|exclude]"
- *     ignoreCase="[false|true]" >
- *   (comma-separated list of extensions)
- * </filter>
- * }
- *
- * {@nx.xml.example
- * <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter">
- *   html,htm,php,asp
- * </filter>
- * }
- * <p>
- * The above example will only accept references with the following
- * extensions: .html, .htm, .php, and .asp.
- * </p>
  */
 @EqualsAndHashCode
 @ToString

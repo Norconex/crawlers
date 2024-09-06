@@ -19,7 +19,6 @@ import java.util.Optional;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.commons.lang.xml.XmlConfigurable;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
@@ -43,33 +42,6 @@ import lombok.extern.slf4j.Slf4j;
  * It also offers methods to overwrite in order to react to crawler
  * startup and shutdown events.
  * </p>
- * <h3>XML configuration usage:</h3>
- * Subclasses inherit this {@link XmlConfigurable} configuration:
- *
- * {@nx.xml.usage #referenceFilters
- * <referenceFilters>
- *   <!-- multiple "filter" tags allowed -->
- *   <filter class="(any reference filter class)">
- *      (Restrict usage of this fetcher to matching reference filters.
- *       Refer to the documentation for the ReferenceFilter implementation
- *       you are using here for usage details.)
- *   </filter>
- * </referenceFilters>
- * }
- *
- * <h4>Usage example:</h4>
- * <p>
- * This XML snippet is an example of filter that restricts the application of
- * this Fetcher to references ending with ".pdf".
- * </p>
- *
- * {@nx.xml.example
- * <referenceFilters>
- *   <filter class="GenericReferenceFilter" onMatch="exclude">
- *     <valueMatcher method="regex">.*\.pdf$</valueMatcher>
- *   </filter>
- * </referenceFilters>
- * }
  *
  * @param <T> fetcher request type
  * @param <R> fetcher response type

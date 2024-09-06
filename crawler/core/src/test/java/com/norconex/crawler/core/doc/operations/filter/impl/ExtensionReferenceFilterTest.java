@@ -17,7 +17,7 @@ package com.norconex.crawler.core.doc.operations.filter.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class ExtensionReferenceFilterTest {
 
     @Test
     void testOnlyDetectExtensionsInLastPathSegment() {
-        var filter = initFilter(List.of("com", "xml"));
+        var filter = initFilter(Set.of("com", "xml"));
 
         Assertions.assertFalse(
                 filter.acceptReference("http://example.com"));
@@ -96,7 +96,7 @@ class ExtensionReferenceFilterTest {
         // true (record is accepted)
         f = new ExtensionReferenceFilter();
         f.getConfiguration()
-                .setExtensions(List.of("blah"))
+                .setExtensions(Set.of("blah"))
                 .setOnMatch(OnMatch.EXCLUDE);
         assertThat(f.acceptReference("")).isTrue();
     }
@@ -105,7 +105,7 @@ class ExtensionReferenceFilterTest {
     void testDocumentAndMetadata() {
         var f = new ExtensionReferenceFilter();
         f.getConfiguration()
-                .setExtensions(List.of("pdf"));
+                .setExtensions(Set.of("pdf"));
         assertThat(
                 f.acceptDocument(
                         CrawlDocStubs.crawlDoc(
@@ -116,7 +116,7 @@ class ExtensionReferenceFilterTest {
                                 .isTrue();
     }
 
-    private ExtensionReferenceFilter initFilter(List<String> extensions) {
+    private ExtensionReferenceFilter initFilter(Set<String> extensions) {
         var filter = new ExtensionReferenceFilter();
         filter.getConfiguration().setExtensions(extensions);
         return filter;
@@ -127,7 +127,7 @@ class ExtensionReferenceFilterTest {
         var f = new ExtensionReferenceFilter();
         f.getConfiguration()
                 .setIgnoreCase(true)
-                .setExtensions(List.of("com", "pdf"))
+                .setExtensions(Set.of("com", "pdf"))
                 .setOnMatch(OnMatch.EXCLUDE);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(f));
