@@ -58,7 +58,7 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
         return map;
     }
 
-    private void addPolyType(
+    static void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
             Class<?> baseClass,
             String corePkg) {
@@ -69,7 +69,7 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
                         : filter(corePkg)));
     }
 
-    private Predicate<String> filter(String corePkg) {
+    private static Predicate<String> filter(String corePkg) {
         return nm -> nm.startsWith("com.norconex.crawler.fs." + corePkg);
     }
 }

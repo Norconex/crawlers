@@ -225,7 +225,7 @@
 
     <!-- Others -->
 
-    <Logger name="com.norconex.crawler.fs" level="INFO" additivity="false">
+    <Logger name="com.norconex.crawler.fs" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">

@@ -36,7 +36,8 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * <p>
  * You have the option to keep the checksum as a document metadata field.
- * When {@link #setKeep(boolean)} is <code>true</code>, the checksum will be
+ * When {@link BaseChecksummerConfig#setKeep(boolean)} is <code>true</code>,
+ * the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
  * {@link CrawlDocMetadata#CHECKSUM_METADATA}.
@@ -45,32 +46,9 @@ import lombok.extern.slf4j.Slf4j;
  * To use different fields (one or several) to constitute a checksum,
  * you can instead use the {@link GenericMetadataChecksummer}.
  * </p>
- * {@nx.xml.usage
- * <metadataChecksummer
- *     class="com.norconex.crawler.web.doc.operations.checksum.impl.LastModifiedMetadataChecksummer"
- *     keep="[false|true]"
- *     toField="(field to store checksum)"
- *     onSet="[append|prepend|replace|optional]" />
- * }
- *
- * {@nx.xml.example
- * <metadataChecksummer keep="true" toField="metaChecksum" />
- * }
- * <p>
- * The above example will store the last modified date used for checksum
- * purposes in a field called "metaChecksum".
- * </p>
- *
- * <p>
- * <b>Since 2.0.0</b>, a self-closing
- * <code>&lt;metadataChecksummer/&gt;</code> tag without any attributes
- * is used to disable checksum generation.
- * </p>
- *
  * @since 2.2.0
  * @see GenericMetadataChecksummer
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @Data
 public class LastModifiedMetadataChecksummer
