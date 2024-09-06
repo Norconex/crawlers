@@ -35,14 +35,6 @@ import lombok.ToString;
  * The following is available to all implementing classes.
  * </p>
  *
- * {@nx.xml.usage
- * <!-- Optional authentication details. -->
- * <authentication>
- *   {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   <domain>(If required to authenticate, the user's domain.)</domain>
- * </authentication>
- * }
- *
  * {@nx.block #doc
  * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
  * <p>
@@ -53,9 +45,9 @@ import lombok.ToString;
  * http://commons.apache.org/proper/commons-vfs/filesystems.html</a>
  * </p>
  * }
+ * @param <C> Type of configuration class
  *
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public abstract class AbstractAuthVfsFetcher<C extends BaseAuthVfsFetcherConfig>

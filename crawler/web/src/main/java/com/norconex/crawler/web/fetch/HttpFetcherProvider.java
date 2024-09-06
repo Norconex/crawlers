@@ -22,7 +22,6 @@ import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.util.Web;
 
-//TODO make default and mvoe where crawlsession is constructed?
 public class HttpFetcherProvider
         implements Function<Crawler, HttpMultiFetcher> {
 
@@ -31,7 +30,6 @@ public class HttpFetcherProvider
 
         var cfg = (WebCrawlerConfig) crawler.getConfiguration();
 
-        //        var fetchers = (List<HttpFetcher>) cfg.getFetchers();
         //TODO really convert here?  and this way?
         var fetchers = Web.toHttpFetcher(cfg.getFetchers());
         if (fetchers.isEmpty()) {

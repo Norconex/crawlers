@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * CIFS fetcher (Samba, Windows share).
+ * CIFS fetcher (Samba, Windows share) (<code>hdfs://</code>).
  * </p>
  *
  * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
@@ -56,31 +56,9 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * This fetcher will try to extract access control information for each
  * SMB file. If you have no need for them, you can disable
- * acquiring them with {@link #setAclDisabled(boolean)}.
+ * acquiring them with {@link SmbFetcherConfig#setAclDisabled(boolean)}.
  * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.smb.SmbFetcher">
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *
- *   <aclDisabled>[false|true]</aclDisabled>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="SmbFetcher">
- *   <authentication>
- *     <username>joe</username>
- *     <password>joe's-password</password>
- *     <domain>WORKGROUP</domain>
- *   </authentication>
- * </fetcher>
- * }
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 @Slf4j

@@ -17,7 +17,6 @@ package com.norconex.crawler.fs.fetch.impl.sftp;
 import java.io.File;
 import java.time.Duration;
 
-import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.crawler.fs.fetch.impl.BaseAuthVfsFetcherConfig;
 
 import lombok.Data;
@@ -25,45 +24,10 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
+ * Configuration for {@link SftpFetcher}.
  * SFTP fetcher.
  * </p>
- *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.sftp.SftpFetcher">
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *
- *   <compression>...</compression>
- *   <fileNameEncoding>...</fileNameEncoding>
- *   <knownHosts>...</knownHosts>
- *   <preferredAuthentications>...</preferredAuthentications>
- *   <strictHostKeyChecking>[no|yes|ask]</strictHostKeyChecking>
- *   <connectTimeout>(milliseconds or as text)</connectTimeout>
- *   <userDirIsRoot>[false|true]</userDirIsRoot>
- *
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="SftpFetcher">
- *   <timeout>2 minutes</timeout>
- * </fetcher>
- * }
- * <p>
- * The above example the SFTP time out to 2 minutes.
- * </p>
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class SftpFetcherConfig extends BaseAuthVfsFetcherConfig {

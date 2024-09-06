@@ -46,23 +46,6 @@ import lombok.Data;
  * To use different fields (one or several) to constitute a checksum,
  * you can use the {@link GenericMetadataChecksummer}.
  * </p>
- * {@nx.xml.usage
- * <metadataChecksummer
- *     class="com.norconex.crawler.fs.checksum.impl.FSMetadataChecksummer"
- *     keep="[false|true]"
- *     toField="(field to store checksum)"
- *     onSet="[append|prepend|replace|optional]" />
- * }
- *
- * {@nx.xml.example
- * <metadataChecksummer
- *     class="FSMetadataChecksummer" keep="true" toField="checksum" />
- * }
- *
- * <p>
- * The above will store the generated metadata checksum in a field
- * called "checksum".
- * </p>
  * @author Pascal Essiembre
  * @see GenericMetadataChecksummer
  */
