@@ -25,7 +25,6 @@ import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
 
 import lombok.NonNull;
 
-//TODO make default and move where crawler is constructed?
 public class FileFetcherProvider
         implements Function<Crawler, FileMultiFetcher> {
 

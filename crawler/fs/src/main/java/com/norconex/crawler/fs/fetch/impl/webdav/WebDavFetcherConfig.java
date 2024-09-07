@@ -27,45 +27,9 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Fetcher for WebDAV repositories. While it can also be used for general
- * HTTP requests, consider using Norconex Web Crawler for that.
+ * Configuration for {@link WebDavFetcher}.
  * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.WebDavFetcher">
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *   <connectionTimeout>(milliseconds)</connectionTimeout>
- *   <followRedirect>[false|true]</followRedirect>
- *   <hostnameVerificationEnabled>[false|true]</hostnameVerificationEnabled>
- *   <keepAlive>[false|true]</keepAlive>
- *   <keyStoreFile>...</keyStoreFile>
- *   <keyStorePass>...</keyStorePass>
- *   <keyStorePassKey>
- *     {@nx.include com.norconex.commons.lang.encrypt.EncryptionKey@nx.xml.usage}
- *   </keyStorePassKey>
- *   <keyStoreType>...</keyStoreType>
- *   <maxConnectionsPerHost>...</maxConnectionsPerHost>
- *   <maxTotalConnections>...</maxTotalConnections>
- *   <preemptiveAuth>[false|true]</preemptiveAuth>
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings#usage}
- *     <proxyDomain>...</proxyDomain>
- *   </proxySettings>
- *   <soTimeout>(milliseconds)</soTimeout>
- *   <tlsVersions>...</tlsVersions>
- *   <urlCharset>...</urlCharset>
- *   <userAgent>...</userAgent>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="WebDavFetcher">
- *   <connectionTimeout>2 minutes</connectionTimeout>
- * </fetcher>
- * }
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class WebDavFetcherConfig extends BaseAuthVfsFetcherConfig {

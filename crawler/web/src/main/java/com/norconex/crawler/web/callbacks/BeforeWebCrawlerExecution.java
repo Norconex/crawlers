@@ -52,37 +52,34 @@ class BeforeWebCrawlerExecution implements Consumer<Crawler> {
                     yn(scopeCfg.isStayOnSitemap()));
         }
 
-        LOG.info(
-                """
-                        Enabled features:
+        LOG.info("""
+                Enabled features:
 
-                        RobotsTxt:          %s
-                        RobotsMeta:         %s
-                        Sitemap discovery:  %s
-                        Sitemap resolution: %s
-                        Canonical links:    %s
-                        Metadata:
-                          Checksummer:      %s
-                          Deduplication:    %s
-                        Document:
-                          Checksummer:      %s
-                          Deduplication:    %s
-                        %s
-                        """.formatted(
-                        yn(cfg.getRobotsTxtProvider() != null),
-                        yn(cfg.getRobotsMetaProvider() != null),
-                        yn(cfg.getSitemapLocator() != null),
-                        yn(cfg.getSitemapResolver() != null),
-                        yn(cfg.getCanonicalLinkDetector() != null),
-                        yn(cfg.getMetadataChecksummer() != null),
-                        yn(
-                                cfg.isMetadataDeduplicate()
-                                        && cfg.getMetadataChecksummer() != null),
-                        yn(cfg.getDocumentChecksummer() != null),
-                        yn(
-                                cfg.isDocumentDeduplicate()
-                                        && cfg.getDocumentChecksummer() != null),
-                        scope));
+                RobotsTxt:          %s
+                RobotsMeta:         %s
+                Sitemap discovery:  %s
+                Sitemap resolution: %s
+                Canonical links:    %s
+                Metadata:
+                  Checksummer:      %s
+                  Deduplication:    %s
+                Document:
+                  Checksummer:      %s
+                  Deduplication:    %s
+                %s
+                """.formatted(
+                yn(cfg.getRobotsTxtProvider() != null),
+                yn(cfg.getRobotsMetaProvider() != null),
+                yn(cfg.getSitemapLocator() != null),
+                yn(cfg.getSitemapResolver() != null),
+                yn(cfg.getCanonicalLinkDetector() != null),
+                yn(cfg.getMetadataChecksummer() != null),
+                yn(cfg.isMetadataDeduplicate()
+                        && cfg.getMetadataChecksummer() != null),
+                yn(cfg.getDocumentChecksummer() != null),
+                yn(cfg.isDocumentDeduplicate()
+                        && cfg.getDocumentChecksummer() != null),
+                scope));
     }
 
     private static String yn(boolean value) {

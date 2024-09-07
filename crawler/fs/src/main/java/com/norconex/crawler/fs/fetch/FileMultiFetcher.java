@@ -73,18 +73,16 @@ public class FileMultiFetcher
                 continue;
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        "Child paths fetcher {} accepted this "
-                                + "reference: \"{}\".",
+                LOG.debug("Child paths fetcher {} accepted this "
+                        + "reference: \"{}\".",
                         fetcher.getClass().getSimpleName(), parentPath);
             }
             accepted = true;
 
             try {
                 return new Retrier(getMaxRetries())
-                        .execute(
-                                () -> ((FileFetcher) fetcher)
-                                        .fetchChildPaths(parentPath));
+                        .execute(() -> ((FileFetcher) fetcher)
+                                .fetchChildPaths(parentPath));
             } catch (RetriableException e) {
                 LOG.debug(
                         "Failed to obtain child paths with fetcher: {}.",

@@ -26,7 +26,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
@@ -51,39 +50,7 @@ import lombok.ToString;
  * </p>
  *
  * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.cmis.CmisFetcher">
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *
- *   <repositoryId>
- *     (Optional repository ID, defaults to first one found.)
- *   </repositoryId>
- *   <xmlTargetField>
- *     (Optional target field name where to store the raw CMIS REST API
- *      XML. Default does not store the raw XML in a field.)
- *   </xmlTargetField>
- *   <aclDisabled>[false|true]</aclDisabled>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="CmisFetcher" />
- * }
- * <p>
- * The above example the SFTP time out to 2 minutes.
- * </p>
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {

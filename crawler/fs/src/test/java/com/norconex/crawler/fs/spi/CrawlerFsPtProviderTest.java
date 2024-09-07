@@ -16,6 +16,8 @@ package com.norconex.crawler.fs.spi;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.apache.commons.collections4.MultiMapUtils;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -42,5 +44,14 @@ class CrawlerFsPtProviderTest {
                         SftpFetcher.class,
                         SmbFetcher.class,
                         WebDavFetcher.class);
+    }
+
+    @Test
+    void testWithBaseClass() {
+        MultiValuedMap<Class<?>, Class<?>> map =
+                MultiMapUtils.newListValuedHashMap();
+        CrawlerFsPtProvider.addPolyType(
+                map, FsMetadataChecksummer.class, null);
+        assertThat(map.values()).containsExactly(FsMetadataChecksummer.class);
     }
 }

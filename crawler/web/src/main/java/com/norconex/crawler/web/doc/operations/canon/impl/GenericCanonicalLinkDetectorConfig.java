@@ -24,6 +24,9 @@ import com.norconex.commons.lang.file.ContentType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Configuration for {@link GenericCanonicalLinkDetector}.
+ */
 @Data
 @NoArgsConstructor
 public class GenericCanonicalLinkDetectorConfig {

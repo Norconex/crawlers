@@ -31,32 +31,9 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Fetcher for Apache Hadoop File System (HDFS).
+ * Configuration for {@link HdfsFetcher}.
  * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher">
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *   <configNames>
- *     <!-- name is repeatable -->
- *     <name>(name of configuration resource to be loaded after defaults)</name>
- *   </configNames>
- *   <configPaths>
- *     <!-- path is repeatable -->
- *     <path>(full path of configuration file to be loaded after defaults)</path>
- *   </configPaths>
- *   <configUrls>
- *     <!-- url is repeatable -->
- *     <url>(URL of configuration file to be loaded after defaults)</url>
- *   </configUrls>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="HdfsFetcher"/>
- * }
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
@@ -66,20 +43,37 @@ public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
     private final List<Path> configPaths = new ArrayList<>();
     private final List<URL> configUrls = new ArrayList<>();
 
+    /**
+     * Gets the names of configuration resources to be loaded after defaults.
+     * @return list of names
+     */
     public List<String> getConfigNames() {
         return Collections.unmodifiableList(configNames);
     }
-
+    /**
+     * Sets the names of configuration resources to be loaded after defaults.
+     * @param configNames list of names
+     * @return this
+     */
     public HdfsFetcherConfig setConfigNames(List<String> configNames) {
         CollectionUtil.setAll(this.configNames, configNames);
         return this;
     }
 
+    /**
+     * Gets the full paths of configuration files to be loaded after defaults.
+     * @return list of paths
+     */
     @JsonIgnore
     public List<Path> getConfigPaths() {
         return Collections.unmodifiableList(configPaths);
     }
 
+    /**
+     * Sets the full paths of configuration files to be loaded after defaults.
+     * @param configPaths list of paths
+     * @return this
+     */
     @JsonIgnore
     public HdfsFetcherConfig setConfigPaths(List<Path> configPaths) {
         CollectionUtil.setAll(this.configPaths, configPaths);
@@ -102,10 +96,19 @@ public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
                 .toList();
     }
 
+    /**
+     * Gets the URLs of configuration files to be loaded after defaults.
+     * @return list of URLs
+     */
     public List<URL> getConfigUrls() {
         return Collections.unmodifiableList(configUrls);
     }
 
+    /**
+     * Sets the URLs of configuration files to be loaded after defaults.
+     * @param configUrls list of URLs
+     * @return this
+     */
     public HdfsFetcherConfig setConfigUrls(List<URL> configUrls) {
         CollectionUtil.setAll(this.configUrls, configUrls);
         return this;

@@ -62,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * This fetcher will try to extract access control information for each file
  * of a local file system. If you have no need for them, you can disable
- * acquiring them with {@link #setAclDisabled(boolean)}.
+ * acquiring them with {@link LocalFetcherConfig#setAclDisabled(boolean)}.
  * </p>
  *
  * <h3>Archive files as file systems</h3>
@@ -78,19 +78,7 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>Zip ({@code zip://})</li>
  *   <li>MIME ({@code mime://})</li>
  * </ul>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.local.LocalFetcher">
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *   <aclDisabled>[false|true]</aclDisabled>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="LocalFileFetcher"/>
- * }
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 @Slf4j
