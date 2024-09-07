@@ -68,7 +68,7 @@ class FeaturedImageResolverTest {
 
         var fip = new FeaturedImageResolver();
         fip.getConfiguration()
-                .setStorage(List.of(INLINE, URL, DISK))
+                .setStorages(List.of(INLINE, URL, DISK))
                 .setStorageDiskDir(tempDir.resolve("imageStorage"))
                 .setImageCacheDir(tempDir.resolve("imageCache"))
                 .setStorageInlineField("image-inline")
@@ -136,7 +136,7 @@ class FeaturedImageResolverTest {
                 .setScaleQuality(Quality.LOW)
                 .setScaleDimensions(new Dimension(50, 50))
                 .setScaleStretch(true)
-                .setStorage(List.of(Storage.URL, Storage.INLINE, Storage.DISK))
+                .setStorages(List.of(Storage.URL, Storage.INLINE, Storage.DISK))
                 .setStorageDiskDir(Paths.get("c:\\someotherdir"))
                 .setStorageDiskStructure(StorageDiskStructure.DATETIME)
                 .setStorageDiskField("diskField")
