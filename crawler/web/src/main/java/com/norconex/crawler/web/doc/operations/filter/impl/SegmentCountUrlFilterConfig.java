@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.web.doc.operations.filter.impl;
 
-import java.util.regex.Pattern;
-
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
 import lombok.Data;
@@ -23,40 +21,9 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Filters URL based based on the number of URL segments. A URL with
- * a number of segments equal or more than the specified count will either
- * be included or excluded, as specified.
+ * Configuration for {@link SegmentCountUrlFilter}.
  * </p>
- * <p>
- * By default
- * segments are obtained by breaking the URL text at each forward slashes
- * (/), starting after the host name.  You can define different or
- * additional segment separator characters.
- * </p>
- * <p>
- * When <code>duplicate</code> is <code>true</code>, it will count the maximum
- * number of duplicate segments found.
- * </p>
- *
- * {@nx.xml.usage
- *  <filter class="com.norconex.crawler.web.doc.operations.filter.impl.SegmentCountUrlFilter"
- *      onMatch="[include|exclude]"
- *      count="(numeric value)"
- *      duplicate="[false|true]">
- *    <separator>(a regex identifying segment separator)</separator>
- *  </filter>
- * }
- *
- * {@nx.xml.example
- *  <filter class="SegmentCountUrlFilter" onMatch="exclude" count="5" />
- * }
- * <p>
- * The above example will reject URLs with more than 5 forward slashes after
- * the domain.
- * </p>
- *
  * @since 1.2
- * @see Pattern
  */
 @Data
 @Accessors(chain = true)
@@ -67,8 +34,24 @@ public class SegmentCountUrlFilterConfig {
     /** Default segment count. */
     public static final int DEFAULT_SEGMENT_COUNT = 10;
 
+    /**
+     * Number of segments after which this filter is considered a match.
+     * Default is {@value #DEFAULT_SEGMENT_COUNT}
+     */
     private int count = DEFAULT_SEGMENT_COUNT;
+    /**
+     * Whether the configured segment count represents the number of
+     * duplicated segments for this filter to be considered a match.
+     */
     private boolean duplicate;
+    /**
+     * Segment separator. Default is
+     * {@value #DEFAULT_SEGMENT_SEPARATOR_PATTERN}.
+     */
     private String separator = DEFAULT_SEGMENT_SEPARATOR_PATTERN;
+
+    /**
+     * Action to undertake when there is a match.
+     */
     private OnMatch onMatch;
 }

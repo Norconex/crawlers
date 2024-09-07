@@ -68,7 +68,7 @@ import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageProcessor;
+import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolver;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.DomLinkExtractor;
 import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
@@ -153,7 +153,7 @@ public final class WebTestUtil {
                     .excludeType(DataStore.class::equals)
                     .excludeType(SitemapResolver.class::equals)
                     .excludeType(DocumentConsumer.class::equals)
-                    .excludeType(FeaturedImageProcessor.class::equals)
+                    .excludeType(FeaturedImageResolver.class::equals)
                     .excludeType(RecrawlableResolver.class::equals)
                     .excludeType(ReferencesProvider.class::equals)
                     .excludeType(BiPredicate.class::equals)

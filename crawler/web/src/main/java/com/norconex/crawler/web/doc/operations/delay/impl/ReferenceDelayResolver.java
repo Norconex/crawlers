@@ -16,8 +16,6 @@ package com.norconex.crawler.web.doc.operations.delay.impl;
 
 import java.time.Duration;
 
-import com.norconex.commons.lang.time.DurationParser;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -54,37 +52,6 @@ import lombok.ToString;
  *       any given thread.  The more threads you have the less of an
  *       impact the delay will have.</li>
  * </ul>
- *
- * <p>
- * As of 2.7.0, XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.usage
- * <delay class="com.norconex.crawler.web.delay.impl.ReferenceDelayResolver"
- *         default="(milliseconds)"
- *         ignoreRobotsCrawlDelay="[false|true]"
- *         scope="[crawler|site|thread]">
- *     <pattern delay="(delay in milliseconds)">
- *       (regular expression applied against document reference)
- *     </pattern>
- *
- *     (... repeat pattern tag as needed ...)
- * </delay>
- * }
- *
- * {@nx.xml.example
- * <pre>
- * <delay class="ReferenceDelayResolver" default="3 seconds" >
- *     <pattern delay="10 seconds">.*\.pdf</pattern>
- * </delay>
- * }
- * <p>
- * The above examlpe will increase the delay to 10 seconds when encountering
- * PDFs from a default of 3 seconds.
- * </p>
- *
  * @since 2.5.0
  */
 @EqualsAndHashCode

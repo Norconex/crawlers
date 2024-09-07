@@ -35,6 +35,7 @@ import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
+import com.norconex.crawler.web.doc.operations.delay.impl.DelayRange;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
@@ -61,6 +62,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, MetadataChecksummer.class, "doc.operations.checksum");
         addPolyType(map, EventListener.class, "event.listeners");
         addPolyType(map, DelayResolver.class);
+        addPolyType(map, DelayRange.class);
         addPolyType(
                 map, DocumentFilter.class,
                 "doc.operations.filter"); //NOSONAR
