@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.web.doc.operations.recrawl.impl;
 
+import static java.util.Optional.ofNullable;
+
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
@@ -29,6 +31,7 @@ import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency;
+import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency.ApplyTo;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 import com.norconex.crawler.web.sitemap.SitemapChangeFrequency;
 
@@ -51,67 +54,21 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * By default, existing sitemap directives take precedence over custom ones.
  * You chose to have sitemap directives be considered last or even disable
- * sitemap directives using the {@link #setSitemapSupport(SitemapSupport)}
+ * sitemap directives using the
+ * {@link GenericRecrawlableResolverConfig#setSitemapSupport(SitemapSupport)}
  * method.
  * </p>
  *
  * <h3>Custom recrawl frequencies:</h3>
  * <p>
  * You can chose to have some of your crawled documents be re-crawled less
- * frequently than others by specifying custom minimum frequencies
- * ({@link #setMinFrequencies(Collection)}). Minimum frequencies are
- * processed in the order specified and must each have to following:
- * </p>
- * <ul>
- *   <li>applyTo: Either "reference" or "contentType"
- *       (defaults to "reference").</li>
- *   <li>pattern: A regular expression.</li>
- *   <li>value: one of "always", "hourly", "daily", "weekly", "monthly",
- *       "yearly", "never", or a numeric value in milliseconds.</li>
- * </ul>
- *
- * <p>
- * As of 2.7.0, XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.usage
- * <recrawlableResolver
- *     class="com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver"
- *     sitemapSupport="[first|last|never]" >
- *
- *   <minFrequency applyTo="[reference|contentType]"
- *       value="([always|hourly|daily|weekly|monthly|yearly|never] or milliseconds)">
- *     <matcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *       (Matcher for the reference or content type.)
- *     </matcher>
- *   </minFrequency>
- *   (... repeat frequency tag as needed ...)
- * </recrawlableResolver>
- * }
- *
- * {@nx.xml.example
- * <recrawlableResolver
- *     class="com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver"
- *     sitemapSupport="last" >
- *   <minFrequency applyTo="contentType" value="monthly">
- *     <matcher>application/pdf</matcher>
- *   </minFrequency>
- *   <minFrequency applyTo="reference" value="1800000">
- *     <matcher method="regex">.*latest-news.*\.html</matcher>
- *   </minFrequency>
- * </recrawlableResolver>
- * }
- * <p>
- * The above example ensures PDFs are re-crawled no more frequently than
- * once a month, while HTML news can be re-crawled as fast at every half hour.
- * For the rest, it relies on the website sitemap directives (if any).
+ * frequently than others by specifying custom minimum frequencies with
+ * ({@link GenericRecrawlableResolverConfig#setMinFrequencies(Collection)}).
+ * Minimum frequencies are processed in the order specified.
  * </p>
  *
  * @since 2.5.0
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @EqualsAndHashCode
 @ToString
@@ -157,15 +114,11 @@ public class GenericRecrawlableResolver implements
 
     private MinFrequency getMatchingMinFrequency(WebCrawlDocContext prevData) {
         for (MinFrequency f : configuration.getMinFrequencies()) {
-            var applyTo = f.getApplyTo();
-            if (StringUtils.isBlank(applyTo)) {
-                applyTo = "reference";
-            }
-            if (("reference".equalsIgnoreCase(applyTo)
-                    && f.getMatcher().matches(prevData.getReference())
-                    || ("contentType".equalsIgnoreCase(applyTo)
-                            && f.getMatcher().matches(
-                                    prevData.getContentType().toString())))) {
+            var applyTo = ofNullable(f.getApplyTo()).orElse(ApplyTo.REFERENCE);
+            var matchMe = applyTo == ApplyTo.REFERENCE
+                    ? prevData.getReference()
+                    : prevData.getContentType().toString();
+            if (f.getMatcher().matches(matchMe)) {
                 return f;
             }
         }
@@ -243,17 +196,16 @@ public class GenericRecrawlableResolver implements
                     lastModified, prevData.getReference());
             if (lastModified.isAfter(lastCrawled)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(
-                            "Recrawlable according to sitemap directive "
-                                    + "(last modified '{}' > last crawled '{}'): {}",
+                    LOG.debug("""
+                        Recrawlable according to sitemap directive \
+                        (last modified '{}' > last crawled '{}'): {}""",
                             lastModified, lastCrawled, prevData.getReference());
                 }
                 return true;
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        "Not recrawlable according to sitemap directive "
-                                + "(last modified '{}' > last crawled '{}'): {}",
+                LOG.debug("Not recrawlable according to sitemap directive "
+                        + "(last modified '{}' > last crawled '{}'): {}",
                         lastModified, lastCrawled, prevData.getReference());
             }
             return false;
@@ -275,8 +227,7 @@ public class GenericRecrawlableResolver implements
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    "The {} change frequency is {} for: {}",
+            LOG.debug("The {} change frequency is {} for: {}",
                     context, cf, prevData.getReference());
         }
         if (cf == SitemapChangeFrequency.ALWAYS) {
@@ -324,16 +275,15 @@ public class GenericRecrawlableResolver implements
             return true;
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    String.format("""
-                            Not recrawlable according to {} directive\s\
-                            (required elapsed time '{}'\s\
-                            >= actual elapsed time '{}' since '{}'): {}""",
-                            context,
-                            formatDuration(lastCrawlDate, minCrawlDate),
-                            formatDuration(lastCrawlDate, now),
-                            lastCrawlDate,
-                            prevData.getReference()));
+            LOG.debug(String.format("""
+                    Not recrawlable according to {} directive\s\
+                    (required elapsed time '{}'\s\
+                    >= actual elapsed time '{}' since '{}'): {}""",
+                    context,
+                    formatDuration(lastCrawlDate, minCrawlDate),
+                    formatDuration(lastCrawlDate, now),
+                    lastCrawlDate,
+                    prevData.getReference()));
         }
         return false;
     }

@@ -33,7 +33,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * <p>By default a crawler will try to follow all links it discovers. You can
+ * <p>
+ * By default a crawler will try to follow all links it discovers. You can
  * define your own filters to limit the scope of the pages being crawled.
  * When you have multiple URLs defined as start URLs, it can be tricky to
  * perform global filtering that apply to each URLs without causing
@@ -47,7 +48,6 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * @since 2.3.0
  */
-//TODO make this an interface so developers can provide their own?
 @EqualsAndHashCode
 @ToString
 @Slf4j

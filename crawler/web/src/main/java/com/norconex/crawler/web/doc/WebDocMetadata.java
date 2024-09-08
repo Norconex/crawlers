@@ -16,7 +16,6 @@ package com.norconex.crawler.web.doc;
 
 import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
 
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.importer.doc.DocMetadata;
 
 /**
@@ -42,13 +41,6 @@ public final class WebDocMetadata {
     /** @since 3.0.0 */
     public static final String ORIGINAL_REFERENCE =
             PREFIX + "original-reference";
-    /**
-     * @since 3.0.0
-     * @deprecated since 4.0.0, {@link CrawlDocMetadata#FETCHER} is used instead
-     */
-    @Deprecated
-    public static final String HTTP_FETCHER =
-            PREFIX + "http-fetcher";
 
     private WebDocMetadata() {
     }

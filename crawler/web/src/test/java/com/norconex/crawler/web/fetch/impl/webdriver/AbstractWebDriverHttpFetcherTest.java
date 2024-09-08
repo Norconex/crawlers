@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -282,11 +283,11 @@ public abstract class AbstractWebDriverHttpFetcherTest
             // test setting a bunch of other params
             fetcher.getConfiguration()
                     .setWindowSize(new java.awt.Dimension(640, 480))
-                    .setPageLoadTimeout(10_1000)
-                    .setImplicitlyWait(1000)
-                    .setScriptTimeout(10_000)
+                    .setPageLoadTimeout(Duration.ofSeconds(10))
+                    .setImplicitlyWait(Duration.ofSeconds(1))
+                    .setScriptTimeout(Duration.ofSeconds(10))
                     .setWaitForElementSelector("p")
-                    .setWaitForElementTimeout(10_000);
+                    .setWaitForElementTimeout(Duration.ofSeconds(10));
             cfg.setStartReferences(List.of(hostUrl(client, path)));
         });
 

@@ -51,20 +51,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>If robots instructions are provided in both the HTML page and
  * HTTP header, the ones in HTML page will take precedence, and the
  * ones in HTTP header will be ignored.</p>
- *
- * {@nx.xml.usage
- *  <robotsMeta
- *     class="com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider">
- *     <headersPrefix>(string prefixing headers)</headersPrefix>
- *  </robotsMeta>
- * }
- *
- * {@nx.xml.example
- * <robotsMeta />
- * }
- * <p>
- * The above example ignores robot meta information.
- * </p>
  */
 @Slf4j
 @EqualsAndHashCode

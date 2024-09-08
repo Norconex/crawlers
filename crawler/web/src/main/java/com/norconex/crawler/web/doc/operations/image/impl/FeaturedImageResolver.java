@@ -103,11 +103,8 @@ import lombok.extern.slf4j.Slf4j;
 @ToString
 @Slf4j
 public class FeaturedImageResolver
-        extends
-        CrawlerLifeCycleListener
-        implements
-        DocumentConsumer,
-        Configurable<FeaturedImageResolverConfig> {
+        extends CrawlerLifeCycleListener
+        implements DocumentConsumer, Configurable<FeaturedImageResolverConfig> {
 
     //TODO add ability to extract from popular HTML <meta> for
     // featured image

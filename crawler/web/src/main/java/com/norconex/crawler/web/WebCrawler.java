@@ -59,26 +59,8 @@ public class WebCrawler {
     public static Crawler create(WebCrawlerConfig crawlerConfig) {
         return crawlerBuilderSupplier
                 .get()
-                .configuration(
-                        Optional.ofNullable(crawlerConfig)
-                                .orElseGet(WebCrawlerConfig::new))
+                .configuration(Optional.ofNullable(crawlerConfig)
+                        .orElseGet(WebCrawlerConfig::new))
                 .build();
     }
-
-    //    static CrawlSessionImpl initCrawlSessionImpl(
-    //            CrawlSessionConfig sessionConfig) {
-    //        return CrawlSessionImpl
-    //            .builder()
-    //            .crawlerConfigClass(WebCrawlerConfig.class)
-    //            .crawlerFactory(
-    //                (sess, cfg) -> Crawler.builder()
-    //                    .crawlSession(sess)
-    //                    .crawlerConfig(cfg)
-    //                    .crawlerImpl(WebCrawlerImplFactory.create())
-    //                    .build()
-    //            )
-    //            .beanMapper(Web.beanMapper())
-    //            .crawlSessionConfig(sessionConfig)
-    //            .build();
-    //    }
 }

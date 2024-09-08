@@ -55,9 +55,8 @@ class SitemapParser {
             Xml.stream(is)
                     .takeWhile(c -> {
                         if (stopping.isTrue()) {
-                            LOG.debug(
-                                    "Sitemap not entirely parsed due to "
-                                            + "crawler being stopped.");
+                            LOG.debug("Sitemap not entirely parsed due to "
+                                    + "crawler being stopped.");
                             return false;
                         }
                         return true;
@@ -72,13 +71,11 @@ class SitemapParser {
                         }
                     });
         } catch (XmlException e) {
-            LOG.error(
-                    "Cannot fetch sitemap: {} -- Likely an invalid sitemap "
-                            + "XML format causing a parsing error (actual error:{}).",
+            LOG.error("Cannot fetch sitemap: {} -- Likely an invalid sitemap "
+                    + "XML format causing a parsing error (actual error:{}).",
                     location, e.getMessage());
         } catch (IOException e) {
-            LOG.error(
-                    "Cannot fetch sitemap: {} ({})",
+            LOG.error("Cannot fetch sitemap: {} ({})",
                     location, e.getMessage(), e);
         }
         return children;
@@ -104,9 +101,8 @@ class SitemapParser {
         // Is URL valid?
         if (StringUtils.isBlank(url)
                 || (!lenient && !url.startsWith(sitemapLocationDir))) {
-            LOG.debug(
-                    "Sitemap URL invalid for location directory."
-                            + " URL: {}  Location directory: {}",
+            LOG.debug("Sitemap URL invalid for location directory."
+                    + " URL: {}  Location directory: {}",
                     url, sitemapLocationDir);
             return Optional.empty();
         }

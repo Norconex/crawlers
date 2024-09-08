@@ -40,6 +40,9 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class FeaturedImageResolverConfig {
 
+    //TODO consider taking advantage of DocImageHandlerConfig since there
+    // are overlaps
+
     public static final String FEATURED_IMAGE_URL_FIELD =
             CrawlDocMetadata.PREFIX + "featured-image-url";
     public static final String FEATURED_IMAGE_PATH_FIELD =
@@ -236,7 +239,7 @@ public class FeaturedImageResolverConfig {
      * @return this
      */
     public FeaturedImageResolverConfig setStorages(List<Storage> storages) {
-        CollectionUtil.setAll(storages, storages);
+        CollectionUtil.setAll(this.storages, storages);
         return this;
     }
 }

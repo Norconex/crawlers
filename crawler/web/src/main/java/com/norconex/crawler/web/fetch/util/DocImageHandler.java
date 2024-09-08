@@ -41,23 +41,6 @@ import lombok.extern.slf4j.Slf4j;
  * being itself an image).  Examples can be screenshots, featured image, etc.
  * Images can be stored in a document metadata/field or in a local directory.
  * </p>
- *
- * {@nx.xml.usage
- * <targets>[metadata|directory] (One or both, separated by comma.)</targets>
- * <imageFormat>(Image format. Default is "png".)</imageFormat>
- * <!-- The following applies to the "directory" target: -->
- * <targetDir
- *     field="(Document field to store the local path to the image.)"
- *     structure="[url2path|date|datetime]">
- *   (Local directory where to save images.)
- * </targetDir>
- * <!-- The following applies to the "metadata" target: -->
- * <targetMetaField>(Document field where to store the image.)</targetMetaField>
- * }
- * <p>
- * The above XML configurable options can be nested in a parent tag of any name.
- * The expected parent tag name is defined by the consuming classes.
- * </p>
  * @since 3.0.0
  */
 @Slf4j
@@ -70,41 +53,7 @@ public class DocImageHandler implements Configurable<DocImageHandlerConfig> {
     @NonNull
     private DocImageHandlerConfig configuration = new DocImageHandlerConfig();
 
-    //    public enum Target { METADATA, DIRECTORY }
-    //    public enum DirStructure { URL2PATH, DATE, DATETIME }
-    //    public static final String DEFAULT_IMAGE_FORMAT = "png";
-    //
-    //    protected static final List<Target> DEFAULT_TYPES =
-    //            List.of(Target.DIRECTORY) ;
-    //
-    ////    @EqualsAndHashCode.Exclude
-    ////    @ToString.Exclude
-    //    private final List<Target> targets = new ArrayList<>(DEFAULT_TYPES);
-    //    private Path targetDir;
-    //    private String targetDirField;
-    //    private DirStructure targetDirStructure = DirStructure.DATETIME;
-    //    private String targetMetaField;
-    //    private String imageFormat = DEFAULT_IMAGE_FORMAT;
-
     private final ImageTransformer imgTransformer = new ImageTransformer();
-
-    //    public DocImageHandler(
-    //            Path defaultDir,
-    //            String defaultDirField,
-    //            String defaultMetaField) {
-    //        targetDir = defaultDir;
-    //        targetDirField = defaultDirField;
-    //        targetMetaField = defaultMetaField;
-    //    }
-    //
-    //    public DocImageHandler() {}
-    //
-    //    public List<Target> getTargets() {
-    //        return Collections.unmodifiableList(targets);
-    //    }
-    //    public void setTargets(List<Target> targets) {
-    //        CollectionUtil.setAll(this.targets, targets);
-    //    }
 
     public void handleImage(InputStream imageStream, Doc doc) {
 

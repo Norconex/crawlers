@@ -32,8 +32,8 @@ import com.norconex.crawler.core.doc.CrawlDoc;
  */
 public interface LinkExtractor {
 
-    //TODO have ability to return any number of extra info with a link
-    // that could be added to target URL as extra metadata.  e.g., store as json.
+    //MAYBE have ability to return any number of extra info with a link
+    //that could be added to target URL as extra metadata. Store as JSON?
 
     Set<Link> extractLinks(CrawlDoc doc) throws IOException;
 }

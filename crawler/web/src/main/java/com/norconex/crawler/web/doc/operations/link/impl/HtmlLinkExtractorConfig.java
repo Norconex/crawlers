@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.CommonMatchers;
 
@@ -56,6 +57,8 @@ public class HtmlLinkExtractorConfig {
      */
     private final TextMatcher contentTypeMatcher =
             CommonMatchers.htmlContentTypes();
+
+    private final PropertyMatchers restrictions = new PropertyMatchers();
 
     /**
      * Matcher of one or more fields to use as the source of content to
@@ -289,7 +292,20 @@ public class HtmlLinkExtractorConfig {
         return this;
     }
 
-    //--- Public methods -------------------------------------------------------
+    /**
+     * Clears all restrictions.
+     */
+    public void clearRestrictions() {
+        restrictions.clear();
+    }
+
+    /**
+     * Gets all restrictions
+     * @return the restrictions
+     */
+    public PropertyMatchers getRestrictions() {
+        return restrictions;
+    }
 
     public synchronized HtmlLinkExtractorConfig addLinkTag(
             String tagName, String attribute) {

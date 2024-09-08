@@ -45,9 +45,8 @@ import net.lightbody.bmp.proxy.auth.AuthType;
  * </p>
  * <p>
  * <b>EXPERIMENTAL:</b> The use of this class is experimental.
- * It is known to not be supported properly
- * with some web drivers and/or browsers. It can even be ignored altogether
- * by some web drivers.
+ * It is known to not be supported properly with some web drivers and/or
+ * browsers. It can even be ignored altogether by some web drivers.
  * </p>
  *
  * @since 3.0.0
@@ -129,17 +128,12 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                 new ResponseFilterAdapter.FilterSource(
                         (response, contents, messageInfo) -> {
                             // sniff only if original URL is being tracked
-                            var trackedResponse =
-                                    trackedUrlResponses
-                                            .get(messageInfo.getOriginalUrl());
-
+                            var trackedResponse = trackedUrlResponses
+                                    .get(messageInfo.getOriginalUrl());
                             if (trackedResponse != null) {
-                                response.headers()
-                                        .forEach(
-                                                en -> trackedResponse.headers
-                                                        .put(
-                                                                en.getKey(),
-                                                                en.getValue()));
+                                response.headers().forEach(
+                                        en -> trackedResponse.headers.put(
+                                                en.getKey(), en.getValue()));
                                 trackedResponse.statusCode =
                                         response.status().code();
                                 trackedResponse.reasonPhrase =

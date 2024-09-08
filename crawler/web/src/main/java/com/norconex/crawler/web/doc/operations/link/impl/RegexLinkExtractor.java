@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -54,7 +53,8 @@ import lombok.ToString;
  * text/.*
  * </pre>
  * <p>
- * You can specify your own restrictions using {@link #setRestrictions(List)},
+ * You can specify your own restrictions using
+ * {@link RegexLinkExtractorConfig#getRestrictions()},
  * but make sure they represent text files.
  * </p>
  *
@@ -74,45 +74,11 @@ import lombok.ToString;
  * detect the encoding of the a page when extracting links and
  * referrer information. If no charset could be detected, it falls back to
  * UTF-8. It is also possible to dictate which encoding to use with
- * {@link #setCharset(String)}.
- * </p>
- *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.RegexLinkExtractor"
- *     maxURLLength="(maximum URL length. Default is 2048)"
- *     charset="(supported character encoding)" >
- *
- *   {@nx.include com.norconex.crawler.web.doc.operations.link.AbstractTextLinkExtractor@nx.xml.usage}
- *
- *   <!-- Patterns for URLs to extract -->
- *   <linkExtractionPatterns>
- *     <pattern>
- *       <match>(regular expression)</match>
- *       <replace>(optional regex replacement)</replace>
- *     </pattern>
- *     <!-- you can have multiple pattern entries -->
- *   </linkExtractionPatterns>
- * </extractor>
- * }
- *
- * {@nx.xml.example
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.RegexLinkExtractor">
- *   <linkExtractionPatterns>
- *     <pattern>
- *       <match>\[(\d+)\]</match>
- *       <replace>http://www.example.com/page?id=$1</replace>
- *     </pattern>
- *   </linkExtractionPatterns>
- * </extractor>
- * }
- * <p>
- * The above example extracts page "ids" contained in square brackets and
- * add them to a custom URL.
+ * {@link RegexLinkExtractorConfig#setCharset(java.nio.charset.Charset)}.
  * </p>
  *
  * @since 2.7.0
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class RegexLinkExtractor
@@ -144,10 +110,8 @@ public class RegexLinkExtractor
             doc.getMetadata()
                     .matchKeys(configuration.getFieldMatcher())
                     .valueList()
-                    .forEach(
-                            val -> extractLinks(
-                                    links, val,
-                                    doc.getReference()));
+                    .forEach(val -> extractLinks(
+                            links, val, doc.getReference()));
         } else {
             // Body
             var sb = new StringBuilder();

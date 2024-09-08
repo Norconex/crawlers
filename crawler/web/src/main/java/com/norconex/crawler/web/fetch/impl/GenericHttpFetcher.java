@@ -87,14 +87,13 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
+import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -146,12 +145,6 @@ import lombok.extern.slf4j.Slf4j;
  *
  * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
  *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
  * <h3>HSTS Support</h3>
  * <p>
  * Upon first encountering a secure site, this fetcher will check whether the
@@ -163,10 +156,9 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * <p>
  * If you want to convert non-secure URLs secure ones regardless of website
- * HSTS support, use
- * {@link GenericUrlNormalizer.Normalization#secureScheme} instead.
+ * HSTS support, use {@link Normalization#SECURE_SCHEME} instead.
  * To disable HSTS support, use
- * {@link GenericHttpFetcherConfig#setDisableHSTS(boolean)}.
+ * {@link GenericHttpFetcherConfig#setHstsDisabled(boolean)}.
  * </p>
  *
  * <h3>Pro-active change detection</h3>
@@ -183,106 +175,16 @@ import lombok.extern.slf4j.Slf4j;
  * supporting servers we only want to download a document if it was modified
  * since our last request.
  * To disable support for pro-active change detection, you can use
- * {@link GenericHttpFetcherConfig#setDisableIfModifiedSince(boolean)} and
- * {@link GenericHttpFetcherConfig#setDisableETag(boolean)}.
+ * {@link GenericHttpFetcherConfig#setIfModifiedSinceDisabled(boolean)} and
+ * {@link GenericHttpFetcherConfig#setETagDisabled(boolean)}.
  * </p>
  * <p>
  * These settings have no effect for web servers not supporting them.
  * </p>
  *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.web.fetch.impl.GenericHttpFetcher">
- *
- *   <userAgent>(identify yourself!)</userAgent>
- *   <cookieSpec>[RELAXED|STRICT|IGNORE]</cookieSpec>
- *   <connectionTimeout>(milliseconds)</connectionTimeout>
- *   <socketTimeout>(milliseconds)</socketTimeout>
- *   <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
- *   <expectContinueEnabled>[false|true]</expectContinueEnabled>
- *   <maxRedirects>...</maxRedirects>
- *   <redirectURLProvider>(implementation handling redirects)</redirectURLProvider>
- *   <localAddress>...</localAddress>
- *   <maxConnections>...</maxConnections>
- *   <maxConnectionsPerRoute>...</maxConnectionsPerRoute>
- *   <maxConnectionIdleTime>(milliseconds)</maxConnectionIdleTime>
- *   <maxConnectionInactiveTime>(milliseconds)</maxConnectionInactiveTime>
- *
- *   <!-- Be warned: trusting all certificates is usually a bad idea. -->
- *   <trustAllSSLCertificates>[false|true]</trustAllSSLCertificates>
- *
- *   <!-- You can specify SSL/TLS protocols to use -->
- *   <sslProtocols>(coma-separated list)</sslProtocols>
- *
- *   <!-- Disable Server Name Indication (SNI) -->
- *   <disableSNI>[false|true]</disableSNI>
- *
- *   <!-- Disable support for website "Strict-Transport-Security" setting. -->
- *   <disableHSTS>[false|true]</disableHSTS>
- *
- *   <!-- You can use a specific key store for SSL Certificates -->
- *   <keyStoreFile></keyStoreFile>
- *
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
- *   </proxySettings>
- *
- *   <!-- HTTP request header constants passed on every HTTP requests -->
- *   <headers>
- *     <header name="(header name)">(header value)</header>
- *     <!-- You can repeat this header tag as needed. -->
- *   </headers>
- *
- *   <!-- Disable conditionally getting a document based on last crawl date. -->
- *   <disableIfModifiedSince>[false|true]</disableIfModifiedSince>
- *
- *   <!-- Disable ETag support. -->
- *   <disableETag>[false|true]</disableETag>
- *
- *   <!-- Optional authentication details. -->
- *   <authentication>
- *     {@nx.include com.norconex.crawler.web.fetch.impl.HttpAuthConfig@nx.xml.usage}
- *   </authentication>
- *
- *   <validStatusCodes>(defaults to 200)</validStatusCodes>
- *   <notFoundStatusCodes>(defaults to 404)</notFoundStatusCodes>
- *   <headersPrefix>(string to prefix headers)</headersPrefix>
- *
- *   <!-- Force detect, or only when not provided in HTTP response headers -->
- *   <forceContentTypeDetection>[false|true]</forceContentTypeDetection>
- *   <forceCharsetDetection>[false|true]</forceCharsetDetection>
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   <!-- Comma-separated list of supported HTTP methods. -->
- *   <httpMethods>(defaults to: GET, HEAD)</httpMethods>
- *
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="GenericHttpFetcher">
- *     <authentication>
- *       <method>form</method>
- *       <credentials>
- *         <username>joeUser</username>
- *         <password>joePasword</password>
- *       </credentials>
- *       <formUsernameField>loginUser</formUsernameField>
- *       <formPasswordField>loginPwd</formPasswordField>
- *       <url>http://www.example.com/login/submit</url>
- *     </authentication>
- * </fetcher>
- * }
- * <p>
- * The above example will authenticate the crawler to a web site before
- * crawling. The website uses an HTML form with a username and password
- * fields called "loginUser" and "loginPwd".
- * </p>
- *
  * @since 3.0.0 (Merged from GenericDocumentFetcher and
  *        GenericHttpClientFactory)
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)

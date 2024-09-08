@@ -14,11 +14,15 @@
  */
 package com.norconex.crawler.web.fetch.util;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
+import static com.norconex.crawler.web.fetch.util.GenericRedirectUrlProviderConfig.DEFAULT_FALLBACK_CHARSET;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
-import org.apache.commons.lang3.StringUtils;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -26,11 +30,11 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.tika.utils.CharsetUtils;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.Xml;
-import com.norconex.commons.lang.xml.XmlConfigurable;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -80,34 +84,18 @@ import lombok.extern.slf4j.Slf4j;
  *   </li>
  * </ul>
  *
- * {@nx.xml.usage
- * <redirectURLProvider
- *     class="com.norconex.crawler.web.redirect.impl.GenericRedirectURLProvider"
- *     fallbackCharset="(character encoding)" />
- * }
- *
- * {@nx.xml.example
- * <pre>
- * <redirectURLProvider fallbackCharset="ISO-8859-1" />
- * }
- * <p>
- * The above example sets the default character encoding to be "ISO-8859-1"
- * when it could not be detected.
- * </p>
- *
  * @since 2.4.0
  */
 @Slf4j
 @Data
-public class GenericRedirectUrlProvider
-        implements RedirectUrlProvider, XmlConfigurable {
-
-    public static final String DEFAULT_FALLBACK_CHARSET =
-            StandardCharsets.UTF_8.toString();
+public class GenericRedirectUrlProvider implements
+        RedirectUrlProvider, Configurable<GenericRedirectUrlProviderConfig> {
 
     private static final int ASCII_MAX_CODEPOINT = 128;
 
-    private String fallbackCharset = DEFAULT_FALLBACK_CHARSET;
+    @Getter
+    private final GenericRedirectUrlProviderConfig configuration =
+            new GenericRedirectUrlProviderConfig();
 
     @Override
     public String provideRedirectURL(
@@ -127,30 +115,15 @@ public class GenericRedirectUrlProvider
         var hl = response.getLastHeader(HttpHeaders.LOCATION);
         if (hl == null) {
             //TODO should throw exception instead?
-            LOG.error(
-                    "Redirect detected to a null Location for: {}",
+            LOG.error("Redirect detected to a null Location for: {}",
                     originalURL);
             return null;
         }
         var redirectLocation = hl.getValue();
 
-        //--- Charset ---
-        String charset = null;
-        var hc = response.getLastHeader("Content-Type");
-        if (hc != null) {
-            var contentType = hc.getValue();
-            if (contentType.contains(";")) {
-                charset = StringUtils.substringAfterLast(
-                        contentType, "charset=");
-            }
-        }
-        if (StringUtils.isBlank(charset)) {
-            charset = fallbackCharset;
-        }
-
         //--- Build/fix redirect URL ---
         var targetURL = HttpURL.toAbsolute(originalURL, redirectLocation);
-        targetURL = resolveRedirectURL(targetURL, charset);
+        targetURL = resolveRedirectURL(response, targetURL);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("URL redirect: {} -> {}", originalURL, targetURL);
@@ -158,16 +131,17 @@ public class GenericRedirectUrlProvider
         return targetURL;
     }
 
-    //TODO is there value in moving this method to somewhere re-usable?
+    //MAYBE: is there value in moving this method to somewhere re-usable?
     private String resolveRedirectURL(
-            final String redirectURL, final String nonAsciiCharset) {
+            HttpResponse response, String redirectURL) {
 
         var url = redirectURL;
 
         // Is string containing only ASCII as it should?
         var isAscii = true;
         final var length = url.length();
-        for (var offset = 0; offset < length;) {
+        var offset = 0;
+        while (offset < length) {
             final var codepoint = url.codePointAt(offset);
             if (codepoint > ASCII_MAX_CODEPOINT) {
                 isAscii = false;
@@ -184,30 +158,29 @@ public class GenericRedirectUrlProvider
                 Will try to fix. Redirect URL: {}""", redirectURL);
 
         // try to fix if non ascii charset is non UTF8.
-        if (StringUtils.isNotBlank(nonAsciiCharset)) {
-            var charset = CharsetUtils.clean(nonAsciiCharset);
-            if (!StandardCharsets.UTF_8.toString().equals(charset)) {
-                try {
-                    return new String(url.getBytes(charset));
-                } catch (UnsupportedEncodingException e) {
-                    LOG.warn(
-                            "Could not fix badly encoded URL with charset "
-                                    + "\"{}\". Redirect URL: {}",
-                            charset, redirectURL, e);
-                }
-            }
-        }
-
-        return new String(url.getBytes(StandardCharsets.UTF_8));
+        return new String(url.getBytes(resolveCharset(response, redirectURL)));
     }
 
-    @Override
-    public void loadFromXML(Xml xml) {
-        setFallbackCharset(xml.getString("@fallbackCharset", fallbackCharset));
-    }
-
-    @Override
-    public void saveToXML(Xml xml) {
-        xml.setAttribute("fallbackCharset", fallbackCharset);
+    // Detect charset from response header or use fallback
+    private Charset resolveCharset(HttpResponse response, String redirectUrl) {
+        return ofNullable(response.getLastHeader("Content-Type"))
+                .map(Header::getValue)
+                .filter(ct -> ct.contains(";"))
+                .map(ct -> trimToNull(substringAfterLast(ct, "charset=")))
+                .map(chset -> {
+                    try {
+                        return CharsetUtils.forName(chset);
+                    } catch (RuntimeException e) {
+                        var charset =
+                                ofNullable(configuration.getFallbackCharset())
+                                        .orElse(DEFAULT_FALLBACK_CHARSET);
+                        LOG.warn("""
+                            Could not fix badly encoded URL with charset \
+                            "{}". Redirect URL: "{}". Will try with \
+                            fallback charset: {}""",
+                                charset, redirectUrl, charset);
+                        return charset;
+                    }
+                }).get();
     }
 }

@@ -47,26 +47,17 @@ public class WebCrawlDocContext extends CrawlDocContext {
 
     /**
      * The document last modified date according to sitemap.
-     * @param sitemapLastMod document last modified date
-     * @return document last modified date
      */
-    @SuppressWarnings("javadoc")
     private ZonedDateTime sitemapLastMod;
 
     /**
      * The document change frequency according to sitemap.
-     * @param sitemapChangeFreq document change frequency
-     * @return document change frequency
      */
-    @SuppressWarnings("javadoc")
     private String sitemapChangeFreq;
 
     /**
      * The document priority according to sitemap.
-     * @param sitemapPriority document priority
-     * @return document priority
      */
-    @SuppressWarnings("javadoc")
     private Float sitemapPriority;
 
     private String referrerReference;
@@ -74,11 +65,8 @@ public class WebCrawlDocContext extends CrawlDocContext {
 
     /**
      * The HTTP ETag.
-     * @return etag
-     * @param etag the HTTP ETag
      * @since 3.0.0
      */
-    @SuppressWarnings("javadoc")
     private String etag;
 
     private final List<String> referencedUrls = new ArrayList<>();

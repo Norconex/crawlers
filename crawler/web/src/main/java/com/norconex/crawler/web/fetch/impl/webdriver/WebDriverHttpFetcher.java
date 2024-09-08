@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-import static java.time.Duration.ofMillis;
 import static java.util.Optional.ofNullable;
 
 import java.io.InputStream;
@@ -90,93 +89,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * <b>NOTE:</b> Capturing headers with a proxy may not be supported by all
  * Browsers/WebDriver implementations.
- * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher">
- *
- *   <browser>[chrome|edge|firefox|opera|safari]</browser>
- *
- *   <!-- Local web driver settings -->
- *   <browserPath>(browser executable or blank to detect)</browserPath>
- *   <driverPath>(driver executable or blank to detect)</driverPath>
- *
- *   <!-- Remote web driver setting -->
- *   <remoteURL>(URL of the remote web driver cluster)</remoteURL>
- *
- *   <!-- Optional browser capabilities supported by the web driver. -->
- *   <capabilities>
- *     <capability name="(capability name)">(capability value)</capability>
- *     <!-- multiple "capability" tags allowed -->
- *   </capabilities>
- *
- *   <!-- Optionally take screenshots of each web pages. -->
- *   <screenshot>
- *     {@nx.include com.norconex.crawler.web.fetch.impl.webdriver.ScreenshotHandler@nx.xml.usage}
- *   </screenshot>
- *
- *   <windowSize>(Optional. Browser window dimensions. E.g., 640x480)</windowSize>
- *
- *   <earlyPageScript>
- *     (Optional JavaScript code to be run the moment a page is requested.)
- *   </earlyPageScript>
- *   <latePageScript>
- *     (Optional JavaScript code to be run after we are done
- *      waiting for a page.)
- *   </latePageScript>
- *
- *   <!-- The following timeouts/waits are set in milliseconds or
- *      - human-readable format (English). Default is zero (not set).
- *      -->
- *   <pageLoadTimeout>
- *     (Web driver max wait time for a page to load.)
- *   </pageLoadTimeout>
- *   <implicitlyWait>
- *     (Web driver max wait time for an element to appear. See
- *      "waitForElement".)
- *   </implicitlyWait>
- *   <scriptTimeout>
- *     (Web driver max wait time for a scripts to execute.)
- *   </scriptTimeout>
- *   <waitForElement
- *       type="[tagName|className|cssSelector|id|linkText|name|partialLinkText|xpath]"
- *       selector="(Reference to element, as per the type specified.)">
- *     (Max wait time for an element to show up in browser before returning.
- *      Default 'type' is 'tagName'.)
- *   </waitForElement>
- *   <threadWait>
- *     (Makes the current thread sleep for the specified duration, to
- *     give the web driver enough time to load the page.
- *     Sometimes necessary for some web driver implementations if the above
- *     options do not work.)
- *   </threadWait>
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   <!-- Optionally setup an HTTP proxy that allows to set and capture
- *        HTTP headers. For advanced use only. Not recommended
- *        for regular usage. -->
- *   <httpSniffer>
- *     {@nx.include com.norconex.crawler.web.fetch.impl.webdriver.HttpSnifferConfig@nx.xml.usage}
- *   </httpSniffer>
- *
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher">
- *   <browser>firefox</browser>
- *   <driverPath>/drivers/geckodriver.exe</driverPath>
- *   <referenceFilters>
- *     <filter class="ReferenceFilter">
- *       <valueMatcher method="regex">.*dynamic.*$</valueMatcher>
- *     </filter>
- *   </referenceFilters>
- * </fetcher>
- * }
- *
- * <p>The above example will use Firefox to crawl dynamically generated
- * pages using a specific web driver.
  * </p>
  *
  * @since 3.0.0
@@ -334,9 +246,8 @@ public class WebDriverHttpFetcher
                 .builder()
                 .crawlDocState(CrawlDocState.NEW)
                 .statusCode(200)
-                .reasonPhrase(
-                        "No exception thrown, but real status code "
-                                + "unknown. Capture headers for real status code.")
+                .reasonPhrase("No exception thrown, but real status code "
+                        + "unknown. Capture headers for real status code.")
                 .userAgent(getUserAgent())
                 .build();
     }
@@ -387,39 +298,30 @@ public class WebDriverHttpFetcher
         }
 
         var timeouts = driver.manage().timeouts();
-        if (configuration.getPageLoadTimeout() != 0) {
-            timeouts.pageLoadTimeout(
-                    ofMillis(configuration.getPageLoadTimeout()));
+        if (configuration.getPageLoadTimeout() != null) {
+            timeouts.pageLoadTimeout(configuration.getPageLoadTimeout());
         }
-        if (configuration.getImplicitlyWait() != 0) {
-            timeouts.implicitlyWait(
-                    ofMillis(configuration.getImplicitlyWait()));
+        if (configuration.getImplicitlyWait() != null) {
+            timeouts.implicitlyWait(configuration.getImplicitlyWait());
         }
-        if (configuration.getScriptTimeout() != 0) {
-            timeouts.scriptTimeout(
-                    ofMillis(configuration.getScriptTimeout()));
+        if (configuration.getScriptTimeout() != null) {
+            timeouts.scriptTimeout(configuration.getScriptTimeout());
         }
 
-        if (configuration.getWaitForElementTimeout() != 0
+        if (configuration.getWaitForElementTimeout() != null
                 && StringUtils.isNotBlank(
                         configuration.getWaitForElementSelector())) {
             var elType = ObjectUtils.defaultIfNull(
                     configuration.getWaitForElementType(),
                     WaitElementType.TAGNAME);
-            LOG.debug(
-                    "Waiting for element '{}' of type '{}' for '{}'.",
+            LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",
                     configuration.getWaitForElementSelector(), elType, url);
 
             var wait = new WebDriverWait(
-                    driver, ofMillis(configuration.getWaitForElementTimeout()));
-            wait.until(
-                    ExpectedConditions.presenceOfElementLocated(
-                            elType.getBy(
-                                    configuration
-                                            .getWaitForElementSelector())));
-
-            LOG.debug(
-                    "Done waiting for element '{}' of type '{}' for '{}'.",
+                    driver, configuration.getWaitForElementTimeout());
+            wait.until(ExpectedConditions.presenceOfElementLocated(
+                    elType.getBy(configuration.getWaitForElementSelector())));
+            LOG.debug("Done waiting for element '{}' of type '{}' for '{}'.",
                     configuration.getWaitForElementSelector(), elType, url);
         }
 
@@ -428,8 +330,8 @@ public class WebDriverHttpFetcher
                     configuration.getLatePageScript());
         }
 
-        if (configuration.getThreadWait() != 0) {
-            Sleeper.sleepMillis(configuration.getThreadWait());
+        if (configuration.getThreadWait() != null) {
+            Sleeper.sleepMillis(configuration.getThreadWait().toMillis());
         }
 
         var pageSource = driver.getPageSource();

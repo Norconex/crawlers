@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.CommonMatchers;
 import com.norconex.importer.util.DomUtil;
@@ -62,6 +63,8 @@ public class DomLinkExtractorConfig {
      */
     private final TextMatcher contentTypeMatcher =
             CommonMatchers.domContentTypes();
+
+    private final PropertyMatchers restrictions = new PropertyMatchers();
 
     /**
      * Matcher of one or more fields to use as the source of content to
@@ -200,5 +203,20 @@ public class DomLinkExtractorConfig {
     public DomLinkExtractorConfig setSchemes(List<String> schemes) {
         CollectionUtil.setAll(this.schemes, schemes);
         return this;
+    }
+
+    /**
+     * Clears all restrictions.
+     */
+    public void clearRestrictions() {
+        restrictions.clear();
+    }
+
+    /**
+     * Gets all restrictions
+     * @return the restrictions
+     */
+    public PropertyMatchers getRestrictions() {
+        return restrictions;
     }
 }

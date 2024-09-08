@@ -214,6 +214,16 @@ public final class CommonMatchers {
         return csv(IMAGE_IO_CONTENT_TYPES);
     }
 
+    /**
+     * <p>
+     * Matches all content types.
+     * </p>
+     * @return text matcher
+     */
+    public static TextMatcher all() {
+        return TextMatcher.regex(".*");
+    }
+
     private static TextMatcher csv(Set<String> values) {
         return TextMatcher
                 .csv(StringUtils.join(values, ','))

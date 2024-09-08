@@ -73,10 +73,6 @@ final class SitemapUtil {
                 || cacheModifDate.isBefore(newRec.getLastModified());
     }
 
-    //    static ZonedDateTime now() {
-    //        return ZonedDateTime.now(ZoneOffset.UTC);
-    //    }
-
     static SitemapRecord toSitemapRecord(CrawlDoc doc) {
         var indexRec = new SitemapRecord();
         var docRec = Web.docContext(doc);

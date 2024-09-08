@@ -41,23 +41,6 @@ import lombok.ToString;
  * Default paths are: <code>/sitemap.xml</code> and
  * <code>/sitemap_index.xml</code>
  * </p>
- *
- * {@nx.xml.usage
- * <sitemapLocator
- *   class="com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator"
- *   robotsTxtSitemapDisabled="[false|true]"
- * >
- *   <paths>
- *     <!--
- *       Disable locating by paths by self-closing this tag.
- *       -->
- *     <path>
- *       (Sitemap URL path relative to web site domain.
- *        Overwriting default when specified.)
- *     </path>
- *   </paths>
- * </sitemapLocator>
- * }
  */
 @EqualsAndHashCode
 @ToString

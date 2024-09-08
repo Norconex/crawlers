@@ -19,6 +19,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -170,6 +171,12 @@ public class DomLinkExtractor
         if (!configuration.getContentTypeMatcher().matches(
                 doc.getDocContext().getContentType().toString())) {
             return Set.of();
+        }
+
+        if (!getConfiguration().getRestrictions().isEmpty()
+                && !getConfiguration().getRestrictions().matches(
+                        doc.getMetadata())) {
+            return Collections.emptySet();
         }
 
         Set<Link> links = new HashSet<>();
