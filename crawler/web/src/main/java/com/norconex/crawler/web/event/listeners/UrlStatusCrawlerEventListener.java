@@ -200,8 +200,8 @@ public class UrlStatusCrawlerEventListener implements
             var end = toInt(endPoints[1]);
             if (start >= end) {
                 throw new IllegalArgumentException(
-                        "Invalid statusCode range: %s. Start value must be "
-                                + "higher than end value.".formatted(range));
+                        ("Invalid statusCode range: %s. Start value must be "
+                                + "higher than end value.").formatted(range));
             }
             while (start <= end) {
                 parsedCodes.add(start);
