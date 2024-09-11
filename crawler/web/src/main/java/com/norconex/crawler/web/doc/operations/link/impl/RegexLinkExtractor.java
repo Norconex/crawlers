@@ -86,9 +86,9 @@ public class RegexLinkExtractor
 
     //TODO make buffer size and overlap size configurable
     //1MB: make configurable
-    private static final int MAX_BUFFER_SIZE = 1024 * 1024;
+    static final int MAX_BUFFER_SIZE = 1024 * 1024;
     // max url leng is 2048 x 2 bytes x 2 for <a> anchor attributes.
-    private static final int OVERLAP_SIZE = 2 * 2 * 2048;
+    static final int OVERLAP_SIZE = 2 * 2 * 2048;
 
     @Getter
     private final RegexLinkExtractorConfig configuration =

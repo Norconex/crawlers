@@ -15,9 +15,11 @@
 package com.norconex.crawler.web.doc.operations.link.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,6 +27,7 @@ import java.io.Reader;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.input.NullInputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +35,8 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.commons.lang.map.PropertyMatcher;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.link.Link;
@@ -139,6 +144,61 @@ class RegexLinkExtractorTest {
                 .setMaxUrlLength(12345);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(extractor));
+    }
+
+    @Test
+    void testFromFieldAndRestrictions() throws IOException {
+        var extractor = new RegexLinkExtractor();
+        var cfg = extractor.getConfiguration();
+        cfg.setPatterns(
+                List.of(new ExtractionPattern("http:.*?\\.html", null)));
+        cfg.getRestrictions().add(new PropertyMatcher(TextMatcher.regex(".*")));
+        cfg.getFieldMatcher().setPattern("myfield");
+
+        var doc = toCrawlDoc("n/a",
+                ContentType.TEXT,
+                NullInputStream.nullInputStream());
+        doc.getMetadata().set("myfield",
+                "http://one.com/1.html|http://two.com/2.html|NOT_ME");
+        var links = extractor.extractLinks(doc);
+        assertThat(links).map(Link::getUrl).containsExactlyInAnyOrder(
+                "http://one.com/1.html", "http://two.com/2.html");
+
+        cfg.clearPatterns();
+        cfg.clearRestrictions();
+        cfg.setContentTypeMatcher(TextMatcher.basic("application/pdf"));
+        links = extractor.extractLinks(doc);
+        assertThat(links).isEmpty();
+    }
+
+    @Test
+    void testNoRestrictionMatch() throws IOException {
+        var extractor = new RegexLinkExtractor();
+        var cfg = extractor.getConfiguration();
+        cfg.getRestrictions().add(
+                new PropertyMatcher(TextMatcher.regex("NOPE")));
+
+        var doc = toCrawlDoc("n/a",
+                ContentType.TEXT,
+                NullInputStream.nullInputStream());
+        var links = extractor.extractLinks(doc);
+        assertThat(links).isEmpty();
+    }
+
+    @Test
+    void testLargeContent() throws IOException {
+        var doc = toCrawlDoc("n/a", ContentType.TEXT, new ByteArrayInputStream(
+                ("http://one.com/1.html"
+                        + "X".repeat(RegexLinkExtractor.MAX_BUFFER_SIZE)
+                        + "http://two.com/2.html" + "X".repeat(
+                                RegexLinkExtractor.MAX_BUFFER_SIZE))
+                                        .getBytes()));
+        var extractor = new RegexLinkExtractor();
+        extractor.getConfiguration().setPatterns(
+                List.of(new ExtractionPattern("http:.*?\\.html", null)));
+        var links = extractor.extractLinks(doc);
+        assertThat(links).map(Link::getUrl).containsExactlyInAnyOrder(
+                "http://one.com/1.html", "http://two.com/2.html");
     }
 
     private boolean contains(Set<Link> links, String url) {
