@@ -16,23 +16,28 @@ package com.norconex.crawler.web.doc.operations.link.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
+import org.apache.commons.beanutils.MethodUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BrokenInputStream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.PropertyMatcher;
+import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
@@ -185,14 +190,32 @@ class HtmlDomLinkExtractorTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("testExtractorProvider")
-    void testRestrictions(LinkExtractor extractor) throws IOException {
+    void testRestrictions(LinkExtractor extractor)
+            throws IOException, NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException {
         // with restrictions, it shall skip extractions and not even attempt
         // to read the input stream (thus, shall not fail)
-        var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc(
-                        "n/a",
-                        ContentType.HTML, BrokenInputStream.INSTANCE));
+        var doc = CrawlDocStubs.crawlDoc(
+                "n/a",
+                ContentType.HTML, BrokenInputStream.INSTANCE);
+
+        var links = extractor.extractLinks(doc);
         assertThat(links).isEmpty();
+
+        var config = ((Configurable<?>) extractor).getConfiguration();
+
+        //TODO have a "Restrictable" interface or something like this to
+        // avoid using reflection here.
+        var restrictions = (PropertyMatchers) MethodUtils.invokeMethod(
+                config, "getRestrictions", null);
+
+        assertThat((List<?>) restrictions).hasSize(1);
+        MethodUtils.invokeMethod(config, "clearRestrictions", null);
+        assertThat((List<?>) restrictions).isEmpty();
+
+        assertThatException()
+                .isThrownBy(() -> extractor.extractLinks(doc))
+                .withMessageContaining("Broken input stream");
     }
 
     static Stream<LinkExtractor> testExtractorProvider() {
@@ -213,9 +236,13 @@ class HtmlDomLinkExtractorTest {
                 .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
 
         var feedExtractor = new XmlFeedLinkExtractor();
-        tikaExtractor.getConfiguration()
+        feedExtractor
+                .getConfiguration()
                 .getRestrictions()
                 .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+        feedExtractor
+                .getConfiguration()
+                .setContentTypeMatcher(TextMatcher.regex(".*"));
 
         return Stream.of(
                 htmlExtractor,
