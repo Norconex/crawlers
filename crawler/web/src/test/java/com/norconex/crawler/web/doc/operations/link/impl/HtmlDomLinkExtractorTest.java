@@ -25,12 +25,14 @@ import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BrokenInputStream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
@@ -179,6 +181,47 @@ class HtmlDomLinkExtractorTest {
             links = extractor.extractLinks(doc);
         }
         assertThat(links).containsExactlyInAnyOrderElementsOf(expectedLinks);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("testExtractorProvider")
+    void testRestrictions(LinkExtractor extractor) throws IOException {
+        // with restrictions, it shall skip extractions and not even attempt
+        // to read the input stream (thus, shall not fail)
+        var links = extractor.extractLinks(
+                CrawlDocStubs.crawlDoc(
+                        "n/a",
+                        ContentType.HTML, BrokenInputStream.INSTANCE));
+        assertThat(links).isEmpty();
+    }
+
+    static Stream<LinkExtractor> testExtractorProvider() {
+        var htmlExtractor = new HtmlLinkExtractor();
+        htmlExtractor
+                .getConfiguration()
+                .getRestrictions()
+                .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+
+        var domExtractor = new DomLinkExtractor();
+        domExtractor.getConfiguration()
+                .getRestrictions()
+                .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+
+        var tikaExtractor = new TikaLinkExtractor();
+        tikaExtractor.getConfiguration()
+                .getRestrictions()
+                .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+
+        var feedExtractor = new XmlFeedLinkExtractor();
+        tikaExtractor.getConfiguration()
+                .getRestrictions()
+                .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+
+        return Stream.of(
+                htmlExtractor,
+                domExtractor,
+                tikaExtractor,
+                feedExtractor);
     }
 
     static Stream<LinkExtractor> testExtractAttributesProvider() {
