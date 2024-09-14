@@ -1,4 +1,4 @@
-/* Copyright 2018-2024 Norconex Inc.
+/* Copyright 2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,15 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.fetch;
+package com.norconex.crawler.web;
 
-import com.norconex.crawler.core.fetch.Fetcher;
+import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Fetches HTTP resources.
- * @since 3.0.0
- */
-public interface HttpFetcher
-        extends Fetcher<HttpFetchRequest, HttpFetchResponse> {
+import org.junit.jupiter.api.Test;
 
+class WebCrawlerTest {
+
+    @Test
+    void testLaunch() {
+        assertThat(WebCrawler.launch()).isEqualTo(-1);
+        assertThat(WebCrawler.launch("-version")).isEqualTo(0);
+    }
+
+    @Test
+    void testCreate() {
+        assertThat(WebCrawler.create(null)).isNotNull();
+    }
 }

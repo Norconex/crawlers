@@ -26,26 +26,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Handles images associated with a document (which is different than a document
- * being itself an image).  Examples can be screenshots, featured image, etc.
- * Images can be stored in a document metadata/field or in a local directory.
- * </p>
- *
- * {@nx.xml.usage
- * <targets>[metadata|directory] (One or both, separated by comma.)</targets>
- * <imageFormat>(Image format. Default is "png".)</imageFormat>
- * <!-- The following applies to the "directory" target: -->
- * <targetDir
- *     field="(Document field to store the local path to the image.)"
- *     structure="[url2path|date|datetime]">
- *   (Local directory where to save images.)
- * </targetDir>
- * <!-- The following applies to the "metadata" target: -->
- * <targetMetaField>(Document field where to store the image.)</targetMetaField>
- * }
- * <p>
- * The above XML configurable options can be nested in a parent tag of any name.
- * The expected parent tag name is defined by the consuming classes.
+ * Configuration for {@link DocImageHandler}.
  * </p>
  * @since 3.0.0
  */
@@ -54,11 +35,34 @@ import lombok.experimental.Accessors;
 public class DocImageHandlerConfig {
 
     public enum Target {
-        METADATA, DIRECTORY
+        /**
+         * Store image in metadata field.
+         */
+        METADATA,
+        /**
+         * Store image on local directory.
+         */
+        DIRECTORY
     }
 
+    /**
+     * Directory structure when storing images on disk.
+     */
     public enum DirStructure {
-        URL2PATH, DATE, DATETIME
+        /**
+         * Create directories for each URL segments, with handling
+         * of special characters.
+         */
+        URL2PATH,
+        /**
+         * Create directories for each date (e.g., <code>2000/12/31/</code>).
+         */
+        DATE,
+        /**
+         * Create directories for each date and time, up to seconds
+         * (e.g., <code>2000/12/31/13/34/12/</code>).
+         */
+        DATETIME
     }
 
     public static final String DEFAULT_IMAGE_FORMAT = "png";

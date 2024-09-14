@@ -52,24 +52,6 @@ import lombok.ToString;
  * When <code>duplicate</code> is <code>true</code>, it will count the maximum
  * number of duplicate segments found.
  * </p>
- *
- * {@nx.xml.usage
- *  <filter class="com.norconex.crawler.web.doc.operations.filter.impl.SegmentCountUrlFilter"
- *      onMatch="[include|exclude]"
- *      count="(numeric value)"
- *      duplicate="[false|true]">
- *    <separator>(a regex identifying segment separator)</separator>
- *  </filter>
- * }
- *
- * {@nx.xml.example
- *  <filter class="SegmentCountUrlFilter" onMatch="exclude" count="5" />
- * }
- * <p>
- * The above example will reject URLs with more than 5 forward slashes after
- * the domain.
- * </p>
- *
  * @since 1.2
  * @see Pattern
  */

@@ -134,7 +134,7 @@ class StayOnSitemapTest {
         mem.getUpsertRequests().forEach(req -> {
             assertThat(
                     req.getMetadata().getInteger(
-                            "collector.depth")).isZero();
+                            "crawler.depth")).isZero();
             assertThat(req.getReference()).containsAnyOf(
                     page1Path,
                     page2Path,

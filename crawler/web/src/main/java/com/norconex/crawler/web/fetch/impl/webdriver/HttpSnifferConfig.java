@@ -27,37 +27,8 @@ import lombok.experimental.Accessors;
  * <p>
  * Configuration for {@link HttpSniffer}.
  * </p>
- *
- * {@nx.xml.usage
- * <port>(default is 0 = random free port)</port>
- * <host>(default is "localhost")</host>
- * <userAgent>(optionally overwrite browser user agent)</userAgent>
- * <maxBufferSize>
- *   (Maximum byte size before a request/response content is considered
- *    too large. Can be specified using notations, e.g., 25MB. Default is 10MB)
- * </maxBufferSize>
- * <!-- Optional HTTP request headers passed on every HTTP requests -->
- * <headers>
- *   <!-- You can repeat this header tag as needed. -->
- *   <header name="(header name)">(header value)</header>
- * </headers>
- * <!-- Optional chained proxy -->
- * <chainedProxy>
- *   {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
- * </chainedProxy>
- * }
- *
- * <p>
- * The above XML configurable options can be nested in a supporting parent
- * tag of any name.
- * The expected parent tag name is defined by the consuming classes
- * (e.g. "httpSniffer").
- * </p>
- *
- * @author Pascal Essiembre
  * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class HttpSnifferConfig {
@@ -65,24 +36,48 @@ public class HttpSnifferConfig {
     public static final int DEFAULT_MAX_BUFFER_SIZE =
             DataUnit.MB.toBytes(10).intValue();
 
+    /**
+     * The host name passed to the browser pointing to the sniffer proxy.
+     * Defaults to 0 (random free port).
+     */
     private int port;
     /**
      * The host name passed to the browser pointing to the sniffer proxy.
      * Defaults to "localhost".
-     * @param host host name
-     * @return host name
-     * @since 3.1.0
      */
     private String host;
+    /**
+     * Optionally overwrite browser user agent.
+     */
     private String userAgent;
     private final Map<String, String> requestHeaders = new HashMap<>();
+    /**
+     * Maximum byte size before a request/response content is considered too
+     * large. Can be specified using notations, e.g., 25MB. Default is
+     * {@value #DEFAULT_MAX_BUFFER_SIZE}.
+     */
     private int maxBufferSize = DEFAULT_MAX_BUFFER_SIZE;
+
+    /**
+     * Chained proxy for cases where the HTTP Sniffer itself needs to use a
+     * proxy.
+     * @since 3.1.0
+     */
     private final ProxySettings chainedProxy = new ProxySettings();
 
+    /**
+     * Gets the request headers to add to every HTTP request.
+     * @return map of request headers
+     */
     public Map<String, String> getRequestHeaders() {
         return requestHeaders;
     }
 
+    /**
+     * Sets the request headers to add to every HTTP request.
+     * @param requestHeaders map of request headers
+     * @return this
+     */
     public HttpSnifferConfig setRequestHeaders(
             Map<String, String> requestHeaders) {
         this.requestHeaders.clear();
@@ -104,6 +99,7 @@ public class HttpSnifferConfig {
      * Sets chained proxy settings, if any. That is, when the sniffer proxy
      * has to itself use a proxy.
      * @param chainedProxy chained proxy settings
+     * @return this
      * @since 3.1.0
      */
     public HttpSnifferConfig setChainedProxy(ProxySettings chainedProxy) {

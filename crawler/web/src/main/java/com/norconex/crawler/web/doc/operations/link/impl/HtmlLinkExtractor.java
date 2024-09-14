@@ -21,6 +21,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +48,6 @@ import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractorConfig.RegexPair;
-import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
 import com.norconex.crawler.web.util.Web;
 
@@ -70,13 +70,13 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <h3>Applicable documents</h3>
  * <p>
- * By default, this extractor only will be applied on documents matching
+ * By default, this extractor will only be applied on documents matching
  * one of these content types:
  * </p>
  * {@nx.include com.norconex.importer.handler.CommonRestrictions#htmlContentTypes}
  * <p>
  * You can specify your own content types or other restrictions with
- * {@link #setRestrictions(List)}.
+ * {@link HtmlLinkExtractorConfig#setContentTypeMatcher(com.norconex.commons.lang.text.TextMatcher)}.
  * Make sure they represent a file with HTML-like markup tags containing URLs.
  * For documents that are just
  * too different, consider implementing your own {@link LinkExtractor} instead.
@@ -108,7 +108,8 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * The <code>meta.http-equiv</code> is treated differently.  Only if the
  * "http-equiv" value is "refresh" and a "content" attribute with a URL exist
- * that it will be extracted.  "object" and "applet" can have multiple URLs.
+ * that it will be extracted. The "object" and "applet" tags can have
+ * multiple URLs.
  * </p>
  *
  * <p>
@@ -124,7 +125,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@link WebDocMetadata#REFERRER_LINK_PREFIX}.
  * </p>
  * <p>
- * The referrer data is always stored (was optional before).
+ * The referrer data is always stored.
  * </p>
  *
  * <h3>Character encoding</h3>
@@ -132,7 +133,7 @@ import lombok.extern.slf4j.Slf4j;
  * detect the encoding of the a page when extracting links and
  * referrer information. If no charset could be detected, it falls back to
  * UTF-8. It is also possible to dictate which encoding to use with
- * {@link #setCharset(String)}.
+ * {@link HtmlLinkExtractorConfig#setCharset(java.nio.charset.Charset)}.
  * </p>
  *
  * <h3>"nofollow"</h3>
@@ -141,15 +142,14 @@ import lombok.extern.slf4j.Slf4j;
  * won't be extracted (e.g.
  * <code>&lt;a href="x.html" rel="nofollow" ...&gt;</code>).
  * To force its extraction (and ensure it is followed) you can set
- * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
+ * {@link HtmlLinkExtractorConfig#setIgnoreNofollow(boolean)} to
+ * <code>true</code>.
  * </p>
  *
  * <h3>URL Fragments</h3>
- * <p>This extractor preserves hashtag characters (#) found
- * in URLs and every characters after it. It relies on the implementation
- * of {@link WebUrlNormalizer} to strip it if need be.
- * {@link GenericUrlNormalizer} is now always invoked by default, and the
- * default set of rules defined for it will remove fragments.
+ * <p>While extractor preserves hashtag characters (#) found
+ * in URLs and every characters after it, the default URL normalizer
+ * ({@link GenericUrlNormalizer}) will strip it by default.
  * </p>
  *
  * <p>
@@ -171,7 +171,8 @@ import lombok.extern.slf4j.Slf4j;
  * That information gets stored as metadata in the target document.
  * If you want to limit the quantity of information extracted/stored,
  * you can disable this feature by setting
- * {@link #ignoreLinkData} to <code>true</code>.
+ * {@link HtmlLinkExtractorConfig#setIgnoreLinkData(boolean)} to
+ * <code>true</code>.
  * </p>
  *
  * <h3>URL Schemes</h3>
@@ -180,96 +181,31 @@ import lombok.extern.slf4j.Slf4j;
  * schemes</a> are extracted for absolute URLs. By default, those are
  * <code>http</code>, <code>https</code>, and <code>ftp</code>. You can
  * specify your own list of supported protocols with
- * {@link #setSchemes(String[])}.
+ * {@link HtmlLinkExtractorConfig#setSchemes(List)}.
  * </p>
  *
  * <h3>HTML/XML Comments</h3>
- * <p>URLs found in &lt;!-- comments --&gt; are no longer
+ * <p>URLs found in &lt;!-- comments --&gt; are not
  * extracted by default. To enable URL extraction from comments, use
- * {@link #setCommentsEnabled(boolean)}
+ * {@link HtmlLinkExtractorConfig#setCommentsEnabled(boolean)}
  * </p>
  *
  * <h3>Extract links in certain parts only</h3>
  * <p>You can identify portions of a document where links
  * should be extracted or ignored with
- * {@link #setExtractBetweens(List)} and
- * {@link #setNoExtractBetweens(List)}. Eligible content for link
- * extraction is identified first, and content to exclude is done on that
- * subset.
+ * {@link HtmlLinkExtractorConfig#setExtractBetweens(List)} and
+ * {@link HtmlLinkExtractorConfig#setNoExtractBetweens(List)}. Eligible
+ * content for link extraction is identified first, and content to exclude is
+ * done on that subset.
  * </p>
  * <p>You can further limit link extraction to specific
  * area by using
  * <a href="https://jsoup.org/cookbook/extracting-data/selector-syntax">selector-syntax</a>
  * to do so, with
- * {@link #setExtractSelectors(List)} and
- * {@link #setNoExtractSelectors(List)}.
- * </p>
- *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor"
- *     maxURLLength="(maximum URL length. Default is 2048)"
- *     ignoreNofollow="[false|true]"
- *     ignoreLinkData="[false|true]"
- *     commentsEnabled="[false|true]"
- *     charset="(supported character encoding)">
- *
- *   {@nx.include com.norconex.crawler.web.doc.operations.link.AbstractTextLinkExtractor@nx.xml.usage}
- *
- *   <schemes>
- *     (CSV list of URI scheme for which to perform link extraction.
- *      leave blank or remove tag to use defaults.)
- *   </schemes>
- *
- *   <!-- Which tags and attributes hold the URLs to extract. -->
- *   <tags>
- *     <tag name="(tag name)" attribute="(tag attribute)" />
- *     <!-- you can have multiple tag entries -->
- *   </tags>
- *
- *   <!-- Only extract URLs from the following text portions. -->
- *   <extractBetween ignoreCase="[false|true]">
- *     <start>(regex)</start>
- *     <end>(regex)</end>
- *   </extractBetween>
- *   <!-- you can have multiple extractBetween entries -->
- *
- *   <!-- Do not extract URLs from the following text portions. -->
- *   <noExtractBetween ignoreCase="[false|true]">
- *     <start>(regex)</start>
- *     <end>(regex)</end>
- *   </noExtractBetween>
- *   <!-- you can have multiple noExtractBetween entries -->
- *
- *   <!-- Only extract URLs matching the following selectors. -->
- *   <extractSelector>(selector)</extractSelector>
- *   <!-- you can have multiple extractSelector entries -->
- *
- *   <!-- Do not extract URLs matching the following selectors. -->
- *   <noExtractSelector>(selector)</noExtractSelector>
- *   <!-- you can have multiple noExtractSelector entries -->
- *
- * </extractor>
- * }
- *
- * {@nx.xml.example
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor">
- *   <tags>
- *     <tag name="a" attribute="href" />
- *     <tag name="frame" attribute="src" />
- *     <tag name="iframe" attribute="src" />
- *     <tag name="img" attribute="src" />
- *     <tag name="meta" attribute="http-equiv" />
- *     <tag name="script" attribute="src" />
- *   </tags>
- * </extractor>
- * }
- *
- * <p>
- * The above example adds URLs to JavaScript files to the list of URLs to be
- * extracted.
+ * {@link HtmlLinkExtractorConfig#setExtractSelectors(List)} and
+ * {@link HtmlLinkExtractorConfig#setNoExtractSelectors(List)}.
  * </p>
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @EqualsAndHashCode
 @ToString
@@ -286,6 +222,7 @@ public class HtmlLinkExtractor
     private final HtmlLinkExtractorConfig configuration =
             new HtmlLinkExtractorConfig();
 
+    // @formatter:off
     // NOTE: When this predicate is invoked the tag name is always lower case
     // and known to have been identified as a target tag name in configuration.
     // For each predicate, returning true won't try following predicates
@@ -293,129 +230,69 @@ public class HtmlLinkExtractor
     @ToString.Exclude
     private final BiPredicate<Tag, Set<Link>> tagLinksExtractor =
 
-            //--- From tag body ---
-            // When no attributes configured for a tag name, we take the body
-            // value as the URL.
-            ((BiPredicate<Tag, Set<Link>>) (tag, links) -> Optional.of(tag)
-                    .filter(t -> t.configAttribNames.isEmpty())
-                    .filter(t -> isNotBlank(t.bodyText))
-                    .map(
-                            t -> toCleanAbsoluteURL(
-                                    t.referrer,
-                                    tag.bodyText.trim()))
-                    .map(url -> addAsLink(links, url, tag, null))
+        //--- From tag body ---
+        // When no attributes configured for a tag name, we take the body
+        // value as the URL.
+        ((BiPredicate<Tag, Set<Link>>) (tag, links) -> Optional.of(tag)
+            .filter(t -> t.configAttribNames.isEmpty())
+            .filter(t -> isNotBlank(t.bodyText))
+            .map(t -> toCleanAbsoluteURL(t.referrer, tag.bodyText.trim()))
+            .map(url -> addAsLink(links, url, tag, null))
+            .filter(Boolean::valueOf)
+            .orElse(false))
+                //--- From meta http-equiv tag ---
+                // E.g.: <meta http-equiv="refresh" content="...">:
+                .or((tag, links) -> Optional.of(tag)
+                    .filter(t -> "meta".equals(t.name))
+                    .filter(t -> t.configAttribNames.contains(HTTP_EQUIV))
+                    .filter(t -> t.attribs.getStrings(HTTP_EQUIV)
+                            .contains("refresh"))
+                    .filter(t -> t.attribs.containsKey(CONTENT))
+                    // very unlikely that we have more than one
+                    // redirect directives, but loop just in case
+                    .map(t -> t.attribs
+                        .getStrings(CONTENT)
+                        .stream()
+                        .map(LinkUtil::extractHttpEquivRefreshContentUrl)
+                        .map(url -> toCleanAbsoluteURL(tag.referrer, url))
+                        .findFirst()
+                        .map(url -> addAsLink(links, url, tag, CONTENT))
+                        .filter(Boolean::valueOf)
+                        .orElse(false))
                     .filter(Boolean::valueOf)
                     .orElse(false))
 
-                            //--- From meta http-equiv tag ---
-                            // E.g.: <meta http-equiv="refresh" content="...">:
-                            .or(
-                                    (tag, links) -> Optional.of(tag)
-                                            .filter(t -> "meta".equals(t.name))
-                                            .filter(
-                                                    t -> t.configAttribNames
-                                                            .contains(
-                                                                    HTTP_EQUIV))
-                                            .filter(
-                                                    t -> t.attribs
-                                                            .getStrings(
-                                                                    HTTP_EQUIV)
-                                                            .contains(
-                                                                    "refresh"))
-                                            .filter(
-                                                    t -> t.attribs.containsKey(
-                                                            CONTENT))
-                                            // very unlikely that we have more than one redirect directives,
-                                            // but loop just in case
-                                            .map(
-                                                    t -> t.attribs
-                                                            .getStrings(CONTENT)
-                                                            .stream()
-                                                            .map(
-                                                                    LinkUtil::extractHttpEquivRefreshContentUrl)
-                                                            .map(
-                                                                    url -> toCleanAbsoluteURL(
-                                                                            tag.referrer,
-                                                                            url))
-                                                            .findFirst()
-                                                            .map(
-                                                                    url -> addAsLink(
-                                                                            links,
-                                                                            url,
-                                                                            tag,
-                                                                            CONTENT))
-                                                            .filter(
-                                                                    Boolean::valueOf)
-                                                            .orElse(false))
-                                            .filter(Boolean::valueOf)
-                                            .orElse(false))
+                    //--- From anchor tag ---
+                    // E.g.: <a href="...">...</a>
+                    .or((tag, links) -> Optional.of(tag)
+                        .filter(t -> "a".equals(t.name))
+                        .filter(t -> t.configAttribNames.contains("href"))
+                        .filter(t -> t.attribs.containsKey("href"))
+                        .filter(t -> !hasActiveDoNotFollow(t))
+                        .map(t -> toCleanAbsoluteURL(
+                                t.referrer, t.attribs.getString("href")))
+                        .map(url -> addAsLink(links, url, tag, "href"))
+                        .filter(Boolean::valueOf)
+                        // skip others if no follow
+                        .orElse(hasActiveDoNotFollow(tag))
+                    )
 
-                            //--- From anchor tag ---
-                            // E.g.: <a href="...">...</a>
-                            .or(
-                                    (tag, links) -> Optional.of(tag)
-                                            .filter(t -> "a".equals(t.name))
-                                            .filter(
-                                                    t -> t.configAttribNames
-                                                            .contains("href"))
-                                            .filter(
-                                                    t -> t.attribs
-                                                            .containsKey(
-                                                                    "href"))
-                                            .filter(
-                                                    t -> !hasActiveDoNotFollow(
-                                                            t))
-                                            .map(
-                                                    t -> toCleanAbsoluteURL(
-                                                            t.referrer,
-                                                            t.attribs.getString(
-                                                                    "href")))
-                                            .map(
-                                                    url -> addAsLink(
-                                                            links, url, tag,
-                                                            "href"))
-                                            .filter(Boolean::valueOf)
-                                            .orElse(hasActiveDoNotFollow(tag)) // skip others if no follow
-                            )
-
-                            //--- From other matching attributes for tag ---
-                            .or(
-                                    (tag, links) -> tag.configAttribNames
-                                            .stream()
-                                            .map(
-                                                    cfgAttr -> Optional
-                                                            .ofNullable(
-                                                                    tag.attribs
-                                                                            .getString(
-                                                                                    cfgAttr))
-                                                            .map(
-                                                                    urlStr -> (EqualsUtil
-                                                                            .equalsAny(
-                                                                                    tag.name,
-                                                                                    "object",
-                                                                                    "applet")
-                                                                                            ? List.of(
-                                                                                                    StringUtils
-                                                                                                            .split(
-                                                                                                                    urlStr,
-                                                                                                                    ", "))
-                                                                                            : List.of(
-                                                                                                    urlStr))
-                                                                                                            .stream()
-                                                                                                            .map(
-                                                                                                                    url -> toCleanAbsoluteURL(
-                                                                                                                            tag.referrer,
-                                                                                                                            url))
-                                                                                                            .map(
-                                                                                                                    url -> addAsLink(
-                                                                                                                            links,
-                                                                                                                            url,
-                                                                                                                            tag,
-                                                                                                                            cfgAttr))
-                                                                                                            .anyMatch(
-                                                                                                                    Boolean::valueOf)))
-                                            .flatMap(Optional::stream)
-                                            .anyMatch(Boolean::valueOf));
+                    //--- From other matching attributes for tag ---
+                    .or((tag, links) -> tag.configAttribNames
+                        .stream()
+                        .map(cfgAttr -> Optional.ofNullable(
+                                tag.attribs.getString(cfgAttr))
+                        .map(urlStr -> (EqualsUtil.equalsAny(
+                                tag.name, "object", "applet")
+                                ? List.of(StringUtils.split(urlStr, ", "))
+                                : List.of(urlStr))
+                        .stream()
+                        .map(url -> toCleanAbsoluteURL(tag.referrer, url))
+                        .map(url -> addAsLink(links, url, tag, cfgAttr))
+                        .anyMatch(Boolean::valueOf)))
+                        .flatMap(Optional::stream)
+                        .anyMatch(Boolean::valueOf));
+    // @formatter:on
 
     @Override
     public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
@@ -426,6 +303,12 @@ public class HtmlLinkExtractor
             return Set.of();
         }
 
+        if (!getConfiguration().getRestrictions().isEmpty()
+                && !getConfiguration().getRestrictions().matches(
+                        doc.getMetadata())) {
+            return Collections.emptySet();
+        }
+
         var refererUrl = doc.getReference();
         Set<Link> links = new HashSet<>();
 
@@ -434,10 +317,8 @@ public class HtmlLinkExtractor
             doc.getMetadata()
                     .matchKeys(configuration.getFieldMatcher())
                     .valueList()
-                    .forEach(
-                            val -> extractLinksFromText(
-                                    links, val, refererUrl,
-                                    true));
+                    .forEach(val -> extractLinksFromText(
+                            links, val, refererUrl, true));
         } else {
             // Body
             try (var r = new TextReader(
@@ -720,11 +601,10 @@ public class HtmlLinkExtractor
 
         if (url.length() > configuration.getMaxURLLength()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        """
-                                URL length ({}) exceeding maximum length allowed\s\
-                                ({}) to be extracted. URL (showing first {} chars):\s\
-                                {}...""",
+                LOG.debug("""
+                        URL length ({}) exceeding maximum length allowed\s\
+                        ({}) to be extracted. URL (showing first {} chars):\s\
+                        {}...""",
                         url.length(),
                         configuration.getMaxURLLength(),
                         LOGGING_MAX_URL_LENGTH,

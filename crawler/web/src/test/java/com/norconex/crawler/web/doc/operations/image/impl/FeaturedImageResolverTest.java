@@ -17,9 +17,9 @@ package com.norconex.crawler.web.doc.operations.image.impl;
 import static com.norconex.crawler.web.TestResource.IMG_160X120_PNG;
 import static com.norconex.crawler.web.TestResource.IMG_320X240_PNG;
 import static com.norconex.crawler.web.TestResource.IMG_640X480_PNG;
-import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageProcessorConfig.Storage.DISK;
-import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageProcessorConfig.Storage.INLINE;
-import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageProcessorConfig.Storage.URL;
+import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage.DISK;
+import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage.INLINE;
+import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage.URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -42,14 +42,14 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageProcessorConfig.Quality;
-import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageProcessorConfig.Storage;
-import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageProcessorConfig.StorageDiskStructure;
+import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Quality;
+import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
+import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
 import com.norconex.crawler.web.junit.WithCrawlerTest;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 @MockServerSettings
-class FeaturedImageProcessorTest {
+class FeaturedImageResolverTest {
 
     private @TempDir Path tempDir;
 
@@ -66,9 +66,9 @@ class FeaturedImageProcessorTest {
 
         var fetcher = crawler.getFetcher();
 
-        var fip = new FeaturedImageProcessor();
+        var fip = new FeaturedImageResolver();
         fip.getConfiguration()
-                .setStorage(List.of(INLINE, URL, DISK))
+                .setStorages(List.of(INLINE, URL, DISK))
                 .setStorageDiskDir(tempDir.resolve("imageStorage"))
                 .setImageCacheDir(tempDir.resolve("imageCache"))
                 .setStorageInlineField("image-inline")
@@ -122,7 +122,7 @@ class FeaturedImageProcessorTest {
 
     @Test
     void testWriteRead() {
-        var p = new FeaturedImageProcessor();
+        var p = new FeaturedImageResolver();
 
         // All settings
         p.getConfiguration()
@@ -136,7 +136,7 @@ class FeaturedImageProcessorTest {
                 .setScaleQuality(Quality.LOW)
                 .setScaleDimensions(new Dimension(50, 50))
                 .setScaleStretch(true)
-                .setStorage(List.of(Storage.URL, Storage.INLINE, Storage.DISK))
+                .setStorages(List.of(Storage.URL, Storage.INLINE, Storage.DISK))
                 .setStorageDiskDir(Paths.get("c:\\someotherdir"))
                 .setStorageDiskStructure(StorageDiskStructure.DATETIME)
                 .setStorageDiskField("diskField")
@@ -171,7 +171,7 @@ class FeaturedImageProcessorTest {
         //        // set everything null by default?
         //
         //        var read = BeanMapper.DEFAULT.writeRead(p, Format.XML);
-        //        assertThat(read).isEqualTo(new FeaturedImageProcessor());
+        //        assertThat(read).isEqualTo(new FeaturedImageResolver());
         //
         ////        assertThatNoException().isThrownBy(
         ////                () -> BeanMapper.DEFAULT.assertWriteRead(p));

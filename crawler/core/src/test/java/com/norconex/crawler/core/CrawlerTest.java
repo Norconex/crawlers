@@ -230,7 +230,7 @@ class CrawlerTest {
                         1,
                         new Condition<>(
                                 req -> req.getMetadata().getBoolean(
-                                        "collector.is-crawl-new"),
+                                        "crawler.is-crawl-new"),
                                 ""))
                 .map(CommitterRequest::getReference)
                 // ref1 is last because orphans are processed last

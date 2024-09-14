@@ -26,7 +26,7 @@ public final class CrawlDocMetadata {
     //TODO use the same prefix for both crawler and importer...
     // all "document." ? In any case, no longer make it "collector."
 
-    public static final String PREFIX = "collector.";
+    public static final String PREFIX = "crawler.";
 
     public static final String DEPTH = PREFIX + "depth";
 

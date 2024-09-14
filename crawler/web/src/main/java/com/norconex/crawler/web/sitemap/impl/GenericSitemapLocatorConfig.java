@@ -19,40 +19,13 @@ import java.util.Collections;
 import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.crawler.web.robot.RobotsTxtProvider;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
 /**
- * <p>
- * If there is a sitemap defined as a start reference for the same URL web site,
- * this locator is not used. Otherwise, it tells the crawler to
- * use the sitemap as defined in the web site "robots.txt" file (provided
- * the web site defines one and {@link RobotsTxtProvider} is enabled).
- * If no sitemap resolution was possible from "robots.txt", an attempt will
- * be made to retrieve a sitemap using the configured sitemap paths.
- * Default paths are: <code>/sitemap.xml</code> and
- * <code>/sitemap_index.xml</code>
- * </p>
- *
- * {@nx.xml.usage
- * <sitemapLocator
- *   class="com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator"
- *   robotsTxtSitemapDisabled="[false|true]"
- * >
- *   <paths>
- *     <!--
- *       Disable locating by paths by self-closing this tag.
- *       -->
- *     <path>
- *       (Sitemap URL path relative to web site domain.
- *        Overwriting default when specified.)
- *     </path>
- *   </paths>
- * </sitemapLocator>
- * }
+ * Configuration for {@link GenericSitemapLocator}.
  */
 @Data
 @Accessors(chain = true)
@@ -62,8 +35,18 @@ public class GenericSitemapLocatorConfig {
     public static final List<String> DEFAULT_PATHS =
             List.of("/sitemap.xml", "/sitemap_index.xml");
 
+    /**
+     * The domain-relative URL paths where to look for sitemaps when not
+     * supplied as start reference or part of a web site robots.txt file.
+     * Defaults to <code>/sitemap.xml</code> and
+     * <code>/sitemap_index.xml</code>.
+     */
     private final List<String> paths = new ArrayList<>(DEFAULT_PATHS);
 
+    /**
+     * Whether to disable checking for the sitemap locations in a web site
+     * robots.txt file.
+     */
     private boolean robotsTxtSitemapDisabled;
 
     /**

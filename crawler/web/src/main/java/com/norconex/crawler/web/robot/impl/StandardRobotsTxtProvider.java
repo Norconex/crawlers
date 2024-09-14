@@ -60,18 +60,6 @@ import lombok.extern.slf4j.Slf4j;
  * described at <a href="http://www.robotstxt.org/robotstxt.html">
  * http://www.robotstxt.org/robotstxt.html</a>.
  * </p>
- * {@nx.xml.usage
- * <robotsTxt ignore="false"
- *     class="com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider"/>
- * }
- *
- * {@nx.xml.example
- * <pre>
- * <robotsTxt ignore="true" />
- * }
- * <p>
- * The above example ignores "robots.txt" files present on web sites.
- * </p>
  */
 @Slf4j
 @EqualsAndHashCode

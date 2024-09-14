@@ -44,19 +44,12 @@ public final class CrawlerStubs {
 
     public static CrawlerBuilder memoryCrawlerBuilder(
             Path workDir, Consumer<WebCrawlerConfig> c) {
-        var b = SneakyWebCrawler
+        var b = WebCrawler
                 .builder()
-                .configuration(
-                        CrawlerConfigStubs.memoryCrawlerConfig(workDir));
+                .configuration(CrawlerConfigStubs.memoryCrawlerConfig(workDir));
         if (c != null) {
             c.accept((WebCrawlerConfig) b.configuration());
         }
         return b;
-    }
-
-    static class SneakyWebCrawler extends WebCrawler {
-        static CrawlerBuilder builder() {
-            return WebCrawler.crawlerBuilderSupplier.get();
-        }
     }
 }

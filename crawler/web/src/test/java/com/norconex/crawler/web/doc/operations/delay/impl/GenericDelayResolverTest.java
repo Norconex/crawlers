@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
+import com.norconex.crawler.web.robot.RobotsTxt;
 
 class GenericDelayResolverTest {
 
@@ -55,6 +56,27 @@ class GenericDelayResolverTest {
 
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(r));
+    }
+
+    @Test
+    void testNullDelays() {
+        var r = new GenericDelayResolver();
+        r.getConfiguration()
+                .setScope(null);
+        assertThatNoException().isThrownBy(
+                () -> r.delay(null, "http://somewhere.com"));
+
+    }
+
+    @Test
+    void testWithRobotsTxt() {
+        var r = new GenericDelayResolver();
+        //        r.getConfiguration()
+        //                .setScope(null);
+        var robotsTxt = RobotsTxt.builder().crawlDelay(1000f).build();
+        assertThatNoException().isThrownBy(
+                () -> r.delay(robotsTxt, "http://somewhere.com"));
+
     }
 
     @Test

@@ -47,22 +47,8 @@ import lombok.extern.slf4j.Slf4j;
  * Screenshot images can be stored in a document metadata/field or
  * in a local directory.
  * </p>
- *
- * {@nx.xml.usage
- *   <cssSelector>(Optional selector of element to capture.)</cssSelector>
- *   {@nx.include com.norconex.crawler.web.fetch.util.DocImageHandler@nx.xml.usage}
- * }
- *
- * <p>
- * The above XML configurable options can be nested in a supporting parent
- * tag of any name.
- * The expected parent tag name is defined by the consuming classes
- * (e.g. "screenshot").
- * </p>
- *
  * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 @Slf4j
@@ -92,9 +78,8 @@ public class ScreenshotHandler
         imageHandler.setConfiguration(configuration);
 
         try (InputStream in = streamFactory.newInputStream(
-                new ByteArrayInputStream(
-                        ((TakesScreenshot) driver)
-                                .getScreenshotAs(OutputType.BYTES)))) {
+                new ByteArrayInputStream(((TakesScreenshot) driver)
+                        .getScreenshotAs(OutputType.BYTES)))) {
 
             // If wanting a specific web element:
             if (StringUtils.isNotBlank(configuration.getCssSelector())) {
@@ -107,24 +92,19 @@ public class ScreenshotHandler
                         location.x, location.y, size.width, size.height);
                 var img = new MutableImage(in);
                 img.crop(rectangle);
-                imageHandler.handleImage(
-                        img.toInputStream(
-                                ofNullable(
-                                        getConfiguration()
-                                                .getImageFormat())
-                                                        .orElse("png")),
+                imageHandler.handleImage(img.toInputStream(
+                        ofNullable(getConfiguration().getImageFormat())
+                                .orElse("png")),
                         doc);
             } else {
                 imageHandler.handleImage(in, doc);
             }
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
-                LOG.error(
-                        "Could not take screenshot of: {}",
+                LOG.error("Could not take screenshot of: {}",
                         doc.getReference(), e);
             } else {
-                LOG.error(
-                        "Could not take screenshot of: {}. Error:\n{}",
+                LOG.error("Could not take screenshot of: {}. Error:\n{}",
                         doc.getReference(),
                         ExceptionUtil.getFormattedMessages(e));
             }

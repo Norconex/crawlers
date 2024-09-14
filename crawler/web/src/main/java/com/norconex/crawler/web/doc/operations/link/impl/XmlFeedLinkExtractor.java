@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -68,26 +69,8 @@ import lombok.ToString;
  *   {@link WebDocMetadata#REFERRER_REFERENCE}.</li>
  * </ul>
  *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.XmlFeedLinkExtractor">
- *   {@nx.include com.norconex.crawler.web.doc.operations.link.AbstractTextLinkExtractor@nx.xml.usage}
- * </extractor>
- * }
- *
- * {@nx.xml.example
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.XmlFeedLinkExtractor">
- *   <restrictTo field="document.reference" method="regex">.*rss$</restrictTo>
- * </extractor>
- * }
- * <p>
- * The above example specifies this extractor should only apply on documents
- * that have their URL ending with "rss" (in addition to the default
- * content types supported).
- * </p>
- *
  * @since 2.7.0
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class XmlFeedLinkExtractor
@@ -104,6 +87,12 @@ public class XmlFeedLinkExtractor
         if (!configuration.getContentTypeMatcher().matches(
                 doc.getDocContext().getContentType().toString())) {
             return Set.of();
+        }
+
+        if (!getConfiguration().getRestrictions().isEmpty()
+                && !getConfiguration().getRestrictions().matches(
+                        doc.getMetadata())) {
+            return Collections.emptySet();
         }
 
         var refererUrl = doc.getReference();

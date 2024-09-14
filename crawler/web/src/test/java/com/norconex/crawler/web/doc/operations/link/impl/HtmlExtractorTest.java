@@ -176,6 +176,7 @@ class HtmlExtractorTest {
         htmlExtractor.getConfiguration()
                 .setIgnoreNofollow(true)
                 .addLinkTag("food", "chocolate")
+                .addLinkTag("food", "candy")
                 .addLinkTag("friend", "Thor")
                 .addExtractBetween("start1", "end1", true)
                 .addExtractBetween("start2", "end2", false)

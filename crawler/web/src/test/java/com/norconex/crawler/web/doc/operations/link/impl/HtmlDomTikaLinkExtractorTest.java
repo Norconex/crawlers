@@ -15,6 +15,7 @@
 package com.norconex.crawler.web.doc.operations.link.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
@@ -27,6 +28,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.commons.io.input.BrokenInputStream;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -252,5 +255,26 @@ class HtmlDomTikaLinkExtractorTest {
             link.getMetadata().set("attr.title", title);
         }
         return link;
+    }
+
+    @LinkExtractorsTest
+    void testNonMatchingContentType(LinkExtractor extractor)
+            throws IOException {
+        var links = extractor.extractLinks(
+                CrawlDocStubs.crawlDoc(
+                        "http://www.site.com/file.pdf",
+                        ContentType.PDF, NullInputStream.nullInputStream()));
+        assertThat(links).isEmpty();
+    }
+
+    @LinkExtractorsTest
+    void testFailingDocStream(LinkExtractor extractor) {
+        assertThatException().isThrownBy(() -> {//NOSONAR
+            extractor.extractLinks(
+                    CrawlDocStubs.crawlDoc(
+                            "http://www.site.com/file.html",
+                            ContentType.HTML,
+                            BrokenInputStream.INSTANCE));
+        });
     }
 }

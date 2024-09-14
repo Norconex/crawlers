@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.web.doc.operations.link.impl;
 
+import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.importer.handler.CommonMatchers;
 
 import lombok.Data;
@@ -23,28 +23,9 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Implementation of {@link LinkExtractor} using
- * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL
- * extractions from HTML documents.
- * This is an alternative to the {@link HtmlLinkExtractor}.
+ * Configuration for {@link TikaLinkExtractor}.
  * </p>
- * <p>
- * The configuration of content-types, storing the referrer data, and ignoring
- * "nofollow" and ignoring link data are the same as in
- * {@link HtmlLinkExtractor}. For link data, this parser only keeps a
- * pre-defined set of link attributes, when available (title, type,
- * uri, text, rel).
- * </p>
- *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor"
- *     ignoreNofollow="[false|true]" >
- *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
- * </extractor>
- * }
- * @see HtmlLinkExtractor
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class TikaLinkExtractorConfig {
@@ -52,8 +33,6 @@ public class TikaLinkExtractorConfig {
     private boolean ignoreNofollow;
     /**
      * Whether to ignore extra data associated with a link.
-     * @param ignoreLinkData <code>true</code> to ignore.
-     * @return <code>true</code> to ignore.
      * @since 3.0.0
      */
     private boolean ignoreLinkData;
@@ -62,17 +41,15 @@ public class TikaLinkExtractorConfig {
      * The matcher of content types to apply link extraction on. No attempt to
      * extract links from any other content types will be made. Default is
      * {@link CommonMatchers#HTML_CONTENT_TYPES}.
-     * @param contentTypeMatcher content type matcher
-     * @return content type matcher
      */
     private final TextMatcher contentTypeMatcher =
             CommonMatchers.htmlContentTypes();
 
+    private final PropertyMatchers restrictions = new PropertyMatchers();
+
     /**
      * Matcher of one or more fields to use as the source of content to
      * extract links from, instead of the document content.
-     * @param fieldMatcher field matcher
-     * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
 
@@ -85,11 +62,26 @@ public class TikaLinkExtractorConfig {
      * The matcher of content types to apply link extraction on. No attempt to
      * extract links from any other content types will be made. Default is
      * {@link CommonMatchers#HTML_CONTENT_TYPES}.
-     * @param contentTypeMatcher content type matcher
+     * @param matcher content type matcher
      * @return this
      */
     public TikaLinkExtractorConfig setContentTypeMatcher(TextMatcher matcher) {
         contentTypeMatcher.copyFrom(matcher);
         return this;
+    }
+
+    /**
+     * Clears all restrictions.
+     */
+    public void clearRestrictions() {
+        restrictions.clear();
+    }
+
+    /**
+     * Gets all restrictions
+     * @return the restrictions
+     */
+    public PropertyMatchers getRestrictions() {
+        return restrictions;
     }
 }

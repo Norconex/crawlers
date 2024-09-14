@@ -24,8 +24,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.convert.GenericConverter;
 import com.norconex.commons.lang.url.UrlNormalizer;
-import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 
 import lombok.Data;
 import lombok.Getter;
@@ -33,117 +31,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Generic implementation of {@link WebUrlNormalizer} that should satisfy
- * most URL normalization needs.  This implementation relies on
- * {@link UrlNormalizer}.  Please refer to it for complete documentation and
- * examples.
- * </p>
- * <p>
- * This class is in effect by default. To skip its usage, you
- * can explicitly set the URL Normalizer to <code>null</code> in the
- * {@link WebCrawlerConfig}.
- * </p>
- * <p>
- * By default, this class removes the URL fragment and applies these
- * <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>
- * normalizations:
- * </p>
- * <ul>
- *   <li>Converting the scheme and host to lower case</li>
- *   <li>Capitalizing letters in escape sequences</li>
- *   <li>Decoding percent-encoded unreserved characters</li>
- *   <li>Removing the default port</li>
- *   <li>Encoding non-URI characters</li>
- * </ul>
- * <p>
- * To overwrite this default, you have to specify a new list of normalizations
- * to apply, via the {@link #setNormalizations(List)} method,
- * or via XML configuration.  Each
- * normalizations is identified by a code name.  The following is the
- * complete code name list for supported normalizations.  Click on any code
- * name to get a full description from {@link WebUrlNormalizer}:
- * </p>
- * <ul>
- *   <li>{@link UrlNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash} (since 2.6.0)</li>
- *   <li>{@link UrlNormalizer#addDomainTrailingSlash() addDomainTrailingSlash} (since 2.6.1)</li>
- *   <li>{@link UrlNormalizer#addWWW() addWWW}</li>
- *   <li>{@link UrlNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
- *   <li>{@link UrlNormalizer#encodeNonURICharacters() encodeNonURICharacters}</li>
- *   <li>{@link UrlNormalizer#encodeSpaces() encodeSpaces}</li>
- *   <li>{@link UrlNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
- *   <li>{@link UrlNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
- *   <li>{@link UrlNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
- *   <li>{@link UrlNormalizer#lowerCaseQueryParameterNames()
- *        lowerCaseQueryParameterNames} (since 2.9.0)</li>
- *   <li>{@link UrlNormalizer#lowerCaseQueryParameterValues()
- *        lowerCaseQueryParameterValues} (since 2.9.0)</li>
- *   <li>{@link UrlNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
- *   <li>{@link UrlNormalizer#removeDefaultPort() removeDefaultPort}</li>
- *   <li>{@link UrlNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
- *   <li>{@link UrlNormalizer#removeDotSegments() removeDotSegments}</li>
- *   <li>{@link UrlNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
- *   <li>{@link UrlNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
- *   <li>{@link UrlNormalizer#removeFragment() removeFragment}</li>
- *   <li>{@link UrlNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
- *   <li>{@link UrlNormalizer#removeSessionIds() removeSessionIds}</li>
- *   <li>{@link UrlNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
- *   <li>{@link UrlNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
- *   <li>{@link UrlNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
- *   <li>{@link UrlNormalizer#removeWWW() removeWWW}</li>
- *   <li>{@link UrlNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
- *   <li>{@link UrlNormalizer#secureScheme() secureScheme}</li>
- *   <li>{@link UrlNormalizer#sortQueryParameters() sortQueryParameters}</li>
- *   <li>{@link UrlNormalizer#unsecureScheme() unsecureScheme}</li>
- *   <li>{@link UrlNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
- * </ul>
- * <p>
- *   In addition, this class allows you to specify any number of URL
- *   value replacements using regular expressions.
- * </p>
- *
- * {@nx.xml.usage
- *  <urlNormalizer
- *      class="com.norconex.crawler.web.url.impl.GenericUrlNormalizer">
- *    <normalizations>
- *      (normalization code names, coma separated)
- *    </normalizations>
- *    <replacements>
- *      <replace>
- *         <match>(regex pattern to match)</match>
- *         <replacement>(optional replacement value, default to blank)</replacement>
- *      </replace>
- *      (... repeat replace tag  as needed ...)
- *    </replacements>
- *  </urlNormalizer>
- * }
- * <p>
- * Since 2.7.2, having an empty "normalizations" tag will effectively remove
- * any normalizations rules previously set (like default ones).
- * Not having the tag
- * at all will keep existing/default normalizations.
- * </p>
- *
- * {@nx.xml.example
- * <urlNormalizer class="com.norconex.crawler.web.url.impl.GenericUrlNormalizer">
- *   <normalizations>
- *       removeFragment, lowerCaseSchemeHost, upperCaseEscapeSequence,
- *       decodeUnreservedCharacters, removeDefaultPort,
- *       encodeNonURICharacters, addWWW
- *   </normalizations>
- *   <replacements>
- *     <replace><match>&amp;amp;view=print</match></replace>
- *     <replace>
- *        <match>(&amp;amp;type=)(summary)</match>
- *        <replacement>$1full</replacement>
- *     </replace>
- *   </replacements>
- * </urlNormalizer>
- * }
- * <p>
- * The following adds a normalization to add "www." to URL domains when
- * missing, to the default set of normalizations. It also add custom
- * URL "search-and-replace" to remove any "&amp;view=print" strings from URLs
- * as well as replace "&amp;type=summary" with "&amp;type=full".
+ * Configuration for {@link GenericUrlNormalizer}.
  * </p>
  */
 @Data

@@ -41,9 +41,10 @@ public class DelaySchedule {
     private DelayRange<LocalTime> timeRange;
     private Duration delay;
 
-    // For Jackson serialization
+    //--- Serialization helpers ------------------------------------------------
+
     @JsonSetter(value = "timeRange")
-    void setTimeRangeFromString(DelayRange<String> range) {
+    void setTimeRangeSerial(DelayRange<String> range) {
         if (range == null) {
             timeRange = null;
             return;
@@ -54,7 +55,7 @@ public class DelaySchedule {
     }
 
     @JsonGetter(value = "timeRange")
-    DelayRange<String> getTimeRangeAsString() {
+    DelayRange<String> getTimeRangeSerial() {
         if (timeRange == null) {
             return null;
         }

@@ -232,7 +232,7 @@
       <minFrequency applyTo="reference" value="always" >
         <matcher method="regex" pattern=".*\.pdf"/>
       </minFrequency>
-      <minFrequency applyTo="contentType" value="3000" >
+      <minFrequency applyTo="CONTENT_TYPE" value="3000" >
         <matcher pattern="text/html"/>
       </minFrequency>
     </minFrequencies>
@@ -352,14 +352,17 @@
   </documentFilters>
 
   <preImportConsumers>
-    <consumer class="FeaturedImageProcessor">
+    <consumer class="FeaturedImageResolver">
        <pageContentTypePattern>text/html</pageContentTypePattern>
        <domSelector>dom dom</domSelector>
        <minDimensions>425x312</minDimensions>
        <largest>true</largest>
        <imageCacheSize>1234</imageCacheSize>
        <imageCacheDir>/some/path</imageCacheDir>
-       <storage>url, inline</storage>
+       <storages>
+         <storage>url</storage>
+         <storage>inline</storage>
+       </storages>
        <scaleQuality>medium</scaleQuality>
        <scaleDimensions>25</scaleDimensions>
        <scaleStretch>true</scaleStretch>

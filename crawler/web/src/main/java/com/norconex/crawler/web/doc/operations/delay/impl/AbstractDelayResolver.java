@@ -61,20 +61,7 @@ import lombok.extern.slf4j.Slf4j;
  *       any given thread.  The more threads you have the less of an
  *       impact the delay will have.</li>
  * </ul>
- * <h3>
- * XML configuration usage:
- * </h3>
- * <p>
- * The following should be shared across concrete implementations
- * (which can add more configurable attributes and tags).
- * </p>
- * {@nx.xml
- * <delay class="(implementing class)"
- *     default="(milliseconds)"
- *     ignoreRobotsCrawlDelay="[false|true]"
- *     scope="[crawler|site|thread]">
- * </delay>
- * }
+ * @param <T> type of configuration class
  * @since 2.5.0
  */
 @Slf4j
@@ -101,9 +88,8 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
         }
         var delay = delays.get(getConfiguration().getScope());
         if (delay == null) {
-            LOG.warn(
-                    "Unspecified or unsupported delay scope: {}. "
-                            + "Using {} scope.",
+            LOG.warn("Unspecified or unsupported delay scope: {}. "
+                    + "Using {} scope.",
                     getConfiguration().getScope(),
                     BaseDelayResolverConfig.DEFAULT_SCOPE);
             delay = delays.get(BaseDelayResolverConfig.DEFAULT_SCOPE);

@@ -16,8 +16,6 @@ package com.norconex.crawler.web.util;
 
 import static org.apache.commons.lang3.StringUtils.substring;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -27,7 +25,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebCrawlerContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
@@ -48,70 +45,23 @@ public final class Web {
             WebCrawlDocContext docContext,
             UrlScope urlScope) {
         if (!urlScope.isInScope()) {
-            crawler.fire(
-                    CrawlerEvent
-                            .builder()
-                            .name(WebCrawlerEvent.REJECTED_OUT_OF_SCOPE)
-                            .source(crawler)
-                            .subject(Web.config(crawler).getUrlScopeResolver())
-                            .docContext(docContext)
-                            .message(urlScope.outOfScopeReason())
-                            .build());
+            crawler.fire(CrawlerEvent
+                    .builder()
+                    .name(WebCrawlerEvent.REJECTED_OUT_OF_SCOPE)
+                    .source(crawler)
+                    .subject(Web.config(crawler).getUrlScopeResolver())
+                    .docContext(docContext)
+                    .message(urlScope.outOfScopeReason())
+                    .build());
         }
     }
 
-    //    private static final BeanMapper BEAN_MAPPER =
-    //            CrawlSessionBeanMapperFactory.create(
-    //                    WebCrawlerConfig.class, b ->
-    //                        b.unboundPropertyMapping(
-    //                                "crawler", WebCrawlerMixIn.class));
-    //    private static class WebCrawlerMixIn {
-    //        @JsonDeserialize(as = WebCrawlerConfig.class)
-    //        private CrawlerConfig configuration;
-    //    }
-
-    //    public static BeanMapper beanMapper() {
-    //        return BEAN_MAPPER;
-    //    }
-
-    //    public static WebCrawlerConfig config(CrawlerConfig cfg) {
-    //        return (WebCrawlerConfig) cfg;
-    //    }
-    //    public static WebCrawlerConfig config(AbstractPipelineContext ctx) {
-    //        return (WebCrawlerConfig) Web.config(ctx.getCrawler());
-    //    }
     public static WebCrawlerConfig config(Crawler crawler) {
         return (WebCrawlerConfig) crawler.getConfiguration();
     }
 
     public static WebCrawlerContext crawlerContext(Crawler crawler) {
         return (WebCrawlerContext) crawler.getContext();
-    }
-
-    //    public static WebImporterPipelineContext importerContext(
-    //            AbstractPipelineContext ctx) {
-    //        return (WebImporterPipelineContext) ctx;
-    //    }
-
-    //    //TODO move this one to core?
-    //    public static void fire(
-    //            Crawler crawler,
-    //            @NonNull
-    //            Consumer<CrawlerEventBuilder<?, ?>> c) {
-    //        if (crawler != null) {
-    //            var builder = CrawlerEvent.builder();
-    //            c.accept(builder);
-    //            crawler.getEventManager().fire(builder.build());
-    //        }
-    //    }
-
-    //TODO could probably move this where needed since generically,
-    // we would get the fetcher wrapper directly from crawler.
-    public static List<HttpFetcher> toHttpFetcher(
-            @NonNull Collection<Fetcher<?, ?>> fetchers) {
-        return fetchers.stream()
-                .map(HttpFetcher.class::cast)
-                .toList();
     }
 
     public static HttpFetcher fetcher(Crawler crawler) {
@@ -130,10 +80,9 @@ public final class Web {
     public static RobotsTxt robotsTxt(Crawler crawler, String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())
-                .map(
-                        rb -> rb.getRobotsTxt(
-                                (HttpFetcher) crawler.getFetcher(),
-                                reference))
+                .map(rb -> rb.getRobotsTxt(
+                        (HttpFetcher) crawler.getFetcher(),
+                        reference))
                 .orElse(null);
     }
 
@@ -199,15 +148,14 @@ public final class Web {
         if (StringUtils.isBlank(attribsStr)) {
             return props;
         }
-        doParseDomAttributes(
-                attribsStr
-                        // strip before and after angle brackets as separate steps,
-                        // in case of weird mark-up
-                        .replaceFirst("(?s)^.*<\\s*[\\w-]+\\s*(.*)$", "$1")
-                        .replaceFirst("(?s)^(.*?)>.*$", "$1")
-                        .replaceAll("\\s+", " ")
-                        .replace(" =", "=")
-                        .replace("= ", "="),
+        doParseDomAttributes(attribsStr
+                // strip before and after angle brackets as separate steps,
+                // in case of weird mark-up
+                .replaceFirst("(?s)^.*<\\s*[\\w-]+\\s*(.*)$", "$1")
+                .replaceFirst("(?s)^(.*?)>.*$", "$1")
+                .replaceAll("\\s+", " ")
+                .replace(" =", "=")
+                .replace("= ", "="),
                 props);
         return props;
     }

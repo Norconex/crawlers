@@ -19,6 +19,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +49,8 @@ import lombok.ToString;
  * Implementation of {@link LinkExtractor} using
  * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL
  * extractions from HTML documents.
- * This is an alternative to the {@link HtmlLinkExtractor}.
+ * This is an alternative to the {@link HtmlLinkExtractor} or even
+ * {@link DomLinkExtractor}.
  * </p>
  * <p>
  * The configuration of content-types, storing the referrer data, and ignoring
@@ -57,16 +59,8 @@ import lombok.ToString;
  * pre-defined set of link attributes, when available (title, type,
  * uri, text, rel).
  * </p>
- *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor"
- *     ignoreNofollow="[false|true]" >
- *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
- * </extractor>
- * }
  * @see HtmlLinkExtractor
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class TikaLinkExtractor
@@ -88,6 +82,12 @@ public class TikaLinkExtractor
         if (!configuration.getContentTypeMatcher().matches(
                 doc.getDocContext().getContentType().toString())) {
             return Set.of();
+        }
+
+        if (!getConfiguration().getRestrictions().isEmpty()
+                && !getConfiguration().getRestrictions().matches(
+                        doc.getMetadata())) {
+            return Collections.emptySet();
         }
 
         var refererUrl = doc.getReference();

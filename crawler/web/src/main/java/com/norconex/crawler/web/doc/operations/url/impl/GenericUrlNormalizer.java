@@ -98,51 +98,6 @@ import lombok.ToString;
  *   In addition, this class allows you to specify any number of URL
  *   value replacements using regular expressions.
  * </p>
- *
- * {@nx.xml.usage
- *  <urlNormalizer
- *      class="com.norconex.crawler.web.url.impl.GenericUrlNormalizer">
- *    <normalizations>
- *      (normalization code names, coma separated)
- *    </normalizations>
- *    <replacements>
- *      <replace>
- *         <match>(regex pattern to match)</match>
- *         <replacement>(optional replacement value, default to blank)</replacement>
- *      </replace>
- *      (... repeat replace tag  as needed ...)
- *    </replacements>
- *  </urlNormalizer>
- * }
- * <p>
- * Since 2.7.2, having an empty "normalizations" tag will effectively remove
- * any normalizations rules previously set (like default ones).
- * Not having the tag
- * at all will keep existing/default normalizations.
- * </p>
- *
- * {@nx.xml.example
- * <urlNormalizer class="com.norconex.crawler.web.url.impl.GenericUrlNormalizer">
- *   <normalizations>
- *       removeFragment, lowerCaseSchemeHost, upperCaseEscapeSequence,
- *       decodeUnreservedCharacters, removeDefaultPort,
- *       encodeNonURICharacters, addWWW
- *   </normalizations>
- *   <replacements>
- *     <replace><match>&amp;amp;view=print</match></replace>
- *     <replace>
- *        <match>(&amp;amp;type=)(summary)</match>
- *        <replacement>$1full</replacement>
- *     </replace>
- *   </replacements>
- * </urlNormalizer>
- * }
- * <p>
- * The following adds a normalization to add "www." to URL domains when
- * missing, to the default set of normalizations. It also add custom
- * URL "search-and-replace" to remove any "&amp;view=print" strings from URLs
- * as well as replace "&amp;type=summary" with "&amp;type=full".
- * </p>
  */
 @EqualsAndHashCode
 @ToString
