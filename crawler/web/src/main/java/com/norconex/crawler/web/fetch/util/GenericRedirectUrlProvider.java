@@ -153,7 +153,7 @@ public class GenericRedirectUrlProvider implements
             return url;
         }
         LOG.warn("""
-                Redirect URI made of 7-bit clean ASCII.\s\
+                Redirect URI not made of 7-bit clean ASCII.\s\
                 It probably is not encoded properly.\s\
                 Will try to fix. Redirect URL: {}""", redirectURL);
 
@@ -171,16 +171,14 @@ public class GenericRedirectUrlProvider implements
                     try {
                         return CharsetUtils.forName(chset);
                     } catch (RuntimeException e) {
-                        var charset =
-                                ofNullable(configuration.getFallbackCharset())
-                                        .orElse(DEFAULT_FALLBACK_CHARSET);
                         LOG.warn("""
                             Could not fix badly encoded URL with charset \
-                            "{}". Redirect URL: "{}". Will try with \
-                            fallback charset: {}""",
-                                charset, redirectUrl, charset);
-                        return charset;
+                            "{}". Redirect URL: "{}". Will use fallback.""",
+                                chset, redirectUrl);
+                        return null;
                     }
-                }).get();
+                }).orElseGet(() -> ofNullable(
+                        configuration.getFallbackCharset())
+                                .orElse(DEFAULT_FALLBACK_CHARSET));
     }
 }
