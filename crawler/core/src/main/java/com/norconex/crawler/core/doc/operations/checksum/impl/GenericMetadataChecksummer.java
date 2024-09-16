@@ -42,16 +42,6 @@ import lombok.Data;
  * <code>toField</code> is ignored unless the <code>keep</code>
  * attribute is set to <code>true</code>.
  * </p>
- *
- * {@nx.xml.example
- * <metadataChecksummer class="GenericMetadataChecksummer">
- *   <fieldMatcher method="csv">docLastModified,docSize</fieldMatcher>
- * </metadataChecksummer>
- * }
- * <p>
- * The above example uses a combination of two (fictitious) fields called
- * "docLastModified" and "docSize" to make the checksum.
- * </p>
  */
 @Data
 public class GenericMetadataChecksummer

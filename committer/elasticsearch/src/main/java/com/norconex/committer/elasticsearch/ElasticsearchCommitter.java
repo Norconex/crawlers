@@ -131,17 +131,11 @@ import lombok.extern.slf4j.Slf4j;
  * Basic authentication is supported for password-protected clusters.
  * </p>
  *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
  * <h3>Timeouts</h3>
  * <p>
  * You can specify timeout values for when this committer sends documents
  * to Elasticsearch.
  * </p>
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * @author Pascal Essiembre
  */

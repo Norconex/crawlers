@@ -30,7 +30,7 @@ import lombok.ToString;
  * Commits documents to Microsoft Azure Search.
  * </p>
  *
- * <h3>Document reference encoding</h3>
+ * <h2>Document reference encoding</h2>
  * <p>
  * By default the document reference (Azure Search Document Key) is
  * encoded using URL-safe Base64 encoding. This is Azure Search recommended
@@ -43,7 +43,7 @@ import lombok.ToString;
  * store it in a field other than your reference ("id") field.
  * </p>
  *
- * <h3>Single vs multiple values</h3>
+ * <h2>Single vs multiple values</h2>
  * <p>
  * Fields with single value will be sent as such, while multi-value fields
  * are sent as array. If you have a field defined as an array in Azure Search,
@@ -58,7 +58,7 @@ import lombok.ToString;
  * {@link AzureSearchCommitterConfig#setArrayFieldsRegex(boolean)}.
  * </p>
  *
- * <h3>Field names and errors</h3>
+ * <h2>Field names and errors</h2>
  * <p>
  * Azure Search will produce an error if any of the documents in a submitted
  * batch contains one or more fields with invalid characters.  To prevent
@@ -76,7 +76,7 @@ import lombok.ToString;
  * {@link AzureSearchCommitterConfig#setIgnoreResponseErrors(boolean)}
  * to <code>true</code>.
  * </p>
- * <h4>Field naming rules</h4>
+ * <h3>Field naming rules</h3>
  * <p>
  * Those are the field naming rules mandated for Azure Search (in force
  * for Azure Search version 2016-09-01):
@@ -90,12 +90,6 @@ import lombok.ToString;
  *       character must be a letter. Cannot start with "azureSearch".
  *       Maximum length is 128 characters.</li>
  * </ul>
- *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * @author Pascal Essiembre
  */

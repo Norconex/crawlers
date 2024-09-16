@@ -33,7 +33,6 @@ import lombok.experimental.Accessors;
  * and restrictions for filtering unwanted requests.
  * </p>
  *
- * {@nx.block #restrictTo
  * <h3>Restricting committer to specific documents</h3>
  * <p>
  * Optionally apply a committer only to certain type of documents.
@@ -41,9 +40,7 @@ import lombok.experimental.Accessors;
  * metadata field names and values. This option can be used to
  * perform document routing when you have multiple Committers defined.
  * </p>
- * }
  *
- * {@nx.block #fieldMappings
  * <h3>Field mappings</h3>
  * <p>
  * By default, this abstract class applies field mappings for metadata fields,
@@ -53,7 +50,6 @@ import lombok.experimental.Accessors;
  * Field mappings are performed on committer requests before upserts and
  * deletes are actually performed.
  * </p>
- * }
  */
 @Data
 @Accessors(chain = true)

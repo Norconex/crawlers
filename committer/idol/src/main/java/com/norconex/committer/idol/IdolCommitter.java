@@ -30,13 +30,9 @@ import lombok.ToString;
 /**
  * <p>
  * Commits documents to IDOL Server/DIH or Connector
- * Framework Server (CFS).   Specifying either the index port or the cfs port
+ * Framework Server (CFS). Specifying either the index port or the cfs port
  * determines which of the two will be the documents target.
  * </p>
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * @author Pascal Essiembre
  */

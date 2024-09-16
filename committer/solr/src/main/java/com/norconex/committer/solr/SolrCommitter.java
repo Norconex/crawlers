@@ -97,12 +97,6 @@ import lombok.extern.slf4j.Slf4j;
  * Basic authentication is supported for password-protected
  * Solr installations.
  * </p>
- *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  */
 @EqualsAndHashCode
 @ToString

@@ -47,12 +47,6 @@ import lombok.ToString;
  * <p>
  * The default queue is {@link FsQueue} (file-system queue).
  * </p>
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
- * <p>Subclasses inherits this configuration:</p>
  * @param <T> Committer configuration type
  */
 @EqualsAndHashCode

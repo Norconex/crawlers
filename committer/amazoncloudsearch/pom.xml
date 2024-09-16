@@ -97,17 +97,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <!-- We are referencing doc from importer with @nx.include so
-         we need to include that dependency here. -->
-          <tagletArtifacts combine.children="append">
-            <tagletArtifact>
-              <groupId>com.norconex.collectors</groupId>
-              <artifactId>norconex-committer-core</artifactId>
-              <version>${norconex-committer-core.version}</version>
-            </tagletArtifact>
-          </tagletArtifacts>
-        </configuration>
       </plugin>
 
       <plugin>
@@ -131,7 +120,6 @@
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
 
-<!-- TODO ADD BACK WHEN READY: 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -152,6 +140,7 @@
           </execution>
         </executions>
       </plugin>
+<!-- TODO ADD BACK WHEN READY: 
 -->
     </plugins>
   </build>

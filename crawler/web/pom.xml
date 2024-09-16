@@ -28,6 +28,7 @@
 
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
+    <shared-resources.include>scripts/**</shared-resources.include> 
       
     <mockserver.version>5.15.0</mockserver.version>      
       

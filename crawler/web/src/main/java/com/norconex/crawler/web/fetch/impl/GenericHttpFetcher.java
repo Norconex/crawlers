@@ -143,8 +143,6 @@ import lombok.extern.slf4j.Slf4j;
  * and {@link GenericHttpFetcherConfig#setForceCharsetDetection(boolean)}.
  * </p>
  *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
  * <h3>HSTS Support</h3>
  * <p>
  * Upon first encountering a secure site, this fetcher will check whether the

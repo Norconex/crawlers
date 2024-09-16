@@ -44,44 +44,12 @@ import lombok.extern.slf4j.Slf4j;
  * Commits documents to Kafka via it's Producer API
  * </p>
  *
- * <h3>createTopic</h3>
+ * <h3>Topic Creation</h3>
  * <p>
- * Whether to create the topic in Apache Kafka.
- * It will be created only if it is not already present. Defaults to false.
+ * By default topics are assumed to already exist. You can optionally
+ * have them created when not already present with
+ * {@link ApacheKafkaCommitterConfig#setCreateTopic(boolean)}.
  * </p>
- *
- * <h3>XML configuration usage:</h3>
- * committer class="com.norconex.committer.apachekafka.KafkaCommitter&gt;
- *      <bootstrapServers>
- *          (A list of host/port pairs in the form host1:port1,host2:port2,...
- *          to use for establishing a connection to the Kafka cluster)
- *      </bootstrapServers>
- *      <topicName>my-topic</topicName>
- *      <createTopic>
- *          [true|false](Whether to create topic in Apache Kafka)
- *      </createTopic>
- *      <numOfPartitions>
- *          (Number of partitions, if createTopic is set to <code>true</code>)
- *      </numOfPartitions>
- *      <replicationFactor>
- *          (Replication Factor, if createTopic is set to <code>true</code>)
- *      </replicationFactor>
- *
- *      {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- *  </committer>
- *
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.apachekafka.KafkaCommitter">
- *   <bootstrapServers>http://some_host:1234</bootstrapServers>
- *   <topicName>my-topic</topicName>
- * </committer>
- * }
- * <p>
- * The above example uses the minimum required settings. It does not attempt
- * to create the topic. As such, topic must already exist in Apache Kafka.
- * </p>
- *
  * @author Harinder Hanjan
  */
 @Slf4j

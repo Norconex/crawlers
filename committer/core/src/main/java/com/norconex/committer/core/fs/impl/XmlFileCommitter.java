@@ -44,37 +44,37 @@ import lombok.ToString;
  * </p>
  *
  * <h3>Generated XML format:</h3>
- * {@nx.xml
- * <docs>
- *   <!-- Document additions: -->
- *   <upsert>
- *     <reference>(document reference, e.g., URL)</reference>
- *     <metadata>
- *       <meta name="(meta field name)">(value)</meta>
- *       <meta name="(meta field name)">(value)</meta>
- *       <!-- meta is repeated for each metadata fields -->
- *     </metadata>
- *     <content>
+ * <pre>
+ * &lt;docs&gt;
+ *   &lt;!-- Document additions: --&gt;
+ *   &lt;upsert&gt;
+ *     &lt;reference&gt;(document reference, e.g., URL)&lt;/reference&gt;
+ *     &lt;metadata&gt;
+ *       &lt;meta name="(meta field name)"&gt;(value)&lt;/meta&gt;
+ *       &lt;meta name="(meta field name)"&gt;(value)&lt;/meta&gt;
+ *       &lt;!-- meta is repeated for each metadata fields --&gt;
+ *     &lt;/metadata&gt;
+ *     &lt;content&gt;
  *       (document content goes here)
- *     </content>
- *   </upsert>
- *   <upsert>
- *     <!-- upsert element is repeated for each additions -->
- *   </upsert>
+ *     &lt;/content&gt;
+ *   &lt;/upsert&gt;
+ *   &lt;upsert&gt;
+ *     &lt;!-- upsert element is repeated for each additions --&gt;
+ *   &lt;/upsert&gt;
  *
- *   <!-- Document deletions: -->
- *   <delete>
- *     <reference>(document reference, e.g., URL)</reference>
- *     <metadata>
- *       <meta name="(meta field name)">(value)</meta>
- *       <meta name="(meta field name)">(value)</meta>
- *       <!-- meta is repeated for each metadata fields -->
- *     </metadata>
- *   </delete>
- *   <delete>
- *     <!-- delete element is repeated for each deletions -->
- *   </delete>
- * </docs>
+ *   &lt;!-- Document deletions: --&gt;
+ *   &lt;delete&gt;
+ *     &lt;reference&gt;(document reference, e.g., URL)&lt;/reference&gt;
+ *     &lt;metadata&gt;
+ *       &lt;meta name="(meta field name)"&gt;(value)&lt;/meta&gt;
+ *       &lt;meta name="(meta field name)"&gt;(value)&lt;/meta&gt;
+ *       &lt;!-- meta is repeated for each metadata fields --&gt;
+ *     &lt;/metadata&gt;
+ *   &lt;/delete&gt;
+ *   &lt;delete&gt;
+ *     &lt;!-- delete element is repeated for each deletions --&gt;
+ *   &lt;/delete&gt;
+ * </pre>
  * }
  */
 @EqualsAndHashCode

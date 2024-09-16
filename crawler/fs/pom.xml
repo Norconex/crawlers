@@ -27,8 +27,9 @@
   <name>Norconex File System Crawler</name>
  
   <properties>
-    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     <sonar.exclusions>${project.basedir}/src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
+    <shared-resources.include>scripts/**</shared-resources.include> 
       
     <commons-net.version>3.9.0</commons-net.version>
     <commons-vfs.version>2.9.0</commons-vfs.version>

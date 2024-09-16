@@ -100,24 +100,17 @@
       <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
-      <directory>${project.build.directory}/site/apidocs</directory>
-      <outputDirectory>apidocs</outputDirectory>
+      <directory>${project.build.directory}/apidocs</directory>
+      <outputDirectory>./</outputDirectory>
       <lineEnding>unix</lineEnding>
     </fileSet>
-    <!-- TODO Shall we include the same shared resources in all modules?
     <fileSet>
       <directory>${project.build.directory}/shared-resources</directory>
+      <includes>
+        <include>${shared-resources.include}</include>
+      </includes>
       <excludes>
-        <exclude>scripts/decrypt*</exclude>
-        <exclude>scripts/encrypt*</exclude>
-      </excludes>
-      <outputDirectory>./</outputDirectory>
-    </fileSet>
-    -->
-    <fileSet>
-      <directory>${project.build.directory}/shared-resources</directory>
-      <excludes>
-        <exclude>install*</exclude>
+        <exclude>${shared-resources.exclude}</exclude>
       </excludes>
       <outputDirectory>./</outputDirectory>
     </fileSet>

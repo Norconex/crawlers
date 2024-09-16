@@ -13,9 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="https://maven.apache.org/POM/4.0.0" 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.norconex.crawler</groupId>
@@ -120,21 +118,6 @@
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
       
-      <!-- TEST START -->
-<!--      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-      </plugin>          
-      <plugin>
-        <groupId>org.sonarsource.scanner.maven</groupId>
-        <artifactId>sonar-maven-plugin</artifactId>
-      </plugin>-->
-      <!-- /TEST END -->
-      
       <!-- Uncomment when ready:
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -168,6 +151,6 @@
   </distributionManagement>
   
   <url>https://opensource.norconex.com/committers/core</url>
-  <description>Norconex Committer is a java library and command line application used to route content to local or remote target repositories, such as a search engine index.   </description>
+  <description>Norconex Committer is a java library and command line application used to route content to local or remote target repositories, such as a search engine index.</description>
 
 </project>

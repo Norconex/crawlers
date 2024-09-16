@@ -50,6 +50,7 @@ import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractorConfig.RegexPair;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
 import com.norconex.crawler.web.util.Web;
+import com.norconex.importer.handler.CommonMatchers;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -71,9 +72,9 @@ import lombok.extern.slf4j.Slf4j;
  * <h3>Applicable documents</h3>
  * <p>
  * By default, this extractor will only be applied on documents matching
- * one of these content types:
+ * one of the content-types specified by
+ * {@link CommonMatchers#HTML_CONTENT_TYPES}
  * </p>
- * {@nx.include com.norconex.importer.handler.CommonRestrictions#htmlContentTypes}
  * <p>
  * You can specify your own content types or other restrictions with
  * {@link HtmlLinkExtractorConfig#setContentTypeMatcher(com.norconex.commons.lang.text.TextMatcher)}.

@@ -35,12 +35,6 @@ import lombok.ToString;
  * Solr installations.
  * </p>
  *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
  * @author Sylvain Roussy
  * @author Pascal Essiembre
  */
