@@ -581,7 +581,7 @@
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>${maven-javadoc-plugin.version}</version>
           <configuration>
-            <outputDirectory>${project.build.directory}/apidocs</outputDirectory>
+            <outputDirectory>${project.build.directory}</outputDirectory>
             <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
             <sourceFileIncludes>
               <sourceInclude>com/norconex/**/*.java</sourceInclude>
