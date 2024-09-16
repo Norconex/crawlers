@@ -50,8 +50,6 @@ import lombok.extern.slf4j.Slf4j;
  * CIFS fetcher (Samba, Windows share) (<code>hdfs://</code>).
  * </p>
  *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
- *
  * <h3>Access Control List (ACL)</h3>
  * <p>
  * This fetcher will try to extract access control information for each

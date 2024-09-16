@@ -42,7 +42,7 @@ import lombok.ToString;
  * </p>
  *
  * <h3>Generated JSON format:</h3>
- * {@nx.json
+ * <pre>
  * [
  *   {"upsert": {
  *     "reference": "document reference, e.g., URL",
@@ -74,8 +74,7 @@ import lombok.ToString;
  *     // delete is repeated as necessary
  *   }}
  * ]
- *
- * }
+ * </pre>
  */
 @EqualsAndHashCode
 @ToString

@@ -48,8 +48,6 @@ import lombok.ToString;
  * <code>cmis:http://yourhost:port/path/to/atom!/MyFolder/MySubFolder</code>.
  * Start paths are assumed to be Atom URLs.
  * </p>
- *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
  */
 @ToString
 @EqualsAndHashCode

@@ -37,7 +37,6 @@ import lombok.ToString;
  * and adding support for filtering unwanted requests.
  * </p>
  *
- * {@nx.block #restrictTo
  * <h3>Restricting committer to specific documents</h3>
  * <p>
  * Optionally apply a committer only to certain type of documents.
@@ -45,9 +44,7 @@ import lombok.ToString;
  * metadata field names and values. This option can be used to
  * perform document routing when you have multiple committers defined.
  * </p>
- * }
  *
- * {@nx.block #fieldMappings
  * <h3>Field mappings</h3>
  * <p>
  * By default, this abstract class applies field mappings for metadata fields,
@@ -57,7 +54,6 @@ import lombok.ToString;
  * Field mappings are performed on committer requests before upserts and
  * deletes are actually performed.
  * </p>
- * }
  * @param <T> The type of the committer configuration class
  */
 @EqualsAndHashCode

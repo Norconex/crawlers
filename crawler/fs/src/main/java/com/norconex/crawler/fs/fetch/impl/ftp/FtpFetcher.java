@@ -36,7 +36,6 @@ import lombok.ToString;
  * FTP (<code>ftp://</code>) and FTPS (<code>ftps://</code>) fetcher.
  * </p>
  *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
  * @see SftpFetcher
  */
 @ToString

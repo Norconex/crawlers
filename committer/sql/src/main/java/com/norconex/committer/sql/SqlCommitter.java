@@ -72,12 +72,6 @@ import lombok.ToString;
  *   </dd>
  * </dl>
  *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
  * @author Pascal Essiembre
  */
 @EqualsAndHashCode

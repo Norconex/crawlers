@@ -364,51 +364,6 @@
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
       
-      <!-- Uncomment when ready:
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-shared-resources</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <phase>prepare-package</phase>
-            <configuration>
-              <classifier>resources</classifier>
-              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
-              <includeGroupIds>com.norconex.commons</includeGroupIds>
-              <excludeTransitive>true</excludeTransitive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      -->
-      
-      <!-- TESTING: -->
-      <!-- TODO: rely on SonarQube instead. Remove once confirmed in SonarQube
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jdeps-plugin</artifactId>
-        <version>3.1.2</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>jdkinternals</goal>--> <!-- verify main classes -->
-              <!--<goal>test-jdkinternals</goal>--> <!-- verify test classes -->
-            <!--</goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jdeprscan-plugin</artifactId>
-        <version>3.0.0-alpha-1</version>
-      </plugin>
-        -->
-      
     </plugins>
   </build>
   

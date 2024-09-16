@@ -37,6 +37,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.DomLinkExtractorConfig.LinkSelector;
+import com.norconex.importer.handler.CommonMatchers;
 import com.norconex.importer.util.DomUtil;
 
 import lombok.EqualsAndHashCode;
@@ -93,11 +94,8 @@ import lombok.ToString;
  * <p>
  * It is possible to control what gets extracted
  * exactly for matching purposes thanks to the "extract" argument expected
- * with every selector.  Possible values are:
+ * with every selector.  See {@link DomUtil} for possible values.
  * </p>
- *
- * {@nx.include com.norconex.importer.util.DomUtil#extract}
- *
  * <p>
  * When not specified, the default is "text".
  * </p>
@@ -140,9 +138,8 @@ import lombok.ToString;
  * <h3>Applicable documents</h3>
  * <p>
  * By default, this extractor will only be applied on documents matching
- * one of these content types:
+ * one of these content types: {@link CommonMatchers#DOM_CONTENT_TYPES}.
  * </p>
- * {@nx.include com.norconex.importer.handler.CommonMatchers#domContentTypes}
  *
  * <h3>"nofollow"</h3>
  * <p>

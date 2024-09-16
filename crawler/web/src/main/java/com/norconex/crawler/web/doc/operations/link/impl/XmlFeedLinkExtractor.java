@@ -35,6 +35,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
+import com.norconex.importer.handler.CommonMatchers;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -53,10 +54,9 @@ import lombok.ToString;
  * <h3>Applicable documents</h3>
  * <p>
  * By default, this extractor only will be applied on documents matching
- * one of these content types:
+ * one of the content types defined by
+ * {@link CommonMatchers#XML_FEED_CONTENT_TYPES}.
  * </p>
- *
- * {@nx.include com.norconex.importer.handler.CommonMatchers#xmlFeedContentTypes}
  *
  * <h3>Referrer data</h3>
  * <p>

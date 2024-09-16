@@ -31,12 +31,7 @@ import lombok.ToString;
  * </p>
  *
  * <h3>Generic authentication settings</h3>
- * <p>
- * The following is available to all implementing classes.
- * </p>
  *
- * {@nx.block #doc
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
  * <p>
  * You can also have password set on the URL, Apache
  * Commons VFS offers a way to encrypt it there using their own
@@ -44,7 +39,6 @@ import lombok.ToString;
  * <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">
  * http://commons.apache.org/proper/commons-vfs/filesystems.html</a>
  * </p>
- * }
  * @param <C> Type of configuration class
  *
  */

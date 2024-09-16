@@ -27,8 +27,9 @@
   <name>Norconex File System Crawler</name>
  
   <properties>
-    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     <sonar.exclusions>${project.basedir}/src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
+    <shared-resources.include>scripts/**</shared-resources.include> 
       
     <commons-net.version>3.9.0</commons-net.version>
     <commons-vfs.version>2.9.0</commons-vfs.version>
@@ -204,25 +205,6 @@
       <artifactId>log4j-slf4j2-impl</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- 
-    <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-crawler-core</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>log4j-core</artifactId>
-        </exclusion>
-      </exclusions>
-      <classifier>tests</classifier>      
-      <scope>test</scope>
-    </dependency>    
-    -->
     
     <dependency>
       <groupId>org.apache.ftpserver</groupId>
@@ -264,16 +246,6 @@
         <scope>test</scope>
     </dependency>
 
-    <!-- TODO: Assess if still needed:
-    <dependency>
-        <groupId>com.norconex.commons</groupId>
-        <artifactId>norconex-commons-lang</artifactId>
-        <classifier>resources</classifier>
-        <type>zip</type>
-        <scope>provided</scope>
-    </dependency>
-    -->
-
   </dependencies>
   
   <build>
@@ -286,25 +258,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <!-- We are referencing doc from other projects with @nx.include so
-               we need to include those dependencies here to avoid
-               getting a ClassNotFoundException. -->
-<!-- Uncomment when importer V4 exists
-          <tagletArtifacts combine.children="append">
-            <tagletArtifact>
-              <groupId>com.norconex.collectors</groupId>
-              <artifactId>norconex-importer</artifactId>
-              <version>${norconex-importer.version}</version>
-            </tagletArtifact>
-            <tagletArtifact>
-              <groupId>com.norconex.collectors</groupId>
-              <artifactId>norconex-collector-core</artifactId>
-              <version>${norconex-collector-core.version}</version>
-            </tagletArtifact>
-          </tagletArtifacts>
- -->
-        </configuration>
       </plugin>
 
       <plugin>
@@ -332,29 +285,6 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
       </plugin>      
-      
-      <!-- Uncomment when ready:
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-shared-resources</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <phase>prepare-package</phase>
-            <configuration>
-              <classifier>resources</classifier>
-              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
-              <includeGroupIds>com.norconex.commons</includeGroupIds>
-              <excludeTransitive>true</excludeTransitive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      -->
 
     </plugins>    
   </build>

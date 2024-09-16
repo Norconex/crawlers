@@ -26,7 +26,7 @@
   <name>Norconex Committer Azure Cognitive Search</name>
 
   <properties>
-    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>    
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
   </properties>
   <inceptionYear>2017</inceptionYear>
 
@@ -34,6 +34,13 @@
     <dependency>
       <groupId>com.norconex.commons</groupId>
       <artifactId>norconex-commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+      <classifier>resources</classifier>
+      <type>zip</type>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.norconex.crawler</groupId>
@@ -74,13 +81,6 @@
       <artifactId>log4j-slf4j2-impl</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.norconex.commons</groupId>
-      <artifactId>norconex-commons-lang</artifactId>
-      <classifier>resources</classifier>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -115,29 +115,6 @@
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
-
-    <!-- Uncomment when ready:
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-shared-resources</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <phase>prepare-package</phase>
-            <configuration>
-              <classifier>resources</classifier>
-              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
-              <includeGroupIds>com.norconex.commons</includeGroupIds>
-              <excludeTransitive>true</excludeTransitive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
--->
 
     </plugins>
   </build>
