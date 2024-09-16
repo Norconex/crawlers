@@ -576,33 +576,6 @@
           <inherited>true</inherited>
         </plugin>
 
-<!--
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-remote-resources-plugin</artifactId>
-          <version>${maven-remote-resources-plugin.version}</version>
-          <executions>
-            <execution>
-              <id>unpack-resources</id>
-              <goals>
-                <goal>process</goal>
-              </goals>
-              <configuration>
-                <resources>
-                  <resource>
-                    <groupId>com.norconex.commons</groupId>
-                    <artifactId>norconex-commons-lang</artifactId>
-                    <classifier>resources</classifier>
-                    <version>${norconex-commons-lang.version}</version>
-                  </resource>
-                </resources>
-                <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        -->
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
@@ -778,14 +751,8 @@
           </configuration>
           <inherited>true</inherited>
         </plugin>
-<!--
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <version>${maven-dependency-plugin.version}</version>
-        </plugin>-->
 
-        <!-- TODO: Do we still publish anything via mvn site? Delete if not. -->         
+        <!-- TODO: Do we still publish javadocs via mvn site? Delete if not. -->         
 <!--        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
@@ -1089,7 +1056,6 @@
 <!--
   TODO: when ready, add these:
     <module>tools/config-converter</module>
-    <module>javadoc-resources</module>
  -->
   </modules>
 </project>

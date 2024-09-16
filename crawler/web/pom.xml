@@ -222,15 +222,6 @@
       <scope>test</scope>
     </dependency>    
     -->
-    <!-- TODO: Implement using this, or remove:
-    <dependency>
-        <groupId>com.norconex.commons</groupId>
-        <artifactId>norconex-commons-lang</artifactId>
-        <classifier>resources</classifier>
-        <type>zip</type>
-        <scope>provided</scope>
-    </dependency>
-    -->
     
     <!-- TODO: TO FIGURE OUT HOW BEST TO INCLUDE (here vs in -core, etc.) -->    
     <dependency>
@@ -247,29 +238,9 @@
         <artifactId>maven-assembly-plugin</artifactId>
       </plugin>
 
-      <!-- TODO: implement using Nx custom taglets or remove. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <!-- We are referencing doc from other projects with @nx.include so
-               we need to include those dependencies here to avoid
-               getting a ClassNotFoundException. -->
-          <!-- Uncomment when importer V4 exists
-          <tagletArtifacts combine.children="append">
-            <tagletArtifact>
-              <groupId>com.norconex.collectors</groupId>
-              <artifactId>norconex-importer</artifactId>
-              <version>${norconex-importer.version}</version>
-            </tagletArtifact>
-            <tagletArtifact>
-              <groupId>com.norconex.collectors</groupId>
-              <artifactId>norconex-collector-core</artifactId>
-              <version>${norconex-collector-core.version}</version>
-            </tagletArtifact>
-          </tagletArtifacts>
-          -->
-        </configuration>
       </plugin>
 
       <plugin>
@@ -298,35 +269,9 @@
         <artifactId>license-maven-plugin</artifactId>
       </plugin>      
       
-      <!-- TODO: Uncomment when ready (or inherit):
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-shared-resources</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <phase>prepare-package</phase>
-            <configuration>
-              <classifier>resources</classifier>
-              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
-              <includeGroupIds>com.norconex.commons</includeGroupIds>
-              <excludeTransitive>true</excludeTransitive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      -->
     </plugins>
   </build>
   
-  <!-- Only used to publish javadoc with "site:deploy", 
-       after they were generated -->
-  <!-- TODO: do we still generate this way or is there another way
-       from CI/CD and generated Jar or else. -->
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>

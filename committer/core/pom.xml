@@ -34,15 +34,6 @@
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
     </dependency>
-    <!-- TODO, when ready: 
-    <dependency>
-        <groupId>com.norconex.commons</groupId>
-        <artifactId>norconex-commons-lang</artifactId>
-        <classifier>resources</classifier>
-        <type>zip</type>
-        <scope>provided</scope>
-    </dependency>
-    -->
     <dependency>
         <groupId>com.tdunning</groupId>
         <artifactId>json</artifactId>
@@ -118,28 +109,6 @@
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
       
-      <!-- Uncomment when ready:
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-shared-resources</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <phase>prepare-package</phase>
-            <configuration>
-              <classifier>resources</classifier>
-              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
-              <includeGroupIds>com.norconex.commons</includeGroupIds>
-              <excludeTransitive>true</excludeTransitive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      -->
     </plugins>
   </build>
 
