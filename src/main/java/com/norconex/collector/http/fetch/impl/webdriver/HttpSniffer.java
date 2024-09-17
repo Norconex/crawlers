@@ -17,6 +17,7 @@ package com.norconex.collector.http.fetch.impl.webdriver;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Optional;
@@ -140,7 +141,15 @@ class HttpSniffer {
             }
         }, cfg.getMaxBufferSize()));
 
-        mobProxy.start(cfg.getPort());
+        if (cfg.getHost() != null){
+            mobProxy.start(cfg.getPort(), new InetSocketAddress(cfg.getHost(),cfg.getPort()).getAddress());
+        }else{
+            mobProxy.start(cfg.getPort());
+        }
+
+
+
+        //InetSocketAddress(snifferConfig.getHost(), snifferConfig.getPort());
 
         var actualPort = mobProxy.getPort();
         var proxyHost = ofNullable(cfg.getHost()).orElse("localhost");
