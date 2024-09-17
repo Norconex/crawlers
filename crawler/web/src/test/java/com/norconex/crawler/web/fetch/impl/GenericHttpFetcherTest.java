@@ -34,17 +34,20 @@ class GenericHttpFetcherTest {
         var cfg = WebTestUtil.randomize(GenericHttpFetcherConfig.class);
         var f = new GenericHttpFetcher();
         BeanUtil.copyProperties(f.getConfiguration(), cfg);
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(f));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(f));
     }
 
     @Test
     void testShemePortResolver() throws URISyntaxException {
-        assertThat(SCHEME_PORT_RESOLVER.resolve(
-                HttpHost.create("http://blah.com"))).isEqualTo(80);
-        assertThat(SCHEME_PORT_RESOLVER.resolve(
-                HttpHost.create("https://blah.com"))).isEqualTo(443);
-        assertThat(SCHEME_PORT_RESOLVER.resolve(
-                HttpHost.create("ftp://blah.com"))).isEqualTo(80);
+        assertThat(
+                SCHEME_PORT_RESOLVER.resolve(
+                        HttpHost.create("http://blah.com"))).isEqualTo(80);
+        assertThat(
+                SCHEME_PORT_RESOLVER.resolve(
+                        HttpHost.create("https://blah.com"))).isEqualTo(443);
+        assertThat(
+                SCHEME_PORT_RESOLVER.resolve(
+                        HttpHost.create("ftp://blah.com"))).isEqualTo(80);
     }
 }

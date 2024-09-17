@@ -42,10 +42,12 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
 
         //TODO should DEPTH be set here now that is is in Core?
         metadata.add(CrawlDocMetadata.DEPTH, docRecord.getDepth());
-        metadata.add(WebDocMetadata.SM_CHANGE_FREQ,
+        metadata.add(
+                WebDocMetadata.SM_CHANGE_FREQ,
                 docRecord.getSitemapChangeFreq());
         metadata.add(WebDocMetadata.SM_LASTMOD, docRecord.getSitemapLastMod());
-        metadata.add(WebDocMetadata.SM_PRORITY,
+        metadata.add(
+                WebDocMetadata.SM_PRORITY,
                 docRecord.getSitemapPriority());
 
         // In case the crawl data supplied is from a URL that was pulled
@@ -69,7 +71,8 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
 
         // Add referrer data to metadata
         //TODO move elsewhere, like .core?
-        metadata.add(WebDocMetadata.REFERRER_REFERENCE,
+        metadata.add(
+                WebDocMetadata.REFERRER_REFERENCE,
                 docRecord.getReferrerReference());
         if (docRecord.getReferrerLinkMetadata() != null) {
             var linkMeta = new Properties();
@@ -86,7 +89,8 @@ class WebCrawlDocInitializer implements BiConsumer<Crawler, CrawlDoc> {
 
         // Add possible redirect trail
         if (!docRecord.getRedirectTrail().isEmpty()) {
-            metadata.setList(WebDocMetadata.REDIRECT_TRAIL,
+            metadata.setList(
+                    WebDocMetadata.REDIRECT_TRAIL,
                     docRecord.getRedirectTrail());
         }
     }

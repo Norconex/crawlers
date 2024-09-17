@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ public class CmisAtomFileSystemConfigBuilder extends FileSystemConfigBuilder {
     public void setXmlTargetField(FileSystemOptions opts, String field) {
         setParam(opts, PARAM_XML_TARGET_FIELD, field);
     }
+
     public String getXmlTargetField(FileSystemOptions opts) {
         return (String) getParam(opts, PARAM_XML_TARGET_FIELD);
     }
@@ -40,6 +41,7 @@ public class CmisAtomFileSystemConfigBuilder extends FileSystemConfigBuilder {
     public void setRepositoryId(FileSystemOptions opts, String repositoryId) {
         setParam(opts, PARAM_RESPOSITORY_ID, repositoryId);
     }
+
     public String getRepositoryId(FileSystemOptions opts) {
         return (String) getParam(opts, PARAM_RESPOSITORY_ID);
     }

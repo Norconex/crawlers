@@ -48,7 +48,6 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
  * Parser class when no other handlers are specified.
  * The importer uses Apache Tika parser in its own way with default
@@ -74,18 +73,16 @@ public class DefaultParser
                 DefTikaConfigurer.configure(configuration));
     }
 
-
     //TODO document this one is based on tika parser, and only support
     // pre-defined config option.
     // THEN, create a TikaParser which is a wrapper around, tika one,
     // which takes a raw tika configuration file.
 
-
     @Override
     public void handle(HandlerContext ctx) throws IOException {
 
         var tikaMetadata = new Metadata();
-        var contentType = ctx.docRecord().getContentType();
+        var contentType = ctx.docContext().getContentType();
 
         if (contentType == null) {
             throw new IOException("Doc must have a content-type.");
@@ -93,17 +90,20 @@ public class DefaultParser
 
         List<Doc> embeddedDocs = new ArrayList<>();
         tikaMetadata.set(HttpHeaders.CONTENT_TYPE, contentType.toString());
-        tikaMetadata.set(TikaCoreProperties.RESOURCE_NAME_KEY,
+        tikaMetadata.set(
+                TikaCoreProperties.RESOURCE_NAME_KEY,
                 ctx.reference());
-        tikaMetadata.set(HttpHeaders.CONTENT_ENCODING,
-                ofNullable(ctx.docRecord().getCharset())
-                    .map(Charset::toString)
-                    .orElse(null));
+        tikaMetadata.set(
+                HttpHeaders.CONTENT_ENCODING,
+                ofNullable(ctx.docContext().getCharset())
+                        .map(Charset::toString)
+                        .orElse(null));
 
         try (var input = CachedInputStream.cache(ctx.input().asInputStream());
-                var output = ctx.output().asWriter(UTF_8))  {
+                var output = ctx.output().asWriter(UTF_8)) {
 
-            tikaMetadata.set(HttpHeaders.CONTENT_LENGTH,
+            tikaMetadata.set(
+                    HttpHeaders.CONTENT_LENGTH,
                     Long.toString(input.length()));
 
             var recursiveParser =
@@ -119,8 +119,9 @@ public class DefaultParser
             }
             pdfConfig.setSuppressDuplicateOverlappingText(true);
             context.set(PDFParserConfig.class, pdfConfig);
-            recursiveParser.parse(input,
-                    new BodyContentHandler(output),  tikaMetadata, context);
+            recursiveParser.parse(
+                    input,
+                    new BodyContentHandler(output), tikaMetadata, context);
         } catch (ZeroByteFileException e) {
             LOG.warn("Document has no content: {}", ctx.reference());
         } catch (IOException e) {
@@ -138,7 +139,7 @@ public class DefaultParser
         // its embedded documents (else, we merge).
         if (TextMatcher.anyMatches(
                 configuration.getEmbeddedConfig().getSplitContentTypes(),
-                docCtx.docRecord().getContentType().toBaseTypeString())) {
+                docCtx.docContext().getContentType().toBaseTypeString())) {
             return new RecursiveEmbeddedSplitter(
                     tikaParser,
                     docCtx,
@@ -152,7 +153,6 @@ public class DefaultParser
                 configuration.getEmbeddedConfig());
     }
 
-
     private void fixTikaInitWarning() {
         //TODO is below still needed?
         // A check for Tesseract OCR parser is done the first time a Tika
@@ -162,8 +162,9 @@ public class DefaultParser
             FieldUtils.writeStaticField(
                     TesseractOCRParser.class, "HAS_WARNED", true, true);
         } catch (IllegalAccessException | IllegalArgumentException e) {
-            LOG.warn("Could not disable invalid Tessaract OCR warning. "
-                   + "If you see such warning, you can ignore.");
+            LOG.warn(
+                    "Could not disable invalid Tessaract OCR warning. "
+                            + "If you see such warning, you can ignore.");
         }
     }
 }

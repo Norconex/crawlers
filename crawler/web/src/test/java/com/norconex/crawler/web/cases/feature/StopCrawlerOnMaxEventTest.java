@@ -56,9 +56,10 @@ class StopCrawlerOnMaxEventTest {
             cfg.setStartReferences(
                     List.of(serverUrl(client, "/stopCrawlerOnMaxEvent")));
             var lis = new StopCrawlerOnMaxEventListener();
-            lis.getConfiguration().setEventMatcher(TextMatcher.csv(
-                    CommitterEvent.COMMITTER_UPSERT_END
-                    + "," + CrawlerEvent.REJECTED_FILTER));
+            lis.getConfiguration().setEventMatcher(
+                    TextMatcher.csv(
+                            CommitterEvent.COMMITTER_UPSERT_END
+                                    + "," + CrawlerEvent.REJECTED_FILTER));
             lis.getConfiguration().setMaximum(10);
             lis.getConfiguration().setOnMultiple(OnMultiple.SUM);
             cfg.addEventListeners(List.of(lis));
@@ -66,10 +67,14 @@ class StopCrawlerOnMaxEventTest {
             cfg.setMaxDocuments(-1);
 
             // reject references with odd depth number
-            cfg.setDocumentFilters(List.of(
-                    Configurable.configure(new GenericReferenceFilter(), c -> c
-                        .setValueMatcher(TextMatcher.regex(".*[13579]$"))
-                        .setOnMatch(OnMatch.EXCLUDE))));
+            cfg.setDocumentFilters(
+                    List.of(
+                            Configurable.configure(
+                                    new GenericReferenceFilter(), c -> c
+                                            .setValueMatcher(
+                                                    TextMatcher
+                                                            .regex(".*[13579]$"))
+                                            .setOnMatch(OnMatch.EXCLUDE))));
         });
 
         // Expected: 6 upserts, 0 deletes

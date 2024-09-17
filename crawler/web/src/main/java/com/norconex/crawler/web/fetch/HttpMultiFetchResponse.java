@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ public class HttpMultiFetchResponse
         return getLastFetchResponse().map(
                 HttpFetchResponse::getRedirectTarget).orElse(null);
     }
+
     @Override
     public String getUserAgent() {
         return getLastFetchResponse().map(

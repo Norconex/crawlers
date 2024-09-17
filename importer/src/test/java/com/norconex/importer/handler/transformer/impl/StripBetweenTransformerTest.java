@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,31 +40,39 @@ class StripBetweenTransformerTest {
     void testTransformTextDocument()
             throws IOException, IOException {
         var t = new StripBetweenTransformer();
-        t.getConfiguration().setOperations(List.of(
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<h2>").setIgnoreCase(true))
-                .setEndMatcher(regex("</h2>").setIgnoreCase(true))
-                .setInclusive(true),
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<P>").setIgnoreCase(true))
-                .setEndMatcher(regex("</P>").setIgnoreCase(true))
-                .setInclusive(true),
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<head>").setIgnoreCase(true))
-                .setEndMatcher(regex("</hEad>").setIgnoreCase(true))
-                .setInclusive(true),
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<Pre>").setIgnoreCase(true))
-                .setEndMatcher(regex("</prE>").setIgnoreCase(true))
-                .setInclusive(true)
-        ));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<h2>").setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("</h2>").setIgnoreCase(true))
+                                .setInclusive(true),
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<P>").setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("</P>").setIgnoreCase(true))
+                                .setInclusive(true),
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<head>").setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("</hEad>").setIgnoreCase(true))
+                                .setInclusive(true),
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<Pre>").setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("</prE>").setIgnoreCase(true))
+                                .setInclusive(true)));
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         try (InputStream is =
                 new BufferedInputStream(new FileInputStream(htmlFile))) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            var doc = TestUtil.newDocContext(
+            var doc = TestUtil.newHandlerContext(
                     htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
             t.accept(doc);
 
@@ -78,58 +86,77 @@ class StripBetweenTransformerTest {
     void testCollectorHttpIssue237()
             throws IOException, IOException {
         var t = new StripBetweenTransformer();
-        t.getConfiguration().setOperations(List.of(
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<body>").setIgnoreCase(true))
-                .setEndMatcher(regex("<\\!-- START -->").setIgnoreCase(true))
-                .setInclusive(true),
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<\\!-- END -->").setIgnoreCase(true))
-                .setEndMatcher(regex("<\\!-- START -->").setIgnoreCase(true))
-                .setInclusive(true),
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<\\!-- END -->").setIgnoreCase(true))
-                .setEndMatcher(regex("</body>").setIgnoreCase(true))
-                .setInclusive(true)
-        ));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<body>").setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("<\\!-- START -->")
+                                                .setIgnoreCase(true))
+                                .setInclusive(true),
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<\\!-- END -->")
+                                                .setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("<\\!-- START -->")
+                                                .setIgnoreCase(true))
+                                .setInclusive(true),
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<\\!-- END -->")
+                                                .setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("</body>").setIgnoreCase(true))
+                                .setInclusive(true)));
 
         var html = """
-            <html>
-              <body>
-                ignore this text
-                <!-- START -->extract me 1<!-- END -->
-                ignore this text
-                <!-- START -->extract me 2<!-- END -->
-                ignore this text
-              </body>
-            </html>""";
+                <html>
+                  <body>
+                    ignore this text
+                    <!-- START -->extract me 1<!-- END -->
+                    ignore this text
+                    <!-- START -->extract me 2<!-- END -->
+                    ignore this text
+                  </body>
+                </html>""";
 
         try (var is = new ByteArrayInputStream(html.getBytes())) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            var doc = TestUtil.newDocContext("fake.html",
+            var doc = TestUtil.newHandlerContext(
+                    "fake.html",
                     is, metadata, ParseState.PRE);
             t.accept(doc);
             assertThat(doc.input().asString().replace("\r", ""))
-                .isEqualToIgnoringWhitespace(
-                        "<html>extract me 1extract me 2</html>");
+                    .isEqualToIgnoringWhitespace(
+                            "<html>extract me 1extract me 2</html>");
         }
     }
 
     @Test
     void testWriteRead() {
         var t = new StripBetweenTransformer();
-        t.getConfiguration().setOperations(List.of(
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<!-- NO INDEX").setIgnoreCase(true))
-                .setEndMatcher(regex("/NOINDEX -->").setIgnoreCase(true))
-                .setInclusive(true),
-            new StripBetweenOperation()
-                .setStartMatcher(regex("<!-- HEADER START").setIgnoreCase(true))
-                .setEndMatcher(regex("HEADER END -->").setIgnoreCase(true))
-                .setInclusive(true)
-        ));
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<!-- NO INDEX")
+                                                .setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("/NOINDEX -->")
+                                                .setIgnoreCase(true))
+                                .setInclusive(true),
+                        new StripBetweenOperation()
+                                .setStartMatcher(
+                                        regex("<!-- HEADER START")
+                                                .setIgnoreCase(true))
+                                .setEndMatcher(
+                                        regex("HEADER END -->")
+                                                .setIgnoreCase(true))
+                                .setInclusive(true)));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

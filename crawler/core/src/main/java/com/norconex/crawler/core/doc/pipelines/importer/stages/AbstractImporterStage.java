@@ -30,6 +30,7 @@ public abstract class AbstractImporterStage
     protected AbstractImporterStage() {
         this(null);
     }
+
     protected AbstractImporterStage(FetchDirective fetchDirective) {
         this.fetchDirective = fetchDirective;
     }
@@ -38,5 +39,6 @@ public abstract class AbstractImporterStage
     public final boolean test(ImporterPipelineContext context) {
         return executeStage(context);
     }
+
     protected abstract boolean executeStage(ImporterPipelineContext ctx);
 }

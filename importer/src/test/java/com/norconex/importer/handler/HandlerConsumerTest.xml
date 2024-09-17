@@ -1,197 +1,189 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<!-- 
-   Copyright 2021 Norconex Inc.
+<!--
+	Copyright 2021-2024 Norconex Inc.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 -->
 <importer>
 
-    <preParseHandlers>
+	<preParseHandlers>
 
-      <!-- Should set "dateTest" to "dateSuccess": -->
-      <handler 
-        class="CurrentDateTagger"
-        toField="testDate"
-        format="yyyy-MM-dd HH:mm"
-      />
-      <if>
-        <condition class="DateCondition" format="yyyy-MM-dd HH:mm">
-          <fieldMatcher>testDate</fieldMatcher>
-          <valueMatcher operator="gt" date="NOW-1h" />
-          <valueMatcher operator="le" date="NOW" />
-        </condition>
-        <then>
-          <handler class="ConstantTagger">
-            <constant name="dateTest">dateSuccess</constant>
-          </handler>
-        </then>
-      </if>
-      
-      <!-- Should not trigger any transformation: -->
-      <handler class="StripBetweenTransformer">
-          <stripBetween inclusive="false">
-              <startMatcher ignoreCase="true">potato</startMatcher>
-              <endMatcher ignoreCase="true">carrot</endMatcher>
-          </stripBetween>
-      </handler>
+		<!-- Should set "dateTest" to "dateSuccess": -->
+		<handler class="CurrentDateTagger" toField="testDate" format="yyyy-MM-dd HH:mm" />
+		<if>
+			<condition class="DateCondition" format="yyyy-MM-dd HH:mm">
+				<fieldMatcher>testDate</fieldMatcher>
+				<valueMatcher operator="gt" date="NOW-1h" />
+				<valueMatcher operator="le" date="NOW" />
+			</condition>
+			<then>
+				<handler class="ConstantTagger">
+					<constant name="dateTest">dateSuccess</constant>
+				</handler>
+			</then>
+		</if>
 
-      <!-- Should set "domTest" to "docSuccess": -->
-      <if>
-        <condition class="DOMCondition"
-          selector="html &gt; body pre + p &gt; a"
-          parser="html"
-          extract="text"
-        >
-          <valueMatcher method="wildcard">
+		<!-- Should not trigger any transformation: -->
+		<handler class="StripBetweenTransformer">
+			<stripBetween inclusive="false">
+				<startMatcher ignoreCase="true">potato</startMatcher>
+				<endMatcher ignoreCase="true">carrot</endMatcher>
+			</stripBetween>
+		</handler>
+
+		<!-- Should set "domTest" to "docSuccess": -->
+		<if>
+			<condition class="DOMCondition" selector="html &gt; body pre + p &gt; a" parser="html" extract="text">
+				<valueMatcher method="wildcard">
             *The Pool of Tears
           </valueMatcher>
-        </condition>
-        <then>
-          <handler class="ConstantTagger">
-            <constant name="domTest">domSuccess</constant>
-          </handler>
-        </then>
-      </if>
+			</condition>
+			<then>
+				<handler class="ConstantTagger">
+					<constant name="domTest">domSuccess</constant>
+				</handler>
+			</then>
+		</if>
 
-    </preParseHandlers>
-    
-    <postParseHandlers>
-      <handler class="DebugTagger" logLevel="debug"/>
-      
-      <!-- Author should be set: -->
-      <if>
-        <condition>
-          <!-- as of Tika 2.x, "title" is replaced with dc:title -->
-          <fieldMatcher>dc:title</fieldMatcher>
-          <valueMatcher method="wildcard">*Alice's Adventures in Wonderland*</valueMatcher>
-        </condition>
-        <then>
-          <handler class="ConstantTagger">
-            <constant name="Author">Lewis Carroll</constant>
-          </handler>
-        </then>
-      </if>
+	</preParseHandlers>
 
-      <!-- Should set "format" to "HTML": -->
-      <ifNot>
-        <condition>
-          <fieldMatcher>document.contentFamily</fieldMatcher>
-          <valueMatcher>html</valueMatcher>
-        </condition>
-        <then>
-          <handler class="ConstantTagger">
-            <constant name="format">Unknown</constant>
-          </handler>
-        </then>
-        <else>
-          <handler class="ConstantTagger">
-            <constant name="format">HTML</constant>
-          </handler>
-        </else>
-      </ifNot>
+	<postParseHandlers>
+		<handler class="DebugTagger" logLevel="debug" />
 
-      <!-- Should set "refTest" to "refSuccess": -->
-      <if>
-        <condition class="ReferenceCondition">
-          <valueMatcher method="wildcard">*alice*</valueMatcher>
-        </condition>
-        <then>
-          <handler class="ConstantTagger">
-            <constant name="refTest">refSuccess</constant>
-          </handler>
-        </then>
-      </if>
+		<!-- Author should be set: -->
+		<if>
+			<condition>
+				<!-- as of Tika 2.x, "title" is replaced with dc:title -->
+				<fieldMatcher>dc:title</fieldMatcher>
+				<valueMatcher method="wildcard">*Alice's Adventures in Wonderland*</valueMatcher>
+			</condition>
+			<then>
+				<handler class="ConstantTagger">
+					<constant name="Author">Lewis Carroll</constant>
+				</handler>
+			</then>
+		</if>
 
-      <!-- 
-        Should set "scriptTest" to "scriptSuccess"
-        and "numericTest" to "numericSuccess":
-        -->
-      <if>
-        <conditions operator="AND">
-          <condition class="ScriptCondition" engineName="JavaScript">
-            <script>
+		<!-- Should set "format" to "HTML": -->
+		<ifNot>
+			<condition>
+				<fieldMatcher>document.contentFamily</fieldMatcher>
+				<valueMatcher>html</valueMatcher>
+			</condition>
+			<then>
+				<handler class="ConstantTagger">
+					<constant name="format">Unknown</constant>
+				</handler>
+			</then>
+			<else>
+				<handler class="ConstantTagger">
+					<constant name="format">HTML</constant>
+				</handler>
+			</else>
+		</ifNot>
+
+		<!-- Should set "refTest" to "refSuccess": -->
+		<if>
+			<condition class="ReferenceCondition">
+				<valueMatcher method="wildcard">*alice*</valueMatcher>
+			</condition>
+			<then>
+				<handler class="ConstantTagger">
+					<constant name="refTest">refSuccess</constant>
+				</handler>
+			</then>
+		</if>
+
+		<!--
+				Should set "scriptTest" to "scriptSuccess"
+				and "numericTest" to "numericSuccess":
+		-->
+		<if>
+			<conditions operator="AND">
+				<condition class="ScriptCondition" engineName="JavaScript">
+					<script>
             metadata.getString('document.contentFamily') === 'html';
             </script>
-          </condition>
-          <condition class="NumericCondition">
-            <fieldMatcher>Content-Length</fieldMatcher>
-            <valueMatcher operator="GE" number="10000"/>
-            <valueMatcher operator="LT" number="20000"/>
-          </condition>
-        </conditions>
-        <then>
-          <handler class="ConstantTagger">
-            <constant name="scriptTest">scriptSuccess</constant>
-            <constant name="numericTest">numericSuccess</constant>
-          </handler>
-        </then>
-      </if>
+				</condition>
+				<condition class="NumericCondition">
+					<fieldMatcher>Content-Length</fieldMatcher>
+					<valueMatcher operator="GE" number="10000" />
+					<valueMatcher operator="LT" number="20000" />
+				</condition>
+			</conditions>
+			<then>
+				<handler class="ConstantTagger">
+					<constant name="scriptTest">scriptSuccess</constant>
+					<constant name="numericTest">numericSuccess</constant>
+				</handler>
+			</then>
+		</if>
 
-      <!-- Should set "blankTest" to "blankTestSuccess": -->
-      <if>
-        <condition class="BlankCondition">
-          <fieldMatcher ignoreCase="true">BLAH*</fieldMatcher>
-        </condition>
-        <then>
-          <handler class="ConstantTagger">
-            <constant name="blankTest">blankTestSuccess</constant>
-          </handler>
-        </then>
-      </if>
-      <!-- Should set "notBlankTest" to "notBlankTestSuccess": -->
-      <ifNot>
-        <condition class="BlankCondition">
-          <fieldMatcher ignoreCase="true" method="wildcard">content*</fieldMatcher>
-        </condition>
-        <then>
-          <handler class="ConstantTagger">
-            <constant name="notBlankTest">notBlankTestSuccess</constant>
-          </handler>
-        </then>
-      </ifNot>
+		<!-- Should set "blankTest" to "blankTestSuccess": -->
+		<if>
+			<condition class="BlankCondition">
+				<fieldMatcher ignoreCase="true">BLAH*</fieldMatcher>
+			</condition>
+			<then>
+				<handler class="ConstantTagger">
+					<constant name="blankTest">blankTestSuccess</constant>
+				</handler>
+			</then>
+		</if>
+		<!-- Should set "notBlankTest" to "notBlankTestSuccess": -->
+		<ifNot>
+			<condition class="BlankCondition">
+				<fieldMatcher ignoreCase="true" method="wildcard">content*</fieldMatcher>
+			</condition>
+			<then>
+				<handler class="ConstantTagger">
+					<constant name="notBlankTest">notBlankTestSuccess</constant>
+				</handler>
+			</then>
+		</ifNot>
 
-      <!-- Should reject the document so "rejectTest" is never set: -->
-      <if>
-        <condition class="BlankCondition">
-          <fieldMatcher ignoreCase="true">BLAH*</fieldMatcher>
-        </condition>
-        <then>
-          <reject/>
-        </then>
-      </if>
-      <handler class="ConstantTagger">
-        <constant name="rejectTest">rejectTestFailure</constant>
-      </handler>
+		<!-- Should reject the document so "rejectTest" is never set: -->
+		<if>
+			<condition class="BlankCondition">
+				<fieldMatcher ignoreCase="true">BLAH*</fieldMatcher>
+			</condition>
+			<then>
+				<reject />
+			</then>
+		</if>
+		<handler class="ConstantTagger">
+			<constant name="rejectTest">rejectTestFailure</constant>
+		</handler>
 
 
-      <!-- 
-        Test inner condition:
-        The "alien" "passenger" should not be set: 
-        -->
-        <!-- 
-      <handler class="ConstantTagger">
-        <condition>
-          <fieldMatcher>document.contentFamily</fieldMatcher>
-          <valueMatcher>xenomorph</valueMatcher>
-        </condition>
-        <constant name="alien">passenger</constant>
-      </handler>
-         -->
-      
-      <!-- TODO: rejection -->
-      
-      
-    </postParseHandlers>
+		<!--
+				Test inner condition:
+				The "alien" "passenger" should not be set:
+		-->
+		<!--
+				<handler class="ConstantTagger">
+				<condition>
+				<fieldMatcher>document.contentFamily</fieldMatcher>
+				<valueMatcher>xenomorph</valueMatcher>
+				</condition>
+				<constant name="alien">passenger</constant>
+				</handler>
+		-->
+
+		<!-- TODO: rejection -->
+
+
+	</postParseHandlers>
 
 </importer>

@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ import com.norconex.importer.handler.parser.ParseState;
 class DomConditionTest {
 
     private final String html = """
-    	<html><head><title>Test page</title></head>\
-    	<body>This is sample content.<p>\
-    	<div class="disclaimer">please skip me!</div></body></html>""";
+            <html><head><title>Test page</title></head>\
+            <body>This is sample content.<p>\
+            <div class="disclaimer">please skip me!</div></body></html>""";
 
     private final String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
             + "<food><fruit color=\"red\">an apple</fruit></food>";
@@ -46,22 +46,24 @@ class DomConditionTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
 
         cond.getConfiguration().setSelector("div.disclaimer");
-        Assertions.assertTrue(eval(cond, html, metadata),
+        Assertions.assertTrue(
+                eval(cond, html, metadata),
                 "disclaimer should have been accepted.");
 
         cond.getConfiguration().setSelector("div.disclaimer");
         cond.getConfiguration().setValueMatcher(
                 TextMatcher.regex("\\bskip me\\b").partial());
-        Assertions.assertTrue(eval(cond, html, metadata),
+        Assertions.assertTrue(
+                eval(cond, html, metadata),
                 "disclaimer skip me should have been accepted.");
 
         cond.getConfiguration().setSelector("div.disclaimer");
         cond.getConfiguration().setValueMatcher(
                 TextMatcher.regex("\\bdo not skip me\\b"));
-        Assertions.assertFalse(eval(cond, html, metadata),
+        Assertions.assertFalse(
+                eval(cond, html, metadata),
                 "disclaimer do not skip me should have been rejected.");
     }
-
 
     @Test
     void testConditionXML()
@@ -71,22 +73,26 @@ class DomConditionTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
 
         cond.getConfiguration().setSelector("food > fruit[color=red]");
-        Assertions.assertTrue(eval(cond, xml, metadata),
+        Assertions.assertTrue(
+                eval(cond, xml, metadata),
                 "Red fruit should have been accepted.");
 
         cond.getConfiguration().setSelector("food > fruit[color=green]");
-        Assertions.assertFalse(eval(cond, xml, metadata),
+        Assertions.assertFalse(
+                eval(cond, xml, metadata),
                 "Green fruit should have been rejected.");
 
         cond.getConfiguration().setSelector("food > fruit");
         cond.getConfiguration().setValueMatcher(
                 TextMatcher.regex("apple").partial());
-        Assertions.assertTrue(eval(cond, xml, metadata),
+        Assertions.assertTrue(
+                eval(cond, xml, metadata),
                 "Apple should have been accepted.");
 
         cond.getConfiguration().setSelector("food > fruit");
         cond.getConfiguration().setValueMatcher(TextMatcher.regex("carrot"));
-        Assertions.assertFalse(eval(cond, xml, metadata),
+        Assertions.assertFalse(
+                eval(cond, xml, metadata),
                 "Carrot should have been rejected.");
     }
 
@@ -100,30 +106,37 @@ class DomConditionTest {
         cond.getConfiguration().setFieldMatcher(TextMatcher.basic("field1"));
 
         cond.getConfiguration().setSelector("food > fruit[color=red]");
-        Assertions.assertTrue(eval(cond, "n/a", metadata),
+        Assertions.assertTrue(
+                eval(cond, "n/a", metadata),
                 "Red fruit should have been accepted.");
 
         cond.getConfiguration().setSelector("food > fruit[color=green]");
-        Assertions.assertFalse(eval(cond, "n/a", metadata),
+        Assertions.assertFalse(
+                eval(cond, "n/a", metadata),
                 "Green fruit should have been rejected.");
 
         cond.getConfiguration().setSelector("food > fruit");
         cond.getConfiguration().setValueMatcher(
                 TextMatcher.regex("apple").partial());
-        Assertions.assertTrue(eval(cond, "n/a", metadata),
+        Assertions.assertTrue(
+                eval(cond, "n/a", metadata),
                 "Apple should have been accepted.");
 
         cond.getConfiguration().setSelector("food > fruit");
         cond.getConfiguration().setValueMatcher(TextMatcher.regex("carrot"));
-        Assertions.assertFalse(eval(cond, "n/a", metadata),
+        Assertions.assertFalse(
+                eval(cond, "n/a", metadata),
                 "Carrot should have been rejected.");
     }
 
-    private boolean eval(DomCondition cond,
+    private boolean eval(
+            DomCondition cond,
             String content, Properties metadata)
-                    throws IOException {
-        return TestUtil.condition(cond, "n/a", IOUtils.toInputStream(
-                content, StandardCharsets.UTF_8), metadata, ParseState.PRE);
+            throws IOException {
+        return TestUtil.condition(
+                cond, "n/a", IOUtils.toInputStream(
+                        content, StandardCharsets.UTF_8),
+                metadata, ParseState.PRE);
     }
 
     @Test

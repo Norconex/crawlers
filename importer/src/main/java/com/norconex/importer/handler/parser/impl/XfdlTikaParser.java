@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,13 +55,14 @@ public class XfdlTikaParser extends XMLParser {
             "application/vnd.xfdl;content-encoding=\"base64-gzip\"";
 
     private static final Set<MediaType> SUPPORTED_TYPES = Collections
-            .unmodifiableSet(new HashSet<>(
-                    Arrays.asList(MediaType.application("vnd.xfdl")
-                    // what about these?
-                    // application/uwi_form
-                    // application/vnd.ufdl
-                    // application/x-xfdl
-                    )));
+            .unmodifiableSet(
+                    new HashSet<>(
+                            Arrays.asList(MediaType.application("vnd.xfdl")
+                            // what about these?
+                            // application/uwi_form
+                            // application/vnd.ufdl
+                            // application/x-xfdl
+                            )));
 
     @Override
     public Set<MediaType> getSupportedTypes(ParseContext context) {
@@ -69,7 +70,8 @@ public class XfdlTikaParser extends XMLParser {
     }
 
     @Override
-    public void parse(InputStream stream, ContentHandler handler,
+    public void parse(
+            InputStream stream, ContentHandler handler,
             Metadata metadata, ParseContext context)
             throws IOException, SAXException, TikaException {
 
@@ -87,7 +89,8 @@ public class XfdlTikaParser extends XMLParser {
     }
 
     @Override
-    protected ContentHandler getContentHandler(ContentHandler handler,
+    protected ContentHandler getContentHandler(
+            ContentHandler handler,
             Metadata metadata, ParseContext context) {
 
         return new TeeContentHandler(
@@ -108,13 +111,15 @@ public class XfdlTikaParser extends XMLParser {
         public void startPrefixMapping(String prefix, String uri)
                 throws SAXException {
             if ("xfdl".equals(prefix)) {
-                metadata.add("xfdl:version",
+                metadata.add(
+                        "xfdl:version",
                         StringUtils.substringAfterLast(uri, "/"));
             }
         }
 
         @Override
-        public void startElement(String uri, String localName, String qName,
+        public void startElement(
+                String uri, String localName, String qName,
                 Attributes attrs) throws SAXException {
             path.append('/');
             path.append(localName);

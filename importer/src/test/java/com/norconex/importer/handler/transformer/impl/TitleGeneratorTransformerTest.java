@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ class TitleGeneratorTransformerTest {
 
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
-            .setFromField("nullField")
-            .setDetectHeading(true);
+                .setFromField("nullField")
+                .setDetectHeading(true);
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
@@ -60,15 +60,16 @@ class TitleGeneratorTransformerTest {
 
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
-            .setToField("mytitle");
+                .setToField("mytitle");
 
         var file = TestUtil.getAliceTextFile();
         InputStream is = new BufferedInputStream(new FileInputStream(file));
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
-        t.accept(TestUtil.newDocContext(
-                file.getAbsolutePath(), is, metadata, ParseState.POST));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        file.getAbsolutePath(), is, metadata, ParseState.POST));
         is.close();
 
         var title = metadata.getString("mytitle");
@@ -76,30 +77,32 @@ class TitleGeneratorTransformerTest {
         LOG.debug("TITLE IS: " + title);
         Assertions.assertEquals(
                 "that Alice had begun to think that very few things "
-              + "indeed were really impossible.",  title,
-              "Wrong title.");
+                        + "indeed were really impossible.",
+                title,
+                "Wrong title.");
     }
 
     @Test
     void testHeadingTitle() throws IOException {
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
-            .setDetectHeading(true)
-            .setDetectHeadingMinLength(5);
+                .setDetectHeading(true)
+                .setDetectHeadingMinLength(5);
 
         var file = TestUtil.getAliceTextFile();
         InputStream is = new BufferedInputStream(new FileInputStream(file));
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
-        t.accept(TestUtil.newDocContext(
-                file.getAbsolutePath(), is, metadata, ParseState.POST));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        file.getAbsolutePath(), is, metadata, ParseState.POST));
         is.close();
 
         var title = metadata.getString(DocMetadata.GENERATED_TITLE);
 
         LOG.debug("TITLE IS: " + title);
-        Assertions.assertEquals("Chapter I",  title, "Wrong title.");
+        Assertions.assertEquals("Chapter I", title, "Wrong title.");
     }
 
     @Test
@@ -112,28 +115,29 @@ class TitleGeneratorTransformerTest {
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
 
-        t.accept(TestUtil.newDocContext(
-                "test.txt", is, metadata, ParseState.POST));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        "test.txt", is, metadata, ParseState.POST));
         is.close();
 
         var title = metadata.getString(DocMetadata.GENERATED_TITLE);
 
         LOG.debug("TITLE IS: {}", title);
         Assertions.assertEquals(
-                "This is the first line.",  title, "Wrong title.");
+                "This is the first line.", title, "Wrong title.");
     }
 
     @Test
     void testWriteRead() {
         var t = new TitleGeneratorTransformer();
         t.getConfiguration()
-            .setFromField("potato")
-            .setToField("banana")
-            .setOnSet(PropertySetter.APPEND)
-            .setTitleMaxLength(300)
-            .setDetectHeading(true)
-            .setDetectHeadingMaxLength(200)
-            .setDetectHeadingMinLength(20);
+                .setFromField("potato")
+                .setToField("banana")
+                .setOnSet(PropertySetter.APPEND)
+                .setTitleMaxLength(300)
+                .setDetectHeading(true)
+                .setDetectHeadingMaxLength(200)
+                .setDetectHeadingMinLength(20);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(t));
     }

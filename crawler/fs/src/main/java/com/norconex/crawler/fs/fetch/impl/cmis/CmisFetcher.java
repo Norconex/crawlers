@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
@@ -49,41 +48,7 @@ import lombok.ToString;
  * <code>cmis:http://yourhost:port/path/to/atom!/MyFolder/MySubFolder</code>.
  * Start paths are assumed to be Atom URLs.
  * </p>
- *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.cmis.CmisFetcher">
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *
- *   <repositoryId>
- *     (Optional repository ID, defaults to first one found.)
- *   </repositoryId>
- *   <xmlTargetField>
- *     (Optional target field name where to store the raw CMIS REST API
- *      XML. Default does not store the raw XML in a field.)
- *   </xmlTargetField>
- *   <aclDisabled>[false|true]</aclDisabled>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="CmisFetcher" />
- * }
- * <p>
- * The above example the SFTP time out to 2 minutes.
- * </p>
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
@@ -123,7 +88,6 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
         cfg.setXmlTargetField(opts, configuration.getXmlTargetField());
     }
 
-
     private void fetchCoreMeta(Context ctx) {
         ctx.addMetaXpath("author.name", "/entry/author/name/text()");
         ctx.addMetaXpath("id", "/entry/id/text()");
@@ -145,13 +109,14 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
     private void fetchProperties(Context ctx) {
         var propXmlList = ctx.document.getXMLList(
                 "/entry/object/properties//"
-                + "*[starts-with(local-name(), 'property')]");
-        for (XML propXml : propXmlList) {
+                        + "*[starts-with(local-name(), 'property')]");
+        for (Xml propXml : propXmlList) {
             var propId = propXml.getString("@propertyDefinitionId");
             if (StringUtils.isBlank(propId)) {
                 propId = "undefined_property";
             }
-            ctx.addMeta("property." + propId,
+            ctx.addMeta(
+                    "property." + propId,
                     propXml.getString("value/text()"));
         }
     }
@@ -160,7 +125,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
         var permissions = new Properties();
         var permXmlList = ctx.document.getXMLList(
                 "/entry/object/acl/permission");
-        for (XML permXml : permXmlList) {
+        for (Xml permXml : permXmlList) {
             var principalId = permXml.getString("principal/principalId");
             permXml.getStringList("permission").forEach(p -> {
                 if (StringUtils.isNotBlank(p)) {
@@ -178,12 +143,13 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
 
     private static class Context {
         private final FileSystemOptions vfsOptions;
-        private final XML document;
+        private final Xml document;
         private final Properties metadata;
         private final CmisAtomSession session;
         private final CmisAtomFileSystemConfigBuilder cfg =
                 CmisAtomFileSystemConfigBuilder.getInstance();
         private final CmisAtomFileObject fileObject;
+
         public Context(CmisAtomFileObject vfsFile, Properties metadata) {
             fileObject = vfsFile;
             session = vfsFile.getSession();
@@ -191,6 +157,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
             vfsOptions = vfsFile.getFileSystem().getFileSystemOptions();
             this.metadata = metadata;
         }
+
         private void addMeta(String key, Object value) {
             var val = Objects.toString(value, null);
             if (StringUtils.isBlank(val)) {
@@ -198,6 +165,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
             }
             metadata.add(CMIS_PREFIX + key, val);
         }
+
         private void addMetaXpath(String key, String exp) {
             addMeta(key, document.getString(exp));
         }

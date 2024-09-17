@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,21 +29,20 @@ class TranslatorSplitterTest {
     void testWriteRead() {
         var ts = new TranslatorSplitter();
         ts.getConfiguration()
-            .setApi("google")
-            .setApiKey("myapikey")
-            .setClientId("myclientid")
-            .setClientSecret("myclientsecret")
-            .setFieldMatcher(TextMatcher.csv("field1, field2"))
-            .setIgnoreNonTranslatedFields(true)
-            .setScriptPath("myscriptpath")
-            .setSmtPath("mysmtpath")
-            .setSourceLanguage("fr")
-            .setSourceLanguageField("mysourcelangfield")
-            .setTargetLanguages(List.of("en", "it"))
-            .setUserKey("myuserkey");
+                .setApi("google")
+                .setApiKey("myapikey")
+                .setClientId("myclientid")
+                .setClientSecret("myclientsecret")
+                .setFieldMatcher(TextMatcher.csv("field1, field2"))
+                .setIgnoreNonTranslatedFields(true)
+                .setScriptPath("myscriptpath")
+                .setSmtPath("mysmtpath")
+                .setSourceLanguage("fr")
+                .setSourceLanguageField("mysourcelangfield")
+                .setTargetLanguages(List.of("en", "it"))
+                .setUserKey("myuserkey");
 
-        assertThatNoException().isThrownBy(() ->
-            BeanMapper.DEFAULT.assertWriteRead(ts)
-        );
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(ts));
     }
 }

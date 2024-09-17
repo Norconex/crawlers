@@ -29,7 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 final class DocProcessorUpsert {
 
-    private DocProcessorUpsert() {}
+    private DocProcessorUpsert() {
+    }
 
     static void execute(DocProcessorContext ctx) {
         if (importDocument(ctx)) {
@@ -65,7 +66,6 @@ final class DocProcessorUpsert {
         return true;
     }
 
-
     // commit is upsert this method is recursively invoked for children
     private static void processImportResponse(DocProcessorContext ctx) {
 
@@ -78,8 +78,8 @@ final class DocProcessorUpsert {
         for (ImporterResponse childResponse : children) {
 
             //TODO have a createEmbeddedDoc method instead?
-                // TODO have a docInfoFactory instead and arguments
-                 /// dictate whether it is a child, embedded, or top level
+            // TODO have a docInfoFactory instead and arguments
+            /// dictate whether it is a child, embedded, or top level
             var childDocRec = ctx
                     .crawler()
                     .newDocContext(ctx.docContext());
@@ -118,7 +118,6 @@ final class DocProcessorUpsert {
         }
     }
 
-
     private static boolean commitOrRejectDocument(DocProcessorContext ctx) {
         var docRecord = ctx.doc().getDocContext();
         var response = ctx.importerResponse();
@@ -131,32 +130,34 @@ final class DocProcessorUpsert {
         }
 
         if (response.isSuccess()) {
-            ctx.crawler().fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.DOCUMENT_IMPORTED)
-                    .source(ctx.crawler())
-                    .docContext(docRecord)
-                    .subject(response)
-                    .message(msg)
-                    .build());
+            ctx.crawler().fire(
+                    CrawlerEvent.builder()
+                            .name(CrawlerEvent.DOCUMENT_IMPORTED)
+                            .source(ctx.crawler())
+                            .docContext(docRecord)
+                            .subject(response)
+                            .message(msg)
+                            .build());
             ctx.crawler().getDocPipelines().getCommitterPipeline().accept(
                     new CommitterPipelineContext(ctx.crawler(), ctx.doc()));
             return true;
         }
 
         docRecord.setState(CrawlDocState.REJECTED);
-        ctx.crawler().fire(CrawlerEvent.builder()
-                .name(CrawlerEvent.REJECTED_IMPORT)
-                .source(ctx.crawler())
-                .docContext(docRecord)
-                .subject(response)
-                .message(msg)
-                .build());
-        LOG.debug("Importing unsuccessful for \"{}\": {}",
+        ctx.crawler().fire(
+                CrawlerEvent.builder()
+                        .name(CrawlerEvent.REJECTED_IMPORT)
+                        .source(ctx.crawler())
+                        .docContext(docRecord)
+                        .subject(response)
+                        .message(msg)
+                        .build());
+        LOG.debug(
+                "Importing unsuccessful for \"{}\": {}",
                 docRecord.getReference(),
                 response.getDescription());
 
         return false;
-
 
         //TODO Fire an event here? If we get here, the importer did
         //not kick in,

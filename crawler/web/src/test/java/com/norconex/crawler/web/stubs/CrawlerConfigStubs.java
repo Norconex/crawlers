@@ -37,15 +37,15 @@ public final class CrawlerConfigStubs {
 
     public static final String CRAWLER_ID = "test-crawler";
 
-    private CrawlerConfigStubs() {}
+    private CrawlerConfigStubs() {
+    }
 
     public static WebCrawlerConfig memoryCrawlerConfig(Path workDir) {
         var cfg = (WebCrawlerConfig) new WebCrawlerConfig()
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
-                .setCommitters(List.of(new MemoryCommitter()))
-                ;
+                .setCommitters(List.of(new MemoryCommitter()));
         ((GenericDelayResolver) cfg.getDelayResolver())
                 .getConfiguration().setDefaultDelay(Duration.ZERO);
         return cfg;
@@ -58,6 +58,7 @@ public final class CrawlerConfigStubs {
      *   <li>1 Memory Committer</li>
      *   <li>Random values for everything else.</li>
      * </ul>
+     * @param workDir working directory
      * @return random crawler config
      */
     public static WebCrawlerConfig randomMemoryCrawlerConfig(Path workDir) {

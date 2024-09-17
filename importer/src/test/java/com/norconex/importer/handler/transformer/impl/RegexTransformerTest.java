@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,17 +39,21 @@ class RegexTransformerTest {
     void testTagTextDocument()
             throws IOException, IOException {
         var t = new RegexTransformer();
-        t.getConfiguration().setPatterns(List.of(
-            new RegexFieldValueExtractor("<h2>(.*?)</h2>", "headings", 1),
-            new RegexFieldValueExtractor("\\w+\\sZealand", "country")
-        ));
+        t.getConfiguration().setPatterns(
+                List.of(
+                        new RegexFieldValueExtractor(
+                                "<h2>(.*?)</h2>", "headings", 1),
+                        new RegexFieldValueExtractor(
+                                "\\w+\\sZealand", "country")));
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(TestUtil.newDocContext(
-                htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -57,13 +61,16 @@ class RegexTransformerTest {
         var countries = metadata.getStrings("country");
 
         Assertions.assertEquals(2, headings.size(), "Wrong <h2> count.");
-        Assertions.assertEquals("CHAPTER I", headings.get(0),
+        Assertions.assertEquals(
+                "CHAPTER I", headings.get(0),
                 "Did not extract first heading");
-        Assertions.assertEquals("Down the Rabbit-Hole", headings.get(1),
+        Assertions.assertEquals(
+                "Down the Rabbit-Hole", headings.get(1),
                 "Did not extract second heading");
 
         Assertions.assertEquals(1, countries.size(), "Wrong country count.");
-        Assertions.assertEquals("New Zealand", countries.get(0),
+        Assertions.assertEquals(
+                "New Zealand", countries.get(0),
                 "Did not extract country");
     }
 
@@ -71,15 +78,17 @@ class RegexTransformerTest {
     void testExtractFirst100ContentChars()
             throws IOException, IOException {
         var t = new RegexTransformer();
-        t.getConfiguration().setPatterns(List.of(
-                new RegexFieldValueExtractor("^.{0,100}", "mytitle")
-        ));
+        t.getConfiguration().setPatterns(
+                List.of(
+                        new RegexFieldValueExtractor("^.{0,100}", "mytitle")));
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(TestUtil.newDocContext(
-                htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -90,18 +99,19 @@ class RegexTransformerTest {
     @Test
     void testWriteRead() {
         var t = new RegexTransformer();
-        t.getConfiguration().setPatterns(List.of(
-                new RegexFieldValueExtractor("123.*890", "field1"),
-                new RegexFieldValueExtractor("abc.*xyz", "field2", 3),
-                new RegexFieldValueExtractor("blah")
-                    .setToField("field3")
-                    .setFieldGroup(3)
-                    .setValueGroup(6)
-                    .setOnSet(PropertySetter.PREPEND)
+        t.getConfiguration().setPatterns(
+                List.of(
+                        new RegexFieldValueExtractor("123.*890", "field1"),
+                        new RegexFieldValueExtractor("abc.*xyz", "field2", 3),
+                        new RegexFieldValueExtractor("blah")
+                                .setToField("field3")
+                                .setFieldGroup(3)
+                                .setValueGroup(6)
+                                .setOnSet(PropertySetter.PREPEND)
 
-        ));
+                ));
         t.getConfiguration().setMaxReadSize(512);
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

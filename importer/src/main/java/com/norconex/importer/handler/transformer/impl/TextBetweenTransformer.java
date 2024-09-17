@@ -116,11 +116,13 @@ public class TextBetweenTransformer
                     .maxChunkSize(configuration.getMaxReadSize())
                     .build()
                     .read(docCtx, chunk -> {
-                opExtractions.putAll(
-                        firstNonBlank(op.getToField(), chunk.getField()),
-                        doExtractTextBetween(op, chunk.getText()));
-                return true;
-            });
+                        opExtractions.putAll(
+                                firstNonBlank(
+                                        op.getToField(),
+                                        chunk.getField()),
+                                doExtractTextBetween(op, chunk.getText()));
+                        return true;
+                    });
             opExtractions.asMap().forEach((fld, vals) -> {
                 PropertySetter.orAppend(
                         op.getOnSet()).apply(docCtx.metadata(), fld, vals);
@@ -138,15 +140,17 @@ public class TextBetweenTransformer
                 break;
             }
             if (op.isInclusive()) {
-                matches.add(new ImmutablePair<>(
-                        leftMatch.start(), rightMatch.end()));
+                matches.add(
+                        new ImmutablePair<>(
+                                leftMatch.start(), rightMatch.end()));
             } else {
-                matches.add(new ImmutablePair<>(
-                        leftMatch.end(), rightMatch.start()));
+                matches.add(
+                        new ImmutablePair<>(
+                                leftMatch.end(), rightMatch.start()));
             }
         }
         List<String> values = new ArrayList<>();
-        for (var i = matches.size() -1; i >= 0; i--) {
+        for (var i = matches.size() - 1; i >= 0; i--) {
             var matchPair = matches.get(i);
             var value = text.substring(
                     matchPair.getLeft(), matchPair.getRight());

@@ -98,12 +98,18 @@ public class SaveDocumentTransformer
     public void handle(HandlerContext docCtx) throws IOException {
 
         // create relative path by splitting into directories and maybe escaping
-        var rawRelativePath = StringUtils.strip(String.join("/",
-                Stream.of(docCtx.reference().split(
-                        configuration.getDirSplitPattern()))
-                    .map(seg -> configuration.isEscape()
-                            ? FileUtil.toSafeFileName(seg) : seg)
-                    .toList()), "\\/");
+        var rawRelativePath = StringUtils.strip(
+                String.join(
+                        "/",
+                        Stream.of(
+                                docCtx.reference().split(
+                                        configuration.getDirSplitPattern()))
+                                .map(
+                                        seg -> configuration.isEscape()
+                                                ? FileUtil.toSafeFileName(seg)
+                                                : seg)
+                                .toList()),
+                "\\/");
 
         // define file, possibly truncated
         var file = adjustLength(
@@ -113,7 +119,8 @@ public class SaveDocumentTransformer
 
         // store path to a field
         if (StringUtils.isNotBlank(configuration.getPathToField())) {
-            docCtx.metadata().add(configuration.getPathToField(),
+            docCtx.metadata().add(
+                    configuration.getPathToField(),
                     file.toAbsolutePath().toString());
         }
     }
@@ -154,10 +161,11 @@ public class SaveDocumentTransformer
             return true;
         }
         if (Files.isRegularFile(parent)) {
-            LOG.debug("""
-                Renaming file {} to {} as its original name\s\
-                conflicts with the creation of a directory of\s\
-                the same name.""",
+            LOG.debug(
+                    """
+                            Renaming file {} to {} as its original name\s\
+                            conflicts with the creation of a directory of\s\
+                            the same name.""",
                     parent, parent.resolve(
                             configuration.getDefaultFileName()));
             var newLocation = parent.resolve(
@@ -174,18 +182,19 @@ public class SaveDocumentTransformer
     }
 
     private Path adjustLength(Path file) {
-        if (configuration.getMaxPathLength()
-                < StringUtil.TRUNCATE_HASH_LENGTH) {
+        if (configuration
+                .getMaxPathLength() < StringUtil.TRUNCATE_HASH_LENGTH) {
             return file;
         }
 
         var saveDirLength =
                 configuration.getSaveDir().toAbsolutePath().toString().length();
-        if (saveDirLength + StringUtil.TRUNCATE_HASH_LENGTH
-                > configuration.getMaxPathLength()) {
+        if (saveDirLength + StringUtil.TRUNCATE_HASH_LENGTH > configuration
+                .getMaxPathLength()) {
             if (!warned) {
-                LOG.warn("The save directory path is too long to apply file "
-                        + "path truncation on saved files. Save directory: {}",
+                LOG.warn(
+                        "The save directory path is too long to apply file "
+                                + "path truncation on saved files. Save directory: {}",
                         configuration.getSaveDir());
                 warned = true;
             }
@@ -195,10 +204,12 @@ public class SaveDocumentTransformer
         var fileLength = file.toAbsolutePath().toString().length();
 
         if (fileLength > configuration.getMaxPathLength()) {
-            var truncatedFile = Path.of(StringUtil.truncateWithHash(
-                    file.toAbsolutePath().toString(),
-                    configuration.getMaxPathLength()));
-            LOG.debug("File path '{}' was truncated to '{}'.",
+            var truncatedFile = Path.of(
+                    StringUtil.truncateWithHash(
+                            file.toAbsolutePath().toString(),
+                            configuration.getMaxPathLength()));
+            LOG.debug(
+                    "File path '{}' was truncated to '{}'.",
                     file, truncatedFile);
             file = truncatedFile;
         }

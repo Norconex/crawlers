@@ -60,7 +60,9 @@ public class ReferenceCondition
     private final ReferenceConditionConfig configuration =
             new ReferenceConditionConfig();
 
-    public ReferenceCondition() {}
+    public ReferenceCondition() {
+    }
+
     public ReferenceCondition(TextMatcher valueMatcher) {
         configuration.setValueMatcher(valueMatcher);
     }

@@ -25,7 +25,6 @@ import org.apache.commons.vfs2.provider.ftps.FtpsMode;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
-import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.crawler.fs.fetch.impl.BaseAuthVfsFetcherConfig;
 
 import jakarta.xml.bind.annotation.XmlTransient;
@@ -34,75 +33,15 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * FTP (<code>ftp://</code>) and FTPS (<code>ftps://</code>) fetcher.
- * </p>
- *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher">
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *
- *   <!-- FTP and FTPS: -->
- *
- *   <autodetectUtf8>[false|true]</autodetectUtf8>
- *   <connectTimeout>(milliseconds)</connectTimeout>
- *   <controlEncoding>...</controlEncoding>
- *   <controlKeepAliveTimeout>(milliseconds)</controlKeepAliveTimeout>
- *   <controlKeepAliveReplyTimeout>(milliseconds)</controlKeepAliveReplyTimeout>
- *   <dataTimeout>(milliseconds)</dataTimeout>
- *   <defaultDateFormat>...</defaultDateFormat>
- *   <fileType>[ASCII|BINARY|LOCAL|EBCDIC]</fileType>
- *   <passiveMode>[false|true]</passiveMode>
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings#usage}
- *   </proxySettings>
- *   <recentDateFormat>...</recentDateFormat>
- *   <remoteVerification>[false|true]</remoteVerification>
- *   <serverLanguageCode>...</serverLanguageCode>
- *   <serverTimeZoneId>...</serverTimeZoneId>
- *   <shortMonthNames>(comma-separated list)</shortMonthNames>
- *   <socketTimeout>(milliseconds)</socketTimeout>
- *   <transferAbortedOkReplyCodes>
- *     (comma-separated list of OK codes)
- *   </transferAbortedOkReplyCodes>
- *   <userDirIsRoot>[false|true]</userDirIsRoot>
- *   <mdtmLastModifiedTime>[false|true]</mdtmLastModifiedTime>
- *
- *   <!-- FTPS only: -->
- *   <connectionMode>[EXPLICIT|IMPLICIT]</connectionMode>
- *   <dataChannelProtectionLevel>[C|S|E|P]</dataChannelProtectionLevel>
- *
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="FtpFetcher">
- *   <ftpPassiveMode>true</ftpPassiveMode>
- *   <ftpUserDirIsRoot>false</ftpUserDirIsRoot>
- * </fetcher>
- * }
- * <p>
- * The above example sets the FTP settings required by some hosts to get file
- * listings on server directories.
+ * Configuration for {@link FtpFetcher}.
  * </p>
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class FtpFetcherConfig extends BaseAuthVfsFetcherConfig {
 
     //TODO once we have all fetchers defined, have them all as default
-    // fetchers in config
+    // fetchers in config?
 
     //MAYBE: abstract FS enums and create equivalent?
 
@@ -136,15 +75,18 @@ public class FtpFetcherConfig extends BaseAuthVfsFetcherConfig {
     public List<Integer> getTransferAbortedOkReplyCodes() {
         return Collections.unmodifiableList(transferAbortedOkReplyCodes);
     }
+
     public final FtpFetcherConfig setTransferAbortedOkReplyCodes(
             List<Integer> transferAbortedOkReplyCodes) {
         CollectionUtil.setAll(
                 this.transferAbortedOkReplyCodes, transferAbortedOkReplyCodes);
         return this;
     }
+
     public List<String> getShortMonthNames() {
         return Collections.unmodifiableList(shortMonthNames);
     }
+
     public final FtpFetcherConfig setShortMonthNames(
             List<String> shortMonthNames) {
         CollectionUtil.setAll(this.shortMonthNames, shortMonthNames);

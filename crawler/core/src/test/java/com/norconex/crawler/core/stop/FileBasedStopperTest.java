@@ -36,9 +36,10 @@ class FileBasedStopperTest {
     @Test
     void testListenForStopRequest() throws InterruptedException {
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(
-                    "ref1", "ref2", "ref3", "ref4", "ref5",
-                    "ref6", "ref7", "ref8", "ref9", "ref10"));
+            cfg.setStartReferences(
+                    List.of(
+                            "ref1", "ref2", "ref3", "ref4", "ref5",
+                            "ref6", "ref7", "ref8", "ref9", "ref10"));
             cfg.setStartReferencesAsync(true);
         });
 
@@ -49,28 +50,26 @@ class FileBasedStopperTest {
         var gotStopBegin = new MutableObject<>(Boolean.FALSE);
         var gotStopEnd = new MutableObject<>(Boolean.FALSE);
 
-
         crawler.getConfiguration().addEventListener(
-            ev -> {
-                if (CrawlerEvent.CRAWLER_INIT_END.equals(ev.getName())) {
-                    receiver.listenForStopRequest(crawler);
-                    isRunning.setValue(true);
-                } else if (CrawlerEvent.CRAWLER_RUN_BEGIN.equals(
-                        ev.getName())) {
-                    emmitter.fireStopRequest(crawler);
-                } else if (CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN.equals(
-                        ev.getName())) {
-                    Sleeper.sleepMillis(1000);
-                } else if (CrawlerEvent.CRAWLER_STOP_BEGIN.equals(
-                        ev.getName())) {
-                    gotStopBegin.setValue(true);
-                } else  if (CrawlerEvent.CRAWLER_STOP_END.equals(
-                        ev.getName())) {
-                    gotStopEnd.setValue(true);
-                }
-            });
+                ev -> {
+                    if (CrawlerEvent.CRAWLER_INIT_END.equals(ev.getName())) {
+                        receiver.listenForStopRequest(crawler);
+                        isRunning.setValue(true);
+                    } else if (CrawlerEvent.CRAWLER_RUN_BEGIN.equals(
+                            ev.getName())) {
+                        emmitter.fireStopRequest(crawler);
+                    } else if (CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN.equals(
+                            ev.getName())) {
+                        Sleeper.sleepMillis(1000);
+                    } else if (CrawlerEvent.CRAWLER_STOP_BEGIN.equals(
+                            ev.getName())) {
+                        gotStopBegin.setValue(true);
+                    } else if (CrawlerEvent.CRAWLER_STOP_END.equals(
+                            ev.getName())) {
+                        gotStopEnd.setValue(true);
+                    }
+                });
         crawler.start();
-
 
         receiver.destroy();
         assertThat(gotStopBegin.getValue()).isTrue();

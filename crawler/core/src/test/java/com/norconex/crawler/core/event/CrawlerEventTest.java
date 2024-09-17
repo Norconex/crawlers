@@ -58,14 +58,14 @@ class CrawlerEventTest {
     }
 
     private CrawlerEvent event(
-            Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>>  c) {
+            Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>> c) {
         CrawlerEvent.CrawlerEventBuilder<?, ?> b = CrawlerEvent.builder()
-            .docContext(new CrawlDocContext("someref"))
-            .exception(new CliException("someexception"))
-            .message("somemessage")
-            .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
-            .source(crawler)
-            .subject("somesubject");
+                .docContext(new CrawlDocContext("someref"))
+                .exception(new CliException("someexception"))
+                .message("somemessage")
+                .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
+                .source(crawler)
+                .subject("somesubject");
         c.accept(b);
         return b.build();
     }

@@ -64,5 +64,5 @@ public interface CanonicalLinkDetector {
      */
     String detectFromContent(
             String reference, InputStream is, ContentType contentType)
-                    throws IOException;
+            throws IOException;
 }

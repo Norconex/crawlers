@@ -175,9 +175,11 @@ public class FieldReportTransformer
         private final String name;
         private final Set<String> values = new HashSet<>();
         private int occurences;
+
         public FieldData(String name) {
             this.name = name;
         }
+
         // returns true if something changed
         public boolean addSamples(
                 List<String> samples, int maxSamples, int truncateAt) {

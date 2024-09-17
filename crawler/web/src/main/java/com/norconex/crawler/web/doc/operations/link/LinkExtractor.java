@@ -17,7 +17,7 @@ package com.norconex.crawler.web.doc.operations.link;
 import java.io.IOException;
 import java.util.Set;
 
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.xml.XmlConfigurable;
 import com.norconex.crawler.core.doc.CrawlDoc;
 
 /**
@@ -25,15 +25,15 @@ import com.norconex.crawler.core.doc.CrawlDoc;
  * with possibly contextual information about that URL (the "a" tag attributes,
  * and text).
  * <br><br>
- * Implementing classes also implementing {@link XMLConfigurable} should make
+ * Implementing classes also implementing {@link XmlConfigurable} should make
  * sure to name their XML tag "<code>extractor</code>", normally nested
  * in <code>linkExtractors</code> tags.
  *
  */
 public interface LinkExtractor {
 
-    //TODO have ability to return any number of extra info with a link
-    // that could be added to target URL as extra metadata.  e.g., store as json.
+    //MAYBE have ability to return any number of extra info with a link
+    //that could be added to target URL as extra metadata. Store as JSON?
 
     Set<Link> extractLinks(CrawlDoc doc) throws IOException;
 }

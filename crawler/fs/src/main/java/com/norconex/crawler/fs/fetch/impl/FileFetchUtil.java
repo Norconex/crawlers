@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import com.norconex.crawler.fs.fetch.FileFetchRequest;
 
 public final class FileFetchUtil {
 
-    private FileFetchUtil() {}
+    private FileFetchUtil() {
+    }
 
     /**
      * Whether a reference starts with any of the given prefixes (typically
@@ -82,6 +83,7 @@ public final class FileFetchUtil {
         }
         return path;
     }
+
     private static String uriEncodeSegment(String value) {
         // Encode control characters and a handful of specific characters,
         // assuming all others are filename-valid on all major OSes.

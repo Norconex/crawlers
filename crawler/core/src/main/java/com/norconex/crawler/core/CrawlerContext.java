@@ -33,12 +33,13 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class CrawlerContext {
-   private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> attributes = new HashMap<>();
 
-   public Optional<Object> getAttribute(String key) {
-       return Optional.ofNullable(attributes.get(key));
-   }
-   public Optional<Object> setAttribute(String key, Object obj) {
-       return Optional.ofNullable(attributes.put(key, obj));
-   }
+    public Optional<Object> getAttribute(String key) {
+        return Optional.ofNullable(attributes.get(key));
+    }
+
+    public Optional<Object> setAttribute(String key, Object obj) {
+        return Optional.ofNullable(attributes.put(key, obj));
+    }
 }

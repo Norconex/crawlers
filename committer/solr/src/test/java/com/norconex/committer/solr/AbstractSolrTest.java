@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,9 +68,9 @@ public abstract class AbstractSolrTest {
                     "Solr already running on local port "
                             + solrServer.getLocalPort());
         }
-        System.setProperty("solr.log.dir",
+        System.setProperty(
+                "solr.log.dir",
                 new File(solrHome, "solr-test.log").getAbsolutePath());
-
 
         FileUtils.copyDirectory(
                 new File("./src/test/resources/solr-server"),
@@ -89,8 +89,10 @@ public abstract class AbstractSolrTest {
             Sleeper.sleepSeconds(1);
         }
         if (seconds >= 30) {
-            LOG.warn("Looks like Solr is not starting on port {}. "
-                   + "Please investigate.", solrServer.getLocalPort());
+            LOG.warn(
+                    "Looks like Solr is not starting on port {}. "
+                            + "Please investigate.",
+                    solrServer.getLocalPort());
 
         } else {
             LOG.info("Solr started on port {}", solrServer.getLocalPort());
@@ -99,8 +101,9 @@ public abstract class AbstractSolrTest {
         // Solr Client:
         // solrServer.newClient() does not work for some reason, host is null
         solrClient = new Http2SolrClient.Builder(
-               "http://localhost:" + getSolrPort() + "/solr/test").build();
+                "http://localhost:" + getSolrPort() + "/solr/test").build();
     }
+
     @BeforeEach
     private void beforeEach() throws SolrServerException, IOException {
         solrClient.deleteByQuery("*:*");
@@ -146,8 +149,10 @@ public abstract class AbstractSolrTest {
 
     protected SolrCommitter createSolrCommitter() throws CommitterException {
         var ctx = CommitterContext.builder()
-                .setWorkDir(new File(getSolrHome(),
-                        "" + TimeIdGenerator.next()).toPath())
+                .setWorkDir(
+                        new File(
+                                getSolrHome(),
+                                "" + TimeIdGenerator.next()).toPath())
                 .build();
         var committer = new SolrCommitter();
         committer.getConfiguration().setSolrURL(getSolrTestURL());

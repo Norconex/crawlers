@@ -107,6 +107,7 @@ public class HierarchyTransformerConfig {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }
+
     public List<HierarchyOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }

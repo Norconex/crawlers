@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,15 @@ public class CommitterCorePtProvider implements PolymorphicTypeProvider {
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        map.putAll(CommitterQueue.class,
-                ClassFinder.findSubTypes(CommitterQueue.class,
+        map.putAll(
+                CommitterQueue.class,
+                ClassFinder.findSubTypes(
+                        CommitterQueue.class,
                         nm -> nm.startsWith("com.norconex.committer.")));
-        map.putAll(Committer.class,
-                ClassFinder.findSubTypes(Committer.class,
+        map.putAll(
+                Committer.class,
+                ClassFinder.findSubTypes(
+                        Committer.class,
                         nm -> nm.startsWith("com.norconex.committer.")));
         return map;
     }

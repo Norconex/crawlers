@@ -20,7 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 
 final class LinkUtil {
 
-    private LinkUtil() {}
+    private LinkUtil() {
+    }
 
     /**
      * Extracts the URL portion of an http-equiv refresh content attribute.
@@ -30,9 +31,9 @@ final class LinkUtil {
      */
     static String extractHttpEquivRefreshContentUrl(String contentAttrib) {
         return Optional.ofNullable(contentAttrib)
-            .map(attr -> attr.trim().replaceFirst("^\\d+;", ""))
-            .map(url -> url.trim().replaceFirst("(?i)^url\\s*=(.*)$", "$1"))
-            .map(url -> StringUtils.strip(url, "\"'"))
-            .orElse(null);
+                .map(attr -> attr.trim().replaceFirst("^\\d+;", ""))
+                .map(url -> url.trim().replaceFirst("(?i)^url\\s*=(.*)$", "$1"))
+                .map(url -> StringUtils.strip(url, "\"'"))
+                .orElse(null);
     }
 }

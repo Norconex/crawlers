@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,10 +47,12 @@ class NumericConditionTest {
 
         var cond = new NumericCondition();
         var cfg = cond.getConfiguration();
-        cfg.setValueMatcher(new NumericValueMatcher(
-                Operator.GREATER_EQUAL, 20));
-        cfg.setValueMatcherRangeEnd(new NumericValueMatcher(
-                Operator.LOWER_THAN, 30));
+        cfg.setValueMatcher(
+                new NumericValueMatcher(
+                        Operator.GREATER_EQUAL, 20));
+        cfg.setValueMatcherRangeEnd(
+                new NumericValueMatcher(
+                        Operator.LOWER_THAN, 30));
         cfg.setFieldMatcher(TextMatcher.basic("lowerthan"));
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isFalse();
 
@@ -66,20 +68,22 @@ class NumericConditionTest {
         cfg.setFieldMatcher(TextMatcher.basic("multivalOutrange"));
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isFalse();
 
-        cfg.setValueMatcher(new NumericValueMatcher(
-                Operator.EQUALS, 6.5));
+        cfg.setValueMatcher(
+                new NumericValueMatcher(
+                        Operator.EQUALS, 6.5));
         cfg.setFieldMatcher(TextMatcher.basic("equal"));
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isTrue();
     }
 
     @Test
     void testWriteRead() {
-        var cond = Configurable.configure(new NumericCondition(), cfg -> { cfg
-            .setFieldMatcher(TextMatcher.basic("field1"))
-            .setValueMatcher(
-                    new NumericValueMatcher(Operator.GREATER_EQUAL, 20))
-            .setValueMatcherRangeEnd(
-                    new NumericValueMatcher(Operator.LOWER_THAN, 30));
+        var cond = Configurable.configure(new NumericCondition(), cfg -> {
+            cfg
+                    .setFieldMatcher(TextMatcher.basic("field1"))
+                    .setValueMatcher(
+                            new NumericValueMatcher(Operator.GREATER_EQUAL, 20))
+                    .setValueMatcherRangeEnd(
+                            new NumericValueMatcher(Operator.LOWER_THAN, 30));
         });
         BeanMapper.DEFAULT.assertWriteRead(cond);
     }

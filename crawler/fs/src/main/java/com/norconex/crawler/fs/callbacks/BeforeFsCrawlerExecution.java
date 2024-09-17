@@ -30,26 +30,26 @@ public class BeforeFsCrawlerExecution implements Consumer<Crawler> {
     public void accept(Crawler crawler) {
         var cfg = crawler.getConfiguration();
         LOG.info("""
-            Resuming:         %s
+                Resuming:         %s
 
-            Enabled features:
+                Enabled features:
 
-            Metadata:
-              Checksummer:    %s
-              Deduplication:  %s
-            Document:
-              Checksummer:    %s
-              Deduplication:  %s
-            """.formatted(
-                    yn(crawler.getState().isResuming()),
-                    yn(cfg.getMetadataChecksummer() != null),
-                    yn(cfg.isMetadataDeduplicate()
-                            && cfg.getMetadataChecksummer() != null),
-                    yn(cfg.getDocumentChecksummer() != null),
-                    yn(cfg.isDocumentDeduplicate()
-                            && cfg.getDocumentChecksummer() != null)
-            ));
+                Metadata:
+                  Checksummer:    %s
+                  Deduplication:  %s
+                Document:
+                  Checksummer:    %s
+                  Deduplication:  %s
+                """.formatted(
+                yn(crawler.getState().isResuming()),
+                yn(cfg.getMetadataChecksummer() != null),
+                yn(cfg.isMetadataDeduplicate()
+                        && cfg.getMetadataChecksummer() != null),
+                yn(cfg.getDocumentChecksummer() != null),
+                yn(cfg.isDocumentDeduplicate()
+                        && cfg.getDocumentChecksummer() != null)));
     }
+
     private static String yn(boolean value) {
         return value ? "Yes" : "No";
     }

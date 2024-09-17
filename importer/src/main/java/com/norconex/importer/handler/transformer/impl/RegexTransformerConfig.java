@@ -1,4 +1,4 @@
-/* Copyright 2020 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,6 +117,7 @@ public class RegexTransformerConfig implements ChunkedTextSupport {
         CollectionUtil.setAll(this.patterns, patterns);
         return this;
     }
+
     /**
      * Gets the patterns used to extract matching field names/values.
      * @return patterns
@@ -133,6 +134,7 @@ public class RegexTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets source field matcher for fields on which to extract fields/values.
      * @param fieldMatcher field matcher

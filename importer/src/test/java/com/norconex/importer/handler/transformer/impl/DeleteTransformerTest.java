@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class DeleteTransformerTest {
     void testWriteRead() {
         var t = new DeleteTransformer();
         t.getConfiguration()
-            .getFieldMatcher()
+                .getFieldMatcher()
                 .setPattern("(potato|carrot|document\\.*)")
                 .setMethod(Method.REGEX);
         BeanMapper.DEFAULT.assertWriteRead(t);
@@ -54,13 +54,14 @@ class DeleteTransformerTest {
 
         var tagger = new DeleteTransformer();
         tagger.getConfiguration()
-            .getFieldMatcher()
+                .getFieldMatcher()
                 .setPattern("(field1|field2|field4\\.*)")
                 .setMethod(Method.REGEX);
 
         InputStream is = new NullInputStream(0);
-        tagger.accept(TestUtil.newDocContext(
-                "blah", is, meta, ParseState.PRE));
+        tagger.accept(
+                TestUtil.newHandlerContext(
+                        "blah", is, meta, ParseState.PRE));
 
         Assertions.assertEquals(1, meta.size(), "Invalid field count");
         Assertions.assertEquals(
@@ -102,8 +103,9 @@ class DeleteTransformerTest {
                 </handler>
                 """.formatted(field)), Format.XML);
         InputStream is = new NullInputStream(0);
-        t.accept(TestUtil.newDocContext(
-                "blah", is, meta, ParseState.PRE));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        "blah", is, meta, ParseState.PRE));
     }
 
     @Test
@@ -130,8 +132,9 @@ class DeleteTransformerTest {
                 """), Format.XML);
 
         InputStream is = new NullInputStream(0);
-        t.accept(TestUtil.newDocContext(
-                "blah", is, meta, ParseState.PRE));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        "blah", is, meta, ParseState.PRE));
 
         Assertions.assertEquals(3, meta.size(), "Invalid field count");
     }
@@ -139,7 +142,7 @@ class DeleteTransformerTest {
     @Test
     void testOnBody() throws IOException {
         var t = new DeleteTransformer();
-        var doc = TestUtil.newDocContext("blah", "Delete this.");
+        var doc = TestUtil.newHandlerContext("blah", "Delete this.");
         t.accept(doc);
         assertThat(doc.input().asInputStream()).isEmpty();
     }

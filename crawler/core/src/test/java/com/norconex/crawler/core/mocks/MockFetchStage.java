@@ -53,132 +53,134 @@ public class MockFetchStage extends AbstractImporterStage {
             var response = ((MockFetcher) ctx
                     .getCrawler()
                     .getFetcher())
-                    .fetch(new MockFetchRequest(ctx.getDoc()));
-          var state = response.getCrawlDocState();
-          docContext.setState(state);
-          ctx.getDoc().getMetadata().set(
-                  "mock.alsoCached",
-                  ctx.getDoc().getCachedDocContext() != null);
+                            .fetch(new MockFetchRequest(ctx.getDoc()));
+            var state = response.getCrawlDocState();
+            docContext.setState(state);
+            ctx.getDoc().getMetadata().set(
+                    "mock.alsoCached",
+                    ctx.getDoc().getCachedDocContext() != null);
         } catch (FetchException e) {
-            throw new CrawlerException("Could not fetch document: "
-                + ctx.getDoc().getReference(), e);
+            throw new CrawlerException(
+                    "Could not fetch document: "
+                            + ctx.getDoc().getReference(),
+                    e);
         }
         return true;
 
-//        var docRecord = (FsDocRecord) ctx.getDocRecord();
-//        var fetcher = (FileFetcher) ctx.getCrawler().getFetcher();
-//        FileFetchResponse response;
-//        try {
-//            response = fetcher.fetch(new FileFetchRequest(
-//                    ctx.getDocument(), getFetchDirective()));
-//        } catch (FetchException e) {
-//            throw new CrawlerException("Could not fetch file: "
-//                    + ctx.getDocRecord().getReference(), e);
-//        }
-//        var originalCrawlDocState = docRecord.getState();
-//
-//        docRecord.setCrawlDate(ZonedDateTime.now());
-//        docRecord.setFile(response.isFile());
-//        docRecord.setFolder(response.isFolder());
-//
-//        //--- Add collector-specific metadata ---
-//        var meta = ctx.getDocument().getMetadata();
-//        meta.set(DocMetadata.CONTENT_TYPE, docRecord.getContentType());
-//        meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getCharset());
-//
-//        var state = response.getCrawlDocState();
-//        //TODO really do here??  or just do it if different than response?
-//        docRecord.setState(state);
-////        if (CrawlDocState.UNMODIFIED.equals(state)) {
-////            ctx.fire(CrawlerEvent.builder()
-////                    .name(CrawlerEvent.REJECTED_UNMODIFIED)
-////                    .source(ctx.getCrawler())
-////                    .subject(response)
-////                    .crawlDocRecord(docRecord)
-////                    .build());
-////            return false;
-////        }
-//        if (state.isGoodState()) {
-//            ctx.fire(CrawlerEvent.builder()
-//                    .name(FetchDirective.METADATA.is(getFetchDirective())
-//                            ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
-//                            : CrawlerEvent.DOCUMENT_FETCHED)
-//                    .source(ctx.getCrawler())
-//                    .subject(response)
-//                    .crawlDocRecord(docRecord)
-//                    .build());
-//            return true;
-//        }
-//
-//        String eventType = null;
-//        if (state.isOneOf(CrawlDocState.NOT_FOUND)) {
-//            eventType = CrawlerEvent.REJECTED_NOTFOUND;
-//        } else {
-//            eventType = CrawlerEvent.REJECTED_BAD_STATUS;
-//        }
-//
-//        ctx.fire(CrawlerEvent.builder()
-//                .name(eventType)
-//                .source(ctx.getCrawler())
-//                .subject(response)
-//                .crawlDocRecord(docRecord)
-//                .build());
-//
-//        // At this stage, the ref is either unsupported or with a bad status.
-//        // In either case, whether we break the pipeline or not (returning
-//        // false or true) depends on http fetch methods supported.
-//        return DocumentPipelineUtil.continueOnBadStatus(
-//                ctx, originalCrawlDocState, getFetchDirective());
+        //        var docRecord = (FsDocRecord) ctx.getDocRecord();
+        //        var fetcher = (FileFetcher) ctx.getCrawler().getFetcher();
+        //        FileFetchResponse response;
+        //        try {
+        //            response = fetcher.fetch(new FileFetchRequest(
+        //                    ctx.getDocument(), getFetchDirective()));
+        //        } catch (FetchException e) {
+        //            throw new CrawlerException("Could not fetch file: "
+        //                    + ctx.getDocRecord().getReference(), e);
+        //        }
+        //        var originalCrawlDocState = docRecord.getState();
+        //
+        //        docRecord.setCrawlDate(ZonedDateTime.now());
+        //        docRecord.setFile(response.isFile());
+        //        docRecord.setFolder(response.isFolder());
+        //
+        //        //--- Add collector-specific metadata ---
+        //        var meta = ctx.getDocument().getMetadata();
+        //        meta.set(DocMetadata.CONTENT_TYPE, docRecord.getContentType());
+        //        meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getCharset());
+        //
+        //        var state = response.getCrawlDocState();
+        //        //TODO really do here??  or just do it if different than response?
+        //        docRecord.setState(state);
+        ////        if (CrawlDocState.UNMODIFIED.equals(state)) {
+        ////            ctx.fire(CrawlerEvent.builder()
+        ////                    .name(CrawlerEvent.REJECTED_UNMODIFIED)
+        ////                    .source(ctx.getCrawler())
+        ////                    .subject(response)
+        ////                    .crawlDocRecord(docRecord)
+        ////                    .build());
+        ////            return false;
+        ////        }
+        //        if (state.isGoodState()) {
+        //            ctx.fire(CrawlerEvent.builder()
+        //                    .name(FetchDirective.METADATA.is(getFetchDirective())
+        //                            ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
+        //                            : CrawlerEvent.DOCUMENT_FETCHED)
+        //                    .source(ctx.getCrawler())
+        //                    .subject(response)
+        //                    .crawlDocRecord(docRecord)
+        //                    .build());
+        //            return true;
+        //        }
+        //
+        //        String eventType = null;
+        //        if (state.isOneOf(CrawlDocState.NOT_FOUND)) {
+        //            eventType = CrawlerEvent.REJECTED_NOTFOUND;
+        //        } else {
+        //            eventType = CrawlerEvent.REJECTED_BAD_STATUS;
+        //        }
+        //
+        //        ctx.fire(CrawlerEvent.builder()
+        //                .name(eventType)
+        //                .source(ctx.getCrawler())
+        //                .subject(response)
+        //                .crawlDocRecord(docRecord)
+        //                .build());
+        //
+        //        // At this stage, the ref is either unsupported or with a bad status.
+        //        // In either case, whether we break the pipeline or not (returning
+        //        // false or true) depends on http fetch methods supported.
+        //        return DocumentPipelineUtil.continueOnBadStatus(
+        //                ctx, originalCrawlDocState, getFetchDirective());
     }
 
-//    private boolean continueOnBadState(
-//            FsImporterPipelineContext ctx,
-//            FetchDirective directive,
-//            CrawlDocState originalCrawlDocState) {
-//        // Note: a disabled directive will never get here,
-//        // and when both are enabled, DOCUMENT always comes after METADATA.
-//        var metaSupport = ctx.getConfig().getMetadataFetchSupport();
-//        var docSupport = ctx.getConfig().getDocumentFetchSupport();
-//
-//        //--- HEAD ---
-//        if (FetchDirective.METADATA.is(directive)) {
-//            // if directive is required, we end it here.
-//            if (FetchDirectiveSupport.REQUIRED.is(metaSupport)) {
-//                return false;
-//            }
-//            // if head is optional and there is a GET, we continue
-//            return FetchDirectiveSupport.OPTIONAL.is(metaSupport)
-//                    && FetchDirectiveSupport.isEnabled(docSupport);
-//
-//        //--- GET ---
-//        }
-//        if (FetchDirective.DOCUMENT.is(directive)) {
-//            // if directive is required, we end it here.
-//            if (FetchDirectiveSupport.REQUIRED.is(docSupport)) {
-//                return false;
-//            }
-//            // if directive is optional and HEAD was enabled and successful,
-//            // we continue
-//            return FetchDirectiveSupport.OPTIONAL.is(docSupport)
-//                    && FetchDirectiveSupport.isEnabled(metaSupport)
-//                    && originalCrawlDocState.isGoodState();
-//        }
-//
-//        // If a custom implementation introduces another http directive,
-//        // we do not know the intent so end here.
-//        return false;
-//    }
+    //    private boolean continueOnBadState(
+    //            FsImporterPipelineContext ctx,
+    //            FetchDirective directive,
+    //            CrawlDocState originalCrawlDocState) {
+    //        // Note: a disabled directive will never get here,
+    //        // and when both are enabled, DOCUMENT always comes after METADATA.
+    //        var metaSupport = ctx.getConfig().getMetadataFetchSupport();
+    //        var docSupport = ctx.getConfig().getDocumentFetchSupport();
+    //
+    //        //--- HEAD ---
+    //        if (FetchDirective.METADATA.is(directive)) {
+    //            // if directive is required, we end it here.
+    //            if (FetchDirectiveSupport.REQUIRED.is(metaSupport)) {
+    //                return false;
+    //            }
+    //            // if head is optional and there is a GET, we continue
+    //            return FetchDirectiveSupport.OPTIONAL.is(metaSupport)
+    //                    && FetchDirectiveSupport.isEnabled(docSupport);
+    //
+    //        //--- GET ---
+    //        }
+    //        if (FetchDirective.DOCUMENT.is(directive)) {
+    //            // if directive is required, we end it here.
+    //            if (FetchDirectiveSupport.REQUIRED.is(docSupport)) {
+    //                return false;
+    //            }
+    //            // if directive is optional and HEAD was enabled and successful,
+    //            // we continue
+    //            return FetchDirectiveSupport.OPTIONAL.is(docSupport)
+    //                    && FetchDirectiveSupport.isEnabled(metaSupport)
+    //                    && originalCrawlDocState.isGoodState();
+    //        }
+    //
+    //        // If a custom implementation introduces another http directive,
+    //        // we do not know the intent so end here.
+    //        return false;
+    //    }
 
-//    /**
-//     * Whether a separate HTTP HEAD request was requested (configured)
-//     * and was performed already.
-//     * @param ctx pipeline context
-//     * @return <code>true</code> if method is GET and HTTP HEAD was performed
-//     */
-//    protected boolean wasHttpHeadPerformed(WebImporterPipelineContext ctx) {
-//        // If GET and fetching HEAD was requested, we ran filters already, skip.
-//        return getHttpMethod() == HttpMethod.GET
-//                &&  HttpMethodSupport.isEnabled(
-//                        ctx.getConfig().getFetchHttpHead());
-//    }
+    //    /**
+    //     * Whether a separate HTTP HEAD request was requested (configured)
+    //     * and was performed already.
+    //     * @param ctx pipeline context
+    //     * @return <code>true</code> if method is GET and HTTP HEAD was performed
+    //     */
+    //    protected boolean wasHttpHeadPerformed(WebImporterPipelineContext ctx) {
+    //        // If GET and fetching HEAD was requested, we ran filters already, skip.
+    //        return getHttpMethod() == HttpMethod.GET
+    //                &&  HttpMethodSupport.isEnabled(
+    //                        ctx.getConfig().getFetchHttpHead());
+    //    }
 }

@@ -34,7 +34,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.commons.lang.xml.XmlUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
@@ -128,7 +128,7 @@ public class XmlStreamSplitter
     public void split(HandlerContext docCtx) throws IOException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docRecord())) {
+                configuration.getContentTypeMatcher(), docCtx.docContext())) {
         }
 
         if (configuration.getFieldMatcher().isSet()) {
@@ -145,11 +145,15 @@ public class XmlStreamSplitter
         }
     }
 
-    private void doSplit(HandlerContext docCtx, InputStream is) throws IOException {
+    private void doSplit(HandlerContext docCtx, InputStream is)
+            throws IOException {
         try (is) {
-            var h = new XmlHandler(docCtx, Arrays.asList(StringUtils.split(
-                    configuration.getPath(), '/')), docCtx.childDocs());
-            XMLUtil.createSaxParserFactory().newSAXParser().parse(is, h);
+            var h = new XmlHandler(
+                    docCtx, Arrays.asList(
+                            StringUtils.split(
+                                    configuration.getPath(), '/')),
+                    docCtx.childDocs());
+            XmlUtil.createSaxParserFactory().newSAXParser().parse(is, h);
         } catch (SAXException | IOException | ParserConfigurationException e) {
             throw new DocumentHandlerException(
                     "Could not split XML document: " + docCtx.reference(), e);
@@ -175,7 +179,8 @@ public class XmlStreamSplitter
         }
 
         @Override
-        public void startElement(String uri, String localName, String qName,
+        public void startElement(
+                String uri, String localName, String qName,
                 Attributes attributes) throws SAXException {
 
             currentPath.add(qName);
@@ -189,8 +194,9 @@ public class XmlStreamSplitter
                 w.print('<');
                 w.print(esc(qName));
                 for (var i = 0; i < attributes.getLength(); i++) {
-                    w.print(' ' + esc(attributes.getQName(i)) + "=\""
-                            + esc(attributes.getValue(i)) + "\"");
+                    w.print(
+                            ' ' + esc(attributes.getQName(i)) + "=\""
+                                    + esc(attributes.getValue(i)) + "\"");
                 }
                 w.print('>');
             }
@@ -233,22 +239,27 @@ public class XmlStreamSplitter
                     }
                 }
             } catch (IOException e) {
-                throw new SAXException("Cannot parse XML for document: "
-                        + xmlDoc.reference(), e);
+                throw new SAXException(
+                        "Cannot parse XML for document: "
+                                + xmlDoc.reference(),
+                        e);
             }
 
             if (!currentPath.isEmpty()) {
                 currentPath.remove(currentPath.size() - 1);
             }
         }
+
         @Override
         public void warning(SAXParseException e) throws SAXException {
             LOG.warn("XML warning: {}.", e.getMessage(), e);
         }
+
         @Override
         public void error(SAXParseException e) throws SAXException {
             LOG.error("XML error: {}.", e.getMessage(), e);
         }
+
         @Override
         public void fatalError(SAXParseException e) throws SAXException {
             LOG.error("XML fatal error: {}.", e.getMessage(), e);

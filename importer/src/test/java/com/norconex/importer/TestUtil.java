@@ -55,18 +55,18 @@ import com.norconex.importer.handler.parser.ParseState;
 public final class TestUtil {
 
     private static final String BASE_PATH =
-         "src/main/assembly/examples/books/alice-in-wonderland-book-chapter-1";
+            "src/main/assembly/examples/books/alice-in-wonderland-book-chapter-1";
 
     private TestUtil() {
     }
 
     public static Properties newMetadata() {
         var p = new Properties();
-        p.loadFromMap(MapUtil.toMap(
-            "field1", "value1",
-            "field2", "value2",
-            "field3", List.of("value3.1", "value3.2")
-        ));
+        p.loadFromMap(
+                MapUtil.toMap(
+                        "field1", "value1",
+                        "field2", "value2",
+                        "field3", List.of("value3.1", "value3.2")));
         return p;
     }
 
@@ -74,6 +74,7 @@ public final class TestUtil {
             throws IOException {
         return IOUtils.toString(doc.getInputStream(), StandardCharsets.UTF_8);
     }
+
     public static String getContentAsString(HandlerContext docCtx)
             throws IOException {
         return IOUtils.toString(docCtx.input().asReader(UTF_8));
@@ -82,15 +83,19 @@ public final class TestUtil {
     public static File getAlicePdfFile() {
         return new File(BASE_PATH + ".pdf");
     }
+
     public static File getAliceDocxFile() {
         return new File(BASE_PATH + ".docx");
     }
+
     public static File getAliceZipFile() {
         return new File(BASE_PATH + ".zip");
     }
+
     public static File getAliceHtmlFile() {
         return new File(BASE_PATH + ".html");
     }
+
     public static File getAliceTextFile() {
         return new File(BASE_PATH + ".txt");
     }
@@ -98,15 +103,19 @@ public final class TestUtil {
     public static Doc getAlicePdfDoc() {
         return newDoc(getAlicePdfFile());
     }
+
     public static Doc getAliceDocxDoc() {
         return newDoc(getAliceDocxFile());
     }
+
     public static Doc getAliceZipDoc() {
         return newDoc(getAliceZipFile());
     }
+
     public static Doc getAliceHtmlDoc() {
         return newDoc(getAliceHtmlFile());
     }
+
     public static Doc getAliceTextDoc() {
         return newDoc(getAliceTextFile());
     }
@@ -114,32 +123,39 @@ public final class TestUtil {
     public static Importer getTestConfigImporter() throws IOException {
         try (Reader r = new InputStreamReader(
                 TestUtil.class.getResourceAsStream("test-config.xml"))) {
-            return new Importer(BeanMapper.DEFAULT.read(
-                    ImporterConfig.class, r, Format.XML));
+            return new Importer(
+                    BeanMapper.DEFAULT.read(
+                            ImporterConfig.class, r, Format.XML));
         }
     }
 
-    public static boolean condition(BaseCondition cond, String ref,
+    public static boolean condition(
+            BaseCondition cond, String ref,
             Properties metadata, ParseState parseState) throws IOException {
         return condition(cond, ref, null, metadata, parseState);
     }
-    public static boolean condition(BaseCondition cond, String ref,
+
+    public static boolean condition(
+            BaseCondition cond, String ref,
             InputStream is, Properties metadata, ParseState parseState)
-                    throws IOException {
+            throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
-        return cond.test(newDocContext(ref, input, metadata));
+        return cond.test(newHandlerContext(ref, input, metadata));
     }
 
-    public static void transform(Consumer<HandlerContext> t, String ref,
+    public static void transform(
+            Consumer<HandlerContext> t, String ref,
             Properties metadata, ParseState parseState)
-                    throws IOException {
+            throws IOException {
         transform(t, ref, null, metadata, parseState);
     }
-    public static void transform(Consumer<HandlerContext> t, String ref,
+
+    public static void transform(
+            Consumer<HandlerContext> t, String ref,
             InputStream is, Properties metadata, ParseState parseState)
-                    throws IOException {
+            throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
-        t.accept(newDocContext(ref, input, metadata, parseState));
+        t.accept(newHandlerContext(ref, input, metadata, parseState));
     }
 
     public static Doc newDoc(File file) {
@@ -155,18 +171,23 @@ public final class TestUtil {
     public static Doc newDoc() {
         return newDoc("N/A", null, new Properties());
     }
+
     public static Doc newDoc(Properties meta) {
         return newDoc("N/A", null, meta);
     }
+
     public static Doc newDoc(String ref) {
         return newDoc(ref, null, new Properties());
     }
+
     public static Doc newDoc(String ref, Properties meta) {
         return newDoc(ref, null, meta);
     }
+
     public static Doc newDoc(String ref, InputStream in) {
         return newDoc(ref, in, new Properties());
     }
+
     public static Doc newDoc(
             String ref, InputStream in, Properties meta) {
         // Remove document.reference for tests that need the same count
@@ -185,18 +206,22 @@ public final class TestUtil {
 
         return doc;
     }
-    public static HandlerContext newDocContext() {
-        return newDocContext("dummy-ref", null, new Properties());
+
+    public static HandlerContext newHandlerContext() {
+        return newHandlerContext("dummy-ref", null, new Properties());
     }
-    public static HandlerContext newDocContext(
+
+    public static HandlerContext newHandlerContext(
             String ref, InputStream in) {
-        return newDocContext(ref, in, null, ParseState.PRE);
+        return newHandlerContext(ref, in, null, ParseState.PRE);
     }
-    public static HandlerContext newDocContext(
+
+    public static HandlerContext newHandlerContext(
             String ref, InputStream in, Properties meta) {
-        return newDocContext(ref, in, meta, ParseState.PRE);
+        return newHandlerContext(ref, in, meta, ParseState.PRE);
     }
-    public static HandlerContext newDocContext(
+
+    public static HandlerContext newHandlerContext(
             String ref, InputStream in,
             Properties meta, ParseState state) {
         return HandlerContext.builder()
@@ -206,14 +231,15 @@ public final class TestUtil {
                 .build();
     }
 
-    public static HandlerContext newDocContext(String ref, String body) {
-        return newDocContext(ref, new ByteArrayInputStream(body.getBytes()));
-    }
-    public static HandlerContext newDocContext(String body) {
-        return newDocContext(
-                "dummy-ref", new ByteArrayInputStream(body.getBytes()));
+    public static HandlerContext newHandlerContext(String ref, String body) {
+        return newHandlerContext(ref,
+                new ByteArrayInputStream(body.getBytes()));
     }
 
+    public static HandlerContext newHandlerContext(String body) {
+        return newHandlerContext(
+                "dummy-ref", new ByteArrayInputStream(body.getBytes()));
+    }
 
     public static String contentAsString(Doc doc) {
         try {
@@ -223,6 +249,7 @@ public final class TestUtil {
             throw new UncheckedIOException(e);
         }
     }
+
     public static String toString(InputStream is) {
         try {
             return IOUtils.toString(is, StandardCharsets.UTF_8);
@@ -230,9 +257,11 @@ public final class TestUtil {
             throw new UncheckedIOException(e);
         }
     }
+
     public static CachedInputStream toCachedInputStream(String str) {
         return CachedInputStream.cache(toInputStream(str));
     }
+
     public static InputStream toInputStream(String str) {
         return new ByteArrayInputStream(str.getBytes());
     }
@@ -240,6 +269,7 @@ public final class TestUtil {
     public static CachedInputStream failingCachedInputStream() {
         return new CachedStreamFactory().newInputStream(failingInputStream());
     }
+
     public static InputStream failingInputStream() {
         return new InputStream() {
             @Override
@@ -255,9 +285,11 @@ public final class TestUtil {
 
     public static Path resourceAsFile(
             Path folder, String resourcePath) throws IOException {
-        var file = Files.createTempFile(folder, null,
+        var file = Files.createTempFile(
+                folder, null,
                 StringUtils.substringAfterLast(resourcePath, "/"));
-        Files.copy(TestUtil.class.getResourceAsStream(resourcePath), file,
+        Files.copy(
+                TestUtil.class.getResourceAsStream(resourcePath), file,
                 StandardCopyOption.REPLACE_EXISTING);
         return file;
     }

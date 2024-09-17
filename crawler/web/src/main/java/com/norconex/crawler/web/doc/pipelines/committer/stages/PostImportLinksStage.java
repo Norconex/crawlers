@@ -79,11 +79,11 @@ public class PostImportLinksStage
 
         ctx.getCrawler().fire(
                 CrawlerEvent.builder()
-                .name(WebCrawlerEvent.URLS_POST_IMPORTED)
-                .source(ctx.getCrawler())
-                .subject(inScopeUrls)
-                .docContext(ctx.getDoc().getDocContext())
-                .build());
+                        .name(WebCrawlerEvent.URLS_POST_IMPORTED)
+                        .source(ctx.getCrawler())
+                        .subject(inScopeUrls)
+                        .docContext(ctx.getDoc().getDocContext())
+                        .build());
         return true;
     }
 
@@ -107,13 +107,15 @@ public class PostImportLinksStage
                             url, docRecord.getDepth() + 1);
                     newDocRec.setReferrerReference(doc.getReference());
                     ctx.getCrawler()
-                    .getDocPipelines()
-                    .getQueuePipeline()
-                    .accept(new QueuePipelineContext(
-                            ctx.getCrawler(), docRecord));
+                            .getDocPipelines()
+                            .getQueuePipeline()
+                            .accept(
+                                    new QueuePipelineContext(
+                                            ctx.getCrawler(), docRecord));
                     String afterQueueURL = newDocRec.getReference();
                     if (!url.equals(afterQueueURL)) {
-                        LOG.debug("URL modified from \"{}\" to \"{}\".",
+                        LOG.debug(
+                                "URL modified from \"{}\" to \"{}\".",
                                 url, afterQueueURL);
                     }
                     inScopeUrls.add(afterQueueURL);

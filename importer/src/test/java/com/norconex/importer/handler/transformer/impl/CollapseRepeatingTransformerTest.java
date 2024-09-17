@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,16 +34,16 @@ import com.norconex.importer.handler.parser.ParseState;
 class CollapseRepeatingTransformerTest {
 
     private final String xml = """
-        <handler>
-          <ignoreCase>true</ignoreCase>
-          <strings>
-            <string>\\stext</string>
-            <string>\\t</string>
-            <string>\\n\\r</string>
-            <string>\\s</string>
-            <string>.</string>
-          </strings>
-        </handler>""";
+            <handler>
+              <ignoreCase>true</ignoreCase>
+              <strings>
+                <string>\\stext</string>
+                <string>\\t</string>
+                <string>\\n\\r</string>
+                <string>\\s</string>
+                <string>.</string>
+              </strings>
+            </handler>""";
 
     @Test
     void testTransformTextDocument() throws IOException {
@@ -59,7 +59,7 @@ class CollapseRepeatingTransformerTest {
 
         try (var is = IOUtils.toInputStream(
                 text, StandardCharsets.UTF_8)) {
-            var doc = TestUtil.newDocContext(
+            var doc = TestUtil.newHandlerContext(
                     "dummyRef", is, new Properties(), ParseState.POST);
             t.accept(doc);
             var response = IOUtils.toString(doc.input().asReader());
@@ -76,7 +76,7 @@ class CollapseRepeatingTransformerTest {
                 IOUtils.toInputStream(xml, StandardCharsets.UTF_8))) {
             BeanMapper.DEFAULT.read(t, reader, Format.XML);
         }
-        assertThatNoException().isThrownBy(() ->
-            BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

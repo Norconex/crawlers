@@ -1,4 +1,4 @@
-/* Copyright 2018-2023 Norconex Inc.
+/* Copyright 2018-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-class FirefoxWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest  {
+class FirefoxWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
 
     // Tests are in super class
 

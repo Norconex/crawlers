@@ -70,6 +70,7 @@ class DocumentFiltersStageTest {
     static class TestFilter implements DocumentFilter, OnMatchFilter {
         private OnMatch onMatch;
         private boolean accepts;
+
         @Override
         public boolean acceptDocument(Doc document) {
             return accepts;

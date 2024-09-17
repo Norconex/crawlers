@@ -60,49 +60,61 @@ public final class CrawlerConfigStubs {
 
     private static EasyRandom easyRandom = new EasyRandom(
             new EasyRandomParameters()
-            .seed(System.currentTimeMillis())
-            .collectionSizeRange(1, 5)
-            .randomizationDepth(5)
-            .scanClasspathForConcreteTypes(true)
-            .overrideDefaultInitialization(true)
-            .randomize(File.class,
-                    () -> new File(new StringRandomizer(100).getRandomValue()))
-            .randomize(Path.class,
-                    () -> Path.of(new StringRandomizer(100).getRandomValue()))
-            .randomize(Long.class,
-                    () -> Math.abs(new LongRandomizer().getRandomValue()))
-            .randomize(DataStoreEngine.class, MockNoopDataStoreEngine::new)
-            .randomize(DataStore.class, MockNoopDataStore::new)
-            .randomize(ImporterConfig.class, ImporterConfig::new)
-            .randomize(UpsertRequest.class,
-                    () -> new UpsertRequest(
-                            new StringRandomizer(100).getRandomValue(),
-                            new Properties(),
-                            new NullInputStream()))
-            .randomize(DeleteRequest.class,
-                    () -> new DeleteRequest(
-                            new StringRandomizer(100).getRandomValue(),
-                            new Properties()))
-            .randomize(Committer.class, MemoryCommitter::new)
-            .randomize(Charset.class, () -> StandardCharsets.UTF_8)
-            .randomize(SpoiledReferenceStrategizer.class,
-                    GenericSpoiledReferenceStrategizer::new)
-            .randomize(AtomicBoolean.class, () -> new AtomicBoolean(
-                    new BooleanRandomizer().getRandomValue()))
-            .excludeType(DocumentConsumer.class::equals)
-            .excludeType(ReferencesProvider.class::equals)
-    );
+                    .seed(System.currentTimeMillis())
+                    .collectionSizeRange(1, 5)
+                    .randomizationDepth(5)
+                    .scanClasspathForConcreteTypes(true)
+                    .overrideDefaultInitialization(true)
+                    .randomize(
+                            File.class,
+                            () -> new File(
+                                    new StringRandomizer(100).getRandomValue()))
+                    .randomize(
+                            Path.class,
+                            () -> Path.of(
+                                    new StringRandomizer(100).getRandomValue()))
+                    .randomize(
+                            Long.class,
+                            () -> Math
+                                    .abs(new LongRandomizer().getRandomValue()))
+                    .randomize(
+                            DataStoreEngine.class,
+                            MockNoopDataStoreEngine::new)
+                    .randomize(DataStore.class, MockNoopDataStore::new)
+                    .randomize(ImporterConfig.class, ImporterConfig::new)
+                    .randomize(
+                            UpsertRequest.class,
+                            () -> new UpsertRequest(
+                                    new StringRandomizer(100).getRandomValue(),
+                                    new Properties(),
+                                    new NullInputStream()))
+                    .randomize(
+                            DeleteRequest.class,
+                            () -> new DeleteRequest(
+                                    new StringRandomizer(100).getRandomValue(),
+                                    new Properties()))
+                    .randomize(Committer.class, MemoryCommitter::new)
+                    .randomize(Charset.class, () -> StandardCharsets.UTF_8)
+                    .randomize(
+                            SpoiledReferenceStrategizer.class,
+                            GenericSpoiledReferenceStrategizer::new)
+                    .randomize(
+                            AtomicBoolean.class, () -> new AtomicBoolean(
+                                    new BooleanRandomizer().getRandomValue()))
+                    .excludeType(DocumentConsumer.class::equals)
+                    .excludeType(ReferencesProvider.class::equals));
 
-    private CrawlerConfigStubs() {}
+    private CrawlerConfigStubs() {
+    }
 
     public static CrawlerConfig memoryCrawlerConfig(Path workDir) {
         return new CrawlerConfig()
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
-                .setCommitters(List.of(new MemoryCommitter()))
-                ;
+                .setCommitters(List.of(new MemoryCommitter()));
     }
+
     public static CrawlerConfig randomMemoryCrawlerConfig(Path workDir) {
         return easyRandom.nextObject(CrawlerConfig.class)
                 .setId(CRAWLER_ID)

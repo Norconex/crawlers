@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ import java.util.Iterator;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
-import com.norconex.commons.lang.time.DurationParser;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -31,7 +30,7 @@ import lombok.ToString;
  * Commits documents to Microsoft Azure Search.
  * </p>
  *
- * <h3>Document reference encoding</h3>
+ * <h2>Document reference encoding</h2>
  * <p>
  * By default the document reference (Azure Search Document Key) is
  * encoded using URL-safe Base64 encoding. This is Azure Search recommended
@@ -44,7 +43,7 @@ import lombok.ToString;
  * store it in a field other than your reference ("id") field.
  * </p>
  *
- * <h3>Single vs multiple values</h3>
+ * <h2>Single vs multiple values</h2>
  * <p>
  * Fields with single value will be sent as such, while multi-value fields
  * are sent as array. If you have a field defined as an array in Azure Search,
@@ -59,7 +58,7 @@ import lombok.ToString;
  * {@link AzureSearchCommitterConfig#setArrayFieldsRegex(boolean)}.
  * </p>
  *
- * <h3>Field names and errors</h3>
+ * <h2>Field names and errors</h2>
  * <p>
  * Azure Search will produce an error if any of the documents in a submitted
  * batch contains one or more fields with invalid characters.  To prevent
@@ -77,7 +76,7 @@ import lombok.ToString;
  * {@link AzureSearchCommitterConfig#setIgnoreResponseErrors(boolean)}
  * to <code>true</code>.
  * </p>
- * <h4>Field naming rules</h4>
+ * <h3>Field naming rules</h3>
  * <p>
  * Those are the field naming rules mandated for Azure Search (in force
  * for Azure Search version 2016-09-01):
@@ -92,68 +91,8 @@ import lombok.ToString;
  *       Maximum length is 128 characters.</li>
  * </ul>
  *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.azuresearch.AzureSearchCommitter">
- *   <endpoint>(Azure Search endpoint)</endpoint>
- *   <apiVersion>(Optional Azure Search API version to use)</apiVersion>
- *   <apiKey>(Azure Search API admin key)</apiKey>
- *   <indexName>(Name of the index to use)</indexName>
- *   <disableDocKeyEncoding>[false|true]</disableDocKeyEncoding>
- *   <ignoreValidationErrors>[false|true]</ignoreValidationErrors>
- *   <ignoreResponseErrors>[false|true]</ignoreResponseErrors>
- *   <useWindowsAuth>[false|true]</useWindowsAuth>
- *   <arrayFields regex="[false|true]">
- *     (Optional fields to be forcefully sent as array, even if single
- *     value. Unless "regex" is true, expects a CSV list of field names.)
- *   </arrayFields>
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
- *   </proxySettings>
- *
- *   <sourceKeyField>
- *     (Optional document field name containing the value that will be stored
- *     in Azure Search target document key field. Default is the document
- *     reference.)
- *   </sourceKeyField>
- *   <targetKeyField>
- *     (Optional name of Azure Search document field where to store a
- *     document unique key identifier (sourceKeydField).
- *     Default is "id".)
- *   </targetKeyField>
- *   <targetContentField>
- *     (Optional Azure Search document field name to store document
- *     content/body. Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.azuresearch.AzureSearchCommitter">
- *   <endpoint>https://example.search.windows.net</endpoint>
- *   <apiKey>1234567890ABCDEF1234567890ABCDEF</apiKey>
- *   <indexName>sample-index</indexName>
- * </committer>
- * }
- * <p>
- * The above example uses the minimum required settings.
- * </p>
- *
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class AzureSearchCommitter
@@ -170,7 +109,7 @@ public class AzureSearchCommitter
     @Override
     protected void initBatchCommitter() throws CommitterException {
         client = new AzureSearchClient(configuration);
-        if (configuration.getQueue() instanceof FSQueue queue &&
+        if (configuration.getQueue() instanceof FsQueue queue &&
                 queue.getConfiguration().getBatchSize() > 1000) {
             throw new CommitterException(
                     "Commit batch size cannot be greater than 1000.");

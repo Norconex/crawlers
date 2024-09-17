@@ -35,6 +35,7 @@ public class CrawlSessionStopper implements EventListener<Event> {
     public CrawlSessionStopper() {
         stopAt = 7;
     }
+
     public CrawlSessionStopper(int crashAt) {
         stopAt = crashAt;
     }
@@ -46,8 +47,8 @@ public class CrawlSessionStopper implements EventListener<Event> {
             if (count % stopAt == 0) {
                 LOG.info("{} documents fetched. STOP!", count);
                 ((CrawlerEvent) e)
-                .getSource()
-                .stop();
+                        .getSource()
+                        .stop();
             }
         }
     }

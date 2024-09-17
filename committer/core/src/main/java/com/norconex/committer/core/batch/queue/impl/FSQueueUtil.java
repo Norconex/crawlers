@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ public final class FSQueueUtil {
     static final String EXT = ".zip";
     static final FileFilter FILTER = f -> f.getName().endsWith(EXT);
 
-    private FSQueueUtil() {}
-
+    private FSQueueUtil() {
+    }
 
     /**
      * Recursively gets whether a queue directory is empty of
@@ -68,9 +68,11 @@ public final class FSQueueUtil {
      * @throws IOException problem occurred searching for files.
      */
     public static Stream<Path> findZipFiles(Path dir) throws IOException {
-       return Files
-               .find(dir, Integer.MAX_VALUE, (f, a) -> FILTER.accept(f.toFile()))
-               .sorted();
+        return Files
+                .find(
+                        dir, Integer.MAX_VALUE,
+                        (f, a) -> FILTER.accept(f.toFile()))
+                .sorted();
     }
 
     public static void toZipFile(
@@ -104,16 +106,17 @@ public final class FSQueueUtil {
             throws IOException {
         return fromZipFile(sourceFile, null);
     }
+
     public static CommitterRequest fromZipFile(
             Path sourceFile, CachedStreamFactory streamFactory)
-                    throws IOException {
+            throws IOException {
         String ref = null;
         var meta = new Properties();
         CachedInputStream content = null;
 
         try (var zipFile = new ZipFile(sourceFile.toFile())) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while(entries.hasMoreElements()){
+            while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 var name = entry.getName();
                 try (var is = zipFile.getInputStream(entry)) {
@@ -133,8 +136,9 @@ public final class FSQueueUtil {
             }
         }
         if (ref == null) {
-            throw new IOException("Committer queue zip contains no "
-                    + "\"reference\" file: " + sourceFile);
+            throw new IOException(
+                    "Committer queue zip contains no "
+                            + "\"reference\" file: " + sourceFile);
         }
 
         if (content == null) {

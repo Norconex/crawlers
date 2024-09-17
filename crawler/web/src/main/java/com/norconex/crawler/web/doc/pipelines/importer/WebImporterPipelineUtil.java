@@ -31,7 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class WebImporterPipelineUtil {
 
-    private WebImporterPipelineUtil() {}
+    private WebImporterPipelineUtil() {
+    }
 
     // Synchronized to avoid redirect dups.
     public static synchronized void queueRedirectURL(
@@ -43,7 +44,7 @@ public final class WebImporterPipelineUtil {
         var docTracker = ctx.getCrawler().getServices().getDocTrackerService();
 
         var docContext = (WebCrawlDocContext) ctx.getDoc().getDocContext();
-        String sourceURL =  docContext.getReference();
+        String sourceURL = docContext.getReference();
         var redirectStage = docTracker.getProcessingStage(redirectURL);
 
         var requeue = false;
@@ -53,8 +54,9 @@ public final class WebImporterPipelineUtil {
 
         var newResponse = GenericHttpFetchResponse.builder()
                 .crawlDocState(WebCrawlDocState.REDIRECT)
-                .reasonPhrase(response.getReasonPhrase()
-                        + " (target: " + redirectURL + ")")
+                .reasonPhrase(
+                        response.getReasonPhrase()
+                                + " (target: " + redirectURL + ")")
                 //TODO are these method calls below needed?
                 .redirectTarget(response.getRedirectTarget())
                 .statusCode(response.getStatusCode())
@@ -63,13 +65,14 @@ public final class WebImporterPipelineUtil {
 
         ctx.getCrawler().fire(
                 CrawlerEvent.builder()
-                .name(WebCrawlerEvent.REJECTED_REDIRECTED)
-                .source(ctx.getCrawler())
-                .subject(newResponse)
-                .docContext(docContext)
-                .message(newResponse.getStatusCode()
-                        + " " + newResponse.getReasonPhrase())
-                .build());
+                        .name(WebCrawlerEvent.REJECTED_REDIRECTED)
+                        .source(ctx.getCrawler())
+                        .subject(newResponse)
+                        .docContext(docContext)
+                        .message(
+                                newResponse.getStatusCode()
+                                        + " " + newResponse.getReasonPhrase())
+                        .build());
 
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
@@ -88,8 +91,10 @@ public final class WebImporterPipelineUtil {
             // If already queued twice, we treat as a loop
             // and we reject.
             if (docContext.getRedirectTrail().contains(redirectURL)) {
-                LOG.trace("Redirect encountered for 3rd time, "
-                        + "rejecting: {}", redirectURL);
+                LOG.trace(
+                        "Redirect encountered for 3rd time, "
+                                + "rejecting: {}",
+                        redirectURL);
                 rejectRedirectDup("processed", sourceURL, redirectURL);
                 return;
             }
@@ -103,23 +108,25 @@ public final class WebImporterPipelineUtil {
             var op = docTracker.getProcessed(redirectURL);
             if (op.isPresent()) {
                 if (op.get().getState().isGoodState()) {
-                    LOG.trace("Redirect URL was previously processed and "
-                            + "is valid, rejecting: {}", redirectURL);
+                    LOG.trace(
+                            "Redirect URL was previously processed and "
+                                    + "is valid, rejecting: {}",
+                            redirectURL);
                     rejectRedirectDup("processed", sourceURL, redirectURL);
                     return;
                 }
             } else {
                 LOG.warn("""
-                    Could not load from store the processed target\s\
-                    of previously redirected URL\s\
-                    (should never happen):\s""", redirectURL);
+                        Could not load from store the processed target\s\
+                        of previously redirected URL\s\
+                        (should never happen):\s""", redirectURL);
             }
 
             requeue = true;
             LOG.debug("""
-                Redirect URL encountered a second time, re-queue it\s\
-                again (once) in case it came from a circular\s\
-                reference: {}""", redirectURL);
+                    Redirect URL encountered a second time, re-queue it\s\
+                    again (once) in case it came from a circular\s\
+                    reference: {}""", redirectURL);
         }
 
         //--- Fresh URL, queue it! ---
@@ -140,18 +147,20 @@ public final class WebImporterPipelineUtil {
         Web.fireIfUrlOutOfScope(ctx.getCrawler(), newRec, urlScope);
         if (urlScope.isInScope()) {
             ctx.getCrawler()
-            .getDocPipelines()
-            .getQueuePipeline()
-            .accept(new QueuePipelineContext(ctx.getCrawler(), newRec));
+                    .getDocPipelines()
+                    .getQueuePipeline()
+                    .accept(new QueuePipelineContext(ctx.getCrawler(), newRec));
         } else {
             LOG.debug("URL redirect target not in scope: {}", redirectURL);
             newRec.setState(CrawlDocState.REJECTED);
         }
     }
 
-    private static void rejectRedirectDup(String action,
+    private static void rejectRedirectDup(
+            String action,
             String originalURL, String redirectURL) {
-        LOG.debug("Redirect target URL is already {}: {} (from: {}).",
+        LOG.debug(
+                "Redirect target URL is already {}: {} (from: {}).",
                 action, redirectURL, originalURL);
     }
 }

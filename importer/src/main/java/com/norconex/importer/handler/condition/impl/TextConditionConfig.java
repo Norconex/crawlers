@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,7 @@ public class TextConditionConfig {
     public TextMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     /**
      * Sets the text matcher for content or field values. Copies it.
      * @param valueMatcher text matcher
@@ -93,6 +94,7 @@ public class TextConditionConfig {
         this.valueMatcher.copyFrom(valueMatcher);
         return this;
     }
+
     /**
      * Gets the text matcher of field names.
      * @return field matcher
@@ -100,6 +102,7 @@ public class TextConditionConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the text matcher of field names. Copies it.
      * @param fieldMatcher text matcher

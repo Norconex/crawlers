@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,7 @@ public class NumericConditionConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the text matcher of field names. Copies it.
      * @param fieldMatcher text matcher
@@ -109,6 +110,7 @@ public class NumericConditionConfig {
     public NumericValueMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     public NumericConditionConfig setValueMatcher(
             NumericValueMatcher firstValueMatcher) {
         valueMatcher = firstValueMatcher;
@@ -118,6 +120,7 @@ public class NumericConditionConfig {
     public NumericValueMatcher getValueMatcherRangeEnd() {
         return valueMatcherRangeEnd;
     }
+
     public NumericConditionConfig setValueMatcherRangeEnd(
             NumericValueMatcher secondValueMatcher) {
         valueMatcherRangeEnd = secondValueMatcher;

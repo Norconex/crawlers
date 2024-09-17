@@ -84,6 +84,7 @@ public class RenameTransformerConfig {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }
+
     public List<RenameOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }

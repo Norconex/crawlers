@@ -19,5 +19,5 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline.QueueInitContext;
 
 @FunctionalInterface
-public interface QueueInitializer extends Consumer<QueueInitContext>{
+public interface QueueInitializer extends Consumer<QueueInitContext> {
 }

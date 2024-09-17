@@ -208,7 +208,7 @@
            com.norconex.crawler.core.data.store.ICrawlURLDatabaseFactory.  
            Default implementation is the following.
            -->
-      <dataStoreEngine class="MVStoreDataStoreEngine" />
+      <dataStoreEngine class="MvStoreDataStoreEngine" />
   
       <!-- One or more HTTP Fetchers, responsible for making HTTP requests
            and fetching associated content. Fetchers are defined in execution 
@@ -383,10 +383,10 @@
            This step calls the Committer module.  The
            committer is a different module with its own set of XML configuration
            options.  Please refer to committer for complete documentation.
-           Below is an example using the XMLFileCommitter.
+           Below is an example using the XmlFileCommitter.
            -->
       <committers>
-        <committer class="XMLFileCommitter">
+        <committer class="XmlFileCommitter">
         </committer>
       </committers>
 

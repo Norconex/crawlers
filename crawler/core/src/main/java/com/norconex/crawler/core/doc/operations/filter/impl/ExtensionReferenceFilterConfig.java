@@ -16,7 +16,6 @@ package com.norconex.crawler.core.doc.operations.filter.impl;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -31,24 +30,6 @@ import lombok.experimental.Accessors;
  * Extensions are typically the last characters of a file name, after the
  * last dot.
  * </p>
- *
- * {@nx.xml.usage
- * <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
- *     onMatch="[include|exclude]"
- *     ignoreCase="[false|true]" >
- *   (comma-separated list of extensions)
- * </filter>
- * }
- *
- * {@nx.xml.example
- * <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter">
- *   html,htm,php,asp
- * </filter>
- * }
- * <p>
- * The above example will only accept references with the following
- * extensions: .html, .htm, .php, and .asp.
- * </p>
  */
 @Data
 @Accessors(chain = true)
@@ -61,8 +42,9 @@ public class ExtensionReferenceFilterConfig {
     public Set<String> getExtensions() {
         return Collections.unmodifiableSet(extensions);
     }
+
     public ExtensionReferenceFilterConfig setExtensions(
-            List<String> extensions) {
+            Set<String> extensions) {
         CollectionUtil.setAll(this.extensions, extensions);
         return this;
     }

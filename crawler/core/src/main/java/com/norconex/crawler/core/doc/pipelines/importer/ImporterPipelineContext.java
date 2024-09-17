@@ -44,7 +44,6 @@ public class ImporterPipelineContext {
     // Shall we store the deletion flag in the document as well??
     //private boolean orphan;
 
-
     /**
      * Whether a metadata fetch request was performed already. Based on whether
      * metadata fetch support is enabled via configuration
@@ -58,7 +57,7 @@ public class ImporterPipelineContext {
         // If both DOCUMENT and METADATA fetching were requested and the
         // current directive is DOCUMENT, then metadata had to be performed.
         return currentDirective == FetchDirective.DOCUMENT
-                &&  FetchDirectiveSupport.isEnabled(
+                && FetchDirectiveSupport.isEnabled(
                         crawler.getConfiguration().getMetadataFetchSupport());
     }
 
@@ -75,6 +74,6 @@ public class ImporterPipelineContext {
                 || (directive == FetchDirective.DOCUMENT
                         && FetchDirectiveSupport.isEnabled(
                                 crawler.getConfiguration()
-                                .getDocumentFetchSupport()));
+                                        .getDocumentFetchSupport()));
     }
 }

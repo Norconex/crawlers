@@ -21,6 +21,7 @@ import java.awt.Dimension;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcherConfig.
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 
-class WebDriverHttpFetcherConfigTest  {
+class WebDriverHttpFetcherConfigTest {
 
     @Test
     void testWriteReadFetcher() throws MalformedURLException {
@@ -45,45 +46,46 @@ class WebDriverHttpFetcherConfigTest  {
         c.setBrowserPath(Paths.get("/some/browser/path"));
         c.setDriverPath(Paths.get("/some/driver/path"));
         c.setRemoteURL(new URL("http://example.com"));
-        c.setImplicitlyWait(4000);
+        c.setImplicitlyWait(Duration.ofSeconds(4));
         c.setEarlyPageScript("alert('hello init!');");
-        c.setPageLoadTimeout(5000);
+        c.setPageLoadTimeout(Duration.ofSeconds(5));
         c.setLatePageScript("alert('hello page!');");
-        c.setScriptTimeout(6000);
+        c.setScriptTimeout(Duration.ofSeconds(6));
         c.setWaitForElementSelector("#header");
-        c.setWaitForElementTimeout(1234);
+        c.setWaitForElementTimeout(Duration.ofMillis(1234));
         c.setWaitForElementType(WaitElementType.ID);
         c.setWindowSize(new Dimension(666, 999));
-        c.setCapabilities(MapUtil.toMap(
-            "cap1", "val1",
-            "cap2", "val2"
-        ));
+        c.setCapabilities(
+                MapUtil.toMap(
+                        "cap1", "val1",
+                        "cap2", "val2"));
 
         var snif = new HttpSniffer();
         snif.getConfiguration()
-            .setPort(123)
-            .setUserAgent("Agent 007")
-            .getRequestHeaders().putAll(MapUtil.toMap(
-                    "rh1", "hrval1",
-                    "rh2", "hrval2"));
+                .setPort(123)
+                .setUserAgent("Agent 007")
+                .getRequestHeaders().putAll(
+                        MapUtil.toMap(
+                                "rh1", "hrval1",
+                                "rh2", "hrval2"));
         c.setHttpSniffer(snif);
 
-        c.setReferenceFilters(List.of(
-                configure(new GenericReferenceFilter(), cfg -> cfg
+        c.setReferenceFilters(List.of(configure(
+                new GenericReferenceFilter(), cfg -> cfg
                         .setValueMatcher(TextMatcher.regex("test.*")))));
 
         var sh = new ScreenshotHandler();
         sh.getConfiguration()
-            .setCssSelector("selector")
-            .setImageFormat("gif")
-            .setTargetDir(Paths.get("/target/dir"))
-            .setTargetDirField("targetField")
-            .setTargetDirStructure(DirStructure.DATE)
-            .setTargetMetaField("targetMeta")
-            .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+                .setCssSelector("selector")
+                .setImageFormat("gif")
+                .setTargetDir(Paths.get("/target/dir"))
+                .setTargetDirField("targetField")
+                .setTargetDirStructure(DirStructure.DATE)
+                .setTargetMetaField("targetMeta")
+                .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
         c.setScreenshotHandler(sh);
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(f));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(f));
     }
 }

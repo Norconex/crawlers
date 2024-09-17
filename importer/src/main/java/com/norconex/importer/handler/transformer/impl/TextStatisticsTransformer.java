@@ -139,9 +139,8 @@ public class TextStatisticsTransformer
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
-            for (Entry<String, List<String>> en :
-                    docCtx.metadata().matchKeys(
-                            configuration.getFieldMatcher()).entrySet()) {
+            for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                    configuration.getFieldMatcher()).entrySet()) {
                 analyze(
                         new StringReader(join(en.getValue(), "\n\n")),
                         docCtx.metadata(),
@@ -205,17 +204,23 @@ public class TextStatisticsTransformer
         metadata.add(prefix + "wordCount", wordCount);
         metadata.add(prefix + "sentenceCount", sentenceCount);
         metadata.add(prefix + "paragraphCount", paragraphCount);
-        metadata.add(prefix + "averageWordCharacterCount",
+        metadata.add(
+                prefix + "averageWordCharacterCount",
                 divide(wordCharCount, wordCount));
-        metadata.add(prefix + "averageSentenceCharacterCount",
+        metadata.add(
+                prefix + "averageSentenceCharacterCount",
                 divide(sentenceCharCount, sentenceCount));
-        metadata.add(prefix + "averageSentenceWordCount",
+        metadata.add(
+                prefix + "averageSentenceWordCount",
                 divide(wordCount, sentenceCount));
-        metadata.add(prefix + "averageParagraphCharacterCount",
+        metadata.add(
+                prefix + "averageParagraphCharacterCount",
                 divide(charCount, paragraphCount));
-        metadata.add(prefix + "averageParagraphSentenceCount",
+        metadata.add(
+                prefix + "averageParagraphSentenceCount",
                 divide(sentenceCount, paragraphCount));
-        metadata.add(prefix + "averageParagraphWordCount",
+        metadata.add(
+                prefix + "averageParagraphWordCount",
                 divide(wordCount, paragraphCount));
 
     }
@@ -223,6 +228,6 @@ public class TextStatisticsTransformer
     private String divide(long value, long divisor) {
         return BigDecimal.valueOf(value).divide(
                 BigDecimal.valueOf(divisor), 1,
-                        RoundingMode.HALF_UP).toString();
+                RoundingMode.HALF_UP).toString();
     }
 }

@@ -31,27 +31,25 @@ import lombok.NonNull;
  */
 public final class ChunkedTextUtil {
 
-    private ChunkedTextUtil() {}
+    private ChunkedTextUtil() {
+    }
 
     public static void transform(
-            @NonNull
-            ChunkedTextSupport cfg,
-            @NonNull
-            HandlerContext docCtx,
-            @NonNull
-            FailableFunction<TextChunk, String, IOException> textConsumer)
-                    throws IOException {
+            @NonNull ChunkedTextSupport cfg,
+            @NonNull HandlerContext docCtx,
+            @NonNull FailableFunction<TextChunk, String,
+                    IOException> textConsumer)
+            throws IOException {
         transform(cfg, docCtx, textConsumer, null);
     }
+
     public static void transform(
-            @NonNull
-            ChunkedTextSupport cfg,
-            @NonNull
-            HandlerContext docCtx,
-            @NonNull
-            FailableFunction<TextChunk, String, IOException> textConsumer,
+            @NonNull ChunkedTextSupport cfg,
+            @NonNull HandlerContext docCtx,
+            @NonNull FailableFunction<TextChunk, String,
+                    IOException> textConsumer,
             Predicate<TextChunk> keepReading)
-                    throws IOException {
+            throws IOException {
         ChunkedTextReader.from(cfg).read(docCtx, chunk -> {
             var newValue = textConsumer.apply(chunk);
             writeBack(docCtx, chunk, newValue);
@@ -66,7 +64,7 @@ public final class ChunkedTextUtil {
             @NonNull HandlerContext docCtx,
             @NonNull TextChunk originalChunk,
             String newText)
-                    throws IOException {
+            throws IOException {
         if (isNotBlank(originalChunk.getField())) {
             // set on field
             var values = docCtx.metadata().get(originalChunk.getField());
@@ -76,7 +74,8 @@ public final class ChunkedTextUtil {
                     values.set(originalChunk.getFieldValueIndex(), newText);
                 } else {
                     var value = values.get(originalChunk.getFieldValueIndex());
-                    values.set(originalChunk.getFieldValueIndex(),
+                    values.set(
+                            originalChunk.getFieldValueIndex(),
                             value + newText);
                 }
             }

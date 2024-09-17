@@ -1,4 +1,4 @@
-/* Copyright 2016-2023 Norconex Inc.
+/* Copyright 2016-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,8 +97,8 @@ public class EmbeddedConfig implements Serializable { //{
     private static final long serialVersionUID = 1L;
 
     private final List<TextMatcher> splitContentTypes = new ArrayList<>();
-    private final List<TextMatcher>
-            skipEmbeddedOfContentTypes = new ArrayList<>();
+    private final List<TextMatcher> skipEmbeddedOfContentTypes =
+            new ArrayList<>();
     private final List<TextMatcher> skipEmbeddedContentTypes =
             new ArrayList<>();
 
@@ -119,6 +119,7 @@ public class EmbeddedConfig implements Serializable { //{
     public List<TextMatcher> getSplitContentTypes() {
         return Collections.unmodifiableList(splitContentTypes);
     }
+
     /**
      * Gets the content types of container files to split and treat their
      * embedded files as separate documents. Default does not split
@@ -142,6 +143,7 @@ public class EmbeddedConfig implements Serializable { //{
     public List<TextMatcher> getSkipEmbeddedOfContentTypes() {
         return Collections.unmodifiableList(skipEmbeddedOfContentTypes);
     }
+
     /**
      * Gets the content type matchers of container files you do not want to
      * have their embedded files parsed. Embedded files of matching containers
@@ -166,6 +168,7 @@ public class EmbeddedConfig implements Serializable { //{
     public List<TextMatcher> getSkipEmbeddedContentTypes() {
         return Collections.unmodifiableList(skipEmbeddedContentTypes);
     }
+
     /**
      * Gets the content types of container files to split and treat their
      * embedded files as separate documents. Default does not split

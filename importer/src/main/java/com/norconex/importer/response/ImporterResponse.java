@@ -38,14 +38,14 @@ public class ImporterResponse {
     //TODO have part of it immutable... response could be modified to
     // add children.. so maybe there are no risk to be able to change it all?
 
-
-    public enum Status { SUCCESS, REJECTED, ERROR }
+    public enum Status {
+        SUCCESS, REJECTED, ERROR
+    }
 
     public static final ImporterResponse[] EMPTY_RESPONSES = {};
 
-
     private Status status;
-//    private final DocumentFilter filter;
+    //    private final DocumentFilter filter;
     private Object rejectCause; // e.g., Condition, or handler.
     private ImporterException exception;
     private String description;
@@ -53,7 +53,7 @@ public class ImporterResponse {
     private String reference;
     private Doc doc;
     @NonNull
-//    @Singular
+    //    @Singular
     private final List<ImporterResponse> nestedResponses = new ArrayList<>();
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -64,77 +64,81 @@ public class ImporterResponse {
         this.reference = reference;
         this.status = status;
     }
+
     public ImporterResponse(Doc doc) {
         reference = doc.getReference();
         this.doc = doc;
     }
-//
-//    public Doc getDocument() {
-//        return doc;
-//    }
+    //
+    //    public Doc getDocument() {
+    //        return doc;
+    //    }
 
     public boolean isSuccess() {
         return status != null && status == Status.SUCCESS;
     }
+
     public boolean isRejected() {
         return status == Status.REJECTED;
     }
+
     public boolean isError() {
         return status == Status.ERROR;
     }
-//
-//    public ImporterResponse getParentResponse() {
-//        return parentResponse;
-//    }
-//
-//    public void addNestedResponse(ImporterResponse response) {
-//        response.setParentResponse(this);
-//        nestedResponses.add(response);
-//    }
-//    public void removeNestedResponse(String reference) {
-//        ImporterResponse response = null;
-//        for (ImporterResponse nestedResponse : nestedResponses) {
-//            if (nestedResponse.getReference().equals(reference)) {
-//                response = nestedResponse;
-//            }
-//        }
-//        if (response == null) {
-//            return;
-//        }
-//        nestedResponses.remove(response);
-//        response.setParentResponse(null);
-//    }
-//
-//    public ImporterResponse[] getNestedResponses() {
-//        return nestedResponses.toArray(EMPTY_RESPONSES);
-//    }
+    //
+    //    public ImporterResponse getParentResponse() {
+    //        return parentResponse;
+    //    }
+    //
+    //    public void addNestedResponse(ImporterResponse response) {
+    //        response.setParentResponse(this);
+    //        nestedResponses.add(response);
+    //    }
+    //    public void removeNestedResponse(String reference) {
+    //        ImporterResponse response = null;
+    //        for (ImporterResponse nestedResponse : nestedResponses) {
+    //            if (nestedResponse.getReference().equals(reference)) {
+    //                response = nestedResponse;
+    //            }
+    //        }
+    //        if (response == null) {
+    //            return;
+    //        }
+    //        nestedResponses.remove(response);
+    //        response.setParentResponse(null);
+    //    }
+    //
+    //    public ImporterResponse[] getNestedResponses() {
+    //        return nestedResponses.toArray(EMPTY_RESPONSES);
+    //    }
 
-//    private void setParentResponse(ImporterResponse parentResponse) {
-//        this.parentResponse = parentResponse;
-//    }
+    //    private void setParentResponse(ImporterResponse parentResponse) {
+    //        this.parentResponse = parentResponse;
+    //    }
 
     public List<ImporterResponse> getNestedResponses() {
         return Collections.unmodifiableList(nestedResponses);
     }
 
-//    public static ImporterResponseBuilder builderFrom(
-//            ImporterResponse from) {
-//        return new ImporterResponseBuilder()
-//                .description(from.getDescription())
-//                .exception(from.getException())
-//                .nestedResponses(from.getNestedResponses())
-//                .doc(from.getDoc())
-//                .reference(from.getReference())
-//                .rejectCause(from.getRejectCause())
-//                .parentResponse(from.getParentResponse())
-//                .status(from.status)
-//                ;
-//    }
+    //    public static ImporterResponseBuilder builderFrom(
+    //            ImporterResponse from) {
+    //        return new ImporterResponseBuilder()
+    //                .description(from.getDescription())
+    //                .exception(from.getException())
+    //                .nestedResponses(from.getNestedResponses())
+    //                .doc(from.getDoc())
+    //                .reference(from.getReference())
+    //                .rejectCause(from.getRejectCause())
+    //                .parentResponse(from.getParentResponse())
+    //                .status(from.status)
+    //                ;
+    //    }
 
     public ImporterResponse setNestedResponses(
             List<ImporterResponse> nestedResponses) {
         CollectionUtil.setAll(this.nestedResponses, nestedResponses);
-        this.nestedResponses.forEach(nr -> nr.parentResponse = ImporterResponse.this);
+        this.nestedResponses
+                .forEach(nr -> nr.parentResponse = ImporterResponse.this);
         return this;
     }
 }

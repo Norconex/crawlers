@@ -47,22 +47,8 @@ import lombok.extern.slf4j.Slf4j;
  * Screenshot images can be stored in a document metadata/field or
  * in a local directory.
  * </p>
- *
- * {@nx.xml.usage
- *   <cssSelector>(Optional selector of element to capture.)</cssSelector>
- *   {@nx.include com.norconex.crawler.web.fetch.util.DocImageHandler@nx.xml.usage}
- * }
- *
- * <p>
- * The above XML configurable options can be nested in a supporting parent
- * tag of any name.
- * The expected parent tag name is defined by the consuming classes
- * (e.g. "screenshot").
- * </p>
- *
  * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 @Slf4j
@@ -81,6 +67,7 @@ public class ScreenshotHandler
     public ScreenshotHandler() {
         this(null);
     }
+
     public ScreenshotHandler(CachedStreamFactory streamFactory) {
         this.streamFactory = Optional.ofNullable(
                 streamFactory).orElseGet(CachedStreamFactory::new);
@@ -106,8 +93,9 @@ public class ScreenshotHandler
                 var img = new MutableImage(in);
                 img.crop(rectangle);
                 imageHandler.handleImage(img.toInputStream(
-                        ofNullable(getConfiguration()
-                                .getImageFormat()).orElse("png")), doc);
+                        ofNullable(getConfiguration().getImageFormat())
+                                .orElse("png")),
+                        doc);
             } else {
                 imageHandler.handleImage(in, doc);
             }

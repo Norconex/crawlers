@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,6 +158,7 @@ public class DomConditionConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets this condition field matcher.
      * @param fieldMatcher field matcher
@@ -174,6 +175,7 @@ public class DomConditionConfig {
     public TextMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     /**
      * Sets this condition value matcher.
      * @param valueMatcher value matcher
@@ -190,6 +192,7 @@ public class DomConditionConfig {
     public TextMatcher getContentTypeMatcher() {
         return contentTypeMatcher;
     }
+
     /**
      * Sets this condition content-type matcher.
      * @param contentTypeMatcher content-type matcher
@@ -209,6 +212,7 @@ public class DomConditionConfig {
     public String getExtract() {
         return extract;
     }
+
     /**
      * Sets what should be extracted for the value. One of
      * "text" (default), "html", or "outerHtml". <code>null</code> means
@@ -227,6 +231,7 @@ public class DomConditionConfig {
     public String getParser() {
         return parser;
     }
+
     /**
      * Sets the parser to use when creating the DOM-tree.
      * @param parser <code>html</code> or <code>xml</code>.
@@ -239,6 +244,7 @@ public class DomConditionConfig {
     public String getSelector() {
         return selector;
     }
+
     public DomConditionConfig setSelector(String selector) {
         this.selector = selector;
         return this;

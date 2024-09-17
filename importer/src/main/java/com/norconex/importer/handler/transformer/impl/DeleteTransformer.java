@@ -22,6 +22,7 @@ import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
 /**
  * <p>
  * Delete the metadata fields provided. Exact field names (case-insensitive)

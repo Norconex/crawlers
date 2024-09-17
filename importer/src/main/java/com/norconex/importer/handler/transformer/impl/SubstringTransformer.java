@@ -97,8 +97,8 @@ public class SubstringTransformer
             // Body
             try (var input = docCtx.input().asReader(
                     configuration.getSourceCharset());
-                var output = docCtx.output().asWriter(
-                        configuration.getSourceCharset())) {
+                    var output = docCtx.output().asWriter(
+                            configuration.getSourceCharset())) {
                 doSubstring(input, output);
             }
         }
@@ -111,8 +111,8 @@ public class SubstringTransformer
             if (configuration.getEnd() < configuration.getBegin()) {
                 throw new IOException(
                         "\"end\" cannot be smaller than \"begin\" "
-                      + "(begin:" + configuration.getBegin()
-                      + "; end:" + configuration.getEnd());
+                                + "(begin:" + configuration.getBegin()
+                                + "; end:" + configuration.getEnd());
             }
             length = configuration.getEnd()
                     - Math.max(configuration.getBegin(), 0);

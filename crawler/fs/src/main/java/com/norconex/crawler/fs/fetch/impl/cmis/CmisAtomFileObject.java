@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,7 +49,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
     private static final String PROP_CONTENT_STREAM_LENGTH =
             "cmis:contentStreamLength";
 
-    private XML document;
+    private Xml document;
 
     protected CmisAtomFileObject(
             AbstractFileName name, CmisAtomFileSystem fileSystem) {
@@ -81,11 +81,11 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
         return (CmisAtomFileSystem) super.getFileSystem();
     }
 
-    public XML getDocument() {
+    public Xml getDocument() {
         return document;
     }
 
-    private XML createDocument(final FileName fileName)
+    private Xml createDocument(final FileName fileName)
             throws FileSystemException {
         return getSession().getDocumentByPath(fileName.getPath());
     }
@@ -131,7 +131,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
 
         var childrenURL = document.getString(
                 "/entry/link[@rel='down' and "
-              + "@type='application/atom+xml;type=feed']/@href");
+                        + "@type='application/atom+xml;type=feed']/@href");
 
         if (StringUtils.isBlank(childrenURL)) {
             return ArrayUtils.EMPTY_STRING_ARRAY;
@@ -145,7 +145,8 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
         var childrenDoc = session.getDocument(childrenURL);
 
         if (childrenDoc.getInteger("/feed/numItems", -1) > MAX_ITEMS) {
-            LOG.warn("TOO many items under {}. Will only process the first {}.",
+            LOG.warn(
+                    "TOO many items under {}. Will only process the first {}.",
                     getName().getPathDecoded(), MAX_ITEMS);
         }
         var xmlList = childrenDoc.getXMLList("/feed/entry/pathSegment/text()");
@@ -198,10 +199,11 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
     }
 
     private String getPropertyValue(String propertyDefId) {
-        return document.getString("""
-            /entry/object/properties/\
-            *[starts-with(local-name(), 'property')]\
-            [@propertyDefinitionId='%s']/value/text()"""
-                .formatted(propertyDefId));
+        return document.getString(
+                """
+                        /entry/object/properties/\
+                        *[starts-with(local-name(), 'property')]\
+                        [@propertyDefinitionId='%s']/value/text()"""
+                        .formatted(propertyDefId));
     }
 }

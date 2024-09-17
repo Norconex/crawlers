@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,12 +54,12 @@ public final class CommonMatchers {
      * }
      */
     public static final Set<String> XML_FEED_CONTENT_TYPES =
-            Collections.unmodifiableSet(CollectionUtil.unionSet(
-                    XML_BASE_CONTENT_TYPES,
-                    "application/atom+xml",
-                    "application/rdf+xml",
-                    "application/rss+xml"
-            ));
+            Collections.unmodifiableSet(
+                    CollectionUtil.unionSet(
+                            XML_BASE_CONTENT_TYPES,
+                            "application/atom+xml",
+                            "application/rdf+xml",
+                            "application/rss+xml"));
 
     /**
      * <p>HTML/XHTML content types:</p>
@@ -92,14 +92,13 @@ public final class CommonMatchers {
      * }
      */
     public static final Set<String> XML_CONTENT_TYPES =
-            Collections.unmodifiableSet(CollectionUtil.unionSet(
-                    XML_FEED_CONTENT_TYPES,
-                    "application/xhtml+xml",
-                    "application/xslt+xml",
-                    "application/mathml+xml",
-                    "image/svg+xml"
-            ));
-
+            Collections.unmodifiableSet(
+                    CollectionUtil.unionSet(
+                            XML_FEED_CONTENT_TYPES,
+                            "application/xhtml+xml",
+                            "application/xslt+xml",
+                            "application/mathml+xml",
+                            "image/svg+xml"));
 
     /**
      * <p>Content types representing a document object model:</p>
@@ -120,12 +119,12 @@ public final class CommonMatchers {
      * }
      */
     public static final Set<String> DOM_CONTENT_TYPES =
-            Collections.unmodifiableSet(CollectionUtil.unionSet(
-                    XML_CONTENT_TYPES,
-                    HTML_CONTENT_TYPES,
-                    "application/mathml+xml",
-                    "application/x-asp"
-            ));
+            Collections.unmodifiableSet(
+                    CollectionUtil.unionSet(
+                            XML_CONTENT_TYPES,
+                            HTML_CONTENT_TYPES,
+                            "application/mathml+xml",
+                            "application/x-asp"));
 
     /**
      * <p>Content types for natively supported Java ImageIO images.</p>
@@ -148,7 +147,8 @@ public final class CommonMatchers {
             "image/vnd.wap.wbmp",
             "image/x-windows-bmp");
 
-    private CommonMatchers() {}
+    private CommonMatchers() {
+    }
 
     /**
      * <p>
@@ -212,6 +212,16 @@ public final class CommonMatchers {
      */
     public static TextMatcher imageIOStandardContentTypes() {
         return csv(IMAGE_IO_CONTENT_TYPES);
+    }
+
+    /**
+     * <p>
+     * Matches all content types.
+     * </p>
+     * @return text matcher
+     */
+    public static TextMatcher all() {
+        return TextMatcher.regex(".*");
     }
 
     private static TextMatcher csv(Set<String> values) {

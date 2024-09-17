@@ -61,20 +61,7 @@ import lombok.extern.slf4j.Slf4j;
  *       any given thread.  The more threads you have the less of an
  *       impact the delay will have.</li>
  * </ul>
- * <h3>
- * XML configuration usage:
- * </h3>
- * <p>
- * The following should be shared across concrete implementations
- * (which can add more configurable attributes and tags).
- * </p>
- * {@nx.xml
- * <delay class="(implementing class)"
- *     default="(milliseconds)"
- *     ignoreRobotsCrawlDelay="[false|true]"
- *     scope="[crawler|site|thread]">
- * </delay>
- * }
+ * @param <T> type of configuration class
  * @since 2.5.0
  */
 @Slf4j
@@ -118,7 +105,7 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
                 .toNanos();
         if (isUsingRobotsTxtCrawlDelay(robotsTxt)) {
             delayNanos = TimeUnit.SECONDS.toNanos(
-                    (long)(robotsTxt.getCrawlDelay()));
+                    (long) (robotsTxt.getCrawlDelay()));
         } else {
             var explicitDelay = resolveExplicitDelay(url);
             if (explicitDelay != null) {

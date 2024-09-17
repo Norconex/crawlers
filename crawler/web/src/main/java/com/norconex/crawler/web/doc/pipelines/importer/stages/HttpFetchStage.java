@@ -65,16 +65,18 @@ public class HttpFetchStage extends AbstractImporterStage {
         var fetcher = (HttpFetcher) ctx.getCrawler().getFetcher();
 
         var httpMethod = FetchDirective.METADATA.is(getFetchDirective())
-                ? HttpMethod.HEAD : HttpMethod.GET;
-
+                ? HttpMethod.HEAD
+                : HttpMethod.GET;
 
         HttpFetchResponse response;
         try {
             response = fetcher.fetch(
                     new HttpFetchRequest(ctx.getDoc(), httpMethod));
         } catch (FetchException e) {
-            throw new CrawlerException("Could not fetch URL: "
-                    + ctx.getDoc().getDocContext().getReference(), e);
+            throw new CrawlerException(
+                    "Could not fetch URL: "
+                            + ctx.getDoc().getDocContext().getReference(),
+                    e);
         }
         var originalCrawlDocState = docRecord.getState();
 
@@ -84,7 +86,8 @@ public class HttpFetchStage extends AbstractImporterStage {
         var meta = ctx.getDoc().getMetadata();
         meta.set(DocMetadata.CONTENT_TYPE, docRecord.getContentType());
         meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getCharset());
-        meta.set(WebDocMetadata.ORIGINAL_REFERENCE,
+        meta.set(
+                WebDocMetadata.ORIGINAL_REFERENCE,
                 docRecord.getOriginalReference());
 
         //-- Deal with redirects ---
@@ -102,23 +105,25 @@ public class HttpFetchStage extends AbstractImporterStage {
         if (CrawlDocState.UNMODIFIED.equals(state)) {
             ctx.getCrawler().fire(
                     CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                    .source(ctx.getCrawler())
-                    .subject(response)
-                    .docContext(docRecord)
-                    .build());
+                            .name(CrawlerEvent.REJECTED_UNMODIFIED)
+                            .source(ctx.getCrawler())
+                            .subject(response)
+                            .docContext(docRecord)
+                            .build());
             return false;
         }
         if (state.isGoodState()) {
             ctx.getCrawler().fire(
                     CrawlerEvent.builder()
-                    .name(FetchDirective.METADATA.is(getFetchDirective())
-                            ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
-                            : CrawlerEvent.DOCUMENT_FETCHED)
-                    .source(ctx.getCrawler())
-                    .subject(response)
-                    .docContext(docRecord)
-                    .build());
+                            .name(
+                                    FetchDirective.METADATA
+                                            .is(getFetchDirective())
+                                                    ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
+                                                    : CrawlerEvent.DOCUMENT_FETCHED)
+                            .source(ctx.getCrawler())
+                            .subject(response)
+                            .docContext(docRecord)
+                            .build());
             return true;
         }
 
@@ -131,11 +136,11 @@ public class HttpFetchStage extends AbstractImporterStage {
 
         ctx.getCrawler().fire(
                 CrawlerEvent.builder()
-                .name(eventType)
-                .source(ctx.getCrawler())
-                .subject(response)
-                .docContext(docRecord)
-                .build());
+                        .name(eventType)
+                        .source(ctx.getCrawler())
+                        .subject(response)
+                        .docContext(docRecord)
+                        .build());
 
         // At this stage, the URL is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning

@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package com.norconex.cfgconverter.xml;
 
 import static com.norconex.cfgconverter.xml.Util.setClass;
 import static com.norconex.cfgconverter.xml.Util.setElemValue;
-import static com.norconex.commons.lang.xml.XPathUtil.attr;
+import static com.norconex.commons.lang.xml.XpathUtil.attr;
 import static org.apache.commons.lang3.StringUtils.replace;
 
 import java.io.IOException;
@@ -26,9 +26,9 @@ import java.io.Writer;
 import org.apache.commons.io.IOUtils;
 
 import com.norconex.cfgconverter.ConfigConverter;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLFormatter;
-import com.norconex.commons.lang.xml.XMLFormatter.Builder.AttributeWrap;
+import com.norconex.commons.lang.xml.Xml;
+import com.norconex.commons.lang.xml.XmlFormatter;
+import com.norconex.commons.lang.xml.XmlFormatter.Builder.AttributeWrap;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
     private static final String IGNORE_CASE = "ignoreCase";
 
     @Override
-    public void convert(@NonNull XML input, @NonNull Writer output) {
+    public void convert(@NonNull Xml input, @NonNull Writer output) {
         convertAllClassAttributes(input);
 
         // "disabled" and "ignore" are no longer supported, we use self-closing
@@ -64,7 +64,7 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
         writeXml(input, output);
     }
 
-    private void convertAllClassAttributes(XML xml) {
+    private void convertAllClassAttributes(Xml xml) {
         // update package name
         xml.forEach("//*[@class]", x -> {
             setClass(x, v -> v.replace("collector.http", "crawler.web"));
@@ -72,7 +72,7 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
             setClass(x, v -> v.replace("committer.core3", "committer.core"));
         });
     }
-    private void convertAllDisabledElements(XML xml) {
+    private void convertAllDisabledElements(Xml xml) {
         xml.forEach("//*[@disabled]", x -> {
             if (x.isDisabled()) {
                 x.clear();
@@ -81,7 +81,7 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
             }
         });
     }
-    private void convertAllIgnoreElements(XML xml) {
+    private void convertAllIgnoreElements(Xml xml) {
         xml.forEach("//*[@ignore]", x -> {
             if (Boolean.TRUE.equals(x.getBoolean("@ignore"))) {
                 x.clear();
@@ -92,20 +92,20 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
     }
 
     // now case sensitive by default, so attribute is now "ignoreCase".
-    private void convertAllCaseSensitive(XML xml) {
+    private void convertAllCaseSensitive(Xml xml) {
         xml.forEach("//*[@caseSensitive]", x -> {
             x.setAttribute(IGNORE_CASE, !x.getBoolean("@caseSensitive"));
             x.removeAttribute("caseSensitive");
         });
     }
 
-    private void convertSession(XML sessionXml) {
+    private void convertSession(Xml sessionXml) {
         sessionXml.rename("crawlSession");
         sessionXml.ifXML("crawlerDefaults", this::convertCrawler);
         sessionXml.forEach("crawlers/crawler", this::convertCrawler);
     }
 
-    private void convertCrawler(XML crawlerXml) {
+    private void convertCrawler(Xml crawlerXml) {
         crawlerXml.ifXML("startURLs", xml -> {
             xml.rename("start");
             xml.forEach("url", x -> x.rename("ref"));
@@ -152,20 +152,20 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
                 + "@class, 'GenericSitemapResolver')]", xml -> {
             xml.ifXML(TEMP_DIR, x -> LOG.warn(elemNoLongerSupported(
                     TEMP_DIR, "GenericSitemapResolver")));
-            var slXml = new XML("sitemapLocator");
+            var slXml = new Xml("sitemapLocator");
             slXml.setAttribute("class", "com.norconex.crawler.web.sitemap"
                     + ".impl.GenericSitemapLocator");
             var paths = slXml.addElement("paths");
             xml.forEach("path",
                     x -> paths.addElement("path", x.getString(".")));
             xml.removeElement(TEMP_DIR);
-            xml.forEach("path", XML::remove);
+            xml.forEach("path", Xml::remove);
             xml.insertAfter(slXml);
         });
         crawlerXml.ifXML("recrawlableResolver[contains("
                 + "@class, 'GenericRecrawlableResolver')]", xml ->
             xml.forEach("minFrequency", minFreq -> {
-                var matcher = new XML("matcher");
+                var matcher = new Xml("matcher");
                 matcher.setAttribute("method", "regex");
                 matcher.setAttribute(IGNORE_CASE,
                         minFreq.getBoolean(attr(IGNORE_CASE), false));
@@ -183,14 +183,14 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
 
     }
 
-    private void convertImporter(XML importerXml) {
+    private void convertImporter(Xml importerXml) {
         //TODO
     }
 
 
-    private void writeXml(XML xml, Writer output) {
+    private void writeXml(Xml xml, Writer output) {
         try {
-            IOUtils.write(XMLFormatter.builder()
+            IOUtils.write(XmlFormatter.builder()
                 .attributeWrapping(AttributeWrap.AT_MAX_ALL)
                 .maxLineLength(80)
                 .build()

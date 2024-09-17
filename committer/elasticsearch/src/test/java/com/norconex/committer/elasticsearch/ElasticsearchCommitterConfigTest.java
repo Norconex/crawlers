@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -45,10 +45,10 @@ class ElasticsearchCommitterConfigTest {
         var c = new ElasticsearchCommitter();
         var cfg = c.getConfiguration();
 
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration()
-            .setBatchSize(10)
-            .setMaxPerFolder(5);
+                .setBatchSize(10)
+                .setMaxPerFolder(5);
         cfg.setQueue(q);
 
         var creds = new Credentials();
@@ -59,12 +59,14 @@ class ElasticsearchCommitterConfigTest {
         cfg.setFieldMapping("subject", "title");
         cfg.setFieldMapping("body", "content");
 
-        cfg.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")));
-        cfg.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+        cfg.getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("document.reference"),
+                        TextMatcher.wildcard("*.pdf")));
+        cfg.getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("title"),
+                        TextMatcher.wildcard("Nah!")));
 
         cfg.setSourceIdField("mySourceIdField");
         cfg.setTargetContentField("myTargetContentField");
@@ -95,29 +97,33 @@ class ElasticsearchCommitterConfigTest {
 
     @Test
     void testMisc(@TempDir Path tempDir) throws CommitterException {
-        Assertions.assertThrows(
-                CommitterException.class, () ->
-                        { new ElasticsearchCommitter().initBatchCommitter(); }
-                )
-                .getMessage().equals("Index name is undefined.");
+        "Index name is undefined.".equals(Assertions.assertThrows(
+                CommitterException.class, () -> {
+                    try (var c = new ElasticsearchCommitter()) {
+                        c.initBatchCommitter();
+                    }
+                })
+                .getMessage());
 
         @SuppressWarnings("resource")
         var c = new ElasticsearchCommitter();
         var cfg = c.getConfiguration();
 
-        Assertions.assertThrows(CommitterException.class, () ->
-            c.init(CommitterContext.builder()
-                    .setWorkDir(tempDir)
-                    .build()));
+        Assertions.assertThrows(
+                CommitterException.class,
+                () -> c.init(CommitterContext.builder()
+                        .setWorkDir(tempDir)
+                        .build()));
 
         cfg.setIndexName("index");
-        var fsQueue = new FSQueue();
+        var fsQueue = new FsQueue();
         fsQueue.getConfiguration().setBatchSize(1);
         cfg.setQueue(fsQueue);
         cfg.setDiscoverNodes(true);
-        c.init(CommitterContext.builder()
-                .setWorkDir(tempDir)
-                .build());
+        c.init(
+                CommitterContext.builder()
+                        .setWorkDir(tempDir)
+                        .build());
 
         var reqWithIdTooLong = new UpsertRequest(
                 StringUtils.repeat("A", 1024),

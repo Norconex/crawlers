@@ -50,8 +50,8 @@ class RedirectTrailTest {
     @Test
     void testRedirectTrailTest(ClientAndServer client) {
         client
-            .when(request(PATH))
-            .respond(HttpClassCallback.callback(Callback.class));
+                .when(request(PATH))
+                .respond(HttpClassCallback.callback(Callback.class));
 
         var baseUrl = serverUrl(client, PATH);
 
@@ -64,13 +64,13 @@ class RedirectTrailTest {
 
         var doc = mem.getUpsertRequests().get(0);
         assertThat(doc.getMetadata().getStrings(WebDocMetadata.REDIRECT_TRAIL))
-            .containsExactly(
-                    baseUrl + "?index=0",
-                    baseUrl + "?index=1",
-                    baseUrl + "?index=2",
-                    baseUrl + "?index=3",
-                    baseUrl + "?index=4",
-                    baseUrl + "?index=5");
+                .containsExactly(
+                        baseUrl + "?index=0",
+                        baseUrl + "?index=1",
+                        baseUrl + "?index=2",
+                        baseUrl + "?index=3",
+                        baseUrl + "?index=4",
+                        baseUrl + "?index=5");
     }
 
     public static class Callback implements ExpectationResponseCallback {
@@ -82,15 +82,16 @@ class RedirectTrailTest {
                     req.getFirstQueryStringParameter("index"));
             if (index <= maxRedirects) {
                 return response()
-                    .withStatusCode(302)
-                    .withHeader("Location", serverUrl(
-                            req, PATH + "?index=" + (index + 1)));
+                        .withStatusCode(302)
+                        .withHeader(
+                                "Location", serverUrl(
+                                        req, PATH + "?index=" + (index + 1)));
             }
             return response().withBody("""
-                <h1>Multi-redirects test page</h1>
-                The URL was redirected %s times.
-                Check if redirect trail matches that.
-                """.formatted(index));
+                    <h1>Multi-redirects test page</h1>
+                    The URL was redirected %s times.
+                    Check if redirect trail matches that.
+                    """.formatted(index));
         }
     }
 }

@@ -27,10 +27,12 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreEngine;
+import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
@@ -39,6 +41,7 @@ import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractorConfig;
 import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolver;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
@@ -64,7 +67,8 @@ import lombok.experimental.FieldNameConstants;
 
 /**
  * <p>
- * Web Crawler configuration.
+ * Web Crawler configuration, adding more options to the base
+ * {@link CrawlerConfig}.
  * </p>
  * <h3>Start URLs</h3>
  * <p>
@@ -90,7 +94,7 @@ import lombok.experimental.FieldNameConstants;
  * <b>Scope: </b> To limit crawling to specific web domains, and avoid creating
  * many filters to that effect, you can tell the crawler to "stay" within
  * the web site "scope" with
- * {@link #setUrlCrawlScopeStrategy(GenericUrlScopeResolver)}.
+ * {@link #setUrlScopeResolver(UrlScopeResolver)}.
  * </p>
  *
  * <h3>URL Normalization</h3>
@@ -192,10 +196,10 @@ import lombok.experimental.FieldNameConstants;
  * crawled, caching of document checksums, etc.
  * For this, the crawler uses a database we refer to as a data store engine.
  * The default implementation uses the local file system to store these
- * (see {@link MVStoreDataStoreEngine}). While very capable and suitable
+ * (see {@link MvStoreDataStoreEngine}). While very capable and suitable
  * for most sites, if you need a larger storage system, you can change
  * the default implementation or provide your own
- * with {@link #setDataStoreEngine(IDataStoreEngine)}.
+ * with {@link #setDataStoreEngine(DataStoreEngine)}.
  * </p>
  *
  * <h3>Document Importing</h3>
@@ -214,7 +218,7 @@ import lombok.experimental.FieldNameConstants;
  * and are suddenly failing on a subsequent crawl are considered "spoiled".
  * You can decide whether to grace (retry next time), delete, or ignore
  * those spoiled documents with
- * {@link #setSpoiledReferenceStrategizer(ISpoiledReferenceStrategizer)}.
+ * {@link #setSpoiledReferenceStrategizer(SpoiledReferenceStrategizer)}.
  * </p>
  *
  * <h3>Committing Documents</h3>
@@ -238,7 +242,7 @@ import lombok.experimental.FieldNameConstants;
  * is needed. For instance, JavaScript-generated web pages are often best
  * handled by web browsers. In such case you can use the
  * {@link WebDriverHttpFetcher}. You can also use
- * {@link #setHttpFetchers(List)} to supply own fetcher implementation.
+ * {@link #setFetchers(List)} to supply your own fetcher implementation.
  * </p>
  *
  * <h3>HTTP Methods</h3>
@@ -250,7 +254,7 @@ import lombok.experimental.FieldNameConstants;
  * </p>
  * <p>
  * You can tell the crawler how it should handle HTTP GET and HEAD requests
- * using using {@link #setDocumentFetchSupport(FetchDirectiveSupport) and
+ * using using {@link #setDocumentFetchSupport(FetchDirectiveSupport)} and
  * {@link #setMetadataFetchSupport(FetchDirectiveSupport)} respectively.
  * For each, the options are:
  * </p>
@@ -302,15 +306,18 @@ import lombok.experimental.FieldNameConstants;
  *     <b>Metadata filters:</b> Applies filtering on a document metadata fields.
  *     </p>
  *     <p>
- *     If {@link #isFetchHttpHead()} returns <code>true</code>, these filters
- *     will be invoked after the crawler performs a distinct HTTP HEAD request.
+ *     If {@link #getMetadataFetchSupport()} value forces a distinct call
+ *     for fetching metadata, these filters will be invoked after the crawler
+ *     performs an HTTP HEAD request.
  *     It gives you the opportunity to filter documents based on the HTTP HEAD
  *     response to potentially save a more expensive HTTP GET request for
  *     download (but results in two HTTP requests for valid documents --
- *     HEAD and GET). Filtering occurs before URLs are extracted.
+ *     HEAD and GET). Filtering occurs before URLs are extracted (since
+ *     no content is downloaded.
  *     </p>
  *     <p>
- *     When {@link #isFetchHttpHead()} is <code>false</code>, these filters
+ *     When {@link #getMetadataFetchSupport()} does not invoke making a
+ *     distinct call for metadata, these filters
  *     will be invoked on the metadata of the HTTP response
  *     obtained from an HTTP GET request (as the document is downloaded).
  *     Filtering occurs after URLs are extracted.
@@ -326,10 +333,11 @@ import lombok.experimental.FieldNameConstants;
  *     <b>Importer filters:</b> The Importer module also offers document
  *     filtering options. At that point a document is already downloaded
  *     and its links extracted.  There are two types of filtering offered
- *     by the Importer: before and after document parsing.  Use
- *     filters before parsing if you need to filter on raw content or
- *     want to prevent an expensive parsing. Use filters after parsing
- *     when you need to read the content as plain text.
+ *     by the Importer: before and after document parsing (assuming you
+ *     configured at least one parser).  Use filters before parsing if you
+ *     need to filter on raw content or want to avoid parsing some documents.
+ *     Use filters after parsing when you need to read the content
+ *     as plain text.
  *   </li>
  * </ul>
  *
@@ -362,7 +370,7 @@ import lombok.experimental.FieldNameConstants;
  *     <b>HTML "nofollow":</b> Most HTML-oriented link extractors support
  *     the <code>rel="nofollow"</code> attribute set on HTML links and offer
  *     a way to disable this instruction. E.g.,
- *     {@link HtmlLinkExtractor#setIgnoreNofollow(boolean)}.
+ *     {@link HtmlLinkExtractorConfig#setIgnoreNofollow(boolean)}.
  *   </li>
  *   <li>
  *     <b>Sitemap:</b> Sitemaps XML files contain as listing of
@@ -373,7 +381,7 @@ import lombok.experimental.FieldNameConstants;
  *     offers support for disabling sitemap detection to rely only
  *     on sitemap start references.
  *     Setting it to <code>null</code> via
- *     {@link #setSitemapResolver(SitemapResolver_OLD) effectively disables
+ *     {@link #setSitemapResolver(SitemapResolver)} effectively disables
  *     sitemap support altogether, and is thus incompatible with sitemaps
  *     specified as start references.
 *    </li>
@@ -383,7 +391,7 @@ import lombok.experimental.FieldNameConstants;
  *     HTTP response instructions.
  *     Defaults to {@link GenericCanonicalLinkDetector}.
  *     Set to <code>null</code> via
- *     {@link #setCanonicalLinkDetector(CanonicalLinkDetector) to disable
+ *     {@link #setCanonicalLinkDetector(CanonicalLinkDetector)} to disable
  *     support canonical links (increasing the chance of getting duplicates).
  *     </li>
  *   <li>
@@ -418,7 +426,7 @@ import lombok.experimental.FieldNameConstants;
  * a modified document. There are two checksums at play, tested at
  * different times. One obtained from
  * a document metadata (default is {@link LastModifiedMetadataChecksummer},
- * and one from the document itself {@link MD5DocumentChecksummer}. You can
+ * and one from the document itself {@link Md5DocumentChecksummer}. You can
  * provide your own implementation. See:
  * {@link #setMetadataChecksummer(MetadataChecksummer)} and
  * {@link #setDocumentChecksummer(DocumentChecksummer)}.
@@ -426,7 +434,6 @@ import lombok.experimental.FieldNameConstants;
  *
  * <h3>Deduplication</h3>
  * <p>
- * <b>EXPERIMENTAL:</b>
  * The crawler can attempt to detect and reject documents considered as
  * duplicates within a crawler session.  A document will be considered
  * duplicate if there was already a document processed with the same
@@ -434,7 +441,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setMetadataDeduplicate(boolean)} and/or
  * {@link #setDocumentDeduplicate(boolean)} to <code>true</code>. Setting
  * those will have no effect if the corresponding checksummers are
- * <code>null</code>.
+ * <code>null</code> or checksums are otherwise not are being generated.
  * </p>
  * <p>
  * Deduplication can impact crawl performance.  It is recommended you
@@ -461,99 +468,10 @@ import lombok.experimental.FieldNameConstants;
  * URLs in that field will become eligible for crawling.
  * See {@link #setPostImportLinks(TextMatcher)}.
  * </p>
- *
- * {@nx.xml.usage
- * <crawler id="(crawler unique identifier)">
- *
- *   <start
- *       stayOnDomain="[false|true]"
- *       includeSubdomains="[false|true]"
- *       stayOnPort="[false|true]"
- *       stayOnProtocol="[false|true]"
- *       async="[false|true]"
- *       stayOnSitemap="[false|true]">
- *     <!-- All the following tags are repeatable. -->
- *     <ref>(a URL)</ref>
- *     <refsFile>(local path to a file containing URLs)</refsFile>
- *     <sitemap>(URL to a sitemap XML)</sitemap>
- *     <provider class="(StartURLsProvider implementation)"/>
- *   </start>
- *
- *   <urlNormalizer class="(URLNormalizer implementation)" />
- *
- *   <delay class="(DelayResolver implementation)"/>
- *
- *   <maxDepth>(maximum crawl depth)</maxDepth>
- *   <keepReferencedLinks>[INSCOPE|OUTSCOPE|MAXDEPTH]</keepReferencedLinks>
- *
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#init}
- *
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#directive-meta}
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#directive-doc}
- *
- *   <httpFetchers
- *       maxRetries="(number of times to retry a failed fetch attempt)"
- *       retryDelay="(how many milliseconds to wait between re-attempting)">
- *     <!-- Repeatable -->
- *     <fetcher
- *         class="(HttpFetcher implementation)"/>
- *   </httpFetchers>
- *
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#pipeline-queue}
- *
- *   <robotsTxt class="(RobotsMetaProvider implementation)"/>
- *
- *   <sitemapResolver class="(SitemapResolver_OLD implementation)"/>
- *
- *   <recrawlableResolver class="(RecrawlableResolver implementation)" />
- *
- *   <canonicalLinkDetector class="(CanonicalLinkDetector implementation)"/>
- *
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#checksum-meta}
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#dedup-meta}
- *
- *   <robotsMeta class="(RobotsMetaProvider implementation)" />
- *
- *   <linkExtractors>
- *     <!-- Repeatable -->
- *     <extractor class="(LinkExtractor implementation)" />
- *   </linkExtractors>
- *
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#pipeline-import}
- *
- *   <preImportProcessors>
- *     <!-- Repeatable -->
- *     <processor class="(WebDocumentProcessor implementation)"></processor>
- *   </preImportProcessors>
- *
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#import}
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#checksum-doc}
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#dedup-doc}
- *
- *   <postImportProcessors>
- *     <!-- Repeatable -->
- *     <processor class="(WebDocumentProcessor implementation)"></processor>
- *   </postImportProcessors>
- *
- *   <postImportLinks keep="[false|true]">
- *     <fieldMatcher
- *       {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes} />
- *   </postImportLinks>
- *
- *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#pipeline-committer}
- * </crawler>
- * }
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-
-//TODO Given we don't need @schema here to pick up javadoc
-// when we have the maven-compiler-plugin setup properly...
-// do we need to include all compile maven dependencies we are including for open api?
-// maybe need to add to maven-compiler plugin the swagger stuff, like in core?
-//@Schema //(description = "Web crawler configuration.")
 public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
@@ -573,23 +491,17 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
      * The strategy to use to determine if a URL is in scope.
-     * @param genericUrlScopeResolver strategy to use
-     * @return the strategy
      */
     private UrlScopeResolver urlScopeResolver = new GenericUrlScopeResolver();
 
     /**
      * The URL normalizer. Defaults to {@link GenericUrlNormalizer}.
-     * @param urlNormalizer URL normalizer
-     * @return URL normalizer
      */
     private WebUrlNormalizer urlNormalizer = new GenericUrlNormalizer();
 
     /**
      * The delay resolver dictating the minimum amount of time to wait
      * between web requests. Defaults to {@link GenericDelayResolver}.
-     * @param delayResolver delay resolver
-     * @return delay resolver
      */
     private DelayResolver delayResolver = new GenericDelayResolver();
 
@@ -597,8 +509,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * The canonical link detector. To disable canonical link detection,
      * use {@link #setIgnoreCanonicalLinks(boolean)}.
      * Defaults to {@link GenericCanonicalLinkDetector}.
-     * @param canonicalLinkDetector the canonical link detector
-     * @return the canonical link detector
      */
     private CanonicalLinkDetector canonicalLinkDetector =
             new GenericCanonicalLinkDetector();
@@ -608,10 +518,10 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     private TextMatcher postImportLinks = new TextMatcher();
     /**
-     * Whether to keep the Importer-generated field holding URLs to queue
-     * for further crawling.
-     * @param postImportLinksKeep <code>true</code> if keeping
-     * @return <code>true</code> if keeping
+     * Whether to keep the Importer-populated fields
+     * from {@link #getPostImportLinks()}. By default, those are deleted
+     * from a document when the URLs they contain are queued for processing
+     * or otherwise evaluated.
      * @see #setPostImportLinks(TextMatcher)
      */
     private boolean postImportLinksKeep;
@@ -620,8 +530,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * The provider of robots.txt rules for a site (if applicable).
      * Defaults to {@link StandardRobotsTxtProvider}.
      * Set to <code>null</code> to disable.
-     * @param robotsTxtProvider robots.txt provider
-     * @return robots.txt provider
      * @see #setIgnoreRobotsTxt(boolean)
      */
     private RobotsTxtProvider robotsTxtProvider =
@@ -631,8 +539,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * The provider of robots metadata rules for a page (if applicable).
      * Defaults to {@link StandardRobotsMetaProvider}.
      * Set to <code>null</code> to disable.
-     * @param robotsMetaProvider robots metadata rules
-     * @return robots metadata rules r
      * @see #setIgnoreRobotsMeta(boolean)
      */
     private RobotsMetaProvider robotsMetaProvider =
@@ -643,8 +549,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * Defaults to {@link GenericSitemapResolver}.
      * Set to <code>null</code> to disable all sitemap support, or
      * see class documentation to disable sitemap detection only.
-     * @param sitemapResolver sitemap resolver
-     * @return sitemap resolver
      * @see SitemapLocator
      */
     private SitemapResolver sitemapResolver = new GenericSitemapResolver();
@@ -654,8 +558,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * Defaults to {@link GenericSitemapLocator}.
      * Set to <code>null</code> to disable locating sitemaps
      * (relying on sitemaps defined as start reference, if any).
-     * @param sitemapLocator sitemap locator
-     * @return sitemap locator
      * @see SitemapResolver
      */
     private SitemapLocator sitemapLocator = new GenericSitemapLocator();
@@ -665,8 +567,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * crawled by a new crawl session. Usually amounts to checking if enough
      * time has passed between two crawl sessions.
      * Defaults to {@link GenericRecrawlableResolver}.
-     * @param robotsMetaProvider recrawlable resolver
-     * @return recrawlableResolver recrawlable resolver
      */
     private RecrawlableResolver recrawlableResolver =
             new GenericRecrawlableResolver();
@@ -686,9 +586,11 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public List<String> getStartReferencesSitemaps() {
         return Collections.unmodifiableList(startReferencesSitemaps);
     }
+
     /**
      * Sets the sitemap URLs used as starting points for crawling.
      * @param startReferencesSitemaps sitemap URLs
+     * @return this
      * @since 3.0.0
      */
     public WebCrawlerConfig setStartReferencesSitemaps(
@@ -709,11 +611,13 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public Set<ReferencedLinkType> getKeepReferencedLinks() {
         return Collections.unmodifiableSet(keepReferencedLinks);
     }
+
     /**
      * Sets whether to keep referenced links and what to keep.
      * Those links are URLs extracted by link extractors. See class
      * documentation for more details.
      * @param keepReferencedLinks option for keeping links
+     * @return this
      * @since 3.0.0
      */
     public WebCrawlerConfig setKeepReferencedLinks(
@@ -729,9 +633,11 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public List<LinkExtractor> getLinkExtractors() {
         return Collections.unmodifiableList(linkExtractors);
     }
+
     /**
      * Sets link extractors.
      * @param linkExtractors link extractors
+     * @return this
      * @since 3.0.0
      */
     public WebCrawlerConfig setLinkExtractors(
@@ -749,10 +655,12 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public TextMatcher getPostImportLinks() {
         return postImportLinks;
     }
+
     /**
      * Set a field matcher used to identify post-import metadata fields
      * holding URLs to consider for crawling.
      * @param fieldMatcher field matcher
+     * @return this
      * @since 3.0.0
      */
     public WebCrawlerConfig setPostImportLinks(TextMatcher fieldMatcher) {

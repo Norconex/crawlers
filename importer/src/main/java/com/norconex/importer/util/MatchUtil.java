@@ -20,7 +20,8 @@ import com.norconex.importer.doc.DocContext;
 
 public final class MatchUtil {
 
-    private MatchUtil() {}
+    private MatchUtil() {
+    }
 
     /**
      * Null-safe matches a document record content type.

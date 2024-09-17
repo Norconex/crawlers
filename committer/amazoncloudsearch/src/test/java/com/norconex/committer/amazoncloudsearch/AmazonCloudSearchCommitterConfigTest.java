@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 package com.norconex.committer.amazoncloudsearch;
+
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -28,7 +29,6 @@ import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
 
-
 /**
  * @author Pascal Essiembre
  */
@@ -36,10 +36,10 @@ class AmazonCloudSearchCommitterConfigTest {
 
     @Test
     void testWriteRead() throws IOException {
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration()
-            .setBatchSize(10)
-            .setMaxPerFolder(5);
+                .setBatchSize(10)
+                .setMaxPerFolder(5);
 
         var creds = new Credentials();
         creds.setPassword("mypassword");
@@ -47,28 +47,30 @@ class AmazonCloudSearchCommitterConfigTest {
 
         var c = new AmazonCloudSearchCommitter();
         c.getConfiguration()
-            .setAccessKey("accessKey")
-            .setSecretKey("secretKey")
-            .setServiceEndpoint("serviceEndpoint")
-            .setSigningRegion("signingRegion")
-            .setFixBadIds(true)
-            .setSourceIdField("mySourceIdField")
-            .setTargetContentField("myTargetContentField")
-            .setQueue(q)
-        .setFieldMapping("subject", "title")
-        .setFieldMapping("body", "content")
-            .addRestriction(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")))
-            .addRestriction(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+                .setAccessKey("accessKey")
+                .setSecretKey("secretKey")
+                .setServiceEndpoint("serviceEndpoint")
+                .setSigningRegion("signingRegion")
+                .setFixBadIds(true)
+                .setSourceIdField("mySourceIdField")
+                .setTargetContentField("myTargetContentField")
+                .setQueue(q)
+                .setFieldMapping("subject", "title")
+                .setFieldMapping("body", "content")
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("document.reference"),
+                                TextMatcher.wildcard("*.pdf")))
+                .addRestriction(
+                        new PropertyMatcher(
+                                TextMatcher.basic("title"),
+                                TextMatcher.wildcard("Nah!")));
 
         c.getConfiguration().getProxySettings().setHost(
                 new Host("example.com", 1234));
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(c));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test

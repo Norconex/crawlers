@@ -37,7 +37,7 @@ public class CrawlDoc extends Doc {
     private final boolean orphan;
 
     //TODO try with this?
-//    private boolean deleted;
+    //    private boolean deleted;
 
     /**
      * Creates a new crawl document with an empty input stream.
@@ -47,15 +47,18 @@ public class CrawlDoc extends Doc {
     public CrawlDoc(DocContext docContext) {
         this(docContext, null, CachedInputStream.nullInputStream(), false);
     }
+
     public CrawlDoc(DocContext docContext, CachedInputStream content) {
         this(docContext, null, content, false);
     }
+
     public CrawlDoc(
             DocContext docContext,
             CrawlDocContext cachedDocContext,
             CachedInputStream content) {
         this(docContext, cachedDocContext, content, false);
     }
+
     public CrawlDoc(
             DocContext docContext,
             CrawlDocContext cachedDocContext,

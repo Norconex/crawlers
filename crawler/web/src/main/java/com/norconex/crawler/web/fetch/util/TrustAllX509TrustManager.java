@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
 public class TrustAllX509TrustManager extends X509ExtendedTrustManager {
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[] {};
+        return new X509Certificate[] {};
     }
 
     @Override
@@ -47,28 +47,28 @@ public class TrustAllX509TrustManager extends X509ExtendedTrustManager {
     @Override
     public void checkClientTrusted( //NOSONAR
             X509Certificate[] chain, String authType, Socket socket)
-                    throws CertificateException {
+            throws CertificateException {
         //NOOP
     }
 
     @Override
     public void checkServerTrusted( //NOSONAR
             X509Certificate[] chain, String authType, Socket socket)
-                    throws CertificateException {
+            throws CertificateException {
         //NOOP
     }
 
     @Override
     public void checkClientTrusted( //NOSONAR
             X509Certificate[] chain, String authType, SSLEngine engine)
-                    throws CertificateException {
+            throws CertificateException {
         //NOOP
     }
 
     @Override
     public void checkServerTrusted( //NOSONAR
             X509Certificate[] chain, String authType, SSLEngine engine)
-                    throws CertificateException {
+            throws CertificateException {
         //NOOP
     }
 }

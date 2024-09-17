@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.crawler.web.doc.operations.link.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ public class SubstringTransformerConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets source field matcher for fields to transform.
      * @param fieldMatcher field matcher

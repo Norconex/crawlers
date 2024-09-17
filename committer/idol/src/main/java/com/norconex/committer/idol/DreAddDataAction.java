@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  */
 package com.norconex.committer.idol;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.equalsAny;
 
 import java.io.IOException;
@@ -23,7 +22,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.committer.core.CommitterException;
@@ -54,7 +52,7 @@ import com.norconex.commons.lang.url.HttpURL;
  * DIH_12.7_Documentation/Help/#Index%20Actions/IndexData/
  * _IX_DREADDDATA.htm%3FTocPath%3DIndex%2520Actions%7CIndex%2520Data%7C_____2
  */
-class DreAddDataAction implements IIdolIndexAction {
+class DreAddDataAction implements IdolIndexAction {
 
     private final IdolCommitterConfig config;
 
@@ -69,6 +67,7 @@ class DreAddDataAction implements IIdolIndexAction {
                 url.getPath(), "/") + "DREADDDATA");
         return url.toURL();
     }
+
     @Override
     public void writeTo(List<CommitterRequest> batch, Writer w)
             throws CommitterException {
@@ -86,11 +85,11 @@ class DreAddDataAction implements IIdolIndexAction {
     private void writeIdxDocument(Writer w, UpsertRequest req)
             throws CommitterException, IOException {
 
-        String refField = config.getSourceReferenceField();
-        String contentField = config.getSourceContentField();
+        var refField = config.getSourceReferenceField();
+        var contentField = config.getSourceContentField();
 
         //--- Document reference ---
-        String ref = req.getReference();
+        var ref = req.getReference();
         if (StringUtils.isNotBlank(refField)) {
             ref = req.getMetadata().getString(refField);
             if (StringUtils.isBlank(ref)) {
@@ -103,8 +102,8 @@ class DreAddDataAction implements IIdolIndexAction {
 
         //--- Document metadata ---
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
-            String name = en.getKey();
-            List<String> values = en.getValue();
+            var name = en.getKey();
+            var values = en.getValue();
             if (values == null || equalsAny(name, refField, contentField)) {
                 continue;
             }
@@ -121,15 +120,8 @@ class DreAddDataAction implements IIdolIndexAction {
         }
 
         //--- Document content ---
-        String content;
-        if (StringUtils.isNotBlank(contentField)) {
-            content = StringUtils.trimToEmpty(String.join("\n\n",
-                    req.getMetadata().getStrings(contentField)));
-        } else {
-            content = IOUtils.toString(req.getContent(), UTF_8);
-        }
         w.append("\n#DRECONTENT\n");
-        w.append(content);
+        w.append(IdolUtil.resolveDreContent(req, contentField));
         w.append("\n#DREENDDOC ");
 
         w.append("\n");

@@ -35,12 +35,12 @@ class SftpFetcherTest extends AbstractFileFetcherTest {
     @Container
     static final GenericContainer<?> SFTP =
             new GenericContainer<>("atmoz/sftp:latest")
-        .withExposedPorts(22)
-        .withFileSystemBind(
-                new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
-                "/home/user/download",
-                BindMode.READ_ONLY)
-        .withCommand("user:unsecure:1001::::::download");
+                    .withExposedPorts(22)
+                    .withFileSystemBind(
+                            new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
+                            "/home/user/download",
+                            BindMode.READ_ONLY)
+                    .withCommand("user:unsecure:1001::::::download");
 
     @BeforeAll
     static void start() throws IOException {
@@ -56,7 +56,7 @@ class SftpFetcherTest extends AbstractFileFetcherTest {
     protected FileFetcher fetcher() {
         var fetcher = new SftpFetcher();
         fetcher.getConfiguration()
-            .getCredentials()
+                .getCredentials()
                 .setUsername("user")
                 .setPassword("unsecure");
         return fetcher;

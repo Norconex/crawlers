@@ -55,15 +55,17 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
- * <p>Crawler base class.</p>
- *
- * <h3>JMX Support</h3>
- * <p>JMX support is disabled by default.  To enable it,
- * set the system property "enableJMX" to <code>true</code>.  You can do so
- * by adding this to your Java launch command:
+ * <p>
+ * Crawler base class.
  * </p>
+ * <h3>JMX Support</h3>
+ * <p>
+ * JMX support is disabled by default. To enable it, set the system property
+ * "enableJMX" to <code>true</code>. You can do so by adding this to your Java
+ * launch command:
+ * </p>
+ *
  * <pre>
  *     -DenableJMX=true
  * </pre>
@@ -71,7 +73,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see CrawlerConfig
  */
 @Slf4j
-@EqualsAndHashCode //(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode // (onlyExplicitlyIncluded = true)
 @Getter
 public class Crawler {
 
@@ -80,7 +82,7 @@ public class Crawler {
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
 
-    //--- Set in constructor ---
+    // --- Set in constructor ---
     private final CrawlerConfig configuration;
     private final CrawlerServices services;
     private final DocPipelines docPipelines;
@@ -88,16 +90,16 @@ public class Crawler {
     private final DataStoreEngine dataStoreEngine;
     private final CrawlerContext context;
 
-    //TODO really have the following ones here or make them part of one of
+    // TODO really have the following ones here or make them part of one of
     // the above class?
     private final Fetcher<
             ? extends FetchRequest, ? extends FetchResponse> fetcher;
     private final Class<? extends CrawlDocContext> docContextType;
     private CrawlerState state;
-    //TODO remove stopper listener when we are fully using a table?
+    // TODO remove stopper listener when we are fully using an accessible store?
     private CrawlerStopper stopper = new FileBasedStopper();
 
-    //--- Set in init ---
+    // --- Set in init ---
     Path workDir;
     Path tempDir;
     CachedStreamFactory streamFactory;
@@ -118,25 +120,30 @@ public class Crawler {
                 .eventManager(eventManager)
                 .committerService(
                         CommitterService
-                        .<CrawlDoc>builder()
-                        .committers(configuration.getCommitters())
-                        .eventManager(eventManager)
-                        .upsertRequestBuilder(doc -> new UpsertRequest(
-                                doc.getReference(),
-                                doc.getMetadata(),
-                                doc.getInputStream())) // Closed by caller
-                        .deleteRequestBuilder(doc -> new DeleteRequest(
-                                doc.getReference(),
-                                doc.getMetadata()))
-                        .build())
+                                .<CrawlDoc>builder()
+                                .committers(configuration.getCommitters())
+                                .eventManager(eventManager)
+                                .upsertRequestBuilder(
+                                        doc -> new UpsertRequest(
+                                                doc.getReference(),
+                                                doc.getMetadata(),
+                                                // InputStream closed by caller
+                                                doc.getInputStream()))
+                                .deleteRequestBuilder(
+                                        doc -> new DeleteRequest(
+                                                doc.getReference(),
+                                                doc.getMetadata()))
+                                .build())
                 .docTrackerService(trackerService)
-                .importer(new Importer(
-                        configuration.getImporterConfig(),
-                        eventManager))
+                .importer(
+                        new Importer(
+                                configuration.getImporterConfig(),
+                                eventManager))
                 .monitor(monitor)
-                .progressLogger(new CrawlerProgressLogger(
-                        monitor,
-                        configuration.getMinProgressLoggingInterval()))
+                .progressLogger(
+                        new CrawlerProgressLogger(
+                                monitor,
+                                configuration.getMinProgressLoggingInterval()))
                 .build();
         fetcher = b.fetcherProvider().apply(this);
         docPipelines = b.docPipelines();
@@ -156,6 +163,7 @@ public class Crawler {
         docContext.setReference(reference);
         return docContext;
     }
+
     public CrawlDocContext newDocContext(@NonNull DocContext parentContext) {
         var docContext = newDocContext(parentContext.getReference());
         docContext.copyFrom(parentContext);
@@ -163,9 +171,10 @@ public class Crawler {
     }
 
     /**
-     * Gets the instance of the initialized crawler associated with the
-     * current thread. If the crawler was not yet initialized, an
+     * Gets the instance of the initialized crawler associated with the current
+     * thread. If the crawler was not yet initialized, an
      * {@link IllegalStateException} is thrown.
+     *
      * @return a crawler instance
      */
     public static Crawler get() {
@@ -179,9 +188,11 @@ public class Crawler {
     public void fire(Event event) {
         services.getEventManager().fire(event);
     }
+
     public void fire(String eventName) {
         fire(CrawlerEvent.builder().name(eventName).source(this).build());
     }
+
     public void fire(String eventName, Object subject) {
         fire(CrawlerEvent.builder()
                 .name(eventName)
@@ -195,13 +206,14 @@ public class Crawler {
         return getId();
     }
 
-    //--- Commands -------------------------------------------------------------
+    // --- Commands ------------------------------------------------------------
 
     public void start() {
-        executeCommand(new CommandExecution(this, "RUN")
-                .command(new DocsProcessor(this))
-                .lock(true)
-                .logIntro(true));
+        executeCommand(
+                new CommandExecution(this, "RUN")
+                        .command(new DocsProcessor(this))
+                        .lock(true)
+                        .logIntro(true));
     }
 
     public void stop() {
@@ -218,32 +230,33 @@ public class Crawler {
 
     public void exportDataStore(Path exportDir) {
         executeCommand(new CommandExecution(this, "STORE_EXPORT")
-            .failableCommand(
-                    () -> DataStoreExporter.exportDataStore(this, exportDir))
-            .lock(true)
-            .logIntro(true));
+                .failableCommand(() -> DataStoreExporter.exportDataStore(
+                        this,
+                        exportDir))
+                .lock(true)
+                .logIntro(true));
     }
 
     public void importDataStore(Path file) {
         executeCommand(new CommandExecution(this, "STORE_IMPORT")
-            .failableCommand(
-                    () -> DataStoreImporter.importDataStore(this, file))
-            .lock(true)
-            .logIntro(true));
+                .failableCommand(
+                        () -> DataStoreImporter.importDataStore(this, file))
+                .lock(true)
+                .logIntro(true));
     }
 
     /**
-     * Cleans the crawler cache information, leading to the next run
-     * being as if the crawler was run for the first time.
+     * Cleans the crawler cache information, leading to the next run being as if
+     * the crawler was run for the first time.
      */
     public void clean() {
         executeCommand(new CommandExecution(this, "CLEAN")
-            .failableCommand(() -> {
-                getServices().getCommitterService().clean();
-                dataStoreEngine.clean();
-                FileUtils.deleteDirectory(getWorkDir().toFile());
-            })
-            .lock(true)
-            .logIntro(true));
+                .failableCommand(() -> {
+                    getServices().getCommitterService().clean();
+                    dataStoreEngine.clean();
+                    FileUtils.deleteDirectory(getWorkDir().toFile());
+                })
+                .lock(true)
+                .logIntro(true));
     }
 }

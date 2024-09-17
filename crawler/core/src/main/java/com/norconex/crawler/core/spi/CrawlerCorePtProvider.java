@@ -68,16 +68,20 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
             Class<?> baseClass) {
         addPolyType(polyTypes, baseClass, null);
     }
+
     private void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
             Class<?> baseClass,
             String corePkg) {
-        polyTypes.putAll(baseClass, ClassFinder.findSubTypes(
-                baseClass,
-                corePkg == null
-                    ? nm -> nm.startsWith(baseClass.getPackageName())
-                    : filter(corePkg)));
+        polyTypes.putAll(
+                baseClass, ClassFinder.findSubTypes(
+                        baseClass,
+                        corePkg == null
+                                ? nm -> nm
+                                        .startsWith(baseClass.getPackageName())
+                                : filter(corePkg)));
     }
+
     private Predicate<String> filter(String corePkg) {
         return nm -> nm.startsWith("com.norconex.crawler.core." + corePkg);
     }

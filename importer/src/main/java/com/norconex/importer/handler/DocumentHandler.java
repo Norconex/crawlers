@@ -41,8 +41,11 @@ public interface DocumentHandler extends Consumer<HandlerContext> {
     //TODO move this out of .parser.
 
     //TODO maybe pass Importer to method?
-    default void init() throws IOException {}
-    default void destroy() throws IOException {}
+    default void init() throws IOException {
+    }
+
+    default void destroy() throws IOException {
+    }
     //default void destroy(Importer importer) {}
 
     //--- Decorators -----------------------------------------------------------
@@ -51,6 +54,7 @@ public interface DocumentHandler extends Consumer<HandlerContext> {
             @NonNull FailableConsumer<HandlerContext, IOException> consumer) {
         return new FailableConsumerWrapper(consumer);
     }
+
     static BaseDocumentHandler decorate(
             @NonNull Consumer<HandlerContext> consumer) {
         return new ConsumerWrapper(consumer);
@@ -59,39 +63,41 @@ public interface DocumentHandler extends Consumer<HandlerContext> {
     @Data
     static class FailableConsumerWrapper extends BaseDocumentHandler {
         private final FailableConsumer<HandlerContext, IOException> original;
+
         @Override
         public void handle(HandlerContext d) throws IOException {
             original.accept(d);
         }
     }
+
     @Data
     static class ConsumerWrapper extends BaseDocumentHandler {
         private final Consumer<HandlerContext> original;
+
         @Override
         public void handle(HandlerContext d) throws IOException {
             original.accept(d);
         }
     }
 
-
-//    /**
-//     * Initializes this parser, allowing caching of elements to improve re-use.
-//     * Not all parsers support all parse options and it is possible calling
-//     * this method on specific parsers to have no effect.
-//     * @param parseOptions parse options (never <code>null</code>)
-//     * @throws DocumentParserException problem initializing parser
-//     */
-//    void init(@NonNull ParseOptions parseOptions)
-//            throws DocumentParserException;
-//
-//    /**
-//     * Parses a document.
-//     * @param doc importer document to parse
-//     * @param output where to store extracted or modified content of the
-//     *        supplied document
-//     * @return a list of first-level embedded documents, if any
-//     * @throws DocumentParserException problem parsing document
-//     */
-//    List<Doc> parseDocument(Doc doc, Writer output)
-//            throws DocumentParserException;
+    //    /**
+    //     * Initializes this parser, allowing caching of elements to improve re-use.
+    //     * Not all parsers support all parse options and it is possible calling
+    //     * this method on specific parsers to have no effect.
+    //     * @param parseOptions parse options (never <code>null</code>)
+    //     * @throws DocumentParserException problem initializing parser
+    //     */
+    //    void init(@NonNull ParseOptions parseOptions)
+    //            throws DocumentParserException;
+    //
+    //    /**
+    //     * Parses a document.
+    //     * @param doc importer document to parse
+    //     * @param output where to store extracted or modified content of the
+    //     *        supplied document
+    //     * @return a list of first-level embedded documents, if any
+    //     * @throws DocumentParserException problem parsing document
+    //     */
+    //    List<Doc> parseDocument(Doc doc, Writer output)
+    //            throws DocumentParserException;
 }

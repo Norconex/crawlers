@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,8 @@ import lombok.NonNull;
  */
 public final class CharsetUtil {
 
-    private CharsetUtil() {}
+    private CharsetUtil() {
+    }
 
     /**
      * Converts the character encoding of the supplied input value.
@@ -90,11 +91,12 @@ public final class CharsetUtil {
     public static void convertCharset(
             @NonNull InputStream input, @NonNull Charset inputCharset,
             @NonNull OutputStream output, @NonNull Charset outputCharset)
-                    throws IOException {
+            throws IOException {
         convertCharset(
                 input, inputCharset.toString(),
                 output, outputCharset.toString());
     }
+
     /**
      * Converts the character encoding of the supplied input.
      * @param input input stream to apply conversion
@@ -133,6 +135,7 @@ public final class CharsetUtil {
         }
         return encoding;
     }
+
     /**
      * Returns the first non-blank character encoding, or returns UTF-8 if they
      * are all blank or in post-parse state.  That is, UTF-8 is always

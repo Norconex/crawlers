@@ -110,6 +110,7 @@ public class NumericCondition
         }
         return false;
     }
+
     private boolean matches(NumericValueMatcher matcher, double number) {
         if (matcher != null) {
             return matcher.test(number);

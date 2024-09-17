@@ -1,54 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<!-- 
-   Copyright 2017-2023 Norconex Inc.
+<!--
+	Copyright 2017-2024 Norconex Inc.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 -->
 <committer class="com.norconex.committer.amazoncloudsearch.AmazonCloudSearchCommitter">
-  <serviceEndpoint>endpoint</serviceEndpoint>
-  <signingRegion>region</signingRegion>
-  <accessKey>access</accessKey>
-  <secretKey>secret</secretKey>
-  <fixBadIds>true</fixBadIds>
+	<serviceEndpoint>endpoint</serviceEndpoint>
+	<signingRegion>region</signingRegion>
+	<accessKey>access</accessKey>
+	<secretKey>secret</secretKey>
+	<fixBadIds>true</fixBadIds>
 
-  <sourceIdField>sourceIdField</sourceIdField>
-  <targetContentField>targetContentField</targetContentField>
+	<sourceIdField>sourceIdField</sourceIdField>
+	<targetContentField>targetContentField</targetContentField>
 
-  <restrictions>
-    <restriction>
-      <fieldMatcher method="basic"><pattern>document.reference</pattern></fieldMatcher>
-      <valueMatcher method="wildcard"><pattern>*.pdf</pattern></valueMatcher>
-    </restriction>
-    <restriction>
-      <fieldMatcher method="basic"><pattern>title</pattern></fieldMatcher>
-      <valueMatcher method="basic"><pattern>bad</pattern></valueMatcher>
-    </restriction>
-  </restrictions>
+	<restrictions>
+		<restriction>
+			<fieldMatcher method="basic">
+				<pattern>document.reference</pattern>
+			</fieldMatcher>
+			<valueMatcher method="wildcard">
+				<pattern>*.pdf</pattern>
+			</valueMatcher>
+		</restriction>
+		<restriction>
+			<fieldMatcher method="basic">
+				<pattern>title</pattern>
+			</fieldMatcher>
+			<valueMatcher method="basic">
+				<pattern>bad</pattern>
+			</valueMatcher>
+		</restriction>
+	</restrictions>
   <fieldMappings>
-    <whatever1>wherever1</whatever1>
-    <whatever2>wherever2</whatever2>
+    <mapping><source>whatever1</source><target>wherever1</target></mapping>
+    <mapping source="whatever2" target="wherever2"/>
   </fieldMappings>
-  <queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
-    <batchSize>40</batchSize>
-    <maxPerFolder>10</maxPerFolder>
-  </queue> 
-  
-  <proxySettings>
-    <host>
-      <name>somehost</name>
-      <port>666</port>
-    </host>
-  </proxySettings>
-  
+	<queue class="com.norconex.committer.core.batch.queue.impl.FsQueue">
+		<batchSize>40</batchSize>
+		<maxPerFolder>10</maxPerFolder>
+	</queue>
+
+	<proxySettings>
+		<host>
+			<name>somehost</name>
+			<port>666</port>
+		</host>
+	</proxySettings>
+
 </committer>

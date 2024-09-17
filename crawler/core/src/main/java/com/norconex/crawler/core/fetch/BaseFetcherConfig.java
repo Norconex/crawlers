@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 
 import lombok.Data;
@@ -36,33 +35,6 @@ import lombok.experimental.Accessors;
  * It also offers methods to overwrite in order to react to crawler
  * startup and shutdown events.
  * </p>
- * <h3>XML configuration usage:</h3>
- * Subclasses inherit this {@link XMLConfigurable} configuration:
- *
- * {@nx.xml.usage #referenceFilters
- * <referenceFilters>
- *   <!-- multiple "filter" tags allowed -->
- *   <filter class="(any reference filter class)">
- *      (Restrict usage of this fetcher to matching reference filters.
- *       Refer to the documentation for the ReferenceFilter implementation
- *       you are using here for usage details.)
- *   </filter>
- * </referenceFilters>
- * }
- *
- * <h4>Usage example:</h4>
- * <p>
- * This XML snippet is an example of filter that restricts the application of
- * this Fetcher to references ending with ".pdf".
- * </p>
- *
- * {@nx.xml.example
- * <referenceFilters>
- *   <filter class="GenericReferenceFilter" onMatch="exclude">
- *     <valueMatcher method="regex">.*\.pdf$</valueMatcher>
- *   </filter>
- * </referenceFilters>
- * }
  */
 @Data
 @Accessors(chain = true)
@@ -77,6 +49,7 @@ public class BaseFetcherConfig {
     public List<ReferenceFilter> getReferenceFilters() {
         return Collections.unmodifiableList(referenceFilters);
     }
+
     /**
      * Sets reference filters.
      * @param referenceFilters the referenceFilters to set

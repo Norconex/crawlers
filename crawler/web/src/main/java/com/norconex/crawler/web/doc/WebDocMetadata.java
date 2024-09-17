@@ -16,7 +16,6 @@ package com.norconex.crawler.web.doc;
 
 import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
 
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.importer.doc.DocMetadata;
 
 /**
@@ -30,7 +29,7 @@ public final class WebDocMetadata {
     public static final String SM_CHANGE_FREQ = PREFIX + "sitemap-changefreq";
     public static final String SM_PRORITY = PREFIX + "sitemap-priority";
     public static final String REFERENCED_URLS = PREFIX + "referenced-urls";
-	public static final String REFERENCED_URLS_OUT_OF_SCOPE =
+    public static final String REFERENCED_URLS_OUT_OF_SCOPE =
             PREFIX + "referenced-urls-out-of-scope";
     public static final String REFERRER_REFERENCE =
             PREFIX + "referrer-reference";
@@ -42,13 +41,6 @@ public final class WebDocMetadata {
     /** @since 3.0.0 */
     public static final String ORIGINAL_REFERENCE =
             PREFIX + "original-reference";
-    /**
-     * @since 3.0.0
-     * @deprecated since 4.0.0, {@link CrawlDocMetadata#FETCHER} is used instead
-     */
-    @Deprecated
-    public static final String HTTP_FETCHER =
-            PREFIX + "http-fetcher";
 
     private WebDocMetadata() {
     }

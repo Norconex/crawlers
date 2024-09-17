@@ -45,11 +45,12 @@ class GenericSitemapLocatorTest {
         });
 
         Web.config(crawler).setRobotsTxtProvider(null);
-        assertThat(locator.locations(
-                "http://example.com/index.html", crawler))
-            .containsExactly(
-                    "http://example.com/abc.xml",
-                    "http://example.com/def.xml");
+        assertThat(
+                locator.locations(
+                        "http://example.com/index.html", crawler))
+                                .containsExactly(
+                                        "http://example.com/abc.xml",
+                                        "http://example.com/def.xml");
 
         // try with empty paths
         locator.getConfiguration().setPaths(null);

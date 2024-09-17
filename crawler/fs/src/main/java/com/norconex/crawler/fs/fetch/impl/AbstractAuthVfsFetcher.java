@@ -31,20 +31,7 @@ import lombok.ToString;
  * </p>
  *
  * <h3>Generic authentication settings</h3>
- * <p>
- * The following is available to all implementing classes.
- * </p>
  *
- * {@nx.xml.usage
- * <!-- Optional authentication details. -->
- * <authentication>
- *   {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   <domain>(If required to authenticate, the user's domain.)</domain>
- * </authentication>
- * }
- *
- * {@nx.block #doc
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
  * <p>
  * You can also have password set on the URL, Apache
  * Commons VFS offers a way to encrypt it there using their own
@@ -52,10 +39,9 @@ import lombok.ToString;
  * <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">
  * http://commons.apache.org/proper/commons-vfs/filesystems.html</a>
  * </p>
- * }
+ * @param <C> Type of configuration class
  *
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public abstract class AbstractAuthVfsFetcher<C extends BaseAuthVfsFetcherConfig>
@@ -74,11 +60,12 @@ public abstract class AbstractAuthVfsFetcher<C extends BaseAuthVfsFetcherConfig>
     protected void applyAuthenticationOptions(FileSystemOptions opts) {
         var defBuilder = DefaultFileSystemConfigBuilder.getInstance();
         if (getConfiguration().getCredentials().isSet()) {
-            defBuilder.setUserAuthenticator(opts, new StaticUserAuthenticator(
-                    getConfiguration().getDomain(),
-                    getConfiguration().getCredentials().getUsername(),
-                    EncryptionUtil.decryptPassword(
-                            getConfiguration().getCredentials())));
+            defBuilder.setUserAuthenticator(
+                    opts, new StaticUserAuthenticator(
+                            getConfiguration().getDomain(),
+                            getConfiguration().getCredentials().getUsername(),
+                            EncryptionUtil.decryptPassword(
+                                    getConfiguration().getCredentials())));
         }
     }
 }

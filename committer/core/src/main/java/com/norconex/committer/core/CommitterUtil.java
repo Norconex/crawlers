@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class CommitterUtil {
 
-    private CommitterUtil() {}
+    private CommitterUtil() {
+    }
 
     /**
      * Gets the request content as a string. Only applicable to
@@ -48,7 +49,8 @@ public final class CommitterUtil {
             } catch (IOException e) {
                 throw new CommitterException(
                         "Could not load document content for : "
-                                + req.getReference(), e);
+                                + req.getReference(),
+                        e);
             }
         }
         return null;
@@ -66,7 +68,7 @@ public final class CommitterUtil {
      */
     public static String extractSourceIdValue(
             CommitterRequest req, String sourceIdField) {
-       return extractSourceIdValue(req, sourceIdField, false);
+        return extractSourceIdValue(req, sourceIdField, false);
     }
 
     /**
@@ -92,8 +94,9 @@ public final class CommitterUtil {
                     req.getMetadata().remove(sourceIdField);
                 }
             } else {
-                LOG.warn("Source ID field \"{}\" has no value. "
-                        + "Falling back to using document reference: {}",
+                LOG.warn(
+                        "Source ID field \"{}\" has no value. "
+                                + "Falling back to using document reference: {}",
                         sourceIdField, req.getReference());
             }
         }
@@ -115,7 +118,7 @@ public final class CommitterUtil {
      */
     public static void applyTargetContent(
             CommitterRequest req, String targetContentField)
-                    throws CommitterException {
+            throws CommitterException {
         if (req instanceof UpsertRequest
                 && StringUtils.isNotBlank(targetContentField)) {
             req.getMetadata().set(targetContentField, getContentAsString(req));

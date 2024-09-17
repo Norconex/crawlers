@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,37 +36,19 @@ import lombok.extern.slf4j.Slf4j;
  * @param <T> fetcher request type
  * @param <R> fetcher response type
  */
-//TODO make it THE fetcher handling multi fetchers transparently and eliminate
-// the concept of many vs single.... there is only 1 many in core to rule them all.
-
 @Slf4j
-public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
+public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
         implements Fetcher<T, R> {
 
     private final List<? extends Fetcher<T, R>> fetchers;
 
     private final ResponseListAdapter<R> responseListAdapter;
     private final UnsuccessfulResponseFactory<R> unsuccessfulResponseFactory;
-//
+
     @Getter
     private final int maxRetries;
     @Getter
     private final Duration retryDelay;
-//
-//    @FunctionalInterface
-//    public interface MultiResponseFactory
-//            <T extends FetchRequest, R extends FetchResponse> {
-//        //TODO Document that responses are ordered from first to last
-//        MultiFetchResponse<R> adapt(Map<R, Fetcher<T, R>> responses);
-//    }
-//
-//    @FunctionalInterface
-//    public interface UnsuccessfulResponseFactory<R extends FetchResponse> {
-//        R adapt(CrawlDocState crawlState, String message, Exception e);
-//    }
-
-    //TODO drop above two interfaces in favor of a single one and let
-    // this class handle collections.
 
     @FunctionalInterface
     public interface UnsuccessfulResponseFactory<R> {
@@ -80,7 +62,6 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
     public interface ResponseListAdapter<M extends FetchResponse> {
         M adapt(List<M> multiResponse);
     }
-
 
     @Builder
     public MultiFetcher(
@@ -119,7 +100,6 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
 
         var doc = fetchRequest.getDoc();
 
-//        Map<R, Fetcher<T, R>> allResponses = new ListOrderedMap<>();
         List<R> allResponses = new ArrayList<>();
         var accepted = false;
         for (Fetcher<T, R> fetcher : fetchers) {
@@ -127,14 +107,13 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
                 continue;
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Fetcher {} accepted this reference: \"{}\".",
+                LOG.debug(
+                        "Fetcher {} accepted this reference: \"{}\".",
                         fetcher.getClass().getSimpleName(), doc.getReference());
             }
             accepted = true;
             for (var retryCount = 0; retryCount <= maxRetries; retryCount++) {
                 var fetchResponse = doFetch(fetcher, fetchRequest, retryCount);
-
-//                allResponses.put(fetchResponse, fetcher);
                 allResponses.add(fetchResponse);
 
                 doc.getMetadata().add(
@@ -144,26 +123,30 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
                         && fetchResponse.getCrawlDocState().isGoodState()) {
                     return responseListAdapter.adapt(allResponses);
                 }
-                LOG.debug("Fetcher {} response returned a bad crawl "
-                        + "state: {}",
+                LOG.debug(
+                        "Fetcher {} response returned a bad crawl "
+                                + "state: {}",
                         fetcher.getClass().getSimpleName(),
                         fetchResponse.getCrawlDocState());
             }
         }
         if (!accepted) {
-//            allResponses.put(unsuccessfulResponseAdaptor.create(
-            allResponses.add(unsuccessfulResponseFactory.create(
-                    CrawlDocState.UNSUPPORTED,
-                    "No fetcher defined accepting reference '"
-                            + doc.getReference() + "' for fetch request: "
-                            + fetchRequest,
-                    null));
+            //            allResponses.put(unsuccessfulResponseAdaptor.create(
+            allResponses.add(
+                    unsuccessfulResponseFactory.create(
+                            CrawlDocState.UNSUPPORTED,
+                            "No fetcher defined accepting reference '"
+                                    + doc.getReference()
+                                    + "' for fetch request: "
+                                    + fetchRequest,
+                            null));
             LOG.debug("""
                 No fetcher accepted to fetch this\s\
                 reference: "{}".\s\
                 For generic reference filtering it is highly recommended you\s\
                 use a regular reference filtering options, such as reference\s\
-                filters.""", doc.getReference());
+                filters.""",
+                    doc.getReference());
         }
         return responseListAdapter.adapt(allResponses);
     }
@@ -174,7 +157,8 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
         if (retryCount > 0) {
             Sleeper.sleepMillis(
                     ofNullable(retryDelay).orElse(Duration.ZERO).toMillis());
-            LOG.debug("Retry attempt #{} to fetch '{}' using '{}'.",
+            LOG.debug(
+                    "Retry attempt #{} to fetch '{}' using '{}'.",
                     retryCount,
                     fetchRequest.getDoc().getReference(),
                     fetcher.getClass().getSimpleName());
@@ -184,7 +168,8 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
         try {
             fetchResponse = fetcher.fetch(fetchRequest);
         } catch (FetchException | RuntimeException e) {
-            LOG.error("Fetcher {} failed to execute request.",
+            LOG.error(
+                    "Fetcher {} failed to execute request.",
                     fetcher.getClass().getSimpleName(), e);
             fetchResponse = unsuccessfulResponseFactory.create(
                     CrawlDocState.ERROR, "Fetcher execution failure.", e);

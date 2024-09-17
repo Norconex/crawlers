@@ -17,6 +17,7 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import java.awt.Dimension;
 import java.net.URL;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,20 +53,44 @@ public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
         NAME(By::name),
         PARTIALLINKTEXT(By::partialLinkText),
         XPATH(By::xpath);
+
         private final Function<String, By> byFunction;
+
         WaitElementType(Function<String, By> byFunction) {
             this.byFunction = byFunction;
         }
+
         By getBy(String selector) {
             return byFunction.apply(selector);
         }
     }
 
+    /**
+     * The browser used for crawling. Also defines which WebDriver to use.
+     * Default is Firefox.
+     */
     private Browser browser = Browser.FIREFOX;
-    // Default will try to detect driver installation on OS
+    /**
+     * Local path to driver executable or <code>null</code> to attempt
+     * automatic detection of the driver path.
+     * See web driver vendor documentation for the location facilitating
+     * detection.
+     * Use {@link #setRemoteURL(URL)} instead when using
+     * a remote web driver cluster.
+     */
     private Path driverPath;
-    // Default will try to detect browser installation on OS
+    /**
+     * Local path to browser executable or <code>null</code> to attempt
+     * automatic browser path detection. See browser vendor documentation
+     * for the expected browser installed location.
+     * Use {@link #setRemoteURL(URL)} instead when using
+     * a remote web driver cluster.
+     */
     private Path browserPath;
+    /**
+     * URL of a remote WebDriver cluster. Alternative to using a local
+     * browser and local web driver.
+     */
     private URL remoteURL;
 
     /**
@@ -78,31 +103,95 @@ public class WebDriverHttpFetcherConfig extends BaseFetcherConfig {
      */
     private boolean useHtmlUnit;
 
+    /**
+     * Optionally setup an HTTP proxy that allows to set and capture HTTP
+     * headers. For advanced use only.
+     */
     private HttpSniffer httpSniffer;
+
+    /**
+     * When configured, takes screenshots of each web pages.
+     */
     private ScreenshotHandler screenshotHandler;
 
+    /**
+     * Optional capabilities (configuration options) for the web driver.
+     * Many are specific to each browser or web driver. Refer to vendor
+     * documentation.
+     */
     private final Map<String, String> capabilities = new HashMap<>();
+    /**
+     * Optional command-line arguments supported by some web driver or browser.
+     */
     private final List<String> arguments = new ArrayList<>();
 
+    /**
+     * Optionally set the browser window dimensions. E.g., 640x480.
+     */
     private Dimension windowSize;
 
+    /**
+     * Optional JavaScript code to be run the moment a page is requested.
+     */
     private String earlyPageScript;
+    /**
+     * Optional JavaScript code to be run after we are done waiting for a page.
+     */
     private String latePageScript;
 
-    private long pageLoadTimeout;
-    private long implicitlyWait;
-    private long scriptTimeout;
-    private long threadWait;
+    /**
+     * Web driver max wait time for a page to load.
+     */
+    private Duration pageLoadTimeout;
+    /**
+     * Web driver max wait time for an element to appear. See
+     * {@link #getWaitForElementSelector()}.
+     */
+    private Duration implicitlyWait;
+    /**
+     * Web driver max wait time for a scripts to execute.
+     */
+    private Duration scriptTimeout;
+    /**
+     * Makes the current thread sleep for the specified duration, to
+     * give the web driver enough time to load the page.
+     * Sometimes necessary for some web driver implementations when preferable
+     * options fail.
+     */
+    private Duration threadWait;
 
+    /**
+     * The type of reference to use when waiting for an element.
+     */
     private WaitElementType waitForElementType;
+    /**
+     * Reference to an element to wait for. The nature of the reference itself
+     * is defined by {@link #getWaitForElementType()}.
+     */
     private String waitForElementSelector;
-    private long waitForElementTimeout;
+    /**
+     * Max wait time for an element to show up in browser before returning.
+     * Default 'type' is 'tagName'.
+     */
+    private Duration waitForElementTimeout;
 
-
-    public Map<String, String> getCapabilities(
-            Map<String, String> capabilities) {
+    /**
+     * Gets optional capabilities (configuration options) for the web driver.
+     * Many are specific to each browser or web driver. Refer to vendor
+     * documentation.
+     * @return capabilities
+     */
+    public Map<String, String> getCapabilities() {
         return Collections.unmodifiableMap(capabilities);
     }
+
+    /**
+     * Sets optional capabilities (configuration options) for the web driver.
+     * Many are specific to each browser or web driver. Refer to vendor
+     * documentation.
+     * @param capabilities web driver capabilities
+     * @return this
+     */
     public WebDriverHttpFetcherConfig setCapabilities(
             Map<String, String> capabilities) {
         CollectionUtil.setAll(this.capabilities, capabilities);

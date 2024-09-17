@@ -112,7 +112,8 @@ public class CurrentDateTransformer
         }
 
         return ZonedDateTime.now(ZoneOffset.UTC)
-            .format(DateTimeFormatter.ofPattern(
-                    configuration.getFormat(), safeLocale));
+                .format(
+                        DateTimeFormatter.ofPattern(
+                                configuration.getFormat(), safeLocale));
     }
 }

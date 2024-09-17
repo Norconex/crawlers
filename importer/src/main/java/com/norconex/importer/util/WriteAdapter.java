@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.i18n.UncheckedException;
 
-import com.norconex.commons.lang.io.IOUtil;
+import com.norconex.commons.lang.io.IoUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,10 +39,12 @@ public class WriteAdapter {
 
     private final Supplier<OutputStream> outputSupplier;
     private final Charset defaultCharset;
+
     public WriteAdapter(Supplier<OutputStream> outputSupplier) {
         this.outputSupplier = outputSupplier;
         defaultCharset = null;
     }
+
     public WriteAdapter(OutputStream outputStream) {
         outputSupplier = () -> outputStream;
         defaultCharset = null;
@@ -55,9 +57,11 @@ public class WriteAdapter {
     public Writer asWriter() {
         return asWriter(null);
     }
+
     public Writer asWriter(Charset charset) {
         var os = outputSupplier.get();
-        var writer = new OutputStreamWriter(IOUtil.toNonNullOutputStream(os),
+        var writer = new OutputStreamWriter(
+                IoUtil.toNonNullOutputStream(os),
                 ObjectUtils.firstNonNull(
                         charset, defaultCharset, StandardCharsets.UTF_8));
         //NOTE: we wrap this writer to overwrite the write() methods.
@@ -77,6 +81,7 @@ public class WriteAdapter {
                 }
                 flush();
             }
+
             @Override
             public void write(char[] cbuf, int off, int len)
                     throws IOException {

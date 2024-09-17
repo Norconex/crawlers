@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,30 +32,31 @@ class DocumentLengthTransformerTest {
     void testDocumentLengthTagger() throws IOException {
         var t = new DocumentLengthTransformer();
         t.getConfiguration()
-            .setToField("theLength")
-            .setOnSet(PropertySetter.REPLACE);
+                .setToField("theLength")
+                .setOnSet(PropertySetter.REPLACE);
 
         assertThatNoException().isThrownBy(() -> {
             BeanMapper.DEFAULT.assertWriteRead(t);
         });
 
-
         var props = new Properties();
         assertThatNoException().isThrownBy(() -> {
-            t.accept(TestUtil.newDocContext(
-                    "ref",
-                    TestUtil.toCachedInputStream("four"),
-                    props,
-                    ParseState.PRE));
+            t.accept(
+                    TestUtil.newHandlerContext(
+                            "ref",
+                            TestUtil.toCachedInputStream("four"),
+                            props,
+                            ParseState.PRE));
         });
         assertThat(props.getLong("theLength")).isEqualTo(4);
 
         assertThatNoException().isThrownBy(() -> {
-            t.accept(TestUtil.newDocContext(
-                    "ref",
-                    TestUtil.toInputStream("fives"),
-                    props,
-                    ParseState.PRE));
+            t.accept(
+                    TestUtil.newHandlerContext(
+                            "ref",
+                            TestUtil.toInputStream("fives"),
+                            props,
+                            ParseState.PRE));
         });
         assertThat(props.getLong("theLength")).isEqualTo(5);
     }

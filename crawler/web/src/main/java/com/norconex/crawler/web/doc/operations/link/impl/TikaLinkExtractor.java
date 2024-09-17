@@ -19,6 +19,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +49,8 @@ import lombok.ToString;
  * Implementation of {@link LinkExtractor} using
  * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL
  * extractions from HTML documents.
- * This is an alternative to the {@link HtmlLinkExtractor}.
+ * This is an alternative to the {@link HtmlLinkExtractor} or even
+ * {@link DomLinkExtractor}.
  * </p>
  * <p>
  * The configuration of content-types, storing the referrer data, and ignoring
@@ -57,29 +59,23 @@ import lombok.ToString;
  * pre-defined set of link attributes, when available (title, type,
  * uri, text, rel).
  * </p>
- *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor"
- *     ignoreNofollow="[false|true]" >
- *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
- * </extractor>
- * }
  * @see HtmlLinkExtractor
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class TikaLinkExtractor
         implements LinkExtractor, Configurable<TikaLinkExtractorConfig> {
 
-    private static final HtmlMapper fixedHtmlMapper = new FixedHtmlParserMapper();
+    private static final HtmlMapper fixedHtmlMapper =
+            new FixedHtmlParserMapper();
 
     @Getter
     private final TikaLinkExtractorConfig configuration =
             new TikaLinkExtractorConfig();
 
     @Override
-    public Set<com.norconex.crawler.web.doc.operations.link.Link> extractLinks(CrawlDoc doc)
+    public Set<com.norconex.crawler.web.doc.operations.link.Link> extractLinks(
+            CrawlDoc doc)
             throws IOException {
 
         // only proceed if we are dealing with a supported content type
@@ -88,15 +84,23 @@ public class TikaLinkExtractor
             return Set.of();
         }
 
+        if (!getConfiguration().getRestrictions().isEmpty()
+                && !getConfiguration().getRestrictions().matches(
+                        doc.getMetadata())) {
+            return Collections.emptySet();
+        }
+
         var refererUrl = doc.getReference();
-        Set<com.norconex.crawler.web.doc.operations.link.Link> nxLinks = new HashSet<>();
+        Set<com.norconex.crawler.web.doc.operations.link.Link> nxLinks =
+                new HashSet<>();
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             var values = doc.getMetadata()
-                .matchKeys(configuration.getFieldMatcher())
-                .valueList();
-            for (String val: values) {
-                extractTikaLinks(nxLinks,
+                    .matchKeys(configuration.getFieldMatcher())
+                    .valueList();
+            for (String val : values) {
+                extractTikaLinks(
+                        nxLinks,
                         new ByteArrayInputStream(val.getBytes()), refererUrl);
             }
         } else {
@@ -119,28 +123,34 @@ public class TikaLinkExtractor
         try (is) {
             parser.parse(is, linkHandler, metadata, parseContext);
             var tikaLinks = linkHandler.getLinks();
-            tikaLinks.forEach(tikaLink -> toNxLink(referrerUrl, tikaLink)
-                .ifPresent(nxLinks::add));
+            tikaLinks.forEach(
+                    tikaLink -> toNxLink(referrerUrl, tikaLink)
+                            .ifPresent(nxLinks::add));
 
             //grab refresh URL from metadata (if present)
             Optional.ofNullable(
                     trimToNull(getCaseInsensitive(metadata, "refresh")))
-                .map(LinkUtil::extractHttpEquivRefreshContentUrl)
-                .map(url -> trimToNull(HttpURL.toAbsolute(referrerUrl, url)))
-                .map(url -> {
-                    var nxLink = new com.norconex.crawler.web.doc.operations.link.Link(url);
-                    nxLink.setReferrer(referrerUrl);
-                    return nxLink;
-                })
-                .ifPresent(nxLinks::add);
+                    .map(LinkUtil::extractHttpEquivRefreshContentUrl)
+                    .map(
+                            url -> trimToNull(
+                                    HttpURL.toAbsolute(referrerUrl, url)))
+                    .map(url -> {
+                        var nxLink =
+                                new com.norconex.crawler.web.doc.operations.link.Link(
+                                        url);
+                        nxLink.setReferrer(referrerUrl);
+                        return nxLink;
+                    })
+                    .ifPresent(nxLinks::add);
         } catch (TikaException | SAXException e) {
             throw new IOException(
                     "Could not parse to extract URLs: " + referrerUrl, e);
         }
     }
 
-    private Optional<com.norconex.crawler.web.doc.operations.link.Link> toNxLink(
-            String referrerUrl, Link tikaLink) {
+    private Optional<
+            com.norconex.crawler.web.doc.operations.link.Link> toNxLink(
+                    String referrerUrl, Link tikaLink) {
         if (!configuration.isIgnoreNofollow()
                 && "nofollow".equalsIgnoreCase(
                         StringUtils.trim(tikaLink.getRel()))) {
@@ -156,20 +166,22 @@ public class TikaLinkExtractor
             extractedURL = HttpURL.toAbsolute(referrerUrl, extractedURL);
         }
         if (StringUtils.isNotBlank(extractedURL)) {
-            var nxLink = new com.norconex.crawler.web.doc.operations.link.Link(extractedURL);
+            var nxLink = new com.norconex.crawler.web.doc.operations.link.Link(
+                    extractedURL);
             nxLink.setReferrer(referrerUrl);
 
             if (!configuration.isIgnoreLinkData()) {
                 tikaMetaToNxMeta(nxLink, tikaLink);
             }
-//System.err.println("EXTRACTED LINK: " + nxLink);
+            //System.err.println("EXTRACTED LINK: " + nxLink);
             return Optional.of(nxLink);
         }
         return Optional.empty();
     }
 
     private void tikaMetaToNxMeta(
-            com.norconex.crawler.web.doc.operations.link.Link nxLink,  Link tikaLink) {
+            com.norconex.crawler.web.doc.operations.link.Link nxLink,
+            Link tikaLink) {
         var linkMeta = nxLink.getMetadata();
         if (StringUtils.isNotBlank(tikaLink.getText())) {
             linkMeta.set("text", tikaLink.getText());
@@ -194,7 +206,7 @@ public class TikaLinkExtractor
     }
 
     private String getCaseInsensitive(Metadata metadata, String key) {
-        for (String name: metadata.names()) {
+        for (String name : metadata.names()) {
             if (StringUtils.equalsIgnoreCase(name, key)) {
                 return metadata.get(name);
             }

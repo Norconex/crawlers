@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2017-2021 Norconex Inc.
+   Copyright 2017-2024 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 -->
 <committers>
 
-  <committer class="CSVFileCommitter"
+  <committer class="CsvFileCommitter"
       format="EXCEL"
       showHeaders="true"
       delimiter="|"
@@ -47,16 +47,16 @@
     </restrictTo>
 
     <fieldMappings>
-      <mapping fromField="field1" toField="FirstField"/>
-      <mapping fromField="field2" toField="SecondField"/>
+      <mapping><source>whatever1</source><target>wherever1</target></mapping>
+      <mapping source="whatever2" target="wherever2"/>
     </fieldMappings>
   </committer>
 
-  <committer class="JSONFileCommitter">
+  <committer class="JsonFileCommitter">
     <indent>8</indent>
   </committer>
 
-  <committer class="XMLFileCommitter">
+  <committer class="XmlFileCommitter">
     <indent>6</indent>
   </committer>
 

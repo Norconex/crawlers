@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.committer.core.CommitterException;
@@ -63,7 +62,7 @@ import com.norconex.commons.lang.url.HttpURL;
  * https://www.microfocus.com/documentation/idol/IDOL_12_0/CFS/Guides/pdf/
  * English/ConnectorFrameworkServer_12.0_Admin_en.pdf (Page 40-41)
  */
-class CfsIngestAddsAction implements IIdolIndexAction {
+class CfsIngestAddsAction implements IdolIndexAction {
 
     private final IdolCommitterConfig config;
 
@@ -85,6 +84,7 @@ class CfsIngestAddsAction implements IIdolIndexAction {
                     "Could not convert committer batch to CFS XML.", e);
         }
     }
+
     @Override
     public void writeTo(List<CommitterRequest> batch, Writer writer)
             throws CommitterException {
@@ -93,9 +93,9 @@ class CfsIngestAddsAction implements IIdolIndexAction {
 
     private String toCfsXmlBatch(List<CommitterRequest> batch)
             throws XMLStreamException, CommitterException, IOException {
-        StringWriter w = new StringWriter();
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        XMLStreamWriter xml = factory.createXMLStreamWriter(w);
+        var w = new StringWriter();
+        var factory = XMLOutputFactory.newInstance();
+        var xml = factory.createXMLStreamWriter(w);
         xml.writeStartElement("adds");
         for (CommitterRequest upsert : batch) {
             writeDocUpsert(xml, (UpsertRequest) upsert);
@@ -108,20 +108,21 @@ class CfsIngestAddsAction implements IIdolIndexAction {
 
     private void writeDocUpsert(XMLStreamWriter xml, UpsertRequest req)
             throws XMLStreamException, CommitterException, IOException {
-        String refField = config.getSourceReferenceField();
-        String contentField = config.getSourceContentField();
+        var refField = config.getSourceReferenceField();
+        var contentField = config.getSourceContentField();
 
         xml.writeStartElement("add");
         xml.writeStartElement("document");
 
         //--- Document reference ---
-        String ref = req.getReference();
+        var ref = req.getReference();
         if (StringUtils.isNotBlank(refField)) {
             ref = req.getMetadata().getString(refField);
             if (StringUtils.isBlank(ref)) {
-                throw new CommitterException("Source reference field '"
-                        + refField + "' has no value for document: "
-                        + req.getReference());
+                throw new CommitterException(
+                        ("Source reference field '%s' has no value for "
+                        + "document: %s").formatted(
+                                refField, req.getReference()));
             }
         }
         xml.writeStartElement("reference");
@@ -130,8 +131,8 @@ class CfsIngestAddsAction implements IIdolIndexAction {
 
         //--- Document metadata ---
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
-            String name = en.getKey();
-            List<String> values = en.getValue();
+            var name = en.getKey();
+            var values = en.getValue();
             if (values == null || equalsAny(name, refField, contentField)) {
                 continue;
             }
@@ -154,15 +155,10 @@ class CfsIngestAddsAction implements IIdolIndexAction {
         xml.writeEndElement(); // end "document"
 
         //--- Document content ---
-        String content;
-        if (StringUtils.isNotBlank(contentField)) {
-            content = StringUtils.trimToEmpty(String.join("\n\n",
-                    req.getMetadata().getStrings(contentField)));
-        } else {
-            content = IOUtils.toString(req.getContent(), UTF_8);
-        }
+        var content = IdolUtil.resolveDreContent(req, contentField);
         xml.writeStartElement("source");
-        xml.writeAttribute("content",
+        xml.writeAttribute(
+                "content",
                 Base64.encodeBase64String(content.getBytes(UTF_8)));
         xml.writeEndElement();
 

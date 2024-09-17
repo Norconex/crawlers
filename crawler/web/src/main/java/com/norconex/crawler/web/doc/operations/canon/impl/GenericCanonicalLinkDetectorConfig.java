@@ -24,6 +24,9 @@ import com.norconex.commons.lang.file.ContentType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Configuration for {@link GenericCanonicalLinkDetector}.
+ */
 @Data
 @NoArgsConstructor
 public class GenericCanonicalLinkDetectorConfig {
@@ -37,6 +40,7 @@ public class GenericCanonicalLinkDetectorConfig {
     public List<ContentType> getContentTypes() {
         return Collections.unmodifiableList(contentTypes);
     }
+
     /**
      * Sets the content types on which to perform canonical link detection.
      * @param contentTypes content types

@@ -39,7 +39,8 @@ public final class ContentTypeDetector {
             Pattern.compile("^.*(\\.[A-z0-9]+).*");
     private static final Tika TIKA = new Tika();
 
-    private ContentTypeDetector() {}
+    private ContentTypeDetector() {
+    }
 
     /**
      * Detects the content type of the given file.
@@ -50,6 +51,7 @@ public final class ContentTypeDetector {
     public static ContentType detect(File file) throws IOException {
         return detect(file, file.getName());
     }
+
     /**
      * Detects the content type of the given file.
      * @param file file on which to detect content type
@@ -65,6 +67,7 @@ public final class ContentTypeDetector {
         }
         return doDetect(TikaInputStream.get(file.toPath()), safeFileName);
     }
+
     /**
      * Detects the content type from the given input stream.
      * @param content the content on which to detect content type
@@ -76,6 +79,7 @@ public final class ContentTypeDetector {
         LOG.debug("Detected \"{}\" content-type for input stream.", type);
         return ContentType.valueOf(type);
     }
+
     /**
      * Detects the content type from the given input stream.
      * @param content the content on which to detect content type
@@ -91,13 +95,14 @@ public final class ContentTypeDetector {
     //NOTE: important not to close the stream here. Will be handled by caller
     // if need be.
     private static ContentType doDetect(
-        InputStream is, String fileName) throws IOException {
+            InputStream is, String fileName) throws IOException {
         var tikaStream = TikaInputStream.get(is);
         var meta = new Metadata();
         var extension = StringUtils.isBlank(fileName)
                 ? ""
                 : EXTENSION_PATTERN.matcher(fileName).replaceFirst("$1");
-        meta.set(TikaCoreProperties.RESOURCE_NAME_KEY,
+        meta.set(
+                TikaCoreProperties.RESOURCE_NAME_KEY,
                 "file:///detect" + extension);
         var media = TIKA.getDetector().detect(tikaStream, meta);
 

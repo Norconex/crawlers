@@ -42,7 +42,6 @@ class BeforeWebCrawlDocFinalizing
         // be re-assigned the wrong depth if linked from another, deeper, page.
         // See: https://github.com/Norconex/collector-http/issues/278
 
-
         var httpData = (WebCrawlDocContext) doc.getDocContext();
         var httpCachedData = (WebCrawlDocContext) doc.getCachedDocContext();
 

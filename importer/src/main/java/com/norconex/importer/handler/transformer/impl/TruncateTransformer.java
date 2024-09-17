@@ -184,7 +184,8 @@ public class TruncateTransformer
                 targetValues.add(truncValue);
                 if (LOG.isDebugEnabled()
                         && !Objects.equals(truncValue, sourceValue)) {
-                    LOG.debug("\"{}\" value truncated to \"{}\".",
+                    LOG.debug(
+                            "\"{}\" value truncated to \"{}\".",
                             fromField, truncValue);
                 }
             }

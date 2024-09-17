@@ -109,7 +109,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
     public void split(HandlerContext docCtx) throws DocumentHandlerException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docRecord())) {
+                configuration.getContentTypeMatcher(), docCtx.docContext())) {
             return;
         }
 
@@ -117,18 +117,23 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
         if (configuration.getFieldMatcher().isSet()) {
             docCtx.childDocs();
             docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()).forEach((k, vals) ->
-                vals.forEach(v -> parse(docCtx, Jsoup.parse(
-                        v, docCtx.reference(), DomUtil.toJSoupParser(
-                                configuration.getParser())) ))
-            );
+                    configuration.getFieldMatcher())
+                    .forEach(
+                            (k, vals) -> vals.forEach(
+                                    v -> parse(
+                                            docCtx,
+                                            Jsoup.parse(
+                                                    v, docCtx.reference(),
+                                                    DomUtil.toJSoupParser(
+                                                            configuration
+                                                                    .getParser())))));
         } else {
             // Body
             try {
                 var inputCharset = CharsetUtil.firstNonNullOrUTF8(
                         docCtx.parseState(),
                         configuration.getSourceCharset(),
-                        docCtx.docRecord().getCharset());
+                        docCtx.docContext().getCharset());
                 var soupDoc = Jsoup.parse(
                         docCtx.input().asInputStream(),
                         inputCharset.toString(),

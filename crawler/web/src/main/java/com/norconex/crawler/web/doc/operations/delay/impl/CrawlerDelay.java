@@ -18,9 +18,14 @@ import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.Sleeper;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 /**
  * It is assumed there will be one instance of this class per crawler defined.
  */
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class CrawlerDelay extends AbstractDelay {
 
     private MutableLong lastHitEpochNanos = new MutableLong(-1);
@@ -34,8 +39,9 @@ public class CrawlerDelay extends AbstractDelay {
         try {
             synchronized (lastHitEpochNanos) {
                 while (sleeping) {
-                    Sleeper.sleepNanos(Math.min(
-                            TINY_SLEEP_MS, expectedDelayNanos));
+                    Sleeper.sleepNanos(
+                            Math.min(
+                                    TINY_SLEEP_MS, expectedDelayNanos));
                 }
                 sleeping = true;
             }

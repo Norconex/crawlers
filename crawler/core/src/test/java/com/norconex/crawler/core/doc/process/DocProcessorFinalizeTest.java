@@ -56,10 +56,11 @@ class DocProcessorFinalizeTest {
 
         // spoiled strategies
         var doc = ctx.doc();
-        ctx.doc(new CrawlDoc(
-                doc.getDocContext(),
-                new CrawlDocContext(doc.getDocContext()),
-                doc.getInputStream()));
+        ctx.doc(
+                new CrawlDoc(
+                        doc.getDocContext(),
+                        new CrawlDocContext(doc.getDocContext()),
+                        doc.getInputStream()));
 
         ctx.finalized(false);
         ctx.docContext().setState(CrawlDocState.BAD_STATUS);

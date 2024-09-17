@@ -70,8 +70,10 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     public void resolve(SitemapContext ctx) {
         var location = ctx.getLocation();
         if (stopping.isTrue()) {
-            LOG.debug("Skipping resolution of sitemap "
-                    + "location (stop requested): {}", location);
+            LOG.debug(
+                    "Skipping resolution of sitemap "
+                            + "location (stop requested): {}",
+                    location);
             return;
         }
         doResolve(ctx, new HashSet<>());
@@ -96,18 +98,21 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             sitemapRec = SitemapUtil.toSitemapRecord(sitemapDoc);
             var statusCode = response.getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
-                childSitemaps.addAll(processFetchedSitemap(
-                        ctx, sitemapRec, sitemapDoc));
+                childSitemaps.addAll(
+                        processFetchedSitemap(
+                                ctx, sitemapRec, sitemapDoc));
                 LOG.info("         Resolved: {}", location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 LOG.debug("Sitemap not found : {}", location);
             } else {
-                LOG.error("Could not obtain sitemap: {}. Expected status "
-                        + "code {}, but got {}.",
+                LOG.error(
+                        "Could not obtain sitemap: {}. Expected status "
+                                + "code {}, but got {}.",
                         location, HttpStatus.SC_OK, statusCode);
             }
         } catch (Exception e) {
-            LOG.error("Cannot fetch sitemap: {} ({})",
+            LOG.error(
+                    "Cannot fetch sitemap: {} ({})",
                     location, e.getMessage(), e);
         } finally {
             if (sitemapRec != null) {
@@ -116,7 +121,8 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             try {
                 sitemapDoc.dispose();
             } catch (IOException e) {
-                LOG.error("Could not dispose of sitemap file for: {}",
+                LOG.error(
+                        "Could not dispose of sitemap file for: {}",
                         location, e);
             }
         }
@@ -133,7 +139,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
 
     private List<SitemapRecord> processFetchedSitemap(
             SitemapContext ctx, SitemapRecord sitemapRec, CrawlDoc sitemapDoc)
-                    throws IOException {
+            throws IOException {
         var location = sitemapDoc.getReference();
         var cachedRec = sitemapStore.find(location).orElse(null);
 
@@ -159,6 +165,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             CrawlDoc doc) throws IOException {
         return httpGet(fetcher, doc, 0);
     }
+
     private HttpFetchResponse httpGet(
             HttpFetcher fetcher,
             CrawlDoc doc,
@@ -170,8 +177,10 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
         if (StringUtils.isNotBlank(redirectUrl)
                 && !redirectUrl.equalsIgnoreCase(location)) {
             if (loop >= 100) {
-                LOG.error("Sitemap redirect loop detected. "
-                        + "Last redirect: {} --> {}", location, redirectUrl);
+                LOG.error(
+                        "Sitemap redirect loop detected. "
+                                + "Last redirect: {} --> {}",
+                        location, redirectUrl);
                 return response;
             }
             LOG.info("         Redirect: {} --> {}", location, redirectUrl);
@@ -185,23 +194,25 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
         return response;
     }
 
-
     //--- Life cycle events ----------------------------------------------------
 
     @Override
     protected void onCrawlerCleanBegin(CrawlerEvent event) {
         Optional.ofNullable(sitemapStore).ifPresent(DataStore::clear);
     }
+
     @Override
     protected void onCrawlerRunBegin(CrawlerEvent event) {
         sitemapStore = event.getSource()
                 .getDataStoreEngine().openStore(
                         SITEMAP_STORE_NAME, SitemapRecord.class);
     }
+
     @Override
     protected void onCrawlerStopBegin(CrawlerEvent event) {
         stopping.setTrue();
     }
+
     @Override
     protected void onCrawlerShutdown(CrawlerEvent event) {
         Optional.ofNullable(sitemapStore).ifPresent(DataStore::close);

@@ -45,9 +45,8 @@ import net.lightbody.bmp.proxy.auth.AuthType;
  * </p>
  * <p>
  * <b>EXPERIMENTAL:</b> The use of this class is experimental.
- * It is known to not be supported properly
- * with some web drivers and/or browsers. It can even be ignored altogether
- * by some web drivers.
+ * It is known to not be supported properly with some web drivers and/or
+ * browsers. It can even be ignored altogether by some web drivers.
  * </p>
  *
  * @since 3.0.0
@@ -77,6 +76,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
         return trackedUrlResponses.computeIfAbsent(
                 url, na -> new SniffedResponseHeader());
     }
+
     void untrack(String url) {
         trackedUrlResponses.remove(url);
     }
@@ -102,8 +102,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                 mobProxy.chainedProxyAuthorization(
                         creds.getUsername(),
                         EncryptionUtil.decryptPassword(creds),
-                        AuthType.BASIC
-                );
+                        AuthType.BASIC);
                 LOG.info("Chained proxy authorization set.");
             }
         } else {
@@ -128,24 +127,25 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
         mobProxy.addLastHttpFilterFactory(
                 new ResponseFilterAdapter.FilterSource(
                         (response, contents, messageInfo) -> {
-            // sniff only if original URL is being tracked
-            var trackedResponse =
-                    trackedUrlResponses.get(messageInfo.getOriginalUrl());
-
-            if (trackedResponse != null) {
-                response.headers().forEach(en ->
-                    trackedResponse.headers.put(en.getKey(), en.getValue()));
-                trackedResponse.statusCode = response.status().code();
-                trackedResponse.reasonPhrase = response.status().reasonPhrase();
-            }
-        }, configuration.getMaxBufferSize()));
+                            // sniff only if original URL is being tracked
+                            var trackedResponse = trackedUrlResponses
+                                    .get(messageInfo.getOriginalUrl());
+                            if (trackedResponse != null) {
+                                response.headers().forEach(
+                                        en -> trackedResponse.headers.put(
+                                                en.getKey(), en.getValue()));
+                                trackedResponse.statusCode =
+                                        response.status().code();
+                                trackedResponse.reasonPhrase =
+                                        response.status().reasonPhrase();
+                            }
+                        }, configuration.getMaxBufferSize()));
 
         mobProxy.start(configuration.getPort());
 
         var actualPort = mobProxy.getPort();
         var proxyHost = ofNullable(configuration.getHost()).orElse("localhost");
         LOG.info("Proxy set on browser as: {}.", proxyHost + ":" + actualPort);
-
 
         // Fix bug with firefox where request/response filters are not
         // triggered properly unless dealing with firefox profile
@@ -172,7 +172,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
             // https://bugs.chromium.org/p/chromium/issues/detail?id=899126#c15
             chromeOptions.addArguments(
                     "--proxy-bypass-list=<-loopback>",
-                    "--proxy-server=" +  proxyHost + ":" + actualPort,
+                    "--proxy-server=" + proxyHost + ":" + actualPort,
                     "--disable-popup-blocking",
                     "--disable-extensions",
                     "--disable-dev-shm-usage",
@@ -185,9 +185,8 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                     "--disable-sync",
                     "--no-first-run",
                     "--no-default-browser-check",
-                    "--disable-sign-in"
-            );
-            if  (LOG.isDebugEnabled()) {
+                    "--disable-sign-in");
+            if (LOG.isDebugEnabled()) {
                 System.setProperty("webdriver.chrome.verboseLogging", "true");
             }
         }
@@ -208,6 +207,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                 MultiMapUtils.newListValuedHashMap();
         private int statusCode;
         private String reasonPhrase;
+
         public MultiValuedMap<String, String> getHeaders() {
             return headers;
         }

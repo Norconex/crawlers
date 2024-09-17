@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public class ExternalApp {
         var output = getOutputStream(outFileContent);
         try (var input = getInputStream(inFileContent)) {
             var lines =
-                   IOUtils.readLines(input, StandardCharsets.UTF_8);
+                    IOUtils.readLines(input, StandardCharsets.UTF_8);
             for (String line : lines) {
                 output.write(reverseWords(line).getBytes());
                 output.write('\n');
@@ -118,7 +118,7 @@ public class ExternalApp {
         if (inFileMeta != null && outFileMeta != null) {
             var p = new Properties();
             try (Reader r = new FileReader(inFileMeta);
-                 Writer w = new FileWriter(outFileMeta)) {
+                    Writer w = new FileWriter(outFileMeta)) {
                 p.loadFromProperties(r);
                 for (Entry<String, List<String>> entry : p.entrySet()) {
                     var values = entry.getValue().toArray(
@@ -134,7 +134,7 @@ public class ExternalApp {
     }
 
     private static String reverseWords(String str) {
-        var words =  str.split(" ");
+        var words = str.split(" ");
         ArrayUtils.reverse(words);
         return StringUtils.join(words, " ");
     }
@@ -145,6 +145,7 @@ public class ExternalApp {
             System.out.println(var);
         }
     }
+
     private static void printEnvToStderr(String varName) {
         var var = System.getenv(varName);
         if (StringUtils.isNotBlank(var)) {
@@ -159,6 +160,7 @@ public class ExternalApp {
         }
         return System.in;
     }
+
     private static OutputStream getOutputStream(File outFile)
             throws FileNotFoundException {
         if (outFile != null) {
@@ -207,8 +209,10 @@ public class ExternalApp {
         var cmd = command;
         cmd = cmd.replaceFirst(" -classpath ", " -cp ");
 
-        var cp = cmd.replaceFirst(".*\\s+-cp\\s+(.*)\\s+"
-                + ExternalApp.class.getName() + ".*", "$1");
+        var cp = cmd.replaceFirst(
+                ".*\\s+-cp\\s+(.*)\\s+"
+                        + ExternalApp.class.getName() + ".*",
+                "$1");
         var isQuoted = false;
         if (cp.matches("^\".*\"$")) {
             isQuoted = true;
@@ -232,8 +236,10 @@ public class ExternalApp {
         if (isQuoted) {
             cp = "\"" + cp + "\"";
         }
-        return cmd.replaceFirst("(.*\\s+-cp\\s+)(.*)(\\s+"
-                + ExternalApp.class.getName() + ".*)", "$1" + cp + "$3");
+        return cmd.replaceFirst(
+                "(.*\\s+-cp\\s+)(.*)(\\s+"
+                        + ExternalApp.class.getName() + ".*)",
+                "$1" + cp + "$3");
     }
 
     private static String getTestClassPath() {
@@ -241,7 +247,7 @@ public class ExternalApp {
             return File.pathSeparatorChar + new File(
                     ExternalApp.class.getProtectionDomain()
                             .getCodeSource().getLocation().toURI())
-                    .getAbsolutePath();
+                                    .getAbsolutePath();
         } catch (URISyntaxException e) {
             throw new RuntimeException("Could not obtain test classpath.", e);
         }
@@ -263,6 +269,7 @@ public class ExternalApp {
             "commons-text",
             "commons-collections4"
     };
+
     private static boolean keepPath(String path) {
         if (StringUtils.isBlank(path)) {
             return false;
@@ -277,15 +284,20 @@ public class ExternalApp {
 
     private static CommandLine parseCommandLineArguments(String[] args) {
         var options = new Options();
-        options.addOption(ARG_INFILE_CONTENT, true,
+        options.addOption(
+                ARG_INFILE_CONTENT, true,
                 "Input file (default uses STDIN).");
-        options.addOption(ARG_OUTFILE_CONTENT, true,
+        options.addOption(
+                ARG_OUTFILE_CONTENT, true,
                 "Output file (default uses STDOUT).");
-        options.addOption(ARG_INFILE_META, true,
+        options.addOption(
+                ARG_INFILE_META, true,
                 "Input metadata file (default does not expect metadata).");
-        options.addOption(ARG_OUTFILE_META, true,
+        options.addOption(
+                ARG_OUTFILE_META, true,
                 "Output metadata file (default to STDOUT/STDERR).");
-        options.addOption(ARG_REFERENCE, true,
+        options.addOption(
+                ARG_REFERENCE, true,
                 "Document reference.");
 
         CommandLineParser parser = new DefaultParser();

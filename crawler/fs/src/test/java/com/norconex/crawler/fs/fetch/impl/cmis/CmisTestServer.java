@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,22 +77,25 @@ public class CmisTestServer {
         // CMIS Atom 1.0
         servlet = new ServletHolder(new CmisAtomPubServlet());
         servlet.setInitParameter("cmisVersion", "1.0");
-        servlet.setInitParameter("callContextHandler", "org.apache.chemistry."
-                + "opencmis.server.shared.BasicAuthCallContextHandler");
+        servlet.setInitParameter(
+                "callContextHandler", "org.apache.chemistry."
+                        + "opencmis.server.shared.BasicAuthCallContextHandler");
         webappContext.addServlet(servlet, "/atom/*");
 
         // CMIS Atom 1.1
         servlet = new ServletHolder(new CmisAtomPubServlet());
         servlet.setInitParameter("cmisVersion", "1.1");
-        servlet.setInitParameter("callContextHandler", "org.apache.chemistry."
-                + "opencmis.server.shared.BasicAuthCallContextHandler");
+        servlet.setInitParameter(
+                "callContextHandler", "org.apache.chemistry."
+                        + "opencmis.server.shared.BasicAuthCallContextHandler");
         webappContext.addServlet(servlet, "/atom11/*");
 
         // CMIS Browser
         servlet = new ServletHolder(new CmisBrowserBindingServlet());
         servlet.setInitParameter("cmisVersion", "1.1");
-        servlet.setInitParameter("callContextHandler", "org.apache.chemistry."
-                + "opencmis.server.impl.browser.token.TokenCallContextHandler");
+        servlet.setInitParameter(
+                "callContextHandler", "org.apache.chemistry."
+                        + "opencmis.server.impl.browser.token.TokenCallContextHandler");
         webappContext.addServlet(servlet, "/browser/*");
 
         // CMIS Endpoints
@@ -107,7 +110,7 @@ public class CmisTestServer {
         var staticResources = CmisTestServer.class.getClassLoader().getResource(
                 "cmis/webapp");
         staticHandler.setResourceBase(staticResources.toExternalForm());
-        staticHandler.setWelcomeFiles(new String[] {"index.html"});
+        staticHandler.setWelcomeFiles(new String[] { "index.html" });
         staticHandler.setDirectoriesListed(false);
         return staticHandler;
     }
@@ -133,17 +136,18 @@ public class CmisTestServer {
     public void start() throws Exception {
         initServer();
         server.start();
-        localPort = ((ServerConnector)
-                server.getConnectors()[0]).getLocalPort();
-        System.out.println("Test CMIS server has successfully started on port "
-                + localPort);
+        localPort =
+                ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+        System.out.println(
+                "Test CMIS server has successfully started on port "
+                        + localPort);
 
-//        server.join();
+        //        server.join();
     }
 
     public void stop() throws Exception {
         server.stop();
-//        server.join();
+        //        server.join();
     }
 
     /**
@@ -166,8 +170,7 @@ public class CmisTestServer {
             }
         });
 
-//        server.run();
-
+        //        server.run();
 
         new Thread() {
             @Override
@@ -199,6 +202,7 @@ public class CmisTestServer {
                 throw new ServletException("Could not read " + EP_LOC, e);
             }
         }
+
         @Override
         public CmisEndpointsDocument getCmisEndpointsDocument(
                 HttpServletRequest req, HttpServletResponse resp) {
@@ -211,8 +215,9 @@ public class CmisTestServer {
                     req.getServerPort(), null);
             url.addPath(req.getContextPath());
             try {
-                return readCmisEndpointsDocument(endpointsDocument.replaceAll(
-                        "\\{webapp\\}", url.toString()));
+                return readCmisEndpointsDocument(
+                        endpointsDocument.replaceAll(
+                                "\\{webapp\\}", url.toString()));
             } catch (JSONParseException e) {
                 LOG.error("Invalid JSON!", e);
                 return null;

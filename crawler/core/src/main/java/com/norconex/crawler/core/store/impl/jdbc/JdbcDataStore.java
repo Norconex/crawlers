@@ -78,6 +78,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
     public String getName() {
         return settings.storeName;
     }
+
     String tableName() {
         return settings.tableName;
     }
@@ -85,11 +86,11 @@ public class JdbcDataStore<T> implements DataStore<T> {
     @Override
     public boolean save(String id, T object) {
         return executeWrite(
-            sqls.save,
-            stmt -> {
-                stmt.setString(1, serializableId(id));
-                stmt.setObject(2, SerialUtil.toJsonString(object));
-            }) > 0;
+                sqls.save,
+                stmt -> {
+                    stmt.setString(1, serializableId(id));
+                    stmt.setObject(2, SerialUtil.toJsonString(object));
+                }) > 0;
     }
 
     @Override
@@ -99,7 +100,6 @@ public class JdbcDataStore<T> implements DataStore<T> {
                 stmt -> stmt.setString(1, serializableId(id)),
                 this::firstObject);
     }
-
 
     @Override
     public Optional<T> findFirst() {
@@ -190,7 +190,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
         try (var conn = settings.engine.getConnection()) {
             try (var stmt = conn.createStatement()) {
                 for (String statement : statements) {
-                    stmt.executeUpdate(statement);
+                    stmt.executeUpdate(statement); //NOSONAR
                 }
                 if (!conn.getAutoCommit()) {
                     conn.commit();
@@ -199,8 +199,10 @@ public class JdbcDataStore<T> implements DataStore<T> {
             }
         } catch (SQLException e) {
             throw new DataStoreException(
-                    tabled("Could not create table '<table>' with SQL: "
-                            + sqls.createTable), e);
+                    tabled(
+                            "Could not create table '<table>' with SQL: "
+                                    + sqls.createTable),
+                    e);
         }
     }
 
@@ -210,8 +212,10 @@ public class JdbcDataStore<T> implements DataStore<T> {
         if (targetExists) {
             executeWrite("DROP TABLE " + newTableName, NO_ARGS);
         }
-        executeWrite("ALTER TABLE %s RENAME TO %s".formatted(
-                settings.tableName, newTableName), NO_ARGS);
+        executeWrite(
+                "ALTER TABLE %s RENAME TO %s".formatted(
+                        settings.tableName, newTableName),
+                NO_ARGS);
         settings.storeName = newStoreName;
         settings.tableName = newTableName;
         prepareSqls();
@@ -224,6 +228,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
     interface PreparedStatementConsumer {
         void accept(PreparedStatement stmt) throws SQLException;
     }
+
     @FunctionalInterface
     interface ResultSetFunction<R> {
         R accept(ResultSet rs) throws SQLException, IOException;
@@ -232,6 +237,7 @@ public class JdbcDataStore<T> implements DataStore<T> {
     private static class Record<T> {
         private String id;
         private Optional<T> object = Optional.empty();
+
         private boolean isEmpty() {
             return id == null;
         }
@@ -274,10 +280,12 @@ public class JdbcDataStore<T> implements DataStore<T> {
             return Optional.empty();
         } catch (IOException | SQLException e) {
             throw new DataStoreException(
-                    "Could not get object from table '<table>'."
-                    .formatted(settings.tableName), e);
+                    "Could not get object from table '%s'."
+                            .formatted(settings.tableName),
+                    e);
         }
     }
+
     private Record<T> firstRecord(ResultSet rs) {
         try {
             if (rs.next()) {
@@ -286,16 +294,19 @@ public class JdbcDataStore<T> implements DataStore<T> {
             return new Record<>();
         } catch (IOException | SQLException e) {
             throw new DataStoreException(
-                    "Could not get record from table '<table>'."
-                    .formatted(settings.tableName), e);
+                    "Could not get record from table '%s'."
+                            .formatted(settings.tableName),
+                    e);
         }
     }
+
     private Record<T> toRecord(ResultSet rs) throws IOException, SQLException {
         var rec = new Record<T>();
         rec.id = rs.getString(1);
         rec.object = toTypedObject(rs.getObject(2));
         return rec;
     }
+
     private Optional<T> toTypedObject(Object rsObject)
             throws IOException, SQLException {
         if (rsObject == null) {
@@ -328,10 +339,12 @@ public class JdbcDataStore<T> implements DataStore<T> {
             }
         } catch (SQLException | IOException e) {
             throw new DataStoreException(
-                    "Could not read from table '%s' with SQL:\n%s"
-                    .formatted(settings.tableName, sql), e);
+                    "Could not read from table '%s' with SQL:%n%s"
+                            .formatted(settings.tableName, sql),
+                    e);
         }
     }
+
     private int executeWrite(String sql, PreparedStatementConsumer c) {
         try (var conn = settings.engine.getConnection()) {
             try (var stmt = conn.prepareStatement(sql)) {
@@ -344,8 +357,9 @@ public class JdbcDataStore<T> implements DataStore<T> {
             }
         } catch (SQLException e) {
             throw new DataStoreException(
-                    "Could not write to table '%s' with SQL:\n%s"
-                    .formatted(settings.tableName, sql), e);
+                    "Could not write to table '%s' with SQL:%n%s"
+                            .formatted(settings.tableName, sql),
+                    e);
         }
     }
 }

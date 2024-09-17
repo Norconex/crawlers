@@ -22,7 +22,8 @@ import picocli.CommandLine.PicocliException;
 
 public final class CliCrawlerLauncher {
 
-    private CliCrawlerLauncher() {}
+    private CliCrawlerLauncher() {
+    }
 
     public static int launch(
             @NonNull CrawlerBuilder crawlerBuilder, String... args) {

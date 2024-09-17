@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -45,24 +45,10 @@ import lombok.ToString;
  * </p>
  *
  * <p>
- * The default queue is {@link FSQueue} (file-system queue).
+ * The default queue is {@link FsQueue} (file-system queue).
  * </p>
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
- * <p>Subclasses inherits this configuration:</p>
- *
- * {@nx.xml #options
- *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
- *
- *   <!-- Settings for default queue implementation ("class" is optional): -->
- *   {@nx.include com.norconex.committer.core.batch.queue.impl.FSQueue@nx.xml.usage}
- * }
- *
+ * @param <T> Committer configuration type
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
@@ -79,29 +65,35 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
         if (getConfiguration().getQueue() != null) {
             initializedQueue = getConfiguration().getQueue();
         } else {
-            initializedQueue = new FSQueue();
+            initializedQueue = new FsQueue();
         }
         initBatchCommitter();
         initializedQueue.init(getCommitterContext(), this);
     }
+
     @Override
     protected void doUpsert(UpsertRequest upsertRequest)
             throws CommitterException {
         initializedQueue.queue(upsertRequest);
     }
+
     @Override
     protected void doDelete(DeleteRequest deleteRequest)
             throws CommitterException {
         initializedQueue.queue(deleteRequest);
     }
+
     @Override
     protected void doClose() throws CommitterException {
         try {
-            initializedQueue.close();
+            if (initializedQueue != null) {
+                initializedQueue.close();
+            }
         } finally {
             closeBatchCommitter();
         }
     }
+
     @Override
     protected void doClean() throws CommitterException {
         initializedQueue.clean();
@@ -115,7 +107,7 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
             commitBatch(it);
         } catch (CommitterException | RuntimeException e) {
             fireError(CommitterEvent.COMMITTER_BATCH_ERROR, e);
-            throw  e;
+            throw e;
         }
         fireInfo(CommitterEvent.COMMITTER_BATCH_END);
     }
@@ -128,14 +120,14 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
      * Subclasses can perform additional initialization by overriding this
      * method. Default implementation does nothing. The committer context
      * and committer queue will be already initialized when invoking
-     * {@link #getCommitterContext()} and {@link #getCommitterQueue()},
+     * {@link #getCommitterContext()} and {@link #getInitializedQueue()},
      * respectively.
      * @throws CommitterException error initializing
      */
-    protected void initBatchCommitter()
-            throws CommitterException {
+    protected void initBatchCommitter() throws CommitterException {
         //NOOP
     }
+
     /**
      * Commits the supplied batch.
      * @param it the batch to commit

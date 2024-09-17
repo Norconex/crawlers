@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,10 @@ class ImportHandlerTest {
     void testHandlers() throws IOException {
         InputStream is = new BufferedInputStream(
                 new FileInputStream(TestUtil.getAliceHtmlFile()));
-        importer.importDocument(new ImporterRequest(is)
-                .setMetadata(metadata)
-                .setReference("alice.html"));
+        importer.importDocument(
+                new ImporterRequest(is)
+                        .setMetadata(metadata)
+                        .setReference("alice.html"));
         is.close();
 
         // Test Constant

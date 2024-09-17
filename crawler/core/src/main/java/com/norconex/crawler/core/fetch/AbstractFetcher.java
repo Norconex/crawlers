@@ -19,7 +19,6 @@ import java.util.Optional;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
@@ -43,33 +42,6 @@ import lombok.extern.slf4j.Slf4j;
  * It also offers methods to overwrite in order to react to crawler
  * startup and shutdown events.
  * </p>
- * <h3>XML configuration usage:</h3>
- * Subclasses inherit this {@link XMLConfigurable} configuration:
- *
- * {@nx.xml.usage #referenceFilters
- * <referenceFilters>
- *   <!-- multiple "filter" tags allowed -->
- *   <filter class="(any reference filter class)">
- *      (Restrict usage of this fetcher to matching reference filters.
- *       Refer to the documentation for the ReferenceFilter implementation
- *       you are using here for usage details.)
- *   </filter>
- * </referenceFilters>
- * }
- *
- * <h4>Usage example:</h4>
- * <p>
- * This XML snippet is an example of filter that restricts the application of
- * this Fetcher to references ending with ".pdf".
- * </p>
- *
- * {@nx.xml.example
- * <referenceFilters>
- *   <filter class="GenericReferenceFilter" onMatch="exclude">
- *     <valueMatcher method="regex">.*\.pdf$</valueMatcher>
- *   </filter>
- * </referenceFilters>
- * }
  *
  * @param <T> fetcher request type
  * @param <R> fetcher response type
@@ -79,24 +51,26 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractFetcher <
+public abstract class AbstractFetcher<
         T extends FetchRequest,
         R extends FetchResponse,
         C extends BaseFetcherConfig>
-            implements
-                Fetcher<T, R>,
-                EventListener<Event>,
-                Configurable<C> {
+        implements
+        Fetcher<T, R>,
+        EventListener<Event>,
+        Configurable<C> {
 
     @Override
     public final boolean accept(@NonNull T fetchRequest) {
         if (isAcceptedByReferenceFilters(fetchRequest)
                 && acceptRequest(fetchRequest)) {
-            LOG.debug("Fetcher {} ACCEPTED request '{}'.",
+            LOG.debug(
+                    "Fetcher {} ACCEPTED request '{}'.",
                     getClass().getSimpleName(), fetchRequest);
             return true;
         }
-        LOG.debug("Fetcher {} REJECTED request '{}'.",
+        LOG.debug(
+                "Fetcher {} REJECTED request '{}'.",
                 getClass().getSimpleName(), fetchRequest);
         return false;
     }
@@ -121,13 +95,13 @@ public abstract class AbstractFetcher <
 
         //TODO create init/destroy methods instead?
 
-    	// Here we rely on session startup instead of
-    	// crawler startup to avoid being invoked multiple
-    	// times (once for each crawler)
-    	if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
-    		fetcherStartup((Crawler) event.getSource());
-    	} else if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
-    		fetcherShutdown((Crawler) event.getSource());
+        // Here we rely on session startup instead of
+        // crawler startup to avoid being invoked multiple
+        // times (once for each crawler)
+        if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
+            fetcherStartup((Crawler) event.getSource());
+        } else if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
+            fetcherShutdown((Crawler) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
@@ -136,24 +110,24 @@ public abstract class AbstractFetcher <
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
             fetcherThreadEnd((Crawler) event.getSource());
-    	}
+        }
     }
-
 
     /**
      * Invoked once per fetcher instance, when the crawler starts.
      * Default implementation does nothing.
      * @param crawler crawler
      */
-	protected void fetcherStartup(Crawler crawler) {
+    protected void fetcherStartup(Crawler crawler) {
         //NOOP
     }
+
     /**
      * Invoked once per fetcher when the crawler ends.
      * Default implementation does nothing.
      * @param crawler crawler
      */
-	protected void fetcherShutdown(Crawler crawler) {
+    protected void fetcherShutdown(Crawler crawler) {
         //NOOP
     }
 
@@ -166,6 +140,7 @@ public abstract class AbstractFetcher <
     protected void fetcherThreadBegin(Crawler crawler) {
         //NOOP
     }
+
     /**
      * Invoked each time a crawler ends an existing crawler thread if that
      * thread is the current thread.
@@ -181,18 +156,21 @@ public abstract class AbstractFetcher <
                 .map(Doc::getReference)
                 .orElse(null);
         return FilterGroupResolver.<ReferenceFilter>builder()
-            .filterResolver(f -> f.acceptReference(ref))
-            .onAccepted(f -> LOG.debug(
-                    "Fetcher {} ACCEPTED reference: '{}'. Filter={}",
-                    getClass().getSimpleName(), ref, f))
-            .onRejected(f -> LOG.debug(
-                    "Fetcher {} REJECTED reference: '{}'. Filter={}",
-                    getClass().getSimpleName(), ref, f))
-            .onRejectedNoInclude(f -> LOG.debug(
-                    "Fetcher {} REJECTED reference: '{}'. "
-                    + "No 'include' filters matched.",
-                    getClass().getSimpleName(), ref))
-            .build()
-            .accepts(getConfiguration().getReferenceFilters());
+                .filterResolver(f -> f.acceptReference(ref))
+                .onAccepted(
+                        f -> LOG.debug(
+                                "Fetcher {} ACCEPTED reference: '{}'. Filter={}",
+                                getClass().getSimpleName(), ref, f))
+                .onRejected(
+                        f -> LOG.debug(
+                                "Fetcher {} REJECTED reference: '{}'. Filter={}",
+                                getClass().getSimpleName(), ref, f))
+                .onRejectedNoInclude(
+                        f -> LOG.debug(
+                                "Fetcher {} REJECTED reference: '{}'. "
+                                        + "No 'include' filters matched.",
+                                getClass().getSimpleName(), ref))
+                .build()
+                .accepts(getConfiguration().getReferenceFilters());
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,40 +47,16 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * CIFS fetcher (Samba, Windows share).
+ * CIFS fetcher (Samba, Windows share) (<code>hdfs://</code>).
  * </p>
- *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
  *
  * <h3>Access Control List (ACL)</h3>
  * <p>
  * This fetcher will try to extract access control information for each
  * SMB file. If you have no need for them, you can disable
- * acquiring them with {@link #setAclDisabled(boolean)}.
+ * acquiring them with {@link SmbFetcherConfig#setAclDisabled(boolean)}.
  * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.smb.SmbFetcher">
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *
- *   <aclDisabled>[false|true]</aclDisabled>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="SmbFetcher">
- *   <authentication>
- *     <username>joe</username>
- *     <password>joe's-password</password>
- *     <domain>WORKGROUP</domain>
- *   </authentication>
- * </fetcher>
- * }
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 @Slf4j
@@ -142,6 +118,7 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
             metaSet(metadata, i, ACCOUNT_NAME, sid.getAccountName());
         }
     }
+
     private void metaSet(
             Properties metadata, int index, String suffix, Object value) {
         var v = StringUtils.trimToNull(Objects.toString(value, null));
@@ -149,6 +126,7 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
             metadata.set(key(index, suffix), v);
         }
     }
+
     private String key(int index, String suffix) {
         return ACL_PREFIX + "[" + index + "]" + suffix;
     }
@@ -170,16 +148,19 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
         try {
             authData = UserAuthenticatorUtils.authenticate(
                     fileObject.getFileSystem().getFileSystemOptions(),
-                           SmbFileProvider.AUTHENTICATOR_TYPES);
+                    SmbFileProvider.AUTHENTICATOR_TYPES);
 
             NtlmPasswordAuthentication auth = null;
             if (authData != null) {
                 auth = new NtlmPasswordAuthentication(
-                        authToString(authData, UserAuthenticationData.DOMAIN,
+                        authToString(
+                                authData, UserAuthenticationData.DOMAIN,
                                 smbFileName.getDomain()),
-                        authToString(authData, UserAuthenticationData.USERNAME,
+                        authToString(
+                                authData, UserAuthenticationData.USERNAME,
                                 smbFileName.getUserName()),
-                        authToString(authData, UserAuthenticationData.PASSWORD,
+                        authToString(
+                                authData, UserAuthenticationData.PASSWORD,
                                 smbFileName.getPassword()));
             }
 
@@ -197,7 +178,8 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
 
     private String authToString(
             UserAuthenticationData authData, Type type, String part) {
-        return UserAuthenticatorUtils.toString(UserAuthenticatorUtils.getData(
-                authData, type, UserAuthenticatorUtils.toChar(part)));
+        return UserAuthenticatorUtils.toString(
+                UserAuthenticatorUtils.getData(
+                        authData, type, UserAuthenticatorUtils.toChar(part)));
     }
 }

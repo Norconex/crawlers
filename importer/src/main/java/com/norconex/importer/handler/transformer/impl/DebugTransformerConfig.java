@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,7 @@ public class DebugTransformerConfig {
     public List<String> getLogFields() {
         return Collections.unmodifiableList(logFields);
     }
+
     public DebugTransformerConfig setLogFields(List<String> logFields) {
         CollectionUtil.setAll(this.logFields, logFields);
         return this;

@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -44,24 +43,21 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.win.WinHttpClients;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.io.CloseMode;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
+import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.CommitterUtil;
 import com.norconex.committer.core.DeleteRequest;
-import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.net.ProxySettings;
-import com.norconex.commons.lang.security.Credentials;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -69,17 +65,14 @@ import com.norconex.commons.lang.security.Credentials;
  * </p>
  * @author Pascal Essiembre
  */
+@Slf4j
 class AzureSearchClient {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AzureSearchClient.class);
 
     private final AzureSearchCommitterConfig config;
     private final CloseableHttpClient client;
     private final String restURL;
 
     public AzureSearchClient(AzureSearchCommitterConfig config) {
-        super();
         this.config = Objects.requireNonNull(
                 config, "'config' must not be null");
         if (StringUtils.isBlank(config.getEndpoint())) {
@@ -92,7 +85,7 @@ class AzureSearchClient {
             throw new IllegalArgumentException("Index name is undefined.");
         }
 
-        String version = ObjectUtils.defaultIfNull(
+        var version = ObjectUtils.defaultIfNull(
                 config.getApiVersion(),
                 AzureSearchCommitterConfig.DEFAULT_API_VERSION);
         LOG.info("Azure Search API Version: {}", version);
@@ -112,16 +105,16 @@ class AzureSearchClient {
             builder = HttpClientBuilder.create();
         }
 
-        ProxySettings proxy = config.getProxySettings();
+        var proxy = config.getProxySettings();
         if (proxy.isSet()) {
-            HttpHost host = new HttpHost(
+            var host = new HttpHost(
                     proxy.getScheme(),
                     proxy.getHost().getName(),
                     proxy.getHost().getPort());
             builder.setProxy(host);
-            Credentials creds = proxy.getCredentials();
+            var creds = proxy.getCredentials();
             if (creds.isSet()) {
-                BasicCredentialsProvider cp = new BasicCredentialsProvider();
+                var cp = new BasicCredentialsProvider();
                 cp.setCredentials(
                         new AuthScope(host, proxy.getRealm(), null),
                         new UsernamePasswordCredentials(
@@ -137,12 +130,12 @@ class AzureSearchClient {
 
     public void post(Iterator<CommitterRequest> it) throws CommitterException {
 
-        JSONArray jsonBatch = new JSONArray();
+        var jsonBatch = new JSONArray();
         try {
             while (it.hasNext()) {
-                CommitterRequest req = it.next();
+                var req = it.next();
 
-                KeyValue<String, String> docKeyField = resolveDocKeyField(req);
+                var docKeyField = resolveDocKeyField(req);
                 if (docKeyField == null) {
                     continue;
                 }
@@ -175,10 +168,12 @@ class AzureSearchClient {
 
     private KeyValue<String, String> resolveDocKeyField(CommitterRequest req)
             throws CommitterException {
-        String keyField = Optional.ofNullable(trimToNull(
-                config.getTargetKeyField())).orElse(
+        var keyField = Optional.ofNullable(
+                trimToNull(
+                        config.getTargetKeyField()))
+                .orElse(
                         AzureSearchCommitterConfig.DEFAULT_AZURE_KEY_FIELD);
-        String keyValue = CommitterUtil.extractSourceIdValue(
+        var keyValue = CommitterUtil.extractSourceIdValue(
                 req, config.getSourceKeyField());
         // Key value encoding
         if (!config.isDisableDocKeyEncoding()) {
@@ -192,21 +187,23 @@ class AzureSearchClient {
     private void uploadBatchToAzureSearch(JSONArray documentBatch)
             throws CommitterException {
 
-        JSONObject json = new JSONObject();
+        var json = new JSONObject();
         json.put("value", documentBatch);
 
         if (LOG.isTraceEnabled()) {
             LOG.trace("JSON POST:\n{}", StringUtils.trim(json.toString(2)));
         }
 
-        StringEntity requestEntity = new StringEntity(
+        var requestEntity = new StringEntity(
                 json.toString(), ContentType.APPLICATION_JSON);
-        HttpPost post = new HttpPost(restURL);
+        var post = new HttpPost(restURL);
         post.addHeader("api-key", config.getApiKey());
         post.setEntity(requestEntity);
-        try (ClassicHttpResponse response = client.executeOpen(null, post, null)) {
+        try (var response =
+                client.executeOpen(null, post, null)) {
             handleResponse(response);
-            LOG.info("Done sending {} upserts/deletes to Azure Search.",
+            LOG.info(
+                    "Done sending {} upserts/deletes to Azure Search.",
                     documentBatch.length());
         } catch (IOException e) {
             throw new CommitterException(
@@ -214,23 +211,25 @@ class AzureSearchClient {
         }
     }
 
-    private void handleResponse(ClassicHttpResponse res)
+    void handleResponse(ClassicHttpResponse res)
             throws IOException, CommitterException {
-        String responseAsString = "";
-        HttpEntity entity = res.getEntity();
+        var responseAsString = "";
+        var entity = res.getEntity();
         if (entity != null) {
-            try (InputStream is = entity.getContent()) {
+            try (var is = entity.getContent()) {
                 responseAsString = IOUtils.toString(entity.getContent(), UTF_8);
             }
         }
-        int statusCode = res.getCode();
+        var statusCode = res.getCode();
         if (statusCode != HttpStatus.SC_OK
                 && statusCode != HttpStatus.SC_CREATED) {
-            responseError("Invalid HTTP response: \"" + res.getReasonPhrase()
-                    + "\". Azure Response: " + responseAsString);
+            responseError(
+                    "Invalid HTTP response: \"" + res.getReasonPhrase()
+                            + "\". Azure Response: " + responseAsString);
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Azure Search response status: {} - {}",
+                LOG.debug(
+                        "Azure Search response status: {} - {}",
                         res.getCode(), res.getReasonPhrase());
             }
             if (LOG.isTraceEnabled()) {
@@ -250,8 +249,8 @@ class AzureSearchClient {
         docMap.put("@search.action", "upload");
         docMap.put(docKeyField.getKey(), docKeyField.getValue());
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
-            String name = en.getKey();
-            List<String> values = en.getValue();
+            var name = en.getKey();
+            var values = en.getValue();
             if (validateFieldName(name)) {
                 toAzureValue(name, values).ifPresent(v -> docMap.put(name, v));
             }
@@ -276,6 +275,7 @@ class AzureSearchClient {
         }
         return Optional.of(values);
     }
+
     private boolean forceArray(String field) {
         if (StringUtils.isBlank(config.getArrayFields())) {
             return false;
@@ -284,44 +284,51 @@ class AzureSearchClient {
             return Pattern.compile(
                     config.getArrayFields()).matcher(field).matches();
         }
-        
-        String[] arrayOfArrayFields = config.getArrayFields().split(",");
-        for(int i=0; i<arrayOfArrayFields.length; i++) {
+
+        var arrayOfArrayFields = config.getArrayFields().split(",");
+        for (var i = 0; i < arrayOfArrayFields.length; i++) {
             arrayOfArrayFields[i] = arrayOfArrayFields[i].trim();
         }
-        
-        return ArrayUtils.contains(arrayOfArrayFields , field);
+
+        return ArrayUtils.contains(arrayOfArrayFields, field);
     }
+
     private boolean validateFieldName(String field) throws CommitterException {
         if (field.startsWith("azureSearch")) {
-            validationError("Document field cannot begin "
-                    + "with \"azureSearch\": " + field);
+            validationError(
+                    "Document field cannot begin "
+                            + "with \"azureSearch\": " + field);
             return false;
         }
         if (!field.matches("[\\w]+")) {
-            validationError("Document field cannot have "
-                    + "one or more characters other than letters, "
-                    + "numbers and underscores: " + field);
+            validationError(
+                    "Document field cannot have "
+                            + "one or more characters other than letters, "
+                            + "numbers and underscores: " + field);
             return false;
         }
         if (field.length() > 128) {
-            validationError("Document field cannot be "
-                    + "longer than 128 characters: " + field);
+            validationError(
+                    "Document field cannot be "
+                            + "longer than 128 characters: " + field);
             return false;
         }
         return true;
     }
+
     private boolean validateDocumentKey(String docId)
             throws CommitterException {
         if (docId.startsWith("_")) {
-            validationError("Document key cannot start "
-                    + "with an underscore character: " + docId);
+            validationError(
+                    "Document key cannot start "
+                            + "with an underscore character: " + docId);
             return false;
         }
         if (!docId.matches("[A-Za-z0-9_\\-=]+")) {
-            validationError("Document key cannot have one or more "
-                    + "characters other than letters, numbers, dashes, "
-                    + "underscores, and equal signs: " + docId);
+            validationError(
+                    "Document key cannot have one or more "
+                            + "characters other than letters, numbers, dashes, "
+                            + "underscores, and equal signs: " + docId);
             return false;
         }
         return true;
@@ -330,15 +337,16 @@ class AzureSearchClient {
     private void validationError(String errorMsg) throws CommitterException {
         error(errorMsg, config.isIgnoreValidationErrors());
     }
+
     private void responseError(String errorMsg) throws CommitterException {
         error(errorMsg, config.isIgnoreResponseErrors());
     }
+
     private void error(String errorMsg, boolean ignoreErrors)
             throws CommitterException {
-        if (ignoreErrors) {
-            LOG.error(errorMsg);
-        } else {
+        if (!ignoreErrors) {
             throw new CommitterException(errorMsg);
         }
+        LOG.error(errorMsg);
     }
 }

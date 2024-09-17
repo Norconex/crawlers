@@ -72,22 +72,23 @@ class HttpFetcherAcceptTest {
 
     @ParameterizedTest
     @CsvSource(
-            nullValues = "null",
-            delimiter = '|',
-            textBlock =
-    //  --------- Crawler config -----------+--- Expectations --
-    //  HEAD     | Meta  | GET      | Doc   | Doc | From | From
-    //  Support  | Filt. | Support  | Filt. | Cnt | Meta | Doc
-    //  ---------+-------+----------+-------+-----+------+------
+        nullValues = "null",
+        delimiter = '|',
+        textBlock =
+        //  --------- Crawler config -----------+--- Expectations --
+        //  HEAD     | Meta  | GET      | Doc   | Doc | From | From
+        //  Support  | Filt. | Support  | Filt. | Cnt | Meta | Doc
+        //  ---------+-------+----------+-------+-----+------+------
         """
-        DISABLED | false | REQUIRED | false | 1   | GET  | GET
-        REQUIRED | false | DISABLED | false | 1   | HEAD | null
-        REQUIRED | false | REQUIRED | false | 1   | HEAD | GET
-        REQUIRED | true  | OPTIONAL | false | 0   | null | null
-        REQUIRED | false | REQUIRED | true  | 0   | null | null
-        OPTIONAL | true  | OPTIONAL | false | 1   | GET  | GET
-        OPTIONAL | false | OPTIONAL | true  | 1   | HEAD | null
-        """)
+                DISABLED | false | REQUIRED | false | 1   | GET  | GET
+                REQUIRED | false | DISABLED | false | 1   | HEAD | null
+                REQUIRED | false | REQUIRED | false | 1   | HEAD | GET
+                REQUIRED | true  | OPTIONAL | false | 0   | null | null
+                REQUIRED | false | REQUIRED | true  | 0   | null | null
+                OPTIONAL | true  | OPTIONAL | false | 1   | GET  | GET
+                OPTIONAL | false | OPTIONAL | true  | 1   | HEAD | null
+                """
+    )
     void testHttpFetcherAccept(
             FetchDirectiveSupport headSupport, boolean metaRejectedByFilter,
             FetchDirectiveSupport getSupport, boolean docRejectedByFilter,
@@ -107,14 +108,14 @@ class HttpFetcherAcceptTest {
             var headFetcher = createFetcher(HttpMethod.HEAD);
             if (metaRejectedByFilter) {
                 headFetcher.getConfiguration()
-                    .setReferenceFilters(List.of(ref -> false));
+                        .setReferenceFilters(List.of(ref -> false));
             }
 
             cfg.setDocumentFetchSupport(getSupport);
             var getFetcher = createFetcher(HttpMethod.GET);
             if (docRejectedByFilter) {
                 getFetcher.getConfiguration()
-                    .setReferenceFilters(List.of(ref -> false));
+                        .setReferenceFilters(List.of(ref -> false));
             }
 
             cfg.setFetchers(List.of(headFetcher, getFetcher));
@@ -129,14 +130,14 @@ class HttpFetcherAcceptTest {
 
             if (expectedMetaValue != null) {
                 assertThat(actualMetaValue)
-                    .containsExactly(expectedMetaValue.split(","));
+                        .containsExactly(expectedMetaValue.split(","));
             } else {
                 assertThat(actualMetaValue).isNull();
             }
 
             if (expectedDocValue != null) {
                 assertThat(actualDocValue)
-                    .isEqualTo("I am " + expectedDocValue);
+                        .isEqualTo("I am " + expectedDocValue);
             } else {
                 assertThat(actualDocValue).isBlank();
             }
@@ -145,16 +146,21 @@ class HttpFetcherAcceptTest {
 
     private void whenHttpMethod(ClientAndServer client, HttpMethod method) {
         client
-            .when(request()
-                .withMethod(method.name())
-                .withPath(HOME_PATH))
-            .respond(response()
-                .withHeader("whatAmI", method.name())
-                .withBody("I am " + method.name(), MediaType.HTML_UTF_8)
-            );
+                .when(
+                        request()
+                                .withMethod(method.name())
+                                .withPath(HOME_PATH))
+                .respond(
+                        response()
+                                .withHeader("whatAmI", method.name())
+                                .withBody(
+                                        "I am " + method.name(),
+                                        MediaType.HTML_UTF_8));
     }
+
     private GenericHttpFetcher createFetcher(HttpMethod method) {
-        return Configurable.configure(new GenericHttpFetcher(),
+        return Configurable.configure(
+                new GenericHttpFetcher(),
                 cfg -> cfg.setHttpMethods(List.of(method)));
     }
 }

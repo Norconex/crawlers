@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public class ReferenceConditionConfig {
     public TextMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     /**
      * Sets the text matcher for field values. Copies it.
      * @param valueMatcher text matcher

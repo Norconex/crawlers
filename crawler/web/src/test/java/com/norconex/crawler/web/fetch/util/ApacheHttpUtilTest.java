@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,17 +35,17 @@ class ApacheHttpUtilTest {
     @Test
     void testFormToRequest() throws URISyntaxException {
         var html = """
-            <form
-              action="/login"
-              method="%s"
-              accept-charset="UTF-8"
-              %s
-            >
-              Username: <input type="text=" name="THEusername"><br>
-              Password: <input type="password=" name="THEpassword"><br>
-              <input type="submit" value="Login"><br>
-            </form>
-            """;
+                <form
+                  action="/login"
+                  method="%s"
+                  accept-charset="UTF-8"
+                  %s
+                >
+                  Username: <input type="text=" name="THEusername"><br>
+                  Password: <input type="password=" name="THEpassword"><br>
+                  <input type="submit" value="Login"><br>
+                </form>
+                """;
 
         var authCfg = new HttpAuthConfig();
         authCfg.setFormSelector("form");
@@ -54,55 +54,70 @@ class ApacheHttpUtilTest {
         authCfg.setFormPasswordField("THEpassword");
 
         // POST, default enctype
-        var doc = Jsoup.parse(WebsiteMock
-                .htmlPage()
-                .body(html.formatted("POST", ""))
-                .build(), "http://blah.com");
+        var doc = Jsoup.parse(
+                WebsiteMock
+                        .htmlPage()
+                        .body(html.formatted("POST", ""))
+                        .build(),
+                "http://blah.com");
         var req = (HttpPost) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(req).isNotNull();
         assertThat(req.getEntity()).isInstanceOf(UrlEncodedFormEntity.class);
 
         // POST, multipart/form-data
-        doc = Jsoup.parse(WebsiteMock
-                .htmlPage()
-                .body(html.formatted("POST", "encType=\"multipart/form-data\""))
-                .build(), "http://blah.com");
+        doc = Jsoup.parse(
+                WebsiteMock
+                        .htmlPage()
+                        .body(
+                                html.formatted(
+                                        "POST",
+                                        "encType=\"multipart/form-data\""))
+                        .build(),
+                "http://blah.com");
         req = (HttpPost) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(req).isNotNull();
         assertThat(req.getEntity().getClass().getSimpleName())
-            .isEqualTo("MultipartFormEntity");
+                .isEqualTo("MultipartFormEntity");
 
         // POST, text/plain
-        doc = Jsoup.parse(WebsiteMock
-                .htmlPage()
-                .body(html.formatted("POST", "encType=\"text/plain\""))
-                .build(), "http://blah.com");
+        doc = Jsoup.parse(
+                WebsiteMock
+                        .htmlPage()
+                        .body(html.formatted("POST", "encType=\"text/plain\""))
+                        .build(),
+                "http://blah.com");
         req = (HttpPost) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(req).isNotNull();
         assertThat(req.getEntity()).isInstanceOf(StringEntity.class);
 
         // GET
-        doc = Jsoup.parse(WebsiteMock
-                .htmlPage()
-                .body(html.formatted("GET", ""))
-                .build(), "http://blah.com");
+        doc = Jsoup.parse(
+                WebsiteMock
+                        .htmlPage()
+                        .body(html.formatted("GET", ""))
+                        .build(),
+                "http://blah.com");
         var get = (HttpGet) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(get).isNotNull();
 
         assertThat(HttpURL.toURI(get.getRequestUri()))
-            .hasParameter("THEusername")
-            .hasParameter("THEpassword");
+                .hasParameter("THEusername")
+                .hasParameter("THEpassword");
 
         // HEAD
-        doc = Jsoup.parse(WebsiteMock
-                .htmlPage()
-                .body(html.formatted("HEAD", ""))
-                .build(), "http://blah.com");
+        doc = Jsoup.parse(
+                WebsiteMock
+                        .htmlPage()
+                        .body(html.formatted("HEAD", ""))
+                        .build(),
+                "http://blah.com");
         var head = (HttpGet) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(head).isNull();
 
         // No form
-        assertThat(ApacheHttpUtil.formToRequest(
-                Jsoup.parse("<html>No form!</html>"), authCfg)).isNull();
+        assertThat(
+                ApacheHttpUtil.formToRequest(
+                        Jsoup.parse("<html>No form!</html>"), authCfg))
+                                .isNull();
     }
 }

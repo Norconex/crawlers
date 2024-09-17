@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 
 class ReferenceDelayResolverTest {
@@ -33,33 +33,37 @@ class ReferenceDelayResolverTest {
     @Test
     void testWriteRead() {
         List<DelayReferencePattern> delayPatterns = new ArrayList<>();
-        delayPatterns.add(new DelayReferencePattern(
-                "http://example\\.com/.*", Duration.ofSeconds(1)));
+        delayPatterns.add(
+                new DelayReferencePattern(
+                        "http://example\\.com/.*", Duration.ofSeconds(1)));
 
         var r = new ReferenceDelayResolver();
         r.getConfiguration()
-            .setDelayReferencePatterns(delayPatterns)
-            .setDefaultDelay(Duration.ofSeconds(10))
-            .setIgnoreRobotsCrawlDelay(true)
-            .setScope(DelayResolverScope.THREAD);
+                .setDelayReferencePatterns(delayPatterns)
+                .setDefaultDelay(Duration.ofSeconds(10))
+                .setIgnoreRobotsCrawlDelay(true)
+                .setScope(DelayResolverScope.THREAD);
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(r));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(r));
     }
 
     @Test
     void testValidate() {
-        assertThatNoException().isThrownBy(() ->
-                new XML(ResourceLoader.getXmlReader(getClass()))
-                    .validate(ReferenceDelayResolver.class));
+        assertThatNoException().isThrownBy(
+                () -> new Xml(ResourceLoader.getXmlReader(getClass()))
+                        .validate(ReferenceDelayResolver.class));
     }
 
     @Test
     void testResolveExplicitDelay() {
         var r = new ReferenceDelayResolver();
-        r.getConfiguration().setDelayReferencePatterns(List.of(
-                new DelayReferencePattern(".*abc.*", Duration.ofMillis(123)),
-                new DelayReferencePattern(".*def.*", Duration.ofMillis(456))));
+        r.getConfiguration().setDelayReferencePatterns(
+                List.of(
+                        new DelayReferencePattern(
+                                ".*abc.*", Duration.ofMillis(123)),
+                        new DelayReferencePattern(
+                                ".*def.*", Duration.ofMillis(456))));
 
         assertThat(r.resolveExplicitDelay("http://abc.com")).isEqualTo(
                 Duration.ofMillis(123));

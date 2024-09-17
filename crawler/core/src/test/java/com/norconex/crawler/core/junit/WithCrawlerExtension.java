@@ -64,17 +64,17 @@ class WithCrawlerExtension implements
                 : CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
 
         // apply custom config from text
-        StringUtil.ifNotBlank(annot.config(), cfgStr ->
-            BeanMapper.DEFAULT.read(
-                    crawlerConfig,
-                    new StringReader(cfgStr),
-                    BeanMapper.detectFormat(cfgStr)));
+        StringUtil.ifNotBlank(
+                annot.config(), cfgStr -> BeanMapper.DEFAULT.read(
+                        crawlerConfig,
+                        new StringReader(cfgStr),
+                        BeanMapper.detectFormat(cfgStr)));
 
         // apply config modifier from consumer
         if (annot.configModifier() != null) {
             @SuppressWarnings("unchecked")
-            var c = (Consumer<CrawlerConfig>)
-                    ClassUtil.newInstance(annot.configModifier());
+            var c = (Consumer<CrawlerConfig>) ClassUtil
+                    .newInstance(annot.configModifier());
             c.accept(crawlerConfig);
         }
 
@@ -106,16 +106,16 @@ class WithCrawlerExtension implements
                 ExtensionContext.Namespace.GLOBAL).remove(TEMP_DIR_KEY);
         if (tempDir != null) {
             Files.walk(tempDir)
-                // Delete files before directories
-                .sorted((path1, path2) -> path2.compareTo(path1))
-                .forEach(path -> {
-                    try {
-                        Files.delete(path);
-                    } catch (IOException e) {
-                        throw new RuntimeException(
-                                "Failed to delete file: " + path, e);
-                    }
-                });
+                    // Delete files before directories
+                    .sorted((path1, path2) -> path2.compareTo(path1))
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            throw new RuntimeException(
+                                    "Failed to delete file: " + path, e);
+                        }
+                    });
         }
     }
 
@@ -123,18 +123,19 @@ class WithCrawlerExtension implements
     public boolean supportsParameter(
             ParameterContext parameterContext,
             ExtensionContext extensionContext)
-                    throws ParameterResolutionException {
+            throws ParameterResolutionException {
 
         Class<?> parameterType = parameterContext.getParameter().getType();
         return Crawler.class.isAssignableFrom(parameterType)
                 || MemoryCommitter.class.isAssignableFrom(parameterType)
                 || Path.class.isAssignableFrom(parameterType);
     }
+
     @Override
     public Object resolveParameter(
             ParameterContext parameterContext,
             ExtensionContext extensionContext)
-                    throws ParameterResolutionException {
+            throws ParameterResolutionException {
 
         Class<?> parameterType = parameterContext.getParameter().getType();
 
@@ -148,7 +149,7 @@ class WithCrawlerExtension implements
         }
         // Temp dir.
         if (Path.class.isAssignableFrom(parameterType)) {
-            return  extensionContext.getStore(
+            return extensionContext.getStore(
                     ExtensionContext.Namespace.GLOBAL).remove(TEMP_DIR_KEY);
         }
 
@@ -157,9 +158,11 @@ class WithCrawlerExtension implements
     }
 
     private Optional<Crawler> crawler(ExtensionContext extensionContext) {
-        return ofNullable((Crawler) extensionContext
-                .getStore(GLOBAL).get(CRAWLER_KEY));
+        return ofNullable(
+                (Crawler) extensionContext
+                        .getStore(GLOBAL).get(CRAWLER_KEY));
     }
+
     private Optional<MemoryCommitter> firstCommitter(
             ExtensionContext extensionContext) {
         return crawler(extensionContext)
@@ -185,4 +188,3 @@ class WithCrawlerExtension implements
         return null;
     }
 }
-

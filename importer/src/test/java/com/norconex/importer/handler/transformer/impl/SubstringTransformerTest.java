@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,9 +48,9 @@ class SubstringTransformerTest {
             throws IOException {
         var t = new SubstringTransformer();
         t.getConfiguration()
-            .setBegin(begin)
-            .setEnd(end);
-        var doc = TestUtil.newDocContext(content);
+                .setBegin(begin)
+                .setEnd(end);
+        var doc = TestUtil.newHandlerContext(content);
         t.accept(doc);
         return doc.input().asString();
     }
@@ -59,9 +59,9 @@ class SubstringTransformerTest {
     void testWriteRead() {
         var t = new SubstringTransformer();
         t.getConfiguration()
-            .setBegin(1000)
-            .setEnd(5000);
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+                .setBegin(1000)
+                .setEnd(5000);
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

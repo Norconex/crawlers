@@ -64,7 +64,7 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
             ContentHandler handler,
             Metadata tikaMeta,
             ParseContext context)
-                    throws IOException, SAXException, TikaException {
+            throws IOException, SAXException, TikaException {
 
         var resName = tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY);
 
@@ -72,8 +72,10 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
         var embedDepth = typesHierarchy.size();
         var maxDepth = embeddedConfig.getMaxEmbeddedDepth();
         if (maxDepth >= 0 && embedDepth > maxDepth) {
-            LOG.debug("Skipping embedded document {} which is over max "
-                    + "depth: {}", maxDepth, resName);
+            LOG.debug(
+                    "Skipping embedded document {} which is over max "
+                            + "depth: {}",
+                    maxDepth, resName);
             return;
         }
 
@@ -84,9 +86,10 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
         if (!isMasterDoc && TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedOfContentTypes(),
                 parentType)) {
-            LOG.debug("Skipping embedded document {} "
-                    + "of parent content type: {}.",
-                            resName, parentType);
+            LOG.debug(
+                    "Skipping embedded document {} "
+                            + "of parent content type: {}.",
+                    resName, parentType);
             return;
         }
 
@@ -94,7 +97,7 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
         ContentType currentType;
         if (isMasterDoc) {
             isMasterDoc = false;
-            currentType = docCtx.docRecord().getContentType();
+            currentType = docCtx.docContext().getContentType();
         } else {
             currentType = ContentTypeDetector.detect(stream, resName);
         }
@@ -103,15 +106,17 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
         if (TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedContentTypes(),
                 currentType.toBaseTypeString())) {
-            LOG.debug("Skipping embedded document {} "
-                    + "with content type: {}.",
-                            resName, currentType);
+            LOG.debug(
+                    "Skipping embedded document {} "
+                            + "with content type: {}.",
+                    resName, currentType);
             return;
         }
 
         // All good, parse.
         typesHierarchy.add(currentType);
-        super.parse(stream,
+        super.parse(
+                stream,
                 new BodyContentHandler(writer), tikaMeta, context);
         TikaUtil.metadataToProperties(tikaMeta, docCtx.metadata());
         typesHierarchy.pollLast();

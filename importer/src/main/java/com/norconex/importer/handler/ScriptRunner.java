@@ -191,6 +191,7 @@ public class ScriptRunner<T> {
             @NonNull String script) {
         this(createEngine(engineName), engineName, script);
     }
+
     private ScriptRunner(
             ScriptEngine engine, String engineName, String script) {
         this.engine = engine;
@@ -252,6 +253,7 @@ public class ScriptRunner<T> {
         }
         return engine;
     }
+
     private static CompiledScript compileScript(
             ScriptEngine engine, String script) {
         if (engine instanceof Compilable compileEngine) {
@@ -260,7 +262,8 @@ public class ScriptRunner<T> {
             } catch (ScriptException e) {
                 throw new IllegalArgumentException(
                         "Invalid script argument. Could not compile. Possibly "
-                        + "a syntax error.", e);
+                                + "a syntax error.",
+                        e);
             }
         }
         return null;
@@ -270,7 +273,7 @@ public class ScriptRunner<T> {
         var b = new StringBuilder();
         var mgr = new ScriptEngineManager();
         var factories = mgr.getEngineFactories();
-        for (ScriptEngineFactory factory: factories) {
+        for (ScriptEngineFactory factory : factories) {
             var engName = factory.getEngineName();
             var engVersion = factory.getEngineVersion();
             var langName = factory.getLanguageName();
@@ -284,10 +287,12 @@ public class ScriptRunner<T> {
             b.append(langName);
             b.append(" (" + langVersion + ")");
         }
-        LOG.error("Invalid Script Engine \"{}\". "
-                + "Detected Script Engines are:\n{}", name, b.toString());
+        LOG.error(
+                "Invalid Script Engine \"{}\". "
+                        + "Detected Script Engines are:\n{}",
+                name, b.toString());
         throw new IllegalArgumentException(
                 "No JSR 223 Script Engine found matching the "
-                + "name \"" + name + "\".");
+                        + "name \"" + name + "\".");
     }
 }

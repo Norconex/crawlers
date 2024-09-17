@@ -66,22 +66,8 @@ import lombok.ToString;
  * text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
  * </pre>
  * <p>You can specify your own content types as long as they contain HTML
- * text.</p>
- *
- * {@nx.xml.usage
- * <canonicalLinkDetector
- *     class="com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector"
- *     ignore="(false|true)">
- *   <contentTypes>
- *     (CSV list of content types on which to perform canonical link
- *     detection. Leave blank or remove this tag to use defaults.)
- *   </contentTypes>
- * </canonicalLinkDetector>
- * }
- *
- * {@nx.xml.example
- * <canonicalLinkDetector ignore="true"/>
- * }
+ * text.
+ * </p>
  * <p>
  * The above example ignores canonical link resolution.
  * </p>
@@ -92,15 +78,15 @@ import lombok.ToString;
 @ToString
 public class GenericCanonicalLinkDetector
         implements CanonicalLinkDetector,
-            Configurable<GenericCanonicalLinkDetectorConfig> {
+        Configurable<GenericCanonicalLinkDetectorConfig> {
 
     private static final List<ContentType> DEFAULT_CONTENT_TYPES =
-            Collections.unmodifiableList(Arrays.asList(
-                ContentType.HTML,
-                ContentType.valueOf("application/xhtml+xml"),
-                ContentType.valueOf("vnd.wap.xhtml+xml"),
-                ContentType.valueOf("x-asp")
-            ));
+            Collections.unmodifiableList(
+                    Arrays.asList(
+                            ContentType.HTML,
+                            ContentType.valueOf("application/xhtml+xml"),
+                            ContentType.valueOf("vnd.wap.xhtml+xml"),
+                            ContentType.valueOf("x-asp")));
 
     private final GenericCanonicalLinkDetectorConfig configuration =
             new GenericCanonicalLinkDetectorConfig(DEFAULT_CONTENT_TYPES);
@@ -117,15 +103,17 @@ public class GenericCanonicalLinkDetector
             link = link.replaceAll("\\s+", " ");
             // There might be multiple "links" in the same Link string.
             // We process them all individually.
-            return Stream.of(StringUtils.split(link,  '<'))
-                .filter(lnk -> Pattern.compile(
-                        "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
-                        .matcher(lnk).find())
-                .findFirst()
-                .map(lnk -> Pattern.compile("^([^>]+)>").matcher(lnk))
-                .filter(Matcher::find)
-                .map(matcher -> toAbsolute(reference, matcher.group(1).trim()))
-                .orElse(null);
+            return Stream.of(StringUtils.split(link, '<'))
+                    .filter(lnk -> Pattern.compile(
+                            "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
+                            .matcher(lnk).find())
+                    .findFirst()
+                    .map(lnk -> Pattern.compile("^([^>]+)>").matcher(lnk))
+                    .filter(Matcher::find)
+                    .map(matcher -> toAbsolute(
+                            reference,
+                            matcher.group(1).trim()))
+                    .orElse(null);
         }
         return null;
     }
@@ -133,7 +121,7 @@ public class GenericCanonicalLinkDetector
     @Override
     public String detectFromContent(
             String reference, InputStream is, ContentType contentType)
-                    throws IOException {
+            throws IOException {
         var cTypes = configuration.getContentTypes();
         if (cTypes.isEmpty()) {
             cTypes = DEFAULT_CONTENT_TYPES;
@@ -157,10 +145,10 @@ public class GenericCanonicalLinkDetector
 
                 if (Pattern.compile(
                         "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
-                                .matcher(tag).find()) {
+                        .matcher(tag).find()) {
                     var matcher = Pattern.compile(
                             "(?i)\\bhref\\s?=\\s?([\"'])(.*?)\\s?\\1")
-                                    .matcher(tag);
+                            .matcher(tag);
                     if (matcher.find()) {
                         return toAbsolute(reference, matcher.group(2));
                     }

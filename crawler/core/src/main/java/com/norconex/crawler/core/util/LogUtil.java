@@ -27,7 +27,8 @@ public final class LogUtil {
     public static final String MDC_CRAWLER_ID = "crawler.id";
     public static final String MDC_CRAWLER_ID_SAFE = "crawler.id.safe";
 
-    private LogUtil() {}
+    private LogUtil() {
+    }
 
     /**
      * <p>Sets two representations of the supplied crawler ID to the

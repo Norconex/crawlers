@@ -1,4 +1,4 @@
-/* Copyright 2021 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,33 @@ package com.norconex.importer.handler;
 
 class HandlerConsumerAdapterTest {
 
-//    @Test
-//    void testWriteRead() {
-//        ImporterConfig cfg = new ImporterConfig();
-//        cfg.loadFromXML(new XML(ResourceLoader.getXmlReader(getClass())));
-//        BeanMapper.DEFAULT.assertWriteRead(cfg);
-//    }
-//
-//    @Test
-//    void testXMLFlowConsumer() throws IOException {
-//        Properties metadata = new Properties();
-//        ImporterConfig cfg = new ImporterConfig();
-//        cfg.loadFromXML(new XML(ResourceLoader.getXmlReader(getClass())));
-//        Importer importer = new Importer(cfg);
-//        importer.importDocument(new Doc(
-//                "alice.html",
-//                new CachedStreamFactory().newInputStream(
-//                        FileUtils.openInputStream(TestUtil.getAliceHtmlFile())),
-//                metadata));
-//        assertEquals("Lewis Carroll", metadata.getString("Author"));
-//        assertEquals("HTML", metadata.getString("format"));
-//        assertEquals("refSuccess", metadata.getString("refTest"));
-//        assertEquals("scriptSuccess", metadata.getString("scriptTest"));
-//        assertEquals("numericSuccess", metadata.getString("numericTest"));
-//        assertEquals("domSuccess", metadata.getString("domTest"));
-//        assertEquals("dateSuccess", metadata.getString("dateTest"));
-//        assertEquals("blankTestSuccess", metadata.getString("blankTest"));
-//        assertEquals("notBlankTestSuccess", metadata.getString("notBlankTest"));
-//        Assertions.assertNull(metadata.getString("rejectTest"));
-//    }
+    //    @Test
+    //    void testWriteRead() {
+    //        ImporterConfig cfg = new ImporterConfig();
+    //        cfg.loadFromXML(new XML(ResourceLoader.getXmlReader(getClass())));
+    //        BeanMapper.DEFAULT.assertWriteRead(cfg);
+    //    }
+    //
+    //    @Test
+    //    void testXMLFlowConsumer() throws IOException {
+    //        Properties metadata = new Properties();
+    //        ImporterConfig cfg = new ImporterConfig();
+    //        cfg.loadFromXML(new XML(ResourceLoader.getXmlReader(getClass())));
+    //        Importer importer = new Importer(cfg);
+    //        importer.importDocument(new Doc(
+    //                "alice.html",
+    //                new CachedStreamFactory().newInputStream(
+    //                        FileUtils.openInputStream(TestUtil.getAliceHtmlFile())),
+    //                metadata));
+    //        assertEquals("Lewis Carroll", metadata.getString("Author"));
+    //        assertEquals("HTML", metadata.getString("format"));
+    //        assertEquals("refSuccess", metadata.getString("refTest"));
+    //        assertEquals("scriptSuccess", metadata.getString("scriptTest"));
+    //        assertEquals("numericSuccess", metadata.getString("numericTest"));
+    //        assertEquals("domSuccess", metadata.getString("domTest"));
+    //        assertEquals("dateSuccess", metadata.getString("dateTest"));
+    //        assertEquals("blankTestSuccess", metadata.getString("blankTest"));
+    //        assertEquals("notBlankTestSuccess", metadata.getString("notBlankTest"));
+    //        Assertions.assertNull(metadata.getString("rejectTest"));
+    //    }
 }

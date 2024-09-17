@@ -31,53 +31,58 @@ class MultiFetcherTest {
 
     @Test
     void testAcceptedAndOKResponse() {
-        var mf = multiFetcher(new MockFetcher()
-                .setDenyRequest(false)
-                .setReturnBadStatus(false));
+        var mf = multiFetcher(
+                new MockFetcher()
+                        .setDenyRequest(false)
+                        .setReturnBadStatus(false));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
-        assertThat(((MultiFetchResponse<?>) resp)
-                .getFetchResponses()).hasSize(1);
+        assertThat(
+                ((MultiFetchResponse<?>) resp)
+                        .getFetchResponses()).hasSize(1);
     }
 
     @Test
     void testAcceptedAndBadResponse() {
-        var mf = multiFetcher(new MockFetcher()
-                .setDenyRequest(false)
-                .setReturnBadStatus(true));
+        var mf = multiFetcher(
+                new MockFetcher()
+                        .setDenyRequest(false)
+                        .setReturnBadStatus(true));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
-        assertThat(((MultiFetchResponse<?>) resp)
-                .getFetchResponses()).hasSize(2);
+        assertThat(
+                ((MultiFetchResponse<?>) resp)
+                        .getFetchResponses()).hasSize(2);
     }
 
     @Test
     void testDenied() {
-        var mf = multiFetcher(new MockFetcher()
-                .setDenyRequest(true)
-                .setReturnBadStatus(false)); // <-- irrelevant
+        var mf = multiFetcher(
+                new MockFetcher()
+                        .setDenyRequest(true)
+                        .setReturnBadStatus(false)); // <-- irrelevant
         var resp = mf.fetch(new MockFetchRequest("someRef"));
         // Even though there are no matching fetchers, there is always
         // at least once response returned. In this case, it will be
         // one with status UNSUPPORTED.
-        assertThat(((MultiFetchResponse<?>) resp)
-                .getFetchResponses()).hasSize(1);
+        assertThat(
+                ((MultiFetchResponse<?>) resp)
+                        .getFetchResponses()).hasSize(1);
         assertThat(resp.getCrawlDocState()).isSameAs(CrawlDocState.UNSUPPORTED);
     }
 
-
-    private MultiFetcher<MockFetchRequest, MockFetchResponse>
-            multiFetcher(MockFetcher... fetchers) {
+    private MultiFetcher<MockFetchRequest, MockFetchResponse> multiFetcher(
+            MockFetcher... fetchers) {
         return MultiFetcher
-            .<MockFetchRequest, MockFetchResponse>builder()
-            .fetchers(List.of(fetchers))
-            .responseListAdapter(MockMultiFetcherResponse::new)
-            .unsuccessfulResponseAdaptor((state, msg, ex) ->
-                    new MockFetchResponseImpl()
-                        .setCrawlDocState(state)
-                        .setReasonPhrase(msg)
-                        .setException(ex))
-            .maxRetries(1)
-            .retryDelay(Duration.ofMillis(2))
-            .build();
+                .<MockFetchRequest, MockFetchResponse>builder()
+                .fetchers(List.of(fetchers))
+                .responseListAdapter(MockMultiFetcherResponse::new)
+                .unsuccessfulResponseAdaptor(
+                        (state, msg, ex) -> new MockFetchResponseImpl()
+                                .setCrawlDocState(state)
+                                .setReasonPhrase(msg)
+                                .setException(ex))
+                .maxRetries(1)
+                .retryDelay(Duration.ofMillis(2))
+                .build();
     }
 
     static class MockMultiFetcherResponse

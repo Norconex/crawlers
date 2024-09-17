@@ -24,7 +24,8 @@ import lombok.NonNull;
  */
 public final class FetchUtil {
 
-    private FetchUtil() {}
+    private FetchUtil() {
+    }
 
     public static boolean shouldContinueOnBadStatus(
             @NonNull Crawler crawler,
@@ -45,7 +46,7 @@ public final class FetchUtil {
             return FetchDirectiveSupport.OPTIONAL.is(metaSupport)
                     && FetchDirectiveSupport.isEnabled(docSupport);
 
-        //--- GET ---
+            //--- GET ---
         }
         if (FetchDirective.DOCUMENT.is(fetchDirective)) {
             // if directive is required, we end it here.

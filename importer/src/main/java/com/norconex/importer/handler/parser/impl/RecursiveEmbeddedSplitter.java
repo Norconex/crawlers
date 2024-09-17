@@ -70,7 +70,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
             ContentHandler handler,
             Metadata tikaMeta,
             ParseContext context)
-                    throws IOException, SAXException, TikaException {
+            throws IOException, SAXException, TikaException {
 
         var resName = tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY);
 
@@ -82,25 +82,29 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
             return;
         }
 
-        var embedDepth = docCtx.docRecord().getEmbeddedParentReferences().size() + 1;
+        var embedDepth =
+                docCtx.docContext().getEmbeddedParentReferences().size() + 1;
         var maxDepth = embeddedConfig.getMaxEmbeddedDepth();
         // Extract only up to specified max depth
         if (maxDepth >= 0 && embedDepth > maxDepth) {
-            LOG.warn("Skipping embedded document {} which is over max "
-                    + "depth: {}", maxDepth, resName);
+            LOG.warn(
+                    "Skipping embedded document {} which is over max "
+                            + "depth: {}",
+                    maxDepth, resName);
             return;
         }
 
         // Don't parse if unwanted embedded of parent content type
-        var parentType = docCtx.docRecord()
+        var parentType = docCtx.docContext()
                 .getContentType().toBaseTypeString();
         if (TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedOfContentTypes(),
                 parentType)) {
-            LOG.debug("Skipping embedded document {} "
-                    + "of parent content type: {}.",
-                        tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY),
-                        parentType);
+            LOG.debug(
+                    "Skipping embedded document {} "
+                            + "of parent content type: {}.",
+                    tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY),
+                    parentType);
             return;
         }
 
@@ -111,10 +115,11 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         if (TextMatcher.anyMatches(
                 embeddedConfig.getSkipEmbeddedContentTypes(),
                 embedContentType.toBaseTypeString())) {
-            LOG.debug("Skipping embedded document {} "
-                    + "with content type: {}.",
-                        tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY),
-                        embedContentType);
+            LOG.debug(
+                    "Skipping embedded document {} "
+                            + "with content type: {}.",
+                    tikaMeta.get(TikaCoreProperties.RESOURCE_NAME_KEY),
+                    embedContentType);
             return;
         }
 
@@ -124,7 +129,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         var embedRecord = resolveEmbeddedResourceName(
                 tikaMeta, embedMeta, embedCount);
         embedRecord.setEmbeddedParentReferences(
-                docCtx.docRecord().getEmbeddedParentReferences());
+                docCtx.docContext().getEmbeddedParentReferences());
 
         // Read the steam into cache for reuse since Tika will
         // close the original stream on us causing exceptions later.
@@ -180,6 +185,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
                 embedMeta,
                 "unknown");
     }
+
     private DocContext docRecord(
             String embedRef, Properties embedMeta, String embedType) {
         var docRecord = new DocContext();

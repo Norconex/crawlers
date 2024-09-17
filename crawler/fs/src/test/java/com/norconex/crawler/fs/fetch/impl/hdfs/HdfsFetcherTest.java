@@ -44,28 +44,35 @@ class HdfsFetcherTest {
                 new URL("http://url1.com"),
                 new URL("http://url2.com"));
 
-
         var f = new HdfsFetcher();
         assertThatNoException().isThrownBy(() -> {
             f.getConfiguration()
-                .setConfigNames(names)
-                .setConfigPaths(paths)
-                .setConfigUrls(urls);
-            assertThatNoException().isThrownBy(() ->
-                    BeanMapper.DEFAULT.assertWriteRead(f));
+                    .setConfigNames(names)
+                    .setConfigPaths(paths)
+                    .setConfigUrls(urls);
+            assertThatNoException()
+                    .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(f));
         });
 
         assertThat(f.getConfiguration().getConfigNames())
-            .containsExactlyElementsOf(names);
+                .containsExactlyElementsOf(names);
         assertThat(f.getConfiguration().getConfigPaths())
-            .containsExactlyElementsOf(paths);
+                .containsExactlyElementsOf(paths);
         assertThat(f.getConfiguration().getConfigUrls())
-            .containsExactlyElementsOf(urls);
+                .containsExactlyElementsOf(urls);
 
-        assertThat(f.acceptRequest(new FileFetchRequest(new CrawlDoc(
-                new DocContext("hdfs://blah")), DOCUMENT))).isTrue();
-        assertThat(f.acceptRequest(new FileFetchRequest(new CrawlDoc(
-                new DocContext("http://blah")), DOCUMENT))).isFalse();
+        assertThat(
+                f.acceptRequest(
+                        new FileFetchRequest(
+                                new CrawlDoc(
+                                        new DocContext("hdfs://blah")),
+                                DOCUMENT))).isTrue();
+        assertThat(
+                f.acceptRequest(
+                        new FileFetchRequest(
+                                new CrawlDoc(
+                                        new DocContext("http://blah")),
+                                DOCUMENT))).isFalse();
 
         var opts = new FileSystemOptions();
         f.applyFileSystemOptions(opts);

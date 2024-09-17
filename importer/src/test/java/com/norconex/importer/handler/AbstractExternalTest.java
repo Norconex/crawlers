@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ public abstract class AbstractExternalTest {
     static final String EXPECTED_OUTPUT = "3 2 1\n6 5 4\n9 8 7";
 
     private final Supplier<Configurable<ExternalTransformerConfig>> supplier;
+
     protected AbstractExternalTest(
             Supplier<Configurable<ExternalTransformerConfig>> supplier) {
         this.supplier = supplier;
@@ -61,20 +62,21 @@ public abstract class AbstractExternalTest {
 
         var t = supplier.get();
         t.getConfiguration()
-            .setCommand("my command")
-            .setTempDir(Paths.get("/some-path"))
-            .setMetadataInputFormat("json")
-            .setMetadataOutputFormat("xml")
-            .setExtractionPatterns(List.of(
-                    new RegexFieldValueExtractor("aaa.*", "111"),
-                    new RegexFieldValueExtractor("bbb.*", "222"),
-                    new RegexFieldValueExtractor("ccc.*", "333"),
-                    new RegexFieldValueExtractor("ddd.*", "444", 2)
-            ))
-            .setEnvironmentVariables(setEnvs);
+                .setCommand("my command")
+                .setTempDir(Paths.get("/some-path"))
+                .setMetadataInputFormat("json")
+                .setMetadataOutputFormat("xml")
+                .setExtractionPatterns(
+                        List.of(
+                                new RegexFieldValueExtractor("aaa.*", "111"),
+                                new RegexFieldValueExtractor("bbb.*", "222"),
+                                new RegexFieldValueExtractor("ccc.*", "333"),
+                                new RegexFieldValueExtractor("ddd.*", "444",
+                                        2)))
+                .setEnvironmentVariables(setEnvs);
 
-        assertThatNoException().isThrownBy(() ->
-            BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -82,16 +84,19 @@ public abstract class AbstractExternalTest {
             throws IOException {
         testWithExternalApp("-ic ${INPUT} -oc ${OUTPUT} -ref ${REFERENCE}");
     }
+
     @Test
     public void testInFileStdout()
             throws IOException {
         testWithExternalApp("-ic ${INPUT}");
     }
+
     @Test
     public void testStdinOutFile()
             throws IOException {
         testWithExternalApp("-oc ${OUTPUT} -ref ${REFERENCE}");
     }
+
     @Test
     public void testStdinStdout()
             throws IOException {
@@ -102,15 +107,16 @@ public abstract class AbstractExternalTest {
     public void testMetaInputOutputFiles()
             throws IOException {
         testWithExternalApp("""
-        	-ic ${INPUT} -oc ${OUTPUT}\s\
-        	-im ${INPUT_META} -om ${OUTPUT_META}\s\
-        	-ref ${REFERENCE}""", true);
+                -ic ${INPUT} -oc ${OUTPUT}\s\
+                -im ${INPUT_META} -om ${OUTPUT_META}\s\
+                -ref ${REFERENCE}""", true);
     }
 
     private void testWithExternalApp(String command)
             throws IOException {
         testWithExternalApp(command, false);
     }
+
     private void testWithExternalApp(String command, boolean metaFiles)
             throws IOException {
         var input = inputAsStream();
@@ -118,7 +124,8 @@ public abstract class AbstractExternalTest {
         if (metaFiles) {
             metadata.set(
                     "metaFileField1", "this is a first test");
-            metadata.set("metaFileField2",
+            metadata.set(
+                    "metaFileField2",
                     "this is a second test value1",
                     "this is a second test value2");
         }
@@ -128,10 +135,10 @@ public abstract class AbstractExternalTest {
         cfg.setCommand(ExternalApp.newCommandLine(command));
         addPatternsAndEnvs(cfg);
         cfg
-            .setMetadataInputFormat(META_FORMAT_PROPERTIES)
-            .setMetadataOutputFormat(META_FORMAT_PROPERTIES)
-            .setOnSet(PropertySetter.REPLACE);
-        var doc = TestUtil.newDocContext(
+                .setMetadataInputFormat(META_FORMAT_PROPERTIES)
+                .setMetadataOutputFormat(META_FORMAT_PROPERTIES)
+                .setOnSet(PropertySetter.REPLACE);
+        var doc = TestUtil.newHandlerContext(
                 "c:\\ref with spaces\\doc.txt", input,
                 metadata, ParseState.PRE);
         ((BaseDocumentHandler) t).accept(doc);
@@ -161,13 +168,17 @@ public abstract class AbstractExternalTest {
                 "value2 test second a is this",
                 meta.getStrings("metaFileField2").get(1));
     }
+
     private void assertMetadata(Properties meta, boolean testReference) {
         Assertions.assertEquals("StdoutBefore", meta.getString("field1"));
         Assertions.assertEquals("StdoutAfter", meta.getString("field2"));
-        Assertions.assertEquals("field3 StdErrBefore", meta.getString("field3"));
+        Assertions.assertEquals(
+                "field3 StdErrBefore",
+                meta.getString("field3"));
         Assertions.assertEquals("StdErrAfter", meta.getString("field4"));
         if (testReference) {
-            Assertions.assertEquals("c:\\ref with spaces\\doc.txt",
+            Assertions.assertEquals(
+                    "c:\\ref with spaces\\doc.txt",
                     meta.getString("reference"));
         }
     }
@@ -180,13 +191,17 @@ public abstract class AbstractExternalTest {
         envs.put(ExternalApp.ENV_STDERR_AFTER, "StdErrAfter:field4");
         cfg.setEnvironmentVariables(envs);
 
-        cfg.setExtractionPatterns(List.of(
-            new RegexFieldValueExtractor("^(f.*):(.*)", 1, 2),
-            new RegexFieldValueExtractor("^<field2>(.*)</field2>", "field2", 1),
-            new RegexFieldValueExtractor("^f.*StdErr.*", "field3", 1),
-            new RegexFieldValueExtractor("^(S.*?):(.*)", 2, 1),
-            new RegexFieldValueExtractor("^(reference)\\=(.*)", 1, 2)
-        ));
+        cfg.setExtractionPatterns(
+                List.of(
+                        new RegexFieldValueExtractor("^(f.*):(.*)", 1, 2),
+                        new RegexFieldValueExtractor(
+                                "^<field2>(.*)</field2>", "field2",
+                                1),
+                        new RegexFieldValueExtractor(
+                                "^f.*StdErr.*", "field3", 1),
+                        new RegexFieldValueExtractor("^(S.*?):(.*)", 2, 1),
+                        new RegexFieldValueExtractor(
+                                "^(reference)\\=(.*)", 1, 2)));
     }
 
     private InputStream inputAsStream() {

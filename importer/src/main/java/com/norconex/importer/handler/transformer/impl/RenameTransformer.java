@@ -84,9 +84,8 @@ public class RenameTransformer
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
         for (RenameOperation op : configuration.getOperations()) {
-            for (Entry<String, List<String>> en :
-                    docCtx.metadata().matchKeys(
-                            op.getFieldMatcher()).entrySet()) {
+            for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                    op.getFieldMatcher()).entrySet()) {
                 var field = en.getKey();
                 var values = en.getValue();
                 var newField = op.getFieldMatcher().replace(

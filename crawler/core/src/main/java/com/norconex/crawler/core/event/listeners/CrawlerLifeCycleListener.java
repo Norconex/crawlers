@@ -61,6 +61,7 @@ public abstract class CrawlerLifeCycleListener
     protected void onCrawlerEvent(CrawlerEvent event) {
         //NOOP
     }
+
     /**
      * Triggered when a crawler is ending its execution on either
      * a {@link CrawlerEvent#CRAWLER_RUN_END} or
@@ -70,33 +71,43 @@ public abstract class CrawlerLifeCycleListener
     protected void onCrawlerShutdown(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerInitBegin(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerInitEnd(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerRunBegin(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerRunEnd(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerRunThreadBegin(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerRunThreadEnd(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerStopBegin(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerStopEnd(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerCleanBegin(CrawlerEvent event) {
         //NOOP
     }
+
     protected void onCrawlerCleanEnd(CrawlerEvent event) {
         //NOOP
     }

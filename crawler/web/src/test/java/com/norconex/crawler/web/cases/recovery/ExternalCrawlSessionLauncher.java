@@ -58,9 +58,11 @@ public class ExternalCrawlSessionLauncher {
     public static CrawlOutcome start(CrawlerConfig crawlerConfig) {
         return launch(crawlerConfig, "start");
     }
+
     public static CrawlOutcome startClean(CrawlerConfig crawlerConfig) {
         return launch(crawlerConfig, "start -clean");
     }
+
     public static CrawlOutcome clean(CrawlerConfig crawlerConfig) {
         return launch(crawlerConfig, "clean");
     }
@@ -114,9 +116,12 @@ public class ExternalCrawlSessionLauncher {
         logger.setMessageOutputLevel(Project.MSG_INFO);
         project.fireBuildStarted();
 
-        LOG.info("Launched new web crawl session on new JVM. Action: '{}'. "
-                + (ArrayUtils.isEmpty(extraArgs) ? "" :  "Extra arguments: '"
-                        + join(" ", extraArgs) + "'."), action);
+        LOG.info(
+                "Launched new web crawl session on new JVM. Action: '{}'. "
+                        + (ArrayUtils.isEmpty(extraArgs) ? ""
+                                : "Extra arguments: '"
+                                        + join(" ", extraArgs) + "'."),
+                action);
         Throwable caught = null;
         var retValue = 0;
         try {
@@ -139,7 +144,8 @@ public class ExternalCrawlSessionLauncher {
             }
             javaTask.getCommandLine().createArgument().setLine(args);
             javaTask.init();
-            LOG.info("Command: {}",
+            LOG.info(
+                    "Command: {}",
                     javaTask.getCommandLine().describeCommand());
             retValue = javaTask.executeJava();
 
@@ -177,6 +183,7 @@ public class ExternalCrawlSessionLauncher {
         private final int returnValue;
         private final String stdOut;
         private final String stdErr;
+
         private CrawlOutcome(Captured<Integer> captured) {
             returnValue = captured.getReturnValue();
             stdOut = captured.getStdOut();

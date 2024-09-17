@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,13 @@ class TextConditionTest {
             throws IOException {
         var cond = newRegexTextCondition();
         cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
-        Assertions.assertTrue(TestUtil.condition(cond, "n/a",
-                IOUtils.toInputStream("a string that matches",
-                        StandardCharsets.UTF_8), null, ParseState.PRE),
+        Assertions.assertTrue(
+                TestUtil.condition(
+                        cond, "n/a",
+                        IOUtils.toInputStream(
+                                "a string that matches",
+                                StandardCharsets.UTF_8),
+                        null, ParseState.PRE),
                 "Should have been accepted.");
     }
 
@@ -47,12 +51,13 @@ class TextConditionTest {
         var cond = newRegexTextCondition();
         cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
         Assertions.assertFalse(
-                TestUtil.condition(cond, "n/a", IOUtils.toInputStream(
-                        "a text that does not match", StandardCharsets.UTF_8),
+                TestUtil.condition(
+                        cond, "n/a", IOUtils.toInputStream(
+                                "a text that does not match",
+                                StandardCharsets.UTF_8),
                         null, ParseState.PRE),
                 "Should have been rejected.");
     }
-
 
     @Test
     void testRegexFieldDocument()
@@ -77,21 +82,24 @@ class TextConditionTest {
     }
 
     @Test
-        void testWriteRead() {
+    void testWriteRead() {
         var cond = new TextCondition();
-        cond.getConfiguration().setFieldMatcher(new TextMatcher()
-                .setMethod(Method.REGEX)
-                .setPartial(true));
-        cond.getConfiguration().setValueMatcher(new TextMatcher()
-                .setMethod(Method.REGEX)
-                .setPartial(true)
-                .setPattern("blah"));
+        cond.getConfiguration().setFieldMatcher(
+                new TextMatcher()
+                        .setMethod(Method.REGEX)
+                        .setPartial(true));
+        cond.getConfiguration().setValueMatcher(
+                new TextMatcher()
+                        .setMethod(Method.REGEX)
+                        .setPartial(true)
+                        .setPattern("blah"));
         BeanMapper.DEFAULT.assertWriteRead(cond);
     }
 
     private TextCondition newRegexTextCondition() {
         return new TextCondition(newRegexMatcher(), newRegexMatcher());
     }
+
     private TextMatcher newRegexMatcher() {
         return new TextMatcher().setMethod(Method.REGEX);
     }

@@ -79,10 +79,10 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         // sitemap URL or not (we treat empty sitemaps as having no sitemaps).
         var presence = ofNullable(
                 crawlerContext
-                .getResolvedWebsites()
-                .putIfAbsent(
-                        urlRoot, SitemapPresence.RESOLVING))
-                .orElse(SitemapPresence.RESOLVING);
+                        .getResolvedWebsites()
+                        .putIfAbsent(
+                                urlRoot, SitemapPresence.RESOLVING))
+                                        .orElse(SitemapPresence.RESOLVING);
 
         // Process sitemap
         if (presence == SitemapPresence.RESOLVING) {
@@ -132,11 +132,11 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         final var urlCount = new MutableInt();
         ctx.getCrawler().fire(
                 CrawlerEvent
-                .builder()
-                .name(WebCrawlerEvent.SITEMAP_RESOLVE_BEGIN)
-                .docContext(docRec)
-                .source(ctx.getCrawler())
-                .build());
+                        .builder()
+                        .name(WebCrawlerEvent.SITEMAP_RESOLVE_BEGIN)
+                        .docContext(docRec)
+                        .source(ctx.getCrawler())
+                        .build());
 
         // To make sure the initial doc is not rejected just because
         // it is not yet identified as being part of the sitemap, we
@@ -156,15 +156,18 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
             actualRec.setFromSitemap(true);
             isDocFoundInSitemap.setTrue();
             ctx.getCrawler()
-            .getDocPipelines()
-            .getQueuePipeline()
-            .accept(new QueuePipelineContext(ctx.getCrawler(), actualRec));
+                    .getDocPipelines()
+                    .getQueuePipeline()
+                    .accept(
+                            new QueuePipelineContext(
+                                    ctx.getCrawler(),
+                                    actualRec));
 
             var cnt = urlCount.getAndIncrement();
             if ((cnt == 0)) {
                 crawlerContext
-                .getResolvedWebsites()
-                .put(urlRoot, SitemapPresence.PRESENT);
+                        .getResolvedWebsites()
+                        .put(urlRoot, SitemapPresence.PRESENT);
             }
         };
 
@@ -176,15 +179,16 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
                 docUrl, ctx.getCrawler())) {
 
             var sitemapCtx = SitemapContext.builder()
-                .fetcher(Web.fetcher(ctx.getCrawler()))
-                .location(location)
-                .urlConsumer(urlConsumer)
-                .build();
+                    .fetcher(Web.fetcher(ctx.getCrawler()))
+                    .location(location)
+                    .urlConsumer(urlConsumer)
+                    .build();
             cfg.getSitemapResolver().resolve(sitemapCtx);
 
             if (urlCount.intValue() > 0) {
                 foundLocation.setValue(location);
-                LOG.info("{} references were extracted from sitemap: {}",
+                LOG.info(
+                        "{} references were extracted from sitemap: {}",
                         urlCount.intValue(), location);
                 // we break since we deal with the first one discovered
                 // (we assume there is only one initial sitemap index per site).
@@ -197,8 +201,8 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
             eventMsg = "No sitemap found or sitemap was empty for %s."
                     .formatted(urlRoot);
             crawlerContext
-            .getResolvedWebsites()
-            .put(urlRoot, SitemapPresence.NONE);
+                    .getResolvedWebsites()
+                    .put(urlRoot, SitemapPresence.NONE);
         } else {
             // the presence is already set to PRESENT at this point.
             eventMsg = urlCount.toInteger()
@@ -208,11 +212,11 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
 
         ctx.getCrawler().fire(
                 CrawlerEvent
-                .builder()
-                .name(WebCrawlerEvent.SITEMAP_RESOLVE_END)
-                .source(ctx.getCrawler())
-                .subject(urlCount.toInteger())
-                .message(eventMsg)
-                .build());
+                        .builder()
+                        .name(WebCrawlerEvent.SITEMAP_RESOLVE_END)
+                        .source(ctx.getCrawler())
+                        .subject(urlCount.toInteger())
+                        .message(eventMsg)
+                        .build());
     }
 }

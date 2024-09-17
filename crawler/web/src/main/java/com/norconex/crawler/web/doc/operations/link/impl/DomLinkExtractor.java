@@ -19,6 +19,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -36,6 +37,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.DomLinkExtractorConfig.LinkSelector;
+import com.norconex.importer.handler.CommonMatchers;
 import com.norconex.importer.util.DomUtil;
 
 import lombok.EqualsAndHashCode;
@@ -68,12 +70,13 @@ import lombok.ToString;
  *
  * <p>When used before importing this class attempts to detect the content
  * character encoding unless the character encoding
- * was specified using {@link #setCharset(String)}. Since document
- * parsing converts content to UTF-8, UTF-8 is always assumed when
- * used as a post-parse handler.
+ * was specified using
+ * {@link DomLinkExtractorConfig#setCharset(java.nio.charset.Charset)}.
+ * Since document parsing converts content to UTF-8, UTF-8 is always assumed
+ * when used as a post-parse handler.
  * </p>
  *
- * <p>You can specify which parser to use when reading
+ * <p>You can specify which DOM parser to use when reading
  * documents. The default is "html" and will normalize the content
  * as HTML. This is generally a desired behavior, but this can sometimes
  * have your selector fail. If you encounter this
@@ -91,11 +94,8 @@ import lombok.ToString;
  * <p>
  * It is possible to control what gets extracted
  * exactly for matching purposes thanks to the "extract" argument expected
- * with every selector.  Possible values are:
+ * with every selector.  See {@link DomUtil} for possible values.
  * </p>
- *
- * {@nx.include com.norconex.importer.util.DomUtil#extract}
- *
  * <p>
  * When not specified, the default is "text".
  * </p>
@@ -122,7 +122,8 @@ import lombok.ToString;
  * That information gets stored as metadata in the target document.
  * If you want to limit the quantity of information extracted/stored,
  * you can disable this feature by setting
- * {@link #ignoreLinkData} to <code>true</code>.
+ * {@link DomLinkExtractorConfig#setIgnoreLinkData(boolean)} to
+ * <code>true</code>.
  * </p>
  *
  * <h3>URL Schemes</h3>
@@ -131,15 +132,14 @@ import lombok.ToString;
  * schemes</a> are extracted for absolute URLs. By default, those are
  * <code>http</code>, <code>https</code>, and <code>ftp</code>. You can
  * specify your own list of supported protocols with
- * {@link #setSchemes(String[])}.
+ * {@link DomLinkExtractorConfig#setSchemes(java.util.List)}.
  * </p>
  *
  * <h3>Applicable documents</h3>
  * <p>
- * By default, this extractor only will be applied on documents matching
- * one of these content types:
+ * By default, this extractor will only be applied on documents matching
+ * one of these content types: {@link CommonMatchers#DOM_CONTENT_TYPES}.
  * </p>
- * {@nx.include com.norconex.importer.handler.CommonMatchers#domContentTypes}
  *
  * <h3>"nofollow"</h3>
  * <p>
@@ -147,57 +147,11 @@ import lombok.ToString;
  * won't be extracted (e.g.
  * <code>&lt;a href="x.html" rel="nofollow" ...&gt;</code>).
  * To force its extraction (and ensure it is followed) you can set
- * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
+ * {@link DomLinkExtractorConfig#setIgnoreNofollow(boolean)} to <code>true</code>.
  * </p>
  *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.DOMLinkExtractor"
- *     ignoreNofollow="[false|true]"
- *     ignoreLinkData="[false|true]"
- *     parser="[html|xml]"
- *     charset="(supported character encoding)">
- *   {@nx.include com.norconex.crawler.web.doc.operations.link.AbstractTextLinkExtractor@nx.xml.usage}
- *
- *   <schemes>
- *     (CSV list of URI scheme for which to perform link extraction.
- *      leave blank or remove tag to use defaults.)
- *   </schemes>
- *
- *   <!-- Repeat as needed: -->
- *   <linkSelector
- *       {@nx.include com.norconex.importer.util.DomUtil#attributes}>
- *      (selector syntax)
- *   </linkSelector>
- *
- *   <!-- Optional. Only apply link selectors to portions of a document
- *        matching these selectors. Repeat as needed. -->
- *   <extractSelector>(selector syntax)</extractSelector>
- *
- *   <!-- Optional. Do not apply link selectors to portions of a document
- *        matching these selectors. Repeat as needed. -->
- *   <noExtractSelector>(selector syntax)</noExtractSelector>
- *
- * </extractor>
- * }
- *
- * {@nx.xml.example
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.DOMLinkExtractor">
- *   <linkSelector extract="attr(href)">a[href]</linkSelector>
- *   <linkSelector extract="attr(src)">[src]</linkSelector>
- *   <linkSelector extract="attr(href)">link[href]</linkSelector>
- *   <linkSelector extract="attr(content)">meta[http-equiv='refresh']</linkSelector>
- *
- *   <linkSelector extract="attr(data-myurl)">[data-myurl]</linkSelector>
- * </extractor>
- * }
- *
- * <p>
- * The above example will extract URLs found in custom element attributes named
- * <code>data-myurl</code>.
- * </p>
  * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class DomLinkExtractor
@@ -216,16 +170,25 @@ public class DomLinkExtractor
             return Set.of();
         }
 
+        if (!getConfiguration().getRestrictions().isEmpty()
+                && !getConfiguration().getRestrictions().matches(
+                        doc.getMetadata())) {
+            return Collections.emptySet();
+        }
+
         Set<Link> links = new HashSet<>();
         var parser = DomUtil.toJSoupParser(configuration.getParser());
 
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
             doc.getMetadata()
-                .matchKeys(configuration.getFieldMatcher())
-                .valueList()
-                    .forEach(val -> extractFromJsoupDocument(
-                            links, parser.parseInput(val, doc.getReference())));
+                    .matchKeys(configuration.getFieldMatcher())
+                    .valueList()
+                    .forEach(
+                            val -> extractFromJsoupDocument(
+                                    links,
+                                    parser.parseInput(val,
+                                            doc.getReference())));
         } else {
             // Body
             try (var in = IOUtils.buffer(
@@ -250,7 +213,6 @@ public class DomLinkExtractor
         }
     }
 
-
     private Link extractLink(Element elm, String extract) {
         var url = trimToNull(DomUtil.getElementValue(elm, extract));
         if (url == null || (!configuration.isIgnoreNofollow()
@@ -269,7 +231,6 @@ public class DomLinkExtractor
         // Make absolute (can't rely on JSoup "abs:" since URL can be defined
         // in XML elements as well, not just attributes).
         url = HttpURL.toAbsolute(elm.baseUri(), url);
-
 
         // Make sure URL scheme is supported
         var supportedSchemes = configuration.getSchemes().isEmpty()

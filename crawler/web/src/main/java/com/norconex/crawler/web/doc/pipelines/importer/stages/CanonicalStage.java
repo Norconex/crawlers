@@ -73,23 +73,26 @@ public class CanonicalStage extends AbstractImporterStage {
     // Resolves metadata (HTTP headers) canonical link detection
     private boolean resolveFromHeaders(
             WebImporterPipelineContext ctx, CanonicalLinkDetector detector) {
-        return resolveCanonical(ctx, detector.detectFromMetadata(
-                ctx.getDoc().getReference(),
-                ctx.getDoc().getMetadata()));
+        return resolveCanonical(
+                ctx, detector.detectFromMetadata(
+                        ctx.getDoc().getReference(),
+                        ctx.getDoc().getMetadata()));
     }
 
     // Proceed with document (<meta>) canonical link detection
     private boolean resolveFromContent(
             WebImporterPipelineContext ctx, CanonicalLinkDetector detector) {
         try {
-            return resolveCanonical(ctx, detector.detectFromContent(
-                    ctx.getDoc().getReference(),
-                    ctx.getDoc().getInputStream(),
-                    ctx.getDoc().getDocContext().getContentType()));
+            return resolveCanonical(
+                    ctx, detector.detectFromContent(
+                            ctx.getDoc().getReference(),
+                            ctx.getDoc().getInputStream(),
+                            ctx.getDoc().getDocContext().getContentType()));
         } catch (IOException e) {
             throw new CrawlerException(
                     "Cannot resolve canonical link from content for: "
-                    + ctx.getDoc().getReference(), e);
+                            + ctx.getDoc().getReference(),
+                    e);
         }
     }
 
@@ -119,16 +122,18 @@ public class CanonicalStage extends AbstractImporterStage {
         }
         if (normalizedCanURL == null) {
             LOG.info("""
-                Canonical URL detected is null after\s\
-                normalization so it will be ignored and its referrer\s\
-                will be processed instead.  Canonical URL: "{}" \
-                Rererrer URL: {}""", canURL, reference);
+                    Canonical URL detected is null after\s\
+                    normalization so it will be ignored and its referrer\s\
+                    will be processed instead.  Canonical URL: "{}" \
+                    Rererrer URL: {}""", canURL, reference);
             return false;
         }
 
         if (normalizedCanURL.equals(reference)) {
-            LOG.debug("Canonical URL detected is the same as document "
-                  + "URL. Process normally. URL: {}", reference);
+            LOG.debug(
+                    "Canonical URL detected is the same as document "
+                            + "URL. Process normally. URL: {}",
+                    reference);
             return true;
         }
 
@@ -136,11 +141,13 @@ public class CanonicalStage extends AbstractImporterStage {
         // it regardless
         if (docRec.getRedirectTrail().contains(normalizedCanURL)) {
             if (LOG.isWarnEnabled()) {
-                LOG.warn("""
-                    Circular reference between redirect and canonical\s\
-                    URL detected. Will ignore canonical directive and\s\
-                    process URL: "{}". Redirect trail: {}""", reference,
-                    Arrays.toString(docRec.getRedirectTrail().toArray()));
+                LOG.warn(
+                        """
+                                Circular reference between redirect and canonical\s\
+                                URL detected. Will ignore canonical directive and\s\
+                                process URL: "{}". Redirect trail: {}""",
+                        reference,
+                        Arrays.toString(docRec.getRedirectTrail().toArray()));
             }
             return true;
         }
@@ -155,31 +162,35 @@ public class CanonicalStage extends AbstractImporterStage {
                 .resolve(docRec.getReference(), scopedUrlCtx);
         Web.fireIfUrlOutOfScope(ctx.getCrawler(), scopedUrlCtx, urlScope);
         if (!urlScope.isInScope()) {
-            LOG.debug("Canonical URL is out of scope and will be ignored: "
-                    + canURL);
+            LOG.debug(
+                    "Canonical URL is out of scope and will be ignored: "
+                            + canURL);
             return true;
         }
         // Call Queue pipeline on Canonical URL
-        LOG.debug("""
-            Canonical URL detected is different than\s\
-            document URL. Document will be rejected while\s\
-            canonical URL will be queued for processing: {}""",
-            canURL);
+        LOG.debug(
+                """
+                        Canonical URL detected is different than\s\
+                        document URL. Document will be rejected while\s\
+                        canonical URL will be queued for processing: {}""",
+                canURL);
 
         ctx.getCrawler()
-        .getDocPipelines()
-        .getQueuePipeline()
-        .accept(new QueuePipelineContext(ctx.getCrawler(), newRecord));
+                .getDocPipelines()
+                .getQueuePipeline()
+                .accept(new QueuePipelineContext(ctx.getCrawler(), newRecord));
 
         docRec.setState(CrawlDocState.REJECTED);
-        ctx.getCrawler().fire(CrawlerEvent.builder()
-                .name(WebCrawlerEvent.REJECTED_NONCANONICAL)
-                .source(ctx.getCrawler())
-                .subject(detector)
-                .docContext(docRec)
-                .message(detector.getClass().getSimpleName()
-                        + "[canonical=" + canURL + "]")
-                .build());
+        ctx.getCrawler().fire(
+                CrawlerEvent.builder()
+                        .name(WebCrawlerEvent.REJECTED_NONCANONICAL)
+                        .source(ctx.getCrawler())
+                        .subject(detector)
+                        .docContext(docRec)
+                        .message(
+                                detector.getClass().getSimpleName()
+                                        + "[canonical=" + canURL + "]")
+                        .build());
         return false;
     }
 }

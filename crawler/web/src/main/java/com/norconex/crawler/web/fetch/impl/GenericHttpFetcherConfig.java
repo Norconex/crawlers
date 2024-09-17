@@ -38,10 +38,7 @@ import lombok.experimental.Accessors;
 
 /**
  * Generic HTTP Fetcher configuration.
- * @since 3.0.0 (adapted from GenericHttpClientFactory and
- *        GenericDocumentFetcher from version 2.x)
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class GenericHttpFetcherConfig extends BaseFetcherConfig {
@@ -57,25 +54,30 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public static final List<Integer> DEFAULT_NOT_FOUND_STATUS_CODES =
             CollectionUtil.unmodifiableList(HttpStatus.SC_NOT_FOUND);
 
-    public enum CookieSpec { RELAXED, STRICT, IGNORE }
+    public enum CookieSpec {
+        RELAXED, STRICT, IGNORE
+    }
 
+    /**
+     * HTTP status codes considered "valid". Defaults to 200.
+     */
     private final List<Integer> validStatusCodes =
             new ArrayList<>(DEFAULT_VALID_STATUS_CODES);
 
+    /**
+     * HTTP status codes considered "not found". Defaults to 404.
+     */
     private final List<Integer> notFoundStatusCodes =
             new ArrayList<>(DEFAULT_NOT_FOUND_STATUS_CODES);
     /**
-     * Optional prefix prepended to captured HTTP response fields.
-     * @param headersPrefix optional prefix
-     * @return prefix or <code>null</code>
+     * Optional prefix prepended to captured HTTP response fields. A
+     * <code>null</code> value (default) won't add any prefix.
      */
     private String headersPrefix;
 
     /**
      * Whether content type is detected instead of relying on
      * returned <code>Content-Type</code> HTTP response header.
-     * @param forceContentTypeDetection <code>true</code> to enable detection
-     * @return <code>true</code> to enable detection
      */
     private boolean forceContentTypeDetection;
 
@@ -83,33 +85,28 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * Whether character encoding is detected instead of relying on
      * the charset sometimes found in the <code>Content-Type</code> HTTP
      * response header.
-     * @param forceCharsetDetection <code>true</code> to enable detection
-     * @return <code>true</code> to enable detection
      */
     private boolean forceCharsetDetection;
 
     /**
      * Authentication configuration for sites requiring it. Default
      * is <code>null</code>.
-     * @param authentication authentication configuration
-     * @return authentication configuration
      */
     private HttpAuthConfig authentication;
 
     /**
      * Cookie specification to use when fetching documents. Default is relaxed.
-     * @param cookieSpec cookie specification name
-     * @return the cookieSpec cookie specification name
      */
     private CookieSpec cookieSpec = CookieSpec.RELAXED;
 
+    /**
+     * An optional HTTP proxy.
+     */
     private final ProxySettings proxySettings = new ProxySettings();
 
     /**
      * The connection timeout for a connection to be established.
      * Default is {@link #DEFAULT_TIMEOUT}.
-     * @param connectionTimeout connection timeout
-     * @return connection timeout
      */
     private Duration connectionTimeout = DEFAULT_TIMEOUT;
 
@@ -117,32 +114,24 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * Gets the maximum period of inactivity between two consecutive data
      * packets.
      * Default is {@link #DEFAULT_TIMEOUT}.
-     * @param socketTimeout socket timeout
-     * @return socket timeout
      */
     private Duration socketTimeout = DEFAULT_TIMEOUT;
 
     /**
      * Gets the timeout when requesting a connection.
      * Default is {@link #DEFAULT_TIMEOUT}.
-     * @param connectionRequestTimeout connection request timeout
-     * @return connection request timeout
      */
     private Duration connectionRequestTimeout = DEFAULT_TIMEOUT;
 
     /**
      * The local address, which may be useful when working with multiple
      * network interfaces.
-     * @param localAddress locale address
-     * @return local address
      */
     private String localAddress;
 
     /**
      * Whether 'Expect: 100-continue' handshake is enabled.
      * See {@link RequestConfig#isExpectContinueEnabled()}
-     * @param expectContinueEnabled <code>true</code> if enabled
-     * @return <code>true</code> if enabled
      */
     private boolean expectContinueEnabled;
 
@@ -150,8 +139,6 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * The maximum number of redirects to be followed.  This can help
      * prevent infinite loops.  A value of zero effectively disables
      * redirects.  Default is {@link #DEFAULT_MAX_REDIRECT}.
-     * @param maxRedirects maximum number of redirects to be followed
-     * @return maximum number of redirects to be followed
      */
     private int maxRedirects = DEFAULT_MAX_REDIRECT;
 
@@ -159,16 +146,12 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * The maximum number of connections that can be created.  Typically,
      * you would have at least the same amount as threads.
      * Default is {@link #DEFAULT_MAX_CONNECTIONS}.
-     * @param maxConnections maximum number of connections
-     * @return number of connections
      */
     private int maxConnections = DEFAULT_MAX_CONNECTIONS;
 
     /**
      * The maximum number of connections that can be used per route.
      * Default is {@link #DEFAULT_MAX_CONNECTIONS_PER_ROUTE}.
-     * @param maxConnectionsPerRoute maximum number of connections per route
-     * @return number of connections per route
      */
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
 
@@ -176,9 +159,6 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * Sets the period of time after which to evict idle
      * connections from the connection pool.
      * Default is {@link #DEFAULT_MAX_IDLE_TIME}.
-     * @param maxConnectionIdleTime amount of time after which to evict idle
-     *         connections
-     * @return amount of time after which to evict idle connections
      */
     private Duration maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
 
@@ -186,11 +166,12 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * Sets the period of time a connection must be inactive
      * to be checked in case it became stalled. Default is 0 (not pro-actively
      * checked).
-     * @param maxConnectionInactiveTime period of time in milliseconds
-     * @return period of time in milliseconds
      */
     private Duration maxConnectionInactiveTime;
 
+    /**
+     * Headers to send with every HTTP request.
+     */
     private final Map<String, String> requestHeaders = new HashMap<>();
 
     /**
@@ -198,8 +179,6 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * header is disabled.
      * Servers supporting this header will only return the requested document
      * if it was last modified since the supplied date.
-     * @param ifModifiedSinceDisabled <code>true</code> if disabled
-     * @return <code>true</code> if disabled
      */
     private boolean ifModifiedSinceDisabled;
 
@@ -209,60 +188,54 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * Servers supporting this header will only return the requested document
      * if the ETag value has changed, indicating a more recent version is
      * available.
-     * @param eTagDisabled <code>true</code> if disabled
-     * @return <code>true</code> if disabled
      */
     private boolean eTagDisabled;
 
     /**
      * The user-agent used when identifying the crawler to targeted web sites.
      * <b>It is highly recommended to always identify yourself.</b>
-     * @param userAgent user agent
-     * @return user agent
      */
     private String userAgent;
 
     /**
      * The redirect URL provider.
      * Defaults to {@link GenericRedirectUrlProvider}.
-     * @param redirectUrlProvider redirect URL provider
-     * @return the redirect URL provider
      */
     private RedirectUrlProvider redirectUrlProvider =
             new GenericRedirectUrlProvider();
 
-    private final List<HttpMethod> httpMethods = new ArrayList<>(Arrays.asList(
-            HttpMethod.GET, HttpMethod.HEAD));
+    /**
+     * List of supported HTTP methods.
+     */
+    private final List<HttpMethod> httpMethods = new ArrayList<>(
+            Arrays.asList(
+                    HttpMethod.GET, HttpMethod.HEAD));
 
     // Security settings
 
     /**
      * Sets whether to trust all SSL certificate (affects only "https"
-     * connections).  This is typically a bad
-     * idea (favors man-in-the-middle attacks). Try to install a SSL
+     * connections).  This is typically a bad idea if you care to avoid
+     * "man-in-the-middle" attacks. Try to install a SSL
      * certificate locally to ensure a proper certificate exchange instead.
      * @since 1.3.0
-     * @param trustAllSSLCertificates <code>true</code> if trusting all SSL
-     *            certificates
-     * @return <code>true</code> if trusting all SSL certificates
      */
     private boolean trustAllSSLCertificates;
 
     /**
      * Sets whether Server Name Indication (SNI) is disabled.
-     * @param sniDisabled <code>true</code> if disabled
-     * @return <code>true</code> if disabled
      */
     private boolean sniDisabled;
 
+    /**
+     * Supported security protocols.
+     */
     private final List<String> sslProtocols = new ArrayList<>();
 
     /**
      * Gets whether the forcing of non secure URLs to secure ones is disabled,
      * according to the URL domain <code>Strict-Transport-Security</code> policy
      * (obtained from HTTP response header).
-     * @param hstsDisabled <code>true</code> if disabled
-     * @return <code>true</code> if disabled
      */
     private boolean hstsDisabled;
 
@@ -273,9 +246,11 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public List<Integer> getValidStatusCodes() {
         return Collections.unmodifiableList(validStatusCodes);
     }
+
     /**
      * Gets valid HTTP response status codes.
      * @param validStatusCodes valid status codes
+     * @return this
      */
     public GenericHttpFetcherConfig setValidStatusCodes(
             List<Integer> validStatusCodes) {
@@ -291,9 +266,11 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public List<Integer> getNotFoundStatusCodes() {
         return Collections.unmodifiableList(notFoundStatusCodes);
     }
+
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
      * @param notFoundStatusCodes "Not found" codes
+     * @return this
      */
     public final GenericHttpFetcherConfig setNotFoundStatusCodes(
             List<Integer> notFoundStatusCodes) {
@@ -307,23 +284,27 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
      * may already provide.
      * @param name HTTP request header name
      * @param value HTTP request header value
+     * @return this
      */
     public GenericHttpFetcherConfig setRequestHeader(
             String name, String value) {
         requestHeaders.put(name, value);
         return this;
     }
+
     /**
      * Sets a default HTTP request headers every HTTP connection should have.
      * Those are in addition to any default request headers Apache HttpClient
      * may already provide.
      * @param headers map of header names and values
+     * @return this
      */
     public GenericHttpFetcherConfig setRequestHeaders(
             Map<String, String> headers) {
         CollectionUtil.setAll(requestHeaders, headers);
         return this;
     }
+
     /**
      * Gets the HTTP request header value matching the given name, previously
      * set with {@link #setRequestHeader(String, String)}.
@@ -346,6 +327,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
         return Collections.unmodifiableList(
                 new ArrayList<>(requestHeaders.keySet()));
     }
+
     /**
      * Remove the request header matching the given name.
      * @param name name of HTTP request header to remove
@@ -359,6 +341,7 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
+
     public GenericHttpFetcherConfig setProxySettings(ProxySettings proxy) {
         proxySettings.copyFrom(proxy);
         return this;
@@ -373,11 +356,13 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public List<String> getSslProtocols() {
         return Collections.unmodifiableList(sslProtocols);
     }
+
     /**
      * Sets the supported SSL/TLS protocols, such as SSLv3, TLSv1, TLSv1.1,
      * and TLSv1.2.  Note that specifying a protocol not supported by
      * your underlying Java platform will not work.
      * @param sslProtocols SSL/TLS protocols supported
+     * @return this
      */
     public GenericHttpFetcherConfig setSslProtocols(
             List<String> sslProtocols) {
@@ -393,10 +378,12 @@ public class GenericHttpFetcherConfig extends BaseFetcherConfig {
     public List<HttpMethod> getHttpMethods() {
         return Collections.unmodifiableList(httpMethods);
     }
+
     /**
      * Sets the list of HTTP methods to be accepted by this fetcher.
      * Defaults are {@link HttpMethod#GET} and {@link HttpMethod#HEAD}.
      * @param httpMethods HTTP methods
+     * @return this
      */
     public GenericHttpFetcherConfig setHttpMethods(
             List<HttpMethod> httpMethods) {

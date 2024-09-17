@@ -114,6 +114,7 @@ public class ExternalParser
     private final ExternalTransformer t = new ExternalTransformer();
     private final ExternalTransformerConfig configuration =
             t.getConfiguration();
+
     @Override
     public void handle(HandlerContext ctx) throws IOException {
         t.accept(ctx);

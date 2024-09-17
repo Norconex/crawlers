@@ -17,6 +17,7 @@ package com.norconex.crawler.web.event.listeners;
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -34,6 +35,7 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
 
@@ -46,10 +48,10 @@ class UrlStatusCrawlerEventListenerTest {
 
         var urlStatusListener = new UrlStatusCrawlerEventListener();
         urlStatusListener.getConfiguration()
-            .setTimestamped(true)
-            .setStatusCodes("200-299, 400-499, 500")
-            .setFileNamePrefix("super-")
-            .setOutputDir(tempDir.resolve("statuses"));
+                .setTimestamped(true)
+                .setStatusCodes("200-299, 400-499, 500")
+                .setFileNamePrefix("super-")
+                .setOutputDir(tempDir.resolve("statuses"));
 
         var ok1Path = "/ok1.html";
         var ok2Path = "/ok2.html";
@@ -59,41 +61,85 @@ class UrlStatusCrawlerEventListenerTest {
         WebsiteMock.whenHtml(client, ok1Path, "This page is OK.");
         WebsiteMock.whenHtml(client, ok1Path, "This page is OK.");
 
-        client
-            .when(request(notFoundPath))
-            .respond(HttpResponse.notFoundResponse());
+        client.when(request(notFoundPath))
+                .respond(HttpResponse.notFoundResponse());
 
-        client
-            .when(request(errorPath))
-            .respond(response()
-                .withStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500.code())
-                .withReasonPhrase("Kaput!"));
+        client.when(request(errorPath))
+                .respond(response().withStatusCode(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR_500.code())
+                        .withReasonPhrase("Kaput!"));
 
         WebTestUtil.runWithConfig(tempDir, cfg -> {
-           cfg.setStartReferences(List.of(
-                   serverUrl(client, ok1Path),
-                   serverUrl(client, notFoundPath),
-                   serverUrl(client, ok2Path),
-                   serverUrl(client, errorPath)))
-               .addEventListener(urlStatusListener);
+            cfg.setStartReferences(List.of(
+                    serverUrl(client, ok1Path),
+                    serverUrl(client, notFoundPath),
+                    serverUrl(client, ok2Path),
+                    serverUrl(client, errorPath)))
+                    .addEventListener(urlStatusListener);
         });
 
         var file = FileUtils.listFiles(
                 tempDir.resolve("statuses").toFile(), null, false)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow();
+                .stream()
+                .findFirst()
+                .orElseThrow();
 
         var csvLines = FileUtils.readLines(file, UTF_8);
         var baseUrl = serverUrl(client, "");
         assertThat(csvLines).containsExactlyInAnyOrder(
-            "Referrer,URL,Status,Reason",
-            "\"\",%serror.html,500,Kaput!".formatted(baseUrl),
-            "\"\",%snotFound.html,404,Not Found".formatted(baseUrl),
-            "\"\",%sok1.html,200,OK".formatted(baseUrl),
-            "\"\",%sok2.html,404,Not Found".formatted(baseUrl));
+                "Referrer,URL,Status,Reason",
+                "\"\",%serror.html,500,Kaput!".formatted(baseUrl),
+                "\"\",%snotFound.html,404,Not Found".formatted(baseUrl),
+                "\"\",%sok1.html,200,OK".formatted(baseUrl),
+                "\"\",%sok2.html,404,Not Found".formatted(baseUrl));
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(urlStatusListener));
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(urlStatusListener));
+
+        // run again without any status codes, which should equate "any" and
+        // return all again.
+        urlStatusListener.getConfiguration().setStatusCodes("");
+        WebTestUtil.runWithConfig(tempDir, cfg -> {
+            cfg.setStartReferences(List.of(
+                    serverUrl(client, ok1Path),
+                    serverUrl(client, notFoundPath),
+                    serverUrl(client, ok2Path),
+                    serverUrl(client, errorPath)))
+                    .addEventListener(urlStatusListener);
+        });
+        assertThat(csvLines).size().isEqualTo(5);
+
+        // test with inverted range
+        urlStatusListener.getConfiguration().setStatusCodes("299-200");
+        assertThatExceptionOfType(CrawlerException.class).isThrownBy(
+                () -> {
+                    WebTestUtil.runWithConfig(tempDir, cfg -> {
+                        cfg.setStartReferences(List.of("http://blah.com"))
+                                .addEventListener(urlStatusListener);
+                    });
+
+                });
+
+        // test with range of too many segments
+        urlStatusListener.getConfiguration().setStatusCodes("200-300-400");
+        assertThatExceptionOfType(CrawlerException.class).isThrownBy(
+                () -> {
+                    WebTestUtil.runWithConfig(tempDir, cfg -> {
+                        cfg.setStartReferences(List.of("http://blah.com"))
+                                .addEventListener(urlStatusListener);
+                    });
+
+                });
+
+        // test with invalid range number
+        urlStatusListener.getConfiguration().setStatusCodes("123XYZ");
+        assertThatExceptionOfType(CrawlerException.class).isThrownBy(
+                () -> {
+                    WebTestUtil.runWithConfig(tempDir, cfg -> {
+                        cfg.setStartReferences(List.of("http://blah.com"))
+                                .addEventListener(urlStatusListener);
+                    });
+
+                });
     }
 }

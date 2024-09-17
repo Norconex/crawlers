@@ -71,11 +71,10 @@ public class ChunkedTextReader {
      * @throws IOException problem reading
      */
     public boolean read(
-            @NonNull
-            HandlerContext docCtx,
-            @NonNull
-            FailableFunction<TextChunk, Boolean, IOException> textConsumer)
-                    throws IOException {
+            @NonNull HandlerContext docCtx,
+            @NonNull FailableFunction<TextChunk, Boolean,
+                    IOException> textConsumer)
+            throws IOException {
 
         var aborted = false;
         if (fieldMatcher != null && fieldMatcher.isSet()) {
@@ -117,14 +116,15 @@ public class ChunkedTextReader {
             int fieldValueIndex,
             ReadAdapter readAdapter,
             FailableFunction<TextChunk, Boolean, IOException> textConsumer)
-                    throws IOException {
-        return readAdapter.asChunkedText((idx, text) ->
-                textConsumer.apply(new TextChunk(
-                        fieldName, fieldValueIndex, idx, text)),
+            throws IOException {
+        return readAdapter.asChunkedText(
+                (idx, text) -> textConsumer.apply(
+                        new TextChunk(
+                                fieldName, fieldValueIndex, idx, text)),
                 new ChunkedReadOptions()
-                    .charset(charset)
-                    .maxChunkSize(maxChunkSize)
-                    .skipEmpty(skipEmpty));
+                        .charset(charset)
+                        .maxChunkSize(maxChunkSize)
+                        .skipEmpty(skipEmpty));
 
     }
 }

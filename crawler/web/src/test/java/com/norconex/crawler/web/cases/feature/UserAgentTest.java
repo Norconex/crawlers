@@ -44,10 +44,13 @@ class UserAgentTest {
 
         var path = "/userAgent";
         client
-            .when(request(path))
-            .respond(req -> response()
-                    .withBody("The user agent is: "
-                            + req.getFirstHeader("User-Agent")));
+                .when(request(path))
+                .respond(
+                        req -> response()
+                                .withBody(
+                                        "The user agent is: "
+                                                + req.getFirstHeader(
+                                                        "User-Agent")));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, path)));
@@ -55,8 +58,8 @@ class UserAgentTest {
         });
 
         assertThat(mem.getUpsertRequests())
-            .map(WebTestUtil::docText)
-            .map(StringUtils::trim)
-            .containsExactly("The user agent is: Smith");
+                .map(WebTestUtil::docText)
+                .map(StringUtils::trim)
+                .containsExactly("The user agent is: Smith");
     }
 }

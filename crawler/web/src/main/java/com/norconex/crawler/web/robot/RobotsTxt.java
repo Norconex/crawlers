@@ -43,10 +43,8 @@ public class RobotsTxt {
 
     @Builder
     RobotsTxt(
-            @Singular
-            List<RobotsTxtFilter> filters,
-            @Singular
-            List<String> sitemapLocations,
+            @Singular List<RobotsTxtFilter> filters,
+            @Singular List<String> sitemapLocations,
             float crawlDelay) {
         this.sitemapLocations = Collections.unmodifiableList(
                 ListUtils.emptyIfNull(sitemapLocations));
@@ -73,6 +71,7 @@ public class RobotsTxt {
     public List<RobotsTxtFilter> getDisallowFilters() {
         return disallowFilters;
     }
+
     /**
      * Gets "Allow" filters.
      * @return allow filters (never <code>null</code>)
@@ -81,12 +80,15 @@ public class RobotsTxt {
     public List<RobotsTxtFilter> getAllowFilters() {
         return allowFilters;
     }
+
     public List<String> getSitemapLocations() {
         return sitemapLocations;
     }
+
     public float getCrawlDelay() {
         return crawlDelay;
     }
+
     public boolean isEmpty() {
         return disallowFilters.isEmpty()
                 && allowFilters.isEmpty()

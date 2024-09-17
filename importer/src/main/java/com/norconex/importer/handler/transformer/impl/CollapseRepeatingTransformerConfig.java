@@ -90,6 +90,7 @@ public class CollapseRepeatingTransformerConfig implements ChunkedTextSupport {
     public List<String> getStrings() {
         return new ArrayList<>(strings);
     }
+
     public CollapseRepeatingTransformerConfig setStrings(
             List<String> strings) {
         CollectionUtil.setAll(this.strings, strings);
@@ -103,6 +104,7 @@ public class CollapseRepeatingTransformerConfig implements ChunkedTextSupport {
     public boolean isIgnoreCase() {
         return ignoreCase;
     }
+
     /**
      * Sets whether to ignore case sensitivity.
      * @param ignoreCase <code>true</code> if ignoring character case
@@ -113,6 +115,7 @@ public class CollapseRepeatingTransformerConfig implements ChunkedTextSupport {
         this.ignoreCase = ignoreCase;
         return this;
     }
+
     /**
      * Gets source field matcher for fields on which to perform repeating
      * string collapsing.
@@ -122,6 +125,7 @@ public class CollapseRepeatingTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets source field matcher for fields on which to perform repeating
      * string collapsing.

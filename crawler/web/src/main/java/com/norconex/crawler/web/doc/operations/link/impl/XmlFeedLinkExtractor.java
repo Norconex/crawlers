@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,12 +29,13 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.commons.lang.xml.XmlUtil;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
+import com.norconex.importer.handler.CommonMatchers;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -52,10 +54,9 @@ import lombok.ToString;
  * <h3>Applicable documents</h3>
  * <p>
  * By default, this extractor only will be applied on documents matching
- * one of these content types:
+ * one of the content types defined by
+ * {@link CommonMatchers#XML_FEED_CONTENT_TYPES}.
  * </p>
- *
- * {@nx.include com.norconex.importer.handler.CommonMatchers#xmlFeedContentTypes}
  *
  * <h3>Referrer data</h3>
  * <p>
@@ -68,26 +69,8 @@ import lombok.ToString;
  *   {@link WebDocMetadata#REFERRER_REFERENCE}.</li>
  * </ul>
  *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.XmlFeedLinkExtractor">
- *   {@nx.include com.norconex.crawler.web.doc.operations.link.AbstractTextLinkExtractor@nx.xml.usage}
- * </extractor>
- * }
- *
- * {@nx.xml.example
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.XmlFeedLinkExtractor">
- *   <restrictTo field="document.reference" method="regex">.*rss$</restrictTo>
- * </extractor>
- * }
- * <p>
- * The above example specifies this extractor should only apply on documents
- * that have their URL ending with "rss" (in addition to the default
- * content types supported).
- * </p>
- *
  * @since 2.7.0
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public class XmlFeedLinkExtractor
@@ -106,6 +89,12 @@ public class XmlFeedLinkExtractor
             return Set.of();
         }
 
+        if (!getConfiguration().getRestrictions().isEmpty()
+                && !getConfiguration().getRestrictions().matches(
+                        doc.getMetadata())) {
+            return Collections.emptySet();
+        }
+
         var refererUrl = doc.getReference();
         Set<Link> links = new HashSet<>();
 
@@ -114,7 +103,7 @@ public class XmlFeedLinkExtractor
             var values = doc.getMetadata()
                     .matchKeys(configuration.getFieldMatcher())
                     .valueList();
-            for (String val: values) {
+            for (String val : values) {
                 extractFeedLinks(links, new StringReader(val), refererUrl);
             }
         } else {
@@ -129,9 +118,9 @@ public class XmlFeedLinkExtractor
 
     private void extractFeedLinks(
             Set<Link> links, Reader reader, String referrerUrl)
-                    throws IOException {
+            throws IOException {
         try (reader) {
-            var xmlReader = XMLUtil.createXMLReader();
+            var xmlReader = XmlUtil.createXMLReader();
             var handler = new FeedHandler(referrerUrl, links);
             xmlReader.setContentHandler(handler);
             xmlReader.setErrorHandler(handler);
@@ -146,13 +135,16 @@ public class XmlFeedLinkExtractor
         private final String referer;
         private final Set<Link> links;
         private boolean isInLink = false;
-        private String stringLink="";
+        private String stringLink = "";
+
         public FeedHandler(String referer, Set<Link> links) {
             this.referer = referer;
             this.links = links;
         }
+
         @Override
-        public void startElement(String uri, String localName, String qName,
+        public void startElement(
+                String uri, String localName, String qName,
                 Attributes attributes) throws SAXException {
             if ("link".equalsIgnoreCase(localName)) {
                 isInLink = true;
@@ -164,27 +156,29 @@ public class XmlFeedLinkExtractor
                 }
             }
         }
+
         @Override
         public void characters(
                 char[] chars, int start, int len) throws SAXException {
-        	 if (isInLink && len > 0) {
-          	   stringLink = stringLink+new String(chars, start, len);
+            if (isInLink && len > 0) {
+                stringLink = stringLink + new String(chars, start, len);
 
-             }
+            }
         }
+
         @Override
         public void endElement(String uri, String localName, String qName)
                 throws SAXException {
-        	if ("link".equals(localName)){
-     		   if(stringLink.length() > 0) {
-     			   var link = new Link(stringLink);
-     			   link.setReferrer(referer);
-     			   links.add(link);
-     			   stringLink="";
-     		   }
-     		   isInLink = false;
+            if ("link".equals(localName)) {
+                if (stringLink.length() > 0) {
+                    var link = new Link(stringLink);
+                    link.setReferrer(referer);
+                    links.add(link);
+                    stringLink = "";
+                }
+                isInLink = false;
 
-     	   }
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ class DateFormatTransformerTest {
         var dateEPOCHFormat = "EPOCH";
         var dateHTTPFormat = "EEE, dd MMM yyyy HH:mm:ss";
 
-
         var dateISO = "2001-10-10T11:32:21";
         var dateEPOCH = "1002713541000";
         var dateHTTP = "Wed, 10 Oct 2001 11:32:21";
@@ -44,7 +43,7 @@ class DateFormatTransformerTest {
         var meta = new Properties();
         meta.add("dateISO", dateISO);
         meta.add("dateEPOCH", dateEPOCH);
-        meta.add("dateHTTP",  dateHTTP);
+        meta.add("dateHTTP", dateHTTP);
 
         var t = new DateFormatTransformer();
         var cfg = t.getConfiguration();
@@ -190,6 +189,7 @@ class DateFormatTransformerTest {
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals("2001-04-10", meta.getString("targetField"));
     }
+
     @Test
     void testWriteRead() {
         var t = new DateFormatTransformer();

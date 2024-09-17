@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,43 +14,11 @@
  */
 package com.norconex.crawler.web.robot.impl;
 
-import com.norconex.crawler.web.robot.RobotsMetaProvider;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * <p>Implementation of {@link RobotsMetaProvider} as per X-Robots-Tag
- * and ROBOTS standards.
- * Extracts robots information from "ROBOTS" meta tag in an HTML page
- * or "X-Robots-Tag" tag in the HTTP header (see
- * <a href="https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag">
- * https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag</a>
- * and
- * <a href="http://www.robotstxt.org/meta.html">
- * http://www.robotstxt.org/meta.html</a>).
- * </p>
- *
- * <p>If you specified a prefix for the HTTP headers, make sure to specify it
- * again here or the robots meta tags will not be found.</p>
- *
- * <p>If robots instructions are provided in both the HTML page and
- * HTTP header, the ones in HTML page will take precedence, and the
- * ones in HTTP header will be ignored.</p>
- *
- * {@nx.xml.usage
- *  <robotsMeta
- *     class="com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider">
- *     <headersPrefix>(string prefixing headers)</headersPrefix>
- *  </robotsMeta>
- * }
- *
- * {@nx.xml.example
- * <robotsMeta />
- * }
- * <p>
- * The above example ignores robot meta information.
- * </p>
+ * Configuration for {@link StandardRobotsMetaProvider}.
  */
 @Data
 @Accessors(chain = true)

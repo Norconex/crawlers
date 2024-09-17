@@ -97,7 +97,7 @@
     </schedules>
   </delayResolver>    
 
-  <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine">
+  <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine">
     <pageSplitSize>1000</pageSplitSize>
     <compress>1</compress>
     <cacheConcurrency>0</cacheConcurrency>
@@ -232,7 +232,7 @@
       <minFrequency applyTo="reference" value="always" >
         <matcher method="regex" pattern=".*\.pdf"/>
       </minFrequency>
-      <minFrequency applyTo="contentType" value="3000" >
+      <minFrequency applyTo="CONTENT_TYPE" value="3000" >
         <matcher pattern="text/html"/>
       </minFrequency>
     </minFrequencies>
@@ -352,14 +352,17 @@
   </documentFilters>
 
   <preImportConsumers>
-    <consumer class="FeaturedImageProcessor">
+    <consumer class="FeaturedImageResolver">
        <pageContentTypePattern>text/html</pageContentTypePattern>
        <domSelector>dom dom</domSelector>
        <minDimensions>425x312</minDimensions>
        <largest>true</largest>
        <imageCacheSize>1234</imageCacheSize>
        <imageCacheDir>/some/path</imageCacheDir>
-       <storage>url, inline</storage>
+       <storages>
+         <storage>url</storage>
+         <storage>inline</storage>
+       </storages>
        <scaleQuality>medium</scaleQuality>
        <scaleDimensions>25</scaleDimensions>
        <scaleStretch>true</scaleStretch>
@@ -394,7 +397,7 @@
   </importer>
 
   <documentChecksummer 
-      class="MD5DocumentChecksummer"
+      class="Md5DocumentChecksummer"
       keep="true" toField="afield">
     <fieldMatcher method="csv" pattern="field1,field2"/>
   </documentChecksummer>
@@ -414,7 +417,7 @@
   </spoiledReferenceStrategizer>
 
   <committers>
-    <committer class="JSONFileCommitter">
+    <committer class="JsonFileCommitter">
       <directory>/tmp/somepath</directory>
     </committer>
   </committers>

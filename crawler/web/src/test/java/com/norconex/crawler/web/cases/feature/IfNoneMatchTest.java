@@ -102,27 +102,33 @@ class IfNoneMatchTest {
 
         // When matching server Etag
         client
-            .when(
-                request()
-                    .withPath(path)
-                    .withHeader(HttpHeaders.IF_NONE_MATCH, serverEtag),
-                Times.once())
-            .respond(response()
-                .withHeader(HttpHeaders.ETAG, serverEtag)
-                .withStatusCode(HttpStatusCode.NOT_MODIFIED_304.code())
-            );
+                .when(
+                        request()
+                                .withPath(path)
+                                .withHeader(
+                                        HttpHeaders.IF_NONE_MATCH,
+                                        serverEtag),
+                        Times.once())
+                .respond(
+                        response()
+                                .withHeader(HttpHeaders.ETAG, serverEtag)
+                                .withStatusCode(
+                                        HttpStatusCode.NOT_MODIFIED_304
+                                                .code()));
 
         // When NOT matching server Etag
         client
-            .when(request()
-                .withPath(path)
-                .withHeader(
-                        optionalHeader(
-                                HttpHeaders.IF_NONE_MATCH, "!" + serverEtag)),
-                Times.once())
-            .respond(response()
-                .withHeader(HttpHeaders.ETAG, serverEtag)
-                .withBody("Doc modified.")
-            );
+                .when(
+                        request()
+                                .withPath(path)
+                                .withHeader(
+                                        optionalHeader(
+                                                HttpHeaders.IF_NONE_MATCH,
+                                                "!" + serverEtag)),
+                        Times.once())
+                .respond(
+                        response()
+                                .withHeader(HttpHeaders.ETAG, serverEtag)
+                                .withBody("Doc modified."));
     }
 }

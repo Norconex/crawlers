@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,20 +51,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>If robots instructions are provided in both the HTML page and
  * HTTP header, the ones in HTML page will take precedence, and the
  * ones in HTTP header will be ignored.</p>
- *
- * {@nx.xml.usage
- *  <robotsMeta
- *     class="com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider">
- *     <headersPrefix>(string prefixing headers)</headersPrefix>
- *  </robotsMeta>
- * }
- *
- * {@nx.xml.example
- * <robotsMeta />
- * }
- * <p>
- * The above example ignores robot meta information.
- * </p>
  */
 @Slf4j
 @EqualsAndHashCode
@@ -104,8 +90,10 @@ public class StandardRobotsMetaProvider implements
                     var robotContent = findInContent(cleanText);
                     robotsMeta = buildMeta(robotContent);
                     if (robotsMeta != null) {
-                        LOG.debug("Meta robots \"{}\" found in HTML meta "
-                                + "tag for: {}", robotContent, documentUrl);
+                        LOG.debug(
+                                "Meta robots \"{}\" found in HTML meta "
+                                        + "tag for: {}",
+                                robotContent, documentUrl);
                     }
                     if (robotsMeta != null || isEndOfHead(cleanText)) {
                         break;
@@ -139,7 +127,8 @@ public class StandardRobotsMetaProvider implements
         var content = httpHeaders.getString(name);
         var robotsMeta = buildMeta(content);
         if (LOG.isDebugEnabled() && robotsMeta != null) {
-            LOG.debug("Meta robots \"{}\" found in HTTP header for: {}",
+            LOG.debug(
+                    "Meta robots \"{}\" found in HTTP header for: {}",
                     content, documentUrl);
         }
         return robotsMeta;
@@ -167,8 +156,9 @@ public class StandardRobotsMetaProvider implements
         var m = Pattern.compile("(?is)<meta\\s[^<>]+>").matcher(text);
         while (m.find()) {
             var props = Web.parseDomAttributes(m.group(), true);
-            if ("robots".equalsIgnoreCase(StringUtils.trimToEmpty(
-                    props.getString("name")))) {
+            if ("robots".equalsIgnoreCase(
+                    StringUtils.trimToEmpty(
+                            props.getString("name")))) {
                 var content = props.getString("content");
                 if (StringUtils.isNotBlank(content)) {
                     return content;

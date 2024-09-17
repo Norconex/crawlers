@@ -99,19 +99,24 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
             var count = new MutableInt();
             // Body
             if (!configuration.getFieldMatcher().isSet()) {
-                 docCtx.childDocs().addAll(doSplitDocument(
-                        docCtx, docCtx.input().asInputStream(), count));
-                 return;
+                docCtx.childDocs().addAll(
+                        doSplitDocument(
+                                docCtx, docCtx.input().asInputStream(), count));
+                return;
             }
             // Fields
             var docs = docCtx.childDocs();
             docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher()).forEach((k, vals) ->
-                vals.forEach(row -> docs.addAll(doSplitDocument(
-                        docCtx,
-                        new ByteArrayInputStream(row.getBytes()),
-                        count)))
-            );
+                    configuration.getFieldMatcher())
+                    .forEach(
+                            (k, vals) -> vals
+                                    .forEach(
+                                            row -> docs.addAll(
+                                                    doSplitDocument(
+                                                            docCtx,
+                                                            new ByteArrayInputStream(
+                                                                    row.getBytes()),
+                                                            count))));
         } catch (Exception e) {
             throw new DocumentHandlerException(
                     "Could not split document: " + docCtx.reference(), e);
@@ -135,11 +140,11 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
         try (var csvreader =
                 new CSVReaderBuilder(
                         new InputStreamReader(input, StandardCharsets.UTF_8))
-                .withSkipLines(configuration.getLinesToSkip())
-                .withCSVParser(parser)
-                .build()) {
+                                .withSkipLines(configuration.getLinesToSkip())
+                                .withCSVParser(parser)
+                                .build()) {
 
-            String [] rowColumns;
+            String[] rowColumns;
             String[] colNames = null;
             while ((rowColumns = csvreader.readNextSilently()) != null) {
                 var cnt = count.incrementAndGet();
@@ -147,8 +152,9 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
                 if (cnt == 1 && configuration.isUseFirstRowAsFields()) {
                     colNames = rowColumns;
                 } else {
-                    rows.add(parseRow(
-                            doc, rowColumns, colNames, childEmbedRef));
+                    rows.add(
+                            parseRow(
+                                    doc, rowColumns, colNames, childEmbedRef));
                 }
             }
         } catch (IOException e) {
@@ -157,7 +163,8 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
         return rows;
     }
 
-    private Doc parseRow(HandlerContext docCtx, String[] rowColumns,
+    private Doc parseRow(
+            HandlerContext docCtx, String[] rowColumns,
             String[] colNames,
             String childEmbedRef) {
         var contentStr = new StringBuilder();
@@ -176,7 +183,8 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
 
             // If a reference column, set reference value
             var refColumn = configuration.getReferenceColumn();
-            if (isColumnMatchingNameOrPosition(colName, colPos,
+            if (isColumnMatchingNameOrPosition(
+                    colName, colPos,
                     isBlank(refColumn) ? List.of() : List.of(refColumn))) {
                 childEmbedRef = colValue;
             }
@@ -218,7 +226,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
                 continue;
             }
             if (Objects.equals(nameOrPosToMatch, colName)
-                   || NumberUtils.toInt(nameOrPosToMatch) == colPosition) {
+                    || NumberUtils.toInt(nameOrPosToMatch) == colPosition) {
                 return true;
             }
         }

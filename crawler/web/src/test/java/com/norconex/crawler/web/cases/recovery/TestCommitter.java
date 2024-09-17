@@ -28,17 +28,20 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.impl.FSQueueUtil;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.commons.lang.xml.Xml;
+import com.norconex.commons.lang.xml.XmlConfigurable;
 import com.norconex.crawler.web.cases.recovery.ExternalCrawlSessionLauncher.CrawlOutcome;
 
 import lombok.Data;
 import lombok.SneakyThrows;
 
 @Data
-public class TestCommitter implements Committer, XMLConfigurable {
+public class TestCommitter implements Committer, XmlConfigurable {
     private Path dir;
-    public TestCommitter() {}
+
+    public TestCommitter() {
+    }
+
     public TestCommitter(Path dir) {
         this.dir = dir;
     }
@@ -49,42 +52,52 @@ public class TestCommitter implements Committer, XMLConfigurable {
             throws CommitterException {
         Files.createDirectories(dir);
     }
+
     @Override
     @SneakyThrows
     public void clean() throws CommitterException {
         FileUtil.delete(dir.toFile());
     }
+
     @Override
     public boolean accept(CommitterRequest request)
             throws CommitterException {
         return true;
     }
+
     @Override
     @SneakyThrows
     public void upsert(UpsertRequest upsertRequest)
             throws CommitterException {
-        FSQueueUtil.toZipFile(upsertRequest, dir.resolve(
-                "upsert-" + UUID.randomUUID() + ".zip"));
+        FSQueueUtil.toZipFile(
+                upsertRequest, dir.resolve(
+                        "upsert-" + UUID.randomUUID() + ".zip"));
     }
+
     @Override
     @SneakyThrows
     public void delete(DeleteRequest deleteRequest)
             throws CommitterException {
-        FSQueueUtil.toZipFile(deleteRequest, dir.resolve(
-                "delete-" + UUID.randomUUID() + ".zip"));
+        FSQueueUtil.toZipFile(
+                deleteRequest, dir.resolve(
+                        "delete-" + UUID.randomUUID() + ".zip"));
     }
+
     @Override
     public void close() throws CommitterException {
         //NOOP
     }
+
     @Override
-    public void loadFromXML(XML xml) {
+    public void loadFromXML(Xml xml) {
         setDir(xml.getPath("dir", dir));
     }
+
     @Override
-    public void saveToXML(XML xml) {
+    public void saveToXML(Xml xml) {
         xml.addElement("dir", dir);
     }
+
     @SneakyThrows
     public void fillMemoryCommitters(
             CrawlOutcome outcome, ZonedDateTime launchTime) {

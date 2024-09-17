@@ -48,14 +48,16 @@ class StopCrawlerOnMaxEventListenerTest {
     private Path tempDir;
 
     @ParameterizedTest
-    @CsvSource({
-        "SUM, " + UPSERTED + ", 2, 2",                   // 1
-        "SUM, NEVER_ENCOUNTERED_SO_WONT_STOP, 2, 4",     // 2
-        "SUM, " + UPSERTED + "|" + ACCEPTED + ", 2, 1",  // 3
-        "ANY, " + UPSERTED_OR_REJECTED + ", 2, 1",       // 4
-        "SUM, " + UPSERTED_OR_REJECTED + ", 5, 3",       // 5
-        "ALL, " + UPSERTED_OR_REJECTED + ", 3, 3",       // 6
-    })
+    @CsvSource(
+        {
+                "SUM, " + UPSERTED + ", 2, 2", // 1
+                "SUM, NEVER_ENCOUNTERED_SO_WONT_STOP, 2, 4", // 2
+                "SUM, " + UPSERTED + "|" + ACCEPTED + ", 2, 1", // 3
+                "ANY, " + UPSERTED_OR_REJECTED + ", 2, 1", // 4
+                "SUM, " + UPSERTED_OR_REJECTED + ", 5, 3", // 5
+                "ALL, " + UPSERTED_OR_REJECTED + ", 3, 3", // 6
+        }
+    )
     void testStopCrawlerOnMaxEventListener(
             OnMultiple onMultiple,
             String eventMatch,
@@ -66,28 +68,28 @@ class StopCrawlerOnMaxEventListenerTest {
 
         var crawlerConfig = CrawlerConfigStubs
                 .memoryCrawlerConfig(tempDir)
-                .setStartReferences(List.of(
-                        "1-mock:reject-1",
-                        "2-mock:upsert-1",
-                        "3-mock:reject-2",
-                        "4-mock:upsert-2",
-                        "5-mock:upsert-3",
-                        "6-mock:reject-3",
-                        "7-mock:upsert-4"));
+                .setStartReferences(
+                        List.of(
+                                "1-mock:reject-1",
+                                "2-mock:upsert-1",
+                                "3-mock:reject-2",
+                                "4-mock:upsert-2",
+                                "5-mock:upsert-3",
+                                "6-mock:reject-3",
+                                "7-mock:upsert-4"));
 
         var listener = new StopCrawlerOnMaxEventListener();
         listener.getConfiguration()
-            .setEventMatcher(TextMatcher.regex(eventMatch))
-            .setMaximum(maximum)
-            .setOnMultiple(onMultiple);
+                .setEventMatcher(TextMatcher.regex(eventMatch))
+                .setMaximum(maximum)
+                .setOnMultiple(onMultiple);
         crawlerConfig.addEventListener(listener);
 
         var filter = new GenericReferenceFilter();
         filter.getConfiguration()
-            .setValueMatcher(TextMatcher.wildcard("*mock:reject*"))
-            .setOnMatch(OnMatch.EXCLUDE);
+                .setValueMatcher(TextMatcher.wildcard("*mock:reject*"))
+                .setOnMatch(OnMatch.EXCLUDE);
         crawlerConfig.setDocumentFilters(List.of(filter));
-
 
         var crawler = CrawlerStubs
                 .memoryCrawlerBuilder(tempDir)
@@ -105,9 +107,9 @@ class StopCrawlerOnMaxEventListenerTest {
     void testWriteRead() {
         var listener = new StopCrawlerOnMaxEventListener();
         listener.getConfiguration()
-            .setEventMatcher(TextMatcher.basic("blah"))
-            .setMaximum(10)
-            .setOnMultiple(OnMultiple.SUM);
+                .setEventMatcher(TextMatcher.basic("blah"))
+                .setMaximum(10)
+                .setOnMultiple(OnMultiple.SUM);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(listener));
     }

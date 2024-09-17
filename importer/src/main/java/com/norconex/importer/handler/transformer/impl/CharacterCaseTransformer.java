@@ -125,7 +125,7 @@ public class CharacterCaseTransformer
     private void doFields(HandlerContext docCtx) {
         var applyTo = configuration.getApplyTo();
         if (StringUtils.isNotBlank(applyTo)
-                &&  !StringUtils.equalsAnyIgnoreCase(
+                && !StringUtils.equalsAnyIgnoreCase(
                         applyTo, APPLY_FIELD, APPLY_VALUE, APPLY_BOTH)) {
             LOG.warn("Unsupported \"applyTo\": {}", applyTo);
             return;
@@ -153,8 +153,8 @@ public class CharacterCaseTransformer
     private void doBody(HandlerContext docCtx) throws IOException {
         try (var out = docCtx.output().asWriter()) {
             docCtx.input().asChunkedText((idx, text) -> {
-               out.write(changeCase(text));
-               return true;
+                out.write(changeCase(text));
+                return true;
             });
         }
     }
@@ -168,6 +168,7 @@ public class CharacterCaseTransformer
         }
         return newField;
     }
+
     private void changeValuesCase(
             String field, Properties metadata) {
         var values = metadata.getStrings(field);
@@ -225,9 +226,11 @@ public class CharacterCaseTransformer
         }
         return value;
     }
+
     private String capitalizeStringFully(String value) {
         return capitalizeString(StringUtils.lowerCase(value));
     }
+
     private String capitalizeSentences(String value) {
         if (StringUtils.isBlank(value)) {
             return value;
@@ -253,6 +256,7 @@ public class CharacterCaseTransformer
         }
         return b.toString();
     }
+
     private String capitalizeSentencesFully(String value) {
         return capitalizeSentences(StringUtils.lowerCase(value));
     }

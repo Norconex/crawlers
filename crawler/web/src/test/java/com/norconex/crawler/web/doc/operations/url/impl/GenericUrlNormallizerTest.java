@@ -47,9 +47,9 @@ class GenericUrlNormallizerTest {
     @Test
     void testAddDomainTrailingSlash() {
         var n = new GenericUrlNormalizer();
-        n.getConfiguration().setNormalizations(List.of(
-                Normalization.ADD_DOMAIN_TRAILING_SLASH
-                ));
+        n.getConfiguration().setNormalizations(
+                List.of(
+                        Normalization.ADD_DOMAIN_TRAILING_SLASH));
         s = "http://example.com";
         t = "http://example.com/";
         assertEquals(t, n.normalizeURL(s));
@@ -59,9 +59,9 @@ class GenericUrlNormallizerTest {
     @Test
     void testUppercaseProtocol() {
         var n = new GenericUrlNormalizer();
-        n.getConfiguration().setNormalizations(List.of(
-                Normalization.ENCODE_NON_URI_CHARACTERS
-                ));
+        n.getConfiguration().setNormalizations(
+                List.of(
+                        Normalization.ENCODE_NON_URI_CHARACTERS));
         s = "HTTP://example.com/";
         t = "HTTP://example.com/";
         assertEquals(t, n.normalizeURL(s));
@@ -71,9 +71,9 @@ class GenericUrlNormallizerTest {
     @Test
     void testRemoveTrailingSlashWithOnlyHostname() {
         var n = new GenericUrlNormalizer();
-        n.getConfiguration().setNormalizations(List.of(
-                Normalization.REMOVE_TRAILING_SLASH
-                ));
+        n.getConfiguration().setNormalizations(
+                List.of(
+                        Normalization.REMOVE_TRAILING_SLASH));
         s = "http://bot.nerus.com/";
         t = "http://bot.nerus.com";
         assertEquals(t, n.normalizeURL(s));
@@ -82,10 +82,13 @@ class GenericUrlNormallizerTest {
     @Test
     void testReplacements() {
         var n = new GenericUrlNormalizer();
-        n.getConfiguration().setReplacements(List.of(
-                new NormalizationReplace("\\.htm$", ".html"),
-                new NormalizationReplace("&debug=true"),
-                new NormalizationReplace("(http://)(.*//)(www.example.com)", "$1$3")));
+        n.getConfiguration().setReplacements(
+                List.of(
+                        new NormalizationReplace("\\.htm$", ".html"),
+                        new NormalizationReplace("&debug=true"),
+                        new NormalizationReplace(
+                                "(http://)(.*//)(www.example.com)",
+                                "$1$3")));
 
         s = "http://www.example.com//www.example.com/page1.html";
         t = "http://www.example.com/page1.html";
@@ -104,18 +107,18 @@ class GenericUrlNormallizerTest {
     void testGithubIssue160() {
         // Github issue #160
         var n = new GenericUrlNormalizer();
-        n.getConfiguration().setNormalizations(List.of(
-                Normalization.LOWERCASE_SCHEME_HOST,
-                Normalization.UPPERCASE_ESCAPESEQUENCE,
-                Normalization.DECODE_UNRESERVED_CHARACTERS,
-                Normalization.REMOVE_DEFAULT_PORT,
-                Normalization.REMOVE_FRAGMENT,
-                Normalization.REMOVE_DOT_SEGMENTS,
-                Normalization.ADD_DIRECTORY_TRAILING_SLASH,
-                Normalization.REMOVE_DUPLICATE_SLASHES,
-                Normalization.REMOVE_SESSION_IDS,
-                Normalization.UPPERCASE_ESCAPESEQUENCE
-                ));
+        n.getConfiguration().setNormalizations(
+                List.of(
+                        Normalization.LOWERCASE_SCHEME_HOST,
+                        Normalization.UPPERCASE_ESCAPESEQUENCE,
+                        Normalization.DECODE_UNRESERVED_CHARACTERS,
+                        Normalization.REMOVE_DEFAULT_PORT,
+                        Normalization.REMOVE_FRAGMENT,
+                        Normalization.REMOVE_DOT_SEGMENTS,
+                        Normalization.ADD_DIRECTORY_TRAILING_SLASH,
+                        Normalization.REMOVE_DUPLICATE_SLASHES,
+                        Normalization.REMOVE_SESSION_IDS,
+                        Normalization.UPPERCASE_ESCAPESEQUENCE));
 
         s = "http://www.etools.ch/sitemap_index.xml";
         t = "http://www.etools.ch/sitemap_index.xml";
@@ -126,13 +129,15 @@ class GenericUrlNormallizerTest {
     void testGithubIssue29() {
         // Github issue #29
         var n = new GenericUrlNormalizer();
-        n.getConfiguration().setNormalizations(List.of(
-                Normalization.LOWERCASE_SCHEME_HOST,
-                Normalization.UPPERCASE_ESCAPESEQUENCE,
-                Normalization.DECODE_UNRESERVED_CHARACTERS,
-                Normalization.REMOVE_DEFAULT_PORT));
-        n.getConfiguration().setReplacements(List.of(
-                new NormalizationReplace("&view=print", "&view=html")));
+        n.getConfiguration().setNormalizations(
+                List.of(
+                        Normalization.LOWERCASE_SCHEME_HOST,
+                        Normalization.UPPERCASE_ESCAPESEQUENCE,
+                        Normalization.DECODE_UNRESERVED_CHARACTERS,
+                        Normalization.REMOVE_DEFAULT_PORT));
+        n.getConfiguration().setReplacements(
+                List.of(
+                        new NormalizationReplace("&view=print", "&view=html")));
 
         s = "http://www.somehost.com/hook/";
         t = "http://www.somehost.com/hook/";
@@ -142,16 +147,18 @@ class GenericUrlNormallizerTest {
     @Test
     void testWriteRead() {
         var n = new GenericUrlNormalizer();
-        n.getConfiguration().setNormalizations(List.of(
-                Normalization.LOWERCASE_SCHEME_HOST,
-                Normalization.ADD_DIRECTORY_TRAILING_SLASH,
-                Normalization.DECODE_UNRESERVED_CHARACTERS,
-                Normalization.REMOVE_DOT_SEGMENTS,
-                Normalization.REMOVE_DUPLICATE_SLASHES,
-                Normalization.REMOVE_SESSION_IDS));
-        n.getConfiguration().setReplacements(List.of(
-                new NormalizationReplace("\\.htm", ".html"),
-                new NormalizationReplace("&debug=true")));
+        n.getConfiguration().setNormalizations(
+                List.of(
+                        Normalization.LOWERCASE_SCHEME_HOST,
+                        Normalization.ADD_DIRECTORY_TRAILING_SLASH,
+                        Normalization.DECODE_UNRESERVED_CHARACTERS,
+                        Normalization.REMOVE_DOT_SEGMENTS,
+                        Normalization.REMOVE_DUPLICATE_SLASHES,
+                        Normalization.REMOVE_SESSION_IDS));
+        n.getConfiguration().setReplacements(
+                List.of(
+                        new NormalizationReplace("\\.htm", ".html"),
+                        new NormalizationReplace("&debug=true")));
         LOG.debug("Writing/Reading this: {}", n);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(n));
@@ -161,7 +168,7 @@ class GenericUrlNormallizerTest {
     void testLoadFromXML() throws IOException {
         GenericUrlNormalizer n;
         var xml1 = "<urlNormalizer><normalizations></normalizations>"
-                        + "</urlNormalizer>";
+                + "</urlNormalizer>";
 
         // an empty <normalizations> tag means have none
         n = new GenericUrlNormalizer();
@@ -181,12 +188,12 @@ class GenericUrlNormallizerTest {
         // normal... just a few
         n = new GenericUrlNormalizer();
         var xml3 = """
-            <urlNormalizer>
-              <normalizations>
-                <normalization>removeSessionIds</normalization>
-                <normalization>lowerCaseSchemeHost</normalization>
-              </normalizations>
-            </urlNormalizer>""";
+                <urlNormalizer>
+                  <normalizations>
+                    <normalization>removeSessionIds</normalization>
+                    <normalization>lowerCaseSchemeHost</normalization>
+                  </normalizations>
+                </urlNormalizer>""";
         try (Reader r = new StringReader(xml3)) {
             BeanMapper.DEFAULT.read(n, r, Format.XML);
         }

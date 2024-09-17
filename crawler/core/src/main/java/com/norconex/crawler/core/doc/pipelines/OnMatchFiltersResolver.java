@@ -28,11 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Runs the predicate against each list items and return <code>true</code>
- * if all entries are accepted, or if there are items implementing 
+ * if all entries are accepted, or if there are items implementing
  * {@link OnMatchFilter}, if at least one of them is "included".
  *
  * @param <S> type of the subject being tested by the list of filters
- * @param <F> type of filters in the list of filters 
+ * @param <F> type of filters in the list of filters
  */
 @Builder
 @Slf4j
@@ -42,7 +42,7 @@ public class OnMatchFiltersResolver<S, F> {
     private final List<F> filters;
     /** Predicate matching a filter against the subject. */
     private final BiPredicate<S, F> predicate;
-    /** 
+    /**
      * Optional callback. Receives all filters or the rejecting one based
      * on context, along with possible rejection message.
      */
@@ -59,13 +59,13 @@ public class OnMatchFiltersResolver<S, F> {
             var accepted = predicate.test(subject, filter);
             // Deal with includes
             var isAnIncludeFilter = isAnIncludeFilter(filter);
-             if (isAnIncludeFilter) {
-                 hasIncludes = true;
-                 if (accepted) {
-                     atLeastOneIncludeMatch = true;
-                 }
-                 continue;
-             }
+            if (isAnIncludeFilter) {
+                hasIncludes = true;
+                if (accepted) {
+                    atLeastOneIncludeMatch = true;
+                }
+                continue;
+            }
 
             // Deal with exclude and non-OnMatch filters
             if (!accepted) {
@@ -80,12 +80,11 @@ public class OnMatchFiltersResolver<S, F> {
                     c -> c.accept(filters, "No \"include\" filters matched."));
             return false;
         }
-        return true;       
+        return true;
     }
-    
+
     private static boolean isAnIncludeFilter(Object filter) {
         return filter instanceof OnMatchFilter onMatchFilter
                 && OnMatch.INCLUDE == onMatchFilter.getOnMatch();
-    } 
+    }
 }
- 

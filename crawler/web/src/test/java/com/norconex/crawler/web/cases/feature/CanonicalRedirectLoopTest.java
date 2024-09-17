@@ -56,30 +56,35 @@ class CanonicalRedirectLoopTest {
         //--- Web site ---
 
         client
-            .when(
-                request()
-                    .withPath(CANONICAL_PATH)
-            )
-            .respond(
-                response()
-                    .withHeader("Link", "<%s>; rel=\"canonical\""
-                            .formatted(serverUrl(client, REDIRECT_PATH)))
-                    .withBody("""
-                    	<h1>Canonical-redirect circular reference.</h1>
-                    	<p>This page has a canonical URL in the HTTP header
-                    	that points to a page that redirects back to this
-                    	one (loop). The crawler should be smart enough
-                    	to pick one and not enter in an infinite loop.</p>""")
-            );
+                .when(
+                        request()
+                                .withPath(CANONICAL_PATH))
+                .respond(
+                        response()
+                                .withHeader(
+                                        "Link", "<%s>; rel=\"canonical\""
+                                                .formatted(
+                                                        serverUrl(
+                                                                client,
+                                                                REDIRECT_PATH)))
+                                .withBody(
+                                        """
+                                                <h1>Canonical-redirect circular reference.</h1>
+                                                <p>This page has a canonical URL in the HTTP header
+                                                that points to a page that redirects back to this
+                                                one (loop). The crawler should be smart enough
+                                                to pick one and not enter in an infinite loop.</p>"""));
 
         client
-            .when(
-                request()
-                    .withPath(REDIRECT_PATH)
-            )
-            .respond(response()
-                .withStatusCode(302)
-                .withHeader("Location", serverUrl(client, CANONICAL_PATH)));
+                .when(
+                        request()
+                                .withPath(REDIRECT_PATH))
+                .respond(
+                        response()
+                                .withStatusCode(302)
+                                .withHeader(
+                                        "Location",
+                                        serverUrl(client, CANONICAL_PATH)));
 
         //--- Crawler Setup/Run ---
 

@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,15 +37,14 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.url.QueryString;
 
 class IdolClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(IdolClient.class);
 
     private final IdolCommitterConfig config;
-    private final IIdolIndexAction upsertAction;
-    private final IIdolIndexAction deleteAction;
+    private final IdolIndexAction upsertAction;
+    private final IdolIndexAction deleteAction;
 
     IdolClient(IdolCommitterConfig config) {
         this.config = Objects.requireNonNull(
@@ -55,11 +54,11 @@ class IdolClient {
                     "Configuration 'url' must be provided.");
         }
         if (config.isCfs()) {
-            this.upsertAction = new CfsIngestAddsAction(config);
-            this.deleteAction = new CfsIngestRemovesAction(config);
+            upsertAction = new CfsIngestAddsAction(config);
+            deleteAction = new CfsIngestRemovesAction(config);
         } else {
-            this.upsertAction = new DreAddDataAction(config);
-            this.deleteAction = new DreDeleteRefAction(config);
+            upsertAction = new DreAddDataAction(config);
+            deleteAction = new DreDeleteRefAction(config);
         }
     }
 
@@ -72,11 +71,11 @@ class IdolClient {
         // always match the desired batch size (would be smaller).
 
         Class<? extends CommitterRequest> prevType = null;
-        int docCount = 0;
+        var docCount = 0;
         final List<CommitterRequest> batch = new ArrayList<>();
 
         while (iterator.hasNext()) {
-            CommitterRequest r = iterator.next();
+            var r = iterator.next();
             if (typeChanged(prevType, r)) {
                 doPost(batch, prevType);
                 batch.clear();
@@ -92,43 +91,46 @@ class IdolClient {
     private boolean typeChanged(
             Class<? extends CommitterRequest> prevType,
             CommitterRequest req) {
-        return prevType != null && !(
-                prevType.equals(req.getClass()));
+        return prevType != null && !(prevType.equals(req.getClass()));
     }
-    private IIdolIndexAction actionForType(
+
+    private IdolIndexAction actionForType(
             Class<? extends CommitterRequest> reqType) {
         return UpsertRequest.class.isAssignableFrom(reqType)
-                ? upsertAction : deleteAction;
+                ? upsertAction
+                : deleteAction;
     }
 
     private void doPost(
             List<CommitterRequest> batch,
             Class<? extends CommitterRequest> reqType)
-                    throws CommitterException {
+            throws CommitterException {
         if (batch.isEmpty() || reqType == null) {
             return;
         }
-        IIdolIndexAction indexAction = actionForType(reqType);
-        HttpURL url = new HttpURL(config.getUrl());
-        QueryString qs = url.getQueryString();
+        var indexAction = actionForType(reqType);
+        var url = new HttpURL(config.getUrl());
+        var qs = url.getQueryString();
         if (UpsertRequest.class.isAssignableFrom(reqType)) {
             config.getDreAddDataParams().forEach(qs::add);
         } else {
             config.getDreDeleteRefParams().forEach(qs::add);
         }
 
-        HttpURLConnection con = openConnection(indexAction.url(batch, url));
-        try (Writer w = new BufferedWriter(new OutputStreamWriter(
-                con.getOutputStream(), StandardCharsets.UTF_8))) {
+        var con = openConnection(indexAction.url(batch, url));
+        try (Writer w = new BufferedWriter(
+                new OutputStreamWriter(
+                        con.getOutputStream(), StandardCharsets.UTF_8))) {
             indexAction.writeTo(batch, w);
             w.flush();
 
             // Get the response
-            int responseCode = con.getResponseCode();
-            LOG.debug("Sending {} {} to URL: {}",
+            var responseCode = con.getResponseCode();
+            LOG.debug(
+                    "Sending {} {} to URL: {}",
                     batch.size(), reqType.getSimpleName(), config.getUrl());
             LOG.debug("Server Response Code: {}", responseCode);
-            String response = IOUtils.toString(
+            var response = IOUtils.toString(
                     con.getInputStream(), StandardCharsets.UTF_8);
             LOG.debug("Server Response Text: {}", response);
             if ((config.isCfs() && !contains(response, "SUCCESS"))
@@ -144,9 +146,10 @@ class IdolClient {
         }
     }
 
-    private HttpURLConnection openConnection(URL url) throws CommitterException {
+    private HttpURLConnection openConnection(URL url)
+            throws CommitterException {
         try {
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            var con = (HttpURLConnection) url.openConnection();
             con.setDoInput(true);
             con.setDoOutput(true);
             con.setUseCaches(false);
@@ -156,7 +159,8 @@ class IdolClient {
         } catch (IOException e) {
             throw new CommitterException(
                     "Cannot open HTTP connection to IDOL at: "
-                            + config.getUrl(), e);
+                            + config.getUrl(),
+                    e);
         }
     }
 }

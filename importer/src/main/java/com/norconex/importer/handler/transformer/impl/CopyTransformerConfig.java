@@ -84,6 +84,7 @@ public class CopyTransformerConfig {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }
+
     public List<CopyOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }

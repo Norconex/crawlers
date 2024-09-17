@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,10 +36,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableBiConsumer;
 
+import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XMLValidationException;
+import com.norconex.commons.lang.xml.XmlValidationException;
 import com.norconex.importer.response.ImporterResponse;
 
 /**
@@ -64,8 +66,12 @@ public final class ImporterLauncher {
     private ImporterLauncher() {
     }
 
-    public static void launch(String[] args) {
+    public static int launch(String[] args) {
         var cmd = parseCommandLineArguments(args);
+
+        if (cmd == null) {
+            return -1;
+        }
 
         Path varFile = null;
         Path configFile = null;
@@ -75,25 +81,23 @@ public final class ImporterLauncher {
             varFile = Paths.get(cmd.getOptionValue(ARG_VARIABLES));
 
             if (!Files.isRegularFile(varFile)) {
-                System.err.println("Invalid variable file path: "
+                err().println("Invalid variable file path: "
                         + varFile.toAbsolutePath());
-                System.exit(-1);
+                return -1;
             }
         }
         if (cmd.hasOption(ARG_CONFIG)) {
             configFile = Paths.get(cmd.getOptionValue(ARG_CONFIG));
             if (!Files.isRegularFile(configFile)) {
-                System.err.println("Invalid configuration file path: "
+                err().println("Invalid configuration file path: "
                         + configFile.toAbsolutePath());
-                System.exit(-1);
+                return -1;
             }
         }
 
         if (cmd.hasOption(ARG_CHECKCFG)) {
-            checkConfig(configFile, varFile);
-            return;
+            return checkConfig(configFile, varFile);
         }
-
 
         // Proceed
         var contentType =
@@ -105,69 +109,84 @@ public final class ImporterLauncher {
         }
         var reference = cmd.getOptionValue(ARG_REFERENCE);
         var metadata = new Properties();
-        var config =
-                loadCommandLineConfig(cmd, configFile, varFile);
+        var config = loadCommandLineConfig(configFile, varFile);
+
         var inputFile = Paths.get(cmd.getOptionValue(ARG_INPUTFILE));
         try {
             var response = new Importer(config).importDocument(
                     new ImporterRequest(inputFile)
-                        .setContentType(contentType)
-                        .setCharset(contentEncoding != null
-                                ? Charset.forName(contentEncoding)
-                                : null)
-                        .setMetadata(metadata)
-                        .setReference(reference));
-            writeResponse(response, output,
+                            .setContentType(contentType)
+                            .setCharset(
+                                    contentEncoding != null
+                                            ? Charset.forName(contentEncoding)
+                                            : null)
+                            .setMetadata(metadata)
+                            .setReference(reference));
+            writeResponse(
+                    response, output,
                     cmd.getOptionValue(ARG_OUTMETAFORMAT), 0, 0);
         } catch (Exception e) {
-            System.err.println(
-                    "A problem occured while importing " + inputFile);
-            e.printStackTrace(System.err);
-            System.exit(-1);
+            err().println("A problem occured while importing " + inputFile);
+            e.printStackTrace(err());
+            return -1;
         }
+        return 0;
     }
 
     private static ImporterConfig loadCommandLineConfig(
-            CommandLine cmd, Path configFile, Path varFile) {
+            Path configFile, Path varFile) {
         if (configFile == null) {
             return null;
         }
 
         var config = new ImporterConfig();
         try {
-            new ConfigurationLoader()
-                .setVariablesFile(varFile)
-                .loadFromXML(configFile, config);
+            ConfigurationLoader
+                    .builder()
+                    .variablesFile(varFile)
+                    .build()
+                    .toObject(configFile, config);
         } catch (Exception e) {
-            System.err.println("A problem occured loading configuration.");
-            e.printStackTrace(System.err);
-            System.exit(-1);
+            err().println("A problem occured loading configuration.");
+            e.printStackTrace(err());
+            return null;
         }
         return config;
     }
 
-    private static void checkConfig(Path configFile, Path varFile) {
+    private static int checkConfig(Path configFile, Path varFile) {
         try {
-            new ConfigurationLoader()
-                    .setVariablesFile(varFile)
-                    .loadFromXML(configFile, ImporterConfig.class);
-            System.out.println("No XML configuration errors.");
-        } catch (XMLValidationException e) {
-            System.err.println("There were " + e.getErrors().size()
-                    + " XML configuration error(s).");
-            System.exit(-1);
+            ConfigurationLoader
+                    .builder()
+                    .variablesFile(varFile)
+                    .build()
+                    .toObject(configFile, ImporterConfig.class);
+            out().println("No XML configuration errors.");
+        } catch (XmlValidationException e) {
+            err().println(
+                    "There were " + e.getErrors().size()
+                            + " XML configuration error(s).");
+            return -1;
+        } catch (Exception e) {
+            err().println(
+                    "Could not parse configuration file. Error: "
+                            + ExceptionUtil.getFormattedMessages(e));
+            return -1;
         }
+        return 0;
     }
 
-    private static void writeResponse(ImporterResponse response,
+    private static void writeResponse(
+            ImporterResponse response,
             String outputPath, String outputFormat, int depth, int index) {
         if (!response.isSuccess()) {
             var statusLabel = "REJECTED: ";
             if (response.isError()) {
                 statusLabel = "   ERROR: ";
             }
-            System.out.println(statusLabel + response.getReference() + " ("
-                    + response.getDescription() + ")");
+            out().println(
+                    statusLabel + response.getReference() + " ("
+                            + response.getDescription() + ")");
         } else {
             var doc = response.getDoc();
             var path = new StringBuilder(outputPath);
@@ -183,72 +202,85 @@ public final class ImporterLauncher {
             var docfile = new File(path.toString());
 
             try (var docOutStream = new FileOutputStream(docfile);
-                 var docInStream = doc.getInputStream()) {
+                    var docInStream = doc.getInputStream()) {
                 // Write document file
                 IOUtils.copy(docInStream, docOutStream);
                 // Write metadata file
                 MetaFileWriter.of(outputFormat).writeMeta(
                         doc.getMetadata(), docfile);
-                System.out.println("IMPORTED: " + response.getReference());
+                out().println("IMPORTED: " + response.getReference());
             } catch (IOException e) {
-                System.err.println(
-                        "Could not write: " + doc.getReference());
-                e.printStackTrace(System.err);
-                System.err.println();
-                System.err.flush();
+                err().println("Could not write: " + doc.getReference());
+                e.printStackTrace(err());
+                err().println();
+                err().flush();
             }
         }
 
         var nextedResponses = response.getNestedResponses();
         for (var i = 0; i < nextedResponses.size(); i++) {
             var nextedResponse = nextedResponses.get(i);
-            writeResponse(nextedResponse, outputPath,
+            writeResponse(
+                    nextedResponse, outputPath,
                     outputFormat, depth + 1, i + 1);
         }
     }
 
     private static CommandLine parseCommandLineArguments(String[] args) {
         var options = new Options();
-        options.addOption("i", ARG_INPUTFILE, true,
+        options.addOption(
+                "i", ARG_INPUTFILE, true,
                 "File to be imported (required unless \"checkcfg\" is used).");
-        options.addOption("o", ARG_OUTPUTFILE, true,
+        options.addOption(
+                "o", ARG_OUTPUTFILE, true,
                 "Optional: File where the imported content will be stored.");
-        options.addOption("f", ARG_OUTMETAFORMAT, true,
-                "Optional: File format for extracted metadata fields. "
-              + "One of \"properties\" (default), \"json\", or \"xml\"");
-        options.addOption("t", ARG_CONTENTTYPE, true,
+        options.addOption(
+                "f", ARG_OUTMETAFORMAT, true,
+                """
+                Optional: File format for extracted metadata fields. \
+                One of "properties" (default), "json", \
+                or "xml\"""");
+        options.addOption(
+                "t", ARG_CONTENTTYPE, true,
                 "Optional: The MIME Content-type of the input file.");
-        options.addOption("e", ARG_CONTENTENCODING, true,
+        options.addOption(
+                "e", ARG_CONTENTENCODING, true,
                 "Optional: The content encoding (charset) of the input file.");
-        options.addOption("r", ARG_REFERENCE, true,
+        options.addOption(
+                "r", ARG_REFERENCE, true,
                 "Optional: Alternate unique qualifier for the input file "
-              + "(e.g. URL).");
-        options.addOption("c", ARG_CONFIG, true,
+                        + "(e.g. URL).");
+        options.addOption(
+                "c", ARG_CONFIG, true,
                 "Optional: Importer XML configuration file.");
-        options.addOption("v", ARG_VARIABLES, true,
+        options.addOption(
+                "v", ARG_VARIABLES, true,
                 "Optional: variable file.");
-        options.addOption("k", ARG_CHECKCFG, false,
+        options.addOption(
+                "k", ARG_CHECKCFG, false,
                 "Validates XML configuration without executing the Importer.");
-        options.addOption("s", ARG_IGNOREERRORS, false,
+        options.addOption(
+                "s", ARG_IGNOREERRORS, false,
                 "Optional: Skip/ignore configuration validation errors "
-              + "(if possible).");
+                        + "(if possible).");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
         try {
             cmd = parser.parse(options, args);
-            if(!cmd.hasOption(ARG_INPUTFILE)
-                    && (!cmd.hasOption(ARG_CHECKCFG) || !cmd.hasOption(ARG_CONFIG))) {
+            if (!cmd.hasOption(ARG_INPUTFILE)
+                    && (!cmd.hasOption(ARG_CHECKCFG)
+                            || !cmd.hasOption(ARG_CONFIG))) {
                 var formatter = new HelpFormatter();
-                formatter.printHelp( "importer[.bat|.sh]", options );
-                System.exit(-1);
+                formatter.printHelp("importer[.bat|.sh]", options);
+                return null;
             }
         } catch (ParseException e) {
-            System.err.println("A problem occured while parsing arguments.");
-            e.printStackTrace(System.err);
+            err().println("A problem occured while parsing arguments.");
+            e.printStackTrace(err());
             var formatter = new HelpFormatter();
-            formatter.printHelp( "importer[.bat|.sh]", options );
-            System.exit(-1);
+            formatter.printHelp("importer[.bat|.sh]", options);
+            return null;
         }
         return cmd;
     }
@@ -257,11 +289,14 @@ public final class ImporterLauncher {
         JSON(Properties::storeToJSON),
         XML(Properties::storeToXML),
         PROPERTIES(Properties::storeToProperties);
+
         private FailableBiConsumer<Properties, OutputStream, IOException> c;
+
         MetaFileWriter(
                 FailableBiConsumer<Properties, OutputStream, IOException> c) {
             this.c = c;
         }
+
         private void writeMeta(Properties meta, File file)
                 throws IOException {
             try (var metaOut = new FileOutputStream(
@@ -269,10 +304,19 @@ public final class ImporterLauncher {
                 c.accept(meta, metaOut);
             }
         }
+
         static final MetaFileWriter of(String outputFormat) {
             return Arrays.stream(values())
-                .filter(fw -> fw.name().equalsIgnoreCase(outputFormat))
-                .findFirst().orElse(PROPERTIES);
+                    .filter(fw -> fw.name().equalsIgnoreCase(outputFormat))
+                    .findFirst().orElse(PROPERTIES);
         }
+    }
+
+    private static PrintStream err() {
+        return System.err; //NOSONAR
+    }
+
+    private static PrintStream out() {
+        return System.out; //NOSONAR
     }
 }

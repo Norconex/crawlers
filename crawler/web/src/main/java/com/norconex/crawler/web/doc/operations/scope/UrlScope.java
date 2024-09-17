@@ -29,14 +29,17 @@ public final class UrlScope {
     public static UrlScope in() {
         return IN_SCOPE;
     }
+
     public static UrlScope out(String reason) {
-        return new UrlScope(StringUtils.firstNonBlank(
-                reason, "Unspecified reason."));
+        return new UrlScope(
+                StringUtils.firstNonBlank(
+                        reason, "Unspecified reason."));
     }
 
     public boolean isInScope() {
         return outOfScopeReason == null;
     }
+
     public String outOfScopeReason() {
         return outOfScopeReason;
     }

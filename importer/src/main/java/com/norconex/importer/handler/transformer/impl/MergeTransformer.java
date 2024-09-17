@@ -115,8 +115,8 @@ public class MergeTransformer
             // Merge values in one list
             List<String> mergedValues = new ArrayList<>();
 
-            for (Entry<String, List<String>> en :
-                docCtx.metadata().matchKeys(op.getFieldMatcher()).entrySet()) {
+            for (Entry<String, List<String>> en : docCtx.metadata()
+                    .matchKeys(op.getFieldMatcher()).entrySet()) {
 
                 var field = en.getKey();
                 var values = en.getValue();
@@ -132,8 +132,9 @@ public class MergeTransformer
 
             // Store in target field
             if (op.isSingleValue()) {
-                docCtx.metadata().set(op.getToField(), StringUtils.join(
-                        mergedValues, op.getSingleValueSeparator()));
+                docCtx.metadata().set(
+                        op.getToField(), StringUtils.join(
+                                mergedValues, op.getSingleValueSeparator()));
             } else {
                 docCtx.metadata().put(op.getToField(), mergedValues);
             }

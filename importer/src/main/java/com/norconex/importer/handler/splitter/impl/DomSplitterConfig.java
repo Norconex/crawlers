@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,6 +125,7 @@ public class DomSplitterConfig extends BaseDocumentSplitterConfig {
      * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
+
     public DomSplitterConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
@@ -139,6 +140,7 @@ public class DomSplitterConfig extends BaseDocumentSplitterConfig {
      */
     private final TextMatcher contentTypeMatcher =
             CommonMatchers.domContentTypes();
+
     /**
      * The matcher of content types to apply splitting on. No attempt to
      * split documents of any other content types will be made. Default is

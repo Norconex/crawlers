@@ -41,7 +41,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-
 /**
  * Raw Tika parser that needs to be configured by passing a tika
  * configuration file.
@@ -72,7 +71,8 @@ public class TikaParser
         try (var input = ctx.input().asInputStream();
                 var output = ctx.output().asWriter(UTF_8)) {
             var tikaMetadata = new Metadata();
-            tikaMetadata.set(TikaCoreProperties.RESOURCE_NAME_KEY,
+            tikaMetadata.set(
+                    TikaCoreProperties.RESOURCE_NAME_KEY,
                     ctx.reference());
             var context = new ParseContext();
             context.set(Parser.class, parser);
@@ -93,7 +93,7 @@ public class TikaParser
 
     private void addTikaToImporterMetadata(
             Metadata tikaMeta, Properties metadata) {
-        var  names = tikaMeta.names();
+        var names = tikaMeta.names();
         for (String name : names) {
             if (TikaCoreProperties.RESOURCE_NAME_KEY.equals(name)) {
                 continue;
@@ -109,6 +109,7 @@ public class TikaParser
             }
         }
     }
+
     private boolean containsSameValue(
             String name, List<String> nxValues, String tikaValue) {
         if (EqualsUtil.equalsAnyIgnoreCase(

@@ -16,7 +16,6 @@ package com.norconex.crawler.core.doc.pipelines.committer.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Path;
 
@@ -28,7 +27,6 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
-
 
 class DocumentChecksumStageTest {
 
@@ -49,7 +47,7 @@ class DocumentChecksumStageTest {
     }
 
     @Test
-    void testNoDocumentChecksummer() throws IOException {
+    void testNoDocumentChecksummer() {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var crawler = CrawlerStubs.memoryCrawler(tempDir);
@@ -66,5 +64,27 @@ class DocumentChecksumStageTest {
         stage.test(ctx);
 
         assertThat(doc.getDocContext().getContentChecksum()).isNull();
+    }
+
+    @Test
+    void testRejectedUnmodified() {
+        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+
+        var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
+        doc.getDocContext().setContentChecksum(crawler
+                .getConfiguration()
+                .getDocumentChecksummer()
+                .createDocumentChecksum(doc));
+
+        doc.getCachedDocContext().setContentChecksum(crawler
+                .getConfiguration()
+                .getDocumentChecksummer()
+                .createDocumentChecksum(doc));
+
+        var ctx = new CommitterPipelineContext(
+                CrawlerStubs.memoryCrawler(tempDir), doc);
+
+        var stage = new DocumentChecksumStage();
+        assertThat(stage.test(ctx)).isFalse();
     }
 }

@@ -37,6 +37,7 @@ public class ReferenceFiltersStage implements Predicate<QueuePipelineContext> {
     public ReferenceFiltersStage() {
         this(null);
     }
+
     public ReferenceFiltersStage(String type) {
         this.type = type;
     }
@@ -44,26 +45,31 @@ public class ReferenceFiltersStage implements Predicate<QueuePipelineContext> {
     @Override
     public boolean test(QueuePipelineContext ctx) {
         var msgSuffix = StringUtils.isBlank(type)
-                ? "" :  " (" + StringUtils.trimToEmpty(type) + ")";
+                ? ""
+                : " (" + StringUtils.trimToEmpty(type) + ")";
 
         return OnMatchFiltersResolver
-        .<String, ReferenceFilter>builder()
-        .subject(ctx.getDocContext().getReference())
-        .filters(ctx.getCrawler().getConfiguration().getReferenceFilters())
-        .predicate((s, f) -> f.acceptReference(s))
-        .onRejected((f, msg) -> {
-            LOG.debug("REJECTED reference{}: {} Filter={}",
-                    msgSuffix, ctx.getDocContext().getReference(), f);
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_FILTER)
-                    .source(ctx.getCrawler())
-                    .docContext(ctx.getDocContext())
-                    .subject(f)
-                    .message(msg + msgSuffix)
-                    .build());
-            ctx.getDocContext().setState(CrawlDocState.REJECTED);
-        })
-        .build()
-        .isAccepted();
+                .<String, ReferenceFilter>builder()
+                .subject(ctx.getDocContext().getReference())
+                .filters(
+                        ctx.getCrawler().getConfiguration()
+                                .getReferenceFilters())
+                .predicate((s, f) -> f.acceptReference(s))
+                .onRejected((f, msg) -> {
+                    LOG.debug(
+                            "REJECTED reference{}: {} Filter={}",
+                            msgSuffix, ctx.getDocContext().getReference(), f);
+                    ctx.getCrawler().fire(
+                            CrawlerEvent.builder()
+                                    .name(CrawlerEvent.REJECTED_FILTER)
+                                    .source(ctx.getCrawler())
+                                    .docContext(ctx.getDocContext())
+                                    .subject(f)
+                                    .message(msg + msgSuffix)
+                                    .build());
+                    ctx.getDocContext().setState(CrawlDocState.REJECTED);
+                })
+                .build()
+                .isAccepted();
     }
 }

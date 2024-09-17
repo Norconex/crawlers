@@ -15,10 +15,12 @@
 package com.norconex.crawler.fs.fetch.impl.webdav;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.File;
 
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.BindMode;
@@ -27,6 +29,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import com.norconex.commons.lang.net.Host;
+import com.norconex.commons.lang.security.Credentials;
 import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
@@ -37,13 +41,14 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
     @SuppressWarnings("resource")
     @Container
     public GenericContainer<?> webdavContainer =
-        new GenericContainer<>(DockerImageName.parse(
-                "mwader/webdav:update-to-go-1.12"))
-            .withExposedPorts(8080)
-            .withFileSystemBind(
-                    new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
-                    "/webdav", BindMode.READ_ONLY)
-            ;
+            new GenericContainer<>(
+                    DockerImageName.parse(
+                            "mwader/webdav:update-to-go-1.12"))
+                                    .withExposedPorts(8080)
+                                    .withFileSystemBind(
+                                            new File(FsTestUtil.TEST_FS_PATH)
+                                                    .getAbsolutePath(),
+                                            "/webdav", BindMode.READ_ONLY);
 
     private String webdavUrl;
 
@@ -72,7 +77,21 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
     void testKeyStorePassToString() {
         // toString shall not show password
         assertThat(
-            new WebDavFetcherConfig().setKeyStorePass("abc123").toString()
-        ).contains("password=********");
+                new WebDavFetcherConfig()
+                        .setKeyStorePass("abc123")
+                        .toString())
+                                .contains("password=********");
+    }
+
+    @Test
+    void testConfigureProxyOnFsOptions() {
+        assertThatNoException().isThrownBy(() -> {
+            var fetcher = new WebDavFetcher();
+            var cfg = fetcher.getConfiguration();
+            cfg.getProxySettings()
+                    .setCredentials(new Credentials("one", "two"))
+                    .setHost(new Host("0.0.0.0", 0));
+            fetcher.applyFileSystemOptions(new FileSystemOptions());
+        });
     }
 }

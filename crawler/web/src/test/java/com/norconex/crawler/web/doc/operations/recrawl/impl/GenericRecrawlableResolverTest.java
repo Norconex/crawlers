@@ -32,6 +32,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency;
+import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency.ApplyTo;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +45,11 @@ class GenericRecrawlableResolverTest {
         var r = new GenericRecrawlableResolver();
         r.getConfiguration().setSitemapSupport(SitemapSupport.LAST);
 
-        var f1 = new MinFrequency("reference", "monthly",
+        var f1 = new MinFrequency(
+                ApplyTo.REFERENCE, "monthly",
                 TextMatcher.regex(".*\\.pdf").ignoreCase());
-        var f2 = new MinFrequency("contentType", "1234",
+        var f2 = new MinFrequency(
+                ApplyTo.CONTENT_TYPE, "1234",
                 TextMatcher.regex(".*"));
 
         r.getConfiguration().setMinFrequencies(List.of(f1, f2));
@@ -70,13 +73,14 @@ class GenericRecrawlableResolverTest {
         prevCrawl.setCrawlDate(prevCrawlDate);
 
         var f = new MinFrequency(
-                "reference", "120 days", TextMatcher.regex(".*"));
+                ApplyTo.REFERENCE, "120 days", TextMatcher.regex(".*"));
 
         r.getConfiguration().setMinFrequencies(List.of(f));
         Assertions.assertFalse(r.isRecrawlable(prevCrawl));
 
         // Delay has passed
-        f = new MinFrequency("reference", "5 days", TextMatcher.regex(".*"));
+        f = new MinFrequency(
+                ApplyTo.REFERENCE, "5 days", TextMatcher.regex(".*"));
         r.getConfiguration().setMinFrequencies(List.of(f));
         Assertions.assertTrue(r.isRecrawlable(prevCrawl));
     }
@@ -84,20 +88,20 @@ class GenericRecrawlableResolverTest {
     @Test
     void testCustomFrequencyFromXML() {
         var xml = """
-            <recrawlableResolver>
-              <class>GenericRecrawlableResolver</class>
-              <minFrequencies>
-                <minFrequency>
-                  <applyTo>reference</applyTo>
-                  <matcher>
-                    <method>regex</method>
-                    <pattern>.*</pattern>
-                  </matcher>
-                  <value>128 days</value>
-                </minFrequency>
-              </minFrequencies>
-              <sitemapSupport>never</sitemapSupport>
-            </recrawlableResolver>""";
+                <recrawlableResolver>
+                  <class>GenericRecrawlableResolver</class>
+                  <minFrequencies>
+                    <minFrequency>
+                      <applyTo>reference</applyTo>
+                      <matcher>
+                        <method>regex</method>
+                        <pattern>.*</pattern>
+                      </matcher>
+                      <value>128 days</value>
+                    </minFrequency>
+                  </minFrequencies>
+                  <sitemapSupport>never</sitemapSupport>
+                </recrawlableResolver>""";
 
         var r = new GenericRecrawlableResolver();
         BeanMapper.DEFAULT.read(r, new StringReader(xml), Format.XML);
@@ -110,32 +114,31 @@ class GenericRecrawlableResolverTest {
         Assertions.assertFalse(r.isRecrawlable(prevCrawl));
     }
 
-
     @ParameterizedTest
     @CsvSource(
         nullValues = "NULL",
         textBlock = """
-            first, NULL,    NULL, reference,   hourly,  true,
-            first, hourly,  NULL, reference,   hourly,  true,
-            first, hourly,  NULL, reference,   always,  true,
-            first, hourly,  NULL, reference,   never,   true,
-            first, hourly,  NULL, reference,   yearly,  true,
-            last,  NULL,    NULL, reference,   hourly,  true,
-            last,  hourly,  NULL, reference,   hourly,  true,
-            last,  hourly,  NULL, reference,   always,  true,
-            last,  hourly,  NULL, reference,   never,   false,
-            last,  hourly,  NULL, reference,   yearly,  false,
-            last,  daily,   NULL, reference,   NULL,    true,
-            last,  monthly, NULL, reference,   NULL,    true,
-            first, daily,   NULL, reference,   NULL,    true,
-            first, weekly,  NULL, reference,   NULL,    false,
-            first, monthly, NULL, reference,   NULL,    false,
-            last,  hourly,  NULL, contentType, hourly,  true,
-            last,  hourly,  NULL, contentType, always,  true,
-            last,  hourly,  NULL, contentType, never,   false,
-            first, monthly, 2,    contentType, monthly, true,
-            first, monthly, 2,    contentType, monthly, true,
-            """
+                first, NULL,    NULL, reference,   hourly,  true,
+                first, hourly,  NULL, reference,   hourly,  true,
+                first, hourly,  NULL, reference,   always,  true,
+                first, hourly,  NULL, reference,   never,   true,
+                first, hourly,  NULL, reference,   yearly,  true,
+                last,  NULL,    NULL, reference,   hourly,  true,
+                last,  hourly,  NULL, reference,   hourly,  true,
+                last,  hourly,  NULL, reference,   always,  true,
+                last,  hourly,  NULL, reference,   never,   false,
+                last,  hourly,  NULL, reference,   yearly,  false,
+                last,  daily,   NULL, reference,   NULL,    true,
+                last,  monthly, NULL, reference,   NULL,    true,
+                first, daily,   NULL, reference,   NULL,    true,
+                first, weekly,  NULL, reference,   NULL,    false,
+                first, monthly, NULL, reference,   NULL,    false,
+                last,  hourly,  NULL, contentType, hourly,  true,
+                last,  hourly,  NULL, contentType, always,  true,
+                last,  hourly,  NULL, contentType, never,   false,
+                first, monthly, 2,    contentType, monthly, true,
+                first, monthly, 2,    contentType, monthly, true,
+                """
     )
     void testIsRecrawlable(
             String sitemapSupport,
@@ -160,9 +163,12 @@ class GenericRecrawlableResolverTest {
                 SitemapSupport.getSitemapSupport(sitemapSupport));
 
         var matcher = "reference".equals(minFreqApplyTo)
-                ? TextMatcher.basic(url) : TextMatcher.basic("text/html");
-        resolver.getConfiguration().setMinFrequencies(List.of(new MinFrequency(
-                minFreqApplyTo, minFreqValue, matcher)));
+                ? TextMatcher.basic(url)
+                : TextMatcher.basic("text/html");
+        resolver.getConfiguration().setMinFrequencies(List.of(
+                new MinFrequency("reference".equals(minFreqApplyTo)
+                        ? ApplyTo.REFERENCE
+                        : ApplyTo.CONTENT_TYPE, minFreqValue, matcher)));
 
         assertThat(resolver.isRecrawlable(prevRec)).isEqualTo(expected);
     }
@@ -173,7 +179,8 @@ class GenericRecrawlableResolverTest {
         assertThat(SitemapSupport.getSitemapSupport("iDontExist")).isNull();
 
         // no last crawl date
-        assertThat(new GenericRecrawlableResolver().isRecrawlable(
-                new WebCrawlDocContext("http://blah.com"))).isTrue();
+        assertThat(
+                new GenericRecrawlableResolver().isRecrawlable(
+                        new WebCrawlDocContext("http://blah.com"))).isTrue();
     }
 }

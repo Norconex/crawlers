@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -37,9 +37,12 @@ class AbstractFetcherTest {
     @Test
     void testAbstractFetcher() {
         var f = new MockFetcher();
-        f.getConfiguration().setReferenceFilters(List.of(
-                Configurable.configure(new GenericReferenceFilter(),
-                        cfg -> cfg.setValueMatcher(TextMatcher.basic("ref")))));
+        f.getConfiguration().setReferenceFilters(
+                List.of(
+                        Configurable.configure(
+                                new GenericReferenceFilter(),
+                                cfg -> cfg.setValueMatcher(
+                                        TextMatcher.basic("ref")))));
         assertThat(f.accept(new MockFetchRequest("ref"))).isTrue();
         assertThat(f.accept(new MockFetchRequest("potato"))).isFalse();
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();
@@ -53,37 +56,44 @@ class AbstractFetcherTest {
             protected void fetcherStartup(Crawler crawler) {
                 methodsCalled.add("fetcherStartup");
             }
+
             @Override
             protected void fetcherShutdown(Crawler crawler) {
                 methodsCalled.add("fetcherShutdown");
             }
+
             @Override
             protected void fetcherThreadBegin(Crawler crawler) {
                 methodsCalled.add("fetcherThreadBegin");
             }
+
             @Override
             protected void fetcherThreadEnd(Crawler crawler) {
                 methodsCalled.add("fetcherThreadEnd");
             }
         };
-        f.accept(CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
-                .source(crawler)
-                .build());
-        f.accept(CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_RUN_END)
-                .source(crawler)
-                .build());
-        f.accept(CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
-                .source(crawler)
-                .subject(Thread.currentThread())
-                .build());
-        f.accept(CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
-                .source(crawler)
-                .subject(Thread.currentThread())
-                .build());
+        f.accept(
+                CrawlerEvent.builder()
+                        .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
+                        .source(crawler)
+                        .build());
+        f.accept(
+                CrawlerEvent.builder()
+                        .name(CrawlerEvent.CRAWLER_RUN_END)
+                        .source(crawler)
+                        .build());
+        f.accept(
+                CrawlerEvent.builder()
+                        .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
+                        .source(crawler)
+                        .subject(Thread.currentThread())
+                        .build());
+        f.accept(
+                CrawlerEvent.builder()
+                        .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
+                        .source(crawler)
+                        .subject(Thread.currentThread())
+                        .build());
         assertThat(methodsCalled).containsExactly(
                 "fetcherStartup",
                 "fetcherShutdown",
@@ -95,6 +105,6 @@ class AbstractFetcherTest {
     void testWriteRead() {
         var f = new MockFetcher();
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(f, "fetcher"));
+                () -> Xml.assertWriteRead(f, "fetcher"));
     }
 }

@@ -44,16 +44,19 @@ public final class CrawlerTestUtil {
         private String stdOut;
         private String stdErr;
         private final List<String> events = new ArrayList<>();
+
         public boolean ok() {
             return code == 0;
         }
     }
 
-    private CrawlerTestUtil() {}
+    private CrawlerTestUtil() {
+    }
 
     public static void initCrawler(Crawler crawler) {
         CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
     }
+
     public static void destroyCrawler(Crawler crawler) {
         CrawlerCommandExecuter.orderlyShutdown(
                 new CommandExecution(crawler, "TEST"));
@@ -61,8 +64,8 @@ public final class CrawlerTestUtil {
 
     public static MemoryCommitter firstCommitter(
             @NonNull Crawler crawler) {
-        return (MemoryCommitter)
-                crawler.getConfiguration().getCommitters().get(0);
+        return (MemoryCommitter) crawler.getConfiguration().getCommitters()
+                .get(0);
     }
 
     public static MemoryCommitter runWithConfig(
@@ -80,7 +83,7 @@ public final class CrawlerTestUtil {
         System.err.println("KEY DUMP FOR ALL STORES:");
         engine.getStoreNames().forEach(sn -> {
             System.err.println();
-            System.err.println("[" + sn +"]");
+            System.err.println("[" + sn + "]");
             DataStore<?> store =
                     engine.openStore(sn, engine.getStoreType(sn).get());
             store.forEach((k, v) -> {
@@ -111,6 +114,7 @@ public final class CrawlerTestUtil {
             String... cmdArgs) throws IOException {
         return cliLaunch(workDir, null, cmdArgs);
     }
+
     public static Exit cliLaunch(
             @NonNull Path workDir,
             Consumer<CrawlerConfig> configModifier,
@@ -135,14 +139,13 @@ public final class CrawlerTestUtil {
 
         new MutableObject<CrawlerConfig>();
 
-
-        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(() ->
-                CliCrawlerLauncher.launch(
-                        CrawlerStubs
+        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
+                () -> CliCrawlerLauncher.launch(CrawlerStubs
                         .memoryCrawlerBuilder(workDir, cfg -> {
-                            cfg.addEventListener(event ->
-                                    exit.getEvents().add(event.getName()));
-                         }),
+                            cfg.addEventListener(
+                                    event -> exit
+                                            .getEvents().add(event.getName()));
+                        }),
                         cmdArgs));
 
         exit.setCode(captured.getReturnValue());

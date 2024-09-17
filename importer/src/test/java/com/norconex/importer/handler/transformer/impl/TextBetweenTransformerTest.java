@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,17 @@ class TextBetweenTransformerTest {
     void testExtractFromMetadata() throws IOException {
         // use it in a way that one of the end point is all we want to match
         var t = new TextBetweenTransformer();
-        t.getConfiguration().setOperations(List.of(
-            new TextBetweenOperation()
-                .setToField("target")
-                .setFieldMatcher(TextMatcher.wildcard("fld*"))
-                .setStartMatcher(TextMatcher.regex("x").setIgnoreCase(false))
-                .setEndMatcher(TextMatcher.regex("y").setIgnoreCase(false))
-        ));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new TextBetweenOperation()
+                                .setToField("target")
+                                .setFieldMatcher(TextMatcher.wildcard("fld*"))
+                                .setStartMatcher(
+                                        TextMatcher.regex("x")
+                                                .setIgnoreCase(false))
+                                .setEndMatcher(
+                                        TextMatcher.regex("y")
+                                                .setIgnoreCase(false))));
 
         var metadata = new Properties();
         metadata.add("fld1", "x1y", "x2y", "x3y");
@@ -70,7 +74,8 @@ class TextBetweenTransformerTest {
     void testExtractMatchingRegex() throws IOException {
         // use it in a way that one of the end point is all we want to match
         var t = new TextBetweenTransformer();
-        addDetails(t, "field", "http://www\\..*?02a\\.gif", "\\b",
+        addDetails(
+                t, "field", "http://www\\..*?02a\\.gif", "\\b",
                 true, false, null);
 
         var htmlFile = TestUtil.getAliceHtmlFile();
@@ -79,8 +84,10 @@ class TextBetweenTransformerTest {
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
 
-        t.accept(TestUtil.newDocContext(
-                htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -104,8 +111,10 @@ class TextBetweenTransformerTest {
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(TestUtil.newDocContext(
-                htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -128,8 +137,10 @@ class TextBetweenTransformerTest {
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(TestUtil.newDocContext(
-                htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        htmlFile.getAbsolutePath(), is, metadata,
+                        ParseState.PRE));
 
         is.close();
 
@@ -140,13 +151,15 @@ class TextBetweenTransformerTest {
     @Test
     void testWriteRead() {
         var t = new TextBetweenTransformer();
-        addDetails(t, "name", "start", "end", true,
+        addDetails(
+                t, "name", "start", "end", true,
                 true, PropertySetter.PREPEND);
-        addDetails(t, "headingsame", "<h1>", "</h1>", false,
+        addDetails(
+                t, "headingsame", "<h1>", "</h1>", false,
                 false, PropertySetter.APPEND);
         t.getConfiguration().setMaxReadSize(512);
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     private static void addDetails(

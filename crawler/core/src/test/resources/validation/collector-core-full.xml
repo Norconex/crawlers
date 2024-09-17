@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2017-2020 Norconex Inc.
+   Copyright 2017-2024 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@
     <numThreads>1</numThreads>
     <maxDocuments>111</maxDocuments>
     <orphansStrategy>PROCESS</orphansStrategy>
-    <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine" />
+    <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine" />
     <referenceFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
           onMatch="exclude" ignoreCase="false">xml,pdf,doc</filter>
@@ -99,7 +99,7 @@
     </importer>
 
     <committers>
-      <committer class="com.norconex.committer.core.fs.impl.JSONFileCommitter">
+      <committer class="com.norconex.committer.core.fs.impl.JsonFileCommitter">
         <directory>/tmp/somepath</directory>
       </committer>
     </committers>

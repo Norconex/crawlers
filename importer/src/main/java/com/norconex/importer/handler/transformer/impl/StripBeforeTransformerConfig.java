@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,7 @@ public class StripBeforeTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets source field matcher for fields to transform.
      * @param fieldMatcher field matcher
@@ -96,6 +97,7 @@ public class StripBeforeTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getStripBeforeMatcher() {
         return stripBeforeMatcher;
     }
+
     /**
      * Sets the matcher for the text up to which to strip content.
      * @param stripBeforeMatcher text matcher

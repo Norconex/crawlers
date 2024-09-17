@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,10 +101,11 @@ public final class DateProviderFactory {
     private static final Pattern RELATIVE_PARTS = Pattern.compile(
             //1              23            4         5
             "^(NOW|TODAY)\\s*(([-+]{1})\\s*(\\d+)\\s*([YMDhms]{1})\\s*)?"
-            //6
-           + "(\\*?)$");
+                    //6
+                    + "(\\*?)$");
 
-    private DateProviderFactory() {}
+    private DateProviderFactory() {
+    }
 
     /**
      * Create a new date supplier based on the given string. The
@@ -127,7 +128,7 @@ public final class DateProviderFactory {
             TimeUnit unit = null;
             var amount = NumberUtils.toInt(m.group(4), -1);
             if (amount > -1) {
-                if  ("-".equals(m.group(3))) {
+                if ("-".equals(m.group(3))) {
                     amount = -amount;
                 }
                 var unitStr = m.group(5);
@@ -142,7 +143,7 @@ public final class DateProviderFactory {
 
             if (fixed) {
                 return new DynamicFixedDateTimeProvider(
-                    unit, amount, today, zoneId);
+                        unit, amount, today, zoneId);
             }
             return new DynamicFloatingDateTimeProvider(
                     unit, amount, today, zoneId);
@@ -183,19 +184,24 @@ public final class DateProviderFactory {
     public static class StaticDateTimeProvider implements DateProvider {
         private final ZonedDateTime dateTime;
         private final String toString;
+
         public StaticDateTimeProvider(@NonNull ZonedDateTime dateTime) {
             this.dateTime = dateTime;
-            toString = dateTime.format(DateTimeFormatter.ofPattern(
-                    "yyyy-MM-dd'T'HH:mm:ss.nnnZ'['VV']'"));
+            toString = dateTime.format(
+                    DateTimeFormatter.ofPattern(
+                            "yyyy-MM-dd'T'HH:mm:ss.nnnZ'['VV']'"));
         }
+
         @Override
         public ZonedDateTime getDateTime() {
             return dateTime;
         }
+
         @Override
         public ZoneId getZoneId() {
             return dateTime.getZone();
         }
+
         @Override
         public String toString() {
             return toString;
@@ -213,6 +219,7 @@ public final class DateProviderFactory {
         private final int amount;
         private final boolean today; // default is false == NOW
         private final ZoneId zoneId;
+
         public DynamicFloatingDateTimeProvider(
                 TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
             this.unit = unit;
@@ -220,14 +227,17 @@ public final class DateProviderFactory {
             this.today = today;
             this.zoneId = zoneId;
         }
+
         @Override
         public ZonedDateTime getDateTime() {
             return dynamicDateTime(unit, amount, today, zoneId);
         }
+
         @Override
         public ZoneId getZoneId() {
             return zoneId;
         }
+
         @Override
         public String toString() {
             return dynamicToString(unit, amount, today, true);
@@ -249,6 +259,7 @@ public final class DateProviderFactory {
         @EqualsAndHashCode.Exclude
         @ToString.Exclude
         private ZonedDateTime dateTime;
+
         public DynamicFixedDateTimeProvider(
                 TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
             this.unit = unit;
@@ -257,6 +268,7 @@ public final class DateProviderFactory {
             this.zoneId = zoneId;
             toString = dynamicToString(unit, amount, today, false);
         }
+
         @Override
         public ZonedDateTime getDateTime() {
             if (dateTime == null) {
@@ -264,22 +276,24 @@ public final class DateProviderFactory {
             }
             return dateTime;
         }
+
         @Override
         public ZoneId getZoneId() {
             return zoneId;
         }
+
         public synchronized ZonedDateTime createDateTime(ZoneId zoneId) {
             if (dateTime == null) {
                 return dynamicDateTime(unit, amount, today, zoneId);
             }
             return dateTime;
         }
+
         @Override
         public String toString() {
             return toString;
         }
     }
-
 
     private static ZonedDateTime dynamicDateTime(
             TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
@@ -293,6 +307,7 @@ public final class DateProviderFactory {
         }
         return dt;
     }
+
     private static String dynamicToString(
             TimeUnit unit,
             int amount,

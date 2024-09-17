@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ public class CharsetTransformerConfig {
      * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
+
     /**
      * Set field matcher.
      * @param fieldMatcher field matcher

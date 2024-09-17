@@ -48,29 +48,35 @@ class SpecialURLsTest {
         var homePath = basePath + "/index.html";
 
         client
-            .when(request(homePath))
-            .respond(response().withBody("""
-                <p>This page contains URLs with special characters that may
-                potentially cause issues if not handled properly.</p>
-                <a href="escaped%2Falready.html">Slashes Already Escaped</a><br>
-                <a href="co,ma.html?param=a,b&par,am=c,,d">Commas</a><br>
-                <a href="spa ce.html?param=a b&par am=c d">Spaces</a><br>
-                """, HTML_UTF_8));
+                .when(request(homePath))
+                .respond(
+                        response().withBody(
+                                """
+                                        <p>This page contains URLs with special characters that may
+                                        potentially cause issues if not handled properly.</p>
+                                        <a href="escaped%2Falready.html">Slashes Already Escaped</a><br>
+                                        <a href="co,ma.html?param=a,b&par,am=c,,d">Commas</a><br>
+                                        <a href="spa ce.html?param=a b&par am=c d">Spaces</a><br>
+                                        """,
+                                HTML_UTF_8));
 
         client
-            .when(request("!" + homePath))
-            .respond(response().withBody("A page to be crawled.", HTML_UTF_8));
+                .when(request("!" + homePath))
+                .respond(
+                        response().withBody(
+                                "A page to be crawled.",
+                                HTML_UTF_8));
 
         var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, homePath)));
         });
 
         assertThat(mem.getUpsertRequests())
-            .map(UpsertRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    baseUrl + "/index.html",
-                    baseUrl + "/escaped%2Falready.html",
-                    baseUrl + "/co,ma.html?param=a%2Cb&par%2Cam=c%2C%2Cd",
-                    baseUrl + "/spa%20ce.html?param=a+b&par+am=c+d");
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        baseUrl + "/index.html",
+                        baseUrl + "/escaped%2Falready.html",
+                        baseUrl + "/co,ma.html?param=a%2Cb&par%2Cam=c%2C%2Cd",
+                        baseUrl + "/spa%20ce.html?param=a+b&par+am=c+d");
     }
 }

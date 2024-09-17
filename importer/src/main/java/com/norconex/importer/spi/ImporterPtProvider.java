@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,16 @@ public class ImporterPtProvider implements PolymorphicTypeProvider {
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        map.putAll(DocumentHandler.class,
-                ClassFinder.findSubTypes(DocumentHandler.class,
+        map.putAll(
+                DocumentHandler.class,
+                ClassFinder.findSubTypes(
+                        DocumentHandler.class,
                         nm -> nm.startsWith("com.norconex.importer.handler")));
-        map.putAll(Condition.class,
-                ClassFinder.findSubTypes(Condition.class, nm -> nm.startsWith(
-                        "com.norconex.importer.handler.condition")));
+        map.putAll(
+                Condition.class,
+                ClassFinder.findSubTypes(
+                        Condition.class, nm -> nm.startsWith(
+                                "com.norconex.importer.handler.condition")));
         return map;
     }
 }

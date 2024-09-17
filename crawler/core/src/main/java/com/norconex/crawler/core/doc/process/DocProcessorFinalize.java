@@ -31,11 +31,11 @@ import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferen
 
 import lombok.extern.slf4j.Slf4j;
 
-
 @Slf4j
 final class DocProcessorFinalize {
 
-    private DocProcessorFinalize() {}
+    private DocProcessorFinalize() {
+    }
 
     static void execute(DocProcessorContext ctx) {
 
@@ -49,16 +49,19 @@ final class DocProcessorFinalize {
 
         var docRecord = ctx.docContext();
         if (ctx.doc() == null) {
-            ctx.doc(new CrawlDoc(
-                    docRecord, CachedInputStream.cache(nullInputStream())));
+            ctx.doc(
+                    new CrawlDoc(
+                            docRecord,
+                            CachedInputStream.cache(nullInputStream())));
         }
         var doc = ctx.doc();
         var cachedDocRecord = doc.getCachedDocContext();
 
         //--- Ensure we have a state -------------------------------------------
         if (docRecord.getState() == null) {
-            LOG.warn("Reference status is unknown for \"{}\". "
-                    + "This should not happen. Assuming bad status.",
+            LOG.warn(
+                    "Reference status is unknown for \"{}\". "
+                            + "This should not happen. Assuming bad status.",
                     docRecord.getReference());
             docRecord.setState(CrawlDocState.BAD_STATUS);
         }
@@ -66,12 +69,14 @@ final class DocProcessorFinalize {
         try {
 
             // important to call this before copying properties further down
-//TODO revisit all the before/after on crawlerImpl
-            ofNullable(ctx
-                    .crawler()
-                    .getCallbacks()
-                    .getBeforeDocumentFinalizing())
-            .ifPresent(bdf -> bdf.accept(ctx.crawler(), doc));
+            //TODO revisit all the before/after on crawlerImpl
+            ofNullable(
+                    ctx
+                            .crawler()
+                            .getCallbacks()
+                            .getBeforeDocumentFinalizing())
+                                    .ifPresent(bdf -> bdf.accept(ctx.crawler(),
+                                            doc));
 
             //--- If doc crawl was incomplete, set missing info from cache -----
             // If document is not new or modified, it did not go through
@@ -89,32 +94,35 @@ final class DocProcessorFinalize {
             dealWithBadState(ctx);
 
         } catch (Exception e) {
-            LOG.error("Could not finalize processing of: {} ({})",
+            LOG.error(
+                    "Could not finalize processing of: {} ({})",
                     docRecord.getReference(), e.getMessage(), e);
         }
 
         //--- Mark reference as Processed --------------------------------------
         try {
             ctx
-            .crawler()
-            .getServices()
-            .getDocTrackerService()
-            .processed(docRecord);
+                    .crawler()
+                    .getServices()
+                    .getDocTrackerService()
+                    .processed(docRecord);
 
             markReferenceVariationsAsProcessed(ctx);
 
             ctx.crawler().getServices().getProgressLogger().logProgress();
 
-
         } catch (Exception e) {
-            LOG.error("Could not mark reference as processed: {} ({})",
+            LOG.error(
+                    "Could not mark reference as processed: {} ({})",
                     docRecord.getReference(), e.getMessage(), e);
         } finally {
-            ofNullable(ctx
-                    .crawler()
-                    .getCallbacks()
-                    .getAfterDocumentFinalizing())
-            .ifPresent(adf -> adf.accept(ctx.crawler(), doc));
+            ofNullable(
+                    ctx
+                            .crawler()
+                            .getCallbacks()
+                            .getAfterDocumentFinalizing())
+                                    .ifPresent(adf -> adf.accept(ctx.crawler(),
+                                            doc));
         }
 
         try {
@@ -129,7 +137,8 @@ final class DocProcessorFinalize {
     private static void dealWithBadState(DocProcessorContext ctx) {
         var doc = ctx.doc();
         var docRecord = ctx.docContext();
-        var cachedDocRecord = ofNullable(doc.getCachedDocContext()).orElse(null);
+        var cachedDocRecord =
+                ofNullable(doc.getCachedDocContext()).orElse(null);
 
         //--- Deal with bad states (if not already deleted) ----------------
         if (!docRecord.getState().isGoodState()
@@ -147,18 +156,21 @@ final class DocProcessorFinalize {
             // This could remove the need for the
             // markReferenceVariationsAsProcessed(...) method
 
-            var strategy = Optional.ofNullable(ctx
-                    .crawler()
-                    .getConfiguration()
-                    .getSpoiledReferenceStrategizer())
-                .map(srs -> srs.resolveSpoiledReferenceStrategy(
-                        ctx.docContext().getReference(),
-                        ctx.docContext().getState()))
-                .orElse(GenericSpoiledReferenceStrategizerConfig
-                        .DEFAULT_FALLBACK_STRATEGY);
+            var strategy = Optional.ofNullable(
+                    ctx
+                            .crawler()
+                            .getConfiguration()
+                            .getSpoiledReferenceStrategizer())
+                    .map(
+                            srs -> srs.resolveSpoiledReferenceStrategy(
+                                    ctx.docContext().getReference(),
+                                    ctx.docContext().getState()))
+                    .orElse(
+                            GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY);
 
             if (strategy == SpoiledReferenceStrategy.IGNORE) {
-                LOG.debug("Ignoring spoiled reference: {}",
+                LOG.debug(
+                        "Ignoring spoiled reference: {}",
                         docRecord.getReference());
             } else if (strategy == SpoiledReferenceStrategy.DELETE) {
                 // Delete if previous state exists and is not already
@@ -177,10 +189,11 @@ final class DocProcessorFinalize {
                 if (!cachedDocRecord.getState().isGoodState()) {
                     DocProcessorDelete.execute(ctx);
                 } else {
-                    LOG.debug("""
-                        This spoiled reference is\s\
-                        being graced once (will be deleted\s\
-                        next time if still spoiled): {}""",
+                    LOG.debug(
+                            """
+                                    This spoiled reference is\s\
+                                    being graced once (will be deleted\s\
+                                    next time if still spoiled): {}""",
                             docRecord.getReference());
                 }
             }
@@ -198,10 +211,10 @@ final class DocProcessorFinalize {
             var originalDocRec = ctx.docContext().withReference(originalRef);
             originalDocRec.setOriginalReference(null);
             ctx
-            .crawler()
-            .getServices()
-            .getDocTrackerService()
-            .processed(originalDocRec);
+                    .crawler()
+                    .getServices()
+                    .getDocTrackerService()
+                    .processed(originalDocRec);
         }
     }
 

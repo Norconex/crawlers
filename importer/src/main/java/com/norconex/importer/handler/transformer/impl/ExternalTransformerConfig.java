@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -312,6 +312,7 @@ public class ExternalTransformerConfig {
     public List<RegexFieldValueExtractor> getExtractionPatterns() {
         return Collections.unmodifiableList(extractionPatterns);
     }
+
     /**
      * Sets metadata extraction patterns. See class documentation.
      * @param patterns extraction pattern

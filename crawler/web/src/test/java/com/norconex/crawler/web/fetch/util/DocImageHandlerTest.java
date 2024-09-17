@@ -44,27 +44,27 @@ class DocImageHandlerTest {
     void testWriteRead() {
         var h = new DocImageHandler();
         h.getConfiguration()
-        .setImageFormat("jpg")
-        .setTargetDir(Paths.get("/tmp/blah"))
-        .setTargetDirStructure(DirStructure.URL2PATH)
-        .setTargetDirField("docImage")
-        .setTargetMetaField("docMeta")
-        .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+                .setImageFormat("jpg")
+                .setTargetDir(Paths.get("/tmp/blah"))
+                .setTargetDirStructure(DirStructure.URL2PATH)
+                .setTargetDirField("docImage")
+                .setTargetMetaField("docMeta")
+                .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(h));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(h));
     }
 
     @Test
     void testHandleImage(@TempDir Path tempDir) throws IOException {
         var h = new DocImageHandler();
         h.getConfiguration()
-            .setTargetDir(tempDir)
-            .setTargetDirField("img-path")
-            .setTargetMetaField("img-64")
-            .setImageFormat("jpg")
-            .setTargetDirStructure(DirStructure.DATE)
-            .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+                .setTargetDir(tempDir)
+                .setTargetDirField("img-path")
+                .setTargetMetaField("img-64")
+                .setImageFormat("jpg")
+                .setTargetDirStructure(DirStructure.DATE)
+                .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
 
         var doc = CrawlDocStubs.crawlDoc(
                 "http://site.com/page.html",

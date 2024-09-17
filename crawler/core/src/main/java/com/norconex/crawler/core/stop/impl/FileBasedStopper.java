@@ -94,7 +94,8 @@ public class FileBasedStopper implements CrawlerStopper {
         } catch (IOException e) {
             throw new CrawlerStopperException(
                     "Cannot delete stop file: "
-                            + monitoredStopFile.toAbsolutePath(), e);
+                            + monitoredStopFile.toAbsolutePath(),
+                    e);
         }
     }
 
@@ -109,8 +110,9 @@ public class FileBasedStopper implements CrawlerStopper {
         }
 
         if (stopFile.toFile().exists()) {
-            LOG.info("Cannot stop local instance: "
-                    + "Stop already requested. Stop file: {}",
+            LOG.info(
+                    "Cannot stop local instance: "
+                            + "Stop already requested. Stop file: {}",
                     stopFile.toAbsolutePath());
             return false;
         }
@@ -120,7 +122,8 @@ public class FileBasedStopper implements CrawlerStopper {
         } catch (IOException e) {
             throw new CrawlerStopperException(
                     "Could not create stop file: "
-                            + stopFile.toAbsolutePath(), e);
+                            + stopFile.toAbsolutePath(),
+                    e);
         }
         return true;
     }

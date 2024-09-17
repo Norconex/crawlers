@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ public enum HttpMethod {
     public boolean is(HttpMethod httpMethod) {
         return this.equals(httpMethod);
     }
+
     public boolean isAny(HttpMethod... httpMethods) {
         for (HttpMethod httpMethod : httpMethods) {
             if (is(httpMethod)) {

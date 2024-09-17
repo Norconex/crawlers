@@ -102,7 +102,6 @@ public class CrawlerEvent extends Event {
     public static final String CRAWLER_STORE_IMPORT_END =
             "CRAWLER_STORE_IMPORT_END";
 
-
     public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
 
     /**
@@ -159,16 +158,16 @@ public class CrawlerEvent extends Event {
      * A document post-import processor was executed properly.
      */
     public static final String DOCUMENT_POSTIMPORTED = "DOCUMENT_POSTIMPORTED";
-//    /**
-//     * A document was submitted to a committer for upsert.
-//     */
-//    public static final String DOCUMENT_COMMITTED_UPSERT =
-//            "DOCUMENT_COMMITTED_UPSERT";
-//    /**
-//     * A document was submitted to a committer for removal.
-//     */
-//    public static final String DOCUMENT_COMMITTED_DELETE =
-//            "DOCUMENT_COMMITTED_DELETE";
+    //    /**
+    //     * A document was submitted to a committer for upsert.
+    //     */
+    //    public static final String DOCUMENT_COMMITTED_UPSERT =
+    //            "DOCUMENT_COMMITTED_UPSERT";
+    //    /**
+    //     * A document was submitted to a committer for removal.
+    //     */
+    //    public static final String DOCUMENT_COMMITTED_DELETE =
+    //            "DOCUMENT_COMMITTED_DELETE";
     /**
      * A document metadata fields were successfully retrieved.
      */
@@ -189,11 +188,10 @@ public class CrawlerEvent extends Event {
      */
     public static final String DOCUMENT_PROCESSED = "DOCUMENT_PROCESSED";
 
-//    /**
-//     * A document was saved.
-//     */
-//    public static final String DOCUMENT_SAVED = "DOCUMENT_SAVED";
-
+    //    /**
+    //     * A document was saved.
+    //     */
+    //    public static final String DOCUMENT_SAVED = "DOCUMENT_SAVED";
 
     /**
      * Gets the crawl data holding contextual information about the

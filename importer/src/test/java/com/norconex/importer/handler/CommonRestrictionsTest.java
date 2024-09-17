@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,85 +28,95 @@ class CommonRestrictionsTest {
 
     @Test
     void testXmlFeedContentTypes() {
-        assertThat(test(CommonRestrictions::xmlFeedContentTypes,
-                "application/atom+xml",
-                "application/rss+xml",
-                "application/rdf+xml",
-                "application/xml",
-                "text/xml"
-        )).isTrue();
+        assertThat(
+                test(
+                        CommonRestrictions::xmlFeedContentTypes,
+                        "application/atom+xml",
+                        "application/rss+xml",
+                        "application/rdf+xml",
+                        "application/xml",
+                        "text/xml")).isTrue();
 
-        assertThat(test(CommonRestrictions::xmlFeedContentTypes,
-                "text/blah"
-        )).isFalse();
+        assertThat(
+                test(
+                        CommonRestrictions::xmlFeedContentTypes,
+                        "text/blah")).isFalse();
     }
 
     @Test
     void testDomContentTypes() {
-        assertThat(test(CommonRestrictions::domContentTypes,
-                "application/atom+xml",
-                "application/mathml+xml",
-                "application/rss+xml",
-                "application/vnd.wap.xhtml+xml",
-                "application/x-asp",
-                "application/xhtml+xml",
-                "application/xml",
-                "application/xslt+xml",
-                "image/svg+xml",
-                "text/html",
-                "text/xml"
-        )).isTrue();
+        assertThat(
+                test(
+                        CommonRestrictions::domContentTypes,
+                        "application/atom+xml",
+                        "application/mathml+xml",
+                        "application/rss+xml",
+                        "application/vnd.wap.xhtml+xml",
+                        "application/x-asp",
+                        "application/xhtml+xml",
+                        "application/xml",
+                        "application/xslt+xml",
+                        "image/svg+xml",
+                        "text/html",
+                        "text/xml")).isTrue();
 
-        assertThat(test(CommonRestrictions::domContentTypes,
-                "text/blah"
-        )).isFalse();
+        assertThat(
+                test(
+                        CommonRestrictions::domContentTypes,
+                        "text/blah")).isFalse();
     }
 
     @Test
     void testHtmlContentTypes() {
-        assertThat(test(CommonRestrictions::htmlContentTypes,
-                "application/vnd.wap.xhtml+xml",
-                "application/xhtml+xml",
-                "text/html"
-        )).isTrue();
+        assertThat(
+                test(
+                        CommonRestrictions::htmlContentTypes,
+                        "application/vnd.wap.xhtml+xml",
+                        "application/xhtml+xml",
+                        "text/html")).isTrue();
 
-        assertThat(test(CommonRestrictions::htmlContentTypes,
-                "text/blah"
-        )).isFalse();
+        assertThat(
+                test(
+                        CommonRestrictions::htmlContentTypes,
+                        "text/blah")).isFalse();
     }
 
     @Test
     void testXmlContentTypes() {
-        assertThat(test(CommonRestrictions::xmlContentTypes,
-                "application/atom+xml",
-                "application/mathml+xml",
-                "application/rss+xml",
-                "application/xhtml+xml",
-                "application/xml",
-                "application/xslt+xml",
-                "image/svg+xml",
-                "text/xml"
-        )).isTrue();
+        assertThat(
+                test(
+                        CommonRestrictions::xmlContentTypes,
+                        "application/atom+xml",
+                        "application/mathml+xml",
+                        "application/rss+xml",
+                        "application/xhtml+xml",
+                        "application/xml",
+                        "application/xslt+xml",
+                        "image/svg+xml",
+                        "text/xml")).isTrue();
 
-        assertThat(test(CommonRestrictions::xmlContentTypes,
-                "text/blah"
-        )).isFalse();
+        assertThat(
+                test(
+                        CommonRestrictions::xmlContentTypes,
+                        "text/blah")).isFalse();
     }
 
     @Test
     void testImageIOStandardContentTypes() {
-        assertThat(test(CommonRestrictions::imageIOStandardContentTypes,
-                "image/bmp",
-                "image/gif",
-                "image/jpeg",
-                "image/png",
-                "image/vnd.wap.wbmp",
-                "image/x-windows-bmp"
-        )).isTrue();
+        assertThat(
+                test(
+                        CommonRestrictions::imageIOStandardContentTypes,
+                        "image/bmp",
+                        "image/gif",
+                        "image/jpeg",
+                        "image/png",
+                        "image/vnd.wap.wbmp",
+                        "image/x-windows-bmp")).isTrue();
 
-        assertThat(test(CommonRestrictions::imageIOStandardContentTypes,
-                "text/blah"
-        )).isFalse();
+        assertThat(
+                test(
+                        CommonRestrictions::imageIOStandardContentTypes,
+                        "text/blah")).isFalse();
     }
 
     private boolean test(

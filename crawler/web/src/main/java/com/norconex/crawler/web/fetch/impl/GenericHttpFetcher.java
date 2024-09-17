@@ -87,14 +87,13 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
+import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -144,14 +143,6 @@ import lombok.extern.slf4j.Slf4j;
  * and {@link GenericHttpFetcherConfig#setForceCharsetDetection(boolean)}.
  * </p>
  *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
  * <h3>HSTS Support</h3>
  * <p>
  * Upon first encountering a secure site, this fetcher will check whether the
@@ -163,10 +154,9 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * <p>
  * If you want to convert non-secure URLs secure ones regardless of website
- * HSTS support, use
- * {@link GenericUrlNormalizer.Normalization#secureScheme} instead.
+ * HSTS support, use {@link Normalization#SECURE_SCHEME} instead.
  * To disable HSTS support, use
- * {@link GenericHttpFetcherConfig#setDisableHSTS(boolean)}.
+ * {@link GenericHttpFetcherConfig#setHstsDisabled(boolean)}.
  * </p>
  *
  * <h3>Pro-active change detection</h3>
@@ -183,106 +173,16 @@ import lombok.extern.slf4j.Slf4j;
  * supporting servers we only want to download a document if it was modified
  * since our last request.
  * To disable support for pro-active change detection, you can use
- * {@link GenericHttpFetcherConfig#setDisableIfModifiedSince(boolean)} and
- * {@link GenericHttpFetcherConfig#setDisableETag(boolean)}.
+ * {@link GenericHttpFetcherConfig#setIfModifiedSinceDisabled(boolean)} and
+ * {@link GenericHttpFetcherConfig#setETagDisabled(boolean)}.
  * </p>
  * <p>
  * These settings have no effect for web servers not supporting them.
  * </p>
  *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.web.fetch.impl.GenericHttpFetcher">
- *
- *   <userAgent>(identify yourself!)</userAgent>
- *   <cookieSpec>[RELAXED|STRICT|IGNORE]</cookieSpec>
- *   <connectionTimeout>(milliseconds)</connectionTimeout>
- *   <socketTimeout>(milliseconds)</socketTimeout>
- *   <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
- *   <expectContinueEnabled>[false|true]</expectContinueEnabled>
- *   <maxRedirects>...</maxRedirects>
- *   <redirectURLProvider>(implementation handling redirects)</redirectURLProvider>
- *   <localAddress>...</localAddress>
- *   <maxConnections>...</maxConnections>
- *   <maxConnectionsPerRoute>...</maxConnectionsPerRoute>
- *   <maxConnectionIdleTime>(milliseconds)</maxConnectionIdleTime>
- *   <maxConnectionInactiveTime>(milliseconds)</maxConnectionInactiveTime>
- *
- *   <!-- Be warned: trusting all certificates is usually a bad idea. -->
- *   <trustAllSSLCertificates>[false|true]</trustAllSSLCertificates>
- *
- *   <!-- You can specify SSL/TLS protocols to use -->
- *   <sslProtocols>(coma-separated list)</sslProtocols>
- *
- *   <!-- Disable Server Name Indication (SNI) -->
- *   <disableSNI>[false|true]</disableSNI>
- *
- *   <!-- Disable support for website "Strict-Transport-Security" setting. -->
- *   <disableHSTS>[false|true]</disableHSTS>
- *
- *   <!-- You can use a specific key store for SSL Certificates -->
- *   <keyStoreFile></keyStoreFile>
- *
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
- *   </proxySettings>
- *
- *   <!-- HTTP request header constants passed on every HTTP requests -->
- *   <headers>
- *     <header name="(header name)">(header value)</header>
- *     <!-- You can repeat this header tag as needed. -->
- *   </headers>
- *
- *   <!-- Disable conditionally getting a document based on last crawl date. -->
- *   <disableIfModifiedSince>[false|true]</disableIfModifiedSince>
- *
- *   <!-- Disable ETag support. -->
- *   <disableETag>[false|true]</disableETag>
- *
- *   <!-- Optional authentication details. -->
- *   <authentication>
- *     {@nx.include com.norconex.crawler.web.fetch.impl.HttpAuthConfig@nx.xml.usage}
- *   </authentication>
- *
- *   <validStatusCodes>(defaults to 200)</validStatusCodes>
- *   <notFoundStatusCodes>(defaults to 404)</notFoundStatusCodes>
- *   <headersPrefix>(string to prefix headers)</headersPrefix>
- *
- *   <!-- Force detect, or only when not provided in HTTP response headers -->
- *   <forceContentTypeDetection>[false|true]</forceContentTypeDetection>
- *   <forceCharsetDetection>[false|true]</forceCharsetDetection>
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   <!-- Comma-separated list of supported HTTP methods. -->
- *   <httpMethods>(defaults to: GET, HEAD)</httpMethods>
- *
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="GenericHttpFetcher">
- *     <authentication>
- *       <method>form</method>
- *       <credentials>
- *         <username>joeUser</username>
- *         <password>joePasword</password>
- *       </credentials>
- *       <formUsernameField>loginUser</formUsernameField>
- *       <formPasswordField>loginPwd</formPasswordField>
- *       <url>http://www.example.com/login/submit</url>
- *     </authentication>
- * </fetcher>
- * }
- * <p>
- * The above example will authenticate the crawler to a web site before
- * crawling. The website uses an HTML form with a username and password
- * fields called "loginUser" and "loginPwd".
- * </p>
- *
  * @since 3.0.0 (Merged from GenericDocumentFetcher and
  *        GenericHttpClientFactory)
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
@@ -320,11 +220,12 @@ public class GenericHttpFetcher
     public HttpFetchResponse fetch(HttpFetchRequest fetchRequest)
             throws FetchException {
         var doc = fetchRequest.getDoc();
-        var httpMethod =  fetchRequest.getMethod();
+        var httpMethod = fetchRequest.getMethod();
 
         if (httpClient == null) {
-            throw new IllegalStateException("GenericHttpFetcher was not "
-                    + "initialized ('httpClient' not set).");
+            throw new IllegalStateException(
+                    "GenericHttpFetcher was not "
+                            + "initialized ('httpClient' not set).");
         }
 
         HttpUriRequestBase request = null;
@@ -366,15 +267,17 @@ public class GenericHttpFetcher
                 var statusCode = response.getCode();
                 var reason = response.getReasonPhrase();
 
-                LOG.debug("Fetch status for: \"{}\": {} - {}",
+                LOG.debug(
+                        "Fetch status for: \"{}\": {} - {}",
                         doc.getReference(), statusCode, reason);
 
                 var responseBuilder = GenericHttpFetchResponse.builder()
-                    .statusCode(statusCode)
-                    .reasonPhrase(reason)
-                    .userAgent(configuration.getUserAgent())
-                    .redirectTarget(ApacheRedirectCaptureStrategy
-                            .getRedirectTarget(ctx));
+                        .statusCode(statusCode)
+                        .reasonPhrase(reason)
+                        .userAgent(configuration.getUserAgent())
+                        .redirectTarget(
+                                ApacheRedirectCaptureStrategy
+                                        .getRedirectTarget(ctx));
 
                 //--- Extract headers ---
                 ApacheHttpUtil.applyResponseHeaders(
@@ -385,7 +288,8 @@ public class GenericHttpFetcher
                     if (ApacheHttpUtil.applyResponseContent(response, doc)) {
                         performDetection(doc);
                     } else {
-                        LOG.debug("No content returned for: {}",
+                        LOG.debug(
+                                "No content returned for: {}",
                                 doc.getReference());
                     }
                 }
@@ -409,14 +313,16 @@ public class GenericHttpFetcher
                 //--- INVALID http response handling ---------------------------
 
                 // NOT_FOUND
-                if (configuration.getNotFoundStatusCodes().contains(statusCode)) {
+                if (configuration.getNotFoundStatusCodes()
+                        .contains(statusCode)) {
                     return responseBuilder
                             .crawlDocState(CrawlDocState.NOT_FOUND)
                             .build();
                 }
 
                 // BAD_STATUS
-                LOG.debug("Unsupported HTTP Response: {}",
+                LOG.debug(
+                        "Unsupported HTTP Response: {}",
                         response.getReasonPhrase());
                 return responseBuilder
                         .crawlDocState(CrawlDocState.BAD_STATUS)
@@ -448,19 +354,20 @@ public class GenericHttpFetcher
         if (StringUtils.isBlank(userAgent)) {
             LOG.info("User-Agent: <None specified>");
             LOG.debug("""
-                It is recommended you identify yourself to web sites\s\
-                by specifying a user agent\s\
-                (https://en.wikipedia.org/wiki/User_agent)""");
+                    It is recommended you identify yourself to web sites\s\
+                    by specifying a user agent\s\
+                    (https://en.wikipedia.org/wiki/User_agent)""");
         } else {
             LOG.info("User-Agent: {}", userAgent);
         }
 
         if (configuration.getAuthentication() != null
-                && HttpAuthMethod.FORM ==
-                        configuration.getAuthentication().getMethod()) {
+                && HttpAuthMethod.FORM == configuration.getAuthentication()
+                        .getMethod()) {
             authenticateUsingForm(httpClient);
         }
     }
+
     @Override
     protected void fetcherShutdown(Crawler c) {
         if (httpClient instanceof CloseableHttpClient hc) {
@@ -485,8 +392,9 @@ public class GenericHttpFetcher
         try {
             if (configuration.isForceContentTypeDetection()
                     || docRecord.getContentType() == null) {
-                docRecord.setContentType(ContentTypeDetector.detect(
-                        doc.getInputStream(), doc.getReference()));
+                docRecord.setContentType(
+                        ContentTypeDetector.detect(
+                                doc.getInputStream(), doc.getReference()));
             }
         } catch (IOException e) {
             LOG.warn("Cannont perform content type detection.", e);
@@ -494,8 +402,9 @@ public class GenericHttpFetcher
         try {
             if (configuration.isForceCharsetDetection()
                     || docRecord.getCharset() == null) {
-                docRecord.setCharset(CharsetDetector.builder()
-                        .build().detect(doc.getInputStream()));
+                docRecord.setCharset(
+                        CharsetDetector.builder()
+                                .build().detect(doc.getInputStream()));
             }
         } catch (IOException e) {
             LOG.warn("Cannot perform charset type detection.", e);
@@ -509,8 +418,7 @@ public class GenericHttpFetcher
         var builder = HttpClientBuilder.create();
         var schemePortResolver = createSchemePortResolver();
         ofNullable(createRoutePlanner(schemePortResolver)).ifPresent(
-                builder::setRoutePlanner
-        );
+                builder::setRoutePlanner);
 
         builder.setConnectionManager(createConnectionManager());
         builder.setSchemePortResolver(schemePortResolver);
@@ -520,11 +428,13 @@ public class GenericHttpFetcher
         builder.setUserAgent(configuration.getUserAgent());
         builder.evictExpiredConnections();
         ofNullable(configuration.getMaxConnectionIdleTime()).ifPresent(
-            d -> builder.evictIdleConnections(ofMilliseconds(d.toMillis())));
+                d -> builder
+                        .evictIdleConnections(ofMilliseconds(d.toMillis())));
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
-        builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
-                configuration.getRedirectUrlProvider()));
+        builder.setRedirectStrategy(
+                new ApacheRedirectCaptureStrategy(
+                        configuration.getRedirectUrlProvider()));
 
         buildCustomHttpClient(builder);
 
@@ -543,8 +453,8 @@ public class GenericHttpFetcher
         if (!configuration.getSslProtocols().isEmpty()) {
             tlsBuilder.setSupportedProtocols(
                     configuration
-                    .getSslProtocols()
-                    .toArray(EMPTY_STRING_ARRAY));
+                            .getSslProtocols()
+                            .toArray(EMPTY_STRING_ARRAY));
         }
         return PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslSocketFactory)
@@ -562,14 +472,17 @@ public class GenericHttpFetcher
         }
         return new DefaultRoutePlanner(schemePortResolver) {
             @Override
-            protected InetAddress determineLocalAddress(HttpHost firstHop,
+            protected InetAddress determineLocalAddress(
+                    HttpHost firstHop,
                     HttpContext context) throws HttpException {
                 try {
                     return InetAddress.getByName(
                             configuration.getLocalAddress());
                 } catch (UnknownHostException e) {
-                    throw new CrawlerException("Invalid local address: {}"
-                            + configuration.getLocalAddress(), e);
+                    throw new CrawlerException(
+                            "Invalid local address: {}"
+                                    + configuration.getLocalAddress(),
+                            e);
                 }
             }
         };
@@ -617,8 +530,9 @@ public class GenericHttpFetcher
         //--- Configuration-defined headers
         List<Header> headers = new ArrayList<>();
         for (String name : configuration.getRequestHeaderNames()) {
-            headers.add(new BasicHeader(
-                    name, configuration.getRequestHeader(name)));
+            headers.add(
+                    new BasicHeader(
+                            name, configuration.getRequestHeader(name)));
         }
 
         //--- preemptive headers
@@ -632,15 +546,16 @@ public class GenericHttpFetcher
             var authConfig = configuration.getAuthentication();
             if (StringUtils.isBlank(
                     authConfig.getCredentials().getUsername())) {
-                LOG.warn("Preemptive authentication is enabled while no "
-                        + "username was provided.");
+                LOG.warn(
+                        "Preemptive authentication is enabled while no "
+                                + "username was provided.");
                 return headers;
             }
             if (HttpAuthMethod.BASIC != authConfig.getMethod()) {
                 LOG.warn("""
-                    Using preemptive authentication with a\s\
-                    method other than "Basic" may not produce the\s\
-                    expected outcome.""");
+                        Using preemptive authentication with a\s\
+                        method other than "Basic" may not produce the\s\
+                        expected outcome.""");
             }
             var password = EncryptionUtil.decryptPassword(
                     authConfig.getCredentials());
@@ -657,6 +572,7 @@ public class GenericHttpFetcher
     protected SchemePortResolver createSchemePortResolver() {
         return SCHEME_PORT_RESOLVER;
     }
+
     protected RequestConfig createRequestConfig() {
         var builder = RequestConfig.custom();
 
@@ -664,14 +580,17 @@ public class GenericHttpFetcher
                 d -> builder.setConnectionRequestTimeout(
                         d.toMillis(), TimeUnit.MILLISECONDS));
         builder.setMaxRedirects(configuration.getMaxRedirects())
-            .setExpectContinueEnabled(configuration.isExpectContinueEnabled())
-            .setCookieSpec(Objects.toString(
-                    configuration.getCookieSpec(), null));
+                .setExpectContinueEnabled(
+                        configuration.isExpectContinueEnabled())
+                .setCookieSpec(
+                        Objects.toString(
+                                configuration.getCookieSpec(), null));
         if (configuration.getMaxRedirects() <= 0) {
             builder.setRedirectsEnabled(false);
         }
         return builder.build();
     }
+
     protected HttpHost createProxy() {
         if (configuration.getProxySettings().isSet()) {
             return new HttpHost(
@@ -681,6 +600,7 @@ public class GenericHttpFetcher
         }
         return null;
     }
+
     protected CredentialsProvider createCredentialsProvider() {
         BasicCredentialsProvider credsProvider = null;
 
@@ -692,11 +612,11 @@ public class GenericHttpFetcher
             credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
                     new AuthScope(
-                        new HttpHost(
-                                proxy.getHost().getName(),
-                                proxy.getHost().getPort()),
-                        proxy.getRealm(),
-                        null),
+                            new HttpHost(
+                                    proxy.getHost().getName(),
+                                    proxy.getHost().getPort()),
+                            proxy.getRealm(),
+                            null),
                     new UsernamePasswordCredentials(
                             proxy.getCredentials().getUsername(),
                             trimToEmpty(password).toCharArray()));
@@ -727,17 +647,16 @@ public class GenericHttpFetcher
             }
             credsProvider.setCredentials(
                     new AuthScope(
-                        new HttpHost(
-                            authConfig.getHost().getName(),
-                            authConfig.getHost().getPort()
-                        ),
-                        authConfig.getRealm(),
-                        Objects.toString(authConfig.getMethod(), null)
-                    ),
+                            new HttpHost(
+                                    authConfig.getHost().getName(),
+                                    authConfig.getHost().getPort()),
+                            authConfig.getRealm(),
+                            Objects.toString(authConfig.getMethod(), null)),
                     creds);
         }
         return credsProvider;
     }
+
     protected ConnectionConfig createConnectionConfig() {
         var builder = ConnectionConfig.custom();
         ofNullable(configuration.getConnectionTimeout()).ifPresent(
@@ -773,7 +692,7 @@ public class GenericHttpFetcher
 
         // Turn off host name verification and remove all algorithm constraints.
         return new SSLConnectionSocketFactory(
-                        context, new NoopHostnameVerifier()) {
+                context, new NoopHostnameVerifier()) {
             @Override
             protected void prepareSocket(SSLSocket socket)
                     throws IOException {
@@ -784,35 +703,41 @@ public class GenericHttpFetcher
                     LOG.debug("SSL: Turning off host name verification.");
                     sslParams.setAlgorithmConstraints(
                             new AlgorithmConstraints() {
-                        @Override
-                        public boolean permits(
-                                Set<CryptoPrimitive> primitives, Key key) {
-                            return true;
-                        }
-                        @Override
-                        public boolean permits(Set<CryptoPrimitive> primitives,
-                                String algorithm,
-                                AlgorithmParameters parameters) {
-                            return true;
-                        }
-                        @Override
-                        public boolean permits(
-                                Set<CryptoPrimitive> primitives,
-                                String algorithm, Key key,
-                                AlgorithmParameters parameters) {
-                            return true;
-                        }
-                    });
+                                @Override
+                                public boolean permits(
+                                        Set<CryptoPrimitive> primitives,
+                                        Key key) {
+                                    return true;
+                                }
+
+                                @Override
+                                public boolean permits(
+                                        Set<CryptoPrimitive> primitives,
+                                        String algorithm,
+                                        AlgorithmParameters parameters) {
+                                    return true;
+                                }
+
+                                @Override
+                                public boolean permits(
+                                        Set<CryptoPrimitive> primitives,
+                                        String algorithm, Key key,
+                                        AlgorithmParameters parameters) {
+                                    return true;
+                                }
+                            });
                 }
 
                 // Specify protocols
                 if (!configuration.getSslProtocols().isEmpty()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("SSL: Protocols={}", StringUtils.join(
-                                configuration.getSslProtocols(), ","));
+                        LOG.debug(
+                                "SSL: Protocols={}", StringUtils.join(
+                                        configuration.getSslProtocols(), ","));
                     }
-                    sslParams.setProtocols(configuration.getSslProtocols()
-                            .toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+                    sslParams.setProtocols(
+                            configuration.getSslProtocols()
+                                    .toArray(ArrayUtils.EMPTY_STRING_ARRAY));
                 }
 
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");
@@ -828,8 +753,9 @@ public class GenericHttpFetcher
                     // follow the approach from here
                     // https://github.com/lightbody/browsermob-proxy/issues/117#issuecomment-141363454
                     // and disable SNI for this SSLConnectionSocketFactory only
-                    LOG.debug("SSL: Disabling SNI Extension for this "
-                            + "httpClientFactory.");
+                    LOG.debug(
+                            "SSL: Disabling SNI Extension for this "
+                                    + "httpClientFactory.");
                     sslParams.setServerNames(Collections.emptyList());
                 }
 
@@ -858,8 +784,9 @@ public class GenericHttpFetcher
     private void analyseException(Exception e) {
         if (e instanceof SSLHandshakeException
                 && !configuration.isTrustAllSSLCertificates()) {
-            LOG.warn("SSL handshake exception. Consider "
-                    + "setting 'trustAllSSLCertificates' to true.");
+            LOG.warn(
+                    "SSL handshake exception. Consider "
+                            + "setting 'trustAllSSLCertificates' to true.");
         }
     }
 }

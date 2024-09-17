@@ -105,17 +105,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <!-- We are referencing doc from importer with @nx.include so
-               we need to include that dependency here. -->
-                    <tagletArtifacts combine.children="append">
-                        <tagletArtifact>
-                            <groupId>com.norconex.collectors</groupId>
-                            <artifactId>norconex-committer-core</artifactId>
-                            <version>${norconex-committer-core.version}</version>
-                        </tagletArtifact>
-                    </tagletArtifacts>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -138,29 +127,6 @@
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
             </plugin>
-
-            <!-- Uncomment when ready:
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-shared-resources</id>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <classifier>resources</classifier>
-                            <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-                            <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
-                            <includeGroupIds>com.norconex.commons</includeGroupIds>
-                            <excludeTransitive>true</excludeTransitive>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
 
         </plugins>
     </build>

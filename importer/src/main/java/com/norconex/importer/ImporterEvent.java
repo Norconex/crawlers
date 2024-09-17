@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,9 @@ public class ImporterEvent extends Event {
     public static final String IMPORTER_INIT_END = "IMPORTER_INIT_END";
     public static final String IMPORTER_HANDLER_BEGIN =
             "IMPORTER_HANDLER_BEGIN";
-    public static final String IMPORTER_HANDLER_END= "IMPORTER_HANDLER_END";
-    public static final String IMPORTER_HANDLER_ERROR= "IMPORTER_HANDLER_ERROR";
+    public static final String IMPORTER_HANDLER_END = "IMPORTER_HANDLER_END";
+    public static final String IMPORTER_HANDLER_ERROR =
+            "IMPORTER_HANDLER_ERROR";
     public static final String IMPORTER_HANDLER_CONDITION_TRUE =
             "IMPORTER_HANDLER_CONDITION_TRUE";
     public static final String IMPORTER_HANDLER_CONDITION_FALSE =
@@ -78,7 +79,7 @@ public class ImporterEvent extends Event {
     public String toString() {
         var b = new StringBuilder(super.toString())
                 .append(" - ")
-                .append(getDocument().getReference())  // doc is never null
+                .append(getDocument().getReference()) // doc is never null
                 .append(" - Parsed: ").append(isParsed());
         if (getSource() != null) {
             b.append(" - ").append(getSource().toString());

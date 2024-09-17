@@ -33,21 +33,20 @@ public abstract class BaseCondition implements Condition {
     @Override
     public final boolean test(HandlerContext ctx) {
         // Fire events?
-//        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_BEGIN);
+        //        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_BEGIN);
         try {
             ctx.condition(this);
             return evaluate(ctx);
         } catch (IOException e) {
-//            fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
+            //            fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
             throw new UncheckedIOException(
                     "Importer failure for handler: " + this, e);
         }
-//        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
+        //        fireEvent(ctx, ImporterEvent.IMPORTER_HANDLER_END);
     }
 
-    protected abstract boolean evaluate(HandlerContext docCtx) throws IOException;
-
-
+    protected abstract boolean evaluate(HandlerContext docCtx)
+            throws IOException;
 
     //TODO needed?
     //TODO extend Predicate and replace method or have a default one?

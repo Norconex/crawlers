@@ -124,19 +124,20 @@ public class SplitTransformer
     private void splitMetadata(SplitOperation split, HandlerContext docCtx) {
 
         List<String> allTargetValues = new ArrayList<>();
-        for (Entry<String, List<String>> en :
-                docCtx.metadata().matchKeys(
-                        split.getFieldMatcher()).entrySet()) {
+        for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                split.getFieldMatcher()).entrySet()) {
             var fromField = en.getKey();
             var sourceValues = en.getValue();
             List<String> targetValues = new ArrayList<>();
             for (String sourceValue : sourceValues) {
                 if (split.isSeparatorRegex()) {
-                    targetValues.addAll(regexSplit(
-                            sourceValue, split.getSeparator()));
+                    targetValues.addAll(
+                            regexSplit(
+                                    sourceValue, split.getSeparator()));
                 } else {
-                    targetValues.addAll(regularSplit(
-                            sourceValue, split.getSeparator()));
+                    targetValues.addAll(
+                            regularSplit(
+                                    sourceValue, split.getSeparator()));
                 }
             }
 
@@ -167,6 +168,7 @@ public class SplitTransformer
         }
         return cleanValues;
     }
+
     private List<String> regularSplit(String metaValue, String separator) {
         return Arrays.asList(
                 StringUtils.splitByWholeSeparator(metaValue, separator));

@@ -37,7 +37,6 @@ class SitemapParserTest {
         List<WebCrawlDocContext> extractedLinks = new ArrayList<>();
         var p = new SitemapParser(false, new MutableBoolean(false));
 
-
         try (var is = getClass().getResourceAsStream("sitemap.xml")) {
 
             var childSitemaps = p.parse(
@@ -50,7 +49,6 @@ class SitemapParserTest {
                     });
             assertThat(childSitemaps).isEmpty();
         }
-
 
         // All links there?
         Assertions.assertEquals(
@@ -67,7 +65,8 @@ class SitemapParserTest {
         var doc = extractedLinks.get(1);
         Assertions.assertEquals(
                 "https://example.com/linkB", doc.getReference());
-        Assertions.assertEquals("2021-04-01",
+        Assertions.assertEquals(
+                "2021-04-01",
                 doc.getSitemapLastMod().toLocalDate().toString());
         Assertions.assertEquals("daily", doc.getSitemapChangeFreq());
         Assertions.assertEquals(1f, doc.getSitemapPriority());

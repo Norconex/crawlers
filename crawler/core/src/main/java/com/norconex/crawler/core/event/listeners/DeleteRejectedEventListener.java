@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
  * <code>REJECTED_</code>. To avoid performance issues when dealing with
  * too many deletion requests, it is recommended you can change this behavior
  * to match exactly the events you are interested in with
- * {@link #setEventMatcher(TextMatcher)}.
+ * {@link DeleteRejectedEventListenerConfig#setEventMatcher(TextMatcher)}.
  * Keep limiting events to "rejected" ones to avoid unexpected results.
  * </p>
  *
@@ -68,30 +68,7 @@ import lombok.extern.slf4j.Slf4j;
  * references. Be aware this can cause issues if you are using rules in your
  * committer (e.g., to route requests) based on metadata.
  * <p>
- *
- * {@nx.xml.usage
- * <listener
- *     class="com.norconex.crawler.core.crawler.event.impl.DeleteRejectedEventListener">
- *   <eventMatcher
- *     {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *       (event name-matching expression)
- *   </eventMatcher>
- * </listener>
- * }
- *
- * {@nx.xml.example
- * <listener class="DeleteRejectedEventListener">
- *   <eventMatcher method="csv">REJECTED_NOTFOUND,REJECTED_FILTER</eventMatcher>
- * </listener>
- * }
- * <p>
- * The above example will send deletion requests whenever a reference is not
- * found (e.g., a 404 response from a web server) or if it was filtered out
- * by the crawler.
- * </p>
- *
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @Slf4j
@@ -153,8 +130,10 @@ public class DeleteRejectedEventListener implements
         // does it have a document reference?
         var docInfo = event.getDocContext();
         if (docInfo == null) {
-            LOG.warn("Listening for reference rejections on a crawler event "
-                    + "that has no reference: {}", event.getName());
+            LOG.warn(
+                    "Listening for reference rejections on a crawler event "
+                            + "that has no reference: {}",
+                    event.getName());
             return;
         }
 
@@ -173,14 +152,17 @@ public class DeleteRejectedEventListener implements
 
     private void commitDeletions(Crawler crawler) {
         if (LOG.isInfoEnabled()) {
-            LOG.info("Committing {} rejected references for deletion...",
+            LOG.info(
+                    "Committing {} rejected references for deletion...",
                     refStore.count());
         }
         refStore.forEach((ref, sent) -> {
             if (Boolean.FALSE.equals(sent)) {
-                crawler.getServices().getCommitterService().delete(new CrawlDoc(
-                        new CrawlDocContext(ref),
-                        CachedInputStream.cache(new NullInputStream())));
+                crawler.getServices().getCommitterService().delete(
+                        new CrawlDoc(
+                                new CrawlDocContext(ref),
+                                CachedInputStream
+                                        .cache(new NullInputStream())));
             }
             return true;
         });

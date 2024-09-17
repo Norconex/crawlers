@@ -42,25 +42,29 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
                 context.getDoc().getInputStream(), StandardCharsets.UTF_8)) {
             ctx.setRobotsMeta(
                     Web.config(ctx.getCrawler())
-                    .getRobotsMetaProvider()
-                    .getRobotsMeta(reader, ctx
-                            .getDoc()
-                            .getDocContext()
-                            .getReference(),
-                            ctx.getDoc().getDocContext().getContentType(),
-                            ctx.getDoc().getMetadata()));
+                            .getRobotsMetaProvider()
+                            .getRobotsMeta(
+                                    reader, ctx
+                                            .getDoc()
+                                            .getDocContext()
+                                            .getReference(),
+                                    ctx.getDoc().getDocContext()
+                                            .getContentType(),
+                                    ctx.getDoc().getMetadata()));
             if (ctx.getRobotsMeta() != null) {
                 ctx.getCrawler().fire(
                         CrawlerEvent.builder()
-                        .name(WebCrawlerEvent.EXTRACTED_ROBOTS_META)
-                        .source(ctx.getCrawler())
-                        .subject(ctx.getRobotsMeta())
-                        .docContext(ctx.getDoc().getDocContext())
-                        .build());
+                                .name(WebCrawlerEvent.EXTRACTED_ROBOTS_META)
+                                .source(ctx.getCrawler())
+                                .subject(ctx.getRobotsMeta())
+                                .docContext(ctx.getDoc().getDocContext())
+                                .build());
             }
         } catch (IOException e) {
-            throw new CrawlerException("Cannot create RobotsMeta for : "
-                    + ctx.getDoc().getDocContext().getReference(), e);
+            throw new CrawlerException(
+                    "Cannot create RobotsMeta for : "
+                            + ctx.getDoc().getDocContext().getReference(),
+                    e);
         }
         return true;
     }

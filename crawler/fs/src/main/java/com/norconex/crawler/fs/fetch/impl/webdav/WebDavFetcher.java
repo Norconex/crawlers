@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,48 +30,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
-
 /**
  * <p>
- * Fetcher for WebDAV repositories. While it can also be used for general
- * HTTP requests, consider using Norconex Web Crawler for that.
+ * Fetcher for WebDAV repositories (<code>webdav://</code>,
+ * <code>http://</code>, <code>https://</code>). While it can also be used
+ * for general HTTP requests, consider using Norconex Web Crawler for that.
  * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.WebDavFetcher">
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *   <connectionTimeout>(milliseconds)</connectionTimeout>
- *   <followRedirect>[false|true]</followRedirect>
- *   <hostnameVerificationEnabled>[false|true]</hostnameVerificationEnabled>
- *   <keepAlive>[false|true]</keepAlive>
- *   <keyStoreFile>...</keyStoreFile>
- *   <keyStorePass>...</keyStorePass>
- *   <keyStorePassKey>
- *     {@nx.include com.norconex.commons.lang.encrypt.EncryptionKey@nx.xml.usage}
- *   </keyStorePassKey>
- *   <keyStoreType>...</keyStoreType>
- *   <maxConnectionsPerHost>...</maxConnectionsPerHost>
- *   <maxTotalConnections>...</maxTotalConnections>
- *   <preemptiveAuth>[false|true]</preemptiveAuth>
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings#usage}
- *     <proxyDomain>...</proxyDomain>
- *   </proxySettings>
- *   <soTimeout>(milliseconds)</soTimeout>
- *   <tlsVersions>...</tlsVersions>
- *   <urlCharset>...</urlCharset>
- *   <userAgent>...</userAgent>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="WebDavFetcher">
- *   <connectionTimeout>2 minutes</connectionTimeout>
- * </fetcher>
- * }
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 public class WebDavFetcher extends AbstractAuthVfsFetcher<WebDavFetcherConfig> {
@@ -108,10 +73,13 @@ public class WebDavFetcher extends AbstractAuthVfsFetcher<WebDavFetcherConfig> {
         fs.setMaxTotalConnections(opts, cfg.getMaxTotalConnections());
         fs.setPreemptiveAuth(opts, cfg.isPreemptiveAuth());
         if (cfg.getProxySettings().isSet()) {
-            fs.setProxyAuthenticator(opts, new StaticUserAuthenticator(
-                    cfg.getProxySettings().getCredentials().getUsername(),
-                    decryptPassword(cfg.getProxySettings().getCredentials()),
-                    cfg.getProxyDomain()));
+            fs.setProxyAuthenticator(
+                    opts, new StaticUserAuthenticator(
+                            cfg.getProxySettings().getCredentials()
+                                    .getUsername(),
+                            decryptPassword(
+                                    cfg.getProxySettings().getCredentials()),
+                            cfg.getProxyDomain()));
             fs.setProxyHost(opts, cfg.getProxySettings().getHost().getName());
             fs.setProxyPort(opts, cfg.getProxySettings().getHost().getPort());
             fs.setProxyScheme(opts, cfg.getProxySettings().getScheme());

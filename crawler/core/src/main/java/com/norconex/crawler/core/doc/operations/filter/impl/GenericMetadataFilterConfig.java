@@ -19,37 +19,13 @@ import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+
 /**
  * <p>
  * Accepts or rejects a reference based on whether one or more
  * metadata field values are matching.
  * </p>
- *
- * {@nx.xml.usage
- * <filter class="com.norconex.crawler.core.filter.impl.GenericMetadataFilter"
- *     onMatch="[include|exclude]">
- *   <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (Expression matching one or more fields to evaluate.)
- *   </fieldMatcher>
- *   <valueMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (Expression matching one or more values from matching fields.)
- *   </valueMatcher>
- * </filter>
- * }
- *
- * {@nx.xml.example
- * <filter class="GenericMetadataFilter" onMatch="exclude">
- *   <fieldMatcher>Content-Type</fieldMatcher>
- *   <valueMatcher>application/zip</valueMatcher>
- * </filter>
- * }
- * <p>
- * Used in a web context, the above example filters out Zip documents base
- * on a "Content-Type" metadata field.
- * </p>
- *
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class GenericMetadataFilterConfig {
@@ -65,6 +41,7 @@ public class GenericMetadataFilterConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the field matcher.
      * @param fieldMatcher field matcher
@@ -75,6 +52,7 @@ public class GenericMetadataFilterConfig {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
     }
+
     /**
      * Gets the value matcher.
      * @return value matcher
@@ -82,6 +60,7 @@ public class GenericMetadataFilterConfig {
     public TextMatcher getValueMatcher() {
         return valueMatcher;
     }
+
     /**
      * Sets the value matcher.
      * @param valueMatcher value matcher
@@ -93,4 +72,3 @@ public class GenericMetadataFilterConfig {
         return this;
     }
 }
-

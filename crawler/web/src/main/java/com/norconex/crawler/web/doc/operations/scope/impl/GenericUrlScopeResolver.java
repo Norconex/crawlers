@@ -33,7 +33,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * <p>By default a crawler will try to follow all links it discovers. You can
+ * <p>
+ * By default a crawler will try to follow all links it discovers. You can
  * define your own filters to limit the scope of the pages being crawled.
  * When you have multiple URLs defined as start URLs, it can be tricky to
  * perform global filtering that apply to each URLs without causing
@@ -47,19 +48,17 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * @since 2.3.0
  */
-//TODO make this an interface so developers can provide their own?
 @EqualsAndHashCode
 @ToString
 @Slf4j
 public class GenericUrlScopeResolver
         extends CrawlerLifeCycleListener
         implements UrlScopeResolver,
-                Configurable<GenericUrlScopeResolverConfig> {
+        Configurable<GenericUrlScopeResolverConfig> {
 
     @Getter
     private GenericUrlScopeResolverConfig configuration =
             new GenericUrlScopeResolverConfig();
-
 
     @JsonIgnore
     @EqualsAndHashCode.Exclude
@@ -96,19 +95,22 @@ public class GenericUrlScopeResolver
             }
             if (configuration.isStayOnProtocol()
                     && !inScope.getProtocol().equalsIgnoreCase(
-                    candidate.getProtocol())) {
-                return UrlScope.out("Outbound protocol: %s".formatted(
-                        candidate.getProtocol()));
+                            candidate.getProtocol())) {
+                return UrlScope.out(
+                        "Outbound protocol: %s".formatted(
+                                candidate.getProtocol()));
             }
             if (configuration.isStayOnDomain()
                     && !isOnDomain(inScope.getHost(), candidate.getHost())) {
-                return UrlScope.out("Outbound domain: %s".formatted(
-                        candidate.getHost()));
+                return UrlScope.out(
+                        "Outbound domain: %s".formatted(
+                                candidate.getHost()));
             }
             if (configuration.isStayOnPort()
                     && inScope.getPort() != candidate.getPort()) {
-                return UrlScope.out("Outbound port: %s".formatted(
-                        candidate.getPort()));
+                return UrlScope.out(
+                        "Outbound port: %s".formatted(
+                                candidate.getPort()));
             }
 
             // as this point if the document came from a sitemap, it

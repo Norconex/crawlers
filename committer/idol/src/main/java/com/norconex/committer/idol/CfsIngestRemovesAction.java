@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,9 @@
  */
 package com.norconex.committer.idol;
 
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
@@ -43,10 +35,7 @@ import com.norconex.commons.lang.url.HttpURL;
  * CFS_12.7_Documentation/Help/#Actions/CFS/Ingest.htm%3FTocPath%3D
  * Reference%7CActions%7CConnector%2520Framework%2520Server%7C_____2
  */
-class CfsIngestRemovesAction implements IIdolIndexAction {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(CfsIngestRemovesAction.class);
+class CfsIngestRemovesAction implements IdolIndexAction {
 
     private final IdolCommitterConfig config;
 
@@ -59,37 +48,14 @@ class CfsIngestRemovesAction implements IIdolIndexAction {
             throws CommitterException {
         url.getQueryString().set("action", "ingest");
         url.getQueryString().set("DREDbName", config.getDatabaseName());
-        try {
-            return addRemovesToUrl(batch, url.toString());
-        } catch (MalformedURLException | UnsupportedEncodingException e) {
-            throw new CommitterException(
-                    "Could not create CFS Ingest Removes URL.", e);
-        }
-    }
-
-    private URL addRemovesToUrl(List<CommitterRequest> batch, String url)
-            throws MalformedURLException, UnsupportedEncodingException {
-        StringBuilder b = new StringBuilder(url);
-        b.append("&removes=");
-        String sep = "";
-        for (CommitterRequest req : batch) {
-            String refField = config.getSourceReferenceField();
-            String ref = req.getReference();
-            if (StringUtils.isNotBlank(refField)) {
-                ref = req.getMetadata().getString(refField);
-                if (StringUtils.isBlank(ref)) {
-                    LOG.warn("Source reference field '{}' has no value "
-                            + "for deletion of document: '{}'. Using that "
-                            + "original document reference instead.",
-                            refField, req.getReference());
-                    ref = req.getReference();
-                }
-            }
-            b.append(sep);
-            b.append(URLEncoder.encode(ref, StandardCharsets.UTF_8.toString()));
-            sep = ",";
-        }
-        return new URL(b.toString());
+        return IdolUtil
+                .deleteUrlBuilder()
+                .batch(batch)
+                .baseUrl(url)
+                .refField(config.getSourceReferenceField())
+                .refsParamName("removes")
+                .refsDelimiter(",")
+                .build();
     }
 
     @Override

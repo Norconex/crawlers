@@ -39,24 +39,6 @@ import lombok.ToString;
  * Extensions are typically the last characters of a file name, after the
  * last dot.
  * </p>
- *
- * {@nx.xml.usage
- * <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
- *     onMatch="[include|exclude]"
- *     ignoreCase="[false|true]" >
- *   (comma-separated list of extensions)
- * </filter>
- * }
- *
- * {@nx.xml.example
- * <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter">
- *   html,htm,php,asp
- * </filter>
- * }
- * <p>
- * The above example will only accept references with the following
- * extensions: .html, .htm, .php, and .asp.
- * </p>
  */
 @EqualsAndHashCode
 @ToString
@@ -96,8 +78,8 @@ public class ExtensionReferenceFilter implements
         for (String ext : configuration.getExtensions()) {
             if ((configuration.isIgnoreCase()
                     && ext.equalsIgnoreCase(refExtension))
-                            || (!configuration.isIgnoreCase()
-                                    && ext.equals(refExtension))) {
+                    || (!configuration.isIgnoreCase()
+                            && ext.equals(refExtension))) {
                 return safeOnMatch == OnMatch.INCLUDE;
             }
         }
@@ -109,6 +91,7 @@ public class ExtensionReferenceFilter implements
     public boolean acceptDocument(Doc document) {
         return acceptReference(document.getReference());
     }
+
     @JsonIgnore
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {

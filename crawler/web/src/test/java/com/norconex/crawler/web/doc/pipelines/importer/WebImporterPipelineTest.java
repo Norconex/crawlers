@@ -41,26 +41,30 @@ class WebImporterPipelineTest {
     void testCanonicalStageSameReferenceContent(Crawler crawler) {
         var reference = "http://www.example.com/file.pdf";
         var contentValid = "<html><head><title>Test</title>\n"
-                + "<link rel=\"canonical\"\n href=\"\n" + reference +  "\" />\n"
+                + "<link rel=\"canonical\"\n href=\"\n" + reference + "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
-        var doc = new CrawlDoc(new WebCrawlDocContext(reference, 0), null,
+        var doc = new CrawlDoc(
+                new WebCrawlDocContext(reference, 0), null,
                 new CachedStreamFactory(1000, 1000).newInputStream(
                         new ByteArrayInputStream(contentValid.getBytes())),
-                                false);
+                false);
         var ctx = new WebImporterPipelineContext(crawler, doc);
-        Assertions.assertTrue(new CanonicalStage(
-                FetchDirective.DOCUMENT).test(ctx));
+        Assertions.assertTrue(
+                new CanonicalStage(
+                        FetchDirective.DOCUMENT).test(ctx));
     }
 
     @Test
     void testCanonicalStageSameReferenceHeader(Crawler crawler) {
         var reference = "http://www.example.com/file.pdf";
-        var doc = new CrawlDoc(new WebCrawlDocContext(reference, 0), null,
+        var doc = new CrawlDoc(
+                new WebCrawlDocContext(reference, 0), null,
                 new CachedStreamFactory(1, 1).newInputStream(), false);
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
         var ctx = new WebImporterPipelineContext(crawler, doc);
-        Assertions.assertTrue(new CanonicalStage(
-                FetchDirective.METADATA).test(ctx));
+        Assertions.assertTrue(
+                new CanonicalStage(
+                        FetchDirective.METADATA).test(ctx));
     }
 
     @Test
@@ -69,13 +73,14 @@ class WebImporterPipelineTest {
         var content = "<html><head><title>Test</title>\n"
                 + "</head><body><a href=\"link.html\">A link</a></body></html>";
 
-
         var docRecord = new WebCrawlDocContext(reference, 2);
         docRecord.setContentType(ContentType.HTML);
 
-        var doc = new CrawlDoc(docRecord, null,
+        var doc = new CrawlDoc(
+                docRecord, null,
                 new CachedStreamFactory(1000, 1000).newInputStream(
-                        new ByteArrayInputStream(content.getBytes())), false);
+                        new ByteArrayInputStream(content.getBytes())),
+                false);
         doc.getMetadata().set(DocMetadata.CONTENT_TYPE, "text/html");
 
         var ctx = new WebImporterPipelineContext(crawler, doc);
@@ -85,14 +90,18 @@ class WebImporterPipelineTest {
 
         // By default do not extract urls on max depth
         stage.test(ctx);
-        Assertions.assertEquals(0, doc.getMetadata().getStrings(
-                WebDocMetadata.REFERENCED_URLS).size());
+        Assertions.assertEquals(
+                0, doc.getMetadata().getStrings(
+                        WebDocMetadata.REFERENCED_URLS).size());
 
         // Here 1 URL shouled be extracted even if max depth is reached.
-        Web.config(ctx.getCrawler()).setKeepReferencedLinks(Set.of(
-                ReferencedLinkType.INSCOPE, ReferencedLinkType.MAXDEPTH));
+        Web.config(ctx.getCrawler()).setKeepReferencedLinks(
+                Set.of(
+                        ReferencedLinkType.INSCOPE,
+                        ReferencedLinkType.MAXDEPTH));
         stage.test(ctx);
-        Assertions.assertEquals(1, doc.getMetadata().getStrings(
-                WebDocMetadata.REFERENCED_URLS).size());
+        Assertions.assertEquals(
+                1, doc.getMetadata().getStrings(
+                        WebDocMetadata.REFERENCED_URLS).size());
     }
 }

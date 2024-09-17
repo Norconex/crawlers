@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.crawler.web.doc.operations.delay.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,21 +24,21 @@ import java.time.Month;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.web.doc.operations.delay.impl.DelaySchedule.Range;
-
 class DelayScheduleTest {
 
     @Test
     void testIsDateTimeInSchedule_isInSchedule_returnsTrue() {
         //setup
         final var schedule = new DelaySchedule()
-                .setDayOfWeekRange(new Range<>(
-                        DelaySchedule.DOW.MON,
-                        DelaySchedule.DOW.TUE))
-                .setDayOfMonthRange(new Range<>(22, 23))
-                .setTimeRange(new Range<>(
-                        LocalTime.parse("14:00"),
-                        LocalTime.parse("18:00")))
+                .setDayOfWeekRange(
+                        new DelayRange<>(
+                                DelaySchedule.DOW.MON,
+                                DelaySchedule.DOW.TUE))
+                .setDayOfMonthRange(new DelayRange<>(22, 23))
+                .setTimeRange(
+                        new DelayRange<>(
+                                LocalTime.parse("14:00"),
+                                LocalTime.parse("18:00")))
                 .setDelay(Duration.ofMillis(100));
         var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 22, 16, 44);
 
@@ -56,13 +55,15 @@ class DelayScheduleTest {
     void testIsDateTimeInSchedule_inSchedule_returnsTrue() {
         //setup
         final var schedule = new DelaySchedule()
-                .setDayOfWeekRange(new Range<>(
-                        DelaySchedule.DOW.WED,
-                        DelaySchedule.DOW.THU))
-                .setDayOfMonthRange(new Range<>(24, 25))
-                .setTimeRange(new Range<>(
-                        LocalTime.parse("14:00"),
-                        LocalTime.parse("18:00")))
+                .setDayOfWeekRange(
+                        new DelayRange<>(
+                                DelaySchedule.DOW.WED,
+                                DelaySchedule.DOW.THU))
+                .setDayOfMonthRange(new DelayRange<>(24, 25))
+                .setTimeRange(
+                        new DelayRange<>(
+                                LocalTime.parse("14:00"),
+                                LocalTime.parse("18:00")))
                 .setDelay(Duration.ofMillis(100));
 
         var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 24, 16, 00);
@@ -80,10 +81,11 @@ class DelayScheduleTest {
     void testIsDateTimeInScheduleWithNoTime_NotInSchedule_returnsFalse() {
         //setup
         final var schedule = new DelaySchedule()
-                .setDayOfWeekRange(new Range<>(
-                        DelaySchedule.DOW.MON,
-                        DelaySchedule.DOW.TUE))
-                .setDayOfMonthRange(new Range<>(22, 23))
+                .setDayOfWeekRange(
+                        new DelayRange<>(
+                                DelaySchedule.DOW.MON,
+                                DelaySchedule.DOW.TUE))
+                .setDayOfMonthRange(new DelayRange<>(22, 23))
                 .setDelay(Duration.ofMillis(100));
 
         var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);
@@ -101,12 +103,14 @@ class DelayScheduleTest {
     void testIsDateTimeInScheduleWithBlankDOM_NotInSchedule_returnsFalse() {
         //setup
         final var schedule = new DelaySchedule()
-                .setDayOfWeekRange(new Range<>(
-                        DelaySchedule.DOW.MON,
-                        DelaySchedule.DOW.TUE))
-                .setTimeRange(new Range<>(
-                        LocalTime.parse("14:00"),
-                        LocalTime.parse("18:00")))
+                .setDayOfWeekRange(
+                        new DelayRange<>(
+                                DelaySchedule.DOW.MON,
+                                DelaySchedule.DOW.TUE))
+                .setTimeRange(
+                        new DelayRange<>(
+                                LocalTime.parse("14:00"),
+                                LocalTime.parse("18:00")))
                 .setDelay(Duration.ofMillis(100));
 
         var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);
@@ -124,10 +128,11 @@ class DelayScheduleTest {
     void testIsDateTimeInScheduleWithBlankDOW_returnsFalse() {
         //setup
         final var schedule = new DelaySchedule()
-                .setDayOfMonthRange(new Range<>(22, 23))
-                .setTimeRange(new Range<>(
-                        LocalTime.parse("14:00"),
-                        LocalTime.parse("18:00")))
+                .setDayOfMonthRange(new DelayRange<>(22, 23))
+                .setTimeRange(
+                        new DelayRange<>(
+                                LocalTime.parse("14:00"),
+                                LocalTime.parse("18:00")))
                 .setDelay(Duration.ofMillis(100));
 
         var myDateTime = LocalDateTime.of(2024, Month.JANUARY, 31, 16, 44);

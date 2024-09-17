@@ -68,7 +68,7 @@ import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageProcessor;
+import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolver;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.DomLinkExtractor;
 import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
@@ -89,97 +89,119 @@ import lombok.NonNull;
 
 public final class WebTestUtil {
 
-//    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
-//    private static final BeanMapper beanMapper = BeanMapper.builder()
-//            .unboundPropertyMapping("", null)
-//            .build();
-//            new WebBeanMapperBuilderFactory()
-//                .apply(WebCrawlerConfig.class)
-//                .build();
+    //    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
+    //    private static final BeanMapper beanMapper = BeanMapper.builder()
+    //            .unboundPropertyMapping("", null)
+    //            .build();
+    //            new WebBeanMapperBuilderFactory()
+    //                .apply(WebCrawlerConfig.class)
+    //                .build();
 
-//
-//
-//    public static BeanMapper beanMapper() {
-//        return beanMapper;
-//    }
+    //
+    //
+    //    public static BeanMapper beanMapper() {
+    //        return beanMapper;
+    //    }
 
     public static final String TEST_CRAWLER_ID = "test-crawler";
     public static final String TEST_CRAWL_SESSION_ID = "test-session";
 
     private static EasyRandom easyRandom = new EasyRandom(
             new EasyRandomParameters()
-        .seed(System.currentTimeMillis())
-        .collectionSizeRange(1, 5)
-        .randomizationDepth(5)
-        .scanClasspathForConcreteTypes(true)
-        .overrideDefaultInitialization(true)
-        .randomize(File.class,
-                () -> new File(new StringRandomizer(100).getRandomValue()))
-        .randomize(Path.class,
-                () -> Path.of(new StringRandomizer(100).getRandomValue()))
-        .randomize(Long.class,
-                () -> Math.abs(new LongRandomizer().getRandomValue()))
-        .randomize(Integer.class,
-                () -> Math.abs(new IntegerRandomizer().getRandomValue()))
-        .randomize(ImporterConfig.class, ImporterConfig::new)
-        .randomize(UpsertRequest.class,
-                () -> new UpsertRequest(
-                        new StringRandomizer(100).getRandomValue(),
-                        new Properties(),
-                        new NullInputStream()))
-        .randomize(DeleteRequest.class,
-                () -> new DeleteRequest(
-                        new StringRandomizer(100).getRandomValue(),
-                        new Properties()))
-        .randomize(Committer.class, MemoryCommitter::new)
-        .randomize(SpoiledReferenceStrategizer.class,
-                GenericSpoiledReferenceStrategizer::new)
-        .randomize(AtomicBoolean.class, () -> new AtomicBoolean(
-                new BooleanRandomizer().getRandomValue()))
+                    .seed(System.currentTimeMillis())
+                    .collectionSizeRange(1, 5)
+                    .randomizationDepth(5)
+                    .scanClasspathForConcreteTypes(true)
+                    .overrideDefaultInitialization(true)
+                    .randomize(
+                            File.class,
+                            () -> new File(
+                                    new StringRandomizer(100).getRandomValue()))
+                    .randomize(
+                            Path.class,
+                            () -> Path.of(
+                                    new StringRandomizer(100).getRandomValue()))
+                    .randomize(
+                            Long.class,
+                            () -> Math
+                                    .abs(new LongRandomizer().getRandomValue()))
+                    .randomize(
+                            Integer.class,
+                            () -> Math.abs(
+                                    new IntegerRandomizer().getRandomValue()))
+                    .randomize(ImporterConfig.class, ImporterConfig::new)
+                    .randomize(
+                            UpsertRequest.class,
+                            () -> new UpsertRequest(
+                                    new StringRandomizer(100).getRandomValue(),
+                                    new Properties(),
+                                    new NullInputStream()))
+                    .randomize(
+                            DeleteRequest.class,
+                            () -> new DeleteRequest(
+                                    new StringRandomizer(100).getRandomValue(),
+                                    new Properties()))
+                    .randomize(Committer.class, MemoryCommitter::new)
+                    .randomize(
+                            SpoiledReferenceStrategizer.class,
+                            GenericSpoiledReferenceStrategizer::new)
+                    .randomize(
+                            AtomicBoolean.class, () -> new AtomicBoolean(
+                                    new BooleanRandomizer().getRandomValue()))
 
-        .excludeType(DataStoreEngine.class::equals)
-        .excludeType(DataStore.class::equals)
-        .excludeType(SitemapResolver.class::equals)
-        .excludeType(DocumentConsumer.class::equals)
-        .excludeType(FeaturedImageProcessor.class::equals)
-        .excludeType(RecrawlableResolver.class::equals)
-        .excludeType(ReferencesProvider.class::equals)
-        .excludeType(BiPredicate.class::equals)
+                    .excludeType(DataStoreEngine.class::equals)
+                    .excludeType(DataStore.class::equals)
+                    .excludeType(SitemapResolver.class::equals)
+                    .excludeType(DocumentConsumer.class::equals)
+                    .excludeType(FeaturedImageResolver.class::equals)
+                    .excludeType(RecrawlableResolver.class::equals)
+                    .excludeType(ReferencesProvider.class::equals)
+                    .excludeType(BiPredicate.class::equals)
 
-        .randomize(Charset.class, () -> StandardCharsets.UTF_8)
-        .randomize(CircularRange.class, () -> {
-            int a = new NumberRandomizer().getRandomValue();
-            int b = new NumberRandomizer().getRandomValue();
-            return CircularRange.between(Math.min(a, b), Math.max(a, b));
-        })
-        .randomize(CachedInputStream.class,
-                CachedInputStream::nullInputStream)
-        .randomize(HttpFetcher.class, GenericHttpFetcher::new)
-        .randomize(RobotsTxtProvider.class, StandardRobotsTxtProvider::new)
-        .randomize(Pattern.class, () -> Pattern.compile(
-                new StringRandomizer(20).getRandomValue()))
-        .randomize(DelayResolver.class, () -> {
-            var resolv = new GenericDelayResolver();
-            resolv.getConfiguration().setScope(DelayResolverScope.CRAWLER);
-            return resolv;
-        })
-        .randomize(DomLinkExtractor.class, () -> {
-            var extractor = new DomLinkExtractor();
-            extractor.getConfiguration().addLinkSelector("text");
-            return extractor;
-        })
-        .randomize(LinkExtractor.class, () -> {
-            var extractor = new DomLinkExtractor();
-            extractor.getConfiguration().addLinkSelector("text");
-            return extractor;
-        })
-        .randomize(f -> "cookieSpec".equals(
-                f.getName()), () -> CookieSpec.STRICT)
-        .randomize(named(HttpAuthConfig.Fields.method)
-                .and(ofType(HttpAuthMethod.class))
-                .and(inClass(HttpAuthConfig.class)),
-                randomizerOneOf(HttpAuthMethod.values()))
-    );
+                    .randomize(Charset.class, () -> StandardCharsets.UTF_8)
+                    .randomize(CircularRange.class, () -> {
+                        int a = new NumberRandomizer().getRandomValue();
+                        int b = new NumberRandomizer().getRandomValue();
+                        return CircularRange.between(
+                                Math.min(a, b),
+                                Math.max(a, b));
+                    })
+                    .randomize(
+                            CachedInputStream.class,
+                            CachedInputStream::nullInputStream)
+                    .randomize(HttpFetcher.class, GenericHttpFetcher::new)
+                    .randomize(
+                            RobotsTxtProvider.class,
+                            StandardRobotsTxtProvider::new)
+                    .randomize(
+                            Pattern.class, () -> Pattern.compile(
+                                    new StringRandomizer(20).getRandomValue()))
+                    .randomize(DelayResolver.class, () -> {
+                        var resolv = new GenericDelayResolver();
+                        resolv.getConfiguration()
+                                .setScope(DelayResolverScope.CRAWLER);
+                        return resolv;
+                    })
+                    .randomize(DomLinkExtractor.class, () -> {
+                        var extractor = new DomLinkExtractor();
+                        extractor.getConfiguration().addLinkSelector("text");
+                        return extractor;
+                    })
+                    .randomize(LinkExtractor.class, () -> {
+                        var extractor = new DomLinkExtractor();
+                        extractor.getConfiguration().addLinkSelector("text");
+                        return extractor;
+                    })
+                    .randomize(
+                            f -> "cookieSpec".equals(
+                                    f.getName()),
+                            () -> CookieSpec.STRICT)
+                    .randomize(
+                            named(HttpAuthConfig.Fields.method)
+                                    .and(ofType(HttpAuthMethod.class))
+                                    .and(inClass(HttpAuthConfig.class)),
+                            randomizerOneOf(HttpAuthMethod.values())));
+
     public static <T> T randomize(Class<T> cls) {
         return easyRandom.nextObject(cls);
     }
@@ -194,7 +216,7 @@ public final class WebTestUtil {
         if (ArrayUtils.isEmpty(values)) {
             return null;
         }
-        return values[new Random().nextInt(values.length -1)];
+        return values[new Random().nextInt(values.length - 1)];
     }
 
     /**
@@ -206,8 +228,8 @@ public final class WebTestUtil {
      * @return Memory committer
      */
     public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
-        return (MemoryCommitter)
-                crawler.getConfiguration().getCommitters().get(0);
+        return (MemoryCommitter) crawler.getConfiguration().getCommitters()
+                .get(0);
     }
 
     public static GenericHttpFetcher firstHttpFetcher(
@@ -215,11 +237,13 @@ public final class WebTestUtil {
         return (GenericHttpFetcher) crawler
                 .getConfiguration().getFetchers().get(0);
     }
+
     public static GenericHttpFetcherConfig firstHttpFetcherConfig(
             @NonNull CrawlerConfig crawlerConfig) {
         return ((GenericHttpFetcher) crawlerConfig
                 .getFetchers().get(0)).getConfiguration();
     }
+
     public static GenericHttpFetcherConfig firstHttpFetcherConfig(
             @NonNull Crawler crawler) {
         return firstHttpFetcher(crawler).getConfiguration();
@@ -230,26 +254,31 @@ public final class WebTestUtil {
                 .map(CommitterRequest::getReference)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
+
     public static Set<String> sortedUpsertReferences(MemoryCommitter c) {
         return c.getUpsertRequests().stream()
                 .map(UpsertRequest::getReference)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
+
     public static Set<String> sortedDeleteReferences(MemoryCommitter c) {
         return c.getDeleteRequests().stream()
                 .map(DeleteRequest::getReference)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
+
     public static String lastSortedRequestReference(MemoryCommitter c) {
         return sortedRequestReferences(c).stream()
-            .reduce((first, second) -> second)
-            .orElse(null);
+                .reduce((first, second) -> second)
+                .orElse(null);
     }
+
     public static String lastSortedUpsertReference(MemoryCommitter c) {
         return sortedUpsertReferences(c).stream()
                 .reduce((first, second) -> second)
                 .orElse(null);
     }
+
     public static String lastSortedDeleteReference(MemoryCommitter c) {
         return sortedDeleteReferences(c).stream()
                 .reduce((first, second) -> second)
@@ -259,20 +288,23 @@ public final class WebTestUtil {
     public static void ignoreAllIgnorables(Crawler crawler) {
         ignoreAllIgnorables((WebCrawlerConfig) crawler.getConfiguration());
     }
+
     public static void ignoreAllIgnorables(WebCrawlerConfig config) {
         config.setCanonicalLinkDetector(null)
-        .setRobotsMetaProvider(null)
-        .setRobotsTxtProvider(null)
-        .setSitemapLocator(null)
-        .setSitemapResolver(null);
+                .setRobotsMetaProvider(null)
+                .setRobotsTxtProvider(null)
+                .setSitemapLocator(null)
+                .setSitemapResolver(null);
     }
 
     public static ZonedDateTime daysAgo(int days) {
         return ZonedDateTime.now().minusDays(days).withNano(0);
     }
+
     public static String daysAgoRFC(int days) {
         return rfcFormat(daysAgo(days));
     }
+
     public static String rfcFormat(ZonedDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.RFC_1123_DATE_TIME);
     }
@@ -280,9 +312,11 @@ public final class WebTestUtil {
     public static String docText(Doc doc) {
         return toString(doc.getInputStream());
     }
+
     public static String docText(UpsertRequest doc) {
         return toString(doc.getContent());
     }
+
     public static String toString(InputStream is) {
         try {
             return IOUtils.toString(is, UTF_8);
@@ -290,6 +324,7 @@ public final class WebTestUtil {
             throw new UncheckedIOException(e);
         }
     }
+
     public static String resourceAsString(String resourcePath) {
         return toString(WebTestUtil.class.getResourceAsStream(resourcePath));
     }

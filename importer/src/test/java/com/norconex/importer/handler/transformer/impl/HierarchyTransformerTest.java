@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,25 +35,25 @@ class HierarchyTransformerTest {
     @Test
     void testWriteRead() {
         var t = new HierarchyTransformer();
-        t.getConfiguration().setOperations(List.of(
-            new HierarchyOperation()
-                .setFromField("fromField1")
-                .setToField("toField1")
-                .setFromSeparator("fromSep1")
-                .setToSeparator("toSep1"),
-            new HierarchyOperation()
-                .setFromField("fromField2")
-                .setFromSeparator("fromSep2"),
-            new HierarchyOperation()
-                .setToField("toField3")
-                .setToSeparator("toSep3"),
-            new HierarchyOperation()
-                .setFromField("fromField4")
-                .setToField("toField4")
-                .setFromSeparator("fromSep4")
-                .setToSeparator("toSep4")
-                .setOnSet(PropertySetter.REPLACE)
-        ));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new HierarchyOperation()
+                                .setFromField("fromField1")
+                                .setToField("toField1")
+                                .setFromSeparator("fromSep1")
+                                .setToSeparator("toSep1"),
+                        new HierarchyOperation()
+                                .setFromField("fromField2")
+                                .setFromSeparator("fromSep2"),
+                        new HierarchyOperation()
+                                .setToField("toField3")
+                                .setToSeparator("toSep3"),
+                        new HierarchyOperation()
+                                .setFromField("fromField4")
+                                .setToField("toField4")
+                                .setFromSeparator("fromSep4")
+                                .setToSeparator("toSep4")
+                                .setOnSet(PropertySetter.REPLACE)));
 
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(t));
@@ -61,7 +61,8 @@ class HierarchyTransformerTest {
 
     @Test
     void testDiffToAndFromSeparators() {
-        tagAndAssert("/",  "~~~",
+        tagAndAssert(
+                "/", "~~~",
                 "~~~vegetable",
                 "~~~vegetable~~~potato",
                 "~~~vegetable~~~potato~~~sweet");
@@ -69,9 +70,11 @@ class HierarchyTransformerTest {
 
     @Test
     void testSameOrNoToSeparators() {
-        tagAndAssert("/",  "/",
+        tagAndAssert(
+                "/", "/",
                 "/vegetable", "/vegetable/potato", "/vegetable/potato/sweet");
-        tagAndAssert("/",  null,
+        tagAndAssert(
+                "/", null,
                 "/vegetable", "/vegetable/potato", "/vegetable/potato/sweet");
     }
 
@@ -80,11 +83,12 @@ class HierarchyTransformerTest {
         var meta = createDefaultTestMetadata(
                 "//vegetable//potato//sweet");
         var t = createDefaultTagger("//", "!");
-        Assertions.assertArrayEquals(new String[] {
-                "!vegetable",
-                "!vegetable!potato",
-                "!vegetable!potato!sweet"
-        }, tag(t, meta));
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "!vegetable",
+                        "!vegetable!potato",
+                        "!vegetable!potato!sweet"
+                }, tag(t, meta));
     }
 
     @Test
@@ -94,25 +98,27 @@ class HierarchyTransformerTest {
         var t = createDefaultTagger("/", "!");
 
         // do not keep empty segments
-        Assertions.assertArrayEquals(new String[] {
-                "!vegetable",
-                "!vegetable!potato",
-                "!vegetable!potato!sweet",
-                "!vegetable!potato!sweet!fries"
-        }, tag(t, meta));
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "!vegetable",
+                        "!vegetable!potato",
+                        "!vegetable!potato!sweet",
+                        "!vegetable!potato!sweet!fries"
+                }, tag(t, meta));
 
         // keep empty segments
         meta.remove("targetField");
         t.getConfiguration().getOperations().get(0).setKeepEmptySegments(true);
-        Assertions.assertArrayEquals(new String[] {
-                "!",
-                "!!vegetable",
-                "!!vegetable!potato",
-                "!!vegetable!potato!",
-                "!!vegetable!potato!!sweet",
-                "!!vegetable!potato!!sweet!fries",
-                "!!vegetable!potato!!sweet!fries!"
-        }, tag(t, meta));
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "!",
+                        "!!vegetable",
+                        "!!vegetable!potato",
+                        "!!vegetable!potato!",
+                        "!!vegetable!potato!!sweet",
+                        "!!vegetable!potato!!sweet!fries",
+                        "!!vegetable!potato!!sweet!fries!"
+                }, tag(t, meta));
     }
 
     @Test
@@ -123,25 +129,25 @@ class HierarchyTransformerTest {
                 "vegetable/potato/sweet/",
                 "/vegetable/potato/sweet/");
         var t = createDefaultTagger("/", "|");
-        Assertions.assertArrayEquals(new String[] {
-                "|vegetable",
-                "|vegetable|potato",
-                "|vegetable|potato|sweet",
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "|vegetable",
+                        "|vegetable|potato",
+                        "|vegetable|potato|sweet",
 
-                "vegetable",
-                "vegetable|potato",
-                "vegetable|potato|sweet",
+                        "vegetable",
+                        "vegetable|potato",
+                        "vegetable|potato|sweet",
 
-                "vegetable",
-                "vegetable|potato",
-                "vegetable|potato|sweet",
+                        "vegetable",
+                        "vegetable|potato",
+                        "vegetable|potato|sweet",
 
-                "|vegetable",
-                "|vegetable|potato",
-                "|vegetable|potato|sweet"
-        }, tag(t, meta));
+                        "|vegetable",
+                        "|vegetable|potato",
+                        "|vegetable|potato|sweet"
+                }, tag(t, meta));
     }
-
 
     @Test
     void testRegexSeparatorWithToSep() {
@@ -149,11 +155,12 @@ class HierarchyTransformerTest {
                 "/1/vegetable/2/potato/3//4/sweet");
         var t = createDefaultTagger("/\\d/", "!");
         t.getConfiguration().getOperations().get(0).setRegex(true);
-        Assertions.assertArrayEquals(new String[] {
-                "!vegetable",
-                "!vegetable!potato",
-                "!vegetable!potato!sweet"
-        }, tag(t, meta));
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "!vegetable",
+                        "!vegetable!potato",
+                        "!vegetable!potato!sweet"
+                }, tag(t, meta));
     }
 
     @Test
@@ -162,14 +169,15 @@ class HierarchyTransformerTest {
                 "/1/vegetable/2/potato/3//4/sweet");
         var t = createDefaultTagger("/\\d/", "!");
         t.getConfiguration().getOperations().get(0)
-            .setKeepEmptySegments(true)
-            .setRegex(true);
-        Assertions.assertArrayEquals(new String[] {
-                "!vegetable",
-                "!vegetable!potato",
-                "!vegetable!potato!",
-                "!vegetable!potato!!sweet"
-        }, tag(t, meta));
+                .setKeepEmptySegments(true)
+                .setRegex(true);
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "!vegetable",
+                        "!vegetable!potato",
+                        "!vegetable!potato!",
+                        "!vegetable!potato!!sweet"
+                }, tag(t, meta));
     }
 
     @Test
@@ -178,11 +186,12 @@ class HierarchyTransformerTest {
                 "/1/vegetable/2/potato/3//4/sweet");
         var t = createDefaultTagger("/\\d/", null);
         t.getConfiguration().getOperations().get(0).setRegex(true);
-        Assertions.assertArrayEquals(new String[] {
-                "/1/vegetable",
-                "/1/vegetable/2/potato",
-                "/1/vegetable/2/potato/4/sweet"
-        }, tag(t, meta));
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "/1/vegetable",
+                        "/1/vegetable/2/potato",
+                        "/1/vegetable/2/potato/4/sweet"
+                }, tag(t, meta));
     }
 
     @Test
@@ -191,16 +200,16 @@ class HierarchyTransformerTest {
                 "/1/vegetable/2/potato/3//4/sweet");
         var t = createDefaultTagger("/\\d/", null);
         t.getConfiguration().getOperations().get(0)
-            .setKeepEmptySegments(true)
-            .setRegex(true);
-        Assertions.assertArrayEquals(new String[] {
-                "/1/vegetable",
-                "/1/vegetable/2/potato",
-                "/1/vegetable/2/potato/3/",
-                "/1/vegetable/2/potato/3//4/sweet"
-        }, tag(t, meta));
+                .setKeepEmptySegments(true)
+                .setRegex(true);
+        Assertions.assertArrayEquals(
+                new String[] {
+                        "/1/vegetable",
+                        "/1/vegetable/2/potato",
+                        "/1/vegetable/2/potato/3/",
+                        "/1/vegetable/2/potato/3//4/sweet"
+                }, tag(t, meta));
     }
-
 
     private void tagAndAssert(
             String fromSep, String toSep, String... expected) {
@@ -208,23 +217,28 @@ class HierarchyTransformerTest {
         var t = createDefaultTagger(fromSep, toSep);
         Assertions.assertArrayEquals(expected, tag(t, meta));
     }
+
     private String[] tag(HierarchyTransformer t, Properties meta) {
         InputStream is = new NullInputStream(0);
-        t.accept(TestUtil.newDocContext(
-                "blah", is, meta, ParseState.PRE));
+        t.accept(
+                TestUtil.newHandlerContext(
+                        "blah", is, meta, ParseState.PRE));
         return meta.getStrings("targetField").toArray(new String[] {});
     }
+
     private HierarchyTransformer createDefaultTagger(
             String fromSep, String toSep) {
         var t = new HierarchyTransformer();
-        t.getConfiguration().setOperations(List.of(
-                new HierarchyOperation()
-                    .setFromField("sourceField")
-                    .setToField("targetField")
-                    .setFromSeparator(fromSep)
-                    .setToSeparator(toSep)));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new HierarchyOperation()
+                                .setFromField("sourceField")
+                                .setToField("targetField")
+                                .setFromSeparator(fromSep)
+                                .setToSeparator(toSep)));
         return t;
     }
+
     private Properties createDefaultTestMetadata(String... testValues) {
         var meta = new Properties();
         if (ArrayUtils.isEmpty(testValues)) {

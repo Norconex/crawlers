@@ -26,33 +26,30 @@ public final class CrawlerStubs {
 
     public static final String CRAWLER_ID = CrawlerConfigStubs.CRAWLER_ID;
 
-    private CrawlerStubs() {}
+    private CrawlerStubs() {
+    }
 
     public static Crawler memoryCrawler(Path workDir) {
         return memoryCrawlerBuilder(workDir).build();
     }
+
     public static Crawler memoryCrawler(
             Path workDir, Consumer<WebCrawlerConfig> c) {
         return memoryCrawlerBuilder(workDir, c).build();
     }
+
     public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
         return memoryCrawlerBuilder(workDir, null);
     }
+
     public static CrawlerBuilder memoryCrawlerBuilder(
             Path workDir, Consumer<WebCrawlerConfig> c) {
-        var b = SneakyWebCrawler
+        var b = WebCrawler
                 .builder()
-                .configuration(
-                        CrawlerConfigStubs.memoryCrawlerConfig(workDir));
+                .configuration(CrawlerConfigStubs.memoryCrawlerConfig(workDir));
         if (c != null) {
             c.accept((WebCrawlerConfig) b.configuration());
         }
         return b;
-    }
-
-    static class SneakyWebCrawler extends WebCrawler {
-        static CrawlerBuilder builder() {
-            return WebCrawler.crawlerBuilderSupplier.get();
-        }
     }
 }

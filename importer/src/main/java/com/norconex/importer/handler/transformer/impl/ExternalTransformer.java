@@ -266,7 +266,6 @@ public class ExternalTransformer
     private final ExternalTransformerConfig configuration =
             new ExternalTransformerConfig();
 
-
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
         //TODO eliminate output an set it back on doc???
@@ -312,9 +311,10 @@ public class ExternalTransformer
                 }
             }
             // Set extracted metadata on actual metadata
-            externalMeta.forEach((k, v) ->  PropertySetter
-                    .orAppend(configuration.getOnSet())
-                    .apply(docCtx.metadata(), k, v));
+            externalMeta.forEach(
+                    (k, v) -> PropertySetter
+                            .orAppend(configuration.getOnSet())
+                            .apply(docCtx.metadata(), k, v));
         } finally {
             files.deleteAll();
         }
@@ -363,7 +363,8 @@ public class ExternalTransformer
         } catch (SystemCommandException e) {
             throw new IOException(
                     "External transformer failed. Command: "
-                            + configuration.getCommand(), e);
+                            + configuration.getCommand(),
+                    e);
         }
     }
 
@@ -388,7 +389,8 @@ public class ExternalTransformer
 
     private synchronized void extractMetaFromLine(
             String line, Properties metadata) {
-        RegexFieldValueExtractor.extractFieldValues(metadata, line,
+        RegexFieldValueExtractor.extractFieldValues(
+                metadata, line,
                 configuration.getExtractionPatterns().toArray(
                         RegexFieldValueExtractor.EMPTY_ARRAY));
     }
@@ -422,7 +424,8 @@ public class ExternalTransformer
         }
         var newCmd = cmd;
         files.inputFile = createTempFile(is, "input", ".tmp");
-        newCmd = StringUtils.replace(newCmd, TOKEN_INPUT,
+        newCmd = StringUtils.replace(
+                newCmd, TOKEN_INPUT,
                 files.inputFile.toAbsolutePath().toString());
         try {
             FileUtils.copyInputStreamToFile(is, files.inputFile.toFile());
@@ -432,9 +435,10 @@ public class ExternalTransformer
             throw e;
         }
     }
+
     private String resolveInputMetaToken(
             String cmd, ArgFiles files, InputStream is, Properties meta)
-                    throws IOException {
+            throws IOException {
         if (!cmd.contains(TOKEN_INPUT_META)) {
             return cmd;
         }
@@ -443,7 +447,8 @@ public class ExternalTransformer
                 is, "input-meta", "." + StringUtils.defaultIfBlank(
                         configuration.getMetadataInputFormat(),
                         META_FORMAT_JSON));
-        newCmd = StringUtils.replace(newCmd, TOKEN_INPUT_META,
+        newCmd = StringUtils.replace(
+                newCmd, TOKEN_INPUT_META,
                 files.inputMetaFile.toAbsolutePath().toString());
         try (Writer fw = Files.newBufferedWriter(files.inputMetaFile)) {
             var format = configuration.getMetadataInputFormat();
@@ -469,7 +474,8 @@ public class ExternalTransformer
         }
         var newCmd = cmd;
         files.outputFile = createTempFile(os, "output", ".tmp");
-        return StringUtils.replace(newCmd, TOKEN_OUTPUT,
+        return StringUtils.replace(
+                newCmd, TOKEN_OUTPUT,
                 files.outputFile.toAbsolutePath().toString());
     }
 
@@ -482,7 +488,8 @@ public class ExternalTransformer
         files.outputMetaFile = createTempFile(
                 os, "output-meta", "." + StringUtils.defaultIfBlank(
                         configuration.getMetadataOutputFormat(), ".tmp"));
-        return StringUtils.replace(newCmd, TOKEN_OUTPUT_META,
+        return StringUtils.replace(
+                newCmd, TOKEN_OUTPUT_META,
                 files.outputMetaFile.toAbsolutePath().toString());
     }
 
@@ -504,31 +511,39 @@ public class ExternalTransformer
         Path inputMetaFile;
         Path outputFile;
         Path outputMetaFile;
+
         boolean hasInputFile() {
             return inputFile != null;
         }
+
         boolean hasInputMetaFile() {
             return inputMetaFile != null;
         }
+
         boolean hasOutputFile() {
             return outputFile != null;
         }
+
         boolean hasOutputMetaFile() {
             return outputMetaFile != null;
         }
+
         void deleteAll() {
             delete(inputFile);
             delete(inputMetaFile);
             delete(outputFile);
             delete(outputMetaFile);
         }
+
         static void delete(Path file) {
             if (file != null) {
                 try {
                     java.nio.file.Files.delete(file);
                 } catch (IOException e) {
-                    LOG.warn("Could not delete temporary file: "
-                            + file.toAbsolutePath(), e);
+                    LOG.warn(
+                            "Could not delete temporary file: "
+                                    + file.toAbsolutePath(),
+                            e);
                 }
             }
         }

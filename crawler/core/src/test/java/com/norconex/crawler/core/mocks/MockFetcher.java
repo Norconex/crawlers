@@ -47,7 +47,7 @@ public class MockFetcher extends AbstractFetcher<
                 returnBadStatus ? CrawlDocState.BAD_STATUS : CrawlDocState.NEW);
         var content = randomDocContent
                 ? "Fake content for: " + fetchRequest.getRef()
-                 + "\nRandomness: " + TimeIdGenerator.next()
+                        + "\nRandomness: " + TimeIdGenerator.next()
                 : "Fake content for: " + fetchRequest.getRef();
         fetchRequest.getDoc().setInputStream(
                 new ByteArrayInputStream(content.getBytes()));

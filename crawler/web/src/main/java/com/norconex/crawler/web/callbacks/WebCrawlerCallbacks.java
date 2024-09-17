@@ -20,13 +20,14 @@ public final class WebCrawlerCallbacks {
 
     private static final CrawlerCallbacks CALLBACKS =
             CrawlerCallbacks
-            .builder()
-            .beforeCrawlerExecution(new BeforeWebCrawlerExecution())
-            .beforeDocumentProcessing(new WebCrawlDocInitializer())
-            .beforeDocumentFinalizing(new BeforeWebCrawlDocFinalizing())
-            .build();
+                    .builder()
+                    .beforeCrawlerExecution(new BeforeWebCrawlerExecution())
+                    .beforeDocumentProcessing(new WebCrawlDocInitializer())
+                    .beforeDocumentFinalizing(new BeforeWebCrawlDocFinalizing())
+                    .build();
 
-    private WebCrawlerCallbacks() {}
+    private WebCrawlerCallbacks() {
+    }
 
     public static CrawlerCallbacks get() {
         return CALLBACKS;

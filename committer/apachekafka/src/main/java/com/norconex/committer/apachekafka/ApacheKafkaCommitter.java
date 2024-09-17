@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,44 +44,12 @@ import lombok.extern.slf4j.Slf4j;
  * Commits documents to Kafka via it's Producer API
  * </p>
  *
- * <h3>createTopic</h3>
+ * <h3>Topic Creation</h3>
  * <p>
- * Whether to create the topic in Apache Kafka.
- * It will be created only if it is not already present. Defaults to false.
+ * By default topics are assumed to already exist. You can optionally
+ * have them created when not already present with
+ * {@link ApacheKafkaCommitterConfig#setCreateTopic(boolean)}.
  * </p>
- *
- * <h3>XML configuration usage:</h3>
- * committer class="com.norconex.committer.apachekafka.KafkaCommitter&gt;
- *      <bootstrapServers>
- *          (A list of host/port pairs in the form host1:port1,host2:port2,...
- *          to use for establishing a connection to the Kafka cluster)
- *      </bootstrapServers>
- *      <topicName>my-topic</topicName>
- *      <createTopic>
- *          [true|false](Whether to create topic in Apache Kafka)
- *      </createTopic>
- *      <numOfPartitions>
- *          (Number of partitions, if createTopic is set to <code>true</code>)
- *      </numOfPartitions>
- *      <replicationFactor>
- *          (Replication Factor, if createTopic is set to <code>true</code>)
- *      </replicationFactor>
- *
- *      {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- *  </committer>
- *
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.apachekafka.KafkaCommitter">
- *   <bootstrapServers>http://some_host:1234</bootstrapServers>
- *   <topicName>my-topic</topicName>
- * </committer>
- * }
- * <p>
- * The above example uses the minimum required settings. It does not attempt
- * to create the topic. As such, topic must already exist in Apache Kafka.
- * </p>
- *
  * @author Harinder Hanjan
  */
 @Slf4j
@@ -92,7 +60,7 @@ public class ApacheKafkaCommitter
 
     private static final String EXCEPTION_MSG_INVALID_CONFIG =
             "Invalid configuration. Both `topicName` and `bootstrapServers` "
-            + "are required.";
+                    + "are required.";
     private static final String CREATE_TOPIC_CONFIG = "createTopic";
     private static final String NUM_OF_PARTITIONS_CONFIG = "numOfPartitions";
     private static final String REPLICATION_FACTOR_CONFIG = "replicationFactor";
@@ -110,15 +78,15 @@ public class ApacheKafkaCommitter
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        if (    StringUtils.isBlank(configuration.getTopicName()) ||
+        if (StringUtils.isBlank(configuration.getTopicName()) ||
                 StringUtils.isBlank(configuration.getBootstrapServers())) {
             throw new CommitterException(EXCEPTION_MSG_INVALID_CONFIG);
         }
 
         kafkaAdmin = new KafkaAdmin(configuration.getBootstrapServers());
 
-        if(configuration.isCreateTopic()) {
-            if(configuration.getPartitions() == 0
+        if (configuration.isCreateTopic()) {
+            if (configuration.getPartitions() == 0
                     || configuration.getReplicationFactor() == 0) {
                 var msg = String.format(
                         "%s=true requires these settings be also set. %s, %s",
@@ -128,16 +96,19 @@ public class ApacheKafkaCommitter
                 throw new CommitterException(msg);
             }
 
-            LOG.info("Ensuring topic `{}` exists in Kafka",
+            LOG.info(
+                    "Ensuring topic `{}` exists in Kafka",
                     configuration.getTopicName());
             kafkaAdmin.ensureTopicExists(
                     configuration.getTopicName(),
                     configuration.getPartitions(),
                     configuration.getReplicationFactor());
 
-        } else if(! kafkaAdmin.isTopicExists(configuration.getTopicName())) {
-            var msg = String.format("Topic `%s` does not exist in Kafka. "
-                    + "Either create the topic manually or set `%s` to true.",
+        } else if (!kafkaAdmin.isTopicExists(configuration.getTopicName())) {
+            var msg = String.format("""
+                    Topic `%s` does not exist in Kafka. \
+                    Either create the topic manually or set \
+                    `%s` to true.""",
                     configuration.getTopicName(), CREATE_TOPIC_CONFIG);
             LOG.error(msg);
             throw new CommitterException(msg);
@@ -147,7 +118,7 @@ public class ApacheKafkaCommitter
     @Override
     protected void commitBatch(Iterator<CommitterRequest> it)
             throws CommitterException {
-        if(producer == null) {
+        if (producer == null) {
             createProducer();
         }
 
@@ -175,8 +146,9 @@ public class ApacheKafkaCommitter
                 } else if (req instanceof DeleteRequest delete) {
                     var json = new StringBuilder();
 
-                    var rec = new ProducerRecord<String, String>
-                    (configuration.getTopicName(), delete.getReference(), null);
+                    var rec = new ProducerRecord<String, String>(
+                            configuration.getTopicName(), delete.getReference(),
+                            null);
 
                     producer.send(rec);
 
@@ -187,14 +159,16 @@ public class ApacheKafkaCommitter
                 }
             }
 
-            if(docCountUpserts > 0) {
-                LOG.info("Sent {} upsert commit operation(s) to Apache Kafka.",
-                    docCountUpserts);
+            if (docCountUpserts > 0) {
+                LOG.info(
+                        "Sent {} upsert commit operation(s) to Apache Kafka.",
+                        docCountUpserts);
             }
 
-            if(docCountDeletes> 0) {
-                LOG.info("Sent {} delete commit operation(s) to Apache Kafka.",
-                    docCountDeletes);
+            if (docCountDeletes > 0) {
+                LOG.info(
+                        "Sent {} delete commit operation(s) to Apache Kafka.",
+                        docCountDeletes);
             }
 
         } catch (CommitterException e) {
@@ -220,9 +194,11 @@ public class ApacheKafkaCommitter
         var props = new Properties();
         props.put("bootstrap.servers", configuration.getBootstrapServers());
         props.put(ProducerConfig.LINGER_MS_CONFIG, "0");
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+        props.put(
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+        props.put(
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class);
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -240,13 +216,13 @@ public class ApacheKafkaCommitter
         json.append("{");
         appendFieldAndValue(json, "id", upsert.getReference());
         json.append(",");
-        for (Map.Entry<String, List<String>> entry :
-                upsert.getMetadata().entrySet()) {
+        for (Map.Entry<String, List<String>> entry : upsert.getMetadata()
+                .entrySet()) {
             var field = entry.getKey();
             append(json, field, entry.getValue());
             json.append(",");
         }
-        json.deleteCharAt(json.length()-1);
+        json.deleteCharAt(json.length() - 1);
         json.append("}\n");
     }
 
@@ -264,7 +240,7 @@ public class ApacheKafkaCommitter
             appendValue(json, value);
             json.append(',');
         }
-        json.deleteCharAt(json.length()-1);
+        json.deleteCharAt(json.length() - 1);
         json.append(']');
     }
 

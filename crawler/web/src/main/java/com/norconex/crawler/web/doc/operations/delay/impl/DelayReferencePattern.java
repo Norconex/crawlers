@@ -34,6 +34,7 @@ public class DelayReferencePattern {
         this.pattern = pattern;
         this.delay = delay;
     }
+
     @JsonIgnore
     public boolean matches(String reference) {
         return reference.matches(pattern);

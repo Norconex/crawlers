@@ -74,8 +74,8 @@ class IfModifiedSinceTest {
     void testIfModifiedSince(ClientAndServer client) throws CommitterException {
 
         client
-            .when(request().withPath(path))
-            .respond(HttpClassCallback.callback(Callback.class));
+                .when(request().withPath(path))
+                .respond(HttpClassCallback.callback(Callback.class));
 
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, path)));

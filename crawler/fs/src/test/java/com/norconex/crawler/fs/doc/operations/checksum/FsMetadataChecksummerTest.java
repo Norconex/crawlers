@@ -51,8 +51,11 @@ class FsMetadataChecksummerTest {
 
     @Test
     void testWriteRead() {
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(
-                        FsTestUtil.randomize(FsMetadataChecksummer.class)));
+        assertThatNoException()
+                .isThrownBy(
+                        () -> BeanMapper.DEFAULT.assertWriteRead(
+                                FsTestUtil
+                                        .randomize(
+                                                FsMetadataChecksummer.class)));
     }
 }

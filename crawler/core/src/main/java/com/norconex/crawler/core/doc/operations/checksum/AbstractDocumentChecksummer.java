@@ -35,16 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  * </p><p>
  * <b>Implementors do not need to store the checksum themselves, this abstract
  * class does it.</b>
- * </p><p>
- * Implementors should offer this XML configuration usage:
  * </p>
- * {@nx.xml #usage
- * <documentChecksummer
- *    class="(subclass)"
- *    keep="[false|true]"
- *    toField="(optional metadata field to store the checksum)"
- *    onSet="[append|prepend|replace|optional]" />
- * }
  * <p>
  * <code>toField</code> is ignored unless the <code>keep</code>
  * attribute is set to <code>true</code>.
@@ -54,9 +45,9 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @RequiredArgsConstructor
 @Slf4j
-public abstract class AbstractDocumentChecksummer
-        <T extends BaseChecksummerConfig>
-            implements DocumentChecksummer, Configurable<T> {
+public abstract class AbstractDocumentChecksummer<
+        T extends BaseChecksummerConfig>
+        implements DocumentChecksummer, Configurable<T> {
 
     @Override
     public final String createDocumentChecksum(Doc document) {

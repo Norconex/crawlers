@@ -52,20 +52,21 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
         var filter = findRejectingRobotsFilter(ctx);
         if (filter != null) {
             ctx.getDocContext().setState(CrawlDocState.REJECTED);
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
-                    .source(ctx.getCrawler())
-                    .subject(filter)
-                    .docContext(ctx.getDocContext())
-                    .build());
-            LOG.debug("REJECTED by robots.txt. "
-                    + ". Reference={} Filter={}",
+            ctx.getCrawler().fire(
+                    CrawlerEvent.builder()
+                            .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
+                            .source(ctx.getCrawler())
+                            .subject(filter)
+                            .docContext(ctx.getDocContext())
+                            .build());
+            LOG.debug(
+                    "REJECTED by robots.txt. "
+                            + ". Reference={} Filter={}",
                     ctx.getDocContext().getReference(), filter);
             return false;
         }
         return true;
     }
-
 
     /* Find matching rules, knowing that "Allow" work like this:
      * "A matching Allow directive beats a matching Disallow only if it

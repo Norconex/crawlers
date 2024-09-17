@@ -41,28 +41,6 @@ import lombok.ToString;
  *   <tr><td>BAD_STATUS</td><td>GRACE_ONCE</td></tr>
  *   <tr><td>ERROR</td><td>GRACE_ONCE</td></tr>
  * </table>
- *
- * {@nx.xml.usage
- * <spoiledReferenceStrategizer
- *     class="com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer"
- *     fallbackStrategy="[DELETE|GRACE_ONCE|IGNORE]">
- *   <mapping state="(any crawl state)" strategy="[DELETE|GRACE_ONCE|IGNORE]" />
- *   (repeat mapping tag as needed)
- * </spoiledReferenceStrategizer>
- * }
- *
- * {@nx.xml.example
- * <spoiledReferenceStrategizer class="GenericSpoiledReferenceStrategizer">
- *   <mapping state="NOT_FOUND" strategy="DELETE" />
- *   <mapping state="BAD_STATUS" strategy="DELETE" />
- *   <mapping state="ERROR" strategy="IGNORE" />
- * </spoiledReferenceStrategizer>
- * }
- * <p>
- * The above example indicates we should ignore (do nothing) errors processing
- * documents, and send a deletion request if they are not found or have
- * resulted in a bad status.
- * </p>
  */
 @EqualsAndHashCode
 @ToString

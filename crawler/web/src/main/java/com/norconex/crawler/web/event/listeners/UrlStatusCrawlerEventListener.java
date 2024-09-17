@@ -100,31 +100,8 @@ import lombok.extern.slf4j.Slf4j;
  * using a custom link extractor.
  * </p>
  *
- * {@nx.xml.usage
- * <listener
- *     class="com.norconex.crawler.web.crawler.event.impl.UrlStatusCrawlerEventListener">
- *   <statusCodes>(CSV list of status codes)</statusCodes>
- *   <outputDir>(path to a directory of your choice)</outputDir>
- *   <fileNamePrefix>(report file name prefix)</fileNamePrefix>
- *   <timestamped>[false|true]</timestamped>
- * </listener>
- * }
- *
- * {@nx.xml.example
- * <listener class="UrlStatusCrawlerEventListener">
- *   <statusCodes>404</statusCodes>
- *   <outputDir>/report/path/</outputDir>
- *   <fileNamePrefix>brokenLinks</fileNamePrefix>
- * </listener>
- * }
- * <p>
- * The above example will generate a broken links report by recording
- * 404 status codes (from HTTP response).
- * </p>
- *
  * @since 2.2.0
  */
-
 @EqualsAndHashCode
 @ToString
 @Slf4j
@@ -167,7 +144,7 @@ public class UrlStatusCrawlerEventListener implements
 
         if (((ce.getSubject() instanceof HttpFetchResponse response)
                 && (parsedCodes.isEmpty()
-                || parsedCodes.contains(response.getStatusCode())))
+                        || parsedCodes.contains(response.getStatusCode())))
                 && (csvPrinter != null)) {
             var crawlRef = (WebCrawlDocContext) ce.getDocContext();
             Object[] csvRecord = {
@@ -208,9 +185,9 @@ public class UrlStatusCrawlerEventListener implements
             return;
         }
 
-        Stream.of(StringUtils.split(configuration.getStatusCodes(),  ','))
-            .map(String::trim)
-            .forEach(range -> resolveStatusCodeRange(parsedCodes, range));
+        Stream.of(StringUtils.split(configuration.getStatusCodes(), ','))
+                .map(String::trim)
+                .forEach(range -> resolveStatusCodeRange(parsedCodes, range));
     }
 
     private void resolveStatusCodeRange(
@@ -223,8 +200,8 @@ public class UrlStatusCrawlerEventListener implements
             var end = toInt(endPoints[1]);
             if (start >= end) {
                 throw new IllegalArgumentException(
-                        "Invalid statusCode range: " + range
-                      + ". Start value must be higher than end value.");
+                        ("Invalid statusCode range: %s. Start value must be "
+                                + "higher than end value.").formatted(range));
             }
             while (start <= end) {
                 parsedCodes.add(start);
@@ -242,6 +219,7 @@ public class UrlStatusCrawlerEventListener implements
         }
         return configuration.getOutputDir();
     }
+
     private CSVPrinter createCSVPrinter(Path dir, String id, String suffix) {
         var prefix = StringUtils.defaultString(
                 configuration.getFileNamePrefix());
@@ -253,10 +231,12 @@ public class UrlStatusCrawlerEventListener implements
                 prefix + FileUtil.toSafeFileName(id) + safeSuffix + ".csv");
         try {
             Files.createDirectories(dir);
-            var csv = new CSVPrinter(Files.newBufferedWriter(file,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING,
-                    StandardOpenOption.WRITE),
+            var csv = new CSVPrinter(
+                    Files.newBufferedWriter(
+                            file,
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.TRUNCATE_EXISTING,
+                            StandardOpenOption.WRITE),
                     CSVFormat.EXCEL);
             csv.printRecord("Referrer", "URL", "Status", "Reason");
             return csv;
@@ -270,9 +250,9 @@ public class UrlStatusCrawlerEventListener implements
         try {
             return Integer.parseInt(num.trim());
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("The statusCodes attribute "
-                    + "can only contain valid numbers. This number is invalid: "
-                    + num);
+            throw new IllegalArgumentException(
+                    "The statusCodes attribute can only contain valid numbers. "
+                            + "This number is invalid: " + num);
         }
     }
 }

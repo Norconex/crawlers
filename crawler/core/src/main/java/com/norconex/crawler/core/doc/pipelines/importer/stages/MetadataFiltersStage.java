@@ -45,23 +45,30 @@ public class MetadataFiltersStage extends AbstractImporterStage {
         }
 
         return OnMatchFiltersResolver
-        .<Properties, MetadataFilter>builder()
-        .subject(ctx.getDoc().getMetadata())
-        .filters(ctx.getCrawler().getConfiguration().getMetadataFilters())
-        .predicate((s, f) -> f.acceptMetadata(ctx.getDoc().getReference(), s))
-        .onRejected((f, msg) -> {
-            LOG.debug("REJECTED metadata. Reference: {} Filter={}",
-                    ctx.getDoc().getDocContext().getReference(), f);
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_FILTER)
-                    .source(ctx.getCrawler())
-                    .docContext(ctx.getDoc().getDocContext())
-                    .subject(f)
-                    .message(msg)
-                    .build());
-            ctx.getDoc().getDocContext().setState(CrawlDocState.REJECTED);
-        })
-        .build()
-        .isAccepted();
+                .<Properties, MetadataFilter>builder()
+                .subject(ctx.getDoc().getMetadata())
+                .filters(
+                        ctx.getCrawler().getConfiguration()
+                                .getMetadataFilters())
+                .predicate(
+                        (s, f) -> f
+                                .acceptMetadata(ctx.getDoc().getReference(), s))
+                .onRejected((f, msg) -> {
+                    LOG.debug(
+                            "REJECTED metadata. Reference: {} Filter={}",
+                            ctx.getDoc().getDocContext().getReference(), f);
+                    ctx.getCrawler().fire(
+                            CrawlerEvent.builder()
+                                    .name(CrawlerEvent.REJECTED_FILTER)
+                                    .source(ctx.getCrawler())
+                                    .docContext(ctx.getDoc().getDocContext())
+                                    .subject(f)
+                                    .message(msg)
+                                    .build());
+                    ctx.getDoc().getDocContext()
+                            .setState(CrawlDocState.REJECTED);
+                })
+                .build()
+                .isAccepted();
     }
 }

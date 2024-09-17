@@ -78,7 +78,8 @@ public class CoreQueueInitializer implements QueueInitializer {
             }
         }
         if (cnt > 0) {
-            LOG.info("Queued {} start references from {} files.",
+            LOG.info(
+                    "Queued {} start references from {} files.",
                     cnt, refsFiles.size());
         }
         return cnt;
@@ -99,7 +100,8 @@ public class CoreQueueInitializer implements QueueInitializer {
             }
         }
         if (cnt > 0) {
-            LOG.info("Queued {} start references from {} providers.",
+            LOG.info(
+                    "Queued {} start references from {} providers.",
                     cnt, providers.size());
         }
         return cnt;
@@ -128,7 +130,8 @@ public class CoreQueueInitializer implements QueueInitializer {
             cnt += init.applyAsInt(ctx);
         }
         if (LOG.isInfoEnabled()) {
-            LOG.info("{} start URLs identified.",
+            LOG.info(
+                    "{} start URLs identified.",
                     NumberFormat.getNumberInstance().format(cnt));
         }
     }

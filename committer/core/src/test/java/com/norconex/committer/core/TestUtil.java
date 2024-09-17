@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package com.norconex.committer.core;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -31,14 +32,14 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.Properties;
 
-
 /**
  */
 public final class TestUtil {
 
     private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
 
-    private TestUtil() {}
+    private TestUtil() {
+    }
 
     public static BeanMapper beanMapper() {
         return beanMapper;
@@ -50,21 +51,27 @@ public final class TestUtil {
     public static Arguments args(Object obj) {
         return Arguments.of(obj, obj.getClass().getSimpleName());
     }
+
     public static Arguments args(Supplier<Object> supplier) {
         return args(supplier.get());
     }
 
     public static Collection<File> listFSFiles(Path path) {
-        return FileUtils.listFiles(path.toFile(),
+        return FileUtils.listFiles(
+                path.toFile(),
                 TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
     }
+
     public static Collection<File> listFSUpsertFiles(Path path) {
-        return FileUtils.listFiles(path.toFile(),
+        return FileUtils.listFiles(
+                path.toFile(),
                 FileFilterUtils.prefixFileFilter("upsert-"),
                 TrueFileFilter.INSTANCE);
     }
+
     public static Collection<File> listFSDeleteFiles(Path path) {
-        return FileUtils.listFiles(path.toFile(),
+        return FileUtils.listFiles(
+                path.toFile(),
                 FileFilterUtils.prefixFileFilter("delete-"),
                 TrueFileFilter.INSTANCE);
     }
@@ -75,6 +82,7 @@ public final class TestUtil {
             commitRequest(c, cr);
         }
     }
+
     public static void commitRequest(Committer c, CommitterRequest cr)
             throws CommitterException {
         if (cr instanceof UpsertRequest) {
@@ -83,7 +91,6 @@ public final class TestUtil {
             c.delete((DeleteRequest) cr);
         }
     }
-
 
     public static CommitterContext committerContext(Path folder) {
         return CommitterContext.builder().setWorkDir(folder).build();
@@ -109,6 +116,7 @@ public final class TestUtil {
         }
         return reqs;
     }
+
     public static UpsertRequest upsertRequest(int index) {
         var meta = new Properties();
         meta.add("title", "Sample document " + index);
@@ -118,11 +126,13 @@ public final class TestUtil {
                         "This is fake content for sample document " + index,
                         StandardCharsets.UTF_8));
     }
+
     public static UpsertRequest upsertRequest(
             String reference, String content, Object... metadataPairs) {
         var meta = new Properties();
         meta.loadFromMap(MapUtil.toMap(metadataPairs));
-        return new UpsertRequest(reference, meta,
+        return new UpsertRequest(
+                reference, meta,
                 IOUtils.toInputStream(content, StandardCharsets.UTF_8));
     }
 
@@ -133,12 +143,14 @@ public final class TestUtil {
         }
         return reqs;
     }
+
     public static DeleteRequest deleteRequest(int index) {
         var meta = new Properties();
         meta.add("title", "Sample document " + index);
         return new DeleteRequest(
                 "http://example.com/page" + index + ".html", meta);
     }
+
     public static DeleteRequest deleteRequest(
             String reference, Object... metadataPairs) {
         var meta = new Properties();

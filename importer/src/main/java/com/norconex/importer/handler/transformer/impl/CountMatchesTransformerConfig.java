@@ -1,4 +1,4 @@
-/* Copyright 2016-2023 Norconex Inc.
+/* Copyright 2016-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,7 @@ public class CountMatchesTransformerConfig {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets the field matcher.
      * @param fieldMatcher field matcher
@@ -133,6 +134,7 @@ public class CountMatchesTransformerConfig {
     public TextMatcher getCountMatcher() {
         return countMatcher;
     }
+
     /**
      * Sets the count matcher.
      * @param countMatcher count matcher

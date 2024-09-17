@@ -91,6 +91,7 @@ public class SplitTransformerConfig {
         CollectionUtil.setAll(this.operations, operations);
         return this;
     }
+
     public List<SplitOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }

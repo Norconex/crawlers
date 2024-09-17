@@ -31,13 +31,16 @@ class DocProcessorUpsertTest {
         @Override
         public void accept(CrawlerConfig cfg) {
             cfg.getImporterConfig().setResponseProcessors(
-                    List.of(resp -> resp.setNestedResponses(List.of(
-                        new ImporterResponse(
-                                CrawlDocStubs.crawlDoc("childResponse1")),
-                        new ImporterResponse(
-                                CrawlDocStubs.crawlDoc("childResponse2"))
-                    )))
-            );
+                    List.of(
+                            resp -> resp.setNestedResponses(
+                                    List.of(
+                                            new ImporterResponse(
+                                                    CrawlDocStubs.crawlDoc(
+                                                            "childResponse1")),
+                                            new ImporterResponse(
+                                                    CrawlDocStubs
+                                                            .crawlDoc(
+                                                                    "childResponse2"))))));
         }
     }
 

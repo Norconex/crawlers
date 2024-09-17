@@ -161,93 +161,108 @@ public class TranslatorSplitter
      * Constructor.
      */
     public TranslatorSplitter() {
-        translators.put(TranslatorSplitterConfig.API_MICROSOFT,
+        translators.put(
+                TranslatorSplitterConfig.API_MICROSOFT,
                 new TranslatorStrategy() {
-            @Override
-            public Translator createTranslator() {
-                var t = new MicrosoftTranslator();
-                t.setId(configuration.getClientId());
-                t.setSecret(configuration.getClientSecret());
-                return t;
-            }
-            @Override
-            public void validateProperties() throws DocumentHandlerException {
-                if (StringUtils.isAnyBlank(
-                        configuration.getClientId(),
-                        configuration.getClientSecret())) {
-                    throw new DocumentHandlerException(
-                           "Both clientId and clientSecret must be specified.");
-                }
-            }
-        });
-        translators.put(TranslatorSplitterConfig.API_GOOGLE,
-                new TranslatorStrategy() {
-            @Override
-            public Translator createTranslator() {
-                var t = new FixedGoogleTranslator();
-                t.setApiKey(configuration.getApiKey());
-                return t;
-            }
-            @Override
-            public void validateProperties() throws DocumentHandlerException {
-                if (StringUtils.isAnyBlank(configuration.getApiKey())) {
-                    throw new DocumentHandlerException(
-                           "apiKey must be specified.");
-                }
-            }
-        });
-        translators.put(TranslatorSplitterConfig.API_LINGO24,
-                new TranslatorStrategy() {
-            @Override
-            public Translator createTranslator() {
-                var t = new FixedLingo24Translator();
-                t.setUserKey(configuration.getUserKey());
-                return t;
-            }
-            @Override
-            public void validateProperties() throws DocumentHandlerException {
-                if (StringUtils.isAnyBlank(configuration.getUserKey())) {
-                    throw new DocumentHandlerException(
-                           "userKey must be specified.");
-                }
-            }
-        });
-        translators.put(TranslatorSplitterConfig.API_MOSES,
-                new TranslatorStrategy() {
-            @Override
-            public Translator createTranslator() {
-                return new MosesTranslator(
-                        configuration.getSmtPath(),
-                        configuration.getScriptPath());
-            }
-            @Override
-            public void validateProperties() throws DocumentHandlerException {
-                if (StringUtils.isAnyBlank(
-                        configuration.getSmtPath(),
-                        configuration.getScriptPath())) {
-                    throw new DocumentHandlerException(
-                           "Both smtPath and scriptPath must be specified.");
-                }
-            }
-        });
-        translators.put(TranslatorSplitterConfig.API_YANDEX,
-                new TranslatorStrategy() {
-            @Override
-            public Translator createTranslator() {
-                var t = new YandexTranslator();
-                t.setApiKey(configuration.getApiKey());
-                return t;
-            }
-            @Override
-            public void validateProperties() throws DocumentHandlerException {
-                if (StringUtils.isAnyBlank(configuration.getApiKey())) {
-                    throw new DocumentHandlerException(
-                           "apiKey must be specified.");
-                }
-            }
-        });
-    }
+                    @Override
+                    public Translator createTranslator() {
+                        var t = new MicrosoftTranslator();
+                        t.setId(configuration.getClientId());
+                        t.setSecret(configuration.getClientSecret());
+                        return t;
+                    }
 
+                    @Override
+                    public void validateProperties()
+                            throws DocumentHandlerException {
+                        if (StringUtils.isAnyBlank(
+                                configuration.getClientId(),
+                                configuration.getClientSecret())) {
+                            throw new DocumentHandlerException(
+                                    "Both clientId and clientSecret must be specified.");
+                        }
+                    }
+                });
+        translators.put(
+                TranslatorSplitterConfig.API_GOOGLE,
+                new TranslatorStrategy() {
+                    @Override
+                    public Translator createTranslator() {
+                        var t = new FixedGoogleTranslator();
+                        t.setApiKey(configuration.getApiKey());
+                        return t;
+                    }
+
+                    @Override
+                    public void validateProperties()
+                            throws DocumentHandlerException {
+                        if (StringUtils.isAnyBlank(configuration.getApiKey())) {
+                            throw new DocumentHandlerException(
+                                    "apiKey must be specified.");
+                        }
+                    }
+                });
+        translators.put(
+                TranslatorSplitterConfig.API_LINGO24,
+                new TranslatorStrategy() {
+                    @Override
+                    public Translator createTranslator() {
+                        var t = new FixedLingo24Translator();
+                        t.setUserKey(configuration.getUserKey());
+                        return t;
+                    }
+
+                    @Override
+                    public void validateProperties()
+                            throws DocumentHandlerException {
+                        if (StringUtils
+                                .isAnyBlank(configuration.getUserKey())) {
+                            throw new DocumentHandlerException(
+                                    "userKey must be specified.");
+                        }
+                    }
+                });
+        translators.put(
+                TranslatorSplitterConfig.API_MOSES,
+                new TranslatorStrategy() {
+                    @Override
+                    public Translator createTranslator() {
+                        return new MosesTranslator(
+                                configuration.getSmtPath(),
+                                configuration.getScriptPath());
+                    }
+
+                    @Override
+                    public void validateProperties()
+                            throws DocumentHandlerException {
+                        if (StringUtils.isAnyBlank(
+                                configuration.getSmtPath(),
+                                configuration.getScriptPath())) {
+                            throw new DocumentHandlerException(
+                                    "Both smtPath and scriptPath must be specified.");
+                        }
+                    }
+                });
+        translators.put(
+                TranslatorSplitterConfig.API_YANDEX,
+                new TranslatorStrategy() {
+                    @Override
+                    public Translator createTranslator() {
+                        var t = new YandexTranslator();
+                        t.setApiKey(configuration.getApiKey());
+                        return t;
+                    }
+
+                    @Override
+                    public void validateProperties()
+                            throws DocumentHandlerException {
+                        if (StringUtils.isAnyBlank(configuration.getApiKey())) {
+                            throw new DocumentHandlerException(
+                                    "apiKey must be specified.");
+                        }
+                    }
+                });
+    }
 
     @Override
     public void split(HandlerContext docCtx) throws DocumentHandlerException {
@@ -270,14 +285,16 @@ public class TranslatorSplitter
             } catch (Exception e) {
                 throw new DocumentHandlerException(
                         "Could not translate document: "
-                                + docCtx.reference(), e);
+                                + docCtx.reference(),
+                        e);
             }
         } else {
             // Body
             var translatedDocs = docCtx.childDocs();
             try (var input = docCtx.input().asInputStream();
                     var cachedInput = input instanceof CachedInputStream cis
-                    ? cis : docCtx.streamFactory().newInputStream(input)) {
+                            ? cis
+                            : docCtx.streamFactory().newInputStream(input)) {
                 for (String lang : configuration.getTargetLanguages()) {
                     var translatedDoc = translateDocumentFromStream(
                             docCtx, cachedInput, lang);
@@ -290,7 +307,8 @@ public class TranslatorSplitter
             } catch (Exception e) {
                 throw new DocumentHandlerException(
                         "Could not translate document: "
-                                + docCtx.reference(), e);
+                                + docCtx.reference(),
+                        e);
             }
         }
     }
@@ -299,7 +317,7 @@ public class TranslatorSplitter
             HandlerContext docCtx,
             CachedInputStream cachedInput,
             String targetLang)
-                    throws DocumentHandlerException {
+            throws DocumentHandlerException {
         if (Objects.equals(configuration.getSourceLanguage(), targetLang)) {
             return null;
         }
@@ -312,22 +330,23 @@ public class TranslatorSplitter
             var extra = "";
             if (TranslatorSplitterConfig.API_GOOGLE.equals(
                     configuration.getApi())
-                            && e instanceof IndexOutOfBoundsException) {
+                    && e instanceof IndexOutOfBoundsException) {
                 extra = " \"apiKey\" is likely invalid.";
             }
             throw new DocumentHandlerException(
                     "Translation failed form \"%s\" to \"%s\" for: \"%s\". %s"
-                    .formatted(
-                          configuration.getSourceLanguage(),
-                          targetLang,
-                          docCtx.reference(),
-                          extra), e);
+                            .formatted(
+                                    configuration.getSourceLanguage(),
+                                    targetLang,
+                                    docCtx.reference(),
+                                    extra),
+                    e);
         }
     }
 
     private Doc translateDocumentFromReader(
             HandlerContext docCtx, String targetLang, TextReader reader)
-                    throws Exception {
+            throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
         var sourceLang = getResolvedSourceLanguage(docCtx);
@@ -344,10 +363,12 @@ public class TranslatorSplitter
                 childContent.write(txt.getBytes(StandardCharsets.UTF_8));
                 childContent.flush();
             }
-            try { reader.close(); } catch (IOException ie) {/*NOOP*/}
+            try {
+                reader.close();
+            } catch (IOException ie) {
+                /*NOOP*/}
             childInput = childContent.getInputStream();
         }
-
 
         //--- Build child document ---
         var childEmbedRef = "translation-" + targetLang;
@@ -460,16 +481,20 @@ public class TranslatorSplitter
         private static final int DEFAULT_READ_SIZE =
                 DataUnit.KB.toBytes(2).intValue();
         private Translator translator;
+
         public int getReadSize() {
             return DEFAULT_READ_SIZE;
         }
+
         public final Translator getTranslator() {
             if (translator == null) {
                 translator = new CachedTranslator(createTranslator());
             }
             return translator;
         }
+
         protected abstract Translator createTranslator();
+
         public abstract void validateProperties()
                 throws DocumentHandlerException;
     }

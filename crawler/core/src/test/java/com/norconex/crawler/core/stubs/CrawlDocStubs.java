@@ -30,15 +30,18 @@ public final class CrawlDocStubs {
     public static final String CRAWLDOC_CONTENT_MD5 =
             "b8ab309a6b9a3f448092a136afa8fa25";
 
-    private CrawlDocStubs() {}
+    private CrawlDocStubs() {
+    }
 
     // Content MD5:
     public static CrawlDoc crawlDoc(String ref) {
         return crawlDoc(ref, CRAWLDOC_CONTENT, new Object[] {});
     }
+
     public static CrawlDoc crawlDoc(String ref, String content) {
         return crawlDoc(ref, content, new Object[] {});
     }
+
     public static CrawlDoc crawlDoc(
             String ref, String content, Object... metaKeyValues) {
         var doc = new CrawlDoc(
@@ -50,6 +53,7 @@ public final class CrawlDocStubs {
         }
         return doc;
     }
+
     public static CrawlDoc crawlDocWithCache(
             String ref, String content, Object... metaKeyValues) {
         var doc = new CrawlDoc(

@@ -50,11 +50,12 @@ public final class ChecksumUtil {
             return checksum;
         }
     }
+
     public static String checksumMD5(String text) {
         if (text == null) {
             return null;
         }
-        var checksum = DigestUtils.md5Hex(text);  //NOSONAR not sensitive
+        var checksum = DigestUtils.md5Hex(text); //NOSONAR not sensitive
         LOG.debug("MD5 checksum from string: {}", checksum);
         return checksum;
     }
@@ -63,10 +64,12 @@ public final class ChecksumUtil {
             Properties metadata, TextMatcher fieldMatcher) {
         var checksum =
                 checksumMD5(metadataChecksumPlain(metadata, fieldMatcher));
-        LOG.debug("Metadata checksum (MD5) from {} : \"{}\".",
+        LOG.debug(
+                "Metadata checksum (MD5) from {} : \"{}\".",
                 fieldMatcher, checksum);
         return checksum;
     }
+
     public static String metadataChecksumPlain(
             Properties metadata, TextMatcher fieldMatcher) {
         if (metadata == null || fieldMatcher == null
@@ -87,7 +90,8 @@ public final class ChecksumUtil {
 
         var checksum = b.toString();
         if (LOG.isDebugEnabled() && StringUtils.isNotBlank(checksum)) {
-            LOG.debug("Metadata checksum (plain text) from {} : \"{}\".",
+            LOG.debug(
+                    "Metadata checksum (plain text) from {} : \"{}\".",
                     StringUtils.join(props.keySet(), ','), checksum);
         }
         return StringUtils.trimToNull(checksum);

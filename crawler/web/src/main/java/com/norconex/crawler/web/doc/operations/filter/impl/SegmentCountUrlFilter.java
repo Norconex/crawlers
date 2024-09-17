@@ -35,6 +35,7 @@ import com.norconex.importer.doc.Doc;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+
 /**
  * <p>
  * Filters URL based based on the number of URL segments. A URL with
@@ -51,24 +52,6 @@ import lombok.ToString;
  * When <code>duplicate</code> is <code>true</code>, it will count the maximum
  * number of duplicate segments found.
  * </p>
- *
- * {@nx.xml.usage
- *  <filter class="com.norconex.crawler.web.doc.operations.filter.impl.SegmentCountUrlFilter"
- *      onMatch="[include|exclude]"
- *      count="(numeric value)"
- *      duplicate="[false|true]">
- *    <separator>(a regex identifying segment separator)</separator>
- *  </filter>
- * }
- *
- * {@nx.xml.example
- *  <filter class="SegmentCountUrlFilter" onMatch="exclude" count="5" />
- * }
- * <p>
- * The above example will reject URLs with more than 5 forward slashes after
- * the domain.
- * </p>
- *
  * @since 1.2
  * @see Pattern
  */
@@ -79,7 +62,7 @@ public class SegmentCountUrlFilter implements
         ReferenceFilter,
         DocumentFilter,
         MetadataFilter,
-        Configurable<SegmentCountUrlFilterConfig>{
+        Configurable<SegmentCountUrlFilterConfig> {
 
     @Getter
     private final SegmentCountUrlFilterConfig configuration =
@@ -94,10 +77,12 @@ public class SegmentCountUrlFilter implements
     public boolean acceptDocument(Doc document) {
         return acceptReference(document.getReference());
     }
+
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {
         return acceptReference(reference);
     }
+
     @Override
     public boolean acceptReference(String url) {
         var isInclude = getOnMatch() == OnMatch.INCLUDE;

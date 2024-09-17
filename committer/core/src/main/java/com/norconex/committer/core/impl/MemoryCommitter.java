@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,15 +50,7 @@ import lombok.extern.slf4j.Slf4j;
  * Given this committer can eat up memory pretty quickly, its use is strongly
  * discouraged for regular production use.
  * </p>
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.core.impl.MemoryCommitter">
- *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
- * </committer>
- * }
- *
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
 public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
@@ -68,7 +60,8 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
     private int upsertCount = 0;
     private int deleteCount = 0;
     @JsonIgnore
-    @Getter @Setter
+    @Getter
+    @Setter
     private boolean closed;
 
     private final MemoryCommitterConfig configuration =
@@ -92,6 +85,7 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
     public List<CommitterRequest> getAllRequests() {
         return requests;
     }
+
     @JsonIgnore
     public List<UpsertRequest> getUpsertRequests() {
         return requests.stream()
@@ -99,6 +93,7 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
                 .map(UpsertRequest.class::cast)
                 .toList();
     }
+
     @JsonIgnore
     public List<DeleteRequest> getDeleteRequests() {
         return requests.stream()
@@ -111,10 +106,12 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
     public int getUpsertCount() {
         return upsertCount;
     }
+
     @JsonIgnore
     public int getDeleteCount() {
         return deleteCount;
     }
+
     @JsonIgnore
     public int getRequestCount() {
         return requests.size();
@@ -143,6 +140,7 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
         requests.add(new UpsertRequest(memReference, memMetadata, memContent));
         upsertCount++;
     }
+
     @Override
     protected void doDelete(DeleteRequest deleteRequest) {
         var memReference = deleteRequest.getReference();
@@ -159,11 +157,15 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
             if (configuration.getFieldMatcher().getPattern() == null) {
                 memMetadata.loadFromMap(reqMetadata);
             } else {
-                memMetadata.loadFromMap(reqMetadata.entrySet().stream()
-                        .filter(en -> configuration.getFieldMatcher()
-                                .matches(en.getKey()))
-                        .collect(Collectors.toMap(
-                                Entry::getKey, Entry::getValue)));
+                memMetadata.loadFromMap(
+                        reqMetadata.entrySet().stream()
+                                .filter(
+                                        en -> configuration.getFieldMatcher()
+                                                .matches(en.getKey()))
+                                .collect(
+                                        Collectors.toMap(
+                                                Entry::getKey,
+                                                Entry::getValue)));
             }
         }
         return memMetadata;

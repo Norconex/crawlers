@@ -30,10 +30,10 @@ class GenericMetadataChecksummerTest {
     void testWriteRead() {
         var c = new GenericMetadataChecksummer();
         c.getConfiguration()
-            .setFieldMatcher(TextMatcher.basic("blah"))
-            .setKeep(true)
-            .setToField("myToField")
-            .setOnSet(PropertySetter.OPTIONAL);
+                .setFieldMatcher(TextMatcher.basic("blah"))
+                .setKeep(true)
+                .setToField("myToField")
+                .setOnSet(PropertySetter.OPTIONAL);
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
@@ -47,9 +47,9 @@ class GenericMetadataChecksummerTest {
 
         var c = new GenericMetadataChecksummer();
         c.getConfiguration()
-            .setFieldMatcher(TextMatcher.regex("field.*"))
-            .setKeep(true)
-            .setToField("myfield");
+                .setFieldMatcher(TextMatcher.regex("field.*"))
+                .setKeep(true)
+                .setToField("myfield");
 
         c.createMetadataChecksum(props);
 

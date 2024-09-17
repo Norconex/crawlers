@@ -59,7 +59,7 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
+public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         extends AbstractFetcher<FileFetchRequest, FileFetchResponse, C>
         implements FileFetcher {
 
@@ -98,8 +98,9 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             throws FetchException {
 
         if (fsOptions == null) {
-            throw new IllegalStateException("This fetcher was not initialized: "
-                    + getClass().getName());
+            throw new IllegalStateException(
+                    "This fetcher was not initialized: "
+                            + getClass().getName());
         }
 
         var doc = fetchRequest.getDoc();
@@ -133,10 +134,10 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             //TODO set status if not found or whatever bad state
 
             return GenericFileFetchResponse.builder()
-                .crawlDocState(CrawlDocState.NEW)
-                .file(fileObject.isFile())
-                .folder(fileObject.isFolder())
-                .build();
+                    .crawlDocState(CrawlDocState.NEW)
+                    .file(fileObject.isFile())
+                    .folder(fileObject.isFolder())
+                    .build();
         } catch (IOException e) {
             throw new FetchException("Could not fetch reference: " + ref, e);
         }
@@ -165,8 +166,10 @@ public abstract class AbstractVfsFetcher <C extends BaseFetcherConfig>
             }
             return childPaths;
         } catch (FileSystemException e) {
-            throw new FetchException("Could not fetch child paths of: "
-                    + parentPath, e);
+            throw new FetchException(
+                    "Could not fetch child paths of: "
+                            + parentPath,
+                    e);
         }
     }
 

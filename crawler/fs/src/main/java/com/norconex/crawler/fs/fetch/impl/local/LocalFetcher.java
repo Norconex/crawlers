@@ -43,7 +43,6 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
  * <p>
  * Fetcher for a local file system. Mounted file systems and mapped drives
@@ -63,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * This fetcher will try to extract access control information for each file
  * of a local file system. If you have no need for them, you can disable
- * acquiring them with {@link #setAclDisabled(boolean)}.
+ * acquiring them with {@link LocalFetcherConfig#setAclDisabled(boolean)}.
  * </p>
  *
  * <h3>Archive files as file systems</h3>
@@ -79,19 +78,7 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>Zip ({@code zip://})</li>
  *   <li>MIME ({@code mime://})</li>
  * </ul>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.local.LocalFetcher">
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *   <aclDisabled>[false|true]</aclDisabled>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="LocalFileFetcher"/>
- * }
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 @Slf4j
@@ -103,11 +90,11 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(
-            fetchRequest,
-            "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
-            "tar:", "tgz:", "tbz2:", "zip:", "mime:"
-        ) || fetchRequest.getDoc().getDocContext().getReference().matches(
-                "(?i)^[a-z]{1,2}:[/\\\\].*");
+                fetchRequest,
+                "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
+                "tar:", "tgz:", "tbz2:", "zip:", "mime:")
+                || fetchRequest.getDoc().getDocContext().getReference().matches(
+                        "(?i)^[a-z]{1,2}:[/\\\\].*");
     }
 
     @Override
@@ -121,11 +108,12 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
         }
     }
 
-    private void fetchAcl(LocalFile localFile, Properties metadata) {
+    void fetchAcl(LocalFile localFile, Properties metadata) {
         try {
             var localFileName = (LocalFileName) localFile.getName();
-            var file = new File(localFileName.getRootFile()
-                    + localFileName.getPathDecoded()).toPath();
+            var file = new File(
+                    localFileName.getRootFile()
+                            + localFileName.getPathDecoded()).toPath();
 
             var aclFileAttributes = Files.getFileAttributeView(
                     file, AclFileAttributeView.class);
@@ -137,7 +125,8 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
 
             if (aclFileAttributes.getOwner() != null
                     && aclFileAttributes.getOwner().getName() != null) {
-                metadata.add(FsDocMetadata.ACL + ".owner",
+                metadata.add(
+                        FsDocMetadata.ACL + ".owner",
                         aclFileAttributes.getOwner().getName());
             }
 
@@ -145,12 +134,16 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
                 var type = Objects.toString(aclEntry.type(), "[NOTYPE]");
                 var principal = aclEntry.principal().getName();
                 for (AclEntryPermission perm : aclEntry.permissions()) {
-                    metadata.add(FsDocMetadata.ACL + "." + type
-                            + "." + perm.name(), principal);
+                    metadata.add(
+                            FsDocMetadata.ACL + "." + type
+                                    + "." + perm.name(),
+                            principal);
                 }
                 for (AclEntryFlag flag : aclEntry.flags()) {
-                    metadata.add(FsDocMetadata.ACL + "." + type
-                            + ".flag." + flag.name(), principal);
+                    metadata.add(
+                            FsDocMetadata.ACL + "." + type
+                                    + ".flag." + flag.name(),
+                            principal);
                 }
             }
         } catch (IOException e) {

@@ -1,4 +1,4 @@
-/* Copyright 2016-2023 Norconex Inc.
+/* Copyright 2016-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.norconex.committer.amazoncloudsearch;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.norconex.committer.core.batch.BaseBatchCommitterConfig;
 import com.norconex.commons.lang.net.ProxySettings;
-import com.norconex.commons.lang.time.DurationParser;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -49,70 +48,8 @@ import lombok.experimental.Accessors;
  * majority of cases.
  * </p>
  *
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
- *
- * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.cloudsearch.CloudSearchCommitter">
- *
- *   <!-- Mandatory: -->
- *   <serviceEndpoint>(CloudSearch service endpoint)</serviceEndpoint>
- *
- *   <!-- Mandatory if not configured elsewhere: -->
- *   <accessKey>
- *     (Optional CloudSearch access key. Will be taken from environment
- *      when blank.)
- *   </accessKey>
- *   <secretKey>
- *     (Optional CloudSearch secret key. Will be taken from environment
- *      when blank.)
- *   </secretKey>
- *
- *   <!-- Optional settings: -->
- *   <fixBadIds>
- *     [false|true](Forces references to fit into a CloudSearch id field.)
- *   </fixBadIds>
- *   <signingRegion>(CloudSearch signing region)</signingRegion>
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
- *   </proxySettings>
- *
- *   <sourceIdField>
- *     (Optional document field name containing the value that will be stored
- *     in CloudSearch "id" field. Default is the document reference.)
- *   </sourceIdField>
- *   <targetContentField>
- *     (Optional CloudSearch field name to store the document
- *     content/body. Default is "content".)
- *   </targetContentField>
- *
- *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- * </committer>
- * }
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.example
- * <committer class="com.norconex.committer.cloudsearch.CloudSearchCommitter">
- *   <serviceEndpoint>search-example-xyz.some-region.cloudsearch.amazonaws.com</serviceEndpoint>
- * </committer>
- * }
- *
- * <p>
- * The above example uses the minimum required settings (relying on environment
- * variables for AWS keys).
- * </p>
- *
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class AmazonCloudSearchCommitterConfig
@@ -123,15 +60,11 @@ public class AmazonCloudSearchCommitterConfig
 
     /**
      * The AWS service endpoint.
-     * @param serviceEndpoint AWS service endpoint
-     * @return AWS service endpoint
      */
     private String serviceEndpoint;
 
     /**
      * The the AWS signing region.
-     * @param signingRegion the AWS signing region
-     * @return the AWS signing region
      */
     private String signingRegion;
 
@@ -139,8 +72,6 @@ public class AmazonCloudSearchCommitterConfig
      * The CloudSearch access key. If <code>null</code>, the access key
      * will be obtained from the environment, as detailed in
      * {@link DefaultAWSCredentialsProviderChain}.
-     * @param accessKey the access key
-     * @return the access key
      */
     private String accessKey;
 
@@ -148,8 +79,6 @@ public class AmazonCloudSearchCommitterConfig
      * The CloudSearch secret key. If <code>null</code>, the secret key
      * will be obtained from the environment, as detailed in
      * {@link DefaultAWSCredentialsProviderChain}.
-     * @param secretKey the secret key
-     * @return the secret key
      */
     private String secretKey;
 
@@ -158,8 +87,6 @@ public class AmazonCloudSearchCommitterConfig
      * ID limitation (128 characters max). If <code>true</code>,
      * long IDs will be truncated and a hash code representing the
      * truncated part will be appended.
-     * @param fixBadIds <code>true</code> to fix IDs that are too long
-     * @return <code>true</code> to fix IDs that are too long
      */
     private boolean fixBadIds;
 
@@ -171,9 +98,6 @@ public class AmazonCloudSearchCommitterConfig
      * the document reference.
      * A <code>null</code> value indicate to use the
      * document reference instead of a field (default).
-     * @param sourceIdField name of field containing id value,
-     *        or <code>null</code>
-     * @return name of field containing id value
      */
     private String sourceIdField;
 
@@ -181,15 +105,13 @@ public class AmazonCloudSearchCommitterConfig
      * The name of the CloudSearch field where content will be stored.
      * Default is "content".
      * Specifying a <code>null</code> value will disable storing the content.
-     * @param targetContentField field name
-     * @return field name
      */
     private String targetContentField = DEFAULT_COULDSEARCH_CONTENT_FIELD;
-
 
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
+
     public AmazonCloudSearchCommitterConfig setProxySettings(
             ProxySettings proxy) {
         proxySettings.copyFrom(proxy);

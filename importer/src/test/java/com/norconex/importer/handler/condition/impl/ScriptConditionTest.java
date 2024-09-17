@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 package com.norconex.importer.handler.condition.impl;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -40,17 +43,19 @@ class ScriptConditionTest {
     @ParameterizedTest
     @ArgumentsSource(SimpleProvider.class)
     void testScriptCondition(String engineName, String script)
-            throws IOException, IOException {
-        var cond = Configurable.configure(new ScriptCondition(), c -> c
-                .setEngineName(engineName)
-                .setScript(script));
+            throws IOException {
+        var cond = Configurable.configure(
+                new ScriptCondition(), c -> c
+                        .setEngineName(engineName)
+                        .setScript(script));
 
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        var returnValue = cond.evaluate(TestUtil.newDocContext(
-                htmlFile.getAbsolutePath(), is, metadata));
+        var returnValue = cond.evaluate(
+                TestUtil.newHandlerContext(
+                        htmlFile.getAbsolutePath(), is, metadata));
         is.close();
         Assertions.assertTrue(returnValue);
     }
@@ -59,31 +64,56 @@ class ScriptConditionTest {
         @Override
         public Stream<Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
-                    returnValue = metadata.getString('character') == 'Alice'
-                        || content.indexOf('Alice') > -1;
-                    """),
-                Arguments.of(ScriptRunner.LUA_ENGINE, """
-                    returnValue = metadata:getString('character') == 'Alice'
-                        or content:find('Alice') ~= nil;
-                    """),
-//                Arguments.of(ScriptRunner.PYTHON_ENGINE, """
-//                    returnValue = metadata.getString('character') == 'Alice' \
-//                        or content.__contains__('Alice');
-//                    """),
-                Arguments.of(ScriptRunner.VELOCITY_ENGINE, """
-                    #set($returnValue =
-                        $metadata.getString("character") == "Alice"
-                            || $content.contains("Alice"))
-                    """)
-            );
+                    Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
+                        returnValue = metadata.getString('character') == 'Alice'
+                            || content.indexOf('Alice') > -1;
+                        """),
+                    Arguments.of(ScriptRunner.LUA_ENGINE, """
+                        returnValue = metadata:getString('character') == 'Alice'
+                            or content:find('Alice') ~= nil;
+                        """),
+                    //Arguments.of(ScriptRunner.PYTHON_ENGINE, """
+                    //    returnValue = metadata.getString('character') == 'Alice' \
+                    //        or content.__contains__('Alice');
+                    //    """),
+                    Arguments.of(ScriptRunner.VELOCITY_ENGINE, """
+                            #set($returnValue =
+                                $metadata.getString("character") == "Alice"
+                                    || $content.contains("Alice"))
+                            """));
         }
     }
 
     @Test
     void testWriteRead() {
-        BeanMapper.DEFAULT.assertWriteRead(Configurable.configure(new ScriptCondition(), c -> c
-                .setEngineName(ScriptRunner.JAVASCRIPT_ENGINE)
-                .setScript("returnValue = blah == 'blah';")));
+        BeanMapper.DEFAULT
+                .assertWriteRead(Configurable.configure(
+                        new ScriptCondition(),
+                        c -> c.setEngineName(
+                                ScriptRunner.JAVASCRIPT_ENGINE)
+                                .setScript("returnValue = blah == 'blah';")));
+    }
+
+    @Test
+    void testExecuteScript() throws IOException {
+        var cond = new ScriptCondition();
+        cond.getConfiguration().setEngineName(null);
+        cond.getConfiguration().setScript(
+                "returnValue = content == 'potato';");
+
+        var ctx = TestUtil.newHandlerContext("ref", "potato");
+        var returnValue = cond.evaluate(ctx);
+
+        assertThat(returnValue).isTrue();
+    }
+
+    @Test
+    void testNoScriptMustThrow() {
+        var cond = new ScriptCondition();
+        cond.getConfiguration().setScript(null);
+
+        var ctx = TestUtil.newHandlerContext("ref", "potato");
+        assertThatExceptionOfType(IOException.class)
+                .isThrownBy(() -> cond.evaluate(ctx));
     }
 }

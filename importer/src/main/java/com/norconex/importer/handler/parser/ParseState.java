@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,15 @@ public enum ParseState {
     public boolean isPre() {
         return this == PRE;
     }
+
     public boolean isPost() {
         return this == POST;
     }
+
     public static boolean isPre(ParseState parseState) {
         return parseState == null || parseState == PRE;
     }
+
     public static boolean isPost(ParseState parseState) {
         return parseState != null && parseState == POST;
     }

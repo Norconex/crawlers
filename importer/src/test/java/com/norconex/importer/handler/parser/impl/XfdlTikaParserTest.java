@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,14 @@ class XfdlTikaParserTest {
     void test_PureEdge_regular_xfdl() throws IOException {
         ParseAssertions.assertThat(
                 resourceAsFile(folder, "/parser/xfdl/regular.xfdl"))
-            .hasContentType("application/vnd.xfdl")
-            .hasContentFamily("Other")
-            .hasExtension("xfdl")
-            .contains("Hey Norconex, this is a test.")
-            .contains("Orange")
-            .hasMetaValue("xfdl:formid.title", "Hey Norconex, this is a test.");
+                .hasContentType("application/vnd.xfdl")
+                .hasContentFamily("Other")
+                .hasExtension("xfdl")
+                .contains("Hey Norconex, this is a test.")
+                .contains("Orange")
+                .hasMetaValue(
+                        "xfdl:formid.title",
+                        "Hey Norconex, this is a test.");
     }
 
     @Test
@@ -45,15 +47,15 @@ class XfdlTikaParserTest {
             throws IOException {
         ParseAssertions.assertThat(
                 resourceAsFile(folder, "/parser/xfdl/base64.xfdl"))
-            .hasContentType("application/vnd.xfdl")
-            .hasContentFamily("Other")
-            .hasExtension("xfdl")
-            .contains("Enter order number")
-            .contains("check for approval")
-            .contains("PART IV - RECOMMENDATIONS")
-            .hasMetaValuesCount("xfdl:label.LABEL29.value", 3)
-            .hasMetaValue("xfdl:label.LABEL29.value",
-                    "PART IV - RECOMMENDATIONS/APPROVAL/DISAPPROVAL")
-            ;
+                .hasContentType("application/vnd.xfdl")
+                .hasContentFamily("Other")
+                .hasExtension("xfdl")
+                .contains("Enter order number")
+                .contains("check for approval")
+                .contains("PART IV - RECOMMENDATIONS")
+                .hasMetaValuesCount("xfdl:label.LABEL29.value", 3)
+                .hasMetaValue(
+                        "xfdl:label.LABEL29.value",
+                        "PART IV - RECOMMENDATIONS/APPROVAL/DISAPPROVAL");
     }
 }

@@ -14,9 +14,8 @@
  */
 package com.norconex.crawler.web.doc.operations.link.impl;
 
+import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.importer.handler.CommonMatchers;
 
 import lombok.Data;
@@ -24,53 +23,10 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Link extractor for extracting links out of
- * <a href="https://en.wikipedia.org/wiki/RSS">RSS</a> and
- * <a href="https://en.wikipedia.org/wiki/Atom_(standard)">Atom</a> XML feeds.
- * It extracts the content of &lt;link&gt; tags.  If you need more complex
- * extraction, consider using {@link RegexLinkExtractor} or creating your own
- * {@link LinkExtractor} implementation.
+ * Configuration for {@link XmlFeedLinkExtractor}.
  * </p>
- *
- * <h3>Applicable documents</h3>
- * <p>
- * By default, this extractor only will be applied on documents matching
- * one of these content types:
- * </p>
- *
- * {@nx.include com.norconex.importer.handler.CommonMatchers#xmlFeedContentTypes}
- *
- * <h3>Referrer data</h3>
- * <p>
- * The following referrer information is stored as metadata in each document
- * represented by the extracted URLs:
- * </p>
- * <ul>
- *   <li><b>Referrer reference:</b> The reference (URL) of the page where the
- *   link to a document was found.  Metadata value is
- *   {@link WebDocMetadata#REFERRER_REFERENCE}.</li>
- * </ul>
- *
- * {@nx.xml.usage
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.XmlFeedLinkExtractor">
- *   {@nx.include com.norconex.crawler.web.doc.operations.link.AbstractTextLinkExtractor@nx.xml.usage}
- * </extractor>
- * }
- *
- * {@nx.xml.example
- * <extractor class="com.norconex.crawler.web.doc.operations.link.impl.XmlFeedLinkExtractor">
- *   <restrictTo field="document.reference" method="regex">.*rss$</restrictTo>
- * </extractor>
- * }
- * <p>
- * The above example specifies this extractor should only apply on documents
- * that have their URL ending with "rss" (in addition to the default
- * content types supported).
- * </p>
- *
  * @since 2.7.0
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class XmlFeedLinkExtractorConfig {
@@ -78,8 +34,6 @@ public class XmlFeedLinkExtractorConfig {
      * The matcher of content types to apply link extraction on. No attempt to
      * extract links from any other content types will be made. Default is
      * {@link CommonMatchers#XML_FEED_CONTENT_TYPES}.
-     * @param contentTypeMatcher content type matcher
-     * @return content type matcher
      */
     private final TextMatcher contentTypeMatcher =
             CommonMatchers.xmlFeedContentTypes();
@@ -87,10 +41,10 @@ public class XmlFeedLinkExtractorConfig {
     /**
      * Matcher of one or more fields to use as the source of content to
      * extract links from, instead of the document content.
-     * @param fieldMatcher field matcher
-     * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
+
+    private final PropertyMatchers restrictions = new PropertyMatchers();
 
     public XmlFeedLinkExtractorConfig setFieldMatcher(
             TextMatcher fieldMatcher) {
@@ -102,12 +56,27 @@ public class XmlFeedLinkExtractorConfig {
      * The matcher of content types to apply link extraction on. No attempt to
      * extract links from any other content types will be made. Default is
      * {@link CommonMatchers#XML_FEED_CONTENT_TYPES}.
-     * @param contentTypeMatcher content type matcher
+     * @param matcher content type matcher
      * @return this
      */
     public XmlFeedLinkExtractorConfig setContentTypeMatcher(
             TextMatcher matcher) {
         contentTypeMatcher.copyFrom(matcher);
         return this;
+    }
+
+    /**
+     * Clears all restrictions.
+     */
+    public void clearRestrictions() {
+        restrictions.clear();
+    }
+
+    /**
+     * Gets all restrictions
+     * @return the restrictions
+     */
+    public PropertyMatchers getRestrictions() {
+        return restrictions;
     }
 }

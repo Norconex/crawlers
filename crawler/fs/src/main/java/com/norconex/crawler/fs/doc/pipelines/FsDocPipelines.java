@@ -42,11 +42,9 @@ import com.norconex.crawler.fs.doc.pipelines.importer.stages.FolderPathsExtracto
 
 public final class FsDocPipelines {
 
-    private static final DocPipelines PIPELINE =
-            DocPipelines
+    private static final DocPipelines PIPELINE = DocPipelines
             .builder()
-            .queuePipeline(
-                    QueuePipeline
+            .queuePipeline(QueuePipeline
                     .builder()
                     .initializer(new CoreQueueInitializer())
                     .stages(Predicates.allOf(
@@ -54,32 +52,40 @@ public final class FsDocPipelines {
                             new ReferenceFiltersStage(),
                             new QueueReferenceStage()))
                     .build())
-            .importerPipeline(
-                    ImporterPipeline
+            .importerPipeline(ImporterPipeline
                     .builder()
                     .stages(Predicates.allOf(
                             //--- METADATA ---
                             // When the metadata fetch directive is enabled,
                             // the following is executed
-                            new FileFetchStage(METADATA),
-                            new MetadataFiltersStage(METADATA),
+                            new FileFetchStage(
+                                    METADATA),
+                            new MetadataFiltersStage(
+                                    METADATA),
                             // Child folders done right after filter to give a
                             // chance to reject the folder before getting its
                             // children.
-                            new FolderPathsExtractorStage(METADATA),
-                            new MetadataChecksumStage(METADATA),
-                            new MetadataDedupStage(FetchDirective.METADATA),
+                            new FolderPathsExtractorStage(
+                                    METADATA),
+                            new MetadataChecksumStage(
+                                    METADATA),
+                            new MetadataDedupStage(
+                                    FetchDirective.METADATA),
 
                             //--- DOCUMENT ---
-                            new FileFetchStage(DOCUMENT),
-                            new MetadataFiltersStage(DOCUMENT),
-                            new FolderPathsExtractorStage(DOCUMENT),
-                            new MetadataChecksumStage(DOCUMENT),
-                            new MetadataDedupStage(DOCUMENT),
+                            new FileFetchStage(
+                                    DOCUMENT),
+                            new MetadataFiltersStage(
+                                    DOCUMENT),
+                            new FolderPathsExtractorStage(
+                                    DOCUMENT),
+                            new MetadataChecksumStage(
+                                    DOCUMENT),
+                            new MetadataDedupStage(
+                                    DOCUMENT),
                             new DocumentFiltersStage(),
                             new DocumentPreProcessingStage(),
-                            new ImportModuleStage()
-                            ))
+                            new ImportModuleStage()))
                     .build())
             .committerPipeline(CommitterPipeline
                     .builder()
@@ -91,7 +97,8 @@ public final class FsDocPipelines {
                     .build())
             .build();
 
-    private FsDocPipelines() {}
+    private FsDocPipelines() {
+    }
 
     public static DocPipelines get() {
         return PIPELINE;

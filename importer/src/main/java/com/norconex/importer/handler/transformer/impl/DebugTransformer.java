@@ -26,7 +26,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
 
-import com.norconex.commons.lang.SLF4JUtil;
+import com.norconex.commons.lang.Slf4jUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.HandlerContext;
@@ -84,12 +84,13 @@ public class DebugTransformer
     @Override
     public void handle(HandlerContext docCtx) throws IOException {
 
-        var level = Level.valueOf(ObjectUtils.defaultIfNull(
-                configuration.getLogLevel(), "debug").toUpperCase());
+        var level = Level.valueOf(
+                ObjectUtils.defaultIfNull(
+                        configuration.getLogLevel(), "debug").toUpperCase());
 
         if (configuration.getLogFields().isEmpty()) {
-            for (Entry<String, List<String>> entry :
-                docCtx.metadata().entrySet()) {
+            for (Entry<String, List<String>> entry : docCtx.metadata()
+                    .entrySet()) {
                 logField(level, entry.getKey(), entry.getValue());
             }
         } else {
@@ -99,9 +100,10 @@ public class DebugTransformer
         }
 
         if (configuration.isLogContent()) {
-            SLF4JUtil.log(LOG, level,
+            Slf4jUtil.log(
+                    LOG, level,
                     StringUtils.trimToEmpty(configuration.getPrefix())
-                        + "CONTENT={}",
+                            + "CONTENT={}",
                     IOUtils.toString(docCtx.input().asInputStream(), UTF_8));
         }
     }
@@ -118,7 +120,9 @@ public class DebugTransformer
                 b.append(value);
             }
         }
-        SLF4JUtil.log(LOG, level, trimToEmpty(configuration.getPrefix())
-                + "{}={}", fieldName, b.toString());
+        Slf4jUtil.log(
+                LOG, level, trimToEmpty(configuration.getPrefix())
+                        + "{}={}",
+                fieldName, b.toString());
     }
 }

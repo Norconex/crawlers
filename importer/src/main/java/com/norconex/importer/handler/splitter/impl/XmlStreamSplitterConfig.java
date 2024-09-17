@@ -1,4 +1,4 @@
-/* Copyright 2020 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,6 @@ public class XmlStreamSplitterConfig extends BaseDocumentSplitterConfig {
      * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
-
 
     /**
      * The matcher of content types to apply splitting on. No attempt to

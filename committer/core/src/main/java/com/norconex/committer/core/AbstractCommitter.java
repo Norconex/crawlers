@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import lombok.ToString;
  * and adding support for filtering unwanted requests.
  * </p>
  *
- * {@nx.block #restrictTo
  * <h3>Restricting committer to specific documents</h3>
  * <p>
  * Optionally apply a committer only to certain type of documents.
@@ -45,9 +44,7 @@ import lombok.ToString;
  * metadata field names and values. This option can be used to
  * perform document routing when you have multiple committers defined.
  * </p>
- * }
  *
- * {@nx.block #fieldMappings
  * <h3>Field mappings</h3>
  * <p>
  * By default, this abstract class applies field mappings for metadata fields,
@@ -57,30 +54,8 @@ import lombok.ToString;
  * Field mappings are performed on committer requests before upserts and
  * deletes are actually performed.
  * </p>
- * }
- *
- * {@nx.xml.usage
- * <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
- * <restrictTo>
- *   <fieldMatcher
- *     {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *       (field-matching expression)
- *   </fieldMatcher>
- *   <valueMatcher
- *     {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *       (value-matching expression)
- *   </valueMatcher>
- * </restrictTo>
- * <fieldMappings>
- *   <!-- Add as many field mappings as needed -->
- *   <mapping fromField="(source field name)" toField="(target field name)"/>
- * </fieldMappings>
- * }
- * <p>
- * Implementing classes inherit the above XML configuration.
- * </p>
+ * @param <T> The type of the committer configuration class
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 public abstract class AbstractCommitter<T extends BaseCommitterConfig>
@@ -135,6 +110,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
         }
         fireInfo(CommitterEvent.COMMITTER_UPSERT_END, upsertRequest);
     }
+
     @Override
     public final void delete(
             DeleteRequest deleteRequest) throws CommitterException {
@@ -192,7 +168,6 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
         fireInfo(CommitterEvent.COMMITTER_CLEAN_END);
     }
 
-
     public CommitterContext getCommitterContext() {
         return committerContext;
     }
@@ -212,6 +187,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
 
     protected abstract void doDelete(DeleteRequest deleteRequest)
             throws CommitterException;
+
     /**
      * Subclasses can perform additional closing logic by overriding this
      * method. Default implementation does nothing.
@@ -224,41 +200,50 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
     protected final void fireDebug(String name) {
         fireInfo(name, null);
     }
+
     protected final void fireDebug(String name, CommitterRequest req) {
-        fire(CommitterEvent.builder()
-                .name(name)
-                .source(this)
-                .request(req)
-                .build(),
+        fire(
+                CommitterEvent.builder()
+                        .name(name)
+                        .source(this)
+                        .request(req)
+                        .build(),
                 Level.DEBUG);
     }
+
     protected final void fireInfo(String name) {
         fireInfo(name, null);
     }
+
     protected final void fireInfo(String name, CommitterRequest req) {
-        fire(CommitterEvent.builder()
-                .name(name)
-                .source(this)
-                .request(req)
-                .build(),
+        fire(
+                CommitterEvent.builder()
+                        .name(name)
+                        .source(this)
+                        .request(req)
+                        .build(),
                 Level.INFO);
     }
+
     protected final void fireError(String name, Exception e) {
         fireError(name, null, e);
     }
+
     protected final void fireError(
             String name, CommitterRequest req, Exception e) {
-        fire(CommitterEvent.builder()
-                .name(name)
-                .source(this)
-                .request(req)
-                .exception(e)
-                .build(),
+        fire(
+                CommitterEvent.builder()
+                        .name(name)
+                        .source(this)
+                        .request(req)
+                        .exception(e)
+                        .build(),
                 Level.ERROR);
     }
+
     private void fire(CommitterEvent e, Level level) {
         Optional.ofNullable(committerContext)
-            .map(CommitterContext::getEventManager)
-            .ifPresent(em -> em.fire(e, level));
+                .map(CommitterContext::getEventManager)
+                .ifPresent(em -> em.fire(e, level));
     }
 }

@@ -153,7 +153,7 @@ public class HierarchyTransformer
             if (!op.isKeepEmptySegments()) {
                 var iter =
                         segments.listIterator(segments.size());
-                while(iter.hasPrevious()) {
+                while (iter.hasPrevious()) {
                     var seg = iter.previous();
                     if (seg instanceof Separator) {
                         if (prevIsSep) {
@@ -196,9 +196,11 @@ public class HierarchyTransformer
     @EqualsAndHashCode
     private static class Separator {
         private final String sep;
+
         public Separator(String sep) {
             this.sep = sep;
         }
+
         @Override
         public String toString() {
             return sep;

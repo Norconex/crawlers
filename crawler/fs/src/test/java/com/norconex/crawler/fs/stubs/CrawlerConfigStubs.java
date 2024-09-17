@@ -34,15 +34,15 @@ public final class CrawlerConfigStubs {
 
     public static final String CRAWLER_ID = "test-crawler";
 
-    private CrawlerConfigStubs() {}
+    private CrawlerConfigStubs() {
+    }
 
     public static CrawlerConfig memoryCrawlerConfig(Path workDir) {
         return new CrawlerConfig()
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
-                .setCommitters(List.of(new MemoryCommitter()))
-                ;
+                .setCommitters(List.of(new MemoryCommitter()));
     }
 
     public static Path writeConfigToDir(

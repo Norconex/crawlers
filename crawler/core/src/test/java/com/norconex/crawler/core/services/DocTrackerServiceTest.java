@@ -58,25 +58,25 @@ class DocTrackerServiceTest {
 
     @WithCrawlerTest
     void testResumeCrawl(Crawler crawler) {
-            var service = crawler.getServices().getDocTrackerService();
-            service.queue(new CrawlDocContext("q-ref"));
-            service.processed(new CrawlDocContext("p-ref"));
-            service.close();
+        var service = crawler.getServices().getDocTrackerService();
+        service.queue(new CrawlDocContext("q-ref"));
+        service.processed(new CrawlDocContext("p-ref"));
+        service.close();
 
-            service.init();
-            service.prepareForCrawl();
+        service.init();
+        service.prepareForCrawl();
 
-            assertThat(service.getActiveCount()).isZero();
-            assertThat(service.getProcessedCount()).isOne();
-            assertThat(service.getProcessed("p-ref")).isPresent();
-            assertThat(service.getProcessingStage("p-ref")).isSameAs(
-                    Stage.PROCESSED);
-            assertThat(service.isProcessedEmpty()).isFalse();
-            assertThat(service.forEachCached((s, r) -> false)).isTrue();
-            assertThat(service.getProcessingStage("q-ref")).isSameAs(
-                    Stage.QUEUED);
-            assertThat(service.getQueueCount()).isOne();
-            assertThat(service.pollQueue()).isPresent();
-            service.close();
+        assertThat(service.getActiveCount()).isZero();
+        assertThat(service.getProcessedCount()).isOne();
+        assertThat(service.getProcessed("p-ref")).isPresent();
+        assertThat(service.getProcessingStage("p-ref")).isSameAs(
+                Stage.PROCESSED);
+        assertThat(service.isProcessedEmpty()).isFalse();
+        assertThat(service.forEachCached((s, r) -> false)).isTrue();
+        assertThat(service.getProcessingStage("q-ref")).isSameAs(
+                Stage.QUEUED);
+        assertThat(service.getQueueCount()).isOne();
+        assertThat(service.pollQueue()).isPresent();
+        service.close();
     }
 }

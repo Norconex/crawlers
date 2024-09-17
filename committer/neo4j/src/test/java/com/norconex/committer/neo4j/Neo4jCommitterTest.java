@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ class Neo4jCommitterTest {
     private static final String TEST_CONTENT =
             "This is a movie about something.";
 
+    @SuppressWarnings("resource")
     @Container
     private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(
             DockerImageName.parse("neo4j").withTag(NEO4J_VERSION))
@@ -77,6 +78,7 @@ class Neo4jCommitterTest {
         driver = GraphDatabase.driver(
                 neo4jContainer.getBoltUrl(), AuthTokens.none());
     }
+
     @BeforeEach
     void beforeEach() throws Exception {
         session = driver.session();
@@ -84,6 +86,7 @@ class Neo4jCommitterTest {
                 MATCH (n)
                 DETACH DELETE n""");
     }
+
     @AfterEach
     void afterEach() throws Exception {
         if (session != null) {
@@ -91,6 +94,7 @@ class Neo4jCommitterTest {
             session = null;
         }
     }
+
     @AfterAll
     static void afterAll() throws Exception {
         if (driver != null) {
@@ -110,8 +114,8 @@ class Neo4jCommitterTest {
 
         // Check all movies are there
         records = session.run("""
-                MATCH (movie:Movie)
-               RETURN movie.id, movie.title, movie.year""").list();
+                 MATCH (movie:Movie)
+                RETURN movie.id, movie.title, movie.year""").list();
         cnt = 0;
         for (Record rec : records) {
             var req = movieUpsertRequest(prop(rec, "movie.id"));
@@ -158,10 +162,11 @@ class Neo4jCommitterTest {
     @Test
     void deleteTest() throws CommitterException, IOException {
         //setup
-        var queryFindAllKeanuMovies = ("""
-                MATCH (a:Actor WHERE a.name='Keanu Reeves')-[:ACTED_IN]->(m:Movie)
-                WITH m.title as movieTitle
-                RETURN movieTitle""");
+        var queryFindAllKeanuMovies =
+                ("""
+                        MATCH (a:Actor WHERE a.name='Keanu Reeves')-[:ACTED_IN]->(m:Movie)
+                        WITH m.title as movieTitle
+                        RETURN movieTitle""");
         commitAllMovies();
 
         var records = session.run(queryFindAllKeanuMovies).list();
@@ -191,6 +196,7 @@ class Neo4jCommitterTest {
     private String meta(UpsertRequest req, String key) {
         return req.getMetadata().getString(key);
     }
+
     private String prop(Record rec, String key) {
         var value = rec.get(key);
         if (value.hasType(InternalTypeSystem.TYPE_SYSTEM.LIST())) {
@@ -204,18 +210,17 @@ class Neo4jCommitterTest {
             var cfg = c.getConfiguration();
             cfg.addOptionalParameter("producers");
             cfg.setUpsertCypher("""
-                MERGE (m:Movie {
-                     id: $movieId, title: $title, year: $year })
-                    FOREACH (actor IN COALESCE($actors, []) |
-                        MERGE (a:Actor{name: actor})
-                        CREATE (a)-[:ACTED_IN]->(m))
-                    FOREACH (producer IN COALESCE($producers, []) |
-                        MERGE (p:Producer{name: producer})
-                        CREATE (p)-[:PRODUCED]->(m))
-                    FOREACH (director IN COALESCE($directors, []) |
-                        MERGE (d:Director{name: director})
-                        CREATE (d)-[:DIRECTED]->(m))"""
-            );
+                    MERGE (m:Movie {
+                         id: $movieId, title: $title, year: $year })
+                        FOREACH (actor IN COALESCE($actors, []) |
+                            MERGE (a:Actor{name: actor})
+                            CREATE (a)-[:ACTED_IN]->(m))
+                        FOREACH (producer IN COALESCE($producers, []) |
+                            MERGE (p:Producer{name: producer})
+                            CREATE (p)-[:PRODUCED]->(m))
+                        FOREACH (director IN COALESCE($directors, []) |
+                            MERGE (d:Director{name: director})
+                            CREATE (d)-[:DIRECTED]->(m))""");
             c.upsert(movieUpsertRequest("matrix1"));
             c.upsert(movieUpsertRequest("matrix2"));
             c.upsert(movieUpsertRequest("devilsAdvocate"));
@@ -225,21 +230,28 @@ class Neo4jCommitterTest {
     private UpsertRequest movieUpsertRequest(String movieId)
             throws IOException {
         var meta = new Properties();
-        meta.loadFromProperties(getClass().getResourceAsStream(
-                "/movies/" + movieId + ".properties"), ", ");
+        meta.loadFromProperties(
+                getClass().getResourceAsStream(
+                        "/movies/" + movieId + ".properties"),
+                ", ");
         return upsertRequest(movieId, TEST_CONTENT, meta);
     }
+
     private UpsertRequest upsertRequest(
             String id, String content, Properties metadata) {
         var p = metadata == null ? new Properties() : metadata;
-        return new UpsertRequest(id, p, content == null
-                ? new NullInputStream(0) : toInputStream(content, UTF_8));
+        return new UpsertRequest(
+                id, p, content == null
+                        ? new NullInputStream(0)
+                        : toInputStream(content, UTF_8));
     }
 
     protected Neo4jCommitter createNeo4jCommitter() throws CommitterException {
         var ctx = CommitterContext.builder()
-                .setWorkDir(new File(tempDir,
-                        "" + TimeIdGenerator.next()).toPath())
+                .setWorkDir(
+                        new File(
+                                tempDir,
+                                "" + TimeIdGenerator.next()).toPath())
                 .build();
         var committer = new Neo4jCommitter();
         var cfg = committer.getConfiguration();
@@ -264,6 +276,7 @@ class Neo4jCommitterTest {
         committer.close();
         return committer;
     }
+
     @FunctionalInterface
     protected interface CommitterConsumer {
         void accept(Neo4jCommitter c) throws Exception;
@@ -276,9 +289,11 @@ class Neo4jCommitterTest {
                     MATCH (n)
                     RETURN n""");
         }
+
         void renderAll() {
             renderResult(getAllRecords());
         }
+
         private void renderResult(Result result) {
             var records = result.list();
             System.out.println("=== DUMP: ======================");
@@ -286,6 +301,7 @@ class Neo4jCommitterTest {
                 renderMap(0, rec.asMap());
             }
         }
+
         public void renderMap(int depth, Map<String, Object> map) {
             for (Entry<String, Object> en : map.entrySet()) {
                 var key = en.getKey();
@@ -299,7 +315,8 @@ class Neo4jCommitterTest {
                     System.out.println(indent + "}");
                 } else if (value instanceof Collection) {
                     System.out.print(indent + key);
-                    ((Collection<?>) value).forEach(v -> System.out.print(":" + v));
+                    ((Collection<?>) value)
+                            .forEach(v -> System.out.print(":" + v));
                     System.out.println();
                 } else {
                     System.out.println(indent + key + ": " + value);

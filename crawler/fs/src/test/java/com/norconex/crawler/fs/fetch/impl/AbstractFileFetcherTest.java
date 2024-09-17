@@ -49,60 +49,68 @@ public abstract class AbstractFileFetcherTest {
         var mem = FsTestUtil.runWithConfig(
                 tempDir,
                 cfg -> cfg
-                .setStartReferences(List.of(basePath))
-                .setFetchers(List.of(fetcher)));
+                        .setStartReferences(List.of(basePath))
+                        .setFetchers(List.of(fetcher)));
 
         assertThat(mem.getUpsertCount()).isEqualTo(8);
         assertThat(mem.getUpsertRequests())
-            .map(UpsertRequest::getReference)
-            .containsExactlyInAnyOrder(
-                    basePath + "/bye.txt",
-                    basePath + "/embedded.zip",
-                    basePath + "/hello.txt",
-                    basePath + "/UTF-8.txt",
-                    basePath + "/windows-1252.txt",
-                    basePath + "/imgs/160x120.png",
-                    basePath + "/imgs/320x240.png",
-                    basePath + "/pdfs/plain.pdf");
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        basePath + "/bye.txt",
+                        basePath + "/embedded.zip",
+                        basePath + "/hello.txt",
+                        basePath + "/UTF-8.txt",
+                        basePath + "/windows-1252.txt",
+                        basePath + "/imgs/160x120.png",
+                        basePath + "/imgs/320x240.png",
+                        basePath + "/pdfs/plain.pdf");
 
         // Assert content
-        assertThat(getUpsertRequestContent(
-                mem, basePath + "/bye.txt")).contains("Bye World!");
-        assertThat(getUpsertRequestContent(
-                mem, basePath + "/pdfs/plain.pdf"))
-                        .contains("Hey Norconex, this is a test.");
+        assertThat(
+                getUpsertRequestContent(
+                        mem, basePath + "/bye.txt")).contains("Bye World!");
+        assertThat(
+                getUpsertRequestContent(
+                        mem, basePath + "/pdfs/plain.pdf"))
+                                .contains("Hey Norconex, this is a test.");
 
         // Assert char encoding
-        assertThat(getUpsertRequestMeta(
-                mem, basePath + "/UTF-8.txt", CONTENT_ENCODING))
-                        .isEqualTo("UTF-8");
-        assertThat(getUpsertRequestMeta(
-                mem, basePath + "/windows-1252.txt", CONTENT_ENCODING))
-                        .isEqualTo("windows-1252");
+        assertThat(
+                getUpsertRequestMeta(
+                        mem, basePath + "/UTF-8.txt", CONTENT_ENCODING))
+                                .isEqualTo("UTF-8");
+        assertThat(
+                getUpsertRequestMeta(
+                        mem, basePath + "/windows-1252.txt", CONTENT_ENCODING))
+                                .isEqualTo("windows-1252");
 
         // Assert content type
-        assertThat(getUpsertRequestMeta(
-                mem, basePath + "/UTF-8.txt", CONTENT_TYPE))
-                        .isEqualTo(ContentType.TEXT.toString());
-        assertThat(getUpsertRequestMeta(
-                mem, basePath + "/pdfs/plain.pdf", CONTENT_TYPE))
-                        .isEqualTo(ContentType.PDF.toString());
+        assertThat(
+                getUpsertRequestMeta(
+                        mem, basePath + "/UTF-8.txt", CONTENT_TYPE))
+                                .isEqualTo(ContentType.TEXT.toString());
+        assertThat(
+                getUpsertRequestMeta(
+                        mem, basePath + "/pdfs/plain.pdf", CONTENT_TYPE))
+                                .isEqualTo(ContentType.PDF.toString());
 
         // Assert file size
-        assertThat(getUpsertRequestMeta(
-                mem, basePath + "/imgs/320x240.png", FILE_SIZE))
-                        .isEqualTo("1853");
-        assertThat(getUpsertRequestMeta(
-                mem, basePath + "/pdfs/plain.pdf", FILE_SIZE))
-                        .isEqualTo("15987");
+        assertThat(
+                getUpsertRequestMeta(
+                        mem, basePath + "/imgs/320x240.png", FILE_SIZE))
+                                .isEqualTo("1853");
+        assertThat(
+                getUpsertRequestMeta(
+                        mem, basePath + "/pdfs/plain.pdf", FILE_SIZE))
+                                .isEqualTo("15987");
 
         // Assert last modified (UTC)
         //TODO reliably test dates. Probably best to create new files
 
-
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(
-                        FsTestUtil.randomize(fetcher.getClass())));
+        assertThatNoException()
+                .isThrownBy(
+                        () -> BeanMapper.DEFAULT.assertWriteRead(
+                                FsTestUtil.randomize(fetcher.getClass())));
         // Assert ACLs
 
         //TODO extract ACL, possibly making it a flag if costly?

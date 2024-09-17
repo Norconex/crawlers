@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.LogCommitterConfig.LogLevel;
-import com.norconex.commons.lang.SLF4JUtil;
+import com.norconex.commons.lang.Slf4jUtil;
 import com.norconex.commons.lang.map.Properties;
 
 import lombok.Data;
@@ -54,23 +54,10 @@ import lombok.extern.slf4j.Slf4j;
  * you do not use in a production environment. At a minimum, if you are
  * logging to file, make sure to rotate/clean the logs regularly.
  * </p>
- *
- * {@nx.xml.usage
- * <committer class="com.norconex.committer.core.impl.LogCommitter">
- *   <logLevel>[TRACE|DEBUG|INFO|WARN|ERROR|STDOUT|STDERR]</logLevel>
- *   <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *     (Expression matching fields to log. Default logs all.)
- *   </fieldMatcher>
- *   <ignoreContent>[false|true]</ignoreContent>
- *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}
- * </committer>
- * }
- *
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @Data
-public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
+public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {
 
     private static final int LOG_TIME_BATCH_SIZE = 100;
 
@@ -96,6 +83,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
         watch.reset();
         watch.start();
     }
+
     @Override
     protected void doUpsert(UpsertRequest upsertRequest)
             throws CommitterException {
@@ -108,8 +96,10 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
         if (!configuration.isIgnoreContent()) {
             b.append("\n--- Content ---------------------------------------\n");
             try {
-                b.append(IOUtils.toString(
-                        upsertRequest.getContent(), UTF_8)).append('\n');
+                b.append(
+                        IOUtils.toString(
+                                upsertRequest.getContent(), UTF_8))
+                        .append('\n');
             } catch (IOException e) {
                 b.append(ExceptionUtils.getStackTrace(e));
             }
@@ -121,6 +111,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
             LOG.info("{} upsert logged in: {}", addCount, watch);
         }
     }
+
     @Override
     protected void doDelete(DeleteRequest deleteRequest)
             throws CommitterException {
@@ -135,6 +126,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
             LOG.info("{} delete logged in {}", removeCount, watch);
         }
     }
+
     @Override
     protected void doClose() throws CommitterException {
         watch.stop();
@@ -175,7 +167,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
         } else if (LogLevel.STDOUT == lvl) {
             System.out.println(txt); //NOSONAR
         } else {
-            SLF4JUtil.log(LOG, lvl.toString(), txt);
+            Slf4jUtil.log(LOG, lvl.toString(), txt);
         }
     }
 }

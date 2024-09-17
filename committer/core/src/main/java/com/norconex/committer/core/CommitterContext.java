@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ public final class CommitterContext {
     public EventManager getEventManager() {
         return eventManager;
     }
+
     /**
      * Gets a unique working directory for a committer (if one is needed).
      * @return working directory (never <code>null</code>)
@@ -51,6 +52,7 @@ public final class CommitterContext {
     public Path getWorkDir() {
         return workDir;
     }
+
     public CachedStreamFactory getStreamFactory() {
         return streamFactory;
     }
@@ -62,6 +64,7 @@ public final class CommitterContext {
                 .setStreamFactory(streamFactory)
                 .build();
     }
+
     public CommitterContext withWorkdir(Path workDir) {
         return CommitterContext.builder()
                 .setEventManager(eventManager)
@@ -69,6 +72,7 @@ public final class CommitterContext {
                 .setStreamFactory(streamFactory)
                 .build();
     }
+
     public CommitterContext withStreamFactory(
             CachedStreamFactory streamFactory) {
         return CommitterContext.builder()
@@ -84,23 +88,29 @@ public final class CommitterContext {
 
     public static class Builder {
         private final CommitterContext ctx = new CommitterContext();
+
         private Builder() {
         }
+
         public Builder setWorkDir(Path workDir) {
             ctx.workDir = workDir;
             return this;
         }
+
         public Builder setEventManager(EventManager eventManager) {
             ctx.eventManager = eventManager;
             return this;
         }
+
         public Builder setStreamFactory(CachedStreamFactory streamFactory) {
             ctx.streamFactory = streamFactory;
             return this;
         }
+
         public CommitterContext build() {
             if (ctx.workDir == null) {
-                ctx.workDir = new File(FileUtils.getTempDirectory(),
+                ctx.workDir = new File(
+                        FileUtils.getTempDirectory(),
                         "committer-" + TimeIdGenerator.next()).toPath();
             }
             if (ctx.eventManager == null) {

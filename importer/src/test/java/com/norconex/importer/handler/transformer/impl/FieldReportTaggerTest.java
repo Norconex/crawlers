@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ class FieldReportTaggerTest {
 
         var reportFile = tempDir.resolve("report.csv");
         t.getConfiguration()
-            .setFile(reportFile)
-            .setMaxSamples(2)
-            .setTruncateSamplesAt(3)
-            .setWithHeaders(true)
-            .setWithOccurences(true);
+                .setFile(reportFile)
+                .setMaxSamples(2)
+                .setTruncateSamplesAt(3)
+                .setWithHeaders(true)
+                .setWithOccurences(true);
 
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(t));
@@ -58,29 +58,35 @@ class FieldReportTaggerTest {
         props.add("d", "d1111111");
         props.add("e", "e1111111");
         props.add("f", "f1111111");
-        t.accept(TestUtil.newDocContext("ref", nullInputStream(), props, PRE));
-        t.accept(TestUtil.newDocContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
 
         props = new Properties();
         props.add("a", "a2222222");
         props.add("b", "b2222222");
         props.add("g", "g2222222");
-        t.accept(TestUtil.newDocContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
 
         props = new Properties();
         props.add("a", "a3333333");
-        t.accept(TestUtil.newDocContext("ref", nullInputStream(), props, PRE));
-        t.accept(TestUtil.newDocContext("ref", nullInputStream(), props, PRE));
-        t.accept(TestUtil.newDocContext("ref", nullInputStream(), props, PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
+        t.accept(TestUtil.newHandlerContext("ref", nullInputStream(), props,
+                PRE));
 
         assertThat(Files.readString(reportFile)).isEqualToIgnoringNewLines("""
-            a,6,a11,a22
-            b,3,b11,b22
-            c,2,c11,
-            d,2,d11,
-            e,2,e11,
-            f,2,f11,
-            g,1,g22,
-            """);
+                a,6,a11,a22
+                b,3,b11,b22
+                c,2,c11,
+                d,2,d11,
+                e,2,e11,
+                f,2,f11,
+                g,1,g22,
+                """);
     }
 }

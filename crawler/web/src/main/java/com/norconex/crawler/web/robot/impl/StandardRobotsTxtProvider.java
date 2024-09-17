@@ -60,18 +60,6 @@ import lombok.extern.slf4j.Slf4j;
  * described at <a href="http://www.robotstxt.org/robotstxt.html">
  * http://www.robotstxt.org/robotstxt.html</a>.
  * </p>
- * {@nx.xml.usage
- * <robotsTxt ignore="false"
- *     class="com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider"/>
- * }
- *
- * {@nx.xml.example
- * <pre>
- * <robotsTxt ignore="true" />
- * }
- * <p>
- * The above example ignores "robots.txt" files present on web sites.
- * </p>
  */
 @Slf4j
 @EqualsAndHashCode
@@ -107,7 +95,8 @@ public class StandardRobotsTxtProvider
         CrawlDoc doc = null;
         try {
             // Try once
-            doc = new CrawlDoc(new WebCrawlDocContext(robotsURL),
+            doc = new CrawlDoc(
+                    new WebCrawlDocContext(robotsURL),
                     CachedInputStream.nullInputStream());
             var response = fetcher.fetch(
                     new HttpFetchRequest(doc, HttpMethod.GET));
@@ -118,28 +107,33 @@ public class StandardRobotsTxtProvider
             var redirURL = response.getRedirectTarget();
 
             if (StringUtils.isNotBlank(redirURL)) {
-                LOG.debug("Fetching 'robots.txt' from redirect URL: {}",
+                LOG.debug(
+                        "Fetching 'robots.txt' from redirect URL: {}",
                         redirURL);
-                doc = new CrawlDoc(new WebCrawlDocContext(redirURL),
+                doc = new CrawlDoc(
+                        new WebCrawlDocContext(redirURL),
                         CachedInputStream.nullInputStream());
                 response = fetcher.fetch(
                         new HttpFetchRequest(doc, HttpMethod.GET));
             }
 
             if (response.getStatusCode() == HttpStatus.SC_OK) {
-                robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
+                robotsTxt = parseRobotsTxt(
+                        doc.getInputStream(), trimmedURL,
                         response.getUserAgent());
                 LOG.debug("Fetched and parsed robots.txt: {}", robotsURL);
                 if (crawler != null) {
-                    crawler.fire(CrawlerEvent.builder()
-                            .name(WebCrawlerEvent.FETCHED_ROBOTS_TXT)
-                            .docContext(doc.getDocContext())
-                            .source(crawler)
-                            .subject(robotsTxt)
-                            .build());
+                    crawler.fire(
+                            CrawlerEvent.builder()
+                                    .name(WebCrawlerEvent.FETCHED_ROBOTS_TXT)
+                                    .docContext(doc.getDocContext())
+                                    .source(crawler)
+                                    .subject(robotsTxt)
+                                    .build());
                 }
             } else {
-                LOG.info("No robots.txt found for {}. ({} - {})", robotsURL,
+                LOG.info(
+                        "No robots.txt found for {}. ({} - {})", robotsURL,
                         response.getStatusCode(), response.getReasonPhrase());
                 robotsTxt = RobotsTxt.builder().build();
             }
@@ -210,8 +204,10 @@ public class StandardRobotsTxtProvider
             "\\s*allow\\s*:\\s*/\\s*", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_DISALLOW_NONE = Pattern.compile(
             "\\s*disallow\\s*:\\s*", Pattern.CASE_INSENSITIVE);
+
     private boolean ignoreLine(String line) {
-        if (StringUtils.isBlank(line) || PATTERN_COMMENT.matcher(line).matches() || PATTERN_ALLOW_ALL.matcher(line).matches()) {
+        if (StringUtils.isBlank(line) || PATTERN_COMMENT.matcher(line).matches()
+                || PATTERN_ALLOW_ALL.matcher(line).matches()) {
             return true;
         }
         return PATTERN_DISALLOW_NONE.matcher(line).matches();
@@ -249,14 +245,17 @@ public class StandardRobotsTxtProvider
         private enum Precision {
             NOMATCH, WILD, PARTIAL, EXACT;
         }
+
         private Precision precision = Precision.NOMATCH;
         private final Map<String, String> rules = new ListOrderedMap<>();
         private final List<String> sitemaps = new ArrayList<>();
         private String crawlDelay;
+
         private void clear() {
             rules.clear();
             crawlDelay = null;
         }
+
         private RobotsTxt toRobotsTxt(String baseURL) {
             List<RobotsTxtFilter> filters = new ArrayList<>();
             for (Entry<String, String> entry : rules.entrySet()) {
@@ -283,6 +282,7 @@ public class StandardRobotsTxtProvider
                     .crawlDelay(delay)
                     .build();
         }
+
         private RobotsTxtFilter buildURLFilter(
                 String baseURL, final String path, final OnMatch onMatch) {
             // Take the robots.txt pattern literally as it may include
@@ -325,22 +325,27 @@ public class StandardRobotsTxtProvider
     private static class StdRobotsTxtFilter extends GenericReferenceFilter
             implements RobotsTxtFilter {
         private final String path;
+
         public StdRobotsTxtFilter(
                 String path, String regex, OnMatch onMatch) {
             getConfiguration()
-                .setValueMatcher(TextMatcher.regex(regex).setIgnoreCase(true))
-                .setOnMatch(onMatch);
+                    .setValueMatcher(
+                            TextMatcher.regex(regex).setIgnoreCase(true))
+                    .setOnMatch(onMatch);
             this.path = path;
         }
+
         @Override
         public String getPath() {
             return path;
         }
+
         @Override
         public String toString() {
             return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE
-                    ? "Allow: " : "Disallow: ") + path + " (" +
-                        getConfiguration().getValueMatcher().getPattern() + ")";
+                    ? "Allow: "
+                    : "Disallow: ") + path + " (" +
+                    getConfiguration().getValueMatcher().getPattern() + ")";
         }
     }
 }

@@ -41,26 +41,29 @@ class SaveDocumentTransformerTest {
             throws IOException, IOException {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
-            .setEscape(true)
-            .setPathToField(FLD_PATH)
-            .setSaveDir(tempDir.resolve("basic"));
+                .setEscape(true)
+                .setPathToField(FLD_PATH)
+                .setSaveDir(tempDir.resolve("basic"));
 
         var doc = transform(t, "http://example.com/my$file.html");
         assertThat(savedFile(doc)).isRegularFile();
         transform(t, "/with/stripables/");
-        assertThat(listFilePaths(
-                t.getConfiguration().getSaveDir())).containsExactlyInAnyOrder(
-                        "http/example.com/my_36_file.html",
-                        "with/stripables");
+        assertThat(
+                listFilePaths(
+                        t.getConfiguration().getSaveDir()))
+                                .containsExactlyInAnyOrder(
+                                        "http/example.com/my_36_file.html",
+                                        "with/stripables");
     }
+
     @Test
     void testParentIsFileConflict()
             throws IOException, IOException {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
-            .setDefaultFileName("index.html")
-            .setPathToField(FLD_PATH)
-            .setSaveDir(tempDir.resolve("parentIsFile"));
+                .setDefaultFileName("index.html")
+                .setPathToField(FLD_PATH)
+                .setSaveDir(tempDir.resolve("parentIsFile"));
 
         var doc1 = transform(t, "some/test");
         assertThat(savedFile(doc1)).isRegularFile();
@@ -69,10 +72,12 @@ class SaveDocumentTransformerTest {
         assertThat(savedFile(doc1).resolve("index.html")).isRegularFile();
         assertThat(savedFile(doc2)).isRegularFile();
 
-        assertThat(listFilePaths(
-                t.getConfiguration().getSaveDir())).containsExactlyInAnyOrder(
-                    "some/test/index.html",
-                    "some/test/surprise");
+        assertThat(
+                listFilePaths(
+                        t.getConfiguration().getSaveDir()))
+                                .containsExactlyInAnyOrder(
+                                        "some/test/index.html",
+                                        "some/test/surprise");
     }
 
     @Test
@@ -80,9 +85,9 @@ class SaveDocumentTransformerTest {
             throws IOException, IOException {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
-            .setDefaultFileName("index.html")
-            .setPathToField(FLD_PATH)
-            .setSaveDir(tempDir.resolve("targetIsDir"));
+                .setDefaultFileName("index.html")
+                .setPathToField(FLD_PATH)
+                .setSaveDir(tempDir.resolve("targetIsDir"));
 
         var doc1 = transform(t, "some/test/file.txt");
         assertThat(savedFile(doc1)).isRegularFile();
@@ -91,10 +96,12 @@ class SaveDocumentTransformerTest {
         assertThat(savedFile(doc2).resolve("index.html")).isRegularFile();
         assertThat(savedFile(doc2)).isDirectory();
 
-        assertThat(listFilePaths(
-                t.getConfiguration().getSaveDir())).containsExactlyInAnyOrder(
-                    "some/test/file.txt",
-                    "some/test/index.html");
+        assertThat(
+                listFilePaths(
+                        t.getConfiguration().getSaveDir()))
+                                .containsExactlyInAnyOrder(
+                                        "some/test/file.txt",
+                                        "some/test/index.html");
     }
 
     @Test
@@ -102,9 +109,9 @@ class SaveDocumentTransformerTest {
             throws IOException, IOException {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
-            .setDefaultFileName("index.html")
-            .setPathToField(FLD_PATH)
-            .setSaveDir(tempDir.resolve("maxLengthDir"));
+                .setDefaultFileName("index.html")
+                .setPathToField(FLD_PATH)
+                .setSaveDir(tempDir.resolve("maxLengthDir"));
 
         var saveDirLength = t.getConfiguration().getSaveDir()
                 .toAbsolutePath().toString().length();
@@ -117,17 +124,19 @@ class SaveDocumentTransformerTest {
         t.getConfiguration().setMaxPathLength(saveDirLength + 4);
         transform(t, "some/long/path/for/file2.txt");
 
-        assertThat(listFilePaths(
-                t.getConfiguration().getSaveDir())).containsExactlyInAnyOrder(
-                    "some/long/path/for/file1.txt",
-                    "some/long/path/for/file2.txt");
+        assertThat(
+                listFilePaths(
+                        t.getConfiguration().getSaveDir()))
+                                .containsExactlyInAnyOrder(
+                                        "some/long/path/for/file1.txt",
+                                        "some/long/path/for/file2.txt");
 
         // Apply truncation
         t.getConfiguration().setMaxPathLength(saveDirLength + 18);
         var docCtx = transform(t, "some/long/path/for/file3.txt");
         assertThat(savedFile(docCtx))
-            .isRegularFile()
-            .matches(p -> p.getFileName().toString().matches("^lo\\d+$"));
+                .isRegularFile()
+                .matches(p -> p.getFileName().toString().matches("^lo\\d+$"));
     }
 
     // relative to dir, forward slashed
@@ -138,13 +147,15 @@ class SaveDocumentTransformerTest {
                 .map(n -> n.replace('\\', '/'))
                 .toList();
     }
+
     private Path savedFile(HandlerContext doc) {
         return Path.of(doc.metadata().getString(FLD_PATH));
     }
+
     private HandlerContext transform(SaveDocumentTransformer t, String ref)
             throws IOException {
         var is = TestUtil.toInputStream("blah");
-        var docCtx = TestUtil.newDocContext(ref, is);
+        var docCtx = TestUtil.newHandlerContext(ref, is);
         t.accept(docCtx);
         return docCtx;
     }
@@ -153,12 +164,12 @@ class SaveDocumentTransformerTest {
     void testWriteRead() {
         var t = new SaveDocumentTransformer();
         t.getConfiguration()
-            .setDefaultFileName("index.html")
-            .setDirSplitPattern("__")
-            .setEscape(true)
-            .setMaxPathLength(255)
-            .setPathToField("myfield")
-            .setSaveDir(Path.of("/somewhere/"));
+                .setDefaultFileName("index.html")
+                .setDirSplitPattern("__")
+                .setEscape(true)
+                .setMaxPathLength(255)
+                .setPathToField("myfield")
+                .setSaveDir(Path.of("/somewhere/"));
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(t));
     }

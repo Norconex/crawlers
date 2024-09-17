@@ -19,23 +19,30 @@ import java.util.function.Supplier;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerBuilder;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
 
-public class WebCrawler {
+/**
+ * Facade for launching or obtaining a Web Crawler.
+ */
+public final class WebCrawler {
 
-    protected static final Supplier<CrawlerBuilder> crawlerBuilderSupplier =
+    private static final Supplier<CrawlerBuilder> crawlerBuilderSupplier =
             () -> Crawler
-            .builder()
-            .configuration(new WebCrawlerConfig())
-            .fetcherProvider(new HttpFetcherProvider())
-            .callbacks(WebCrawlerCallbacks.get())
-            .docPipelines(WebDocPipelines.get())
-            .docContextType(WebCrawlDocContext.class)
-            .context(new WebCrawlerContext());
+                    .builder()
+                    .configuration(new WebCrawlerConfig())
+                    .fetcherProvider(new HttpFetcherProvider())
+                    .callbacks(WebCrawlerCallbacks.get())
+                    .docPipelines(WebDocPipelines.get())
+                    .docContextType(WebCrawlDocContext.class)
+                    .context(new WebCrawlerContext());
+
+    private WebCrawler() {
+    }
 
     /**
      * Invokes the Web Crawler from the command line.
@@ -52,32 +59,38 @@ public class WebCrawler {
         }
     }
 
+    /**
+     * Launches the Web Crawler. Similar to {@link #main(String[])}, but
+     * do not call {@link System#exit(int)} and returns the execution status
+     * code instead. It will throw a runtime exception upon failure
+     * (typically a {@link CrawlerException}).
+     * @param args command line arguments
+     * @return execution status code
+     */
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(crawlerBuilderSupplier.get(), args);
+        return CliCrawlerLauncher.launch(builder(), args);
     }
 
+    /**
+     * Creates a Web Crawler instance.
+     * @param crawlerConfig Web Crawler configuration
+     * @return crawler
+     */
     public static Crawler create(WebCrawlerConfig crawlerConfig) {
-        return crawlerBuilderSupplier
-                .get()
+        return builder()
                 .configuration(Optional.ofNullable(crawlerConfig)
-                    .orElseGet(WebCrawlerConfig::new))
+                        .orElseGet(WebCrawlerConfig::new))
                 .build();
     }
 
-//    static CrawlSessionImpl initCrawlSessionImpl(
-//            CrawlSessionConfig sessionConfig) {
-//        return CrawlSessionImpl
-//            .builder()
-//            .crawlerConfigClass(WebCrawlerConfig.class)
-//            .crawlerFactory(
-//                (sess, cfg) -> Crawler.builder()
-//                    .crawlSession(sess)
-//                    .crawlerConfig(cfg)
-//                    .crawlerImpl(WebCrawlerImplFactory.create())
-//                    .build()
-//            )
-//            .beanMapper(Web.beanMapper())
-//            .crawlSessionConfig(sessionConfig)
-//            .build();
-//    }
+    /**
+     * Gets the builder used to create a Web Crawler. To get a web crawler
+     * instance, it is best to call {@link #create(WebCrawlerConfig)}.
+     * This method is typically for internal use, unless you know what you are
+     * doing and want to create your own crawler, based on this one.
+     * @return crawler builder
+     */
+    public static CrawlerBuilder builder() {
+        return crawlerBuilderSupplier.get();
+    }
 }

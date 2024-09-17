@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.Xml;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -46,23 +46,29 @@ public class CmisAtomSession {
     private String objectByPathTemplate;
     private String queryTemplate;
 
-    public XML getDocumentByPath(String path) throws FileSystemException {
-        return getDocument(objectByPathTemplate.replace("{path}",
-               URLEncoder.encode(path, UTF_8)));
+    public Xml getDocumentByPath(String path) throws FileSystemException {
+        return getDocument(
+                objectByPathTemplate.replace(
+                        "{path}",
+                        URLEncoder.encode(path, UTF_8)));
     }
-    public XML getDocument(String fullURL) throws FileSystemException {
-        return new XML(new InputStreamReader(getStream(fullURL), UTF_8));
+
+    public Xml getDocument(String fullURL) throws FileSystemException {
+        return new Xml(new InputStreamReader(getStream(fullURL), UTF_8));
     }
+
     public InputStream getStream(String fullURL) throws FileSystemException {
         try {
             var resp = httpClient.execute(new HttpGet(fullURL));
             if (resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 var consumedContent = IOUtils.toString(
                         resp.getEntity().getContent(), UTF_8);
-                LOG.debug("Could not consume HTTP content. Response content: "
-                        + consumedContent);
-                throw new IOException("Invalid HTTP response \""
-                        +  resp.getStatusLine() + "\" from " + fullURL);
+                LOG.debug(
+                        "Could not consume HTTP content. Response content: "
+                                + consumedContent);
+                throw new IOException(
+                        "Invalid HTTP response \""
+                                + resp.getStatusLine() + "\" from " + fullURL);
             }
             return resp.getEntity().getContent();
         } catch (UnsupportedOperationException | IOException e) {

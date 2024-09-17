@@ -37,7 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 final class SitemapUtil {
 
-    private SitemapUtil() {}
+    private SitemapUtil() {
+    }
 
     static ZonedDateTime toDateTime(String value) {
         ZonedDateTime zdt = null;
@@ -50,7 +51,8 @@ final class SitemapUtil {
                 zdt = ZonedDateTime.parse(value);
             } else {
                 // has no time
-                zdt = ZonedDateTime.of(LocalDate.parse(value),
+                zdt = ZonedDateTime.of(
+                        LocalDate.parse(value),
                         LocalTime.MIDNIGHT, ZoneOffset.UTC);
             }
         } catch (Exception e) {
@@ -70,11 +72,6 @@ final class SitemapUtil {
         return cacheModifDate == null
                 || cacheModifDate.isBefore(newRec.getLastModified());
     }
-
-//    static ZonedDateTime now() {
-//        return ZonedDateTime.now(ZoneOffset.UTC);
-//    }
-
 
     static SitemapRecord toSitemapRecord(CrawlDoc doc) {
         var indexRec = new SitemapRecord();

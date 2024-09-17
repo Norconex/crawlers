@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,13 +51,15 @@ class CurrentDateTransformerTest {
         meta = new Properties();
         t = new CurrentDateTransformer();
         t.getConfiguration()
-            .setFormat("EEEE")
-            .setLocale(Locale.CANADA_FRENCH);
+                .setFormat("EEEE")
+                .setLocale(Locale.CANADA_FRENCH);
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertTrue(
-                ArrayUtils.contains(new String[]{
-                        "lundi", "mardi", "mercredi", "jeudi", "vendredi",
-                        "samedi", "dimanche"},
+                ArrayUtils.contains(
+                        new String[] {
+                                "lundi", "mardi", "mercredi", "jeudi",
+                                "vendredi",
+                                "samedi", "dimanche" },
                         meta.getString(DocMetadata.IMPORTED_DATE)),
                 "Returned date format does not match");
 
@@ -65,8 +67,8 @@ class CurrentDateTransformerTest {
         meta.add("existingField", "1002727941000");
         t = new CurrentDateTransformer();
         t.getConfiguration()
-            .setOnSet(PropertySetter.REPLACE)
-            .setToField("existingField");
+                .setOnSet(PropertySetter.REPLACE)
+                .setToField("existingField");
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(
                 1, meta.getLongs("existingField").size(),
@@ -79,8 +81,8 @@ class CurrentDateTransformerTest {
         meta.add("existingField", "1002727941000");
         t = new CurrentDateTransformer();
         t.getConfiguration()
-            .setOnSet(PropertySetter.APPEND)
-            .setToField("existingField");
+                .setOnSet(PropertySetter.APPEND)
+                .setToField("existingField");
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertEquals(
                 2, meta.getLongs("existingField").size(),
@@ -99,9 +101,9 @@ class CurrentDateTransformerTest {
     void testWriteRead() {
         var t = new CurrentDateTransformer();
         t.getConfiguration()
-            .setToField("field1")
-            .setFormat("yyyy-MM-dd")
-            .setOnSet(PropertySetter.REPLACE);
+                .setToField("field1")
+                .setFormat("yyyy-MM-dd")
+                .setOnSet(PropertySetter.REPLACE);
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
 }

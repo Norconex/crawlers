@@ -23,7 +23,6 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import lombok.Builder;
 import lombok.Getter;
 
-@SuppressWarnings("javadoc")
 @Builder
 @Getter
 public class CrawlerCallbacks {
@@ -35,9 +34,6 @@ public class CrawlerCallbacks {
      * This method is different than the {@link #initCrawler()} method,
      * which is invoked for any type of actions where as this one is only
      * invoked before an effective request for crawling.
-     * @param beforeCrawlerExecution bi-consumer accepting a crawler and
-     *     a "resume" indicator.
-     * @return bi-consumer accepting a crawler and a "resume" indicator
      */
     Consumer<Crawler> beforeCrawlerExecution;
 
@@ -48,17 +44,15 @@ public class CrawlerCallbacks {
      * Invoked right after {@link CrawlerEvent#CRAWLER_STOP_END} or
      * {@link CrawlerEvent#CRAWLER_RUN_END} (depending which of the two is
      * triggered).
-     * @param afterCrawlerExecution consumer accepting a crawler
-     * @return consumer accepting a crawler
      */
     Consumer<Crawler> afterCrawlerExecution;
 
-    //TODO are those used? Should they be?
+    //MAYBE: are those used? Should they be?
     // Add those that are missing to ReferencesProcessor
     BiConsumer<Crawler, CrawlDoc> beforeDocumentProcessing;
     BiConsumer<Crawler, CrawlDoc> afterDocumentProcessing;
 
-    // need those, or we can replace beforeDocumentFinalizing
+    //MAYBE: need those, or we can replace beforeDocumentFinalizing
     // (the only one used) with after processing?
     BiConsumer<Crawler, CrawlDoc> beforeDocumentFinalizing;
     BiConsumer<Crawler, CrawlDoc> afterDocumentFinalizing;

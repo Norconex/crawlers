@@ -32,12 +32,14 @@ import picocli.CommandLine.Option;
 @ToString
 public class CliStartCommand extends CliSubCommandBase {
 
-    @Option(names = { "-clean" },
-            description = """
+    @Option(
+        names = { "-clean" },
+        description = """
                 Clean stored data from previous crawl runs \
                 before start. Same as invoking the "clean" and \
                 "start" commands one after the other.""",
-            required = false)
+        required = false
+    )
     private boolean clean;
 
     @Override

@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.ResourceLoader;
@@ -30,12 +29,10 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 
-@Disabled
 class DomSplitterTest {
 
     @Test
-    void testHtmlDOMSplit()
-            throws IOException, IOException {
+    void testHtmlDOMSplit() throws IOException {
         var html = ResourceLoader.getHtmlString(getClass());
         var splitter = new DomSplitter();
         splitter.getConfiguration().setSelector("div.person");
@@ -46,10 +43,8 @@ class DomSplitterTest {
         Assertions.assertTrue(content.contains("Dalton"));
     }
 
-
     @Test
-    void testXmlDOMSplit()
-            throws IOException, IOException {
+    void testXmlDOMSplit() throws IOException {
 
         var xml = ResourceLoader.getXmlString(getClass());
 
@@ -63,11 +58,32 @@ class DomSplitterTest {
         Assertions.assertTrue(content.contains("Dalton"));
     }
 
-    private List<Doc> split(String text, DomSplitter splitter)
-            throws IOException {
+    @Test
+    void testSplitInField() throws IOException {
+        var splitter = new DomSplitter();
+        splitter.getConfiguration()
+                .setSelector("person")
+                .setFieldMatcher(TextMatcher.basic("splitme"));
+        var xml = ResourceLoader.getXmlString(getClass());
+        var metadata = new Properties();
+        metadata.add("splitme", xml);
+
+        var is = IOUtils.toInputStream("blah", StandardCharsets.UTF_8);
+        var docCtx = TestUtil.newHandlerContext("n/a", is, metadata);
+        splitter.accept(docCtx);
+
+        var docs = docCtx.childDocs();
+
+        Assertions.assertEquals(3, docs.size());
+
+        var content = TestUtil.getContentAsString(docs.get(2));
+        Assertions.assertTrue(content.contains("Dalton"));
+    }
+
+    private List<Doc> split(String text, DomSplitter splitter) {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
-        var docCtx = TestUtil.newDocContext("n/a", is, metadata);
+        var docCtx = TestUtil.newHandlerContext("n/a", is, metadata);
         splitter.accept(docCtx);
         return docCtx.childDocs();
     }

@@ -106,6 +106,7 @@ public class MergeTransformerConfig {
     public List<MergeOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }
+
     public MergeTransformerConfig setOperations(
             List<MergeOperation> operations) {
         CollectionUtil.setAll(this.operations, operations);

@@ -30,19 +30,21 @@ class GenericMetadataFilterTest {
     void testGenericMetadataFilter() {
         var f = new GenericMetadataFilter();
         f.getConfiguration()
-            .setFieldMatcher(TextMatcher.basic("field1"))
-            .setValueMatcher(TextMatcher.basic("value1"))
-            .setOnMatch(OnMatch.INCLUDE);
+                .setFieldMatcher(TextMatcher.basic("field1"))
+                .setValueMatcher(TextMatcher.basic("value1"))
+                .setOnMatch(OnMatch.INCLUDE);
 
         var doc1 = CrawlDocStubs.crawlDoc("ref", "blah", "field1", "value1");
         assertThat(f.acceptDocument(doc1)).isTrue();
-        assertThat(f.acceptMetadata(
-                doc1.getReference(), doc1.getMetadata())).isTrue();
+        assertThat(
+                f.acceptMetadata(
+                        doc1.getReference(), doc1.getMetadata())).isTrue();
 
         var doc2 = CrawlDocStubs.crawlDoc("ref", "blah", "field2", "value2");
         assertThat(f.acceptDocument(doc2)).isFalse();
-        assertThat(f.acceptMetadata(
-                doc2.getReference(), doc2.getMetadata())).isFalse();
+        assertThat(
+                f.acceptMetadata(
+                        doc2.getReference(), doc2.getMetadata())).isFalse();
 
         // null documents are considered a match
         assertThat(f.acceptDocument(null)).isTrue();
@@ -52,9 +54,9 @@ class GenericMetadataFilterTest {
     void testWriteRead() {
         var f = new GenericMetadataFilter();
         f.getConfiguration()
-            .setOnMatch(OnMatch.EXCLUDE)
-            .setFieldMatcher(TextMatcher.basic("title"))
-            .setValueMatcher(TextMatcher.regex(".*blah.*"));
+                .setOnMatch(OnMatch.EXCLUDE)
+                .setFieldMatcher(TextMatcher.basic("title"))
+                .setValueMatcher(TextMatcher.regex(".*blah.*"));
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(f));
     }

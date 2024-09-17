@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,8 @@ import com.norconex.commons.lang.text.TextMatcher;
  */
 public final class CommonRestrictions {
 
-    private CommonRestrictions() {}
+    private CommonRestrictions() {
+    }
 
     /**
      * <p>
@@ -103,9 +104,11 @@ public final class CommonRestrictions {
             String key, Collection<String> contentTypes) {
         var matchers = new PropertyMatchers();
         for (String contentType : contentTypes) {
-            matchers.add(new PropertyMatcher(
-                    TextMatcher.basic(key).setIgnoreCase(true),
-                    TextMatcher.basic(contentType).setIgnoreCase(true)));
+            matchers.add(
+                    new PropertyMatcher(
+                            TextMatcher.basic(key).setIgnoreCase(true),
+                            TextMatcher.basic(contentType)
+                                    .setIgnoreCase(true)));
         }
         return matchers;
     }

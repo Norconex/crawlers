@@ -63,27 +63,29 @@ class OrphanDocsProcessor {
 
     void reprocessCacheOrphans() {
         if (docProcessor.isMaxDocsReached()) {
-            LOG.info("Max documents reached. "
-                    + "Not reprocessing orphans (if any).");
+            LOG.info(
+                    "Max documents reached. "
+                            + "Not reprocessing orphans (if any).");
             return;
         }
         LOG.info("Reprocessing any cached/orphan references...");
 
         var count = new MutableLong();
         crawler
-        .getServices()
-        .getDocTrackerService()
-        .forEachCached((ref, docInfo) -> {
-            docProcessor
-            .getCrawler()
-            .getDocPipelines()
-            .getQueuePipeline()
-            .accept(new QueuePipelineContext(
-                    docProcessor.getCrawler(),
-                    docInfo));
-            count.increment();
-            return true;
-        });
+                .getServices()
+                .getDocTrackerService()
+                .forEachCached((ref, docInfo) -> {
+                    docProcessor
+                            .getCrawler()
+                            .getDocPipelines()
+                            .getQueuePipeline()
+                            .accept(
+                                    new QueuePipelineContext(
+                                            docProcessor.getCrawler(),
+                                            docInfo));
+                    count.increment();
+                    return true;
+                });
 
         if (count.longValue() > 0) {
             docProcessor.crawlReferences(new ProcessFlags().orphan());

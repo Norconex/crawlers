@@ -1,4 +1,4 @@
-/* Copyright 2023 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,35 +26,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
-
 /**
  * <p>
- * Fetcher for Apache Hadoop File System (HDFS).
+ * Fetcher for Apache Hadoop File System (<code>hdfs://</code>).
  * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher">
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *   <configNames>
- *     <!-- name is repeatable -->
- *     <name>(name of configuration resource to be loaded after defaults)</name>
- *   </configNames>
- *   <configPaths>
- *     <!-- path is repeatable -->
- *     <path>(full path of configuration file to be loaded after defaults)</path>
- *   </configPaths>
- *   <configUrls>
- *     <!-- url is repeatable -->
- *     <url>(URL of configuration file to be loaded after defaults)</url>
- *   </configUrls>
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="HdfsFetcher"/>
- * }
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 public class HdfsFetcher extends AbstractVfsFetcher<HdfsFetcherConfig> {

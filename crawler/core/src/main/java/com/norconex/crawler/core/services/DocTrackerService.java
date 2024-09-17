@@ -54,245 +54,236 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  */
 @Slf4j
-//TODO rename DocProcessingTracker or else?
 public class DocTrackerService implements Closeable {
 
-//      private static final String PROP_STAGE = "processingStage";
+    // new ones
+    private DataStore<CrawlDocContext> queue;
+    private DataStore<CrawlDocContext> active;
+    //TODO split into rejected/accepted?
+    private DataStore<CrawlDocContext> processed;
+    private DataStore<CrawlDocContext> cached;
+    private Class<? extends CrawlDocContext> type;
 
-      // new ones
-      private DataStore<CrawlDocContext> queue;
-      private DataStore<CrawlDocContext> active;
-      //TODO split into rejected/accepted?
-      private DataStore<CrawlDocContext> processed;
-      private DataStore<CrawlDocContext> cached;
-      private Class<? extends CrawlDocContext> type;
+    private final Crawler crawler;
 
-      private final Crawler crawler;
+    private boolean initialized;
+    private boolean resuming;
 
-      private boolean initialized;
-      private boolean resuming;
+    public DocTrackerService(
+            @NonNull Crawler crawler,
+            @NonNull Class<? extends CrawlDocContext> type) {
+        this.crawler = crawler;
+        this.type = type;
+    }
 
-      public DocTrackerService(
-              @NonNull Crawler crawler,
-              @NonNull Class<? extends CrawlDocContext> type) {
-          this.crawler = crawler;
-          this.type = type;
-      }
+    // return true if resuming (holds records that have not been processed),
+    // false otherwise
+    public void init() {
+        if (initialized) {
+            throw new IllegalStateException("Already initialized.");
+        }
 
-      // return true if resuming (holds records that have not been processed),
-      // false otherwise
-      public void init() {
-          if (initialized) {
-              throw new IllegalStateException("Already initialized.");
-          }
+        var storeEngine = crawler.getDataStoreEngine();
 
-          var storeEngine = crawler.getDataStoreEngine();
+        queue = storeEngine.openStore("queued", type);
+        active = storeEngine.openStore("active", type);
+        processed = storeEngine.openStore("processed", type);
+        cached = storeEngine.openStore("cached", type);
 
-          queue = storeEngine.openStore("queued", type);
-          active = storeEngine.openStore("active", type);
-          processed = storeEngine.openStore("processed", type);
-          cached = storeEngine.openStore("cached", type);
+        resuming = !isQueueEmpty() || !isActiveEmpty();
+        crawler.getState().setResuming(resuming);
+    }
 
-          resuming = !isQueueEmpty() || !isActiveEmpty();
-          crawler.getState().setResuming(resuming);
+    // prepare for processing start
+    public void prepareForCrawl() {
 
+        if (resuming) {
 
-          // XXXXXXXXXXXXXX
+            // Active -> Queued
+            LOG.debug(
+                    "Moving any {} active URLs back into queue.",
+                    crawler.getId());
+            active.forEach((k, v) -> {
+                queue.save(k, v);
+                return true;
+            });
+            active.clear();
 
-          //TODO do not do resume/non-resume activities when exporting/importing
-          // do it only on start()
+            if (LOG.isInfoEnabled()) {
+                //TODO use total count to track progress independently
+                var processedCount = getProcessedCount();
+                var totalCount =
+                        processedCount + queue.count() + cached.count();
+                LOG.info(
+                        "RESUMING \"{}\" at {} ({}/{}).",
+                        crawler.getId(),
+                        PercentFormatter.format(
+                                processedCount, totalCount, 2, Locale.ENGLISH),
+                        processedCount, totalCount);
+            }
+        } else {
+            var storeEngine = crawler.getDataStoreEngine();
+            //TODO really clear cache or keep to have longer history of
+            // each items?
+            cached.clear();
+            active.clear();
+            queue.clear();
 
-          // Way to do it.. have open just open and maybe return if
-          // resuming or not but do nothing
-          // then, add a new init() or prepare() method that will only be called
-          // by crawler start()
+            // Valid Processed -> Cached
+            LOG.debug("Caching any valid references from previous run.");
 
-          // or maybe, move below code out of here.
+            //TODO make swap a method on store engine?
 
-          // XXXXXXXXXXXXXX
+            // cached -> swap
+            storeEngine.renameStore(cached, "swap");
+            var swap = cached;
 
+            // processed -> cached
+            storeEngine.renameStore(processed, "cached");
+            cached = processed;
 
-      }
+            // swap -> processed
+            storeEngine.renameStore(swap, "processed");
+            processed = swap;
 
-      //MAYBE: Move elsewhere since only used once, when starting crawler?
+            if (LOG.isInfoEnabled()) {
+                var cacheCount = cached.count();
+                if (cacheCount > 0) {
+                    LOG.info(
+                            "STARTING an incremental crawl from previous {} "
+                                    + "valid references.",
+                            cacheCount);
+                } else {
+                    LOG.info("STARTING a fresh crawl.");
+                }
+            }
+        }
 
-      // prepare for processing start
-      public void prepareForCrawl() {
+        initialized = true;
+        //          return resuming;
+    }
 
-//          var resuming = !isQueueEmpty() || !isActiveEmpty();
+    public Stage getProcessingStage(String id) {
+        if (active.exists(id)) {
+            return Stage.ACTIVE;
+        }
+        if (queue.exists(id)) {
+            return Stage.QUEUED;
+        }
+        if (processed.exists(id)) {
+            return Stage.PROCESSED;
+        }
+        return null;
+    }
 
-          if (resuming) {
+    //--- Active ---
 
-              // Active -> Queued
-              LOG.debug("Moving any {} active URLs back into queue.",
-                      crawler.getId());
-              active.forEach((k, v) -> {
-                  queue.save(k, v);
-                  return true;
-              });
-              active.clear();
+    public long getActiveCount() {
+        return active.count();
+    }
 
-              if (LOG.isInfoEnabled()) {
-                  //TODO use total count to track progress independently
-                  var processedCount = getProcessedCount();
-                  var totalCount =
-                          processedCount + queue.count() + cached.count();
-                  LOG.info("RESUMING \"{}\" at {} ({}/{}).",
-                          crawler.getId(),
-                          PercentFormatter.format(
-                                  processedCount, totalCount, 2, Locale.ENGLISH),
-                          processedCount, totalCount);
-              }
-          } else {
-              var storeEngine = crawler.getDataStoreEngine();
-              //TODO really clear cache or keep to have longer history of
-              // each items?
-              cached.clear();
-              active.clear();
-              queue.clear();
+    public boolean isActiveEmpty() {
+        return active.isEmpty();
+    }
 
-              // Valid Processed -> Cached
-              LOG.debug("Caching any valid references from previous run.");
+    public boolean forEachActive(
+            BiPredicate<String, CrawlDocContext> predicate) {
+        return active.forEach(predicate);
+    }
 
-              //TODO make swap a method on store engine?
+    //--- Processed ---
 
-              // cached -> swap
-              storeEngine.renameStore(cached, "swap");
-              var swap = cached;
+    public long getProcessedCount() {
+        return processed.count();
+    }
 
-              // processed -> cached
-              storeEngine.renameStore(processed, "cached");
-              cached = processed;
+    public boolean isProcessedEmpty() {
+        return processed.isEmpty();
+    }
 
-              // swap -> processed
-              storeEngine.renameStore(swap, "processed");
-              processed = swap;
+    public Optional<CrawlDocContext> getProcessed(String id) {
+        return processed.find(id);
+    }
 
+    public synchronized void processed(CrawlDocContext docRec) {
+        Objects.requireNonNull(docRec, "'docInfo' must not be null.");
+        processed.save(docRec.getReference(), docRec);
+        var cacheDeleted = cached.delete(docRec.getReference());
+        var activeDeleted = active.delete(docRec.getReference());
+        LOG.debug(
+                "Saved processed: {} "
+                        + "(Deleted from cache: {}; Deleted from active: {})",
+                docRec.getReference(), cacheDeleted, activeDeleted);
+        crawler.fire(
+                CrawlerEvent.builder()
+                        .name(CrawlerEvent.DOCUMENT_PROCESSED)
+                        .source(crawler)
+                        .docContext(docRec)
+                        .build());
+    }
 
-              if (LOG.isInfoEnabled()) {
-                  var cacheCount = cached.count();
-                  if (cacheCount > 0) {
-                      LOG.info("STARTING an incremental crawl from previous {} "
-                              + "valid references.", cacheCount);
-                  } else {
-                      LOG.info("STARTING a fresh crawl.");
-                  }
-              }
-          }
+    public boolean forEachProcessed(
+            BiPredicate<String, CrawlDocContext> predicate) {
+        return processed.forEach(predicate);
+    }
 
-          initialized = true;
-//          return resuming;
-      }
+    //--- Queue ---
 
-      public Stage getProcessingStage(String id) {
-          if (active.exists(id)) {
-              return Stage.ACTIVE;
-          }
-          if (queue.exists(id)) {
-              return Stage.QUEUED;
-          }
-          if (processed.exists(id)) {
-              return Stage.PROCESSED;
-          }
-          return null;
-      }
+    public boolean isQueueEmpty() {
+        return queue.isEmpty();
+    }
 
-      //--- Active ---
+    public long getQueueCount() {
+        return queue.count();
+    }
 
-      public long getActiveCount() {
-          return active.count();
-      }
-      public boolean isActiveEmpty() {
-          return active.isEmpty();
-      }
-      public boolean forEachActive(BiPredicate<String, CrawlDocContext> predicate) {
-          return active.forEach(predicate);
-      }
+    public void queue(CrawlDocContext docRec) {
+        Objects.requireNonNull(docRec, "'docInfo' must not be null.");
+        queue.save(docRec.getReference(), docRec);
+        LOG.debug("Saved queued: {}", docRec.getReference());
+        crawler.fire(
+                CrawlerEvent.builder()
+                        .name(CrawlerEvent.DOCUMENT_QUEUED)
+                        .source(crawler)
+                        .docContext(docRec)
+                        .build());
+    }
 
-      //--- Processed ---
+    // get and delete and mark as active
+    public synchronized Optional<CrawlDocContext> pollQueue() {
+        var docInfo = queue.deleteFirst();
+        if (docInfo.isPresent()) {
+            active.save(docInfo.get().getReference(), docInfo.get());
+            LOG.debug("Saved active: {}", docInfo.get().getReference());
+        }
+        return docInfo;
+    }
 
-      public long getProcessedCount() {
-          return processed.count();
-      }
-      public boolean isProcessedEmpty() {
-          return processed.isEmpty();
-      }
-      public Optional<CrawlDocContext> getProcessed(String id) {
-          return processed.find(id);
-      }
+    public boolean forEachQueued(
+            BiPredicate<String, CrawlDocContext> predicate) {
+        return queue.forEach(predicate);
+    }
 
-      public synchronized void processed(CrawlDocContext docRec) {
-          Objects.requireNonNull(docRec, "'docInfo' must not be null.");
-          processed.save(docRec.getReference(), docRec);
-          var cacheDeleted = cached.delete(docRec.getReference());
-          var activeDeleted = active.delete(docRec.getReference());
-          LOG.debug("Saved processed: {} "
-                  + "(Deleted from cache: {}; Deleted from active: {})",
-                  docRec.getReference(), cacheDeleted, activeDeleted);
-          crawler.fire(CrawlerEvent.builder()
-                  .name(CrawlerEvent.DOCUMENT_PROCESSED)
-                  .source(crawler)
-                  .docContext(docRec)
-                  .build());
-      }
-      public boolean forEachProcessed(
-              BiPredicate<String, CrawlDocContext> predicate) {
-          return processed.forEach(predicate);
-      }
+    //--- Cache ---
 
-      //--- Queue ---
+    public Optional<CrawlDocContext> getCached(String id) {
+        return cached.find(id);
+    }
 
-      public boolean isQueueEmpty() {
-          return queue.isEmpty();
-      }
+    public boolean forEachCached(
+            BiPredicate<String, CrawlDocContext> predicate) {
+        return cached.forEach(predicate);
+    }
 
-      public long getQueueCount() {
-          return queue.count();
-      }
-      public void queue(CrawlDocContext docRec) {
-          Objects.requireNonNull(docRec, "'docInfo' must not be null.");
-          queue.save(docRec.getReference(), docRec);
-          LOG.debug("Saved queued: {}", docRec.getReference());
-          crawler.fire(CrawlerEvent.builder()
-                  .name(CrawlerEvent.DOCUMENT_QUEUED)
-                  .source(crawler)
-                  .docContext(docRec)
-                  .build());
-      }
-      // get and delete and mark as active
-      public synchronized Optional<CrawlDocContext> pollQueue() {
-          var docInfo = queue.deleteFirst();
-          if (docInfo.isPresent()) {
-              active.save(docInfo.get().getReference(), docInfo.get());
-              LOG.debug("Saved active: {}", docInfo.get().getReference());
-          }
-          return docInfo;
-      }
-      public boolean forEachQueued(
-              BiPredicate<String, CrawlDocContext> predicate) {
-          return queue.forEach(predicate);
-      }
-
-
-      //--- Cache ---
-
-      public Optional<CrawlDocContext> getCached(String id) {
-          return cached.find(id);
-      }
-      public boolean forEachCached(
-              BiPredicate<String, CrawlDocContext> predicate) {
-          return cached.forEach(predicate);
-      }
-
-      @Override
-      public void close() {
-          try {
-              ofNullable(queue).ifPresent(DataStore::close);
-              ofNullable(active).ifPresent(DataStore::close);
-              ofNullable(processed).ifPresent(DataStore::close);
-              ofNullable(cached).ifPresent(DataStore::close);
-          } finally {
-              initialized = false;
-          }
-      }
+    @Override
+    public void close() {
+        try {
+            ofNullable(queue).ifPresent(DataStore::close);
+            ofNullable(active).ifPresent(DataStore::close);
+            ofNullable(processed).ifPresent(DataStore::close);
+            ofNullable(cached).ifPresent(DataStore::close);
+        } finally {
+            initialized = false;
+        }
+    }
 }

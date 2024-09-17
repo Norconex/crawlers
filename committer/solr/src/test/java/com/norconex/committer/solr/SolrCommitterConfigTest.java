@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -38,7 +38,7 @@ class SolrCommitterConfigTest {
     void testWriteRead() {
         var c = new SolrCommitter();
 
-        var q = new FSQueue();
+        var q = new FsQueue();
         q.getConfiguration().setBatchSize(10);
         q.getConfiguration().setMaxPerFolder(5);
         c.getConfiguration().setQueue(q);
@@ -51,12 +51,14 @@ class SolrCommitterConfigTest {
         c.getConfiguration().setFieldMapping("subject", "title");
         c.getConfiguration().setFieldMapping("body", "content");
 
-        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("document.reference"),
-                TextMatcher.wildcard("*.pdf")));
-        c.getConfiguration().getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("title"),
-                TextMatcher.wildcard("Nah!")));
+        c.getConfiguration().getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("document.reference"),
+                        TextMatcher.wildcard("*.pdf")));
+        c.getConfiguration().getRestrictions().add(
+                new PropertyMatcher(
+                        TextMatcher.basic("title"),
+                        TextMatcher.wildcard("Nah!")));
 
         c.getConfiguration().setSourceIdField("sourceId");
         c.getConfiguration().setTargetIdField("targetId");
@@ -84,12 +86,10 @@ class SolrCommitterConfigTest {
                         SolrCommitter.class, r, Format.XML);
                 assertThat(committer
                         .getConfiguration()
-                        .getUpdateUrlParam("param1"))
-                            .contains("value1");
+                        .getUpdateUrlParam("param1")).contains("value1");
                 assertThat(committer
                         .getConfiguration()
-                        .getUpdateUrlParamNames())
-                            .contains("param1", "param2");
+                        .getUpdateUrlParamNames()).contains("param1", "param2");
             }
         });
     }

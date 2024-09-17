@@ -1,56 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<!-- 
-   Copyright 2021 Norconex Inc.
+<!--
+	Copyright 2021-2024 Norconex Inc.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 -->
 
 <committer class="com.norconex.committer.neo4j.Neo4jCommitter">
 
-  <uri>bolt://localhost:7687</uri>
-  <upsertCypher>MERGE xyz</upsertCypher>
-  <deleteCypher>DELETE xyz</deleteCypher>
-  <credentials>
-    <username>neo4j</username>
-    <password>AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=</password>
-    <passwordKey>
-      <value>key.txt</value>
-      <source>file</source>
-    </passwordKey>
-  </credentials>
-  <multiValuesJoiner>/</multiValuesJoiner>
-  <nodeIdProperty>docId</nodeIdProperty>
-  <nodeContentProperty>docContent</nodeContentProperty>
-  <optionalParameters>param1, param2</optionalParameters>
+	<uri>bolt://localhost:7687</uri>
+	<upsertCypher>MERGE xyz</upsertCypher>
+	<deleteCypher>DELETE xyz</deleteCypher>
+	<credentials>
+		<username>neo4j</username>
+		<password>AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=</password>
+		<passwordKey>
+			<value>key.txt</value>
+			<source>file</source>
+		</passwordKey>
+	</credentials>
+	<multiValuesJoiner>/</multiValuesJoiner>
+	<nodeIdProperty>docId</nodeIdProperty>
+	<nodeContentProperty>docContent</nodeContentProperty>
+	<optionalParameters>param1, param2</optionalParameters>
 
-  <restrictions>
-    <restriction>
-      <fieldMatcher method="basic"><pattern>document.reference</pattern></fieldMatcher>
-      <valueMatcher method="wildcard"><pattern>*.pdf</pattern></valueMatcher>
-    </restriction>
-    <restriction>
-      <fieldMatcher method="basic"><pattern>title</pattern></fieldMatcher>
-      <valueMatcher method="basic"><pattern>bad</pattern></valueMatcher>
-    </restriction>
-  </restrictions>
+	<restrictions>
+		<restriction>
+			<fieldMatcher method="basic">
+				<pattern>document.reference</pattern>
+			</fieldMatcher>
+			<valueMatcher method="wildcard">
+				<pattern>*.pdf</pattern>
+			</valueMatcher>
+		</restriction>
+		<restriction>
+			<fieldMatcher method="basic">
+				<pattern>title</pattern>
+			</fieldMatcher>
+			<valueMatcher method="basic">
+				<pattern>bad</pattern>
+			</valueMatcher>
+		</restriction>
+	</restrictions>
   <fieldMappings>
-    <whatever1>wherever1</whatever1>
-    <whatever2>wherever2</whatever2>
+    <mapping><source>whatever1</source><target>wherever1</target></mapping>
+    <mapping source="whatever2" target="wherever2"/>
   </fieldMappings>
-  <queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
-    <batchSize>40</batchSize>
-    <maxPerFolder>10</maxPerFolder>
-  </queue> 
-  
+	<queue class="com.norconex.committer.core.batch.queue.impl.FsQueue">
+		<batchSize>40</batchSize>
+		<maxPerFolder>10</maxPerFolder>
+	</queue>
+
 </committer>

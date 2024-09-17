@@ -75,6 +75,7 @@ public class ReplaceTransformerConfig {
     public List<ReplaceOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }
+
     public ReplaceTransformerConfig setOperations(
             List<ReplaceOperation> operations) {
         CollectionUtil.setAll(this.operations, operations);

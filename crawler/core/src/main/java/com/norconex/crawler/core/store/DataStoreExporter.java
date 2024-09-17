@@ -39,7 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class DataStoreExporter {
 
-    private DataStoreExporter() {}
+    private DataStoreExporter() {
+    }
 
     public static Path exportDataStore(
             Crawler crawler, Path exportDir)
@@ -56,8 +57,9 @@ public final class DataStoreExporter {
             for (String name : storeEngine.getStoreNames()) {
                 var type = storeEngine.getStoreType(name);
                 if (type.isPresent()) {
-                    zipOS.putNextEntry(new ZipEntry(
-                            FileUtil.toSafeFileName(name) + ".json"));
+                    zipOS.putNextEntry(
+                            new ZipEntry(
+                                    FileUtil.toSafeFileName(name) + ".json"));
                     try (DataStore<?> store =
                             storeEngine.openStore(name, type.get())) {
                         exportStore(crawler, store, zipOS, type.get());
@@ -73,6 +75,7 @@ public final class DataStoreExporter {
         }
         return outFile;
     }
+
     private static void exportStore(
             Crawler crawler,
             DataStore<?> store,
@@ -80,7 +83,7 @@ public final class DataStoreExporter {
             Class<?> type) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);
-        //TODO add "nice" option?
+        //MAYBE add "nice" option?
         //writer.setIndent(" ");
         var qty = store.count();
 

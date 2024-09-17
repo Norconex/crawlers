@@ -25,7 +25,7 @@
       "maxDocuments": "111",
       "orphansStrategy": "PROCESS",
       "dataStoreEngine": {
-        "class": "com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine"
+        "class": "com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine"
       },
       "referenceFilters": {
         "filter": [
@@ -146,7 +146,7 @@
       "committers": {
         "committer": {
           "directory": "/tmp/somepath",
-          "class": "com.norconex.committer.core.fs.impl.JSONFileCommitter"
+          "class": "com.norconex.committer.core.fs.impl.JsonFileCommitter"
         }
       },
       "documentChecksummer": {

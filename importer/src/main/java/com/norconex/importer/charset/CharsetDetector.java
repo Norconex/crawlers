@@ -32,7 +32,7 @@ import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -226,8 +226,9 @@ public class CharsetDetector {
         }
 
         if (!input.markSupported()) {
-            LOG.warn("mark/reset not supported on input stream. "
-                    + "Will not attempt to detect encoding.");
+            LOG.warn(
+                    "mark/reset not supported on input stream. "
+                            + "Will not attempt to detect encoding.");
             return fallbackCharset;
         }
 
@@ -309,31 +310,39 @@ public class CharsetDetector {
         private Charset declaredCharset;
         private Charset fallbackCharset;
         private Supplier<Object> priorityCharset;
-        CharsetDetectorBuilder() {}
+
+        CharsetDetectorBuilder() {
+        }
+
         public CharsetDetector build() {
             return new CharsetDetector(
                     declaredCharset, fallbackCharset, priorityCharset);
         }
+
         public CharsetDetectorBuilder declaredCharset(String charset) {
             if (StringUtils.isNotBlank(charset)) {
                 declaredCharset = Charset.forName(CharsetUtils.clean(charset));
             }
             return this;
         }
+
         public CharsetDetectorBuilder declaredCharset(Charset charset) {
             declaredCharset = charset;
             return this;
         }
+
         public CharsetDetectorBuilder fallbackCharset(String charset) {
             if (StringUtils.isNotBlank(charset)) {
                 fallbackCharset = Charset.forName(CharsetUtils.clean(charset));
             }
             return this;
         }
+
         public CharsetDetectorBuilder fallbackCharset(Charset charset) {
             fallbackCharset = charset;
             return this;
         }
+
         public CharsetDetectorBuilder priorityCharset(
                 Supplier<Object> charsetSupplier) {
             priorityCharset = charsetSupplier;

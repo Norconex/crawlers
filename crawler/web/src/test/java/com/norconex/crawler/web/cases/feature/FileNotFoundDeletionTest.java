@@ -51,12 +51,16 @@ class FileNotFoundDeletionTest {
             throws CommitterException {
 
         client
-            .when(request().withPath(HOME_PATH))
-            .respond(response()
-                .withBody("""
-                    <p>This link leads to a page we toggle existence:</p>
-                    <a href="%s">Link</a>
-                    """.formatted(TOGGLE_PATH), HTML_UTF_8));
+                .when(request().withPath(HOME_PATH))
+                .respond(
+                        response()
+                                .withBody(
+                                        """
+                                                <p>This link leads to a page we toggle existence:</p>
+                                                <a href="%s">Link</a>
+                                                """
+                                                .formatted(TOGGLE_PATH),
+                                        HTML_UTF_8));
 
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, HOME_PATH)));
@@ -89,16 +93,20 @@ class FileNotFoundDeletionTest {
 
     private void whenPageFound(ClientAndServer client) {
         client
-            .when(request().withPath(TOGGLE_PATH), Times.once())
-            .respond(response().withBody("Page found, move on.", HTML_UTF_8));
+                .when(request().withPath(TOGGLE_PATH), Times.once())
+                .respond(
+                        response().withBody(
+                                "Page found, move on.",
+                                HTML_UTF_8));
     }
 
     private void whenPageNotFound(ClientAndServer client) {
         client
-            .when(request().withPath(TOGGLE_PATH), Times.once())
-            .respond(response()
-                .withStatusCode(NOT_FOUND_404.code())
-                .withReasonPhrase(NOT_FOUND_404.reasonPhrase())
-                .withBody("Page not found.", HTML_UTF_8));
+                .when(request().withPath(TOGGLE_PATH), Times.once())
+                .respond(
+                        response()
+                                .withStatusCode(NOT_FOUND_404.code())
+                                .withReasonPhrase(NOT_FOUND_404.reasonPhrase())
+                                .withBody("Page not found.", HTML_UTF_8));
     }
 }

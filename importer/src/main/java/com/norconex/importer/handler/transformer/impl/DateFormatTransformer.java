@@ -139,7 +139,8 @@ public class DateFormatTransformer
 
     private String formatDate(String fromDate) {
         List<String> formats = new ArrayList<>();
-        List<String> cfgFormat = new ArrayList<>(configuration.getFromFormats());
+        List<String> cfgFormat =
+                new ArrayList<>(configuration.getFromFormats());
         CollectionUtil.removeNulls(cfgFormat);
         if (cfgFormat.isEmpty()) {
             formats.add("EPOCH");
@@ -150,25 +151,31 @@ public class DateFormatTransformer
             try {
                 var fromZdt = ZonedDateTimeParser.builder()
                         .format(nullIfEpoch(fromFormat))
-                        .locale(ofNullable(configuration.getFromLocale())
-                                .orElse(Locale.ENGLISH))
+                        .locale(
+                                ofNullable(configuration.getFromLocale())
+                                        .orElse(Locale.ENGLISH))
                         .build()
                         .parse(fromDate);
                 if (nullIfEpoch(configuration.getToFormat()) == null) {
                     return Long.toString(fromZdt.toInstant().toEpochMilli());
                 }
                 var toDate =
-                        fromZdt.format(DateTimeFormatter
-                        .ofPattern(configuration.getToFormat())
-                        .localizedBy(
-                                ofNullable(configuration.getToLocale())
-                                    .orElse(Locale.ENGLISH)));
+                        fromZdt.format(
+                                DateTimeFormatter
+                                        .ofPattern(configuration.getToFormat())
+                                        .localizedBy(
+                                                ofNullable(
+                                                        configuration
+                                                                .getToLocale())
+                                                                        .orElse(Locale.ENGLISH)));
                 if (StringUtils.isNotBlank(toDate)) {
                     return toDate;
                 }
             } catch (DateTimeException e) {
-                LOG.debug("Could not parse date '{}' with format '{}' "
-                        + "and locale {}.", fromDate, fromFormat,
+                LOG.debug(
+                        "Could not parse date '{}' with format '{}' "
+                                + "and locale {}.",
+                        fromDate, fromFormat,
                         configuration.getFromLocale());
             }
         }
@@ -189,6 +196,7 @@ public class DateFormatTransformer
 
     private static String nullIfEpoch(String format) {
         return "EPOCH".equalsIgnoreCase(StringUtils.trimToEmpty(format))
-                ? null : format;
+                ? null
+                : format;
     }
 }

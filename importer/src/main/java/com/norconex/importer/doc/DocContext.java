@@ -58,17 +58,17 @@ public class DocContext implements Serializable {
     //   under a modified reference (and have dynamic committer targets).
     // - make final?
 
-    @NonNull private String reference = null;
+    @NonNull
+    private String reference = null;
     private ContentType contentType;
     private Charset charset;
 
     //MAYBE: remove prefix "embedded" and just keep parent* ?
 
     // trail of parent references (first one is root/top-level)
-//    @ToStringSummary
+    //    @ToStringSummary
     @ToStringExclude
     private List<String> embeddedParentReferences = new ArrayList<>();
-
 
     //MAYBE: above should just be parentReferences and below should be metadata?
 
@@ -78,7 +78,8 @@ public class DocContext implements Serializable {
     /**
      * Constructor.
      */
-    public DocContext() {}
+    public DocContext() {
+    }
 
     /**
      * Constructor.
@@ -87,6 +88,7 @@ public class DocContext implements Serializable {
     public DocContext(String reference) {
         setReference(reference);
     }
+
     /**
      * Copy constructor.
      * @param docRecord document details to copy
@@ -98,11 +100,13 @@ public class DocContext implements Serializable {
     public List<String> getEmbeddedParentReferences() {
         return Collections.unmodifiableList(embeddedParentReferences);
     }
+
     public void setEmbeddedParentReferences(
             List<String> embeddedParentReferences) {
         CollectionUtil.setAll(
                 this.embeddedParentReferences, embeddedParentReferences);
     }
+
     public void addEmbeddedParentReference(String embeddedParentReference) {
         embeddedParentReferences.add(embeddedParentReference);
     }
@@ -118,6 +122,7 @@ public class DocContext implements Serializable {
     public void copyTo(DocContext target) {
         BeanUtil.copyProperties(target, this);
     }
+
     public void copyFrom(DocContext source) {
         BeanUtil.copyProperties(this, source);
     }

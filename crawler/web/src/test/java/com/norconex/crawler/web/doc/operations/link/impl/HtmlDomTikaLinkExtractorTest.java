@@ -15,6 +15,7 @@
 package com.norconex.crawler.web.doc.operations.link.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
@@ -27,6 +28,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.commons.io.input.BrokenInputStream;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -48,15 +51,16 @@ class HtmlDomTikaLinkExtractorTest {
     @Retention(RetentionPolicy.RUNTIME)
     @ParameterizedTest(name = "{0}")
     @MethodSource("linkExtractorProvider")
-    @interface LinkExtractorsTest {}
+    @interface LinkExtractorsTest {
+    }
+
     static Stream<LinkExtractor> linkExtractorProvider() {
         var hle = new HtmlLinkExtractor();
         hle.getConfiguration().addLinkTag("link", null);
         return Stream.of(
-            hle,
-            new DomLinkExtractor(),
-            new TikaLinkExtractor()
-        );
+                hle,
+                new DomLinkExtractor(),
+                new TikaLinkExtractor());
     }
 
     //--- Common tests ---------------------------------------------------------
@@ -155,7 +159,6 @@ class HtmlDomTikaLinkExtractorTest {
         assertThat(actualUrls).containsExactlyInAnyOrder(expectedURLs);
     }
 
-
     @LinkExtractorsTest
     void testRelativeBaseHrefLinkExtraction(
             LinkExtractor extractor) throws IOException {
@@ -192,33 +195,37 @@ class HtmlDomTikaLinkExtractorTest {
     @LinkExtractorsTest
     void testLinkKeepReferrer(LinkExtractor extractor) throws IOException {
         // All these must be found
-        Set<Link> expectedLinks = new HashSet<>(Arrays.asList(
-                linkWithReferrer("1-notitle-notext.html", null, null, null),
-                linkWithReferrer(
-                        "2-notitle-yestext.html",
-                        "2 Yes Text",
-                        null,
-                        null),
-                linkWithReferrer(
-                        "3-yestitle-yestext.html",
-                        "3 Yes Text",
-                        null,
-                        "3 Yes Title"),
-                linkWithReferrer(
-                        "4-yestitle-notext.html", null, null, "4 Yes Title"),
-                // Link 5 should not be there (no href).
-                linkWithReferrer(
-                        "6-yestitle-yestexthtml.html",
-                        "[6]Yes Text",
-                        (extractor instanceof TikaLinkExtractor)
-                            ? null : "[<font color=\"red\">6</font>]Yes Text",
-                        "6 Yes Title")
-        ));
+        Set<Link> expectedLinks = new HashSet<>(
+                Arrays.asList(
+                        linkWithReferrer(
+                                "1-notitle-notext.html", null, null, null),
+                        linkWithReferrer(
+                                "2-notitle-yestext.html",
+                                "2 Yes Text",
+                                null,
+                                null),
+                        linkWithReferrer(
+                                "3-yestitle-yestext.html",
+                                "3 Yes Text",
+                                null,
+                                "3 Yes Title"),
+                        linkWithReferrer(
+                                "4-yestitle-notext.html", null, null,
+                                "4 Yes Title"),
+                        // Link 5 should not be there (no href).
+                        linkWithReferrer(
+                                "6-yestitle-yestexthtml.html",
+                                "[6]Yes Text",
+                                (extractor instanceof TikaLinkExtractor)
+                                        ? null
+                                        : "[<font color=\"red\">6</font>]Yes Text",
+                                "6 Yes Title")));
 
         var is = getClass().getResourceAsStream(
                 "LinkKeepReferrerTest.html");
         var links = extractor.extractLinks(
-                CrawlDocStubs.crawlDoc("http://www.site.com/parent.html",
+                CrawlDocStubs.crawlDoc(
+                        "http://www.site.com/parent.html",
                         ContentType.HTML, is));
         is.close();
 
@@ -228,8 +235,8 @@ class HtmlDomTikaLinkExtractorTest {
     @LinkExtractorsTest
     void testWriteRead(LinkExtractor extractor) {
         LinkExtractor randomEx = WebTestUtil.randomize(extractor.getClass());
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(randomEx));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(randomEx));
     }
 
     private Link linkWithReferrer(
@@ -248,5 +255,26 @@ class HtmlDomTikaLinkExtractorTest {
             link.getMetadata().set("attr.title", title);
         }
         return link;
+    }
+
+    @LinkExtractorsTest
+    void testNonMatchingContentType(LinkExtractor extractor)
+            throws IOException {
+        var links = extractor.extractLinks(
+                CrawlDocStubs.crawlDoc(
+                        "http://www.site.com/file.pdf",
+                        ContentType.PDF, NullInputStream.nullInputStream()));
+        assertThat(links).isEmpty();
+    }
+
+    @LinkExtractorsTest
+    void testFailingDocStream(LinkExtractor extractor) {
+        assertThatException().isThrownBy(() -> {//NOSONAR
+            extractor.extractLinks(
+                    CrawlDocStubs.crawlDoc(
+                            "http://www.site.com/file.html",
+                            ContentType.HTML,
+                            BrokenInputStream.INSTANCE));
+        });
     }
 }

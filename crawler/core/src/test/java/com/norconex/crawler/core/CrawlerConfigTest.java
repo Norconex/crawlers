@@ -27,18 +27,18 @@ import com.norconex.crawler.core.mocks.MockNoopDataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
 
-
 class CrawlerConfigTest {
 
     @Test
     void testCrawlerConfig(@TempDir Path tempDir) {
-        assertThatNoException().isThrownBy(() ->
-            BeanMapper
-            .builder()
-            .polymorphicTypeImpl(
-                    DataStoreEngine.class,
-                    List.of(MockNoopDataStoreEngine.class))
-            .build().assertWriteRead(
-                       CrawlerConfigStubs.randomMemoryCrawlerConfig(tempDir)));
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper
+                        .builder()
+                        .polymorphicTypeImpl(
+                                DataStoreEngine.class,
+                                List.of(MockNoopDataStoreEngine.class))
+                        .build().assertWriteRead(
+                                CrawlerConfigStubs
+                                        .randomMemoryCrawlerConfig(tempDir)));
     }
 }

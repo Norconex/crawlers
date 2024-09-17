@@ -1,3 +1,18 @@
+/* Copyright 2024 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.norconex.committer.apachekafka;
 
 import java.util.Collections;
@@ -7,42 +22,37 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.CreateTopicsResult;
-import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.config.TopicConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.committer.core.CommitterException;
-
 class KafkaAdmin {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaAdmin.class);    
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaAdmin.class);
     private Admin admin;
-    
+
     public KafkaAdmin(String bootstrapServers) {
-        Properties props = new Properties();
+        var props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         admin = Admin.create(props);
     }
-    
+
     public void ensureTopicExists(
-            String topicName, 
-            int partitions, 
-            short replicationFactor) throws CommitterException {
-        
-        if(isTopicExists(topicName)) {
+            String topicName,
+            int partitions,
+            short replicationFactor) {
+
+        if (isTopicExists(topicName)) {
             LOG.info("Topic `{}` already exists.", topicName);
             return;
         }
-        
+
         createTopic(topicName, partitions, replicationFactor);
     }
-    
+
     public boolean isTopicExists(String topicName) {
-        ListTopicsResult topics = admin.listTopics();
+        var topics = admin.listTopics();
 
         Set<String> topicNames = null;
         try {
@@ -52,30 +62,30 @@ class KafkaAdmin {
             Thread.currentThread().interrupt();
         }
 
-        if(topicNames == null) {
+        if (topicNames == null) {
             return false;
         }
-        
+
         return topicNames.contains(topicName);
     }
 
     public void close() {
         admin.close();
     }
-    
+
     private void createTopic(
-            String topicName, 
-            int partitions, 
+            String topicName,
+            int partitions,
             short replicationFactor) {
         LOG.info("Creating compacted topic `{}`...", topicName);
 
-        CreateTopicsResult result = admin.createTopics(Collections
-                .singleton(new NewTopic(topicName, partitions, replicationFactor)
+        var result = admin.createTopics(Collections.singleton(
+                new NewTopic(topicName, partitions, replicationFactor)
                         .configs(Collections.singletonMap(
                                 TopicConfig.CLEANUP_POLICY_CONFIG,
                                 TopicConfig.CLEANUP_POLICY_COMPACT))));
 
-        KafkaFuture<Void> future = result.values().get(topicName);
+        var future = result.values().get(topicName);
 
         try {
             future.get();

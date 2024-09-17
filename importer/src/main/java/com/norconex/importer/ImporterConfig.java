@@ -88,14 +88,14 @@ public class ImporterConfig {
     public static final long DEFAULT_MAX_STREAM_CACHE_SIZE =
             DataUnit.GB.toBytes(1).intValue();
 
-
     //NOTE: Using Customer here and private methods instead of List so
     // JsonFlow can pick it up.
     @JsonFlow(builder = ImporterFlowConfigBuilder.class)
     @JsonProperty("handlers")
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private Consumer<HandlerContext> handler = Consumers.of(new DefaultParser());
+    private Consumer<HandlerContext> handler =
+            Consumers.of(new DefaultParser());
 
     @JsonIgnore
     public ImporterConfig setHandlers(List<Consumer<HandlerContext>> handlers) {
@@ -103,6 +103,7 @@ public class ImporterConfig {
         CollectionUtil.removeNulls((Consumers<HandlerContext>) handler);
         return this;
     }
+
     @JsonIgnore
     public List<Consumer<HandlerContext>> getHandlers() {
         return Collections.unmodifiableList(
@@ -176,6 +177,7 @@ public class ImporterConfig {
     public List<ImporterResponseProcessor> getResponseProcessors() {
         return Collections.unmodifiableList(responseProcessors);
     }
+
     public ImporterConfig setResponseProcessors(
             List<ImporterResponseProcessor> responseProcessors) {
         CollectionUtil.setAll(this.responseProcessors, responseProcessors);

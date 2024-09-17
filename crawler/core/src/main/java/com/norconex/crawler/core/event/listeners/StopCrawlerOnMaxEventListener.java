@@ -77,30 +77,7 @@ import lombok.extern.slf4j.Slf4j;
  *     have reached the maximum.
  *   </li>
  * </ul>
- *
- * {@nx.xml.usage
- * <listener
- *     class="com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListener"
- *     max="(maximum count)"
- *     onMultiple="[any|all|sum]">
- *   <eventMatcher
- *     {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
- *       (event name-matching expression)
- *   </eventMatcher>
- * </listener>
- * }
- *
- * {@nx.xml.example
- * <listener class="StopCrawlerOnMaxEventListener" max="100" onMultiple="sum">
- *   <eventMatcher method="csv">DOCUMENT_COMMITTED_UPSERT,DOCUMENT_COMMITTED_DELETE</eventMatcher>
- * </listener>
- * }
- * <p>
- * The above example will stop the crawler when the sum of committed documents
- * (upserts + deletions) reaches 100.
- * </p>
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @EqualsAndHashCode
 @ToString
@@ -134,7 +111,8 @@ public class StopCrawlerOnMaxEventListener implements
                 event.getName(), k -> new AtomicLong()).incrementAndGet();
 
         if (isMaxReached()) {
-            LOG.info("Maximum number of events reached for crawler: {}",
+            LOG.info(
+                    "Maximum number of events reached for crawler: {}",
                     crawler.getId());
             crawler.stop();
         }

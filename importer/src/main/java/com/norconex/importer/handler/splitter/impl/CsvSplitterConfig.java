@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ public class CsvSplitterConfig extends BaseDocumentSplitterConfig {
      * @return field matcher
      */
     private final TextMatcher fieldMatcher = new TextMatcher();
+
     public CsvSplitterConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
@@ -147,6 +148,7 @@ public class CsvSplitterConfig extends BaseDocumentSplitterConfig {
     public List<String> getContentColumns() {
         return Collections.unmodifiableList(contentColumns);
     }
+
     /**
      * One or several columns containing the text to be considered as
      * the document "content".

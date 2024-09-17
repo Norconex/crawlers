@@ -47,26 +47,17 @@ public class WebCrawlDocContext extends CrawlDocContext {
 
     /**
      * The document last modified date according to sitemap.
-     * @param sitemapLastMod document last modified date
-     * @return document last modified date
      */
-    @SuppressWarnings("javadoc")
     private ZonedDateTime sitemapLastMod;
 
     /**
      * The document change frequency according to sitemap.
-     * @param sitemapChangeFreq document change frequency
-     * @return document change frequency
      */
-    @SuppressWarnings("javadoc")
     private String sitemapChangeFreq;
 
     /**
      * The document priority according to sitemap.
-     * @param sitemapPriority document priority
-     * @return document priority
      */
-    @SuppressWarnings("javadoc")
     private Float sitemapPriority;
 
     private String referrerReference;
@@ -74,11 +65,8 @@ public class WebCrawlDocContext extends CrawlDocContext {
 
     /**
      * The HTTP ETag.
-     * @return etag
-     * @param etag the HTTP ETag
      * @since 3.0.0
      */
-    @SuppressWarnings("javadoc")
     private String etag;
 
     private final List<String> referencedUrls = new ArrayList<>();
@@ -100,6 +88,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
         super(url);
         setDepth(depth);
     }
+
     /**
      * Copy constructor.
      * @param docDetails document details to copy
@@ -117,6 +106,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
             urlRoot = null;
         }
     }
+
     /**
      * Gets the URL root (protocol + domain, e.g. http://www.host.com).
      * @return URL root
@@ -133,6 +123,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
     public List<String> getReferencedUrls() {
         return Collections.unmodifiableList(referencedUrls);
     }
+
     /**
      * Sets URLs referenced by this one.
      * @param referencedUrls referenced URLs
@@ -150,6 +141,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
     public List<String> getRedirectTrail() {
         return Collections.unmodifiableList(redirectTrail);
     }
+
     /**
      * Sets the trail of URLs that were redirected up to this one.
      * @param redirectTrail URL redirection trail to this one
@@ -158,6 +150,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
     public void setRedirectTrail(List<String> redirectTrail) {
         CollectionUtil.setAll(this.redirectTrail, redirectTrail);
     }
+
     /**
      * Adds a redirect URL to the trail of URLs that were redirected so far.
      * @param url URL to add

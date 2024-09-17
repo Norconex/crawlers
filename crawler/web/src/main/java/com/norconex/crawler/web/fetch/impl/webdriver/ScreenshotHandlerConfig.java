@@ -1,4 +1,4 @@
-/* Copyright 2019-2023 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.openqa.selenium.WebDriver;
-
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig;
 
@@ -27,27 +25,10 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Takes screenshot of pages using a Selenium {@link WebDriver}.
- * Either the entire page, or a specific DOM element.
- * Screenshot images can be stored in a document metadata/field or
- * in a local directory.
+ * Configuration for {@link ScreenshotHandler}.
  * </p>
- *
- * {@nx.xml.usage
- *   <cssSelector>(Optional selector of element to capture.)</cssSelector>
- *   {@nx.include com.norconex.crawler.web.fetch.util.DocImageHandler@nx.xml.usage}
- * }
- *
- * <p>
- * The above XML configurable options can be nested in a supporting parent
- * tag of any name.
- * The expected parent tag name is defined by the consuming classes
- * (e.g. "screenshot").
- * </p>
- *
  * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
 public class ScreenshotHandlerConfig extends DocImageHandlerConfig {
@@ -62,8 +43,8 @@ public class ScreenshotHandlerConfig extends DocImageHandlerConfig {
     private String cssSelector;
 
     public ScreenshotHandlerConfig() {
-            setTargetDir(DEFAULT_SCREENSHOT_DIR);
-            setTargetDirField(DEFAULT_SCREENSHOT_DIR_FIELD);
-            setTargetMetaField(DEFAULT_SCREENSHOT_META_FIELD);
+        setTargetDir(DEFAULT_SCREENSHOT_DIR);
+        setTargetDirField(DEFAULT_SCREENSHOT_DIR_FIELD);
+        setTargetMetaField(DEFAULT_SCREENSHOT_META_FIELD);
     }
 }

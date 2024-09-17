@@ -38,11 +38,11 @@ public final class DataStoreImporter {
     private static final Logger LOG =
             LoggerFactory.getLogger(DataStoreImporter.class);
 
-    private DataStoreImporter() {}
+    private DataStoreImporter() {
+    }
 
     public static void importDataStore(Crawler crawler, Path inFile)
             throws IOException {
-
 
         // Export/Import is normally executed in a controlled environment
         // so not susceptible to Zip Bomb attacks.

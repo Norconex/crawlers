@@ -22,9 +22,9 @@ import java.util.Optional;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.ftps.FtpsFileSystemConfigBuilder;
 
-import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
+import com.norconex.crawler.fs.fetch.impl.sftp.SftpFetcher;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -36,66 +36,8 @@ import lombok.ToString;
  * FTP (<code>ftp://</code>) and FTPS (<code>ftps://</code>) fetcher.
  * </p>
  *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
- *
- * <p>
- * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per
- * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
- * </p>
- *
- * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher">
- *
- *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
- *
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
- *
- *   <!-- FTP and FTPS: -->
- *
- *   <autodetectUtf8>[false|true]</autodetectUtf8>
- *   <connectTimeout>(milliseconds)</connectTimeout>
- *   <controlEncoding>...</controlEncoding>
- *   <controlKeepAliveTimeout>(milliseconds)</controlKeepAliveTimeout>
- *   <controlKeepAliveReplyTimeout>(milliseconds)</controlKeepAliveReplyTimeout>
- *   <dataTimeout>(milliseconds)</dataTimeout>
- *   <defaultDateFormat>...</defaultDateFormat>
- *   <fileType>[ASCII|BINARY|LOCAL|EBCDIC]</fileType>
- *   <passiveMode>[false|true]</passiveMode>
- *   <proxySettings>
- *     {@nx.include com.norconex.commons.lang.net.ProxySettings#usage}
- *   </proxySettings>
- *   <recentDateFormat>...</recentDateFormat>
- *   <remoteVerification>[false|true]</remoteVerification>
- *   <serverLanguageCode>...</serverLanguageCode>
- *   <serverTimeZoneId>...</serverTimeZoneId>
- *   <shortMonthNames>(comma-separated list)</shortMonthNames>
- *   <socketTimeout>(milliseconds)</socketTimeout>
- *   <transferAbortedOkReplyCodes>
- *     (comma-separated list of OK codes)
- *   </transferAbortedOkReplyCodes>
- *   <userDirIsRoot>[false|true]</userDirIsRoot>
- *   <mdtmLastModifiedTime>[false|true]</mdtmLastModifiedTime>
- *
- *   <!-- FTPS only: -->
- *   <connectionMode>[EXPLICIT|IMPLICIT]</connectionMode>
- *   <dataChannelProtectionLevel>[C|S|E|P]</dataChannelProtectionLevel>
- *
- * </fetcher>
- * }
- *
- * {@nx.xml.example
- * <fetcher class="FtpFetcher">
- *   <ftpPassiveMode>true</ftpPassiveMode>
- *   <ftpUserDirIsRoot>false</ftpUserDirIsRoot>
- * </fetcher>
- * }
- * <p>
- * The above example sets the FTP settings required by some hosts to get file
- * listings on server directories.
- * </p>
+ * @see SftpFetcher
  */
-@SuppressWarnings("javadoc")
 @ToString
 @EqualsAndHashCode
 public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
@@ -128,7 +70,8 @@ public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
         ftp.setRemoteVerification(opts, !cfg.isRemoteVerificationDisabled());
         ftp.setServerLanguageCode(opts, cfg.getServerLanguageCode());
         ftp.setServerTimeZoneId(opts, cfg.getServerTimeZoneId());
-        ftp.setShortMonthNames(opts,
+        ftp.setShortMonthNames(
+                opts,
                 cfg.getShortMonthNames().toArray(EMPTY_STRING_ARRAY));
         ftp.setSoTimeout(opts, cfg.getSocketTimeout());
         ftp.setControlKeepAliveTimeout(opts, cfg.getControlKeepAliveTimeout());

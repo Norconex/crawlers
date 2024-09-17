@@ -21,83 +21,46 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Data store engine using a JDBC-compatible database for storing
- * crawl data.
- * </p>
- * <h3>Database JDBC driver</h3>
- * <p>
- * To use this data store engine, you need its JDBC database driver
- * on the classpath.
- * </p>
- * <h3>Database datasource configuration</h3>
- * <p>
- * This JDBC data store engine uses
- * <a href="https://github.com/brettwooldridge/HikariCP">Hikari</a> as the JDBC
- * datasource implementation, which provides efficient connection-pooling.
- * Refer to
- * <a href="https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby">
- * Hikari's documentation</a> for all configuration options.  The Hikari options
- * are passed as-is, via <code>datasource</code> properties as shown below.
- * </p>
- * <h3>Data types</h3>
- * <p>
- * This class only use a few data types to store its data in a generic way.
- * It will try to detect what data type to use for your database. If you
- * get errors related to field data types not being supported, you have
- * the option to redefined them.
- * </p>
- *
- * {@nx.xml.usage
- * <dataStoreEngine class="com.norconex.crawler.core.store.impl.jdbc.JdbcDataStoreEngine">
- *   <!-- Hikari datasource configuration properties: -->
- *   <datasource>
- *     <property name="(property name)">(property value)</property>
- *   </datasource>
- *   <tablePrefix>
- *     (Optional prefix used for table creation. Default is the collector
- *      id plus the crawler id, each followed by an underscore character.
- *      The value is first modified to convert spaces to underscores, and
- *      to strip unsupported characters. The supported
- *      characters are: alphanumeric, period, and underscore.
- *      )
- *   </tablePrefix>
- *   <!--
- *     Optionally overwrite default SQL data type used.  You should only
- *     use if you get data type-related errors.
- *     -->
- *   <dataTypes>
- *     <varchar   use="(equivalent data type for your database)" />
- *     <timestamp use="(equivalent data type for your database)" />
- *     <text      use="(equivalent data type for your database)" />
- *   </dataTypes>
- * </dataStoreEngine>
- * }
- *
- * {@nx.xml.example
- * <dataStoreEngine class="JdbcDataStoreEngine">
- *   <datasource>
- *     <property name="jdbcUrl">jdbc:mysql://localhost:33060/sample</property>
- *     <property name="username">dbuser</property>
- *     <property name="password">dbpwd</property>
- *     <property name="connectionTimeout">1000</property>
- *   </datasource>
- * </dataStoreEngine>
- * }
- * <p>
- * The above example contains basic settings for creating a MySQL data source.
+ * Configuration for {@link JdbcDataStoreEngine}.
  * </p>
  */
 @Data
 @Accessors(chain = true)
 public class JdbcDataStoreEngineConfig {
 
+    /**
+     * Optional prefix used for table creation. Default is the crawler id,
+     * followed by an underscore character.
+     * The value is first modified to convert spaces to underscores, and
+     * to strip unsupported characters. The supported
+     * characters are: alphanumeric, period, and underscore.
+     */
     private String tablePrefix;
+
+    /**
+     * Explicitly set the JDBC dialect to use when generating SQL.
+     * By default, an attempt is made to detect it automatically.
+     * Not really useful if you provide your own SQLs for table creation
+     * and upserts.
+     */
     private JdbcDialect dialect;
+
+    /**
+     * <b>For advanced use.</b> Optional SQL to create new tables.
+     * Refer to {@link JdbcDialect} source code for examples.
+     */
     private String createTableSql;
+    /**
+     * <b>For advanced use.</b> Optional SQL to create upsert SQLs.
+     * Refer to {@link JdbcDialect} source code for examples.
+     */
     private String upsertSql;
 
+    /**
+     * Connection properties as per
+     * <a href="https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby">
+     * Hikari's documentation</a>. At a minimum, you need to provide
+     * either a "dataSourceClassName" or a "jdbcUrl".
+     */
     private Properties properties = new Properties();
-//    private String varcharType;
-//    private String timestampType;
-//    private String textType;
 }

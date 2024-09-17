@@ -31,18 +31,22 @@ public class FeaturedImage {
     private String url;
     private final Dimension originalSize;
     private final BufferedImage image;
+
     public FeaturedImage(
             String url, Dimension originalSize, BufferedImage image) {
         this.url = url;
         this.originalSize = originalSize;
         this.image = image;
     }
+
     public Dimension getOriginalSize() {
         return originalSize;
     }
+
     public BufferedImage getImage() {
         return image;
     }
+
     public String getUrl() {
         return url;
     }
@@ -53,35 +57,42 @@ public class FeaturedImage {
         }
         return contains(img.getOriginalSize());
     }
+
     public boolean contains(Dimension dim) {
         if (dim == null) {
             return false;
         }
         return contains((int) dim.getWidth(), (int) dim.getHeight());
     }
+
     public boolean contains(int width, int height) {
         return width <= originalSize.getWidth()
                 && height <= originalSize.getHeight();
     }
+
     public boolean fits(FeaturedImage img) {
         if (img == null) {
             return false;
         }
         return fits(img.getOriginalSize());
     }
+
     public boolean fits(Dimension dim) {
         if (dim == null) {
             return false;
         }
         return fits((int) dim.getWidth(), (int) dim.getHeight());
     }
+
     public boolean fits(int width, int height) {
         return originalSize.getWidth() <= width
                 && originalSize.getHeight() <= height;
     }
+
     public long getArea() {
         return (long) originalSize.getWidth() * (long) originalSize.getHeight();
     }
+
     public String toHTMLInlineString(String format) throws IOException {
         var baos = new ByteArrayOutputStream();
         ImageIO.write(image, format, baos);

@@ -35,20 +35,21 @@ class SmbFetcherTest extends AbstractFileFetcherTest {
     @Container
     static final GenericContainer<?> SAMBA =
             new GenericContainer<>("adevur/easy-samba:latest")
-            .withExposedPorts(445)
-            .withFileSystemBind(
-                    new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
-                    "/share/joefiles",
-                    BindMode.READ_ONLY)
-            .withCopyToContainer(
-                    MountableFile.forClasspathResource("/smb/config.json"),
-                    "/share/config/config.json")
-            ;
+                    .withExposedPorts(445)
+                    .withFileSystemBind(
+                            new File(FsTestUtil.TEST_FS_PATH).getAbsolutePath(),
+                            "/share/joefiles",
+                            BindMode.READ_ONLY)
+                    .withCopyToContainer(
+                            MountableFile
+                                    .forClasspathResource("/smb/config.json"),
+                            "/share/config/config.json");
 
     @BeforeAll
     static void beforeAll() {
         SAMBA.start();
     }
+
     @AfterAll
     static void afterAll() {
         SAMBA.stop();
@@ -58,12 +59,13 @@ class SmbFetcherTest extends AbstractFileFetcherTest {
     protected FileFetcher fetcher() {
         var fetcher = new SmbFetcher();
         fetcher.getConfiguration()
-            .setDomain("WORKGROUP")
-            .getCredentials()
+                .setDomain("WORKGROUP")
+                .getCredentials()
                 .setUsername("joe")
                 .setPassword("joepwd");
         return fetcher;
     }
+
     @Override
     protected String getStartPath() {
         var host = SAMBA.getHost();

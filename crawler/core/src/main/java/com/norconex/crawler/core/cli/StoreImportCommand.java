@@ -33,9 +33,11 @@ import picocli.CommandLine.Option;
 @EqualsAndHashCode
 @ToString
 public class StoreImportCommand extends CliSubCommandBase {
-    @Option(names = { "-f", "-file" },
-            description = "Data store files to import.",
-            required = true)
+    @Option(
+        names = { "-f", "-file" },
+        description = "Data store files to import.",
+        required = true
+    )
     private Path inFile;
 
     @Override

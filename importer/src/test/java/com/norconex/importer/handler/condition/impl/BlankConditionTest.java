@@ -96,10 +96,10 @@ class BlankConditionTest {
                 () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
-
     private HandlerContext newDocContext() {
         return newDocContext(null);
     }
+
     private HandlerContext newDocContext(String body) {
         var props = TestUtil.newMetadata();
         props.add("field4.1", "");
@@ -111,10 +111,13 @@ class BlankConditionTest {
         props.add("field4.4", "");
 
         return HandlerContext.builder()
-                .doc(TestUtil.newDoc("ref",
-                    body == null
-                    ? emptyInput
-                    : toCachedInputStream(body), props))
+                .doc(
+                        TestUtil.newDoc(
+                                "ref",
+                                body == null
+                                        ? emptyInput
+                                        : toCachedInputStream(body),
+                                props))
                 .parseState(ParseState.PRE)
                 .eventManager(new EventManager())
                 .build();

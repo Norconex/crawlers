@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2010-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,54 +35,65 @@ class TextStatisticsTransformerTest {
     @Test
     void testTagTextDocument() throws IOException {
 
-        var txt = """
-        	White Rabbit checking watch\
+        var txt =
+                """
+                        White Rabbit checking watch\
 
 
-        	  In another moment down went Alice after it, never once\s\
-        	considering how in the world she was to get out again.\
+                          In another moment down went Alice after it, never once\s\
+                        considering how in the world she was to get out again.\
 
 
-        	  The rabbit-hole went straight on like a tunnel for some way,\s\
-        	and then dipped suddenly down, so suddenly that Alice had not a\s\
-        	moment to think about stopping herself before she found herself\s\
-        	falling down a very deep well.\
+                          The rabbit-hole went straight on like a tunnel for some way,\s\
+                        and then dipped suddenly down, so suddenly that Alice had not a\s\
+                        moment to think about stopping herself before she found herself\s\
+                        falling down a very deep well.\
 
 
-        	`Well!' thought Alice to herself, `after such a fall as this, I\s\
-        	shall think nothing of tumbling down stairs!  How brave they'll\s\
-        	all think me at home!  Why, I wouldn't say anything about it,\s\
-        	even if I fell off the top of the house!' (Which was very likely\s\
-        	true.)""";
+                        `Well!' thought Alice to herself, `after such a fall as this, I\s\
+                        shall think nothing of tumbling down stairs!  How brave they'll\s\
+                        all think me at home!  Why, I wouldn't say anything about it,\s\
+                        even if I fell off the top of the house!' (Which was very likely\s\
+                        true.)""";
 
         var t = new TextStatisticsTransformer();
         var is = IOUtils.toInputStream(txt, StandardCharsets.UTF_8);
 
         var meta = new Properties();
         meta.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(TestUtil.newDocContext("n/a", is, meta, ParseState.PRE));
+        t.accept(TestUtil.newHandlerContext("n/a", is, meta, ParseState.PRE));
 
         is.close();
 
-        Assertions.assertEquals(616,
+        Assertions.assertEquals(
+                616,
                 (int) meta.getInteger("document.stat.characterCount"));
-        Assertions.assertEquals(115,
+        Assertions.assertEquals(
+                115,
                 (int) meta.getInteger("document.stat.wordCount"));
-        Assertions.assertEquals(8,
+        Assertions.assertEquals(
+                8,
                 (int) meta.getInteger("document.stat.sentenceCount"));
-        Assertions.assertEquals(4,
+        Assertions.assertEquals(
+                4,
                 (int) meta.getInteger("document.stat.paragraphCount"));
-        Assertions.assertEquals("4.2",
+        Assertions.assertEquals(
+                "4.2",
                 meta.getString("document.stat.averageWordCharacterCount"));
-        Assertions.assertEquals("77.0",
+        Assertions.assertEquals(
+                "77.0",
                 meta.getString("document.stat.averageSentenceCharacterCount"));
-        Assertions.assertEquals("14.4",
+        Assertions.assertEquals(
+                "14.4",
                 meta.getString("document.stat.averageSentenceWordCount"));
-        Assertions.assertEquals("154.0",
+        Assertions.assertEquals(
+                "154.0",
                 meta.getString("document.stat.averageParagraphCharacterCount"));
-        Assertions.assertEquals("2.0",
+        Assertions.assertEquals(
+                "2.0",
                 meta.getString("document.stat.averageParagraphSentenceCount"));
-        Assertions.assertEquals("28.8",
+        Assertions.assertEquals(
+                "28.8",
                 meta.getString("document.stat.averageParagraphWordCount"));
     }
 
@@ -90,7 +101,7 @@ class TextStatisticsTransformerTest {
     void testWriteRead() {
         var t = new TextStatisticsTransformer();
         t.getConfiguration().setFieldMatcher(new TextMatcher("afield"));
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

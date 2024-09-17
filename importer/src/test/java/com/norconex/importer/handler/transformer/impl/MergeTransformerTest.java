@@ -1,4 +1,4 @@
-/* Copyright 2016-2023 Norconex Inc.
+/* Copyright 2016-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,22 +36,22 @@ class MergeTransformerTest {
     @Test
     void testWriteRead() {
         var t = new MergeTransformer();
-        t.getConfiguration().setOperations(List.of(
-                new MergeOperation()
-                    .setDeleteFromFields(true)
-                    .setFieldMatcher(TextMatcher.regex("(1|2)"))
-                    .setSingleValue(true)
-                    .setSingleValueSeparator(",")
-                    .setToField("toField"),
-                new MergeOperation()
-                    .setDeleteFromFields(false)
-                    .setFieldMatcher(TextMatcher.regex("(3|4)"))
-                    .setSingleValue(false)
-                    .setSingleValueSeparator(null)
-                    .setToField("toAnotherField")
-                ));
-        assertThatNoException().isThrownBy(() ->
-                BeanMapper.DEFAULT.assertWriteRead(t));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new MergeOperation()
+                                .setDeleteFromFields(true)
+                                .setFieldMatcher(TextMatcher.regex("(1|2)"))
+                                .setSingleValue(true)
+                                .setSingleValueSeparator(",")
+                                .setToField("toField"),
+                        new MergeOperation()
+                                .setDeleteFromFields(false)
+                                .setFieldMatcher(TextMatcher.regex("(3|4)"))
+                                .setSingleValue(false)
+                                .setSingleValueSeparator(null)
+                                .setToField("toAnotherField")));
+        assertThatNoException()
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(t));
     }
 
     @Test
@@ -65,30 +65,37 @@ class MergeTransformerTest {
         meta.add("fld6", "6");
 
         var t = new MergeTransformer();
-        t.getConfiguration().setOperations(List.of(
-                new MergeOperation()
-                    .setDeleteFromFields(false)
-                    .setFieldMatcher(TextMatcher.regex("(fld4|fld6|field.*)"))
-                    .setSingleValue(false)
-                    .setToField("toField"),
-                new MergeOperation()
-                    .setDeleteFromFields(true)
-                    .setFieldMatcher(TextMatcher.regex("(fld4|fld6|field.*)"))
-                    .setSingleValue(true)
-                    .setSingleValueSeparator("-")
-                    .setToField("fld4")
-                ));
-
+        t.getConfiguration().setOperations(
+                List.of(
+                        new MergeOperation()
+                                .setDeleteFromFields(false)
+                                .setFieldMatcher(
+                                        TextMatcher
+                                                .regex("(fld4|fld6|field.*)"))
+                                .setSingleValue(false)
+                                .setToField("toField"),
+                        new MergeOperation()
+                                .setDeleteFromFields(true)
+                                .setFieldMatcher(
+                                        TextMatcher
+                                                .regex("(fld4|fld6|field.*)"))
+                                .setSingleValue(true)
+                                .setSingleValueSeparator("-")
+                                .setToField("fld4")));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 
-        Set<String> expected = new TreeSet<>(Arrays.asList(
-                "1.1", "1.2", "2", "3", "4", "6"));
+        Set<String> expected = new TreeSet<>(
+                Arrays.asList(
+                        "1.1", "1.2", "2", "3", "4", "6"));
 
-        Assertions.assertEquals(expected,
+        Assertions.assertEquals(
+                expected,
                 new TreeSet<>(meta.getStrings("toField")));
-        Assertions.assertEquals(expected, new TreeSet<>(Arrays.asList(
-                meta.getString("fld4").split("-"))));
+        Assertions.assertEquals(
+                expected, new TreeSet<>(
+                        Arrays.asList(
+                                meta.getString("fld4").split("-"))));
     }
 
     @Test
@@ -97,13 +104,13 @@ class MergeTransformerTest {
         meta.add("field", "1", "2");
 
         var t = new MergeTransformer();
-        t.getConfiguration().setOperations(List.of(
-                new MergeOperation()
-                    .setDeleteFromFields(false)
-                    .setFieldMatcher(TextMatcher.basic("field"))
-                    .setSingleValue(true)
-                    .setToField("field")
-        ));
+        t.getConfiguration().setOperations(
+                List.of(
+                        new MergeOperation()
+                                .setDeleteFromFields(false)
+                                .setFieldMatcher(TextMatcher.basic("field"))
+                                .setSingleValue(true)
+                                .setToField("field")));
 
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
 

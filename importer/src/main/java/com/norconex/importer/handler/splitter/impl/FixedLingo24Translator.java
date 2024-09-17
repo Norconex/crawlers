@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ class FixedLingo24Translator extends Lingo24Translator {
             throw new ImporterRuntimeException("Cannot mark as available.", e);
         }
     }
+
     public void setUserKey(String userKey) {
         try {
             FieldUtils.writeField(this, "userKey", userKey, true);
@@ -38,6 +39,7 @@ class FixedLingo24Translator extends Lingo24Translator {
             throw new ImporterRuntimeException("Cannot set user key.", e);
         }
     }
+
     public String getUserKey() {
         try {
             return (String) FieldUtils.readField(this, "userKey", true);

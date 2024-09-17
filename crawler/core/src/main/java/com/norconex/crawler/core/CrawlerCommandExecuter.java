@@ -39,7 +39,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
  * Executes a crawler command, ensuring proper initialization and termination.
  */
@@ -47,7 +46,8 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 final class CrawlerCommandExecuter {
 
-    private CrawlerCommandExecuter() {}
+    private CrawlerCommandExecuter() {
+    }
 
     static void executeCommand(CommandExecution execution) {
         try {
@@ -56,12 +56,12 @@ final class CrawlerCommandExecuter {
         } catch (Exception e) {
             throw new CrawlerException(
                     "An error occured while executing command: "
-                            + execution.name, e);
+                            + execution.name,
+                    e);
         } finally {
             orderlyShutdown(execution);
         }
     }
-
 
     static void init(CommandExecution execution) {
         var crawler = execution.crawler;
@@ -78,21 +78,23 @@ final class CrawlerCommandExecuter {
         crawler.getServices().getEventManager().addListenersFromScan(
                 crawler.getConfiguration());
 
-
         crawler.fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
 
         crawler.workDir = ofNullable(crawler.getConfiguration().getWorkDir())
                 .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
-                .resolve(FileUtil.toSafeFileName(
-                        crawler.getId()));
+                .resolve(
+                        FileUtil.toSafeFileName(
+                                crawler.getId()));
         // Will also create workdir parent:
         crawler.tempDir = crawler.workDir.resolve("temp");
         try {
             // Will also create workdir parent:
             Files.createDirectories(crawler.tempDir);
         } catch (IOException e) {
-            throw new CrawlerException("Could not create directory: "
-                    + crawler.tempDir, e);
+            throw new CrawlerException(
+                    "Could not create directory: "
+                            + crawler.tempDir,
+                    e);
         }
         crawler.streamFactory = new CachedStreamFactory(
                 (int) crawler.getConfiguration().getMaxStreamCachePoolSize(),
@@ -104,14 +106,13 @@ final class CrawlerCommandExecuter {
         }
         crawler.getState().init(execution.lock);
 
-
         crawler.getDataStoreEngine().init(crawler);
 
         // clear if we want to have the crawler resetable (to rerun
         // the same instance)...
         //services.getEventManager().clearListeners();
         crawler.getServices().init(crawler);
-//        services.getEventManager().addListenersFromScan(configuration);
+        //        services.getEventManager().addListenersFromScan(configuration);
 
         if (Boolean.getBoolean(Crawler.SYS_PROP_ENABLE_JMX)) {
             CrawlerMonitorJMX.register(crawler);
@@ -132,15 +133,16 @@ final class CrawlerCommandExecuter {
         try {
             // Defer shutdown
             ofNullable(crawler.getConfiguration().getDeferredShutdownDuration())
-            .filter(d -> d.toMillis() > 0)
-            .ifPresent(d -> {
-                LOG.info("Deferred shutdown requested. Pausing for {} "
-                        + "starting from this UTC moment: {}",
-                        DurationFormatter.FULL.format(d),
-                        LocalDateTime.now(ZoneOffset.UTC));
-                Sleeper.sleepMillis(d.toMillis());
-                LOG.info("Shutdown resumed.");
-            });
+                    .filter(d -> d.toMillis() > 0)
+                    .ifPresent(d -> {
+                        LOG.info(
+                                "Deferred shutdown requested. Pausing for {} "
+                                        + "starting from this UTC moment: {}",
+                                DurationFormatter.FULL.format(d),
+                                LocalDateTime.now(ZoneOffset.UTC));
+                        Sleeper.sleepMillis(d.toMillis());
+                        LOG.info("Shutdown resumed.");
+                    });
 
             // Unregister JMX crawlers
             if (Boolean.getBoolean(Crawler.SYS_PROP_ENABLE_JMX)) {
@@ -155,8 +157,10 @@ final class CrawlerCommandExecuter {
                 try {
                     FileUtil.delete(crawler.tempDir.toFile());
                 } catch (IOException e) {
-                    LOG.error("Could not delete the temporary directory:"
-                            + crawler.tempDir, e);
+                    LOG.error(
+                            "Could not delete the temporary directory:"
+                                    + crawler.tempDir,
+                            e);
                 }
             }
             MDC.clear();
@@ -171,11 +175,10 @@ final class CrawlerCommandExecuter {
     private static String eventBeginName(CommandExecution execution) {
         return "CRAWLER_%s_BEGIN".formatted(execution.name);
     }
+
     private static String eventEndName(CommandExecution execution) {
         return "CRAWLER_%s_END".formatted(execution.name);
     }
-
-
 
     //--- Inner classes --------------------------------------------------------
 
@@ -189,10 +192,12 @@ final class CrawlerCommandExecuter {
         // We only allow locking if the crawl state is initialized
         private boolean lock;
         private FailableRunnable<Exception> command;
+
         CommandExecution command(Runnable runnable) {
             command = runnable::run;
             return this;
         }
+
         CommandExecution failableCommand(FailableRunnable<Exception> runnable) {
             command = runnable;
             return this;

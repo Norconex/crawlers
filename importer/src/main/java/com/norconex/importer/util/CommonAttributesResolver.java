@@ -59,13 +59,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class CommonAttributesResolver {
 
-    private CommonAttributesResolver() {}
+    private CommonAttributesResolver() {
+    }
 
     //TODO use early in importer (will do nothing if already set).
 
     public static void resolve(Doc doc) {
         resolve(doc, false);
     }
+
     public static void resolve(Doc doc, boolean overwrite) {
 
         resolveContenTypeAndFamily(doc, overwrite);
@@ -80,8 +82,9 @@ public final class CommonAttributesResolver {
         // DocRecord Content-Type
         if (overwrite || docRecord.getContentType() == null) {
             try {
-                docRecord.setContentType(ContentTypeDetector.detect(
-                        doc.getInputStream(), doc.getReference()));
+                docRecord.setContentType(
+                        ContentTypeDetector.detect(
+                                doc.getInputStream(), doc.getReference()));
             } catch (IOException e) {
                 LOG.warn("Could not perform content type detection.", e);
             }
@@ -107,8 +110,9 @@ public final class CommonAttributesResolver {
         // Doc Record character encoding
         if (overwrite || docRecord.getCharset() == null) {
             try {
-                docRecord.setCharset(CharsetDetector.builder().build().detect(
-                        doc.getInputStream()));
+                docRecord.setCharset(
+                        CharsetDetector.builder().build().detect(
+                                doc.getInputStream()));
             } catch (IOException e) {
                 LOG.warn("Could not perform character encoding detection.", e);
             }

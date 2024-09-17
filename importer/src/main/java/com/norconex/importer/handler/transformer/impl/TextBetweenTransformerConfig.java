@@ -103,6 +103,7 @@ public class TextBetweenTransformerConfig {
     public List<TextBetweenOperation> getOperations() {
         return Collections.unmodifiableList(operations);
     }
+
     public TextBetweenTransformerConfig setOperations(
             List<TextBetweenOperation> operations) {
         CollectionUtil.setAll(this.operations, operations);

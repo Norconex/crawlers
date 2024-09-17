@@ -207,19 +207,19 @@ public class DomTransformer
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                docCtx.docRecord().getContentType().toString())) {
+                docCtx.docContext().getContentType().toString())) {
             return;
         }
 
         ChunkedTextReader.builder()
-            .charset(configuration.getSourceCharset())
-            .fieldMatcher(configuration.getFieldMatcher())
-            .maxChunkSize(-1) // disable chunking to not break the DOM.
-            .build()
-            .read(docCtx, chunk -> {
-                applyOperations(docCtx, chunk);
-                return true;
-            });
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(-1) // disable chunking to not break the DOM.
+                .build()
+                .read(docCtx, chunk -> {
+                    applyOperations(docCtx, chunk);
+                    return true;
+                });
     }
 
     //NOTE: each operation are ran in isolation, the result being passed

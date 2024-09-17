@@ -52,6 +52,7 @@ public class ParseAssertions {
         this.responseForStream = responseForStream;
         responseProvided = null;
     }
+
     private ParseAssertions(@NonNull ImporterResponse responseProvided) {
         responseForFile = null;
         responseForStream = null;
@@ -61,9 +62,11 @@ public class ParseAssertions {
     public static ParseAssertions assertThat(Path file) {
         return doAssertThat(file, false);
     }
+
     public static ParseAssertions assertThatSplitted(Path file) {
         return doAssertThat(file, true);
     }
+
     public static ParseAssertions assertThat(ImporterResponse response) {
         return new ParseAssertions(response);
     }
@@ -74,19 +77,24 @@ public class ParseAssertions {
         var config = new ImporterConfig();
         if (split) {
             config.setHandlers(
-                    List.of(Configurable.configure(new DefaultParser(),
-                    cfg -> cfg.getEmbeddedConfig().setSplitContentTypes(List.of(
-                               TextMatcher.regex(".*"))))));
+                    List.of(
+                            Configurable.configure(
+                                    new DefaultParser(),
+                                    cfg -> cfg.getEmbeddedConfig()
+                                            .setSplitContentTypes(
+                                                    List.of(
+                                                            TextMatcher
+                                                                    .regex(".*"))))));
         }
 
         // File-based parse
         metadata = new Properties();
         var responseForFile = new Importer(config).importDocument(
                 new ImporterRequest(file).setMetadata(metadata));
-//        doc = response.getDoc();
-//        assertDefaults(doc, "FILE",
-//                resourcePath, contentType, contentRegex, extension, family);
-//        responses[0] = response;
+        //        doc = response.getDoc();
+        //        assertDefaults(doc, "FILE",
+        //                resourcePath, contentType, contentRegex, extension, family);
+        //        responses[0] = response;
 
         // Input stream parse
         ImporterResponse responseForStream = null;
@@ -94,57 +102,81 @@ public class ParseAssertions {
             metadata = new Properties();
             responseForStream = new Importer(config).importDocument(
                     new ImporterRequest(is)
-                        .setMetadata(metadata)
-                        .setReference("guess"));
+                            .setMetadata(metadata)
+                            .setReference("guess"));
         } catch (IOException e) {
             throw new UncheckedException(e);
         }
-//        doc = response.getDocument();
-//        assertDefaults(doc, "STREAM",
-//                resourcePath, contentType, contentRegex, extension, family);
-//        responses[1] = response;
+        //        doc = response.getDocument();
+        //        assertDefaults(doc, "STREAM",
+        //                resourcePath, contentType, contentRegex, extension, family);
+        //        responses[1] = response;
         return new ParseAssertions(responseForFile, responseForStream);
     }
 
     public ParseAssertions hasContentType(String contentType) {
-        return assertResponses(resp -> Assertions.assertThat(
-                resp.getDoc().getDocContext().getContentType()).hasToString(
-                        contentType));
+        return assertResponses(
+                resp -> Assertions.assertThat(
+                        resp.getDoc().getDocContext().getContentType())
+                        .hasToString(
+                                contentType));
     }
+
     public ParseAssertions hasContentFamily(String contentFamily) {
-        return assertResponses(resp -> Assertions.assertThat(
-                resp.getDoc().getDocContext().getContentType().getContentFamily()
-                        .getDisplayName(ENGLISH)).hasToString(contentFamily));
+        return assertResponses(
+                resp -> Assertions.assertThat(
+                        resp.getDoc().getDocContext().getContentType()
+                                .getContentFamily()
+                                .getDisplayName(ENGLISH))
+                        .hasToString(contentFamily));
     }
+
     public ParseAssertions hasExtension(String extension) {
-        return assertResponses(resp -> Assertions.assertThat(
-                resp.getDoc().getDocContext().getContentType().getExtension())
+        return assertResponses(
+                resp -> Assertions.assertThat(
+                        resp.getDoc().getDocContext().getContentType()
+                                .getExtension())
                         .hasToString(extension));
     }
+
     public ParseAssertions hasMetaValue(String field, String value) {
-        return assertResponses(resp -> Assertions.assertThat(
-                resp.getDoc().getMetadata().getStrings(field)).contains(value));
+        return assertResponses(
+                resp -> Assertions.assertThat(
+                        resp.getDoc().getMetadata().getStrings(field))
+                        .contains(value));
     }
+
     public ParseAssertions hasMetaValuesCount(String field, int count) {
-        return assertResponses(resp -> Assertions.assertThat(
-                resp.getDoc().getMetadata().getStrings(field)).hasSize(count));
+        return assertResponses(
+                resp -> Assertions.assertThat(
+                        resp.getDoc().getMetadata().getStrings(field))
+                        .hasSize(count));
     }
+
     public ParseAssertions contains(String text) {
-        return assertResponses(resp ->
-                Assertions.assertThat(contentAsString(resp)).contains(text));
+        return assertResponses(
+                resp -> Assertions
+                        .assertThat(contentAsString(resp)).contains(text));
     }
+
     public ParseAssertions doesNotContain(String text) {
-        return assertResponses(resp -> Assertions.assertThat(
-                contentAsString(resp)).doesNotContain(text));
+        return assertResponses(
+                resp -> Assertions.assertThat(
+                        contentAsString(resp)).doesNotContain(text));
     }
+
     public ParseAssertions matches(TextMatcher matcher) {
-        return assertResponses(resp -> Assertions.assertThat(
-                contentAsString(resp)).matches(matcher.toRegexPattern()));
+        return assertResponses(
+                resp -> Assertions.assertThat(
+                        contentAsString(resp))
+                        .matches(matcher.toRegexPattern()));
     }
+
     public ParseAssertions hasValidResponse(
             Predicate<ImporterResponse> predicate) {
-        return assertResponses(resp -> Assertions.assertThat(resp)
-                .matches(predicate));
+        return assertResponses(
+                resp -> Assertions.assertThat(resp)
+                        .matches(predicate));
     }
 
     private ParseAssertions assertResponses(Consumer<ImporterResponse> c) {
@@ -154,7 +186,7 @@ public class ParseAssertions {
         if (responseForStream != null) {
             c.accept(responseForStream);
         }
-        if (responseProvided!= null) {
+        if (responseProvided != null) {
             c.accept(responseProvided);
         }
         return this;
@@ -167,39 +199,39 @@ public class ParseAssertions {
             throw new UncheckedIOException(e);
         }
     }
-//
-//    private void assertDefaults(
-//            Doc doc,
-//            String testType,
-//            String resourcePath,
-//            String contentType,
-//            String contentRegex,
-//            String extension,
-//            String family) throws IOException {
-//        var p = Pattern.compile(contentRegex, Pattern.DOTALL);
-//
-//        Assertions.assertNotNull(doc, "Document is null");
-//
-//        var content =
-//                IOUtils.toString(doc.getInputStream(), StandardCharsets.UTF_8);
-//        Assertions.assertEquals(ContentType.valueOf(contentType),
-//                doc.getDocRecord().getContentType(),
-//                testType + " content-type detection failed for \""
-//                        + resourcePath + "\".");
-//
-//        Assertions.assertTrue(p.matcher(content).find(),
-//                testType + " content extraction failed for \""
-//                        + resourcePath + "\". Content:\n" + content);
-//
-//        var ext = doc.getDocRecord().getContentType().getExtension();
-//        Assertions.assertEquals(extension, ext,
-//                testType + " extension detection failed for \""
-//                        + resourcePath + "\".");
-//
-//        var familyEnglish = doc.getDocRecord().getContentType()
-//                .getContentFamily().getDisplayName(Locale.ENGLISH);
-//        Assertions.assertEquals(family, familyEnglish,
-//                testType + " family detection failed for \""
-//                        + resourcePath + "\".");
-//    }
+    //
+    //    private void assertDefaults(
+    //            Doc doc,
+    //            String testType,
+    //            String resourcePath,
+    //            String contentType,
+    //            String contentRegex,
+    //            String extension,
+    //            String family) throws IOException {
+    //        var p = Pattern.compile(contentRegex, Pattern.DOTALL);
+    //
+    //        Assertions.assertNotNull(doc, "Document is null");
+    //
+    //        var content =
+    //                IOUtils.toString(doc.getInputStream(), StandardCharsets.UTF_8);
+    //        Assertions.assertEquals(ContentType.valueOf(contentType),
+    //                doc.getDocRecord().getContentType(),
+    //                testType + " content-type detection failed for \""
+    //                        + resourcePath + "\".");
+    //
+    //        Assertions.assertTrue(p.matcher(content).find(),
+    //                testType + " content extraction failed for \""
+    //                        + resourcePath + "\". Content:\n" + content);
+    //
+    //        var ext = doc.getDocRecord().getContentType().getExtension();
+    //        Assertions.assertEquals(extension, ext,
+    //                testType + " extension detection failed for \""
+    //                        + resourcePath + "\".");
+    //
+    //        var familyEnglish = doc.getDocRecord().getContentType()
+    //                .getContentFamily().getDisplayName(Locale.ENGLISH);
+    //        Assertions.assertEquals(family, familyEnglish,
+    //                testType + " family detection failed for \""
+    //                        + resourcePath + "\".");
+    //    }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2020-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ package com.norconex.importer.doc;
 public final class DocMetadata {
 
     //TODO move to Doc/DocRecord and delete this class.
-
 
     //MAYBE DELETE these if they can be referenced from DocRecord?
     //    (still have them as metadata, just no longer need constants).
@@ -68,5 +67,6 @@ public final class DocMetadata {
     public static final String EMBEDDED_INDEX =
             EMBEDDED_PREFIX + "index";
 
-    private DocMetadata() {}
+    private DocMetadata() {
+    }
 }

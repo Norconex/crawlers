@@ -51,13 +51,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * Data store engine using MongoDB for storing crawl data.
  * </p>
- *
- * {@nx.xml.usage
- * <dataStoreEngine class="MongoDataStoreEngine" />
- *   <connectionString>(MongoDB connection string.)</connectionString>
- * </dataStoreEngine>
- * }
- *
  */
 @Slf4j
 @EqualsAndHashCode
@@ -65,8 +58,8 @@ import lombok.extern.slf4j.Slf4j;
 public class MongoDataStoreEngine
         implements DataStoreEngine, Configurable<MongoDataStoreEngineConfig> {
 
-    private static final String STORE_TYPES_KEY =
-            MongoDataStoreEngine.class.getSimpleName() + "--storetypes";
+    private static final String STORE_TYPES_KEY = MongoDataStoreEngine.class
+            .getSimpleName() + "--storetypes";
 
     // Non-configurable:
     private MongoClient client;
@@ -85,18 +78,29 @@ public class MongoDataStoreEngine
         dbName = FileUtil.toSafeFileName(dbName);
         dbName = StringUtil.truncateWithHash(dbName, 63);
 
-        client = MongoClients.create(MongoClientSettings.builder()
-                .applicationName(dbName)
-                .applyToSocketSettings(b -> b
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS))
-                .codecRegistry(CodecRegistries.fromRegistries(
-                    MongoClientSettings.getDefaultCodecRegistry(),
-                    CodecRegistries.fromProviders(
-                        PojoCodecProvider.builder().automatic(true).build())))
-                .applyConnectionString(new ConnectionString(
-                        configuration.getConnectionString()))
-                .build());
+        client = MongoClients
+                .create(
+                        MongoClientSettings.builder()
+                                .applicationName(dbName)
+                                .applyToSocketSettings(
+                                        b -> b.connectTimeout(
+                                                30, TimeUnit.SECONDS)
+                                                .readTimeout(
+                                                        30, TimeUnit.SECONDS))
+                                .codecRegistry(
+                                        CodecRegistries.fromRegistries(
+                                                MongoClientSettings
+                                                        .getDefaultCodecRegistry(),
+                                                CodecRegistries.fromProviders(
+                                                        PojoCodecProvider
+                                                                .builder()
+                                                                .automatic(true)
+                                                                .build())))
+                                .applyConnectionString(
+                                        new ConnectionString(
+                                                configuration
+                                                        .getConnectionString()))
+                                .build());
 
         database = client.getDatabase(dbName);
 
@@ -124,8 +128,9 @@ public class MongoDataStoreEngine
 
     @Override
     public <T> DataStore<T> openStore(String name, Class<? extends T> type) {
-        storeTypes.replaceOne(idFilter(name), new Document().append(
-                "id", name).append("type", type.getName()));
+        storeTypes.replaceOne(
+                idFilter(name), new Document().append("id", name)
+                        .append("type", type.getName()));
         return new MongoDataStore<>(database, name, type);
     }
 
@@ -144,16 +149,19 @@ public class MongoDataStoreEngine
         var targetExists = colExists(newName);
         MongoDataStore<?> mongoStore = (MongoDataStore<?>) dataStore;
         var oldName = mongoStore.rename(database.getName(), newName);
-        storeTypes.replaceOne(idFilter(oldName), new Document()
-                .append("id", newName)
-                .append("type", mongoStore.getType().getName()));
+        storeTypes.replaceOne(
+                idFilter(oldName),
+                new Document().append("id", newName).append(
+                        "type",
+                        mongoStore.getType().getName()));
         return targetExists;
     }
 
     @Override
     public Set<String> getStoreNames() {
-        return new HashSet<>(IteratorUtils.toList(
-                database.listCollectionNames().iterator()));
+        return new HashSet<>(
+                IteratorUtils
+                        .toList(database.listCollectionNames().iterator()));
     }
 
     @Override
@@ -161,8 +169,7 @@ public class MongoDataStoreEngine
         if (name == null) {
             return Optional.empty();
         }
-        var type = (String) storeTypes.find(
-                idFilter(name)).first().get(name);
+        var type = (String) storeTypes.find(idFilter(name)).first().get(name);
         if (type == null) {
             return Optional.empty();
         }
@@ -170,7 +177,8 @@ public class MongoDataStoreEngine
             return Optional.ofNullable(ClassUtils.getClass(type));
         } catch (ClassNotFoundException e) {
             throw new DataStoreException(
-                    "Could not determine type of: " + name, e);
+                    "Could not determine type of: " + name,
+                    e);
         }
     }
 

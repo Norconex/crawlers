@@ -1,4 +1,4 @@
-/* Copyright 2015-2023 Norconex Inc.
+/* Copyright 2015-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,7 +229,6 @@ public class TranslatorSplitterConfig extends BaseDocumentSplitterConfig {
      */
     private String scriptPath;
 
-
     public TranslatorSplitterConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
         return this;
@@ -238,6 +237,7 @@ public class TranslatorSplitterConfig extends BaseDocumentSplitterConfig {
     public List<String> getTargetLanguages() {
         return Collections.unmodifiableList(targetLanguages);
     }
+
     public TranslatorSplitterConfig setTargetLanguages(
             List<String> targetLanguages) {
         CollectionUtil.setAll(this.targetLanguages, targetLanguages);

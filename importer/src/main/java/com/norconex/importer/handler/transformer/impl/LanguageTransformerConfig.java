@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2014-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -210,6 +210,7 @@ public class LanguageTransformerConfig implements ChunkedTextSupport {
     public List<String> getLanguages() {
         return Collections.unmodifiableList(languages);
     }
+
     /**
      * The language candidates for language detection.
      * @param languages languages to consider for detection
@@ -228,6 +229,7 @@ public class LanguageTransformerConfig implements ChunkedTextSupport {
     public TextMatcher getFieldMatcher() {
         return fieldMatcher;
     }
+
     /**
      * Sets a matcher for fields to use to detect language. When not
      * specified (default), use the document content instead.

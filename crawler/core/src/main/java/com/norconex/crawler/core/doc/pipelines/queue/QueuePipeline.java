@@ -39,18 +39,17 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
     private final QueueInitializer initializer;
     private final Predicates<QueuePipelineContext> stages;
     @Getter
-    private final Function<QueuePipelineContext, ? extends QueuePipelineContext>
-            contextAdapter;
+    private final Function<QueuePipelineContext,
+            ? extends QueuePipelineContext> contextAdapter;
 
     private MutableBoolean queueInitialized;
 
     @Builder
     private QueuePipeline(
             @NonNull Predicates<QueuePipelineContext> stages,
-            Function<QueuePipelineContext, ? extends QueuePipelineContext>
-                    contextAdapter,
-            QueueInitializer initializer
-            ) {
+            Function<QueuePipelineContext,
+                    ? extends QueuePipelineContext> contextAdapter,
+            QueueInitializer initializer) {
         this.stages = stages;
         this.contextAdapter = contextAdapter;
         this.initializer = initializer;
@@ -68,6 +67,7 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
      * Otherwise the method returns when initial queuing has completed.
      * If no queue initializer was provided, returns right away with
      * <code>true</code> (initialized).
+     * @param crawler the crawler
      * @return queue initialization completion status
      */
     public MutableBoolean initializeQueue(Crawler crawler) {
@@ -131,6 +131,7 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
             }
         }
     }
+
     private MutableBoolean initializeQueueSync(QueueInitContext ctx) {
         LOG.info("Queuing start references synchronously.");
         initializer.accept(ctx);
@@ -148,11 +149,13 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
         @Getter
         private final boolean resuming;
         private final Consumer<CrawlDocContext> queuer;
+
         public void queue(@NonNull String reference) {
             var rec = crawler.newDocContext(reference);
             rec.setDepth(0);
             queue(rec);
         }
+
         public void queue(@NonNull CrawlDocContext rec) {
             queuer.accept(rec);
         }

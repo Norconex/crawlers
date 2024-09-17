@@ -62,11 +62,14 @@ public class FileFetchStage extends AbstractImporterStage {
         var fetcher = (FileFetcher) ctx.getCrawler().getFetcher();
         FileFetchResponse response;
         try {
-            response = fetcher.fetch(new FileFetchRequest(
-                    ctx.getDoc(), getFetchDirective()));
+            response = fetcher.fetch(
+                    new FileFetchRequest(
+                            ctx.getDoc(), getFetchDirective()));
         } catch (FetchException e) {
-            throw new CrawlerException("Could not fetch file: "
-                    + ctx.getDoc().getDocContext().getReference(), e);
+            throw new CrawlerException(
+                    "Could not fetch file: "
+                            + ctx.getDoc().getDocContext().getReference(),
+                    e);
         }
         var originalCrawlDocState = docRecord.getState();
 
@@ -84,14 +87,17 @@ public class FileFetchStage extends AbstractImporterStage {
         docRecord.setState(state);
 
         if (state.isGoodState()) {
-            ctx.getCrawler().fire(CrawlerEvent.builder()
-                    .name(FetchDirective.METADATA.is(getFetchDirective())
-                            ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
-                            : CrawlerEvent.DOCUMENT_FETCHED)
-                    .source(ctx.getCrawler())
-                    .subject(response)
-                    .docContext(docRecord)
-                    .build());
+            ctx.getCrawler().fire(
+                    CrawlerEvent.builder()
+                            .name(
+                                    FetchDirective.METADATA.is(
+                                            getFetchDirective())
+                                                    ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
+                                                    : CrawlerEvent.DOCUMENT_FETCHED)
+                            .source(ctx.getCrawler())
+                            .subject(response)
+                            .docContext(docRecord)
+                            .build());
             return true;
         }
 
@@ -102,12 +108,13 @@ public class FileFetchStage extends AbstractImporterStage {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
 
-        ctx.getCrawler().fire(CrawlerEvent.builder()
-                .name(eventType)
-                .source(ctx.getCrawler())
-                .subject(response)
-                .docContext(docRecord)
-                .build());
+        ctx.getCrawler().fire(
+                CrawlerEvent.builder()
+                        .name(eventType)
+                        .source(ctx.getCrawler())
+                        .subject(response)
+                        .docContext(docRecord)
+                        .build());
 
         // At this stage, the ref is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning
