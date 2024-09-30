@@ -348,7 +348,7 @@ public class GenericHttpFetcher
     }
 
     @Override
-    protected void fetcherStartup(Crawler crawlSession) {
+    protected void fetcherStartup(Crawler crawler) {
         httpClient = createHttpClient();
         var userAgent = configuration.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {

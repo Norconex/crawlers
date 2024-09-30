@@ -54,7 +54,8 @@ public final class LogUtil {
     public static void logCommandIntro(
             @NonNull Logger logger, @NonNull Crawler crawler) {
         if (logger.isInfoEnabled()) {
-            logger.info("\n\n{}", About.about(crawler.getConfiguration()));
+            logger.info("\n\n{}",
+                    About.about(crawler.getConfiguration(), true));
         }
     }
 }

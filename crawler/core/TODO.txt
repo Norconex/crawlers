@@ -1,6 +1,14 @@
 TODO:
 ==============
 
+ignite.bat -Dignite.configuration=path\to\your\ignite-config.xml
+
+
+- Use ignite internally for running tasks, regardless if single node or cluster.
+  No need for abstraction. 
+  Within the task, the data store can be anything... including ignite, we keep
+  abstraction here.
+
 - Whall we merge import and commit pipelines? likely not if we want
   to split them one day (e.g. micro-services).
 

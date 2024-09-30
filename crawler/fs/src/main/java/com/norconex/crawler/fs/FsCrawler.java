@@ -33,12 +33,11 @@ public class FsCrawler {
             () -> Crawler
                     .builder()
                     .fetcherProvider(new FileFetcherProvider())
-                    .callbacks(
-                            CrawlerCallbacks
-                                    .builder()
-                                    .beforeCrawlerExecution(
-                                            new BeforeFsCrawlerExecution())
-                                    .build())
+                    .callbacks(CrawlerCallbacks
+                            .builder()
+                            .beforeCrawlerExecution(
+                                    new BeforeFsCrawlerExecution())
+                            .build())
                     .docPipelines(FsDocPipelines.get())
                     .docContextType(FsCrawlDocContext.class);
 

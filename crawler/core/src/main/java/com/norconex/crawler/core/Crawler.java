@@ -14,39 +14,48 @@
  */
 package com.norconex.crawler.core;
 
-import static com.norconex.crawler.core.CrawlerCommandExecuter.executeCommand;
-
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Objects;
+import java.util.Optional;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
 
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.service.CommitterService;
 import com.norconex.commons.lang.ClassUtil;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
+import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.crawler.core.CrawlerCommandExecuter.CommandExecution;
+import com.norconex.commons.lang.time.DurationFormatter;
+import com.norconex.crawler.core.commands.Command;
+import com.norconex.crawler.core.commands.crawl.CrawlCommand;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.pipelines.DocPipelines;
-import com.norconex.crawler.core.doc.process.DocsProcessor;
+import com.norconex.crawler.core.doc.process.DocProcessingLedger;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.grid.GridSystem;
 import com.norconex.crawler.core.services.CrawlerProgressLogger;
 import com.norconex.crawler.core.services.CrawlerServices;
 import com.norconex.crawler.core.services.DocTrackerService;
 import com.norconex.crawler.core.services.monitor.CrawlerMonitor;
+import com.norconex.crawler.core.services.monitor.CrawlerMonitorJMX;
 import com.norconex.crawler.core.state.CrawlerState;
 import com.norconex.crawler.core.stop.CrawlerStopper;
 import com.norconex.crawler.core.stop.impl.FileBasedStopper;
 import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.core.store.DataStoreExporter;
-import com.norconex.crawler.core.store.DataStoreImporter;
+import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.importer.Importer;
 import com.norconex.importer.doc.DocContext;
 
@@ -77,6 +86,9 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class Crawler {
 
+    //TODO by default start with Ignite embedded as a compute engine (data is still data store).
+    // one can configure ignite as a cluster.  When doing so, the default store (ignite) uses that config.
+
     private static final InheritableThreadLocal<Crawler> INSTANCE =
             new InheritableThreadLocal<>();
 
@@ -84,11 +96,14 @@ public class Crawler {
 
     // --- Set in constructor ---
     private final CrawlerConfig configuration;
+    private final Class<? extends CrawlerBuilderFactory> builderFactoryClass;
     private final CrawlerServices services;
     private final DocPipelines docPipelines;
     private final CrawlerCallbacks callbacks;
-    private final DataStoreEngine dataStoreEngine;
+    private final DataStoreEngine dataStoreEngine; //TODO remove me
+    private final DocProcessingLedger docProcessingLedger;
     private final CrawlerContext context;
+    private final GridSystem gridSystem;
 
     // TODO really have the following ones here or make them part of one of
     // the above class?
@@ -100,16 +115,25 @@ public class Crawler {
     private CrawlerStopper stopper = new FileBasedStopper();
 
     // --- Set in init ---
-    Path workDir;
-    Path tempDir;
+    Path workDir; // <-- we want to keep this? use ignite store instead?
+    Path tempDir; // <-- we want to keep this? use ignite store instead?
     CachedStreamFactory streamFactory;
 
+    //TODO accept configuration object + CrawlerBuilder.class and have
+    // an init method create all instance variables (or even, encapsulate
+    // them in a CrawlerState object or equiv..
+    // With the config in argument, create the GridSystem and
+    // invoke the commands.  The grid system will initialize the crawler (call init) as needed.
+
     @SuppressWarnings("resource")
-    Crawler(CrawlerBuilder b) {
+    Crawler(CrawlerBuilder b,
+            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
+        this.builderFactoryClass = builderFactoryClass;
         configuration = Objects.requireNonNull(b.configuration());
         context = b.context();
         docContextType = b.docContextType();
         callbacks = b.callbacks();
+        gridSystem = configuration.getGridSystem();
         dataStoreEngine = configuration.getDataStoreEngine();
         var eventManager = new EventManager(b.eventManager());
         var trackerService = new DocTrackerService(this, docContextType);
@@ -118,22 +142,21 @@ public class Crawler {
                 .builder()
                 .beanMapper(b.beanMapper())
                 .eventManager(eventManager)
-                .committerService(
-                        CommitterService
-                                .<CrawlDoc>builder()
-                                .committers(configuration.getCommitters())
-                                .eventManager(eventManager)
-                                .upsertRequestBuilder(
-                                        doc -> new UpsertRequest(
-                                                doc.getReference(),
-                                                doc.getMetadata(),
-                                                // InputStream closed by caller
-                                                doc.getInputStream()))
-                                .deleteRequestBuilder(
-                                        doc -> new DeleteRequest(
-                                                doc.getReference(),
-                                                doc.getMetadata()))
-                                .build())
+                .committerService(CommitterService
+                        .<CrawlDoc>builder()
+                        .committers(configuration.getCommitters())
+                        .eventManager(eventManager)
+                        .upsertRequestBuilder(
+                                doc -> new UpsertRequest(
+                                        doc.getReference(),
+                                        doc.getMetadata(),
+                                        // InputStream closed by caller
+                                        doc.getInputStream()))
+                        .deleteRequestBuilder(
+                                doc -> new DeleteRequest(
+                                        doc.getReference(),
+                                        doc.getMetadata()))
+                        .build())
                 .docTrackerService(trackerService)
                 .importer(
                         new Importer(
@@ -145,15 +168,33 @@ public class Crawler {
                                 monitor,
                                 configuration.getMinProgressLoggingInterval()))
                 .build();
+        docProcessingLedger = new DocProcessingLedger(this, docContextType);
         fetcher = b.fetcherProvider().apply(this);
         docPipelines = b.docPipelines();
         state = new CrawlerState(this);
     }
 
-    public static CrawlerBuilder builder() {
-        return new CrawlerBuilder();
+    public static Crawler create(
+            @NonNull Class<CrawlerBuilderFactory> builderFactoryClass) {
+        return create(builderFactoryClass, null);
     }
 
+    public static Crawler create(
+            @NonNull Class<? extends CrawlerBuilderFactory> builderFactoryClass,
+            CrawlerBuilderModifier builderModifier) {
+        var factory = ClassUtil.newInstance(builderFactoryClass);
+        var builder = factory.create();
+        if (builderModifier != null) {
+            builderModifier.modify(builder);
+        }
+        return new Crawler(builder, builderFactoryClass);
+    }
+    // maybe an override with builderInitializer in addition of the factory Class?
+
+    //    public static CrawlerBuilder builder() {
+    //        return new CrawlerBuilder();
+    //    }
+    //
     public String getId() {
         return configuration.getId();
     }
@@ -206,43 +247,195 @@ public class Crawler {
         return getId();
     }
 
+    // --- Init/Destroy --------------------------------------------------------
+
+    // local init...
+    public void init(boolean isClientNode) {
+        //--- Ensure good state/config ---
+        if (StringUtils.isBlank(getId())) {
+            throw new CrawlerException(
+                    "Crawler must be given a unique identifier (id).");
+        }
+        LogUtil.setMdcCrawlerId(getId());
+        Thread.currentThread().setName(getId());
+
+        services.getEventManager().addListenersFromScan(configuration);
+
+        fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+
+        // need those? // maybe append cluster node id?
+        workDir = Optional.ofNullable(configuration.getWorkDir())
+                .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
+                .resolve(FileUtil.toSafeFileName(getId()));
+        tempDir = workDir.resolve("temp");
+        try {
+            // Will also create workdir parent:
+            Files.createDirectories(tempDir);
+        } catch (IOException e) {
+            throw new CrawlerException(
+                    "Could not create directory: " + tempDir, e);
+        }
+        streamFactory = new CachedStreamFactory(
+                (int) configuration.getMaxStreamCachePoolSize(),
+                (int) configuration.getMaxStreamCacheSize(),
+                tempDir);
+
+        //TODO do this?
+        //        if (execution.logIntro) {
+        LogUtil.logCommandIntro(LOG, this);
+        //        }
+
+        //TODO DO WE STILL LOCK?
+        //        state.init(execution.lock);
+
+        // DELETE THIS:
+        //        crawler.getDataStoreEngine().init(crawler);
+        if (isClientNode) {
+            gridSystem.clientInit(this);
+        }
+
+        // clear if we want to have the crawler resetable (to rerun
+        // the same instance)...
+        //services.getEventManager().clearListeners();
+        docProcessingLedger.init();
+
+        services.init(this);
+        //        services.getEventManager().addListenersFromScan(configuration);
+
+        if (Boolean.getBoolean(Crawler.SYS_PROP_ENABLE_JMX)) {
+            CrawlerMonitorJMX.register(this);
+        }
+
+        getStopper().listenForStopRequest(this);
+
+        fire(CrawlerEvent.CRAWLER_INIT_END);
+    }
+
+    public void orderlyShutdown(boolean isClientMode) {
+        fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
+        try {
+            // Defer shutdown
+            Optional.ofNullable(configuration.getDeferredShutdownDuration())
+                    .filter(d -> d.toMillis() > 0)
+                    .ifPresent(d -> {
+                        LOG.info("Deferred shutdown requested. Pausing for {} "
+                                + "starting from this UTC moment: {}",
+                                DurationFormatter.FULL.format(d),
+                                LocalDateTime.now(ZoneOffset.UTC));
+                        Sleeper.sleepMillis(d.toMillis());
+                        LOG.info("Shutdown resumed.");
+                    });
+
+            // Unregister JMX crawlers
+            if (Boolean.getBoolean(Crawler.SYS_PROP_ENABLE_JMX)) {
+                LOG.info("Unregistering JMX crawler MBeans.");
+                CrawlerMonitorJMX.unregister(this);
+            }
+            getDataStoreEngine().close();
+            if (isClientMode) {
+                gridSystem.close();
+            }
+            docProcessingLedger.close();
+            getServices().close();
+        } finally {
+            // close state last
+            if (tempDir != null) {
+                try {
+                    FileUtil.delete(tempDir.toFile());
+                } catch (IOException e) {
+                    LOG.error(
+                            "Could not delete the temporary directory:"
+                                    + tempDir,
+                            e);
+                }
+            }
+            MDC.clear();
+            getState().setTerminatedProperly(true);
+            getState().close();
+            getStopper().destroy();
+            fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
+            getServices().getEventManager().clearListeners();
+        }
+        //        }, GridExecuterOptions.builder()
+        //                .name("crawler-shutdown")
+        //                .block(true)
+        //                .singleton(execution.singleton)
+        //                .build());
+        //        gridExecuter.close();
+    }
+
     // --- Commands ------------------------------------------------------------
 
     public void start() {
-        executeCommand(
-                new CommandExecution(this, "RUN")
-                        .command(new DocsProcessor(this))
-                        .lock(true)
-                        .logIntro(true));
+        // we need finer-grained control on cluster for "start" so we don't
+        // use the grid executer here but deeper in the code where needed.
+
+        // for now we have it here just as a test
+        executeCommand(new CrawlCommand(), "RUN");
+
+        //
+        //        executeCommand(new CommandExecution(this, "RUN")
+        //                .command(() -> new DocsProcessor(this))
+        //                // end test
+        //                .lock(true)
+        //                .logIntro(true));
+
+        //        executeCommand(new CommandExecution(this, "RUN")
+        //                .command(() -> gridExecuter.execute(() ->
+        //                // start test
+        //                        new DocsProcessor(this), GridExecuterOptions.builder()
+        //                                .name("crawler-start")
+        //                                .block(true)
+        //                                .build()))
+        //                // end test
+        //                .lock(true)
+        //                .logIntro(true));
     }
 
     public void stop() {
-        if (!getState().isStopped() && !getState().isStopping()
-                && getState().isExecutionLocked()) {
-            fire(CrawlerEvent.CRAWLER_STOP_BEGIN);
-            getState().setStopping(true);
-            LOG.info("Stopping the crawler.");
-        } else {
-            LOG.info("CANNOT STOP: the targetted crawler does not appear "
-                    + "to be running on on this host.");
-        }
+        //        gridExecuter.execute(() -> {
+        //            if (!getState().isStopped() && !getState().isStopping()
+        //                    && getState().isExecutionLocked()) {
+        //                fire(CrawlerEvent.CRAWLER_STOP_BEGIN);
+        //                getState().setStopping(true);
+        //                LOG.info("Stopping the crawler.");
+        //            } else {
+        //                LOG.info("CANNOT STOP: the targetted crawler does not appear "
+        //                        + "to be running on on this host.");
+        //            }
+        //        }, GridExecuterOptions.builder()
+        //                .name("crawler-stop")
+        //                .block(true)
+        //                .build());
     }
 
     public void exportDataStore(Path exportDir) {
-        executeCommand(new CommandExecution(this, "STORE_EXPORT")
-                .failableCommand(() -> DataStoreExporter.exportDataStore(
-                        this,
-                        exportDir))
-                .lock(true)
-                .logIntro(true));
+        //        executeCommand(new CommandExecution(this, "STORE_EXPORT")
+        //                .failableCommand(() -> gridExecuter.execute(
+        //                        () -> DataStoreExporter.exportDataStore(
+        //                                this, exportDir),
+        //                        GridExecuterOptions.builder()
+        //                                .name("crawler-export")
+        //                                .block(true)
+        //                                .singleton(true)
+        //                                .build()))
+        //                .lock(true)
+        //                .logIntro(true)
+        //                .singleton(true));
     }
 
     public void importDataStore(Path file) {
-        executeCommand(new CommandExecution(this, "STORE_IMPORT")
-                .failableCommand(
-                        () -> DataStoreImporter.importDataStore(this, file))
-                .lock(true)
-                .logIntro(true));
+        //        executeCommand(new CommandExecution(this, "STORE_IMPORT")
+        //                .failableCommand(() -> gridExecuter.execute(
+        //                        () -> DataStoreImporter.importDataStore(this, file),
+        //                        GridExecuterOptions.builder()
+        //                                .name("crawler-import")
+        //                                .block(true)
+        //                                .singleton(true)
+        //                                .build()))
+        //                .lock(true)
+        //                .logIntro(true)
+        //                .singleton(true));
     }
 
     /**
@@ -250,13 +443,32 @@ public class Crawler {
      * the crawler was run for the first time.
      */
     public void clean() {
-        executeCommand(new CommandExecution(this, "CLEAN")
-                .failableCommand(() -> {
-                    getServices().getCommitterService().clean();
-                    dataStoreEngine.clean();
-                    FileUtils.deleteDirectory(getWorkDir().toFile());
-                })
-                .lock(true)
-                .logIntro(true));
+        //        executeCommand(new CommandExecution(this, "CLEAN")
+        //                .failableCommand(() -> gridExecuter.execute(() -> {
+        //                    getServices().getCommitterService().clean();
+        //                    dataStoreEngine.clean();
+        //                    FileUtils.deleteDirectory(getWorkDir().toFile());
+        //                }, GridExecuterOptions.builder()
+        //                        .name("crawler-clean")
+        //                        .block(true)
+        //                        .singleton(true)
+        //                        .build()))
+        //                .lock(true)
+        //                .logIntro(true)
+        //                .singleton(true));
+    }
+
+    private void executeCommand(Command command, String commandName) {
+        //        try (var grid = getGridSystem()) {
+        //            grid.init(this);
+        init(true);
+        try {
+            fire("CRAWLER_%s_BEGIN".formatted(commandName));
+            command.execute(this);
+        } finally {
+            fire("CRAWLER_%s_END".formatted(commandName));
+            orderlyShutdown(true);
+        }
+        //        }
     }
 }

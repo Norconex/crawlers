@@ -19,6 +19,7 @@ import java.nio.file.Path;
 
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerBuilder;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.EqualsAndHashCode;
@@ -64,8 +65,9 @@ public abstract class CliSubCommandBase implements Runnable {
 
     @Override
     public void run() {
-        loadConfiguration();
-        runCommand(parent.getCrawlerBuilder().build());
+        runCommand(Crawler.create(parent.getCrawlerBuilderFactoryClass(), b -> {
+            loadConfiguration(b);
+        }));
     }
 
     protected abstract void runCommand(Crawler crawler);
@@ -78,19 +80,19 @@ public abstract class CliSubCommandBase implements Runnable {
         return spec.commandLine().getErr();
     }
 
-    private void loadConfiguration() {
+    private void loadConfiguration(CrawlerBuilder builder) {
         if (getConfigFile() == null || !getConfigFile().toFile().isFile()) {
             throw new CliException(
                     "Configuration file does not exist or is not valid: "
                             + getConfigFile().toFile().getAbsolutePath());
         }
 
-        var cfg = parent.getCrawlerBuilder().configuration();
+        var cfg = builder.configuration();
         try {
             ConfigurationLoader
                     .builder()
                     .variablesFile(getVariablesFile())
-                    .beanMapper(parent.getCrawlerBuilder().beanMapper())
+                    .beanMapper(builder.beanMapper())
                     .build()
                     .toObject(getConfigFile(), cfg);
         } catch (ConstraintViolationException e) {

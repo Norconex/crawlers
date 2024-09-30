@@ -31,6 +31,7 @@
     <cxf.version>3.4.5</cxf.version>
     <h2.version>2.2.224</h2.version>
     <hikaricp.version>5.1.0</hikaricp.version>
+    <ignite.version>2.16.0</ignite.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <mongodb.version>5.1.1</mongodb.version>
     <swagger.version>2.2.15</swagger.version>
@@ -97,6 +98,17 @@
       <version>${h2.version}</version>
       <!-- <scope>test</scope> -->
     </dependency>
+    <dependency>
+        <groupId>org.apache.ignite</groupId>
+        <artifactId>ignite-core</artifactId>
+        <version>${ignite.version}</version>
+    </dependency>
+<!--    <dependency>
+        <groupId>org.apache.ignite</groupId>
+        <artifactId>ignite-spring</artifactId>
+        <version>${ignite.version}</version>
+    </dependency>
+    -->
     
     <!-- Jackson & misc -->
     <!-- TODO: remove from here as likely inherited from Importer or Nx Lang -->

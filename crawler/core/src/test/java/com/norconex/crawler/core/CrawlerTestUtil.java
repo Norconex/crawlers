@@ -20,17 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableRunnable;
-import org.apache.commons.lang3.mutable.MutableObject;
+import org.junit.platform.commons.JUnitException;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.commons.lang.SystemUtil;
-import com.norconex.commons.lang.SystemUtil.Captured;
-import com.norconex.crawler.core.CrawlerCommandExecuter.CommandExecution;
-import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
 
 import lombok.Data;
@@ -54,12 +48,14 @@ public final class CrawlerTestUtil {
     }
 
     public static void initCrawler(Crawler crawler) {
-        CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
+        //        GridCrawlerTaskExecutor.initLocalCrawler(crawler);
+        //        CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
     }
 
     public static void destroyCrawler(Crawler crawler) {
-        CrawlerCommandExecuter.orderlyShutdown(
-                new CommandExecution(crawler, "TEST"));
+        //        GridCrawlerTaskExecutor.shutdownLocalCrawler(crawler);
+        //        CrawlerCommandExecuter.orderlyShutdown(
+        //                new CommandExecution(crawler, "TEST"));
     }
 
     public static MemoryCommitter firstCommitter(
@@ -70,9 +66,10 @@ public final class CrawlerTestUtil {
 
     public static MemoryCommitter runWithConfig(
             @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c) {
-        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
-        c.accept(crawlerBuilder.configuration());
-        var crawler = crawlerBuilder.build();
+        var crawler = CrawlerStubs.memoryCrawler(workDir, c);
+        //        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
+        //        c.accept(crawlerBuilder.configuration());
+        //        var crawler = crawlerBuilder.build();
         crawler.start();
         return CrawlerTestUtil.firstCommitter(crawler);
     }
@@ -119,38 +116,41 @@ public final class CrawlerTestUtil {
             @NonNull Path workDir,
             Consumer<CrawlerConfig> configModifier,
             String... cmdArgs) throws IOException {
-        //NOTE configuration will be read from file, but applied on top
-        // of existing config so we can pre-configure items here.
-        var exit = new Exit();
-        var cfgFile = CrawlerConfigStubs.writeConfigToDir(workDir, cfg -> {
-            if (configModifier != null) {
-                configModifier.accept(cfg);
-            }
-        });
 
-        // replace config path with created path if argument was supplied
-        // without a file
-        for (var i = 0; i < cmdArgs.length; i++) {
-            var arg = cmdArgs[i];
-            if (StringUtils.equalsAny(arg, "-config=", "-c=")) {
-                cmdArgs[i] = "-config=" + cfgFile;
-            }
-        }
+        throw new JUnitException("Not implemented.");
 
-        new MutableObject<CrawlerConfig>();
-
-        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
-                () -> CliCrawlerLauncher.launch(CrawlerStubs
-                        .memoryCrawlerBuilder(workDir, cfg -> {
-                            cfg.addEventListener(
-                                    event -> exit
-                                            .getEvents().add(event.getName()));
-                        }),
-                        cmdArgs));
-
-        exit.setCode(captured.getReturnValue());
-        exit.setStdOut(captured.getStdOut());
-        exit.setStdErr(captured.getStdErr());
-        return exit;
+        //        //NOTE configuration will be read from file, but applied on top
+        //        // of existing config so we can pre-configure items here.
+        //        var exit = new Exit();
+        //        var cfgFile = CrawlerConfigStubs.writeConfigToDir(workDir, cfg -> {
+        //            if (configModifier != null) {
+        //                configModifier.accept(cfg);
+        //            }
+        //        });
+        //
+        //        // replace config path with created path if argument was supplied
+        //        // without a file
+        //        for (var i = 0; i < cmdArgs.length; i++) {
+        //            var arg = cmdArgs[i];
+        //            if (StringUtils.equalsAny(arg, "-config=", "-c=")) {
+        //                cmdArgs[i] = "-config=" + cfgFile;
+        //            }
+        //        }
+        //
+        //        new MutableObject<CrawlerConfig>();
+        //
+        //        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
+        //                () -> CliCrawlerLauncher.launch(CrawlerStubs
+        //                        .memoryCrawlerBuilder(workDir, cfg -> {
+        //                            cfg.addEventListener(
+        //                                    event -> exit
+        //                                            .getEvents().add(event.getName()));
+        //                        }),
+        //                        cmdArgs));
+        //
+        //        exit.setCode(captured.getReturnValue());
+        //        exit.setStdOut(captured.getStdOut());
+        //        exit.setStdErr(captured.getStdErr());
+        //        return exit;
     }
 }

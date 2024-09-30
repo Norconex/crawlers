@@ -56,10 +56,10 @@ public class CrawlerBuilder {
     private Function<Crawler, ? extends Fetcher<? extends FetchRequest,
             ? extends FetchResponse>> fetcherProvider;
 
-    CrawlerBuilder() {
-    }
+    //    CrawlerBuilder() {
+    //    }
 
-    public Crawler build() {
-        return new Crawler(this);
-    }
+    //    public Crawler build() {
+    //        return new Crawler(this);
+    //    }
 }

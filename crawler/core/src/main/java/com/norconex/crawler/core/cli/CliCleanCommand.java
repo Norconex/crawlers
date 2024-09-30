@@ -14,37 +14,21 @@
  */
 package com.norconex.crawler.core.cli;
 
-import java.nio.file.Path;
-
 import com.norconex.crawler.core.Crawler;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 
 /**
- * Export crawl store to specified file.
+ * Clean the Collector crawling history.
  */
 @Command(
-    name = "storeexport",
-    description = "Export crawl store to specified directory"
+    name = "clean",
+    description = "Clean the Collector crawling history (to start fresh)"
 )
-@EqualsAndHashCode
-@ToString
-public class StoreExportCommand extends CliSubCommandBase {
-
-    @Option(
-        names = { "-d", "-dir" },
-        description = "Export directory",
-        required = true
-    )
-    private Path dir;
-    //TODO add format?
-    //TODO add compress?
+public class CliCleanCommand extends CliSubCommandBase {
 
     @Override
     protected void runCommand(Crawler crawler) {
-        crawler.exportDataStore(dir);
+        crawler.clean();
     }
 }

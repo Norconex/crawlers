@@ -78,10 +78,11 @@ class WithCrawlerExtension implements
             c.accept(crawlerConfig);
         }
 
-        var crawler = CrawlerStubs
-                .memoryCrawlerBuilder(tempDir)
-                .configuration(crawlerConfig)
-                .build();
+        //        var crawler = CrawlerStubs
+        //                .memoryCrawlerBuilder(tempDir)
+        //                .configuration(crawlerConfig)
+        //                .build();
+        var crawler = CrawlerStubs.crawler(tempDir, crawlerConfig);
 
         context.getStore(GLOBAL).put(CRAWLER_KEY, crawler);
 

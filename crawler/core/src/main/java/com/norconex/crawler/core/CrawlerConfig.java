@@ -42,6 +42,8 @@ import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.grid.GridSystem;
+import com.norconex.crawler.core.grid.impl.ignite.IgniteGridSystem;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
 import com.norconex.importer.ImporterConfig;
@@ -146,6 +148,11 @@ public class CrawlerConfig {
      * wait to shutdown after completion).
      */
     private Duration deferredShutdownDuration = Duration.ZERO;
+
+    /**
+     * The Grid System.
+     */
+    private GridSystem gridSystem = new IgniteGridSystem();
 
     /**
      * The data store engine.

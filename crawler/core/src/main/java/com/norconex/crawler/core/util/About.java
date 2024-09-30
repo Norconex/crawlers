@@ -47,22 +47,25 @@ public final class About {
     private About() {
     }
 
-    public static String about(@NonNull CrawlerConfig config) {
+    public static String about(
+            @NonNull CrawlerConfig config, boolean extended) {
         try (var sw = new StringWriter(); var w = new PrintWriter(sw, true)) {
 
             w.println(NORCONEX_ASCII);
 
             w.println("Version:\n  " + releaseVersion(config.getClass()));
 
-            // committer
-            var committerClasses = configuredCommitters(config);
-            w.println("Committers:");
-            if (CollectionUtils.isNotEmpty(committerClasses)) {
-                for (Class<?> cls : committerClasses) {
-                    w.println("  " + committerName(cls));
+            if (extended) {
+                // committer
+                var committerClasses = configuredCommitters(config);
+                w.println("Committers:");
+                if (CollectionUtils.isNotEmpty(committerClasses)) {
+                    for (Class<?> cls : committerClasses) {
+                        w.println("  " + committerName(cls));
+                    }
+                } else {
+                    w.println("  <None>");
                 }
-            } else {
-                w.println("  <None>");
             }
 
             // runtime

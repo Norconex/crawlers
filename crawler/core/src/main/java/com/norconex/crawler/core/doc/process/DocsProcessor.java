@@ -78,12 +78,11 @@ public class DocsProcessor implements Runnable {
         resumableMaxDocs = cfgMaxDocs;
         if (cfgMaxDocs > -1 && state.isResuming()) {
             resumableMaxDocs += docTrackerService.getProcessedCount();
-            LOG.info(
-                    """
-                            Adding configured maximum documents ({})\s\
-                            to this resumed session. The combined maximum\s\
-                            documents for this run and previous stopped one(s) is: {}
-                            """,
+            LOG.info("""
+                    Adding configured maximum documents ({})\s\
+                    to this resumed session. The combined maximum\s\
+                    documents for this run and previous stopped one(s) is: {}
+                    """,
                     cfgMaxDocs, resumableMaxDocs);
         }
     }

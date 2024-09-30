@@ -42,6 +42,7 @@ public class CrawlerServices implements Closeable {
 
     private CrawlerMonitor monitor;
 
+    //TODO DELETE
     private DocTrackerService docTrackerService;
 
     //TODO have queue services? that way it will match pipelines?
@@ -63,7 +64,8 @@ public class CrawlerServices implements Closeable {
 
     public void init(Crawler crawler) {
 
-        docTrackerService.init();
+        //TODO delete DocTrackerService
+        //        docTrackerService.init();
 
         committerService.init(
                 CommitterContext

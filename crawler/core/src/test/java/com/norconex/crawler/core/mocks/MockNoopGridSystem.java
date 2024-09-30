@@ -1,0 +1,61 @@
+/* Copyright 2024 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.norconex.crawler.core.mocks;
+
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.GridCompute;
+import com.norconex.crawler.core.grid.GridQueue;
+import com.norconex.crawler.core.grid.GridSystem;
+
+import lombok.Data;
+
+@Data
+public class MockNoopGridSystem implements GridSystem {
+
+    @Override
+    public <T> GridCache<T> getCache(String name, Class<? extends T> type) {
+        return null;
+    }
+
+    @Override
+    public <T> GridQueue<T> getQueue(String name, Class<? extends T> type) {
+        return null;
+    }
+
+    @Override
+    public GridCompute getCompute() {
+        return null;
+    }
+
+    @Override
+    public void clientInit(Crawler crawler) {
+    }
+
+    //    @Override
+    //    public Crawler getLocalCrawler() {
+    //        return null;
+    //    }
+
+    @Override
+    public void close() {
+    }
+
+    @Override
+    public GridCache<String> getGlobalCache() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+}

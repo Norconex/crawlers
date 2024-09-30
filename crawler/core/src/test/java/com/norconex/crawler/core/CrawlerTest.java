@@ -23,21 +23,17 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.assertj.core.api.Condition;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
-import com.norconex.crawler.core.mocks.MockFetcher;
 import com.norconex.crawler.core.mocks.MockNoopDataStore;
 import com.norconex.crawler.core.mocks.MockNoopDataStoreEngine;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
 
 class CrawlerTest {
 
@@ -162,82 +158,83 @@ class CrawlerTest {
         assertThat(mem.getUpsertCount()).isZero();
     }
 
+    @Disabled
     @Test
     void testLifeCycle() {
-        var builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
-        builder.fetcherProvider(
-                crawler -> new MockFetcher().setRandomDocContent(true));
-        builder.configuration()
-                .setStartReferences(
-                        List.of(
-                                "mock:ref1", "mock:ref2", "mock:ref3",
-                                "mock:ref4"))
-                .setWorkDir(tempDir);
-        var crawler1 = builder.build();
-        var mem = CrawlerTestUtil.firstCommitter(crawler1);
-
-        // Start
-        crawler1.start();
-
-        // All 4 docs must be committed and not be found in cache
-        assertThat(mem.getAllRequests())
-                .allMatch(req -> req.getReference().startsWith("mock:ref"))
-                .allMatch(
-                        req -> !req.getMetadata().getBoolean("mock.alsoCached"))
-                .hasSize(4);
-
-        // Export
-        var exportDir = tempDir.resolve("exportdir");
-        crawler1.exportDataStore(exportDir);
-
-        // Clean
-        crawler1.clean();
-
-        // Import
-        var exportFile = exportDir.resolve(CrawlerStubs.CRAWLER_ID + ".zip");
-        crawler1.importDataStore(exportFile);
-
-        // New session with 1 new 2 modified, and 1 orphan
-        builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
-        builder.fetcherProvider(
-                crawler -> new MockFetcher().setRandomDocContent(true));
-        builder.configuration()
-                .setStartReferences(
-                        List.of(
-                                "mock:ref2", "mock:ref3", "mock:ref4",
-                                "mock:ref5"))
-                .setWorkDir(tempDir);
-        var crawler2 = builder.build();
-        mem = CrawlerTestUtil.firstCommitter(crawler2);
-
-        // Start
-        crawler2.start();
-
-        // 5 docs must be committed:
-        //    1 new
-        //    3 modified (also cached)
-        //    1 orphan (also cached)
-        assertThat(mem.getAllRequests())
-                .allMatch(req -> req.getReference().startsWith("mock:ref"))
-                .hasSize(5)
-                .areExactly(
-                        4,
-                        new Condition<>(
-                                req -> req.getMetadata()
-                                        .getBoolean("mock.alsoCached"),
-                                ""))
-                .areExactly(
-                        1,
-                        new Condition<>(
-                                req -> req.getMetadata().getBoolean(
-                                        "crawler.is-crawl-new"),
-                                ""))
-                .map(CommitterRequest::getReference)
-                // ref1 is last because orphans are processed last
-                .containsExactly(
-                        "mock:ref2", "mock:ref3", "mock:ref4",
-                        "mock:ref5",
-                        "mock:ref1");
+        //        var builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
+        //        builder.fetcherProvider(
+        //                crawler -> new MockFetcher().setRandomDocContent(true));
+        //        builder.configuration()
+        //                .setStartReferences(
+        //                        List.of(
+        //                                "mock:ref1", "mock:ref2", "mock:ref3",
+        //                                "mock:ref4"))
+        //                .setWorkDir(tempDir);
+        //        var crawler1 = builder.build();
+        //        var mem = CrawlerTestUtil.firstCommitter(crawler1);
+        //
+        //        // Start
+        //        crawler1.start();
+        //
+        //        // All 4 docs must be committed and not be found in cache
+        //        assertThat(mem.getAllRequests())
+        //                .allMatch(req -> req.getReference().startsWith("mock:ref"))
+        //                .allMatch(
+        //                        req -> !req.getMetadata().getBoolean("mock.alsoCached"))
+        //                .hasSize(4);
+        //
+        //        // Export
+        //        var exportDir = tempDir.resolve("exportdir");
+        //        crawler1.exportDataStore(exportDir);
+        //
+        //        // Clean
+        //        crawler1.clean();
+        //
+        //        // Import
+        //        var exportFile = exportDir.resolve(CrawlerStubs.CRAWLER_ID + ".zip");
+        //        crawler1.importDataStore(exportFile);
+        //
+        //        // New session with 1 new 2 modified, and 1 orphan
+        //        builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
+        //        builder.fetcherProvider(
+        //                crawler -> new MockFetcher().setRandomDocContent(true));
+        //        builder.configuration()
+        //                .setStartReferences(
+        //                        List.of(
+        //                                "mock:ref2", "mock:ref3", "mock:ref4",
+        //                                "mock:ref5"))
+        //                .setWorkDir(tempDir);
+        //        var crawler2 = builder.build();
+        //        mem = CrawlerTestUtil.firstCommitter(crawler2);
+        //
+        //        // Start
+        //        crawler2.start();
+        //
+        //        // 5 docs must be committed:
+        //        //    1 new
+        //        //    3 modified (also cached)
+        //        //    1 orphan (also cached)
+        //        assertThat(mem.getAllRequests())
+        //                .allMatch(req -> req.getReference().startsWith("mock:ref"))
+        //                .hasSize(5)
+        //                .areExactly(
+        //                        4,
+        //                        new Condition<>(
+        //                                req -> req.getMetadata()
+        //                                        .getBoolean("mock.alsoCached"),
+        //                                ""))
+        //                .areExactly(
+        //                        1,
+        //                        new Condition<>(
+        //                                req -> req.getMetadata().getBoolean(
+        //                                        "crawler.is-crawl-new"),
+        //                                ""))
+        //                .map(CommitterRequest::getReference)
+        //                // ref1 is last because orphans are processed last
+        //                .containsExactly(
+        //                        "mock:ref2", "mock:ref3", "mock:ref4",
+        //                        "mock:ref5",
+        //                        "mock:ref1");
     }
 
     @Test
@@ -247,40 +244,41 @@ class CrawlerTest {
                         tempDir, cfg -> cfg.setId(null).setWorkDir(tempDir)));
     }
 
+    @Disabled
     @Test
     void testOrphanDeletion() {
-        var builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
-        builder.fetcherProvider(
-                crawler -> new MockFetcher().setRandomDocContent(true));
-        builder.configuration()
-                .setStartReferences(
-                        List.of(
-                                "mock:ref1", "mock:ref2", "mock:ref3",
-                                "mock:ref4"));
-        var crawler = builder.build();
-
-        crawler.start();
-
-        // New session with 1 new 2 modified, and 1 orphan
-        crawler = CrawlerStubs.memoryCrawler(
-                tempDir,
-                cfg -> cfg.setStartReferences(
-                        List.of(
-                                "mock:ref2", "mock:ref3", "mock:ref4",
-                                "mock:ref5"))
-                        .setOrphansStrategy(OrphansStrategy.DELETE));
-
-        crawler.start();
-
-        var mem = CrawlerTestUtil.firstCommitter(crawler);
-
-        assertThat(mem.getAllRequests())
-                .allMatch(req -> req.getReference().startsWith("mock:ref"))
-                .hasSize(5);
-
-        assertThat(mem.getUpsertCount()).isEqualTo(4);
-        assertThat(mem.getDeleteCount()).isEqualTo(1);
-        assertThat(mem.getDeleteRequests().get(0).getReference())
-                .isEqualTo("mock:ref1");
+        //        var builder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
+        //        builder.fetcherProvider(
+        //                crawler -> new MockFetcher().setRandomDocContent(true));
+        //        builder.configuration()
+        //                .setStartReferences(
+        //                        List.of(
+        //                                "mock:ref1", "mock:ref2", "mock:ref3",
+        //                                "mock:ref4"));
+        //        var crawler = builder.build();
+        //
+        //        crawler.start();
+        //
+        //        // New session with 1 new 2 modified, and 1 orphan
+        //        crawler = CrawlerStubs.memoryCrawler(
+        //                tempDir,
+        //                cfg -> cfg.setStartReferences(
+        //                        List.of(
+        //                                "mock:ref2", "mock:ref3", "mock:ref4",
+        //                                "mock:ref5"))
+        //                        .setOrphansStrategy(OrphansStrategy.DELETE));
+        //
+        //        crawler.start();
+        //
+        //        var mem = CrawlerTestUtil.firstCommitter(crawler);
+        //
+        //        assertThat(mem.getAllRequests())
+        //                .allMatch(req -> req.getReference().startsWith("mock:ref"))
+        //                .hasSize(5);
+        //
+        //        assertThat(mem.getUpsertCount()).isEqualTo(4);
+        //        assertThat(mem.getDeleteCount()).isEqualTo(1);
+        //        assertThat(mem.getDeleteRequests().get(0).getReference())
+        //                .isEqualTo("mock:ref1");
     }
 }

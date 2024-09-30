@@ -12,24 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cli;
+package com.norconex.crawler.core.grid;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerException;
 
-import picocli.CommandLine.Command;
+import lombok.experimental.StandardException;
 
 /**
- * Validate configuration file format and quit.
+ * Crawl data store runtime exception.
  */
-@Command(
-    name = "configcheck",
-    description = "Validate configuration file syntax"
-)
-public class ConfigCheckCommand extends CliSubCommandBase {
-    @Override
-    public void runCommand(Crawler crawler) {
-        // Reaching this method means no errors were found. Simply state so.
-        out().println();
-        out().println("No configuration errors detected.");
-    }
+@StandardException
+public class GridException extends CrawlerException {
+    private static final long serialVersionUID = 1L;
 }

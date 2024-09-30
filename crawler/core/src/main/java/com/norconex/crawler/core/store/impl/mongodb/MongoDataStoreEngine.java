@@ -78,29 +78,20 @@ public class MongoDataStoreEngine
         dbName = FileUtil.toSafeFileName(dbName);
         dbName = StringUtil.truncateWithHash(dbName, 63);
 
-        client = MongoClients
-                .create(
-                        MongoClientSettings.builder()
-                                .applicationName(dbName)
-                                .applyToSocketSettings(
-                                        b -> b.connectTimeout(
-                                                30, TimeUnit.SECONDS)
-                                                .readTimeout(
-                                                        30, TimeUnit.SECONDS))
-                                .codecRegistry(
-                                        CodecRegistries.fromRegistries(
-                                                MongoClientSettings
-                                                        .getDefaultCodecRegistry(),
-                                                CodecRegistries.fromProviders(
-                                                        PojoCodecProvider
-                                                                .builder()
-                                                                .automatic(true)
-                                                                .build())))
-                                .applyConnectionString(
-                                        new ConnectionString(
-                                                configuration
-                                                        .getConnectionString()))
-                                .build());
+        client = MongoClients.create(MongoClientSettings.builder()
+                .applicationName(dbName)
+                .applyToSocketSettings(
+                        b -> b.connectTimeout(30, TimeUnit.SECONDS)
+                                .readTimeout(30, TimeUnit.SECONDS))
+                .codecRegistry(CodecRegistries.fromRegistries(
+                        MongoClientSettings.getDefaultCodecRegistry(),
+                        CodecRegistries.fromProviders(PojoCodecProvider
+                                .builder()
+                                .automatic(true)
+                                .build())))
+                .applyConnectionString(new ConnectionString(
+                        configuration.getConnectionString()))
+                .build());
 
         database = client.getDatabase(dbName);
 

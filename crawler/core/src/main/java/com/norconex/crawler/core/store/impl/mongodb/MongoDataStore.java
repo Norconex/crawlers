@@ -98,10 +98,8 @@ public class MongoDataStore<T> implements DataStore<T> {
 
     @Override
     public Optional<T> deleteFirst() {
-        return unwrap(
-                collection.findOneAndDelete(
-                        new Document(),
-                        findOneAndDeleteOptions));
+        return unwrap(collection.findOneAndDelete(
+                new Document(), findOneAndDeleteOptions));
     }
 
     @Override

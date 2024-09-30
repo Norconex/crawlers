@@ -34,7 +34,6 @@ import com.norconex.crawler.core.CrawlerTestUtil;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
 
 class StopCrawlerOnMaxEventListenerTest {
@@ -66,35 +65,61 @@ class StopCrawlerOnMaxEventListenerTest {
         // prefixing with number to ensure they are retrieved in same order
         //MAYBE: ensure crawl store behave like a FIFO queue?
 
-        var crawlerConfig = CrawlerConfigStubs
-                .memoryCrawlerConfig(tempDir)
-                .setStartReferences(
-                        List.of(
-                                "1-mock:reject-1",
-                                "2-mock:upsert-1",
-                                "3-mock:reject-2",
-                                "4-mock:upsert-2",
-                                "5-mock:upsert-3",
-                                "6-mock:reject-3",
-                                "7-mock:upsert-4"));
-
-        var listener = new StopCrawlerOnMaxEventListener();
-        listener.getConfiguration()
-                .setEventMatcher(TextMatcher.regex(eventMatch))
-                .setMaximum(maximum)
-                .setOnMultiple(onMultiple);
-        crawlerConfig.addEventListener(listener);
-
-        var filter = new GenericReferenceFilter();
-        filter.getConfiguration()
-                .setValueMatcher(TextMatcher.wildcard("*mock:reject*"))
-                .setOnMatch(OnMatch.EXCLUDE);
-        crawlerConfig.setDocumentFilters(List.of(filter));
-
         var crawler = CrawlerStubs
-                .memoryCrawlerBuilder(tempDir)
-                .configuration(crawlerConfig)
-                .build();
+                .memoryCrawler(tempDir, crawlerConfig -> {
+                    crawlerConfig.setStartReferences(List.of(
+                            "1-mock:reject-1",
+                            "2-mock:upsert-1",
+                            "3-mock:reject-2",
+                            "4-mock:upsert-2",
+                            "5-mock:upsert-3",
+                            "6-mock:reject-3",
+                            "7-mock:upsert-4"));
+
+                    var listener = new StopCrawlerOnMaxEventListener();
+                    listener.getConfiguration()
+                            .setEventMatcher(TextMatcher.regex(eventMatch))
+                            .setMaximum(maximum)
+                            .setOnMultiple(onMultiple);
+                    crawlerConfig.addEventListener(listener);
+
+                    var filter = new GenericReferenceFilter();
+                    filter.getConfiguration()
+                            .setValueMatcher(
+                                    TextMatcher.wildcard("*mock:reject*"))
+                            .setOnMatch(OnMatch.EXCLUDE);
+                    crawlerConfig.setDocumentFilters(List.of(filter));
+
+                });
+        //        var crawlerConfig = CrawlerConfigStubs
+        //                .memoryCrawlerConfig(tempDir)
+        //                .setStartReferences(
+        //                        List.of(
+        //                                "1-mock:reject-1",
+        //                                "2-mock:upsert-1",
+        //                                "3-mock:reject-2",
+        //                                "4-mock:upsert-2",
+        //                                "5-mock:upsert-3",
+        //                                "6-mock:reject-3",
+        //                                "7-mock:upsert-4"));
+        //
+        //        var listener = new StopCrawlerOnMaxEventListener();
+        //        listener.getConfiguration()
+        //                .setEventMatcher(TextMatcher.regex(eventMatch))
+        //                .setMaximum(maximum)
+        //                .setOnMultiple(onMultiple);
+        //        crawlerConfig.addEventListener(listener);
+        //
+        //        var filter = new GenericReferenceFilter();
+        //        filter.getConfiguration()
+        //                .setValueMatcher(TextMatcher.wildcard("*mock:reject*"))
+        //                .setOnMatch(OnMatch.EXCLUDE);
+        //        crawlerConfig.setDocumentFilters(List.of(filter));
+
+        //        var crawler = CrawlerStubs
+        //                .memoryCrawlerBuilder(tempDir)
+        //                .configuration(crawlerConfig)
+        //                .build();
 
         crawler.start();
 

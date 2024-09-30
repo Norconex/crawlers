@@ -38,10 +38,10 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerCoreTestUtil;
+import com.norconex.crawler.core.GridCrawlerTaskExecutor;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.web.WebCrawler;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
 
 class WithCrawlerExtension implements
         BeforeEachCallback,
@@ -79,17 +79,19 @@ class WithCrawlerExtension implements
             c.accept(crawlerConfig);
         }
 
-        var crawler = CrawlerStubs
-                .memoryCrawlerBuilder(tempDir)
-                .configuration(crawlerConfig)
-                .build();
+        //        var crawler = CrawlerStubs
+        //                .memoryCrawlerBuilder(tempDir)
+        //                .configuration(crawlerConfig)
+        //                .build();
+        var crawler = WebCrawler.create(crawlerConfig);
 
         context.getStore(GLOBAL).put(CRAWLER_KEY, crawler);
 
         if (annot.run()) {
             crawler.start();
         } else {
-            CrawlerCoreTestUtil.initCrawler(crawler);
+            //            CrawlerCoreTestUtil.initCrawler(crawler);
+            GridCrawlerTaskExecutor.initLocalCrawler(crawler);
             crawler.fire(
                     CrawlerEvent
                             .builder()
@@ -113,7 +115,9 @@ class WithCrawlerExtension implements
 
         // if not already ended normally, stop it.
         if (crawler != null && !crawler.getState().isTerminatedProperly()) {
-            CrawlerCoreTestUtil.destroyCrawler(crawler);
+            GridCrawlerTaskExecutor.shutdownLocalCrawler(crawler);
+
+            //            CrawlerCoreTestUtil.destroyCrawler(crawler);
         }
 
         // Clean up the temporary directory after each test

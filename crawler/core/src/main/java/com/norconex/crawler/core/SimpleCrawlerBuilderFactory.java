@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,23 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cli;
+package com.norconex.crawler.core;
 
-import com.norconex.crawler.core.Crawler;
-
-import picocli.CommandLine.Command;
-
-/**
- * Clean the Collector crawling history.
- */
-@Command(
-    name = "clean",
-    description = "Clean the Collector crawling history (to start fresh)"
-)
-public class CleanCommand extends CliSubCommandBase {
+public class SimpleCrawlerBuilderFactory implements CrawlerBuilderFactory {
 
     @Override
-    protected void runCommand(Crawler crawler) {
-        crawler.clean();
+    public CrawlerBuilder create() {
+        return new CrawlerBuilder();
     }
 }

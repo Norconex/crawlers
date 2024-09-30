@@ -18,9 +18,8 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerBuilder;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.mocks.MockFetcher;
+import com.norconex.crawler.core.MemoryCrawlerBuilderFactory;
 
 public final class CrawlerStubs {
 
@@ -29,29 +28,53 @@ public final class CrawlerStubs {
     private CrawlerStubs() {
     }
 
+    public static Crawler crawler(Path workDir, CrawlerConfig config) {
+        return Crawler.create(MemoryCrawlerBuilderFactory.class, b -> {
+            config.setWorkDir(workDir);
+            b.configuration(config);
+        });
+    }
+
     public static Crawler memoryCrawler(Path workDir) {
-        return memoryCrawlerBuilder(workDir).build();
+        return memoryCrawler(workDir, null);
     }
 
     public static Crawler memoryCrawler(
             Path workDir, Consumer<CrawlerConfig> c) {
-        return memoryCrawlerBuilder(workDir, c).build();
-    }
-
-    public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
-        return memoryCrawlerBuilder(workDir, null);
-    }
-
-    public static CrawlerBuilder memoryCrawlerBuilder(
-            Path workDir, Consumer<CrawlerConfig> c) {
-        var b = Crawler
-                .builder()
-                .configuration(CrawlerConfigStubs.memoryCrawlerConfig(workDir))
-                .fetcherProvider(crawler -> new MockFetcher())
-                .docPipelines(PipelineStubs.pipelines());
+        var crawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
-            c.accept(b.configuration());
+            c.accept(crawlerConfig);
         }
-        return b;
+
+        return Crawler.create(MemoryCrawlerBuilderFactory.class,
+                b -> b.configuration(crawlerConfig));
+
+        //        return Crawler.create(MemoryCrawlerBuilderFactory.class, crawlerConfig);
     }
+    //
+    //    public static Crawler memoryCrawler(Path workDir) {
+    //        return memoryCrawlerBuilder(workDir).build();
+    //    }
+    //
+    //    public static Crawler memoryCrawler(
+    //            Path workDir, Consumer<CrawlerConfig> c) {
+    //        return memoryCrawlerBuilder(workDir, c).build();
+    //    }
+    //
+    //    public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
+    //        return memoryCrawlerBuilder(workDir, null);
+    //    }
+    //
+    //    public static CrawlerBuilder memoryCrawlerBuilder(
+    //            Path workDir, Consumer<CrawlerConfig> c) {
+    //        var b = Crawler
+    //                .builder()
+    //                .configuration(CrawlerConfigStubs.memoryCrawlerConfig(workDir))
+    //                .fetcherProvider(crawler -> new MockFetcher())
+    //                .docPipelines(PipelineStubs.pipelines());
+    //        if (c != null) {
+    //            c.accept(b.configuration());
+    //        }
+    //        return b;
+    //    }
 }

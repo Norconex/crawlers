@@ -30,6 +30,31 @@ import com.norconex.crawler.core.Crawler;
  */
 public interface DataStoreEngine extends Closeable {
 
+    //    /**
+    //     * Operations performed on any data stores will be done atomically, provided
+    //     * atomicity is supported by the store implementation. Store not supporting
+    //     * atomic transactions will execute this method normally, but simply won't
+    //     * offer atomicity.
+    //     * Refer to the data store documentation for transaction support.
+    //     * Try to keep your transactions as short as possible and focused
+    //     * on store operations.
+    //     * @param <T> the return type
+    //     * @param callable code executed involving store transactions.
+    //     * @return any value as per the callable passed
+    //     * @throws DataStoreException
+    //     */
+    //    default <T> T atomically(@NonNull FailableCallable<T, Exception> callable)
+    //            throws DataStoreException {
+    //        try {
+    //            //TODO start transaction
+    //            return callable.call();
+    //            //TODO end transaction
+    //        } catch (Exception e) {
+    //            throw new DataStoreException(
+    //                    "Could not execute operation involving data store.", e);
+    //        }
+    //    }
+
     /**
      * Initializes the data store. Called once per crawler execution, before
      * crawling begins.

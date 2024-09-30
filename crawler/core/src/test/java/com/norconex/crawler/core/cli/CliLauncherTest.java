@@ -28,6 +28,7 @@ import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.crawler.core.MemoryCrawlerBuilderFactory;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
@@ -79,13 +80,23 @@ class CliLauncherTest {
         // Simulate Picocli Exception
         var captured = SystemUtil.callAndCaptureOutput(
                 () -> CliCrawlerLauncher.launch(
-                        CrawlerStubs.memoryCrawlerBuilder(tempDir),
+                        MemoryCrawlerBuilderFactory.class,
                         "clean", "-config=", "-config="));
         assertThat(captured.getReturnValue()).isNotZero();
         assertThat(captured.getStdErr()).contains(
                 "should be specified only once",
                 "Usage:",
                 "Clean the");
+
+        //        var captured = SystemUtil.callAndCaptureOutput(
+        //                () -> CliCrawlerLauncher.launch(
+        //                        CrawlerStubs.memoryCrawlerBuilder(tempDir),
+        //                        "clean", "-config=", "-config="));
+        //        assertThat(captured.getReturnValue()).isNotZero();
+        //        assertThat(captured.getStdErr()).contains(
+        //                "should be specified only once",
+        //                "Usage:",
+        //                "Clean the");
 
         // Bad config syntax
         var file = tempDir.resolve("badConfig.xml");

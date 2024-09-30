@@ -40,7 +40,7 @@ import picocli.CommandLine.Option;
 )
 @EqualsAndHashCode
 @ToString
-public class ConfigRenderCommand extends CliSubCommandBase {
+public class CliConfigRenderCommand extends CliSubCommandBase {
 
     @Option(
         names = { "-o", "-output" },

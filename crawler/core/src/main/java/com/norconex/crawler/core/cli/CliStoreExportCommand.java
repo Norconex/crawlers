@@ -24,24 +24,27 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 /**
- * Import crawl store from specified file.
+ * Export crawl store to specified file.
  */
 @Command(
-    name = "storeimport",
-    description = "Import crawl store from specified files"
+    name = "storeexport",
+    description = "Export crawl store to specified directory"
 )
 @EqualsAndHashCode
 @ToString
-public class StoreImportCommand extends CliSubCommandBase {
+public class CliStoreExportCommand extends CliSubCommandBase {
+
     @Option(
-        names = { "-f", "-file" },
-        description = "Data store files to import.",
+        names = { "-d", "-dir" },
+        description = "Export directory",
         required = true
     )
-    private Path inFile;
+    private Path dir;
+    //TODO add format?
+    //TODO add compress?
 
     @Override
     protected void runCommand(Crawler crawler) {
-        crawler.importDataStore(inFile);
+        crawler.exportDataStore(dir);
     }
 }

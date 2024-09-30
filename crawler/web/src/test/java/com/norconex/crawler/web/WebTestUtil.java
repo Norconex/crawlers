@@ -331,9 +331,13 @@ public final class WebTestUtil {
 
     public static MemoryCommitter runWithConfig(
             @NonNull Path workDir, @NonNull Consumer<WebCrawlerConfig> c) {
-        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
-        c.accept((WebCrawlerConfig) crawlerBuilder.configuration());
-        var crawler = crawlerBuilder.build();
+        //    public static MemoryCommitter runWithConfig(
+        //            @NonNull Path workDir, @NonNull Consumer<WebCrawlerConfig> c) {
+        var crawler = CrawlerStubs.memoryCrawler(workDir, c);
+
+        //        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
+        //        c.accept((WebCrawlerConfig) crawlerBuilder.configuration());
+        //        var crawler = crawlerBuilder.build();
         crawler.start();
         return firstCommitter(crawler);
     }

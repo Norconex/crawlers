@@ -14,7 +14,8 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.CrawlerBuilder;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerBuilderFactory;
 import com.norconex.crawler.core.util.About;
 
 import lombok.EqualsAndHashCode;
@@ -52,11 +53,11 @@ import picocli.CommandLine.Spec;
             HelpCommand.class,
             CliStartCommand.class,
             CliStopCommand.class,
-            ConfigCheckCommand.class,
-            ConfigRenderCommand.class,
-            CleanCommand.class,
-            StoreExportCommand.class,
-            StoreImportCommand.class
+            CliConfigCheckCommand.class,
+            CliConfigRenderCommand.class,
+            CliCleanCommand.class,
+            CliStoreExportCommand.class,
+            CliStoreImportCommand.class
     }
 )
 @EqualsAndHashCode
@@ -71,7 +72,8 @@ public class CliCommandRunner implements Runnable {
     //      private final Crawler crawler;
     @Getter
     @NonNull
-    private final CrawlerBuilder crawlerBuilder;
+    private final Class<
+            ? extends CrawlerBuilderFactory> crawlerBuilderFactoryClass;
     //    private final CrawlerConfig crawlerConfig; //TODO pass Class instead? Or builder with Class on it?
 
     //    @NonNull
@@ -92,29 +94,13 @@ public class CliCommandRunner implements Runnable {
     @Spec
     private CommandSpec spec;
 
-    //    public CliCommandRunner(Crawler crawler/*@NonNull CrawlerImpl crawlerImpl*/) {
-    //        this.crawler = crawler;
-    //        this.crawlerImpl = crawlerImpl;
-    //        var mapper = crawlerImpl.beanMapper();
-    //        if (mapper == null) {
-    //            mapper = CrawlSessionBeanMapperFactory.create(
-    //                    crawlerImpl.crawlerConfigClass());
-    //        }
-    //        beanMapper = mapper;
-    //    }
-    //
-    //    CrawlerImpl getCrawlSessionImpl() {
-    //        return crawlerImpl;
-    //    }
-    //    BeanMapper getBeanMapper() {
-    //        return beanMapper;
-    //    }
-    //
     @Override
     public void run() {
         if (version) {
-            spec.commandLine().getOut().println(
-                    About.about(crawlerBuilder.configuration()));
+            Crawler.create(crawlerBuilderFactoryClass, b -> {
+                spec.commandLine().getOut().println(
+                        About.about(b.configuration(), false));
+            });
         }
     }
 
