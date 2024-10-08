@@ -16,7 +16,9 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import static java.util.Optional.ofNullable;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.collections4.MultiMapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -141,7 +143,14 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                             }
                         }, configuration.getMaxBufferSize()));
 
-        mobProxy.start(configuration.getPort());
+//        mobProxy.start(configuration.getPort());
+
+        Optional.ofNullable(configuration.getHost())
+                .map(host -> new InetSocketAddress(host, configuration.getPort()).getAddress())
+                .ifPresentOrElse(
+                        address -> mobProxy.start(configuration.getPort(), address),
+                        () -> mobProxy.start(configuration.getPort())
+                );
 
         var actualPort = mobProxy.getPort();
         var proxyHost = ofNullable(configuration.getHost()).orElse("localhost");
