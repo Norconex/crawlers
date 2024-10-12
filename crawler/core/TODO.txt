@@ -1,6 +1,14 @@
 TODO:
 ==============
 
+- Maybe group classes under actions, like ./crawl/ for most classes
+  and ./clean/ for clean classes, etc.?
+  - Maybe further move those actions/tasks under ./server?
+  
+- Command -> ClientCommand
+  Task    -> ServerTask
+   
+
 ignite.bat -Dignite.configuration=path\to\your\ignite-config.xml
 
 

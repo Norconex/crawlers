@@ -29,6 +29,7 @@ import com.norconex.crawler.core.grid.GridQueue;
 import com.norconex.crawler.core.store.DataStoreException;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.StandardException;
 
@@ -38,21 +39,19 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
     // we use a set to ensure uniqueness on ID.
     private final IgniteSet<String> idSet;
     private final IgniteQueue<QueueEntry<T>> queue;
-    private final Ignite ignite;
 
-    // is type needed?
+    @Getter
     private final Class<? extends T> type;
 
     @NonNull
     IgniteGridQueue(Ignite ignite, String name, Class<? extends T> type) {
-        this.ignite = ignite;
         this.type = type;
         this.name = name;
-        queue = ignite.queue(name + IgniteGridSystem.Suffix.QUEUE,
+        queue = ignite.queue(name + IgniteGridStorage.Suffix.QUEUE,
                 0, // Unbounded queue capacity.
                 new CollectionConfiguration());
         idSet = ignite.set(
-                name + IgniteGridSystem.Suffix.SET,
+                name + IgniteGridStorage.Suffix.SET,
                 new CollectionConfiguration());
     }
 
@@ -67,16 +66,16 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
         queue.clear();
     }
 
-    @Override
-    public void close() {
-        // we don't explicitly close them here. They'll be "closed"
-        // automatically when leaving the cluster.
-        //        if (ignite.cluster().state().active()
-        //                && ignite.cluster().localNode().isClient()) {
-        //            idSet.close();
-        //            queue.close();
-        //        }
-    }
+    //    @Override
+    //    public void close() {
+    //        // we don't explicitly close them here. They'll be "closed"
+    //        // automatically when leaving the cluster.
+    //        //        if (ignite.cluster().state().active()
+    //        //                && ignite.cluster().localNode().isClient()) {
+    //        //            idSet.close();
+    //        //            queue.close();
+    //        //        }
+    //    }
 
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
@@ -98,8 +97,8 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
     }
 
     @Override
-    public boolean contains(String id) {
-        return idSet.contains(id);
+    public boolean contains(Object id) {
+        return idSet.contains((String) id);
     }
 
     @Override

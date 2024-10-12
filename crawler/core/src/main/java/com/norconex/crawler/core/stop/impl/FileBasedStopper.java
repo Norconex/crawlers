@@ -14,18 +14,9 @@
  */
 package com.norconex.crawler.core.stop.impl;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.io.FileUtils;
-
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.stop.CrawlerStopper;
 import com.norconex.crawler.core.stop.CrawlerStopperException;
-import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -40,95 +31,95 @@ import lombok.extern.slf4j.Slf4j;
 @ToString
 public class FileBasedStopper implements CrawlerStopper {
 
-    public static final String STOP_FILE_NAME = ".crawlsession-stop";
-    private Path monitoredStopFile;
-    private boolean monitoring;
+    //    public static final String STOP_FILE_NAME = ".crawlsession-stop";
+    //    private Path monitoredStopFile;
+    //    private boolean monitoring;
 
     @Override
     public void listenForStopRequest(Crawler crawler)
             throws CrawlerStopperException {
-        monitoredStopFile = stopFile(crawler);
-
-        // If there is already a stop file and the crawl session is not running,
-        // delete it
-        if (Files.exists(monitoredStopFile)
-                && !crawler.getState().isExecutionLocked()) {
-            LOG.info("Old stop file found, deleting it.");
-            try {
-                FileUtils.forceDelete(monitoredStopFile.toFile());
-            } catch (IOException e) {
-                throw new CrawlerStopperException(
-                        "Could not delete old stop file.", e);
-            }
-        }
-
-        var scheduler = Executors.newScheduledThreadPool(1);
-        monitoring = true;
-        scheduler.scheduleAtFixedRate(() -> {
-            LogUtil.setMdcCrawlerId(crawler.getId());
-            Thread.currentThread().setName(
-                    crawler.getId() + "-stop-file-monitor");
-            if (monitoring && Files.exists(monitoredStopFile)) {
-                stopMonitoring();
-                LOG.info("STOP request received.");
-                crawler.stop();
-                scheduler.shutdownNow();
-            } else if (!monitoring && !scheduler.isShutdown()) {
-                scheduler.shutdownNow();
-            }
-        }, 1000, 100, TimeUnit.MILLISECONDS);
+        //        monitoredStopFile = stopFile(crawler);
+        //
+        //        // If there is already a stop file and the crawl session is not running,
+        //        // delete it
+        //        if (Files.exists(monitoredStopFile)
+        //                && !crawler.getState().isExecutionLocked()) {
+        //            LOG.info("Old stop file found, deleting it.");
+        //            try {
+        //                FileUtils.forceDelete(monitoredStopFile.toFile());
+        //            } catch (IOException e) {
+        //                throw new CrawlerStopperException(
+        //                        "Could not delete old stop file.", e);
+        //            }
+        //        }
+        //
+        //        var scheduler = Executors.newScheduledThreadPool(1);
+        //        monitoring = true;
+        //        scheduler.scheduleAtFixedRate(() -> {
+        //            LogUtil.setMdcCrawlerId(crawler.getId());
+        //            Thread.currentThread().setName(
+        //                    crawler.getId() + "-stop-file-monitor");
+        //            if (monitoring && Files.exists(monitoredStopFile)) {
+        //                stopMonitoring();
+        //                LOG.info("STOP request received.");
+        //                crawler.stop();
+        //                scheduler.shutdownNow();
+        //            } else if (!monitoring && !scheduler.isShutdown()) {
+        //                scheduler.shutdownNow();
+        //            }
+        //        }, 1000, 100, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void destroy() throws CrawlerStopperException {
-        stopMonitoring();
+        //        stopMonitoring();
     }
 
     private synchronized void stopMonitoring()
             throws CrawlerStopperException {
-        monitoring = false;
-        try {
-            if (monitoredStopFile != null) {
-                Files.deleteIfExists(monitoredStopFile);
-            }
-        } catch (IOException e) {
-            throw new CrawlerStopperException(
-                    "Cannot delete stop file: "
-                            + monitoredStopFile.toAbsolutePath(),
-                    e);
-        }
+        //        monitoring = false;
+        //        try {
+        //            if (monitoredStopFile != null) {
+        //                Files.deleteIfExists(monitoredStopFile);
+        //            }
+        //        } catch (IOException e) {
+        //            throw new CrawlerStopperException(
+        //                    "Cannot delete stop file: "
+        //                            + monitoredStopFile.toAbsolutePath(),
+        //                    e);
+        //        }
     }
 
     @Override
     public boolean fireStopRequest(Crawler crawler)
             throws CrawlerStopperException {
-        final var stopFile = stopFile(crawler);
-
-        if (!crawler.getState().isExecutionLocked()) {
-            LOG.info("Cannot stop local instance: No crawl session running.");
-            return false;
-        }
-
-        if (stopFile.toFile().exists()) {
-            LOG.info(
-                    "Cannot stop local instance: "
-                            + "Stop already requested. Stop file: {}",
-                    stopFile.toAbsolutePath());
-            return false;
-        }
-
-        try {
-            Files.createFile(stopFile);
-        } catch (IOException e) {
-            throw new CrawlerStopperException(
-                    "Could not create stop file: "
-                            + stopFile.toAbsolutePath(),
-                    e);
-        }
+        //        final var stopFile = stopFile(crawler);
+        //
+        //        if (!crawler.getState().isExecutionLocked()) {
+        //            LOG.info("Cannot stop local instance: No crawl session running.");
+        //            return false;
+        //        }
+        //
+        //        if (stopFile.toFile().exists()) {
+        //            LOG.info(
+        //                    "Cannot stop local instance: "
+        //                            + "Stop already requested. Stop file: {}",
+        //                    stopFile.toAbsolutePath());
+        //            return false;
+        //        }
+        //
+        //        try {
+        //            Files.createFile(stopFile);
+        //        } catch (IOException e) {
+        //            throw new CrawlerStopperException(
+        //                    "Could not create stop file: "
+        //                            + stopFile.toAbsolutePath(),
+        //                    e);
+        //        }
         return true;
     }
 
-    private static Path stopFile(Crawler crawler) {
-        return crawler.getWorkDir().resolve(STOP_FILE_NAME);
-    }
+    //    private static Path stopFile(Crawler crawler) {
+    //        return crawler.getWorkDir().resolve(STOP_FILE_NAME);
+    //    }
 }

@@ -14,29 +14,15 @@
  */
 package com.norconex.crawler.core.grid;
 
-import lombok.NonNull;
+import java.util.concurrent.Future;
 
-//GridCompute interface for compute-related operations
 public interface GridCompute {
+    Future<?> runOnce(String jobName, Runnable runnable)
+            throws GridException;
 
     void runTask(
-            @NonNull Class<? extends GridTask> taskClass,
-            @NonNull String taskName,
-            @NonNull GridTxOptions options) throws GridException;
-
-    //    // Broadcast a task to all nodes in the cluster
-    //    void broadcastTask(Runnable job);
-    //
-    //    // Run a task on any available node (without waiting for results)
-    //    void runTask(Runnable job);
-    //
-    //    broadcastTask(task: () => void): void;
-    //
-    //    runTask(task: () => void): void;
-    //
-    //    // Run a task that returns a result
-    //    <T> runTaskWithResult(task: () => T): Promise<T>;
-    //
-    //    // Run a task across multiple nodes and gather results
-    //    <T> runDistributedTask(task: () => T): Promise<T[]>;
+            Class<? extends GridTask> taskClass,
+            String arg,
+            GridTxOptions opts)
+            throws GridException;
 }

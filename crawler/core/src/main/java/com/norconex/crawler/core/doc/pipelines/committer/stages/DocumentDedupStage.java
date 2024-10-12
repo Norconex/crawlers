@@ -36,7 +36,7 @@ public class DocumentDedupStage implements Predicate<CommitterPipelineContext> {
     public boolean test(CommitterPipelineContext ctx) {
         var docContext = ctx.getDoc().getDocContext();
 
-        var dedupService = ctx.getCrawler().getServices().getDedupService();
+        var dedupService = ctx.getCrawler().getDedupService();
 
         var duplRef = dedupService.findOrTrackDocument(docContext);
         if (duplRef.isPresent()) {

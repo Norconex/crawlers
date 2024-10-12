@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.grid;
 
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.event.CrawlerEvent;
 
 import lombok.NonNull;
 
@@ -27,18 +28,18 @@ public abstract class GridInitializedCrawlerTask implements GridTask {
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void run(@NonNull Crawler crawler, @NonNull String taskName) {
-        crawler.init(false);
+    public void run(@NonNull Crawler crawler, String arg) {
+        crawler.init();
         try {
-            crawler.fire("CRAWLER_%s_BEGIN".formatted(taskName));
-            runWithInitializedCrawler(crawler, taskName);
+            crawler.fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
+            runWithInitializedCrawler(crawler, arg);
         } finally {
-            crawler.fire("CRAWLER_%s_END".formatted(taskName));
+            crawler.fire(CrawlerEvent.CRAWLER_RUN_END);
             crawler.orderlyShutdown(false);
         }
     }
 
     protected abstract void runWithInitializedCrawler(
-            Crawler crawler, String taskName);
+            Crawler crawler, String arg);
 
 }

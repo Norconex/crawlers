@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.Disabled;
@@ -28,12 +27,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.crawler.core.client.CrawlerClient;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.grid.Grid;
+import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.GridStorage;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
-import com.norconex.crawler.core.mocks.MockNoopDataStore;
-import com.norconex.crawler.core.mocks.MockNoopDataStoreEngine;
-import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
+import com.norconex.crawler.core.mocks.MockNoopGrid;
+import com.norconex.crawler.core.mocks.MockNoopGridConnector;
 
 class CrawlerTest {
 
@@ -57,19 +58,37 @@ class CrawlerTest {
         var mem = CrawlerTestUtil.runWithConfig(
                 tempDir,
                 cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
-                        .setDataStoreEngine(new MvStoreDataStoreEngine() {
+                        .setGridConnector(new GridConnector() {
                             @Override
-                            public <T> DataStore<T> openStore(
-                                    String storeName, Class<? extends T> type) {
-                                return new MockNoopDataStore<>() {
+                            public Grid connect(CrawlerClient crawlerClient) {
+                                return new MockNoopGrid();
+                            }
+
+                            @Override
+                            public Grid connect(Crawler crawler) {
+                                return new MockNoopGrid() {
                                     @Override
-                                    public Optional<T> deleteFirst() {
+                                    public GridStorage storage() {
                                         throw new UnsupportedOperationException(
                                                 "TEST");
                                     }
                                 };
                             }
                         })
+
+                        //                        .setGridConnector(new MvStoreDataStoreEngine() {
+                        //                            @Override
+                        //                            public <T> DataStore<T> openStore(
+                        //                                    String storeName, Class<? extends T> type) {
+                        //                                return new MockNoopDataStore<>() {
+                        //                                    @Override
+                        //                                    public Optional<T> deleteFirst() {
+                        //                                        throw new UnsupportedOperationException(
+                        //                                                "TEST");
+                        //                                    }
+                        //                                };
+                        //                            }
+                        //                        })
                         .setNumThreads(2)
                         .addEventListener(evt -> {
                             if (evt.is(CrawlerEvent.CRAWLER_ERROR)) {
@@ -152,7 +171,7 @@ class CrawlerTest {
                         // for "isEmpty" so it means the "active" store and
                         // "queue" store both return false for isEmpty, causing
                         // it to loop forever.
-                        .setDataStoreEngine(new MockNoopDataStoreEngine())
+                        .setGridConnector(new MockNoopGridConnector())
                         .setNumThreads(2)
                         .setIdleTimeout(Duration.ofMillis(100)));
         assertThat(mem.getUpsertCount()).isZero();

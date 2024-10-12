@@ -20,7 +20,6 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.doc.process.DocsProcessor.ProcessFlags;
-import com.norconex.crawler.core.services.DocTrackerService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,12 +30,12 @@ class OrphanDocsProcessor {
 
     private final Crawler crawler;
     private final DocsProcessor docProcessor;
-    private final DocTrackerService docTracker;
+    private final DocProcessingLedger ledger;
 
     OrphanDocsProcessor(DocsProcessor docProcessor) {
         this.docProcessor = docProcessor;
         crawler = docProcessor.getCrawler();
-        docTracker = crawler.getServices().getDocTrackerService();
+        ledger = crawler.getDocProcessingLedger();
     }
 
     void handleOrphans() {
@@ -63,17 +62,14 @@ class OrphanDocsProcessor {
 
     void reprocessCacheOrphans() {
         if (docProcessor.isMaxDocsReached()) {
-            LOG.info(
-                    "Max documents reached. "
-                            + "Not reprocessing orphans (if any).");
+            LOG.info("Max documents reached. "
+                    + "Not reprocessing orphans (if any).");
             return;
         }
         LOG.info("Reprocessing any cached/orphan references...");
 
         var count = new MutableLong();
-        crawler
-                .getServices()
-                .getDocTrackerService()
+        crawler.getDocProcessingLedger()
                 .forEachCached((ref, docInfo) -> {
                     docProcessor
                             .getCrawler()
@@ -98,8 +94,8 @@ class OrphanDocsProcessor {
 
         var count = new MutableLong();
 
-        docTracker.forEachCached((k, v) -> {
-            docTracker.queue(v);
+        ledger.forEachCached((k, v) -> {
+            ledger.queue(v);
             count.increment();
             return true;
         });

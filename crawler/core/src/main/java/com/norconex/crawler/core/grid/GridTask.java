@@ -18,7 +18,10 @@ import java.io.Serializable;
 
 import com.norconex.crawler.core.Crawler;
 
+/**
+ * Code meant to run on server node (in a clustered environment).
+ */
 @FunctionalInterface
 public interface GridTask extends Serializable {
-    void run(Crawler crawler, String taskName);
+    void run(Crawler crawler, String arg);
 }

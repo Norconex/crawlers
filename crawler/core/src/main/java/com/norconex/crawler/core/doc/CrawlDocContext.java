@@ -32,7 +32,7 @@ public class CrawlDocContext extends DocContext {
     private static final long serialVersionUID = 1L;
 
     public enum Stage {
-        QUEUED, ACTIVE, PROCESSED /*, CACHED*/;
+        QUEUED, /*ACTIVE,*/ PROCESSED /*, CACHED*/;
 
         public boolean is(Stage stage) {
             return stage != null && stage == this;

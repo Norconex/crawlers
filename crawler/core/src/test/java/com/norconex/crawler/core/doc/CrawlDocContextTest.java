@@ -24,9 +24,9 @@ class CrawlDocContextTest {
 
     @Test
     void testStages() {
-        assertThat(Stage.ACTIVE.is(null)).isFalse();
-        assertThat(Stage.ACTIVE.is(Stage.ACTIVE)).isTrue();
-        assertThat(Stage.ACTIVE.is(Stage.PROCESSED)).isFalse();
-        assertThat(Stage.ACTIVE.is(Stage.QUEUED)).isFalse();
+        assertThat(Stage.PROCESSED.is(null)).isFalse();
+        assertThat(Stage.PROCESSED.is(Stage.PROCESSED)).isTrue();
+        assertThat(Stage.QUEUED.is(Stage.PROCESSED)).isFalse();
+        assertThat(Stage.PROCESSED.is(Stage.QUEUED)).isFalse();
     }
 }

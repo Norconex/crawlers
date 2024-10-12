@@ -27,11 +27,10 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.pipelines.DedupService;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.services.CrawlerServices;
-import com.norconex.crawler.core.services.DedupService;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 @MockitoSettings
@@ -40,16 +39,13 @@ class MetadataDedupStageTest {
     @Mock
     private Crawler crawler;
     @Mock
-    private CrawlerServices services;
-    @Mock
     private DedupService dedupService;
 
     @Test
     void testMetadataDedupStage() {
         when(dedupService.findOrTrackMetadata(Mockito.any()))
                 .thenReturn(Optional.of("someRef"));
-        when(crawler.getServices()).thenReturn(services);
-        when(crawler.getServices().getDedupService()).thenReturn(dedupService);
+        when(crawler.getDedupService()).thenReturn(dedupService);
 
         var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);

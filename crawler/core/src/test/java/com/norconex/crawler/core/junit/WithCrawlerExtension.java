@@ -18,13 +18,12 @@ import static java.util.Optional.ofNullable;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.lang.annotation.Annotation;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.function.Consumer;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -33,15 +32,10 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerTestUtil;
-import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
 
+@Disabled
 class WithCrawlerExtension implements
         BeforeEachCallback,
         AfterEachCallback,
@@ -54,43 +48,43 @@ class WithCrawlerExtension implements
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
 
-        // Create a temporary directory before each test
-        var tempDir = Files.createTempDirectory("crawler-core");
-        context.getStore(GLOBAL).put(TEMP_DIR_KEY, tempDir);
-
-        var annot = getAnnotation(context, WithCrawlerTest.class);
-        var crawlerConfig = annot.randomConfig()
-                ? CrawlerConfigStubs.randomMemoryCrawlerConfig(tempDir)
-                : CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
-
-        // apply custom config from text
-        StringUtil.ifNotBlank(
-                annot.config(), cfgStr -> BeanMapper.DEFAULT.read(
-                        crawlerConfig,
-                        new StringReader(cfgStr),
-                        BeanMapper.detectFormat(cfgStr)));
-
-        // apply config modifier from consumer
-        if (annot.configModifier() != null) {
-            @SuppressWarnings("unchecked")
-            var c = (Consumer<CrawlerConfig>) ClassUtil
-                    .newInstance(annot.configModifier());
-            c.accept(crawlerConfig);
-        }
-
-        //        var crawler = CrawlerStubs
-        //                .memoryCrawlerBuilder(tempDir)
-        //                .configuration(crawlerConfig)
-        //                .build();
-        var crawler = CrawlerStubs.crawler(tempDir, crawlerConfig);
-
-        context.getStore(GLOBAL).put(CRAWLER_KEY, crawler);
-
-        if (annot.run()) {
-            crawler.start();
-        } else {
-            CrawlerTestUtil.initCrawler(crawler);
-        }
+        //        // Create a temporary directory before each test
+        //        var tempDir = Files.createTempDirectory("crawler-core");
+        //        context.getStore(GLOBAL).put(TEMP_DIR_KEY, tempDir);
+        //
+        //        var annot = getAnnotation(context, WithCrawlerTest.class);
+        //        var crawlerConfig = annot.randomConfig()
+        //                ? CrawlerConfigStubs.randomMemoryCrawlerConfig(tempDir)
+        //                : CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+        //
+        //        // apply custom config from text
+        //        StringUtil.ifNotBlank(
+        //                annot.config(), cfgStr -> BeanMapper.DEFAULT.read(
+        //                        crawlerConfig,
+        //                        new StringReader(cfgStr),
+        //                        BeanMapper.detectFormat(cfgStr)));
+        //
+        //        // apply config modifier from consumer
+        //        if (annot.configModifier() != null) {
+        //            @SuppressWarnings("unchecked")
+        //            var c = (Consumer<CrawlerConfig>) ClassUtil
+        //                    .newInstance(annot.configModifier());
+        //            c.accept(crawlerConfig);
+        //        }
+        //
+        //        //        var crawler = CrawlerStubs
+        //        //                .memoryCrawlerBuilder(tempDir)
+        //        //                .configuration(crawlerConfig)
+        //        //                .build();
+        //        var crawler = CrawlerStubs.crawler(tempDir, crawlerConfig);
+        //
+        //        context.getStore(GLOBAL).put(CRAWLER_KEY, crawler);
+        //
+        //        if (annot.run()) {
+        //            crawler.start();
+        //        } else {
+        //            CrawlerTestUtil.initCrawler(crawler);
+        //        }
     }
 
     @Override

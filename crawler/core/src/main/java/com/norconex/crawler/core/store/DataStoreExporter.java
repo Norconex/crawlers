@@ -28,6 +28,10 @@ import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.GridQueue;
+import com.norconex.crawler.core.grid.GridSet;
+import com.norconex.crawler.core.grid.GridStore;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,13 +43,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class DataStoreExporter {
 
+    //TODO eliminate client vs server and make server-only method
+    // fail for clients?
+    //TODO have store() and compute() ?
+
     private DataStoreExporter() {
     }
 
     public static Path exportDataStore(
             Crawler crawler, Path exportDir)
             throws IOException {
-        var storeEngine = crawler.getDataStoreEngine();
+        var gridServer = crawler.getGrid().storage();
         Files.createDirectories(exportDir);
 
         var outFile = exportDir.resolve(
@@ -54,46 +62,53 @@ public final class DataStoreExporter {
         try (var zipOS = new ZipOutputStream(
                 IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
 
-            for (String name : storeEngine.getStoreNames()) {
-                var type = storeEngine.getStoreType(name);
-                if (type.isPresent()) {
-                    zipOS.putNextEntry(
-                            new ZipEntry(
-                                    FileUtil.toSafeFileName(name) + ".json"));
-                    try (DataStore<?> store =
-                            storeEngine.openStore(name, type.get())) {
-                        exportStore(crawler, store, zipOS, type.get());
-                    }
+            gridServer.forEachStore(store -> {
+                try {
+                    zipOS.putNextEntry(new ZipEntry(
+                            FileUtil.toSafeFileName(store.getName())
+                                    + ".json"));
+                    exportStore(store, zipOS);
                     zipOS.flush();
                     zipOS.closeEntry();
-
-                } else {
-                    LOG.error("Could not obtain store {}", name);
+                } catch (IOException e) {
+                    throw new DataStoreException();
                 }
-            }
+            });
             zipOS.flush();
         }
         return outFile;
     }
 
     private static void exportStore(
-            Crawler crawler,
-            DataStore<?> store,
-            OutputStream out,
-            Class<?> type) throws IOException {
+            GridStore<?> store, OutputStream out) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);
         //MAYBE add "nice" option?
         //writer.setIndent(" ");
-        var qty = store.count();
+        var qty = store.size();
 
         LOG.info("Exporting {} entries from \"{}\".", qty, store.getName());
 
         var cnt = new MutableLong();
         var lastPercent = new MutableLong();
         writer.writeStartObject();
-        writer.writeStringField("store", store.getName());
-        writer.writeStringField("type", type.getName());
+
+        // Store metadata
+        @SuppressWarnings("rawtypes")
+        Class<? extends GridStore> storeType = GridCache.class;
+        if (store instanceof GridSet) {
+            storeType = GridSet.class;
+        } else if (store instanceof GridQueue) {
+            storeType = GridQueue.class;
+        }
+        writer.writeFieldName("store");
+        writer.writeStartObject();
+        writer.writeStringField("name", store.getName());
+        writer.writeStringField("objectType", store.getType().getName());
+        writer.writeStringField("storeType", storeType.getName());
+        writer.writeEndObject();
+
+        // Store records
         writer.writeFieldName("records");
         writer.writeStartArray();
 

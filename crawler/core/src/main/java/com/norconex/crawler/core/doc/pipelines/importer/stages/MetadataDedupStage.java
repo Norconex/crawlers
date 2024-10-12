@@ -46,7 +46,6 @@ public class MetadataDedupStage extends AbstractImporterStage {
         var docContext = ctx.getDoc().getDocContext();
         var dedupService = ctx
                 .getCrawler()
-                .getServices()
                 .getDedupService();
 
         var duplRef = dedupService.findOrTrackMetadata(docContext);

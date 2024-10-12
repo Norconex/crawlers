@@ -14,9 +14,6 @@
  */
 package com.norconex.crawler.core.doc.process;
 
-import static java.util.Optional.ofNullable;
-
-import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
@@ -26,15 +23,13 @@ import com.norconex.crawler.core.doc.CrawlDocContext.Stage;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.grid.GridQueue;
-import com.norconex.crawler.core.grid.GridStore;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DocProcessingLedger implements Closeable {
+public class DocProcessingLedger { //implements Closeable {
 
-    public static final String KEY_RESUMING = "ledger.resuming";
     public static final String KEY_PROCESSED_CACHE = "ledger.process.cache";
     public static final String KEY_CACHED_CACHE = "ledger.cached.cache";
 
@@ -59,7 +54,7 @@ public class DocProcessingLedger implements Closeable {
     // return true if resuming (holds records that have not been processed),
     // false otherwise
     public void init() {
-        var grid = crawler.getGridSystem();
+        var grid = crawler.getGrid().storage();
 
         // Because we can't rename caches in all impl, we use references.
         globalCache = grid.getGlobalCache();
@@ -79,8 +74,6 @@ public class DocProcessingLedger implements Closeable {
 
         var resuming = !isQueueEmpty();// || !isActiveEmpty();
         crawler.getState().setResuming(resuming);
-
-        grid.getGlobalCache().put(KEY_RESUMING, Boolean.toString(resuming));
     }
 
     public Stage getProcessingStage(String id) {
@@ -205,13 +198,13 @@ public class DocProcessingLedger implements Closeable {
         cached.clear();
     }
 
-    @Override
-    public void close() {
-        ofNullable(queue).ifPresent(GridStore::close);
-        //            ofNullable(active).ifPresent(GridStore::close);
-        ofNullable(processed).ifPresent(GridStore::close);
-        ofNullable(cached).ifPresent(GridStore::close);
-    }
+    //    @Override
+    //    public void close() {
+    //        //        ofNullable(queue).ifPresent(GridStore::close);
+    //        //        //            ofNullable(active).ifPresent(GridStore::close);
+    //        //        ofNullable(processed).ifPresent(GridStore::close);
+    //        //        ofNullable(cached).ifPresent(GridStore::close);
+    //    }
 
     public synchronized void cacheProcessed() {
 

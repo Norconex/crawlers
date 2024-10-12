@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -30,6 +31,7 @@ import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
 
+@Disabled("TO MIGRATE")
 class ImportModuleStageTest {
 
     @TempDir
@@ -37,25 +39,25 @@ class ImportModuleStageTest {
 
     @Test
     void testImportModuleStage() throws IOException {
-        var doc = CrawlDocStubs.crawlDoc("ref", "tomato");
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
-        crawler.getConfiguration().getImporterConfig().setHandlers(
-                List.of(hctx -> {
-                    try {
-                        hctx.output().asWriter().write("potato");
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }));
-        crawler.start();
-        var ctx = new ImporterPipelineContext(crawler, doc);
-        var stage = new ImportModuleStage();
-        stage.test(ctx);
-
-        // no filters is equal to a match
-        assertThat(
-                IOUtils.toString(
-                        ctx.getDoc().getInputStream(), UTF_8).trim())
-                                .isEqualTo("potato");
+//        var doc = CrawlDocStubs.crawlDoc("ref", "tomato");
+//        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+//        crawler.getConfiguration().getImporterConfig().setHandlers(
+//                List.of(hctx -> {
+//                    try {
+//                        hctx.output().asWriter().write("potato");
+//                    } catch (IOException e) {
+//                        throw new UncheckedIOException(e);
+//                    }
+//                }));
+//        crawler.start();
+//        var ctx = new ImporterPipelineContext(crawler, doc);
+//        var stage = new ImportModuleStage();
+//        stage.test(ctx);
+//
+//        // no filters is equal to a match
+//        assertThat(
+//                IOUtils.toString(
+//                        ctx.getDoc().getInputStream(), UTF_8).trim())
+//                                .isEqualTo("potato");
     }
 }

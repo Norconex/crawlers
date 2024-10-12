@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  */
 package com.norconex.crawler.core.grid;
 
-import java.io.Closeable;
 import java.util.function.BiPredicate;
 
 /**
  * Data store
  * @param <T> type of datastore object
  */
-public interface GridStore<T> extends Closeable {
+public interface GridStore<T> {
 
     /**
      * Gets the store name.
@@ -29,13 +28,18 @@ public interface GridStore<T> extends Closeable {
      */
     String getName();
 
-    // have put/get methods for all impls instead of put/poll for queue and save/? for key-value?
+    /**
+     * The store object/record type.
+     * @return object type
+     */
+    Class<?> getType();
+
     /**
      * Whether there is already an object in this store under the same id.
      * @param id the object id
      * @return <code>true</code> if id is already present
      */
-    boolean contains(String id);
+    boolean contains(Object id);
 
     /**
      * The store size. It is possible for some implementations to approximate
@@ -49,13 +53,13 @@ public interface GridStore<T> extends Closeable {
      */
     void clear();
 
-    /**
-     * Close the store implementation (provided there is something to close
-     * for the specific implementation).
-     */
+    //    /**
+    //     * Close the store implementation (provided there is something to close
+    //     * for the specific implementation).
+    //     */
     //TODO REMOVE THIS METHOD and rely on GridSystem closing it?
-    @Override
-    void close();
+    //    @Override
+    //    void close();
 
     /**
      * Iterate through all objects in the store until the predicate returns

@@ -24,6 +24,7 @@ import org.apache.ignite.configuration.CacheConfiguration;
 
 import com.norconex.crawler.core.grid.GridCache;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.StandardException;
 
@@ -47,17 +48,15 @@ public class IgniteGridCache<T> implements GridCache<T> {
 
     private String name;
     private final IgniteCache<String, T> cache;
-    private final Ignite ignite;
-    // is type needed?
+    @Getter
     private final Class<? extends T> type;
 
     @NonNull
     IgniteGridCache(Ignite ignite, String name, Class<? extends T> type) {
-        this.ignite = ignite;
         this.type = type;
         this.name = name;
         var cfg = new CacheConfiguration<String, T>();
-        cfg.setName(name + IgniteGridSystem.Suffix.CACHE);
+        cfg.setName(name + IgniteGridStorage.Suffix.CACHE);
 
         cache = ignite.getOrCreateCache(cfg);
 
@@ -94,15 +93,15 @@ public class IgniteGridCache<T> implements GridCache<T> {
         cache.clear();
     }
 
-    @Override
-    public void close() {
-        // we don't explicitly close them here. They'll be "closed"
-        // automatically when leaving the cluster.
-        //        if (ignite.cluster().state().active()
-        //                && ignite.cluster().localNode().isClient()) {
-        //            cache.close();
-        //        }
-    }
+    //    @Override
+    //    public void close() {
+    //        // we don't explicitly close them here. They'll be "closed"
+    //        // automatically when leaving the cluster.
+    //        //        if (ignite.cluster().state().active()
+    //        //                && ignite.cluster().localNode().isClient()) {
+    //        //            cache.close();
+    //        //        }
+    //    }
 
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
@@ -124,8 +123,8 @@ public class IgniteGridCache<T> implements GridCache<T> {
     }
 
     @Override
-    public boolean contains(String id) {
-        return cache.containsKey(id);
+    public boolean contains(Object id) {
+        return cache.containsKey((String) id);
     }
 
     @Override

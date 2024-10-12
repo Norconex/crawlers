@@ -86,8 +86,7 @@ final class DocProcessorUpsert {
             childDocRec.setReference(childResponse.getReference());
             var childCachedDocRec = ctx
                     .crawler()
-                    .getServices()
-                    .getDocTrackerService()
+                    .getDocProcessingLedger()
                     .getCached(childResponse.getReference())
                     .orElse(null);
 

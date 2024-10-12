@@ -24,10 +24,9 @@ import java.util.concurrent.TimeUnit;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.CrawlerState;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.services.CrawlerProgressLogger;
-import com.norconex.crawler.core.services.DocTrackerService;
-import com.norconex.crawler.core.state.CrawlerState;
+import com.norconex.crawler.core.monitor.CrawlerProgressLogger;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.Getter;
@@ -38,7 +37,7 @@ public class DocsProcessor implements Runnable {
 
     @Getter
     private final Crawler crawler;
-    private final DocTrackerService docTrackerService;
+    private final DocProcessingLedger ledger;
     private final CrawlerState state;
     private final CrawlerProgressLogger progressLogger;
 
@@ -46,9 +45,9 @@ public class DocsProcessor implements Runnable {
 
     public DocsProcessor(Crawler crawler) {
         this.crawler = crawler;
-        docTrackerService = crawler.getServices().getDocTrackerService();
+        ledger = crawler.getDocProcessingLedger();
         state = crawler.getState();
-        progressLogger = crawler.getServices().getProgressLogger();
+        progressLogger = crawler.getProgressLogger();
     }
 
     @Override
@@ -69,7 +68,7 @@ public class DocsProcessor implements Runnable {
     }
 
     private void init() {
-        docTrackerService.prepareForCrawl();
+        // done by command -->  ledger.prepareForCrawl();
         progressLogger.startTracking();
         logJmxState();
 
@@ -77,7 +76,7 @@ public class DocsProcessor implements Runnable {
         var cfgMaxDocs = crawler.getConfiguration().getMaxDocuments();
         resumableMaxDocs = cfgMaxDocs;
         if (cfgMaxDocs > -1 && state.isResuming()) {
-            resumableMaxDocs += docTrackerService.getProcessedCount();
+            resumableMaxDocs += ledger.getProcessedCount();
             LOG.info("""
                     Adding configured maximum documents ({})\s\
                     to this resumed session. The combined maximum\s\
@@ -87,7 +86,7 @@ public class DocsProcessor implements Runnable {
         }
     }
 
-    public void execute() {
+    private void execute() {
         try {
             //TODO wrapping in thread stuff (BEGIN/END, etc.) is similar to
             // DocProcessor#run(), consider making it a shared method.
@@ -105,18 +104,18 @@ public class DocsProcessor implements Runnable {
             Thread.currentThread().setName(crawler.getId());
         }
 
-        if (state.isStopping() || state.isStopped()) {
+        if (state.isStopRequested() || state.isStopped()) {
             return;
         }
         LOG.info("Crawling references...");
         crawlReferences(new ProcessFlags());
 
-        if (!state.isStopping()) {
+        if (!state.isStopRequested()) {
             new OrphanDocsProcessor(this).handleOrphans();
         }
     }
 
-    public void destroy() {
+    private void destroy() {
         LOG.info("Crawler {}", (state.isStopped() ? "stopped." : "completed."));
         try {
             progressLogger.stopTracking();
@@ -124,9 +123,9 @@ public class DocsProcessor implements Runnable {
                     "Execution Summary:{}",
                     progressLogger.getExecutionSummary());
         } finally {
-            if (state.isStopping()) {
+            if (state.isStopRequested()) {
                 state.setStopped(true);
-                state.setStopping(false);
+                //                state.setStopRequested(false);
                 crawler.fire(CrawlerEvent.CRAWLER_STOP_END);
             }
         }
@@ -174,10 +173,9 @@ public class DocsProcessor implements Runnable {
         // or if we remove maxDocument in favor of the listener.
         // what about clustering?
         var isMax = resumableMaxDocs > -1
-                && docTrackerService.getProcessedCount() >= resumableMaxDocs;
+                && ledger.getProcessedCount() >= resumableMaxDocs;
         if (isMax) {
-            LOG.info(
-                    "Maximum documents reached for this crawling session: {}",
+            LOG.info("Maximum documents reached for this crawling session: {}",
                     resumableMaxDocs);
         }
         return isMax;
@@ -187,9 +185,8 @@ public class DocsProcessor implements Runnable {
         if (Boolean.getBoolean(Crawler.SYS_PROP_ENABLE_JMX)) {
             LOG.info("JMX support enabled.");
         } else {
-            LOG.info(
-                    "JMX support disabled. To enable, set -DenableJMX=true "
-                            + "system property as a JVM argument.");
+            LOG.info("JMX support disabled. To enable, set -DenableJMX=true "
+                    + "system property as a JVM argument.");
         }
     }
 

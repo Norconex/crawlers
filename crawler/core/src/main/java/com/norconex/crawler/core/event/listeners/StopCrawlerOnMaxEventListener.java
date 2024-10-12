@@ -111,8 +111,7 @@ public class StopCrawlerOnMaxEventListener implements
                 event.getName(), k -> new AtomicLong()).incrementAndGet();
 
         if (isMaxReached()) {
-            LOG.info(
-                    "Maximum number of events reached for crawler: {}",
+            LOG.info("Maximum number of events reached for crawler: {}",
                     crawler.getId());
             crawler.stop();
         }

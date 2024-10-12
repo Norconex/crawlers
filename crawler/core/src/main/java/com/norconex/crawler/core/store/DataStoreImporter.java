@@ -22,12 +22,16 @@ import java.text.NumberFormat;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.GridQueue;
+import com.norconex.crawler.core.grid.GridSet;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
 /**
@@ -67,53 +71,107 @@ public final class DataStoreImporter {
 
         var parser = SerialUtil.jsonParser(in);
 
-        String typeStr = null;
+        Class<?> objectType = null;
+        Class<?> storeType = null;
         String storeName = null;
 
         while (parser.nextToken() != JsonToken.END_OBJECT) {
             var key = parser.currentName();
+            //            if ("store".equals(key)) {
+            //                storeName = parser.getValueAsString();
+            //            } else if ("type".equals(key)) {
+            //                typeStr = parser.getValueAsString();
             if ("store".equals(key)) {
-                storeName = parser.getValueAsString();
-            } else if ("type".equals(key)) {
-                typeStr = parser.getValueAsString();
+                parser.nextToken();
+                while (parser.nextToken() != JsonToken.END_OBJECT) {
+                    if ("name".equals(key)) {
+                        storeName = parser.getValueAsString();
+                    } else if ("objectType".equals(key)) {
+                        objectType = asClass(parser.getValueAsString());
+                    } else if ("storetype".equals(key)) {
+                        storeType = asClass(parser.getValueAsString());
+                    }
+                }
             } else if ("records".equals(key)) {
                 // check that we first got the store and type.
-                if (StringUtils.isAnyBlank(typeStr, storeName)) {
-                    LOG.error("Invalid import file encountered.");
-                    return false;
-                }
-                Class<?> type = null;
-                try {
-                    type = Class.forName(typeStr);
-                } catch (ClassNotFoundException e) {
-                    throw new IOException(
-                            "Could not instantiate type " + typeStr, e);
+                if (ObjectUtils.anyNull(objectType, storeType, storeName)) {
+                    throw new DataStoreException("""
+                        Invalid import file \
+                        encountered. Could not find all of store \
+                        'name', 'storeType', and 'objectType'.""");
                 }
 
                 LOG.info("Importing \"{}\".", storeName);
-                var storeEngine = crawler.getDataStoreEngine();
-                try (DataStore<Object> store =
-                        storeEngine.openStore(storeName, type)) {
-                    var cnt = 0L;
-                    parser.nextToken();
-                    while (parser.nextToken() != JsonToken.END_ARRAY) {
-                        parser.nextToken(); // id:
-                        var id = parser.nextTextValue();
-                        parser.nextToken(); // object:
-                        parser.nextToken(); // { //NOSONAR
-                        store.save(id, SerialUtil.fromJson(parser, type));
-                        parser.nextToken(); // } //NOSONAR
-                        cnt++;
-                        logProgress(cnt, false);
+                var gridServer = crawler.getGrid().storage();
+
+                var cnt = 0L;
+                parser.nextToken();
+                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                    if (storeType.equals(GridCache.class)) {
+                        importCacheEntry(
+                                gridServer.getCache(storeName, objectType),
+                                parser);
+                    } else if (storeType.equals(GridQueue.class)) {
+                        importQueueEntry(
+                                gridServer.getQueue(storeName, objectType),
+                                parser);
+                    } else if (storeType.equals(GridSet.class)) {
+                        importSetEntry(gridServer.getSet(storeName, objectType),
+                                parser);
                     }
-                    logProgress(cnt, true);
+                    cnt++;
+                    logProgress(cnt, false);
                 }
+                logProgress(cnt, true);
             } else {
                 parser.nextToken();
             }
-
         }
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void importQueueEntry(
+            GridQueue<T> gridQueue, JsonParser parser) throws IOException {
+        parser.nextToken(); // id:
+        var id = parser.nextTextValue();
+        parser.nextToken(); // object:
+        parser.nextToken(); // { //NOSONAR
+        gridQueue.put(id,
+                (T) SerialUtil.fromJson(parser, gridQueue.getType()));
+        parser.nextToken(); // } //NOSONAR
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void importSetEntry(GridSet<T> gridSet,
+            JsonParser parser)
+            throws IOException {
+        parser.nextToken(); // object:
+        parser.nextToken(); // { //NOSONAR
+        gridSet.add(
+                (T) SerialUtil.fromJson(parser, gridSet.getType()));
+        parser.nextToken(); // } //NOSONAR
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void importCacheEntry(
+            GridCache<T> gridCache, JsonParser parser) throws IOException {
+        parser.nextToken(); // id:
+        var id = parser.nextTextValue();
+        parser.nextToken(); // object:
+        parser.nextToken(); // { //NOSONAR
+        gridCache.put(id,
+                (T) SerialUtil.fromJson(parser, gridCache.getType()));
+        parser.nextToken(); // } //NOSONAR
+    }
+
+    private static Class<?> asClass(String className) throws IOException {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new IOException(
+                    "Could not instantiate type " + className, e);
+        }
     }
 
     private static void logProgress(long cnt, boolean done) {

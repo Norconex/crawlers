@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.cli.CliCrawlerLauncher;
+import com.norconex.crawler.core.client.cli.CliCrawlerLauncher;
 
 class CrawlerLaunchTest {
 

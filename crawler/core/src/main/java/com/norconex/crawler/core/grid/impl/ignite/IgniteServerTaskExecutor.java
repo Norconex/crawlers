@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.Ignition;
 
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerBuilderFactory;
@@ -36,24 +35,16 @@ public final class IgniteServerTaskExecutor {
     }
 
     // Static method that gets the Ignite instance internally
-    public static void execute(String className, String taskName) {
+    public static void execute(String className, String arg) {
 
         // Load the task class dynamically
-        Class<?> taskClass;
-        try {
-            taskClass = Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new GridException(
-                    "Could not find task class: " + className, e);
-        }
+        Class<?> taskClass = classFor(className);
 
-        System.err.println("XXXXXXXXX INSTANTIATING: '" + taskClass + "'.");
         // Create a new instance of the task
         var task = (GridTask) ClassUtil.newInstance(taskClass);
 
         try {
-            var crawler = restoreCrawlerLocal();
-            task.run(crawler, taskName);
+            task.run(serverNodeCrawler(), arg);
         } catch (RuntimeException e) {
             LOG.error("Could not run task on node.", e);
             throw e;
@@ -61,36 +52,46 @@ public final class IgniteServerTaskExecutor {
     }
 
     @SuppressWarnings("unchecked")
-    static Crawler restoreCrawlerLocal() {
+    static Crawler serverNodeCrawler() {
         var ignite = Ignition.localIgnite();
 
         var initCache = ignite.<String, String>getOrCreateCache(
-                IgniteGridSystem.KEY_GLOBAL_CACHE);
+                IgniteGridKeys.GLOBAL_CACHE);
 
-        var fqClassName = initCache
-                .get(IgniteGridSystem.KEY_CRAWLER_BUILDER_FACTORY_CLASS);
-        if (StringUtils.isBlank(fqClassName)) {
-            throw new GridException("Grid not initialized: could not find "
-                    + "class implementing CrawlerBuilderFactory.");
+        var crawlerBuilderFactoryClassName = initCache
+                .get(IgniteGridKeys.CRAWLER_BUILDER_FACTORY_CLASS);
+        if (StringUtils.isBlank(crawlerBuilderFactoryClassName)) {
+            throw new GridException("""
+                Crawler on grid server node not initialized: \
+                could not find class implementing CrawlerBuilderFactory \
+                in Ignite cache.""");
         }
-        Class<?> factoryClass;
-        try {
-            factoryClass = Class.forName(fqClassName, true,
-                    Thread.currentThread().getContextClassLoader());
-        } catch (ClassNotFoundException e) {
-            throw new GridException("Could not obtain class: " + fqClassName,
-                    e);
-        }
+        Class<?> factoryClass = classFor(crawlerBuilderFactoryClassName);
 
-        var configStr = initCache.get(IgniteGridSystem.KEY_CRAWLER_CONFIG);
+        var configStr = initCache.get(IgniteGridKeys.CRAWLER_CONFIG);
         return Crawler.create(
                 (Class<? extends CrawlerBuilderFactory>) factoryClass, b -> {
-                    if (StringUtils.isNotBlank(configStr)) {
-                        var r = new StringReader(configStr);
-                        BeanMapper.DEFAULT.read(b.configuration(), r,
-                                Format.JSON);
+                    if (StringUtils.isBlank(configStr)) {
+                        throw new GridException("""
+                            "Crawler on grid server node not initialized: \
+                            could not find crawler configuration in \
+                            Ignite cache.""");
                     }
+                    var r = new StringReader(configStr);
+                    b.beanMapper().read(b.configuration(), r, Format.JSON);
+                    LOG.info("Running task \"{}\" on crawler \"{}\"",
+                            crawlerBuilderFactoryClassName,
+                            b.configuration().getId());
                 });
     }
 
+    private static Class<?> classFor(String className) {
+        try {
+            return Class.forName(className, true,
+                    Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            throw new GridException("Could not initialize class: "
+                    + className, e);
+        }
+    }
 }

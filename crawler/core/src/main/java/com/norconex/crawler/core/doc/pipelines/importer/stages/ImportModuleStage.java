@@ -26,7 +26,7 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
 
     @Override
     public boolean test(ImporterPipelineContext ctx) {
-        var importer = ctx.getCrawler().getServices().getImporter();
+        var importer = ctx.getCrawler().getImporter();
 
         Doc doc = ctx.getDoc();
 

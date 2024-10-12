@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.doc.process;
 
+import static com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
 import static java.io.InputStream.nullInputStream;
 import static java.util.Optional.ofNullable;
 
@@ -27,7 +28,6 @@ import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -103,26 +103,23 @@ final class DocProcessorFinalize {
         try {
             ctx
                     .crawler()
-                    .getServices()
-                    .getDocTrackerService()
+                    .getDocProcessingLedger()
                     .processed(docRecord);
 
             markReferenceVariationsAsProcessed(ctx);
 
-            ctx.crawler().getServices().getProgressLogger().logProgress();
+            ctx.crawler().getProgressLogger().logProgress();
 
         } catch (Exception e) {
             LOG.error(
                     "Could not mark reference as processed: {} ({})",
                     docRecord.getReference(), e.getMessage(), e);
         } finally {
-            ofNullable(
-                    ctx
-                            .crawler()
-                            .getCallbacks()
-                            .getAfterDocumentFinalizing())
-                                    .ifPresent(adf -> adf.accept(ctx.crawler(),
-                                            doc));
+            ofNullable(ctx
+                    .crawler()
+                    .getCallbacks()
+                    .getAfterDocumentFinalizing())
+                            .ifPresent(adf -> adf.accept(ctx.crawler(), doc));
         }
 
         try {
@@ -157,16 +154,13 @@ final class DocProcessorFinalize {
             // markReferenceVariationsAsProcessed(...) method
 
             var strategy = Optional.ofNullable(
-                    ctx
-                            .crawler()
+                    ctx.crawler()
                             .getConfiguration()
                             .getSpoiledReferenceStrategizer())
-                    .map(
-                            srs -> srs.resolveSpoiledReferenceStrategy(
-                                    ctx.docContext().getReference(),
-                                    ctx.docContext().getState()))
-                    .orElse(
-                            GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY);
+                    .map(srs -> srs.resolveSpoiledReferenceStrategy(
+                            ctx.docContext().getReference(),
+                            ctx.docContext().getState()))
+                    .orElse(DEFAULT_FALLBACK_STRATEGY);
 
             if (strategy == SpoiledReferenceStrategy.IGNORE) {
                 LOG.debug(
@@ -189,11 +183,10 @@ final class DocProcessorFinalize {
                 if (!cachedDocRecord.getState().isGoodState()) {
                     DocProcessorDelete.execute(ctx);
                 } else {
-                    LOG.debug(
-                            """
-                                    This spoiled reference is\s\
-                                    being graced once (will be deleted\s\
-                                    next time if still spoiled): {}""",
+                    LOG.debug("""
+                            This spoiled reference is\s\
+                            being graced once (will be deleted\s\
+                            next time if still spoiled): {}""",
                             docRecord.getReference());
                 }
             }
@@ -210,10 +203,8 @@ final class DocProcessorFinalize {
 
             var originalDocRec = ctx.docContext().withReference(originalRef);
             originalDocRec.setOriginalReference(null);
-            ctx
-                    .crawler()
-                    .getServices()
-                    .getDocTrackerService()
+            ctx.crawler()
+                    .getDocProcessingLedger()
                     .processed(originalDocRec);
         }
     }

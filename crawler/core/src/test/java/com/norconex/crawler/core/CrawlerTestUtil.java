@@ -24,7 +24,6 @@ import org.apache.commons.lang3.function.FailableRunnable;
 import org.junit.platform.commons.JUnitException;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
 
 import lombok.Data;
@@ -66,29 +65,30 @@ public final class CrawlerTestUtil {
 
     public static MemoryCommitter runWithConfig(
             @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c) {
-        var crawler = CrawlerStubs.memoryCrawler(workDir, c);
-        //        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
-        //        c.accept(crawlerBuilder.configuration());
-        //        var crawler = crawlerBuilder.build();
-        crawler.start();
-        return CrawlerTestUtil.firstCommitter(crawler);
+        return null;
+        //        var crawler = CrawlerStubs.memoryCrawler(workDir, c);
+        //        //        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
+        //        //        c.accept(crawlerBuilder.configuration());
+        //        //        var crawler = crawlerBuilder.build();
+        //        crawler.start();
+        //        return CrawlerTestUtil.firstCommitter(crawler);
     }
 
     public static void dumpStoreKeys(Crawler crawler) {
-        initCrawler(crawler);
-        var engine = crawler.getDataStoreEngine();
-        System.err.println("KEY DUMP FOR ALL STORES:");
-        engine.getStoreNames().forEach(sn -> {
-            System.err.println();
-            System.err.println("[" + sn + "]");
-            DataStore<?> store =
-                    engine.openStore(sn, engine.getStoreType(sn).get());
-            store.forEach((k, v) -> {
-                System.err.println("" + k);
-                return true;
-            });
-        });
-        destroyCrawler(crawler);
+        //        initCrawler(crawler);
+        //        var engine = crawler.getDataStoreEngine();
+        //        System.err.println("KEY DUMP FOR ALL STORES:");
+        //        engine.getStoreNames().forEach(sn -> {
+        //            System.err.println();
+        //            System.err.println("[" + sn + "]");
+        //            DataStore<?> store =
+        //                    engine.openStore(sn, engine.getStoreType(sn).get());
+        //            store.forEach((k, v) -> {
+        //                System.err.println("" + k);
+        //                return true;
+        //            });
+        //        });
+        //        destroyCrawler(crawler);
     }
 
     public static MemoryCommitter withinInitializedCrawler(

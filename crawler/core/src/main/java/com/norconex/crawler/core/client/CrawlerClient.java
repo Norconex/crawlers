@@ -14,10 +14,26 @@
  */
 package com.norconex.crawler.core.client;
 
+import java.nio.file.Path;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.norconex.commons.lang.ClassUtil;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.crawler.core.CrawlerBuilder;
+import com.norconex.crawler.core.CrawlerBuilderFactory;
+import com.norconex.crawler.core.CrawlerBuilderModifier;
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.CrawlerState;
+import com.norconex.crawler.core.client.commands.Command;
+import com.norconex.crawler.core.client.commands.CrawlCommand;
+import com.norconex.crawler.core.grid.Grid;
+import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 //TODO maybe rename to Crawler and have server side be CrawlerNode?
@@ -40,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see CrawlerConfig
  */
 @Slf4j
-@EqualsAndHashCode // (onlyExplicitlyIncluded = true)
+@EqualsAndHashCode
 @Getter
 public class CrawlerClient {
 
@@ -48,4 +64,84 @@ public class CrawlerClient {
     // and report on actual crawler instances running on nodes.
     // has access to gridsystem and some monitoring and that is pretty much it.
 
+    public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
+
+    private final CrawlerConfig configuration;
+    private final Grid grid;
+    private final Class<? extends CrawlerBuilderFactory> builderFactoryClass;
+    private final BeanMapper beanMapper;
+    private final CrawlerState state = new CrawlerState();
+
+    CrawlerClient(CrawlerBuilder b,
+            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
+        configuration = b.configuration();
+        beanMapper = b.beanMapper();
+        this.builderFactoryClass = builderFactoryClass;
+        grid = configuration.getGridConnector().connect(this);
+        state.init(grid);
+    }
+
+    public static CrawlerClient create(
+            @NonNull Class<CrawlerBuilderFactory> builderFactoryClass) {
+        return create(builderFactoryClass, null);
+    }
+
+    public static CrawlerClient create(
+            @NonNull Class<? extends CrawlerBuilderFactory> builderFactoryClass,
+            CrawlerBuilderModifier builderModifier) {
+        var factory = ClassUtil.newInstance(builderFactoryClass);
+        var builder = factory.create();
+        if (builderModifier != null) {
+            builderModifier.modify(builder);
+        }
+        return new CrawlerClient(builder, builderFactoryClass);
+    }
+
+    public void crawl() {
+        executeCommand(new CrawlCommand());
+    }
+
+    public void stop() {
+        //TODO implement me
+    }
+
+    public void clean() {
+        //TODO implement me
+    }
+
+    public void cacheExport(Path dir) {
+        //TODO implement me
+    }
+
+    public void cacheImport(Path inFile) {
+        //TODO implement me
+    }
+
+    private void executeCommand(Command command) {
+        //--- Ensure good state/config ---
+        if (StringUtils.isBlank(configuration.getId())) {
+            throw new CrawlerException(
+                    "Crawler must be given a unique identifier (id).");
+        }
+
+        //TODO some monitoring here to report progress on client node
+
+        LogUtil.setMdcCrawlerId(configuration.getId());
+
+        LogUtil.logCommandIntro(LOG, configuration);
+
+        //        try (var grid = getGridSystem()) {
+        //            grid.init(this);
+        //        gridSystem.clientInit(null);
+        //        init(true);
+        try {
+            LOG.info("Executing command: {}",
+                    command.getClass().getSimpleName());
+            command.execute(this);
+        } finally {
+            //            orderlyShutdown(true);
+        }
+        grid.close();
+        //        }
+    }
 }
