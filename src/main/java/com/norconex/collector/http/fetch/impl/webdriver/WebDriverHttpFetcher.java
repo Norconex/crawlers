@@ -222,6 +222,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     }
     /**
      * Creates a new WebDriver HTTP Fetcher for the supplied configuration.
+     * @param config WebDriver configuration
      */
     public WebDriverHttpFetcher(WebDriverHttpFetcherConfig config) {
         cfg = Objects.requireNonNull(config, "'config' must not be null.");

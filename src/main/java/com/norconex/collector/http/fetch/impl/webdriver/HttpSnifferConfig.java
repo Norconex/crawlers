@@ -63,6 +63,7 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
+@SuppressWarnings("javadoc")
 public class HttpSnifferConfig implements IXMLConfigurable {
 
     public static final int DEFAULT_MAX_BUFFER_SIZE =

@@ -54,7 +54,8 @@ public class HttpCollector extends Collector {
      *    list of command-line options.
      */
 	public static void main(String[] args) {
-	    new CollectorCommandLauncher().launch(new HttpCollector(), args);
+	    HttpCollector collector = new HttpCollector();
+	    new CollectorCommandLauncher().launch(collector, args);
 	}
 
 
