@@ -461,7 +461,9 @@ import com.norconex.importer.ImporterConfig;
  *     <provider class="(IStartURLsProvider implementation)"/>
  *   </startURLs>
  *
- *   <urlNormalizer class="(IURLNormalizer implementation)" />
+ *   <urlNormalizers>
+ *     <urlNormalizer class="(IURLNormalizer implementation)" />
+ *   </urlNormalizers>
  *
  *   <delay class="(IDelayResolver implementation)"/>
  *
@@ -584,8 +586,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     private URLCrawlScopeStrategy urlCrawlScopeStrategy =
             new URLCrawlScopeStrategy();
 
-
-    private IURLNormalizer urlNormalizer = new GenericURLNormalizer();
+    private final List<IURLNormalizer> urlNormalizers =
+            new ArrayList<>(Arrays.asList(new GenericURLNormalizer()));
 
     private IDelayResolver delayResolver = new GenericDelayResolver();
 
@@ -988,11 +990,44 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         this.robotsTxtProvider = robotsTxtProvider;
     }
 
+    /**
+     * @deprecated Since 3.1.0, use {@link #getUrlNormalizers()} instead.
+     * @return URL normalizer
+     */
+    @Deprecated(forRemoval = true, since = "3.1.0")
     public IURLNormalizer getUrlNormalizer() {
-        return urlNormalizer;
+        if (urlNormalizers.isEmpty()) {
+            return null;
+        }
+        return urlNormalizers.get(0);
     }
+    /**
+     * @deprecated Since 3.1.0, use {@link #setUrlNormalizers(List)} instead.
+     * @param urlNormalizer URL normalizer
+     */
+    @Deprecated(forRemoval = true, since = "3.1.0")
     public void setUrlNormalizer(IURLNormalizer urlNormalizer) {
-        this.urlNormalizer = urlNormalizer;
+        urlNormalizers.clear();
+        if (urlNormalizer != null) {
+            urlNormalizers.add(urlNormalizer);
+        }
+    }
+    /**
+     * Gets URL normalizers. Defaults to a single
+     * {@link GenericURLNormalizer} instance (with its default configuration).
+     * @return URL normalizers or an empty list (never <code>null</code>)
+     * @since 3.1.0
+     */
+    public List<IURLNormalizer> getUrlNormalizers() {
+        return Collections.unmodifiableList(urlNormalizers);
+    }
+    /**
+     * Sets URL normalizers.
+     * @param urlNormalizers URL normalizers
+     * @since 3.1.0
+     */
+    public void setUrlNormalizers(List<IURLNormalizer> urlNormalizers) {
+        CollectionUtil.setAll(this.urlNormalizers, urlNormalizers);
     }
 
     public IDelayResolver getDelayResolver() {
@@ -1286,7 +1321,9 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         startXML.addElementList("sitemap", startSitemapURLs);
         startXML.addElementList("provider", startURLsProviders);
 
-        xml.addElement("urlNormalizer", urlNormalizer);
+        xml.addElement("urlNormalizers")
+                .addElementList("urlNormalizer", urlNormalizers);
+
         xml.addElement("delay", delayResolver);
         xml.addElement("robotsTxt", robotsTxtProvider)
                 .setAttribute("ignore", ignoreRobotsTxt);
@@ -1300,7 +1337,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 .setAttribute("retryDelay", httpFetchersRetryDelay)
                 .addElementList("fetcher", httpFetchers);
 
-//        xml.addElement("metadataChecksummer", metadataChecksummer);
         xml.addElement("robotsMeta", robotsMetaProvider)
                 .setAttribute("ignore", ignoreRobotsMeta);
         xml.addElementList("linkExtractors", "extractor", linkExtractors);
@@ -1397,8 +1433,19 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     private void loadSimpleSettings(XML xml) {
         xml.checkDeprecated("keepOutOfScopeLinks", "keepReferencedLinks", true);
 
-        setUrlNormalizer(xml.getObjectImpl(
-                IURLNormalizer.class, "urlNormalizer", urlNormalizer));
+        xml.checkDeprecated(
+                "urlNormalizer", "urlNormalizers/urlNormalizer", false);
+        var deprectedNormalizer = xml.getObjectImpl(
+                IURLNormalizer.class, "urlNormalizer");
+        if (deprectedNormalizer != null) {
+            setUrlNormalizers(
+                    Arrays.asList((IURLNormalizer) deprectedNormalizer));
+        } else {
+            setUrlNormalizers(xml.getObjectListImpl(
+                    IURLNormalizer.class,
+                    "urlNormalizers/urlNormalizer",
+                    urlNormalizers));
+        }
         setDelayResolver(xml.getObjectImpl(
                 IDelayResolver.class, "delay", delayResolver));
         setMaxDepth(xml.getInteger("maxDepth", maxDepth));
@@ -1481,7 +1528,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 .append(startURLsFiles, that.startURLsFiles)
                 .append(startURLsProviders, that.startURLsProviders)
                 .append(urlCrawlScopeStrategy, that.urlCrawlScopeStrategy)
-                .append(urlNormalizer, that.urlNormalizer)
+                .append(urlNormalizers, that.urlNormalizers)
                 .build();
     }
     @Override

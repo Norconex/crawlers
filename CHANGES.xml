@@ -7,7 +7,10 @@
   </properties>
   <body>
 
-    <release version="3.1.0-SNAPSHOT" date="2024-??-??" description="Minor release">
+    <release version="3.1.0-SNAPSHOT" date="2024-??-??" description="Minor release.">
+      <action dev="essiembre" type="add" issue="1061">
+        New "removeTrailingFragment" option on GenericURLNormalizer. 
+      </action>
       <action dev="essiembre" type="add">
         New WebDriverHttpFetcher browser options: CUSTOM. 
       </action>
@@ -24,6 +27,9 @@
       <action dev="essiembre" type="update">
         Now requires Java 11 to run. 
       </action>
+      <action dev="essiembre" type="add" issue="1063">
+        Can now specify more than one URL Normalizer.
+      </action>
       <action dev="essiembre" type="update">
         Maven dependency updates: Guava 33.0.0, imgscalr 4.2, 
         Jetty 9.4.54.v20240208, Netty 4.1.96.Final, Selenium 4.23.0,
@@ -34,7 +40,7 @@
       </action>
     </release>
 
-    <release version="3.0.2" date="2023-07-09" description="Maintenance release">
+    <release version="3.0.2" date="2023-07-09" description="Maintenance release.">
       <action dev="essiembre" type="add" issue="803">
         Fixed GenericSitemapResolver NPE when the sitemap content-type
         could not be detected.
@@ -46,7 +52,7 @@
       </action>
     </release>
 
-    <release version="3.0.1" date="2022-08-30" description="Maintenance release">
+    <release version="3.0.1" date="2022-08-30" description="Maintenance release.">
       <action dev="essiembre" type="add" issue="790">
         New MDC attributes which can be used in supporting logging framework:
         "ctx:crawler.id", "ctx:crawler.id.safe", "ctx:collector.id.safe", 

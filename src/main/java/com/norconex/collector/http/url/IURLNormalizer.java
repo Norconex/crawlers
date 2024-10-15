@@ -14,18 +14,20 @@
  */
 package com.norconex.collector.http.url;
 
+import java.util.List;
+
 import com.norconex.collector.core.filter.IReferenceFilter;
 
 /**
  * Responsible for normalizing URLs.  Normalization is taking a raw URL and
  * modifying it to its most basic or standard form.  In other words, this makes
  * different URLs "equivalent".  This allows to eliminate URL variations
- * that points to the same content (e.g. URL carrying temporary session 
- * information).  This action takes place right after URLs are extracted 
+ * that points to the same content (e.g. URL carrying temporary session
+ * information).  This action takes place right after URLs are extracted
  * from a document, before each of these URLs is even considered
  * for further processing.  Returning null will effectively tells the crawler
  * to not even consider it for processing (it won't go through the regular
- * document processing flow).  You may want to consider {@link IReferenceFilter} 
+ * document processing flow).  You may want to consider {@link IReferenceFilter}
  * to exclude URLs as part has the regular document processing flow
  * (may create a trace in the logs and gives you more options).
  * Implementors also implementing IXMLConfigurable must name their XML tag
@@ -40,5 +42,24 @@ public interface IURLNormalizer {
      * @return the normalized URL
      */
     String normalizeURL(String url);
-    
+
+    /**
+     * Normalizes a URL by applying each normalizers in the list.
+     * @param url the URL to normalize
+     * @param normalizers the normalizers
+     * @return the normalized URL
+     */
+    static String normalizeURL(String url, List<IURLNormalizer> normalizers) {
+        if (normalizers == null) {
+            return url;
+        }
+        var normalizedUrl = url;
+        for (IURLNormalizer norm : normalizers) {
+            if (norm != null) {
+                normalizedUrl = norm.normalizeURL(normalizedUrl);
+            }
+        }
+        return normalizedUrl;
+    }
+
 }

@@ -42,6 +42,14 @@
           <xs:element name="keepReferencedLinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
           <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
           <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="urlNormalizers" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:all>
+                <xs:element name="urlNormalizer" 
+                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:all>
+            </xs:complexType>
+          </xs:element>
           <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="fetchHttpHead" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="fetchHttpGet" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>

@@ -26,5 +26,5 @@ REM     -DenableJMX=true
 java -Dlog4j2.configurationFile="file:///%ROOT_DIR%log4j2.xml" ^
      -Dfile.encoding=UTF8 ^
      --add-opens=java.base/java.util=ALL-UNNAMED ^
-     --add-opens=java.base/java.lang=ALL-UNNAMED ^     
+     --add-opens=java.base/java.lang=ALL-UNNAMED ^
      -cp "./lib/*;./classes" com.norconex.collector.http.HttpCollector %*

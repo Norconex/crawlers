@@ -91,6 +91,7 @@ import com.norconex.commons.lang.xml.XML;
  *   <li>{@link URLNormalizer#removeFragment() removeFragment}</li>
  *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
  *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li>
+ *   <li>{@link URLNormalizer#removeTrailingFragment() removeTrailingFragment} (since 3.1.0)</li>
  *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
  *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
  *   <li>{@link URLNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
@@ -180,6 +181,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         removeFragment,
         removeQueryString,
         removeSessionIds,
+        removeTrailingFragment,
         removeTrailingQuestionMark,
         removeTrailingSlash,
         removeTrailingHash,
@@ -196,7 +198,6 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     private boolean disabled;
 
     public GenericURLNormalizer() {
-        super();
         setNormalizations(
                 Normalization.removeFragment,
                 Normalization.lowerCaseSchemeHost,
@@ -212,7 +213,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             return url;
         }
 
-        URLNormalizer normalizer = new URLNormalizer(url);
+        var normalizer = new URLNormalizer(url);
         for (Normalization n : normalizations) {
             try {
                 MethodUtils.invokeExactMethod(
@@ -221,12 +222,12 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
                 LOG.error("Could not apply normalization \"{}\".", n, e);
             }
         }
-        String normedURL = normalizer.toString();
+        var normedURL = normalizer.toString();
         for (Replace replace : replaces) {
             if (replace == null || StringUtils.isBlank(replace.getMatch())) {
                 continue;
             }
-            String replacement = replace.getReplacement();
+            var replacement = replace.getReplacement();
             if (StringUtils.isBlank(replacement)) {
                 replacement = StringUtils.EMPTY;
             }
@@ -278,23 +279,23 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
         //TODO be consistant how to clear defaults... similar issue as with
         //GenericSitemapResolver
-        List<String> norms = xml.getStringList("normalizations");
-        if (norms.size() == 1 && norms.get(0).equals("")) {
+        var norms = xml.getStringList("normalizations");
+        if (norms.size() == 1 && "".equals(norms.get(0))) {
             CollectionUtil.setAll(
-                    this.normalizations, (List<Normalization>) null);
+                    normalizations, (List<Normalization>) null);
         } else if (!norms.isEmpty()) {
-            CollectionUtil.setAll(this.normalizations, CollectionUtil.toTypeList(
+            CollectionUtil.setAll(normalizations, CollectionUtil.toTypeList(
                     xml.getDelimitedStringList("normalizations"),
                             s -> Normalization.valueOf(s.trim())));
         }
 
-        List<XML> xmlReplaces = xml.getXMLList("replacements/replace");
+        var xmlReplaces = xml.getXMLList("replacements/replace");
         if (!xmlReplaces.isEmpty()) {
             replaces.clear();
         }
         for (XML xmlReplace : xmlReplaces) {
-            String match = xmlReplace.getString("match", "");
-            String replacement = xmlReplace.getString("replacement", "");
+            var match = xmlReplace.getString("match", "");
+            var replacement = xmlReplace.getString("replacement", "");
             replaces.add(new Replace(match, replacement));
         }
     }
@@ -304,9 +305,9 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         xml.setAttribute("disabled", disabled);
         xml.addDelimitedElementList("normalizations", normalizations);
         if (!replaces.isEmpty()) {
-            XML xmlReplaces = xml.addElement("replacements");
+            var xmlReplaces = xml.addElement("replacements");
             for (Replace replace : replaces) {
-                XML xmlReplace = xmlReplaces.addElement("replace");
+                var xmlReplace = xmlReplaces.addElement("replace");
                 xmlReplace.addElement("match", replace.getMatch());
                 xmlReplace.addElement("replacement", replace.getReplacement());
             }
@@ -331,12 +332,10 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         private final String match;
         private final String replacement;
         public Replace(String match) {
-            super();
             this.match = match;
-            this.replacement = "";
+            replacement = "";
         }
         public Replace(String match, String replacement) {
-            super();
             this.match = match;
             this.replacement = replacement;
         }

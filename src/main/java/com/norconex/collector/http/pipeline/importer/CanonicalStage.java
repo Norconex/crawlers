@@ -51,7 +51,7 @@ class CanonicalStage extends AbstractHttpMethodStage {
     public boolean executeStage(
             HttpImporterPipelineContext ctx, HttpMethod method) {
 
-        ICanonicalLinkDetector detector =
+        var detector =
                 ctx.getConfig().getCanonicalLinkDetector();
 
         //Return right away if canonical links are ignored or no detector.
@@ -99,21 +99,18 @@ class CanonicalStage extends AbstractHttpMethodStage {
             return true;
         }
 
-        ICanonicalLinkDetector detector =
+        var detector =
                 ctx.getConfig().getCanonicalLinkDetector();
-        HttpDocInfo crawlRef = ctx.getDocInfo();
-        String reference = crawlRef.getReference();
+        var crawlRef = ctx.getDocInfo();
+        var reference = crawlRef.getReference();
 
         // Since the current/containing page URL has already been
         // normalized, make sure we normalize this one for the purpose
         // of comparing it.  It will them be sent un-normalized to
         // the queue pipeline, since that pipeline performs the
         // normalization after a few other steps.
-        String normalizedCanURL = canURL;
-        IURLNormalizer normalizer = ctx.getConfig().getUrlNormalizer();
-        if (normalizer != null) {
-            normalizedCanURL = normalizer.normalizeURL(normalizedCanURL);
-        }
+        var normalizedCanURL = IURLNormalizer.normalizeURL(
+                canURL, ctx.getConfig().getUrlNormalizers());
         if (normalizedCanURL == null) {
             LOG.info("Canonical URL detected is null after "
                   + "normalization so it will be ignored and its referrer "
@@ -141,7 +138,7 @@ class CanonicalStage extends AbstractHttpMethodStage {
             return true;
         }
 
-        HttpDocInfo newData = new HttpDocInfo(crawlRef);
+        var newData = new HttpDocInfo(crawlRef);
         newData.setReference(canURL);
         newData.setReferrerReference(reference);
 
@@ -153,7 +150,7 @@ class CanonicalStage extends AbstractHttpMethodStage {
                 + "canonical URL will be queued for processing: {}",
                 canURL);
 
-            HttpQueuePipelineContext newContext =
+            var newContext =
                     new HttpQueuePipelineContext(ctx.getCrawler(), newData);
             new HttpQueuePipeline().execute(newContext);
         } else {

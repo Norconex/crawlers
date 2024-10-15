@@ -28,7 +28,7 @@ import com.norconex.collector.core.pipeline.queue.ReferenceFiltersStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.robot.RobotsTxt;
-import com.norconex.collector.http.sitemap.ISitemapResolver;
+import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
@@ -45,7 +45,6 @@ public final class HttpQueuePipeline
             LoggerFactory.getLogger(HttpQueuePipeline.class);
 
     public HttpQueuePipeline() {
-        super();
         addStage(new DepthValidationStage());
         addStage(new ReferenceFiltersStage());
         addStage(new RobotsTxtFiltersStage());
@@ -93,18 +92,18 @@ public final class HttpQueuePipeline
                     || ctx.getSitemapResolver() == null) {
                 return true;
             }
-            String urlRoot = ctx.getDocInfo().getUrlRoot();
+            var urlRoot = ctx.getDocInfo().getUrlRoot();
             List<String> robotsTxtLocations = new ArrayList<>();
-            RobotsTxt robotsTxt = getRobotsTxt(ctx);
+            var robotsTxt = getRobotsTxt(ctx);
             if (robotsTxt != null) {
                 robotsTxtLocations.addAll(robotsTxt.getSitemapLocations());
             }
-            final ISitemapResolver sitemapResolver = ctx.getSitemapResolver();
+            final var sitemapResolver = ctx.getSitemapResolver();
 
             sitemapResolver.resolveSitemaps(
                     ctx.getCrawler().getHttpFetchClient(), urlRoot,
                     robotsTxtLocations, ref -> {
-                        HttpQueuePipelineContext context =
+                        var context =
                                 new HttpQueuePipelineContext(
                                         ctx.getCrawler(), ref);
                         new HttpQueuePipeline().execute(context);
@@ -117,10 +116,12 @@ public final class HttpQueuePipeline
     private static class URLNormalizerStage extends AbstractQueueStage {
         @Override
         public boolean executeStage(HttpQueuePipelineContext ctx) {
-            if (ctx.getConfig().getUrlNormalizer() != null) {
-                String originalReference = ctx.getDocInfo().getReference();
-                String url = ctx.getConfig().getUrlNormalizer().normalizeURL(
-                        originalReference);
+            var normalizers = ctx.getConfig().getUrlNormalizers();
+
+            if (!normalizers.isEmpty()) {
+                var originalReference = ctx.getDocInfo().getReference();
+                var url = IURLNormalizer.normalizeURL(
+                        originalReference, normalizers);
                 if (url == null) {
                     ctx.getDocInfo().setState(CrawlState.REJECTED);
                     return false;
@@ -133,6 +134,4 @@ public final class HttpQueuePipeline
             return true;
         }
     }
-
 }
-
