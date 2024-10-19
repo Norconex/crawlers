@@ -27,11 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.client.CrawlerClient;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.GridStorage;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
 import com.norconex.crawler.core.mocks.MockNoopGrid;
 import com.norconex.crawler.core.mocks.MockNoopGridConnector;
@@ -58,23 +54,7 @@ class CrawlerTest {
         var mem = CrawlerTestUtil.runWithConfig(
                 tempDir,
                 cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
-                        .setGridConnector(new GridConnector() {
-                            @Override
-                            public Grid connect(CrawlerClient crawlerClient) {
-                                return new MockNoopGrid();
-                            }
-
-                            @Override
-                            public Grid connect(Crawler crawler) {
-                                return new MockNoopGrid() {
-                                    @Override
-                                    public GridStorage storage() {
-                                        throw new UnsupportedOperationException(
-                                                "TEST");
-                                    }
-                                };
-                            }
-                        })
+                        .setGridConnector(crawlerContext -> new MockNoopGrid())
 
                         //                        .setGridConnector(new MvStoreDataStoreEngine() {
                         //                            @Override

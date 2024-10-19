@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.Xml;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
@@ -49,26 +49,26 @@ class AbstractFetcherTest {
     }
 
     @WithCrawlerTest
-    void testEvents(Crawler crawler) {
+    void testEvents(CrawlerContext crawler) {
         List<String> methodsCalled = new ArrayList<>();
         var f = new MockFetcher() {
             @Override
-            protected void fetcherStartup(Crawler crawler) {
+            protected void fetcherStartup(CrawlerContext crawler) {
                 methodsCalled.add("fetcherStartup");
             }
 
             @Override
-            protected void fetcherShutdown(Crawler crawler) {
+            protected void fetcherShutdown(CrawlerContext crawler) {
                 methodsCalled.add("fetcherShutdown");
             }
 
             @Override
-            protected void fetcherThreadBegin(Crawler crawler) {
+            protected void fetcherThreadBegin(CrawlerContext crawler) {
                 methodsCalled.add("fetcherThreadBegin");
             }
 
             @Override
-            protected void fetcherThreadEnd(Crawler crawler) {
+            protected void fetcherThreadEnd(CrawlerContext crawler) {
                 methodsCalled.add("fetcherThreadEnd");
             }
         };

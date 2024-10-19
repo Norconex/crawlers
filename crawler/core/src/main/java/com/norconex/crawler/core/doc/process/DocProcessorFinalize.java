@@ -49,10 +49,8 @@ final class DocProcessorFinalize {
 
         var docRecord = ctx.docContext();
         if (ctx.doc() == null) {
-            ctx.doc(
-                    new CrawlDoc(
-                            docRecord,
-                            CachedInputStream.cache(nullInputStream())));
+            ctx.doc(new CrawlDoc(
+                    docRecord, CachedInputStream.cache(nullInputStream())));
         }
         var doc = ctx.doc();
         var cachedDocRecord = doc.getCachedDocContext();
@@ -101,14 +99,11 @@ final class DocProcessorFinalize {
 
         //--- Mark reference as Processed --------------------------------------
         try {
-            ctx
-                    .crawler()
+            ctx.crawler()
                     .getDocProcessingLedger()
                     .processed(docRecord);
 
             markReferenceVariationsAsProcessed(ctx);
-
-            ctx.crawler().getProgressLogger().logProgress();
 
         } catch (Exception e) {
             LOG.error(

@@ -25,8 +25,8 @@ import org.apache.ignite.IgniteQueue;
 import org.apache.ignite.IgniteSet;
 import org.apache.ignite.configuration.CollectionConfiguration;
 
+import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridQueue;
-import com.norconex.crawler.core.store.DataStoreException;
 
 import lombok.Data;
 import lombok.Getter;
@@ -36,7 +36,7 @@ import lombok.experimental.StandardException;
 public class IgniteGridQueue<T> implements GridQueue<T> {
 
     private String name;
-    // we use a set to ensure uniqueness on ID.
+    // we use a set to ensure uniqueness on key.
     private final IgniteSet<String> idSet;
     private final IgniteQueue<QueueEntry<T>> queue;
 
@@ -66,22 +66,11 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
         queue.clear();
     }
 
-    //    @Override
-    //    public void close() {
-    //        // we don't explicitly close them here. They'll be "closed"
-    //        // automatically when leaving the cluster.
-    //        //        if (ignite.cluster().state().active()
-    //        //                && ignite.cluster().localNode().isClient()) {
-    //        //            idSet.close();
-    //        //            queue.close();
-    //        //        }
-    //    }
-
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
         try {
             queue.forEach(en -> {
-                if (!predicate.test(en.getId(), en.getObject())) {
+                if (!predicate.test(en.getKey(), en.getObject())) {
                     throw new BreakException();
                 }
             });
@@ -97,8 +86,8 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
     }
 
     @Override
-    public boolean contains(Object id) {
-        return idSet.contains((String) id);
+    public boolean contains(Object key) {
+        return idSet.contains((String) key);
     }
 
     @Override
@@ -107,22 +96,22 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
     }
 
     @Override
-    public boolean put(String id, T object) {
-        var added = idSet.add(id);
+    public boolean put(String key, T object) {
+        var added = idSet.add(key);
         if (added) {
             var entry = new QueueEntry<T>();
-            entry.setId(id);
+            entry.setKey(key);
             entry.setObject(object);
             try {
                 if (!queue.offer(entry)) {
                     // should not happen unless Ignire queue configuration was
                     // explicitly set with a capacity
-                    throw new DataStoreException(
+                    throw new GridException(
                             "Queue '%s' has reached maximum capacity."
                                     .formatted(name));
                 }
             } catch (IgniteException e) {
-                idSet.remove(id);
+                idSet.remove(key);
             }
         }
         return added;
@@ -135,7 +124,7 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
 
     @Data
     static class QueueEntry<T> {
-        private String id;
+        private String key;
         private T object;
     }
 

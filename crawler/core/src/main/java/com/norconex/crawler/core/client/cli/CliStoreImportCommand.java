@@ -16,7 +16,7 @@ package com.norconex.crawler.core.client.cli;
 
 import java.nio.file.Path;
 
-import com.norconex.crawler.core.client.CrawlerClient;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -41,7 +41,7 @@ public class CliStoreImportCommand extends CliSubCommandBase {
     private Path inFile;
 
     @Override
-    protected void runCommand(CrawlerClient crawlerClient) {
+    protected void runCommand(Crawler crawlerClient) {
         crawlerClient.cacheImport(inFile);
     }
 }

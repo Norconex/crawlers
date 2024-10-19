@@ -59,19 +59,19 @@ class DisabledMetaChecksummerTest {
 
         // first time, 1 new doc
         whenMetaChanges(client, 10, "abc");
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // second time, meta changes but not body
         whenMetaChanges(client, 8, "def");
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // third time, meta changes but not body
         whenMetaChanges(client, 4, "ghi");
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
@@ -81,21 +81,14 @@ class DisabledMetaChecksummerTest {
     private void whenMetaChanges(
             ClientAndServer client, int daysAgo, String salt) {
         client.reset();
-        client
-                .when(request(path))
-                .respond(
-                        response()
-                                .withHeader(
-                                        "Last-Modified",
-                                        WebTestUtil.daysAgoRFC(daysAgo))
-                                .withBody(
-                                        WebsiteMock
-                                                .htmlPage()
-                                                .head(
-                                                        "<meta name=\"salt\" content=\""
-                                                                + salt + "\">")
-                                                .body("Content never changes.")
-                                                .build(),
-                                        MediaType.HTML_UTF_8));
+        client.when(request(path)).respond(response()
+                .withHeader("Last-Modified",
+                        WebTestUtil.daysAgoRFC(daysAgo))
+                .withBody(WebsiteMock
+                        .htmlPage()
+                        .head("<meta name=\"salt\" content=\"" + salt + "\">")
+                        .body("Content never changes.")
+                        .build(),
+                        MediaType.HTML_UTF_8));
     }
 }

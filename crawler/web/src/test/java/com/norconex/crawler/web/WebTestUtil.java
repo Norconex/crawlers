@@ -63,8 +63,8 @@ import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
-import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.core.store.DataStoreEngine;
+import com.norconex.crawler.core.grid.Grid;
+import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
@@ -149,8 +149,8 @@ public final class WebTestUtil {
                             AtomicBoolean.class, () -> new AtomicBoolean(
                                     new BooleanRandomizer().getRandomValue()))
 
-                    .excludeType(DataStoreEngine.class::equals)
-                    .excludeType(DataStore.class::equals)
+                    .excludeType(Grid.class::equals)
+                    .excludeType(GridConnector.class::equals)
                     .excludeType(SitemapResolver.class::equals)
                     .excludeType(DocumentConsumer.class::equals)
                     .excludeType(FeaturedImageResolver.class::equals)
@@ -338,7 +338,7 @@ public final class WebTestUtil {
         //        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
         //        c.accept((WebCrawlerConfig) crawlerBuilder.configuration());
         //        var crawler = crawlerBuilder.build();
-        crawler.start();
+        crawler.crawl();
         return firstCommitter(crawler);
     }
 }

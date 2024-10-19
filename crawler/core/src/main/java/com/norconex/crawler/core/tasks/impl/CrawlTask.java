@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.tasks;
+package com.norconex.crawler.core.tasks.impl;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.process.DocsProcessor;
 import com.norconex.crawler.core.grid.GridInitializedCrawlerTask;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 /**
  * Performs a crawl by getting references from the crawl queue.
@@ -26,7 +26,7 @@ public class CrawlTask extends GridInitializedCrawlerTask {
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected void runWithInitializedCrawler(Crawler crawler, String arg) {
+    protected void runWithInitializedCrawler(CrawlerTaskContext crawler, String arg) {
         new DocsProcessor(crawler).run();
     }
 

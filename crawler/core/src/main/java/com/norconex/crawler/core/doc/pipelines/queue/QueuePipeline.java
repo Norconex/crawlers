@@ -22,8 +22,8 @@ import java.util.function.Function;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.commons.lang.function.Predicates;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.AllArgsConstructor;
@@ -70,7 +70,7 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
      * @param crawler the crawler
      * @return queue initialization completion status
      */
-    public MutableBoolean initializeQueue(Crawler crawler) {
+    public MutableBoolean initializeQueue(CrawlerTaskContext crawler) {
         //--- Queue initial references ---------------------------------
         //TODO if we resume, shall we not queue again? What if it stopped
         // in the middle of initial queuing, then to be safe we have to
@@ -145,7 +145,7 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
     @AllArgsConstructor
     public static class QueueInitContext {
         @Getter
-        private final Crawler crawler;
+        private final CrawlerTaskContext crawler;
         @Getter
         private final boolean resuming;
         private final Consumer<CrawlDocContext> queuer;

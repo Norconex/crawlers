@@ -47,13 +47,17 @@ import lombok.extern.slf4j.Slf4j;
  * A Committer that stores every document received into memory.
  * This can be useful for testing or troubleshooting applications using
  * Committers.
- * Given this committer can eat up memory pretty quickly, its use is strongly
- * discouraged for regular production use.
+ * </p>
+ * <p>
+ * Given this committer can eat up memory pretty quickly, its <b>use is
+ * strongly discouraged</b> for regular production use.
  * </p>
  */
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
 public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
+
+    //TODO make requests static and using thread local
 
     private final List<CommitterRequest> requests = new ArrayList<>();
 

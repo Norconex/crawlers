@@ -27,7 +27,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
@@ -72,7 +72,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     private FileSystemOptions fsOptions;
 
     @Override
-    protected void fetcherStartup(Crawler crawler) {
+    protected void fetcherStartup(CrawlerContext crawler) {
         try {
             fsManager = new StandardFileSystemManager();
             fsManager.setClassLoader(getClass().getClassLoader());
@@ -87,7 +87,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     }
 
     @Override
-    protected void fetcherShutdown(Crawler crawler) {
+    protected void fetcherShutdown(CrawlerContext crawler) {
         if (fsManager != null) {
             fsManager.close();
         }

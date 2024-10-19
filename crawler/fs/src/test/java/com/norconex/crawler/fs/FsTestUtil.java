@@ -50,14 +50,14 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerCoreTestUtil;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
-import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.core.store.DataStoreEngine;
+import com.norconex.crawler.core.grid.Grid;
+import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.fs.stubs.CrawlerStubs;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;
@@ -116,8 +116,8 @@ public final class FsTestUtil {
                             AtomicBoolean.class, () -> new AtomicBoolean(
                                     new BooleanRandomizer().getRandomValue()))
 
-                    .excludeType(DataStoreEngine.class::equals)
-                    .excludeType(DataStore.class::equals)
+                    .excludeType(Grid.class::equals)
+                    .excludeType(GridConnector.class::equals)
                     .excludeType(StandardFileSystemManager.class::equals)
                     .excludeType(FileSystemOptions.class::equals)
                     .excludeType(ReferencesProvider.class::equals)
@@ -232,12 +232,10 @@ public final class FsTestUtil {
         return toString(FsTestUtil.class.getResourceAsStream(resourcePath));
     }
 
-    public static void initCrawler(Crawler crawler) {
-        CrawlerCoreTestUtil.initCrawler(crawler);
-    }
-
-    public static void destroyCrawler(Crawler crawler) {
-        CrawlerCoreTestUtil.destroyCrawler(crawler);
+    public static MemoryCommitter
+            firstCommitter(@NonNull CrawlerTaskContext crawler) {
+        return (MemoryCommitter) crawler.getConfiguration().getCommitters()
+                .get(0);
     }
 
     public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
@@ -247,10 +245,8 @@ public final class FsTestUtil {
 
     public static MemoryCommitter runWithConfig(
             @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c) {
-        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
-        c.accept(crawlerBuilder.configuration());
-        var crawler = crawlerBuilder.build();
-        crawler.start();
+        var crawler = CrawlerStubs.memoryCrawler(workDir, c);
+        crawler.crawl();
         return firstCommitter(crawler);
     }
 

@@ -30,19 +30,19 @@ public interface GridQueue<T> extends GridStore<T> {
     // including startTransaction and stopTransaction? (optionally implemented)
 
     /**
-     * Puts the given object a the bottom of the queue, under the specified id.
-     * The id is assumed to be unique and is used to prevent duplicates.
-     * Adding an object with an id that is already present in the queue
+     * Puts the given object a the bottom of the queue, under the specified key.
+     * The key is assumed to be unique and is used to prevent duplicates.
+     * Adding an object with an key that is already present in the queue
      * will have no effect (i.e., you can't replace or modify an object
      * once added).
-     * It is not mandatory for the object itself to contain the said id but
+     * It is not mandatory for the object itself to contain the said key but
      * it can be useful if you need to reconcile.
-     * @param id unique identifier for an object.
+     * @param key unique identifier for an object.
      * @param object the object to add to the queue
      * @return <code>true</code> if the object was queued (i.e., not object
      *     already exist under the same key).
      */
-    boolean put(String id, T object);
+    boolean put(String key, T object);
 
     /**
      * Return and delete the object at the top of the queue.

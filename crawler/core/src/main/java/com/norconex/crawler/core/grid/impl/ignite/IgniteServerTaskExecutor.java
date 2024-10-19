@@ -21,10 +21,10 @@ import org.apache.ignite.Ignition;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerBuilderFactory;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridTask;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,7 +52,7 @@ public final class IgniteServerTaskExecutor {
     }
 
     @SuppressWarnings("unchecked")
-    static Crawler serverNodeCrawler() {
+    static CrawlerTaskContext serverNodeCrawler() {
         var ignite = Ignition.localIgnite();
 
         var initCache = ignite.<String, String>getOrCreateCache(
@@ -69,7 +69,7 @@ public final class IgniteServerTaskExecutor {
         Class<?> factoryClass = classFor(crawlerBuilderFactoryClassName);
 
         var configStr = initCache.get(IgniteGridKeys.CRAWLER_CONFIG);
-        return Crawler.create(
+        return CrawlerTaskContext.create(
                 (Class<? extends CrawlerBuilderFactory>) factoryClass, b -> {
                     if (StringUtils.isBlank(configStr)) {
                         throw new GridException("""

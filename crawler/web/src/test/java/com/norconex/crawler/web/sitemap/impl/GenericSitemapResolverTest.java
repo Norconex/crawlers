@@ -32,7 +32,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.junit.WithCrawlerTest;
@@ -46,60 +46,39 @@ class GenericSitemapResolverTest {
 
     @Test
     @WithCrawlerTest
-    void testResolveSitemaps(ClientAndServer client, Crawler crawler)
+    void testResolveSitemaps(
+            ClientAndServer client, CrawlerTaskContext crawler)
             throws IOException {
 
         // We test having a sitemap index file pointing to sitemap files, and
         // We test compression.
         // We test redirect
 
-        client
-                .when(
-                        request()
-                                .withPath("/sitemap-index"))
-                .respond(
-                        response()
-                                .withBody(
-                                        """
-                                                <?xml version="1.0" encoding="UTF-8"?>
-                                                <sitemapindex \
-                                                    xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
-                                                  <sitemap>
-                                                    <loc>%s</loc>
-                                                    <lastmod>2000-10-01T18:23:17+00:00</lastmod>
-                                                  </sitemap>
-                                                </sitemapindex>
-                                                """
-                                                .formatted(
-                                                        serverUrl(
-                                                                client,
-                                                                "sitemap")),
-                                        MediaType.XML_UTF_8));
+        client.when(request().withPath("/sitemap-index"))
+                .respond(response().withBody("""
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <sitemapindex \
+                            xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+                          <sitemap>
+                            <loc>%s</loc>
+                            <lastmod>2000-10-01T18:23:17+00:00</lastmod>
+                          </sitemap>
+                        </sitemapindex>
+                        """.formatted(serverUrl(client, "sitemap")),
+                        MediaType.XML_UTF_8));
 
-        client
-                .when(
-                        request()
-                                .withPath("/sitemap"))
-                .respond(
-                        response()
-                                .withStatusCode(302)
-                                .withHeader(
-                                        "Location",
-                                        serverUrl(client, "/sitemap-new")));
+        client.when(request().withPath("/sitemap"))
+                .respond(response()
+                        .withStatusCode(302)
+                        .withHeader(
+                                "Location",
+                                serverUrl(client, "/sitemap-new")));
 
-        client
-                .when(
-                        request()
-                                .withPath("/sitemap-new"))
-                .respond(
-                        response()
-                                .withHeader("Content-Encoding", "gzip")
-                                .withHeader(
-                                        "Content-type",
-                                        "text/xml; charset=utf-8")
-                                .withBody(
-                                        compressSitemap(
-                                                serverUrl(client, ""))));
+        client.when(request().withPath("/sitemap-new"))
+                .respond(response()
+                        .withHeader("Content-Encoding", "gzip")
+                        .withHeader("Content-type", "text/xml; charset=utf-8")
+                        .withBody(compressSitemap(serverUrl(client, ""))));
 
         List<String> urls = new ArrayList<>();
         var resolver = ((WebCrawlerConfig) crawler.getConfiguration())

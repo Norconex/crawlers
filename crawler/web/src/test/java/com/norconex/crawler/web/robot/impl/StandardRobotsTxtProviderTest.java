@@ -32,9 +32,9 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.junit.WithCrawlerTest;
 import com.norconex.crawler.web.robot.RobotsTxtFilter;
@@ -43,31 +43,20 @@ import com.norconex.crawler.web.robot.RobotsTxtFilter;
 class StandardRobotsTxtProviderTest {
 
     @WithCrawlerTest
-    void testGetRobotsTxt(ClientAndServer client, Crawler crawler) {
+    void testGetRobotsTxt(ClientAndServer client, CrawlerTaskContext crawler) {
 
-        client
-                .when(
-                        request()
-                                .withPath("/robots.txt"))
-                .respond(
-                        response()
-                                .withStatusCode(302)
-                                .withHeader(
-                                        "Location",
-                                        serverUrl(
-                                                client,
-                                                "redirected-robots.txt")));
+        client.when(request().withPath("/robots.txt"))
+                .respond(response()
+                        .withStatusCode(302)
+                        .withHeader("Location", serverUrl(
+                                client, "redirected-robots.txt")));
 
-        client
-                .when(
-                        request()
-                                .withPath("/redirected-robots.txt"))
-                .respond(
-                        response()
-                                .withBody("""
-                                        User-agent: *
-                                        Disallow: /badpath/
-                                        """, MediaType.HTML_UTF_8));
+        client.when(request().withPath("/redirected-robots.txt"))
+                .respond(response()
+                        .withBody("""
+                                User-agent: *
+                                Disallow: /badpath/
+                                """, MediaType.HTML_UTF_8));
 
         var robotProvider = new StandardRobotsTxtProvider();
         var robotsTxt = robotProvider.getRobotsTxt(
@@ -77,12 +66,10 @@ class StandardRobotsTxtProviderTest {
         assertThat(robotsTxt.getAllowFilters()).isEmpty();
         assertThat(robotsTxt.getDisallowFilters()).hasSize(1);
         assertThat(robotsTxt.getDisallowFilters().get(0))
-                .matches(
-                        r -> r.acceptReference(
-                                serverUrl(client, "/goodpath/a.html")))
-                .matches(
-                        r -> !r.acceptReference(
-                                serverUrl(client, "/badpath/a.html")));
+                .matches(r -> r.acceptReference(
+                        serverUrl(client, "/goodpath/a.html")))
+                .matches(r -> !r.acceptReference(
+                        serverUrl(client, "/badpath/a.html")));
     }
 
     @Test
@@ -172,9 +159,7 @@ class StandardRobotsTxtProviderTest {
 
     @Test
     void testWildcardPattern() throws IOException {
-        var robotTxt =
-                "User-agent: *\n\n"
-                        + "Disallow: /testing/*/wildcards\n";
+        var robotTxt = "User-agent: *\n\nDisallow: /testing/*/wildcards\n";
         ReferenceFilter rule =
                 parseRobotRule("mister-crawler", robotTxt).get(0);
 
@@ -190,9 +175,7 @@ class StandardRobotsTxtProviderTest {
 
     @Test
     void testStringEndPattern() throws IOException {
-        var robotTxt =
-                "User-agent: *\n\n"
-                        + "Disallow: /testing/anchors$\n";
+        var robotTxt = "User-agent: *\n\nDisallow: /testing/anchors$\n";
         ReferenceFilter rule =
                 parseRobotRule("mister-crawler", robotTxt).get(0);
 
@@ -205,9 +188,7 @@ class StandardRobotsTxtProviderTest {
 
     @Test
     void testRegexEscape() throws IOException {
-        var robotTxt =
-                "User-agent: *\n\n"
-                        + "Disallow: /testing/reg.ex/escape?\n";
+        var robotTxt = "User-agent: *\n\nDisallow: /testing/reg.ex/escape?\n";
         ReferenceFilter rule =
                 parseRobotRule("mister-crawler", robotTxt).get(0);
 
@@ -253,7 +234,7 @@ class StandardRobotsTxtProviderTest {
         var robotProvider = new StandardRobotsTxtProvider();
 
         var robotsTxt = robotProvider.parseRobotsTxt(
-                IOUtils.toInputStream(content, UTF_8), url, "mister-crawler");
+                IOUtils.toInputStream(content, UTF_8), url, agent);
         filters.addAll(robotsTxt.getDisallowFilters());
         filters.addAll(robotsTxt.getAllowFilters());
         return filters;

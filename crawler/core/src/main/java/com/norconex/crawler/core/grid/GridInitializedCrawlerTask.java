@@ -14,32 +14,32 @@
  */
 package com.norconex.crawler.core.grid;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 import lombok.NonNull;
 
 /**
  * Wraps a grid task with a <code>crawler.init()</code> before execution
- * and <code>crawler.orderlyShutdown()</code> after.
+ * and <code>crawler.close()</code> after.
  */
 public abstract class GridInitializedCrawlerTask implements GridTask {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void run(@NonNull Crawler crawler, String arg) {
+    public void run(@NonNull CrawlerTaskContext crawler, String arg) {
         crawler.init();
         try {
             crawler.fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
             runWithInitializedCrawler(crawler, arg);
         } finally {
             crawler.fire(CrawlerEvent.CRAWLER_RUN_END);
-            crawler.orderlyShutdown(false);
+            crawler.close();
         }
     }
 
     protected abstract void runWithInitializedCrawler(
-            Crawler crawler, String arg);
+            CrawlerTaskContext crawler, String arg);
 
 }

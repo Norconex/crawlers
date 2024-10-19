@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,16 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.store;
+package com.norconex.crawler.core.metrics;
 
-import com.norconex.crawler.core.CrawlerException;
+import java.util.Map;
 
-import lombok.experimental.StandardException;
+public interface CrawlerMetricsMXBean {
 
-/**
- * Crawl data store runtime exception.
- */
-@StandardException
-public class DataStoreException extends CrawlerException {
-    private static final long serialVersionUID = 1L;
+    Map<String, Long> getEventCounts();
+
+    long getProcessedCount();
+
+    long getQueuedCount();
+
+    long getCachedCount();
 }

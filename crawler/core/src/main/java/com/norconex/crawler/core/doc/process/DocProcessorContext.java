@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core.doc.process;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;
@@ -25,7 +25,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(fluent = true)
 class DocProcessorContext {
-    private Crawler crawler;
+    private CrawlerTaskContext crawler;
     private CrawlDocContext docContext;
     private CrawlDoc doc;
     private ImporterResponse importerResponse;

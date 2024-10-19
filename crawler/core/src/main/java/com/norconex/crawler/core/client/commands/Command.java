@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.client.commands;
 
-import com.norconex.crawler.core.client.CrawlerClient;
+import com.norconex.crawler.core.Crawler;
 
 public interface Command {
-    void execute(CrawlerClient crawler);
+    void execute(Crawler crawler);
 }

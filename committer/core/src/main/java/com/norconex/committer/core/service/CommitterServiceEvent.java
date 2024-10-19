@@ -17,9 +17,6 @@ package com.norconex.committer.core.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.event.Event;
 
@@ -66,15 +63,13 @@ public class CommitterServiceEvent extends Event {
 
     @Override
     public String toString() {
-        // Cannot use ReflectionToStringBuilder here to prevent
-        // "An illegal reflective access operation has occurred"
-        return new ToStringBuilder(this, ToStringStyle.NO_CLASS_NAME_STYLE)
-                //                .appendSuper(super.toString())
-                .append(
-                        "committers", '[' + committers.stream()
-                                .map(c -> c.getClass().getSimpleName())
-                                .collect(Collectors.joining(",")) + ']')
-                .append("subject", subject)
-                .build();
+        return new StringBuilder()
+                .append("committers=[")
+                .append(committers
+                        .stream()
+                        .map(c -> c.getClass().getSimpleName())
+                        .collect(Collectors.joining(",")))
+                .append("]")
+                .toString();
     }
 }

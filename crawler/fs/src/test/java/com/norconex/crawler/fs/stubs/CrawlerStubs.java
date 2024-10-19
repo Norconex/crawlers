@@ -18,9 +18,10 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerBuilder;
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.fs.FsCrawler;
+import com.norconex.crawler.fs.FsCrawlerBuilderFactory;
 
 public final class CrawlerStubs {
 
@@ -30,33 +31,59 @@ public final class CrawlerStubs {
     }
 
     public static Crawler memoryCrawler(Path workDir) {
-        return memoryCrawlerBuilder(workDir).build();
+        return memoryCrawler(workDir, null);
     }
 
     public static Crawler memoryCrawler(
             Path workDir, Consumer<CrawlerConfig> c) {
-        return memoryCrawlerBuilder(workDir, c).build();
-    }
 
-    public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
-        return memoryCrawlerBuilder(workDir, null);
-    }
-
-    public static CrawlerBuilder memoryCrawlerBuilder(
-            Path workDir, Consumer<CrawlerConfig> c) {
-        var b = SneakyFsCrawler
-                .builder()
-                .configuration(
-                        CrawlerConfigStubs.memoryCrawlerConfig(workDir));
+        var crawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
-            c.accept(b.configuration());
+            c.accept(crawlerConfig);
         }
-        return b;
+        //TODO wrap the memory committer to provide static access to
+        // docs?
+        // with threadlocal?
+        return FsCrawler.create(crawlerConfig);
+
+        //        return memoryCrawlerBuilder(workDir, c).build();
     }
 
-    static class SneakyFsCrawler extends FsCrawler {
-        static CrawlerBuilder builder() {
-            return crawlerBuilderSupplier.get();
-        }
+    public static CrawlerTaskContext memoryCrawlerTaskContext(Path workDir) {
+        return memoryCrawlerTaskContext(workDir, null);
     }
+
+    public static CrawlerTaskContext memoryCrawlerTaskContext(
+            Path workDir, Consumer<CrawlerConfig> c) {
+        var crawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
+        if (c != null) {
+            c.accept(crawlerConfig);
+        }
+
+        return CrawlerTaskContext.create(FsCrawlerBuilderFactory.class, b -> {
+            b.configuration(crawlerConfig);
+        });
+    }
+
+    //    public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
+    //        return memoryCrawlerBuilder(workDir, null);
+    //    }
+    //
+    //    public static CrawlerBuilder memoryCrawlerBuilder(
+    //            Path workDir, Consumer<CrawlerConfig> c) {
+    //        var b = SneakyFsCrawler
+    //                .builder()
+    //                .configuration(
+    //                        CrawlerConfigStubs.memoryCrawlerConfig(workDir));
+    //        if (c != null) {
+    //            c.accept(b.configuration());
+    //        }
+    //        return b;
+    //    }
+    //
+    //    static class SneakyFsCrawler extends FsCrawler {
+    //        static CrawlerBuilder builder() {
+    //            return crawlerBuilderSupplier.get();
+    //        }
+    //    }
 }

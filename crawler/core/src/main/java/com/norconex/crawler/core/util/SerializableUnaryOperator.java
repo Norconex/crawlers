@@ -12,22 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core;
+package com.norconex.crawler.core.util;
 
-/**
- * Provides access to class/methods normally hidden, for testing.
- */
-public final class CrawlerCoreTestUtil {
+import java.io.Serializable;
+import java.util.function.UnaryOperator;
 
-    private CrawlerCoreTestUtil() {
-    }
-    //
-    //    public static void initCrawler(Crawler crawler) {
-    //        CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
-    //    }
-    //
-    //    public static void destroyCrawler(Crawler crawler) {
-    //        CrawlerCommandExecuter.orderlyShutdown(
-    //                new CommandExecution(crawler, "TEST"));
-    //    }
+@FunctionalInterface
+public interface SerializableUnaryOperator<T>
+        extends UnaryOperator<T>, Serializable {
 }

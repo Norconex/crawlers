@@ -129,7 +129,9 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig> {
 
     @Override
     protected void doClose() throws CommitterException {
-        watch.stop();
+        if (watch.isStarted()) {
+            watch.stop();
+        }
         LOG.info("{} additions committed.", addCount);
         LOG.info("{} deletions committed.", removeCount);
         LOG.info("Total elapsed time: {}", watch);

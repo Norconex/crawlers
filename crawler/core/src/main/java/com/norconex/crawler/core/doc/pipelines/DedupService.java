@@ -17,9 +17,9 @@ package com.norconex.crawler.core.doc.pipelines;
 import java.io.Closeable;
 import java.util.Optional;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +55,7 @@ public class DedupService implements Closeable {
 
     private boolean initialized;
 
-    public void init(Crawler crawler) {
+    public void init(CrawlerTaskContext crawler) {
         if (initialized) {
             throw new IllegalStateException("Already initialized.");
         }
@@ -66,13 +66,13 @@ public class DedupService implements Closeable {
         if (config.isMetadataDeduplicate()
                 && config.getMetadataChecksummer() != null) {
             dedupMetadataStore =
-                    storeEngine.getCache("dedup-metadata", String.class);
+                    storeEngine.getCache("dedupMetadata", String.class);
             LOG.info("Initialized deduplication based on document metadata.");
         }
         if (config.isDocumentDeduplicate()
                 && config.getDocumentChecksummer() != null) {
             dedupDocumentStore =
-                    storeEngine.getCache("dedup-document", String.class);
+                    storeEngine.getCache("dedupDocument", String.class);
             LOG.info("Initialized deduplication based on document content.");
         }
     }

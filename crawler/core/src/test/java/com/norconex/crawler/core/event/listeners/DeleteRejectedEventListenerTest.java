@@ -23,8 +23,8 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 class DeleteRejectedEventListenerTest {
 
@@ -58,7 +58,7 @@ class DeleteRejectedEventListenerTest {
     //            method: WILDCARD
     //            pattern: "mock:delete*"
 
-    void testDeleteRejectedEventListener(Crawler crawler, MemoryCommitter mem) {
+    void testDeleteRejectedEventListener(CrawlerTaskContext crawler, MemoryCommitter mem) {
 
         //        var crawlerCfg = TestUtil.getFirstCrawlerConfig(crawlSession);
         //        crawlerCfg.addEventListener(new DeleteRejectedEventListener());

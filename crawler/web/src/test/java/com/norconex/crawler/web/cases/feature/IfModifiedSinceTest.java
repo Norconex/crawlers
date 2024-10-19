@@ -89,18 +89,18 @@ class IfModifiedSinceTest {
         var mem = WebTestUtil.firstCommitter(crawler);
 
         // First run is new
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same date, so not modified
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different date, so modified
         serverDate = today;
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
@@ -108,7 +108,7 @@ class IfModifiedSinceTest {
         // so modified
         WebTestUtil.firstHttpFetcher(crawler)
                 .getConfiguration().setIfModifiedSinceDisabled(true);
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 

@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.WebDocMetadata;
@@ -38,7 +38,7 @@ import com.norconex.importer.doc.DocMetadata;
 class WebImporterPipelineTest {
 
     @Test
-    void testCanonicalStageSameReferenceContent(Crawler crawler) {
+    void testCanonicalStageSameReferenceContent(CrawlerTaskContext crawler) {
         var reference = "http://www.example.com/file.pdf";
         var contentValid = "<html><head><title>Test</title>\n"
                 + "<link rel=\"canonical\"\n href=\"\n" + reference + "\" />\n"
@@ -55,7 +55,7 @@ class WebImporterPipelineTest {
     }
 
     @Test
-    void testCanonicalStageSameReferenceHeader(Crawler crawler) {
+    void testCanonicalStageSameReferenceHeader(CrawlerTaskContext crawler) {
         var reference = "http://www.example.com/file.pdf";
         var doc = new CrawlDoc(
                 new WebCrawlDocContext(reference, 0), null,
@@ -68,7 +68,7 @@ class WebImporterPipelineTest {
     }
 
     @Test
-    void testKeepMaxDepthLinks(Crawler crawler) throws IllegalAccessException {
+    void testKeepMaxDepthLinks(CrawlerTaskContext crawler) {
         var reference = "http://www.example.com/file.html";
         var content = "<html><head><title>Test</title>\n"
                 + "</head><body><a href=\"link.html\">A link</a></body></html>";

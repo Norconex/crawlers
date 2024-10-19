@@ -101,8 +101,8 @@ public class IgniteGridSet<T> implements GridSet<T> {
     }
 
     @Override
-    public boolean contains(Object id) {
-        return set.contains(id);
+    public boolean contains(Object key) {
+        return set.contains(key);
     }
 
     @Override

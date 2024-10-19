@@ -30,8 +30,8 @@ import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.web.WebCrawlerContext;
-import com.norconex.crawler.web.WebCrawlerContext.SitemapPresence;
+import com.norconex.crawler.web.WebCrawlerSessionAttributes;
+import com.norconex.crawler.web.WebCrawlerSessionAttributes.SitemapPresence;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.sitemap.SitemapContext;
@@ -51,7 +51,8 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
 
         var cfg = Web.config(ctx.getCrawler());
         var docRec = (WebCrawlDocContext) ctx.getDocContext();
-        var crawlerContext = (WebCrawlerContext) ctx.getCrawler().getContext();
+        var crawlerContext =
+                (WebCrawlerSessionAttributes) ctx.getCrawler().getAttributes();
 
         // Both a sitemap resolver and locator must be set (which they are
         // by default) to attempt sitemap discovery and processing for a
@@ -118,7 +119,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
     private void resolveSitemap(String urlRoot, QueuePipelineContext ctx) {
         // check again here in case it was resolved by another thread while
         // waiting.
-        var crawlerContext = Web.crawlerContext(ctx.getCrawler());
+        var crawlerContext = Web.sessionAttributes(ctx.getCrawler());
 
         if (crawlerContext
                 .getResolvedWebsites()

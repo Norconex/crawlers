@@ -20,10 +20,7 @@ import org.apache.ignite.Ignite;
  * Wrapper around a client Ignite instance, abstracting initialization
  * and closing.
  */
-interface IgniteInstance { //extends Closeable {
+interface IgniteInstance {
 
     Ignite get();
-
-    //    @Override
-    //    void close();
 }

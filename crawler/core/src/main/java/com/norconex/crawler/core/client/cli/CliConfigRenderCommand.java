@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core.client.CrawlerClient;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -62,7 +62,7 @@ public class CliConfigRenderCommand extends CliSubCommandBase {
     //    private int indent = 2;
 
     @Override
-    public void runCommand(CrawlerClient crawlerClient) {
+    public void runCommand(Crawler crawlerClient) {
         //TODO support different format, either explicit, on file extension
         // or default to XML
         try (var out = output != null

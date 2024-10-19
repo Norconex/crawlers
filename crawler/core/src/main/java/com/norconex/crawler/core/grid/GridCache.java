@@ -14,10 +14,12 @@
  */
 package com.norconex.crawler.core.grid;
 
+import com.norconex.crawler.core.util.SerializableUnaryOperator;
+
 /**
  * <p>
  * Key-value data store for scalars or any type of POJO objects.
- * Implementations should focus on fast retrievals by ID.
+ * Implementations should focus on fast retrievals by key.
  * </p>
  * <p>
  * When running a given crawler in a cluster, it is important to chose
@@ -34,40 +36,45 @@ package com.norconex.crawler.core.grid;
 public interface GridCache<T> extends GridStore<T> {
 
     /**
-     * Saves a given object under the specified id. It is not mandatory
-     * for the object itself to contain the said id.
-     * @param id unique identifier for an object (record).
+     * Saves a given object under the specified key. It is not mandatory
+     * for the object itself to contain the said key.
+     * @param key unique identifier for an object (record).
      * @param object the object to save
      * @return <code>true</code> if saving the object modified the store
      *     (by adding a new record, or modifying an existing one).
      */
-    boolean put(String id, T object);
+    boolean put(String key, T object);
 
     /**
-     * Retrieve an object previously stored with the given id.
-     * @param id the id of the object to retrieve
+     * Updates the value associated with an key with a function returning
+     * the new value. This method is equivalent to
+     * first calling {@link #get(String)},
+     * modifying the returned value, and calling {@link #put(String, Object)}
+     * with the new value. The difference is it gives a chance to the cache
+     * implementation do so atomically.
+     * If there are currently no value for the supplied key, <code>null</code>
+     * will be received. Returning <code>null</code> will effectively remove
+     * the existing entry (or do nothing if the entry was not there in the
+     * first place).
+     *
+     * @param key unique identifier for the object
+     * @param updater function modifying a value
+     * @return <code>true</code> if the existing object was modified.
+     */
+    boolean update(String key, SerializableUnaryOperator<T> updater);
+
+    /**
+     * Retrieve an object previously stored with the given key.
+     * @param key the key of the object to retrieve
      * @return optional containing the object, or <code>null</code> if not found
      */
-    T get(String id);
+    T get(String key);
 
-    //    /**
-    //     * The "first" object in the store. Based on the context, it may actually
-    //     * be OK if the object is not exactly the first as long as general
-    //     * queue principles apply.
-    //     * @return optional with the first object or empty if the store is empty
-    //     */
-    //    Optional<T> findFirst();
     /**
-     * Removes from the store the object previously saved under the given id
+     * Removes from the store the object previously saved under the given key
      * (if any).
-     * @param id the id of the object to delete.
+     * @param key the key of the object to delete.
      * @return <code>true</code> if an object was deleted (it existed)
      */
-    boolean delete(String id);
-
-    //    /**
-    //     * Removes the "first" object from the store and returns it.
-    //     * @return optional with the deleted object or empty if none was deleted
-    //     */
-    //    Optional<T> deleteFirst();
+    boolean delete(String key);
 }

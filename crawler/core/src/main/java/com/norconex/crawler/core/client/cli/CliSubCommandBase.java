@@ -18,9 +18,9 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 
 import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerBuilder;
 import com.norconex.crawler.core.CrawlerBuilderModifier;
-import com.norconex.crawler.core.client.CrawlerClient;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.EqualsAndHashCode;
@@ -66,11 +66,11 @@ public abstract class CliSubCommandBase implements Runnable {
 
     @Override
     public void run() {
-        runCommand(CrawlerClient.create(parent.getCrawlerBuilderFactoryClass(),
+        runCommand(Crawler.create(parent.getCrawlerBuilderFactoryClass(),
                 (CrawlerBuilderModifier) this::loadConfiguration));
     }
 
-    protected abstract void runCommand(CrawlerClient crawlerClient);
+    protected abstract void runCommand(Crawler crawlerClient);
 
     protected PrintWriter out() {
         return spec.commandLine().getOut();

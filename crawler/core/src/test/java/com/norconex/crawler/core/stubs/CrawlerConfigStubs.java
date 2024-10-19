@@ -46,12 +46,10 @@ import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.MockNoopDataStore;
-import com.norconex.crawler.core.mocks.MockNoopDataStoreEngine;
+import com.norconex.crawler.core.mocks.MockNoopGrid;
 import com.norconex.crawler.core.mocks.MockNoopGridConnector;
-import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.NonNull;
@@ -79,13 +77,8 @@ public final class CrawlerConfigStubs {
                             Long.class,
                             () -> Math
                                     .abs(new LongRandomizer().getRandomValue()))
-                    .randomize(
-                            DataStoreEngine.class,
-                            MockNoopDataStoreEngine::new)
-                    .randomize(
-                            GridConnector.class,
-                            MockNoopGridConnector::new)
-                    .randomize(DataStore.class, MockNoopDataStore::new)
+                    .randomize(Grid.class, MockNoopGrid::new)
+                    .randomize(GridConnector.class, MockNoopGridConnector::new)
                     .randomize(ImporterConfig.class, ImporterConfig::new)
                     .randomize(
                             UpsertRequest.class,

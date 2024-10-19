@@ -28,13 +28,25 @@ import lombok.ToString;
 @ToString
 class IgniteInstanceServer implements IgniteInstance {
 
+    // have main here or re-use same main, knowing it is a server and not
+    // a client?  Passing an extra flag maybe?
+    public static void main(String[] args) {
+        //        var cfg = new IgniteConfiguration();
+        //        // Configure your Ignite settings here...
+        //
+        //        try (var ignite = Ignition.start(cfg)) {
+        //            if (checkAndActivateCluster(ignite)) {
+        //                System.out.println("Cluster activated successfully.");
+        //            } else {
+        //                System.err.println("Failed to activate cluster.");
+        //            }
+        //        } catch (IgniteException e) {
+        //            System.err.println("Ignite failed to start: " + e.getMessage());
+        //        }
+    }
+
     @Override
     public Ignite get() {
         return Ignition.localIgnite();
     }
-
-    //    @Override
-    //    public void close() {
-    //        //        get().close();
-    //    }
 }

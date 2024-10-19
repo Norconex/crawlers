@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.fetch.impl.GenericFileFetchResponse;
 import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
@@ -26,10 +26,10 @@ import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
 import lombok.NonNull;
 
 public class FileFetcherProvider
-        implements Function<Crawler, FileMultiFetcher> {
+        implements Function<CrawlerContext, FileMultiFetcher> {
 
     @Override
-    public FileMultiFetcher apply(Crawler crawler) {
+    public FileMultiFetcher apply(CrawlerContext crawler) {
 
         var cfg = crawler.getConfiguration();
 

@@ -12,25 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web;
+package com.norconex.crawler.fs;
 
 import com.norconex.crawler.core.CrawlerBuilder;
 import com.norconex.crawler.core.CrawlerBuilderFactory;
-import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
-import com.norconex.crawler.web.fetch.HttpFetcherProvider;
+import com.norconex.crawler.core.CrawlerCallbacks;
+import com.norconex.crawler.fs.callbacks.BeforeFsCrawlerExecution;
+import com.norconex.crawler.fs.doc.FsCrawlDocContext;
+import com.norconex.crawler.fs.doc.pipelines.FsDocPipelines;
+import com.norconex.crawler.fs.fetch.FileFetcherProvider;
 
-public class WebCrawlerBuilderFactory implements CrawlerBuilderFactory {
-
+public class FsCrawlerBuilderFactory implements CrawlerBuilderFactory {
     @Override
     public CrawlerBuilder create() {
         return new CrawlerBuilder()
-                .configuration(new WebCrawlerConfig())
-                .fetcherProvider(new HttpFetcherProvider())
-                .callbacks(WebCrawlerCallbacks.get())
-                .docPipelines(WebDocPipelines.get())
-                .docContextType(WebCrawlDocContext.class)
-                .context(new WebCrawlerSessionAttributes());
+        .fetcherProvider(new FileFetcherProvider())
+        .callbacks(CrawlerCallbacks.builder()
+                .beforeCrawlerExecution(
+                        new BeforeFsCrawlerExecution())
+                .build())
+        .docPipelines(FsDocPipelines.get())
+        .docContextType(FsCrawlDocContext.class);
     }
 }

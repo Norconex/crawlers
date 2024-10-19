@@ -16,10 +16,10 @@ package com.norconex.crawler.web.callbacks;
 
 import java.util.function.BiConsumer;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +29,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 class BeforeWebCrawlDocFinalizing
-        implements BiConsumer<Crawler, CrawlDoc> {
+        implements BiConsumer<CrawlerTaskContext, CrawlDoc> {
 
     @Override
-    public void accept(Crawler crawler, CrawlDoc doc) {
+    public void accept(CrawlerTaskContext crawler, CrawlDoc doc) {
         // If URLs were not yet extracted, it means no links will be followed.
         // In case the referring document was skipped or has a bad status
         // (which can always be temporary), we should queue for processing any

@@ -113,7 +113,7 @@ class StayOnSitemapTest {
         var mem = WebTestUtil.firstCommitter(crawler);
 
         mockServer(client);
-        crawler.start();
+        crawler.crawl();
 
         referrers.forEach(ref -> System.out.println("ref: " + ref));
 

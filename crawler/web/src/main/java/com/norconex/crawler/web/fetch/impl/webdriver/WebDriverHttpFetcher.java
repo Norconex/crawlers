@@ -39,12 +39,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -131,11 +132,12 @@ public class WebDriverHttpFetcher
     }
 
     @Override
-    protected void fetcherStartup(Crawler c) {
+    protected void fetcherStartup(CrawlerContext c) {
         LOG.info("Starting WebDriver HTTP fetcher...");
         browser = configuration.getBrowser();
         if (c != null) {
-            streamFactory = c.getStreamFactory();
+            //TODO add to base CrawlerContext class instead of casting?
+            streamFactory = ((CrawlerTaskContext) c).getStreamFactory();
         } else {
             streamFactory = new CachedStreamFactory();
         }
@@ -169,7 +171,7 @@ public class WebDriverHttpFetcher
     }
 
     @Override
-    protected void fetcherThreadBegin(Crawler crawler) {
+    protected void fetcherThreadBegin(CrawlerContext crawler) {
         LOG.info("Creating {} web driver.", browser);
         THREADED_DRIVER.set(createWebDriver());
     }
@@ -253,7 +255,7 @@ public class WebDriverHttpFetcher
     }
 
     @Override
-    protected void fetcherThreadEnd(Crawler crawler) {
+    protected void fetcherThreadEnd(CrawlerContext crawler) {
         LOG.info("Shutting down {} web driver.", browser);
         var driver = THREADED_DRIVER.get();
         if (driver != null) {
@@ -263,7 +265,7 @@ public class WebDriverHttpFetcher
     }
 
     @Override
-    protected void fetcherShutdown(Crawler c) {
+    protected void fetcherShutdown(CrawlerContext c) {
         if (configuration.getHttpSniffer() != null) {
             LOG.info("Shutting down {} HTTP sniffer...", browser);
             Sleeper.sleepSeconds(5);

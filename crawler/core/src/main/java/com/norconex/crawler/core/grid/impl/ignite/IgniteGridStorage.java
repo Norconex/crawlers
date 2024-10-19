@@ -41,22 +41,23 @@ import lombok.ToString;
 @RequiredArgsConstructor
 public class IgniteGridStorage implements GridStorage {
 
+    private static final String SUFFIX_SEPARATOR = "__";
     private static final String STORE_TYPES_KEY =
             "ignite.object.and.store.types";
 
     // caches always have one or more suffixes when stored.
     @RequiredArgsConstructor
     enum Suffix {
-        CACHE("--cache"),
-        SET("--set"),
-        QUEUE("--queue"),
-        DICT("--dict");
+        CACHE(SUFFIX_SEPARATOR + "cache"),
+        SET(SUFFIX_SEPARATOR + "set"),
+        QUEUE(SUFFIX_SEPARATOR + "queue"),
+        DICT(SUFFIX_SEPARATOR + "dict");
 
-        private final String suffix;
+        private final String value;
 
         @Override
         public String toString() {
-            return suffix;
+            return value;
         }
     }
 
@@ -120,10 +121,6 @@ public class IgniteGridStorage implements GridStorage {
         });
     }
 
-    //    protected Ignite ignite() {
-    //        return Ignition.localIgnite();
-    //    }
-
     GridStore<?> concreteStore(
             Class<?> storeSuperType,
             String storeName,
@@ -161,7 +158,9 @@ public class IgniteGridStorage implements GridStorage {
     private ListValuedMap<String, String> getActualStoreNames() {
         var names = new ArrayListValuedHashMap<String, String>();
         igniteInstance.get().cacheNames().forEach(
-                nm -> names.put(StringUtils.substringBeforeLast(nm, "--"), nm));
+                nm -> names.put(
+                        StringUtils.substringBeforeLast(nm, SUFFIX_SEPARATOR),
+                        nm));
         return names;
     }
 }

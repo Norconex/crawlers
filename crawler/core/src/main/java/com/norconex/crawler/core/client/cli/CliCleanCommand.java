@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.client.cli;
 
-import com.norconex.crawler.core.client.CrawlerClient;
+import com.norconex.crawler.core.Crawler;
 
 import picocli.CommandLine.Command;
 
@@ -28,7 +28,7 @@ import picocli.CommandLine.Command;
 public class CliCleanCommand extends CliSubCommandBase {
 
     @Override
-    protected void runCommand(CrawlerClient crawlerClient) {
+    protected void runCommand(Crawler crawlerClient) {
         crawlerClient.clean();
     }
 }

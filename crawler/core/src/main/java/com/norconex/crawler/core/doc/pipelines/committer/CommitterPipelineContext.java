@@ -15,8 +15,8 @@
 package com.norconex.crawler.core.doc.pipelines.committer;
 
 import com.norconex.committer.core.Committer;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 import lombok.Data;
 
@@ -29,6 +29,6 @@ import lombok.Data;
  */
 @Data
 public class CommitterPipelineContext {
-    private final Crawler crawler;
+    private final CrawlerTaskContext crawler;
     private final CrawlDoc doc;
 }

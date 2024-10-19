@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.client.cli;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerBuilderFactory;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.core.util.About;
 
 import lombok.EqualsAndHashCode;
@@ -97,7 +97,7 @@ public class CliCommandRunner implements Runnable {
     @Override
     public void run() {
         if (version) {
-            Crawler.create(crawlerBuilderFactoryClass, b -> {
+            CrawlerTaskContext.create(crawlerBuilderFactoryClass, b -> {
                 spec.commandLine().getOut().println(
                         About.about(b.configuration(), false));
             });

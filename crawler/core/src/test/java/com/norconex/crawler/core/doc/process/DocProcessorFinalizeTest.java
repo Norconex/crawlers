@@ -19,18 +19,18 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 class DocProcessorFinalizeTest {
 
     @WithCrawlerTest
-    void testThreadActionFinalize(Crawler crawler) {
+    void testThreadActionFinalize(CrawlerTaskContext crawler) {
         var strategy = new MutableObject<>(
                 SpoiledReferenceStrategy.IGNORE);
         SpoiledReferenceStrategizer spoiledHandler =

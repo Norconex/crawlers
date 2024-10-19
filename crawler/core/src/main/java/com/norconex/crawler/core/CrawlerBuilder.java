@@ -40,7 +40,7 @@ public class CrawlerBuilder {
     private CrawlerCallbacks callbacks = CrawlerCallbacks.builder().build();
     private BeanMapper beanMapper = BeanMapper.DEFAULT;
     private EventManager eventManager;
-    private CrawlerContext context = new CrawlerContext();
+    private CrawlerSessionAttributes context = new CrawlerSessionAttributes();
 
     /**
      * The exact type of {@link CrawlDocContext} if your crawler is subclassing
@@ -53,13 +53,6 @@ public class CrawlerBuilder {
      * Provides a required fetcher implementation, responsible for obtaining
      * resources being crawled.
      */
-    private Function<Crawler, ? extends Fetcher<? extends FetchRequest,
+    private Function<CrawlerContext, ? extends Fetcher<? extends FetchRequest,
             ? extends FetchResponse>> fetcherProvider;
-
-    //    CrawlerBuilder() {
-    //    }
-
-    //    public Crawler build() {
-    //        return new Crawler(this);
-    //    }
 }

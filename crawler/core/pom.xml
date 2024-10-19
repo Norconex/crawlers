@@ -78,11 +78,6 @@
 
     <!-- Databases for crawl store -->
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2-mvstore</artifactId>
-      <version>${h2.version}</version>
-    </dependency>    
-    <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongodb-driver-sync</artifactId>
       <version>${mongodb.version}</version>
@@ -92,17 +87,39 @@
       <artifactId>HikariCP</artifactId>
       <version>${hikaricp.version}</version>
     </dependency>
+    <!-- REMOVE THIS: conflicts with Ignite H2 version: 
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2-mvstore</artifactId>
+      <version>${h2.version}</version>
+    </dependency>    
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>${h2.version}</version>
-      <!-- <scope>test</scope> -->
     </dependency>
+    -->
     <dependency>
       <groupId>org.apache.ignite</groupId>
       <artifactId>ignite-core</artifactId>
       <version>${ignite.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-indexing</artifactId>
+      <version>${ignite.version}</version>
+    </dependency>
+<!--    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-calcite</artifactId>
+      <version>${ignite.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>-->
     <dependency>
       <groupId>org.apache.ignite</groupId>
       <artifactId>ignite-slf4j</artifactId>

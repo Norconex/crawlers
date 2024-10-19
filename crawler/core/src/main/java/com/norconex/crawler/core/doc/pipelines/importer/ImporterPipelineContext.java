@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core.doc.pipelines.importer;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;
@@ -32,7 +32,7 @@ import lombok.Data;
 @Data
 public class ImporterPipelineContext {
 
-    private final Crawler crawler;
+    private final CrawlerTaskContext crawler;
     private final CrawlDoc doc;
 
     private ImporterResponse importerResponse;

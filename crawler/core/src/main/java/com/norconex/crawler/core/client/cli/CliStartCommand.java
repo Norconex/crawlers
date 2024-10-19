@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.client.cli;
 
-import com.norconex.crawler.core.client.CrawlerClient;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -43,7 +43,7 @@ public class CliStartCommand extends CliSubCommandBase {
     private boolean clean;
 
     @Override
-    protected void runCommand(CrawlerClient crawlerClient) {
+    protected void runCommand(Crawler crawlerClient) {
         if (clean) {
             crawlerClient.clean();
         }

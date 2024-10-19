@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core.stop.impl;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.stop.CrawlerStopper;
 import com.norconex.crawler.core.stop.CrawlerStopperException;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -36,7 +36,7 @@ public class FileBasedStopper implements CrawlerStopper {
     //    private boolean monitoring;
 
     @Override
-    public void listenForStopRequest(Crawler crawler)
+    public void listenForStopRequest(CrawlerTaskContext crawler)
             throws CrawlerStopperException {
         //        monitoredStopFile = stopFile(crawler);
         //
@@ -91,7 +91,7 @@ public class FileBasedStopper implements CrawlerStopper {
     }
 
     @Override
-    public boolean fireStopRequest(Crawler crawler)
+    public boolean fireStopRequest(CrawlerTaskContext crawler)
             throws CrawlerStopperException {
         //        final var stopFile = stopFile(crawler);
         //

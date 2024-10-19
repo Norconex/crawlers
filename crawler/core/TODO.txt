@@ -7,6 +7,16 @@ TODO:
   
 - Command -> ClientCommand
   Task    -> ServerTask
+
+- Mabye: have a cache for the types and names in use (similar to previous store 
+  engines impls) with alt names added.
+
+- Maybe: Supply "hints" to data stores at creation time, which would be
+  optional, for engines supporting them (for optimization).
+
+- Maybe for a future release: make configurable number of
+  cached instances of a document to keep (only useful for gracing spoiled ones?)
+
    
 
 ignite.bat -Dignite.configuration=path\to\your\ignite-config.xml

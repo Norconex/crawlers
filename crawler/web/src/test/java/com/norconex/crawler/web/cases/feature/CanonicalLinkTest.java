@@ -121,7 +121,7 @@ class CanonicalLinkTest {
         //                canCount.increment();
         //            }
         //        });
-        //        crawler.start();
+        //        crawler.crawl();
         //
         //        var mem = WebTestUtil.firstCommitter(crawlSession);
         //        assertThat(mem.getUpsertRequests()).hasSize(1);

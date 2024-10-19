@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core;
 
-import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCache;
 
 import lombok.Data;
@@ -32,8 +31,9 @@ public class CrawlerState {
 
     private GridCache<Boolean> cache;
 
-    public void init(@NonNull Grid grid) {
-        cache = grid.storage().getCache("CrawlerState", Boolean.class);
+    public void init(@NonNull CrawlerContext crawlerContext) {
+        cache = crawlerContext.getGrid().storage().getCache(
+                "CrawlerState", Boolean.class);
     }
 
     //TODO consider how these should be set/get in a multi-node environment

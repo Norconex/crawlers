@@ -22,11 +22,12 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlerContext;
+import com.norconex.crawler.web.WebCrawlerSessionAttributes;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
@@ -41,7 +42,7 @@ public final class Web {
     }
 
     public static void fireIfUrlOutOfScope(
-            Crawler crawler,
+            CrawlerTaskContext crawler,
             WebCrawlDocContext docContext,
             UrlScope urlScope) {
         if (!urlScope.isInScope()) {
@@ -56,15 +57,16 @@ public final class Web {
         }
     }
 
-    public static WebCrawlerConfig config(Crawler crawler) {
+    public static WebCrawlerConfig config(CrawlerContext crawler) {
         return (WebCrawlerConfig) crawler.getConfiguration();
     }
 
-    public static WebCrawlerContext crawlerContext(Crawler crawler) {
-        return (WebCrawlerContext) crawler.getContext();
+    public static WebCrawlerSessionAttributes
+            sessionAttributes(CrawlerTaskContext crawler) {
+        return (WebCrawlerSessionAttributes) crawler.getAttributes();
     }
 
-    public static HttpFetcher fetcher(Crawler crawler) {
+    public static HttpFetcher fetcher(CrawlerTaskContext crawler) {
         return (HttpFetcher) crawler.getFetcher();
     }
 
@@ -77,7 +79,8 @@ public final class Web {
         return (WebCrawlDocContext) crawlDoc.getCachedDocContext();
     }
 
-    public static RobotsTxt robotsTxt(Crawler crawler, String reference) {
+    public static RobotsTxt robotsTxt(CrawlerTaskContext crawler,
+            String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())
                 .map(rb -> rb.getRobotsTxt(

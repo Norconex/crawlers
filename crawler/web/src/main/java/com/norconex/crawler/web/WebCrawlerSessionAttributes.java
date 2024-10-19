@@ -19,7 +19,7 @@ import java.util.Map;
 
 import org.apache.commons.collections4.map.LRUMap;
 
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlerSessionAttributes;
 
 import lombok.Data;
 
@@ -27,7 +27,7 @@ import lombok.Data;
  * Additional crawler-wide properties not found in Crawler Core.
  */
 @Data
-public class WebCrawlerContext extends CrawlerContext {
+public class WebCrawlerSessionAttributes extends CrawlerSessionAttributes {
 
     public enum SitemapPresence {
         RESOLVING, PRESENT, NONE

@@ -17,9 +17,9 @@ package com.norconex.crawler.core.stubs;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.MemoryCrawlerBuilderFactory;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 public final class CrawlerStubs {
 
@@ -28,25 +28,25 @@ public final class CrawlerStubs {
     private CrawlerStubs() {
     }
 
-    public static Crawler crawler(Path workDir, CrawlerConfig config) {
-        return Crawler.create(MemoryCrawlerBuilderFactory.class, b -> {
+    public static CrawlerTaskContext crawler(Path workDir, CrawlerConfig config) {
+        return CrawlerTaskContext.create(MemoryCrawlerBuilderFactory.class, b -> {
             config.setWorkDir(workDir);
             b.configuration(config);
         });
     }
 
-    public static Crawler memoryCrawler(Path workDir) {
+    public static CrawlerTaskContext memoryCrawler(Path workDir) {
         return memoryCrawler(workDir, null);
     }
 
-    public static Crawler memoryCrawler(
+    public static CrawlerTaskContext memoryCrawler(
             Path workDir, Consumer<CrawlerConfig> c) {
         var crawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(crawlerConfig);
         }
 
-        return Crawler.create(MemoryCrawlerBuilderFactory.class,
+        return CrawlerTaskContext.create(MemoryCrawlerBuilderFactory.class,
                 b -> b.configuration(crawlerConfig));
 
         //        return Crawler.create(MemoryCrawlerBuilderFactory.class, crawlerConfig);

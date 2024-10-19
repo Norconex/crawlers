@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.tasks;
+package com.norconex.crawler.core.tasks.impl;
 
 import java.util.Locale;
 
 import com.norconex.commons.lang.PercentFormatter;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.grid.GridInitializedCrawlerTask;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +36,7 @@ public class PrepareDocLedgerTask extends GridInitializedCrawlerTask {
     public static final String KEY_INITIALIZING = "ledger.initializing";
 
     @Override
-    protected void runWithInitializedCrawler(Crawler crawler, String arg) {
+    protected void runWithInitializedCrawler(CrawlerTaskContext crawler, String arg) {
         var globalCache = crawler.getGrid().storage().getGlobalCache();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
@@ -50,22 +50,13 @@ public class PrepareDocLedgerTask extends GridInitializedCrawlerTask {
         }
     }
 
-    private void prepareForCrawl(Crawler crawler) {
+    private void prepareForCrawl(CrawlerTaskContext crawler) {
         var grid = crawler.getGrid().storage();
         grid.getGlobalCache();
         var ledger = crawler.getDocProcessingLedger();
         var state = crawler.getState();
 
         if (state.isResuming()) {
-
-            //            // Active -> Queued
-            //            LOG.debug("Moving any {} active URLs back into queue.",
-            //                    crawler.getId());
-            //            active.forEach((k, v) -> {
-            //                queue.save(k, v);
-            //                return true;
-            //            });
-            //            active.clear();
 
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
@@ -80,7 +71,6 @@ public class PrepareDocLedgerTask extends GridInitializedCrawlerTask {
                         processedCount, totalCount);
             }
         } else {
-            //            crawler.getDataStoreEngine();
             ledger.clearQueue();
 
             // Valid Processed -> Cached

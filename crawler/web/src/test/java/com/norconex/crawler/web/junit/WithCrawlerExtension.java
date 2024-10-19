@@ -38,7 +38,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.GridCrawlerTaskExecutor;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.web.WebCrawler;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
@@ -88,10 +87,11 @@ class WithCrawlerExtension implements
         context.getStore(GLOBAL).put(CRAWLER_KEY, crawler);
 
         if (annot.run()) {
-            crawler.start();
+            crawler.crawl();
         } else {
             //            CrawlerCoreTestUtil.initCrawler(crawler);
-            GridCrawlerTaskExecutor.initLocalCrawler(crawler);
+            crawler.init();
+            //            GridCrawlerTaskExecutor.initLocalCrawler(crawler);
             crawler.fire(
                     CrawlerEvent
                             .builder()
@@ -115,7 +115,8 @@ class WithCrawlerExtension implements
 
         // if not already ended normally, stop it.
         if (crawler != null && !crawler.getState().isTerminatedProperly()) {
-            GridCrawlerTaskExecutor.shutdownLocalCrawler(crawler);
+            crawler.close();
+            //            GridCrawlerTaskExecutor.shutdownLocalCrawler(crawler);
 
             //            CrawlerCoreTestUtil.destroyCrawler(crawler);
         }

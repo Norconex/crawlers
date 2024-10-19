@@ -25,6 +25,7 @@ import org.junit.platform.commons.JUnitException;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -46,19 +47,19 @@ public final class CrawlerTestUtil {
     private CrawlerTestUtil() {
     }
 
-    public static void initCrawler(Crawler crawler) {
+    public static void initCrawler(CrawlerTaskContext crawler) {
         //        GridCrawlerTaskExecutor.initLocalCrawler(crawler);
         //        CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
     }
 
-    public static void destroyCrawler(Crawler crawler) {
+    public static void destroyCrawler(CrawlerTaskContext crawler) {
         //        GridCrawlerTaskExecutor.shutdownLocalCrawler(crawler);
         //        CrawlerCommandExecuter.orderlyShutdown(
         //                new CommandExecution(crawler, "TEST"));
     }
 
     public static MemoryCommitter firstCommitter(
-            @NonNull Crawler crawler) {
+            @NonNull CrawlerTaskContext crawler) {
         return (MemoryCommitter) crawler.getConfiguration().getCommitters()
                 .get(0);
     }
@@ -74,7 +75,7 @@ public final class CrawlerTestUtil {
         //        return CrawlerTestUtil.firstCommitter(crawler);
     }
 
-    public static void dumpStoreKeys(Crawler crawler) {
+    public static void dumpStoreKeys(CrawlerTaskContext crawler) {
         //        initCrawler(crawler);
         //        var engine = crawler.getDataStoreEngine();
         //        System.err.println("KEY DUMP FOR ALL STORES:");

@@ -35,12 +35,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
@@ -74,7 +74,7 @@ public class StandardRobotsTxtProvider
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonIgnore
-    private Crawler crawler;
+    private CrawlerTaskContext crawler;
 
     @Override
     protected void onCrawlerRunBegin(CrawlerEvent event) {

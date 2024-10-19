@@ -87,7 +87,7 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
@@ -348,7 +348,7 @@ public class GenericHttpFetcher
     }
 
     @Override
-    protected void fetcherStartup(Crawler crawler) {
+    protected void fetcherStartup(CrawlerContext crawler) {
         httpClient = createHttpClient();
         var userAgent = configuration.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
@@ -369,7 +369,7 @@ public class GenericHttpFetcher
     }
 
     @Override
-    protected void fetcherShutdown(Crawler c) {
+    protected void fetcherShutdown(CrawlerContext c) {
         if (httpClient instanceof CloseableHttpClient hc) {
             try {
                 hc.close();

@@ -31,7 +31,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.store.DataStore;
+import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
@@ -56,7 +56,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     static final String SITEMAP_STORE_NAME =
             SitemapRecord.class.getSimpleName();
     @JsonIgnore
-    private DataStore<SitemapRecord> sitemapStore;
+    private GridCache<SitemapRecord> sitemapStore;
     @JsonIgnore
     private final MutableBoolean stopping = new MutableBoolean();
 
@@ -116,7 +116,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
                     location, e.getMessage(), e);
         } finally {
             if (sitemapRec != null) {
-                sitemapStore.save(location, sitemapRec);
+                sitemapStore.put(location, sitemapRec);
             }
             try {
                 sitemapDoc.dispose();
@@ -141,7 +141,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             SitemapContext ctx, SitemapRecord sitemapRec, CrawlDoc sitemapDoc)
             throws IOException {
         var location = sitemapDoc.getReference();
-        var cachedRec = sitemapStore.find(location).orElse(null);
+        var cachedRec = sitemapStore.get(location);
 
         if (!SitemapUtil.shouldProcessSitemap(sitemapRec, cachedRec)) {
             LOG.info("Sitemap not modified since last crawl: {}", location);
@@ -198,13 +198,13 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
 
     @Override
     protected void onCrawlerCleanBegin(CrawlerEvent event) {
-        Optional.ofNullable(sitemapStore).ifPresent(DataStore::clear);
+        Optional.ofNullable(sitemapStore).ifPresent(GridCache::clear);
     }
 
     @Override
     protected void onCrawlerRunBegin(CrawlerEvent event) {
         sitemapStore = event.getSource()
-                .getDataStoreEngine().openStore(
+                .getGrid().storage().getCache(
                         SITEMAP_STORE_NAME, SitemapRecord.class);
     }
 
@@ -215,7 +215,6 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
 
     @Override
     protected void onCrawlerShutdown(CrawlerEvent event) {
-        Optional.ofNullable(sitemapStore).ifPresent(DataStore::close);
         sitemapStore = null;
     }
 }

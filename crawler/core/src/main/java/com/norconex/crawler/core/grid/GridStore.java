@@ -35,11 +35,11 @@ public interface GridStore<T> {
     Class<?> getType();
 
     /**
-     * Whether there is already an object in this store under the same id.
-     * @param id the object id
-     * @return <code>true</code> if id is already present
+     * Whether there is already an object in this store under the same key.
+     * @param key the object key
+     * @return <code>true</code> if key is already present
      */
-    boolean contains(Object id);
+    boolean contains(Object key);
 
     /**
      * The store size. It is possible for some implementations to approximate
@@ -52,14 +52,6 @@ public interface GridStore<T> {
      * Wipes all objects from the store.
      */
     void clear();
-
-    //    /**
-    //     * Close the store implementation (provided there is something to close
-    //     * for the specific implementation).
-    //     */
-    //TODO REMOVE THIS METHOD and rely on GridSystem closing it?
-    //    @Override
-    //    void close();
 
     /**
      * Iterate through all objects in the store until the predicate returns

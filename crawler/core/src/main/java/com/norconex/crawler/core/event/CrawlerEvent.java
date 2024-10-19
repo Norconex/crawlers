@@ -19,8 +19,8 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -158,16 +158,7 @@ public class CrawlerEvent extends Event {
      * A document post-import processor was executed properly.
      */
     public static final String DOCUMENT_POSTIMPORTED = "DOCUMENT_POSTIMPORTED";
-    //    /**
-    //     * A document was submitted to a committer for upsert.
-    //     */
-    //    public static final String DOCUMENT_COMMITTED_UPSERT =
-    //            "DOCUMENT_COMMITTED_UPSERT";
-    //    /**
-    //     * A document was submitted to a committer for removal.
-    //     */
-    //    public static final String DOCUMENT_COMMITTED_DELETE =
-    //            "DOCUMENT_COMMITTED_DELETE";
+
     /**
      * A document metadata fields were successfully retrieved.
      */
@@ -212,8 +203,8 @@ public class CrawlerEvent extends Event {
     }
 
     @Override
-    public Crawler getSource() {
-        return (Crawler) super.getSource();
+    public CrawlerTaskContext getSource() {
+        return (CrawlerTaskContext) super.getSource();
     }
 
     public boolean isCrawlerShutdown() {

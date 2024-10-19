@@ -14,37 +14,31 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheAtomicityMode;
+import org.apache.ignite.cache.CacheEntryProcessor;
+import org.apache.ignite.cache.CacheWriteSynchronizationMode;
+import org.apache.ignite.cache.QueryEntity;
+import org.apache.ignite.cache.QueryIndex;
+import org.apache.ignite.cache.query.QueryCursor;
+import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.configuration.CacheConfiguration;
 
 import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.util.SerializableUnaryOperator;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.StandardException;
 
 public class IgniteGridCache<T> implements GridCache<T> {
-
-    //TODO have a cache for the types and names in used (similar to other store engines,
-    // with alt names added).
-
-    //TODO supply "hints" to data stores at creation time, which would be
-    // optional, for engines supporting them (for optimization).
-    //OR: offer both implementations from engine: queue(or set) and key-value
-    // for some store engines, implementation will be the same.
-    // Add transaction support to datastore?
-    // Add atomicity to datastore?  Do we only need it for:
-    //   - get and delete first queue entry
-    //   - store queue entry in active DB
-    //   - or change state on same cache/queue ("status" field).
-
-    //TODO document for a future release: make configurable number of
-    // cached instances of a document to keep (only useful for gracing spoiled ones?)
 
     private String name;
     private final IgniteCache<String, T> cache;
@@ -57,15 +51,22 @@ public class IgniteGridCache<T> implements GridCache<T> {
         this.name = name;
         var cfg = new CacheConfiguration<String, T>();
         cfg.setName(name + IgniteGridStorage.Suffix.CACHE);
+        cfg.setAtomicityMode(CacheAtomicityMode.ATOMIC);
+        cfg.setWriteSynchronizationMode(
+                CacheWriteSynchronizationMode.FULL_SYNC);
+        cfg.setReadFromBackup(false);
+
+        // Creating SQL table in order to get accurate row count. See getSize().
+        cfg.setSqlSchema("PUBLIC");
+        var queryEntity = new QueryEntity(String.class, type)
+                .setTableName(name)// + IgniteGridStorage.Suffix.CACHE)
+                .setKeyFieldName("key")
+                .addQueryField("key", String.class.getName(), null)
+                .addQueryField("value", type.getName(), null);
+        queryEntity.setIndexes(List.of(new QueryIndex("key")));
+        cfg.setQueryEntities(Collections.singletonList(queryEntity));
 
         cache = ignite.getOrCreateCache(cfg);
-
-        // make configurable whether we want to enable multi-operations (transactional)
-        // or operation atomicity (default) is OK.
-        // yeah.. .maybe keep ATOMIC for better performance but document
-        // how to change
-        cfg.setAtomicityMode(CacheAtomicityMode.TRANSACTIONAL);
-
     }
 
     @Override
@@ -74,34 +75,37 @@ public class IgniteGridCache<T> implements GridCache<T> {
     }
 
     @Override
-    public boolean put(String id, T object) {
-        return !Objects.equals(cache.getAndPut(id, object), object);
+    public boolean put(String key, T object) {
+        return !Objects.equals(cache.getAndPut(key, object), object);
     }
 
     @Override
-    public T get(String id) {
-        return cache.get(id);
+    public boolean update(String key, SerializableUnaryOperator<T> updater) {
+        var changed = new MutableBoolean();
+        cache.invoke(key,
+                (CacheEntryProcessor<String, T, T>) (entry, arguments) -> {
+                    var existingValue = entry.getValue();
+                    var newValue = updater.apply(existingValue);
+                    changed.setValue(Objects.equals(existingValue, newValue));
+                    return newValue;
+                });
+        return changed.booleanValue();
     }
 
     @Override
-    public boolean delete(String id) {
-        return cache.remove(id);
+    public T get(String key) {
+        return cache.get(key);
+    }
+
+    @Override
+    public boolean delete(String key) {
+        return cache.remove(key);
     }
 
     @Override
     public void clear() {
         cache.clear();
     }
-
-    //    @Override
-    //    public void close() {
-    //        // we don't explicitly close them here. They'll be "closed"
-    //        // automatically when leaving the cluster.
-    //        //        if (ignite.cluster().state().active()
-    //        //                && ignite.cluster().localNode().isClient()) {
-    //        //            cache.close();
-    //        //        }
-    //    }
 
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
@@ -123,13 +127,18 @@ public class IgniteGridCache<T> implements GridCache<T> {
     }
 
     @Override
-    public boolean contains(Object id) {
-        return cache.containsKey((String) id);
+    public boolean contains(Object key) {
+        return cache.containsKey((String) key);
     }
 
     @Override
     public long size() {
-        return cache.metrics().getCacheSize();
+        // Use SQL to get accurate record count. It is apparently the most
+        // efficient way to get it.
+        var query = new SqlFieldsQuery(
+                "SELECT COUNT(*) FROM %s".formatted(name));
+        QueryCursor<List<?>> cursor = cache.query(query);
+        return (Long) cursor.getAll().get(0).get(0);
     }
 
     @StandardException

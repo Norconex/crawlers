@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.tasks;
+package com.norconex.crawler.core.tasks.impl;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.client.commands.CrawlCommand;
 import com.norconex.crawler.core.grid.GridInitializedCrawlerTask;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 /**
  * Prepare the doc processing ledger for a new or incremental crawl.
@@ -29,7 +29,7 @@ public class QueueStartReferencesTask extends GridInitializedCrawlerTask {
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected void runWithInitializedCrawler(Crawler crawler, String arg) {
+    protected void runWithInitializedCrawler(CrawlerTaskContext crawler, String arg) {
         var globalCache = crawler.getGrid().storage().getGlobalCache();
         globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "false");
         crawler.getDocPipelines()

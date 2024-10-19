@@ -23,10 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.MockNoopDataStoreEngine;
+import com.norconex.crawler.core.mocks.MockNoopGrid;
 import com.norconex.crawler.core.mocks.MockNoopGridConnector;
-import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
 
 class CrawlerConfigTest {
@@ -37,8 +37,8 @@ class CrawlerConfigTest {
                 () -> BeanMapper
                         .builder()
                         .polymorphicTypeImpl(
-                                DataStoreEngine.class,
-                                List.of(MockNoopDataStoreEngine.class))
+                                Grid.class,
+                                List.of(MockNoopGrid.class))
                         .polymorphicTypeImpl(
                                 GridConnector.class,
                                 List.of(MockNoopGridConnector.class))

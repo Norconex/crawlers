@@ -18,8 +18,7 @@ import java.io.StringWriter;
 
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.client.CrawlerClient;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 
@@ -38,59 +37,31 @@ public class IgniteGridConnector
             new IgniteGridConnectorConfig();
 
     @Override
-    public Grid connect(CrawlerClient crawlerClient) {
-        var cfg = crawlerClient.getConfiguration();
+    public Grid connect(CrawlerContext crawlerContext) {
+        if (!crawlerContext.isClient()) {
+            return new IgniteGrid(new IgniteInstanceServer());
+        }
+
+        var cfg = crawlerContext.getConfiguration();
         var igniteInstance =
                 IgniteInstanceClientTest.isIgniteTestClientEnabled()
                         ? new IgniteInstanceClientTest(cfg)
                         : new IgniteInstanceClient(cfg);
-        System.out.println("XXXXX CONFIG IS: \n" + cfg);
         // serialize crawler builder factory and config to create the
         // crawler on each nodes
         var crawlerCfgWriter = new StringWriter();
-        crawlerClient.getBeanMapper().write(
+        crawlerContext.getBeanMapper().write(
                 cfg, crawlerCfgWriter, Format.JSON);
         var crawlerCfgStr = crawlerCfgWriter.toString();
-        System.out.println("XXXXX CONFIG AS JSON IS: \n" + crawlerCfgStr);
         var globalCache = igniteInstance.get()
                 .getOrCreateCache(IgniteGridKeys.GLOBAL_CACHE);
         globalCache.put(IgniteGridKeys.CRAWLER_CONFIG, crawlerCfgStr);
         globalCache.put(IgniteGridKeys.CRAWLER_BUILDER_FACTORY_CLASS,
-                crawlerClient.getBuilderFactoryClass().getName());
+                crawlerContext.getBuilderFactoryClass().getName());
 
         igniteInstance.get().getOrCreateCache(IgniteGridKeys.RUN_ONCE_CACHE)
                 .clear();
 
         return new IgniteGrid(igniteInstance);
     }
-
-    @Override
-    public Grid connect(Crawler crawler) {
-        return new IgniteGrid(new IgniteInstanceServer());
-    }
-
-    //
-    //
-    //
-    //    @Override
-    //    public synchronized GridClient client(CrawlerClient crawlerClient) {
-    //        if (client == null) {
-    //            client = new IgniteGridClient(crawlerClient);
-    //        }
-    //        return client;
-    //    }
-    //
-    //    @Override
-    //    public GridServer server(Crawler crawler) {
-    //        return new IgniteGridServer();
-    //    }
-    //
-    //    @Override
-    //    public void close() {
-    //        if (client != null) {
-    //            client.close();
-    //            client = null;
-    //        }
-    //    }
-
 }

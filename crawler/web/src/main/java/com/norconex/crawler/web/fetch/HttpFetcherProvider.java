@@ -16,16 +16,16 @@ package com.norconex.crawler.web.fetch;
 
 import java.util.function.Function;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 
 public class HttpFetcherProvider
-        implements Function<Crawler, HttpMultiFetcher> {
+        implements Function<CrawlerContext, HttpMultiFetcher> {
 
     @Override
-    public HttpMultiFetcher apply(Crawler crawler) {
+    public HttpMultiFetcher apply(CrawlerContext crawler) {
 
         var cfg = (WebCrawlerConfig) crawler.getConfiguration();
 

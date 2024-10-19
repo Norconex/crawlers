@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.client.cli;
 
-import com.norconex.crawler.core.client.CrawlerClient;
+import com.norconex.crawler.core.Crawler;
 
 import picocli.CommandLine.Command;
 
@@ -27,7 +27,7 @@ import picocli.CommandLine.Command;
 )
 public class CliConfigCheckCommand extends CliSubCommandBase {
     @Override
-    public void runCommand(CrawlerClient crawlerClient) {
+    public void runCommand(Crawler crawlerClient) {
         // Reaching this method means no errors were found. Simply state so.
         out().println();
         out().println("No configuration errors detected.");

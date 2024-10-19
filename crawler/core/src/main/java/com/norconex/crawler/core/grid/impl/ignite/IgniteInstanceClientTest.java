@@ -14,22 +14,33 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.SystemProperties;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteException;
 import org.apache.ignite.Ignition;
-import org.apache.ignite.cluster.ClusterNode;
+import org.apache.ignite.cluster.ClusterState;
+import org.apache.ignite.configuration.DataRegionConfiguration;
+import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.configuration.SqlConfiguration;
+import org.apache.ignite.indexing.IndexingQueryEngineConfiguration;
 import org.apache.ignite.logger.slf4j.Slf4jLogger;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.grid.GridException;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -44,10 +55,10 @@ import lombok.ToString;
  * {@value IgniteInstanceClientTest#PROP_IGNITE_TEST_SERVER_QTY} system
  * property. Default is 1 and maximum is 10.
  * </p>
- *
  */
 @EqualsAndHashCode
 @ToString
+@Slf4j
 class IgniteInstanceClientTest implements IgniteInstance {
 
     static final String PROP_IGNITE_TEST = "grid.ignite.test";
@@ -63,46 +74,107 @@ class IgniteInstanceClientTest implements IgniteInstance {
 
     IgniteInstanceClientTest(CrawlerConfig cfg) {
 
-        //        var commonClassLoader =
-        //                Thread.currentThread().getContextClassLoader();
+        var baseWorkDir = cfg.getWorkDir() == null
+                ? Path.of(SystemProperties.getJavaIoTmpdir())
+                : cfg.getWorkDir();
 
         int serverNodeQty =
                 Integer.getInteger(PROP_IGNITE_TEST_SERVER_QTY, 1);
         for (var i = 0; i < serverNodeQty; i++) {
             // Configuration for Server Node 1
             var serverCfg = new IgniteConfiguration();
-            serverCfg.setIgniteInstanceName("serverNode" + (i + 1));
-            //            serverCfg.setClassLoader(commonClassLoader);
-            configureDiscovery(serverCfg); //, freePort(), freePort());
-            igniteServers.add(Ignition.start(serverCfg));
-        }
+            var instanceName = "serverNode" + (i + 1);
+            serverCfg.setIgniteInstanceName(instanceName);
+            serverCfg.setWorkDirectory(baseWorkDir.resolve(instanceName)
+                    .toAbsolutePath().toString());
 
-        //        // Configuration for Server Node 1
-        //        var serverCfg1 = new IgniteConfiguration();
-        //        serverCfg1.setIgniteInstanceName("serverNode1");
-        //        configureDiscovery(serverCfg1, freePort(), freePort()); // Set unique ports for node 1
-        //        //        configureDiscovery(serverCfg1, 47500, 47100); // Set unique ports for node 1
-        //
-        //        // Configuration for Server Node 2
-        //        var serverCfg2 = new IgniteConfiguration();
-        //        serverCfg2.setIgniteInstanceName("serverNode2");
-        //        configureDiscovery(serverCfg2, freePort(), freePort()); // Set unique ports for node 2
-        //        //        configureDiscovery(serverCfg2, 47501, 47101); // Set unique ports for node 2
-        //
-        //        Ignition.start(serverCfg1);
-        //        Ignition.start(serverCfg2);
+            serverCfg.setUserAttributes(new IgniteAttributes()
+                    .setActivationLeader(i == 0)
+                    .setActivationExpectedServerCount(serverNodeQty));
+
+            // persist
+            var storageCfg = new DataStorageConfiguration();
+            storageCfg.getDefaultDataRegionConfiguration()
+                    .setPersistenceEnabled(true);
+            serverCfg.setDataStorageConfiguration(storageCfg);
+
+            configureDiscovery(serverCfg);
+            configurePersistentStorage(serverCfg);
+            configureSql(serverCfg);
+
+            var ignite = Ignition.start(serverCfg);
+            igniteServers.add(ignite);
+        }
 
         // Configuration for Client Node
         var clientCfg = new IgniteConfiguration();
         clientCfg.setIgniteInstanceName("clientNode");
+        clientCfg.setWorkDirectory(
+                baseWorkDir.resolve("clientNode").toAbsolutePath().toString());
         clientCfg.setClientMode(true); // Mark this node as client
-        //        clientCfg.setClassLoader(commonClassLoader);
-        configureDiscovery(clientCfg);//, freePort(), freePort()); // Set unique ports for the client
-        //        configureDiscovery(clientCfg, 47502, 47102); // Set unique ports for the client
-        igniteClient = Ignition.start(clientCfg);
+        configureDiscovery(clientCfg);
 
-        for (ClusterNode node : igniteClient.cluster().nodes()) {
-            System.out.println("Node in cluster: " + node.id());
+        try {
+            igniteClient = Ignition.start(clientCfg);
+            if (checkAndActivateCluster(igniteClient, serverNodeQty,
+                    serverNodeQty, 60_000)) {
+                LOG.info("Cluster activated successfully.");
+            } else {
+                LOG.info("Failed to activate cluster.");
+            }
+        } catch (IgniteException e) {
+            throw new GridException("Ignite failed to start.", e);
+        }
+    }
+
+    public static boolean checkAndActivateCluster(
+            Ignite ignite, int expectedServerCount, int quorum, long timeout) {
+
+        var timer = StopWatch.createStarted();
+        var nodes = ignite.cluster().forServers().nodes();
+        var activeNodes = 0;
+        while (activeNodes < expectedServerCount) {
+            activeNodes = (int) nodes
+                    .stream()
+                    .filter(node -> !Boolean.TRUE.equals(
+                            node.attribute("ignite.node.daemon")))
+                    .count();
+
+            if (activeNodes >= expectedServerCount) {
+                return activateCluster(ignite);
+            }
+
+            if (timer.getTime() > timeout) {
+                if (activeNodes >= quorum) {
+                    LOG.warn("Reached quorum ({}) with {} of {} server "
+                            + "nodes ready after timeout. Proceeding. ",
+                            quorum,
+                            activeNodes,
+                            expectedServerCount);
+                    return activateCluster(ignite);
+                }
+                LOG.warn("Timed out waiting for server nodes to reach "
+                        + "quorum ({}). Only {} are ready. Aborting.",
+                        quorum, activeNodes);
+                return false;
+
+            }
+
+            Sleeper.sleepSeconds(1);
+        }
+        var result = activateCluster(ignite);
+        timer.stop();
+        LOG.info("Cluster initialized in {}", timer.getMessage());
+        return result;
+    }
+
+    private static boolean activateCluster(Ignite ignite) {
+        try {
+            ignite.cluster().state(ClusterState.ACTIVE);
+            return true;
+        } catch (Exception e) {
+            LOG.error("Failed to activate cluster: ", e.getMessage());
+            return false;
         }
     }
 
@@ -111,16 +183,8 @@ class IgniteInstanceClientTest implements IgniteInstance {
         return igniteClient;
     }
 
-    //    @Override
-    //    public void close() {
-    //        //        igniteClient.close();
-    //        //        igniteServers.forEach(Ignite::close);
-    //    }
-
     // Helper method to configure discovery with specified ports
     private static void configureDiscovery(IgniteConfiguration cfg) {
-        //            int discoveryPort, int communicationPort) {
-
         cfg.setGridLogger(new Slf4jLogger());
         cfg.setPeerClassLoadingEnabled(false);
 
@@ -134,17 +198,20 @@ class IgniteInstanceClientTest implements IgniteInstance {
         discoverySpi.setIpFinder(ipFinder);
 
         cfg.setDiscoverySpi(discoverySpi);
+    }
 
-        //        var discoverySpi = new TcpDiscoverySpi();
-        //        var ipFinder = new TcpDiscoveryVmIpFinder();
-        //        ipFinder.setAddresses(
-        //                Collections.singletonList("127.0.0.1:" + discoveryPort));
-        //        discoverySpi.setIpFinder(ipFinder);
-        //        cfg.setDiscoverySpi(discoverySpi);
-        //
-        //        // Set communication ports (optional if not using peer-to-peer tasks)
-        //        cfg.setLocalHost("127.0.0.1");
-        //        cfg.setCommunicationSpi(
-        //                new TcpCommunicationSpi().setLocalPort(communicationPort));
+    private static void configureSql(IgniteConfiguration cfg) {
+        cfg.setSqlConfiguration(new SqlConfiguration()
+                .setQueryEnginesConfiguration(
+                        new IndexingQueryEngineConfiguration()
+                                .setDefault(true)));
+    }
+
+    private static void configurePersistentStorage(IgniteConfiguration cfg) {
+        cfg.setDataStorageConfiguration(
+                new DataStorageConfiguration()
+                        .setDefaultDataRegionConfiguration(
+                                new DataRegionConfiguration()
+                                        .setPersistenceEnabled(true)));
     }
 }

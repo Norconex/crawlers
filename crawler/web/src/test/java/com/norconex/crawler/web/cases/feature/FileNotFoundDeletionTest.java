@@ -69,21 +69,21 @@ class FileNotFoundDeletionTest {
 
         // First run: 2 new docs
         whenPageFound(client);
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isEqualTo(2);
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
         // Second run: 0 new doc (unmodified) and 1 delete (not found)
         whenPageNotFound(client);
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isZero();
         assertThat(mem.getDeleteCount()).isOne();
         mem.clean();
 
         // Third run: 1 new doc (1 unmodified + 1 resurrected) and zero delete
         whenPageFound(client);
-        crawler.start();
+        crawler.crawl();
         assertThat(mem.getUpsertCount()).isOne();
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();

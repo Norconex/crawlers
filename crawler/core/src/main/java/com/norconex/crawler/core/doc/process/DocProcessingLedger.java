@@ -17,12 +17,13 @@ package com.norconex.crawler.core.doc.process;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocContext.Stage;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.grid.GridQueue;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -33,31 +34,25 @@ public class DocProcessingLedger { //implements Closeable {
     public static final String KEY_PROCESSED_CACHE = "ledger.process.cache";
     public static final String KEY_CACHED_CACHE = "ledger.cached.cache";
 
-    private static final String PROCESSED_OR_CACHED_1 = "processed-or-cached";
-    private static final String PROCESSED_OR_CACHED_2 = "cached-or-processed";
+    private static final String PROCESSED_OR_CACHED_1 = "processedOrCached";
+    private static final String PROCESSED_OR_CACHED_2 = "cachedOrProcessed";
 
-    private GridQueue<CrawlDocContext> queue;
-    private GridCache<CrawlDocContext> processed;
-    private GridCache<CrawlDocContext> cached;
+    private GridQueue<String> queue;
+    private GridCache<String> processed;
+    private GridCache<String> cached;
     private Class<? extends CrawlDocContext> type;
     private GridCache<String> globalCache;
-
-    private final Crawler crawler;
-
-    public DocProcessingLedger(
-            @NonNull Crawler crawler,
-            @NonNull Class<? extends CrawlDocContext> type) {
-        this.crawler = crawler;
-        this.type = type;
-    }
+    private CrawlerContext crawlerContext;
 
     // return true if resuming (holds records that have not been processed),
     // false otherwise
-    public void init() {
-        var grid = crawler.getGrid().storage();
+    public void init(CrawlerContext crawler) {
+        crawlerContext = crawler;
+        type = crawler.getDocContextType();
+        var storage = crawler.getGrid().storage();
 
         // Because we can't rename caches in all impl, we use references.
-        globalCache = grid.getGlobalCache();
+        globalCache = storage.getGlobalCache();
         var processedCacheName = globalCache.get(KEY_PROCESSED_CACHE);
         var cachedCacheName = globalCache.get(KEY_CACHED_CACHE);
         //TODO if one is null they should both be null. If a concern, check
@@ -67,19 +62,15 @@ public class DocProcessingLedger { //implements Closeable {
             cachedCacheName = PROCESSED_OR_CACHED_2;
         }
 
-        queue = grid.getQueue("queue", type);
-        //        active = storeEngine.openStore("active", type);
-        processed = grid.getCache(processedCacheName, type);
-        cached = grid.getCache(cachedCacheName, type);
+        queue = storage.getQueue("queue", String.class);
+        processed = storage.getCache(processedCacheName, String.class);
+        cached = storage.getCache(cachedCacheName, String.class);
 
-        var resuming = !isQueueEmpty();// || !isActiveEmpty();
+        var resuming = !isQueueEmpty();
         crawler.getState().setResuming(resuming);
     }
 
     public Stage getProcessingStage(String id) {
-        //        if (active.exists(id)) {
-        //            return Stage.ACTIVE;
-        //        }
         if (queue.contains(id)) {
             return Stage.QUEUED;
         }
@@ -88,21 +79,6 @@ public class DocProcessingLedger { //implements Closeable {
         }
         return null;
     }
-
-    //--- Active ---
-
-    //    public long getActiveCount() {
-    //        return active.count();
-    //    }
-    //
-    //    public boolean isActiveEmpty() {
-    //        return active.isEmpty();
-    //    }
-    //
-    //    public boolean forEachActive(
-    //            BiPredicate<String, CrawlDocContext> predicate) {
-    //        return active.forEach(predicate);
-    //    }
 
     //--- Processed ---
 
@@ -119,25 +95,26 @@ public class DocProcessingLedger { //implements Closeable {
     }
 
     public Optional<CrawlDocContext> getProcessed(String id) {
-        return Optional.ofNullable(processed.get(id));
+        return Optional.ofNullable(processed.get(id))
+                .map(json -> SerialUtil.fromJson(json, type));
     }
 
     public synchronized void processed(@NonNull CrawlDocContext docRec) {
-        processed.put(docRec.getReference(), docRec);
+        processed.put(docRec.getReference(), SerialUtil.toJsonString(docRec));
         var cacheDeleted = cached.delete(docRec.getReference());
-        //        var activeDeleted = active.delete(docRec.getReference());
         LOG.debug("Saved processed: {} (Deleted from cache: {})", // Deleted from active: {})",
                 docRec.getReference(), cacheDeleted);//, activeDeleted);
-        crawler.fire(CrawlerEvent.builder()
+        crawlerContext.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_PROCESSED)
-                .source(crawler)
+                .source(crawlerContext)
                 .docContext(docRec)
                 .build());
     }
 
     public boolean forEachProcessed(
             BiPredicate<String, CrawlDocContext> predicate) {
-        return processed.forEach(predicate);
+        return processed.forEach(
+                (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     }
 
     //--- Queue ---
@@ -155,28 +132,25 @@ public class DocProcessingLedger { //implements Closeable {
     }
 
     public void queue(@NonNull CrawlDocContext docContext) {
-        queue.put(docContext.getReference(), docContext);
+        queue.put(docContext.getReference(),
+                SerialUtil.toJsonString(docContext));
         LOG.debug("Saved queued: {}", docContext.getReference());
-        crawler.fire(CrawlerEvent.builder()
+        crawlerContext.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_QUEUED)
-                .source(crawler)
+                .source(crawlerContext)
                 .docContext(docContext)
                 .build());
     }
 
     // get and delete and mark as active
     public synchronized Optional<CrawlDocContext> pollQueue() {
-
-        //        if (docInfo.isPresent()) {
-        //            active.save(docInfo.get().getReference(), docInfo.get());
-        //            LOG.debug("Saved active: {}", docInfo.get().getReference());
-        //        }
-        return queue.poll();
+        return queue.poll().map(json -> SerialUtil.fromJson(json, type));
     }
 
     public boolean forEachQueued(
             BiPredicate<String, CrawlDocContext> predicate) {
-        return queue.forEach(predicate);
+        return queue.forEach(
+                (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     }
 
     //--- Cache ---
@@ -186,25 +160,19 @@ public class DocProcessingLedger { //implements Closeable {
     }
 
     public Optional<CrawlDocContext> getCached(String id) {
-        return Optional.ofNullable(cached.get(id));
+        return Optional.ofNullable(cached.get(id))
+                .map(json -> SerialUtil.fromJson(json, type));
     }
 
     public boolean forEachCached(
             BiPredicate<String, CrawlDocContext> predicate) {
-        return cached.forEach(predicate);
+        return cached.forEach(
+                (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     }
 
     public void clearCached() {
         cached.clear();
     }
-
-    //    @Override
-    //    public void close() {
-    //        //        ofNullable(queue).ifPresent(GridStore::close);
-    //        //        //            ofNullable(active).ifPresent(GridStore::close);
-    //        //        ofNullable(processed).ifPresent(GridStore::close);
-    //        //        ofNullable(cached).ifPresent(GridStore::close);
-    //    }
 
     public synchronized void cacheProcessed() {
 

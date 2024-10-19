@@ -30,7 +30,7 @@ import org.apache.commons.collections4.map.LRUMap;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
-import com.norconex.crawler.core.store.DataStoreException;
+import com.norconex.crawler.core.CrawlerException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ImageCache {
 
+    //TODO use Grid cache instead?
     private final MVStore store;
     private final Map<String, String> lru;
     private final Path cacheDir;
@@ -54,7 +55,7 @@ public class ImageCache {
             Files.createDirectories(dir);
             LOG.debug("Image cache directory: {}", dir);
         } catch (IOException e) {
-            throw new DataStoreException(
+            throw new CrawlerException(
                     "Cannot create image cache directory: "
                             + dir.toAbsolutePath(),
                     e);

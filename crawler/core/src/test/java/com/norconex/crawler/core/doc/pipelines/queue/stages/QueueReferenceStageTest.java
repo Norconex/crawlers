@@ -16,15 +16,15 @@ package com.norconex.crawler.core.doc.pipelines.queue.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 
 class QueueReferenceStageTest {
 
     @WithCrawlerTest
-    void testQueueReferenceStage(Crawler crawler) {
+    void testQueueReferenceStage(CrawlerTaskContext crawler) {
         var docRecord = new CrawlDocContext("ref");
         var stage = new QueueReferenceStage();
 

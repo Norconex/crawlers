@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.client.cli;
 
-import com.norconex.crawler.core.client.CrawlerClient;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -32,7 +32,7 @@ import picocli.CommandLine.Command;
 public class CliStopCommand extends CliSubCommandBase {
 
     @Override
-    protected void runCommand(CrawlerClient crawlerClient) {
+    protected void runCommand(Crawler crawlerClient) {
         crawlerClient.stop();
     }
 }

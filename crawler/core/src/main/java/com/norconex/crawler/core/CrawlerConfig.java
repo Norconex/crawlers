@@ -230,12 +230,13 @@ public class CrawlerConfig {
 
     /**
      * Minimum amount of time to wait between each logging of crawling
-     * progress.
+     * progress. Minimum value is 1 second.
      * Default value is {@value #DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL}.
-     * A <code>null</code> value disables progress logging. Minimum value
-     * is 1 second.
+     * A <code>null</code> value or a value below 1 second disables progress
+     * logging.
      */
-    private Duration minProgressLoggingInterval;
+    private Duration minProgressLoggingInterval =
+            DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL;
 
     /**
      * <p>The strategy to adopt when there are orphans.  Orphans are

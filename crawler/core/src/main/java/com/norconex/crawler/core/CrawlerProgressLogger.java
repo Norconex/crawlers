@@ -12,18 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.monitor;
+package com.norconex.crawler.core;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationUnit;
+import com.norconex.crawler.core.metrics.CrawlerMetrics;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -40,12 +44,15 @@ public class CrawlerProgressLogger {
     private final StopWatch stopWatch = new StopWatch();
 
     private Duration minLoggingInterval;
-    private final CrawlerMonitor monitor;
+    private final CrawlerMetrics monitor;
 
     // Just so we can show the delta between each log entry
     private long prevProcessedCount;
     private long prevQueuedCount;
     private long prevElapsed;
+
+    private ScheduledExecutorService execService;
+    private volatile boolean stopTrackingRequested;
 
     private final DurationFormatter durationFormatter = new DurationFormatter()
             .withOuterLastSeparator(" and ")
@@ -56,16 +63,27 @@ public class CrawlerProgressLogger {
 
     // Minimum 1 second
     public CrawlerProgressLogger(
-            CrawlerMonitor monitor, Duration minLoggingInterval) {
+            CrawlerMetrics monitor, Duration minLoggingInterval) {
         this.monitor = monitor;
-        if (minLoggingInterval != null && minLoggingInterval.getSeconds() < 0) {
-            this.minLoggingInterval = Duration.ofSeconds(1);
+        if (minLoggingInterval == null || minLoggingInterval.getSeconds() < 1) {
+            this.minLoggingInterval = null;
         } else {
             this.minLoggingInterval = minLoggingInterval;
         }
     }
 
     public void startTracking() {
+        stopTrackingRequested = false;
+        if (minLoggingInterval != null && LOG.isInfoEnabled()) {
+            execService = Executors.newSingleThreadScheduledExecutor();
+            execService.scheduleWithFixedDelay(() -> {
+                if (stopTrackingRequested) {
+                    return;
+                }
+                logProgress();
+            }, 0, minLoggingInterval.toMillis(), TimeUnit.MILLISECONDS);
+        }
+
         prevProcessedCount = monitor.getProcessedCount();
         prevQueuedCount = monitor.getQueuedCount();
         stopWatch.reset();
@@ -76,13 +94,13 @@ public class CrawlerProgressLogger {
         if (!stopWatch.isStopped()) {
             stopWatch.stop();
         }
-    }
-
-    // only log if logging was requested and enough time has elapsed.
-    public void logProgress() {
-        // If not logging, return right away
-        if (minLoggingInterval != null && LOG.isInfoEnabled()) {
-            doLogProgress();
+        if (execService != null) {
+            try {
+                stopTrackingRequested = true;
+                execService.shutdown();
+            } finally {
+                execService = null;
+            }
         }
     }
 
@@ -100,14 +118,13 @@ public class CrawlerProgressLogger {
                 .append(" processed/seconds")
                 .append("\n  Event counts:");
         monitor.getEventCounts().entrySet().stream().forEach(
-                en -> b
-                        .append("\n    ")
+                en -> b.append("\n    ")
                         .append(StringUtils.rightPad(en.getKey() + ": ", 27))
                         .append(intFormatter.format(en.getValue())));
         return b.toString();
     }
 
-    synchronized void doLogProgress() {
+    synchronized void logProgress() {
 
         // If not enough time has elapsed, return
         var elapsed = stopWatch.getTime();

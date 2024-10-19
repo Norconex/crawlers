@@ -41,7 +41,7 @@ public final class WebImporterPipelineUtil {
             String redirectURL) {
 
         var ctx = (WebImporterPipelineContext) context;
-        var docTracker = ctx.getCrawler().getServices().getDocTrackerService();
+        var docTracker = ctx.getCrawler().getDocProcessingLedger();
 
         var docContext = (WebCrawlDocContext) ctx.getDoc().getDocContext();
         String sourceURL = docContext.getReference();
@@ -76,10 +76,6 @@ public final class WebImporterPipelineUtil {
 
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
-        if (Stage.ACTIVE.is(redirectStage)) {
-            rejectRedirectDup("being processed", sourceURL, redirectURL);
-            return;
-        }
         if (Stage.QUEUED.is(redirectStage)) {
             rejectRedirectDup("queued", sourceURL, redirectURL);
             return;

@@ -69,7 +69,7 @@ class JavaScriptProtocolURLTest {
         var mem = WebTestUtil.firstCommitter(crawler);
 
         assertThatNoException().isThrownBy(() -> {
-            crawler.start();
+            crawler.crawl();
         });
 
         assertThat(mem.getUpsertRequests())

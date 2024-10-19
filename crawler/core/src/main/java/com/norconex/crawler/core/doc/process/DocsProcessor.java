@@ -22,11 +22,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.CrawlerState;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.monitor.CrawlerProgressLogger;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.Getter;
@@ -36,18 +35,16 @@ import lombok.extern.slf4j.Slf4j;
 public class DocsProcessor implements Runnable {
 
     @Getter
-    private final Crawler crawler;
+    private final CrawlerTaskContext crawler;
     private final DocProcessingLedger ledger;
     private final CrawlerState state;
-    private final CrawlerProgressLogger progressLogger;
 
     private int resumableMaxDocs;
 
-    public DocsProcessor(Crawler crawler) {
+    public DocsProcessor(CrawlerTaskContext crawler) {
         this.crawler = crawler;
         ledger = crawler.getDocProcessingLedger();
         state = crawler.getState();
-        progressLogger = crawler.getProgressLogger();
     }
 
     @Override
@@ -68,10 +65,6 @@ public class DocsProcessor implements Runnable {
     }
 
     private void init() {
-        // done by command -->  ledger.prepareForCrawl();
-        progressLogger.startTracking();
-        logJmxState();
-
         // max documents
         var cfgMaxDocs = crawler.getConfiguration().getMaxDocuments();
         resumableMaxDocs = cfgMaxDocs;
@@ -94,8 +87,7 @@ public class DocsProcessor implements Runnable {
             Thread.currentThread().setName(crawler.getId() + "#queue-init");
             LOG.debug("Crawler thread 'init-queue' started.");
             crawler.fire(CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
-            crawler
-                    .getDocPipelines()
+            crawler.getDocPipelines()
                     .getQueuePipeline()
                     .initializeQueue(crawler);
 
@@ -117,18 +109,18 @@ public class DocsProcessor implements Runnable {
 
     private void destroy() {
         LOG.info("Crawler {}", (state.isStopped() ? "stopped." : "completed."));
-        try {
-            progressLogger.stopTracking();
-            LOG.info(
-                    "Execution Summary:{}",
-                    progressLogger.getExecutionSummary());
-        } finally {
-            if (state.isStopRequested()) {
-                state.setStopped(true);
-                //                state.setStopRequested(false);
-                crawler.fire(CrawlerEvent.CRAWLER_STOP_END);
-            }
+        //        try {
+        //            progressLogger.stopTracking();
+        //            LOG.info(
+        //                    "Execution Summary:{}",
+        //                    progressLogger.getExecutionSummary());
+        //        } finally {
+        if (state.isStopRequested()) {
+            state.setStopped(true);
+            //                state.setStopRequested(false);
+            crawler.fire(CrawlerEvent.CRAWLER_STOP_END);
         }
+        //        }
     }
 
     void crawlReferences(final ProcessFlags flags) {
@@ -181,15 +173,15 @@ public class DocsProcessor implements Runnable {
         return isMax;
     }
 
-    private void logJmxState() {
-        if (Boolean.getBoolean(Crawler.SYS_PROP_ENABLE_JMX)) {
-            LOG.info("JMX support enabled.");
-        } else {
-            LOG.info("JMX support disabled. To enable, set -DenableJMX=true "
-                    + "system property as a JVM argument.");
-        }
-    }
-
+    //    private void logJmxState() {
+    //        if (Boolean.getBoolean(CrawlerTaskContext.SYS_PROP_ENABLE_JMX)) {
+    //            LOG.info("JMX support enabled.");
+    //        } else {
+    //            LOG.info("JMX support disabled. To enable, set -DenableJMX=true "
+    //                    + "system property as a JVM argument.");
+    //        }
+    //    }
+    //
     @Getter
     public static final class ProcessFlags {
         private boolean delete;

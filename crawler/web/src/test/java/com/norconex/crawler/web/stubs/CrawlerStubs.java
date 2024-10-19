@@ -18,7 +18,9 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import com.norconex.crawler.web.WebCrawler;
+import com.norconex.crawler.web.WebCrawlerBuilderFactory;
 import com.norconex.crawler.web.WebCrawlerConfig;
 
 public final class CrawlerStubs {
@@ -51,12 +53,44 @@ public final class CrawlerStubs {
         if (c != null) {
             c.accept(webCrawlerConfig);
         }
+        //TODO wrap the memory committer to provide static access to
+        // docs?
+        // with threadlocal?
         return WebCrawler.create(webCrawlerConfig);
     }
 
+    public static CrawlerTaskContext memoryCrawlerTaskContext(Path workDir) {
+        return memoryCrawlerTaskContext(workDir, null);
+    }
+
+    public static CrawlerTaskContext memoryCrawlerTaskContext(
+            Path workDir, Consumer<WebCrawlerConfig> c) {
+        var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
+        if (c != null) {
+            c.accept(webCrawlerConfig);
+        }
+
+        return CrawlerTaskContext.create(WebCrawlerBuilderFactory.class, b -> {
+            b.configuration(webCrawlerConfig);
+        });
+    }
+
+    //    public static Crawler memoryCrawlerClient(Path workDir) {
+    //        return memoryCrawlerClient(workDir, null);
+    //    }
+    //
+    //    public static Crawler memoryCrawlerClient(
+    //            Path workDir, Consumer<WebCrawlerConfig> c) {
+    //        var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
+    //        if (c != null) {
+    //            c.accept(webCrawlerConfig);
+    //        }
+    //        return WebCrawler.create(webCrawlerConfig);
+    //    }
+
     //    public static CrawlerBuilder memoryCrawlerBuilder(
     //            Path workDir, Consumer<WebCrawlerConfig> c) {
-    //        
+    //
     //
     //        var b = WebCrawler
     //                .builder()

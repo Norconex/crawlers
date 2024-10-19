@@ -21,8 +21,8 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.web.WebCrawlerContext;
-import com.norconex.crawler.web.WebCrawlerContext.SitemapPresence;
+import com.norconex.crawler.web.WebCrawlerSessionAttributes;
+import com.norconex.crawler.web.WebCrawlerSessionAttributes.SitemapPresence;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
@@ -63,12 +63,13 @@ public class GenericUrlScopeResolver
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private WebCrawlerContext crawlerContext;
+    private WebCrawlerSessionAttributes crawlerContext;
 
     @Override
     protected void onCrawlerRunBegin(CrawlerEvent event) {
         LOG.debug("UrlCrawlScopeStrategy initialized with crawler context.");
-        crawlerContext = (WebCrawlerContext) event.getSource().getContext();
+        crawlerContext =
+                (WebCrawlerSessionAttributes) event.getSource().getAttributes();
     }
 
     @Override
