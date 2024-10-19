@@ -492,10 +492,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
      */
     private UrlScopeResolver urlScopeResolver = new GenericUrlScopeResolver();
 
-    /**
-     * The URL normalizer. Defaults to {@link GenericUrlNormalizer}.
-     */
-    private WebUrlNormalizer urlNormalizer = new GenericUrlNormalizer();
+    private final List<WebUrlNormalizer> urlNormalizers =
+            new ArrayList<>(Arrays.asList(new GenericUrlNormalizer()));
 
     /**
      * The delay resolver dictating the minimum amount of time to wait
@@ -665,4 +663,28 @@ public class WebCrawlerConfig extends CrawlerConfig {
         postImportLinks.copyFrom(fieldMatcher);
         return this;
     }
+
+    /**
+     * Gets URL normalizers. Executed in the order provided.
+     * Defaults to a single {@link GenericUrlNormalizer} with its default
+     * settings.
+     * @return URL normalizers
+     */
+    public List<WebUrlNormalizer> getUrlNormalizers() {
+        return Collections.unmodifiableList(urlNormalizers);
+    }
+
+    /**
+     * Sets URL normalizers. Executed in the order provided.
+     * Defaults to a single {@link GenericUrlNormalizer} with its default
+     * settings.
+     * @param urlNormalizers URL normalizers
+     * @return this
+     */
+    public WebCrawlerConfig setUrlNormalizers(
+            List<WebUrlNormalizer> urlNormalizers) {
+        CollectionUtil.setAll(this.urlNormalizers, urlNormalizers);
+        return this;
+    }
+
 }

@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.web.doc.operations.url;
 
+import java.util.List;
+
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 
 /**
@@ -40,4 +42,24 @@ public interface WebUrlNormalizer {
      * @return the normalized URL
      */
     String normalizeURL(String url);
+
+    /**
+     * Normalizes a URL by applying each normalizers in the list.
+     * @param url the URL to normalize
+     * @param normalizers the normalizers
+     * @return the normalized URL
+     */
+    static String normalizeURL(String url, List<WebUrlNormalizer> normalizers) {
+        if (normalizers == null) {
+            return url;
+        }
+        var normalizedUrl = url;
+        for (var norm : normalizers) {
+            if (norm != null) {
+                normalizedUrl = norm.normalizeURL(normalizedUrl);
+            }
+        }
+        return normalizedUrl;
+    }
+
 }

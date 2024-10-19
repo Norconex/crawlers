@@ -28,6 +28,7 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
+import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.util.Web;
@@ -115,11 +116,8 @@ public class CanonicalStage extends AbstractImporterStage {
         // of comparing it.  It will them be sent un-normalized to
         // the queue pipeline, since that pipeline performs the
         // normalization after a few other steps.
-        var normalizedCanURL = canURL;
-        var normalizer = Web.config(ctx.getCrawler()).getUrlNormalizer();
-        if (normalizer != null) {
-            normalizedCanURL = normalizer.normalizeURL(normalizedCanURL);
-        }
+        var normalizedCanURL = WebUrlNormalizer.normalizeURL(
+                canURL, Web.config(ctx.getCrawler()).getUrlNormalizers());
         if (normalizedCanURL == null) {
             LOG.info("""
                     Canonical URL detected is null after\s\

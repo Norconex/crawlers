@@ -16,7 +16,6 @@ package com.norconex.crawler.core.grid.impl.ignite;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.SystemProperties;
@@ -28,9 +27,8 @@ import org.apache.ignite.cluster.ClusterState;
 import org.apache.ignite.configuration.DataRegionConfiguration;
 import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.configuration.SqlConfiguration;
-import org.apache.ignite.indexing.IndexingQueryEngineConfiguration;
 import org.apache.ignite.logger.slf4j.Slf4jLogger;
+import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
@@ -80,14 +78,19 @@ class IgniteInstanceClientTest implements IgniteInstance {
 
         int serverNodeQty =
                 Integer.getInteger(PROP_IGNITE_TEST_SERVER_QTY, 1);
+        var totalNodeCount = serverNodeQty + 1;
         for (var i = 0; i < serverNodeQty; i++) {
-            // Configuration for Server Node 1
+            var nodeIndex = i + 1;
             var serverCfg = new IgniteConfiguration();
-            var instanceName = "serverNode" + (i + 1);
+            var instanceName = "serverNode" + nodeIndex;
             serverCfg.setIgniteInstanceName(instanceName);
             serverCfg.setWorkDirectory(baseWorkDir.resolve(instanceName)
                     .toAbsolutePath().toString());
 
+            LOG.info("Ignite %s work directory: %s"
+                    .formatted(instanceName, serverCfg.getWorkDirectory()));
+
+            //TODO delete this line?
             serverCfg.setUserAttributes(new IgniteAttributes()
                     .setActivationLeader(i == 0)
                     .setActivationExpectedServerCount(serverNodeQty));
@@ -98,9 +101,9 @@ class IgniteInstanceClientTest implements IgniteInstance {
                     .setPersistenceEnabled(true);
             serverCfg.setDataStorageConfiguration(storageCfg);
 
-            configureDiscovery(serverCfg);
+            configureDiscovery(serverCfg, nodeIndex, totalNodeCount);
             configurePersistentStorage(serverCfg);
-            configureSql(serverCfg);
+            //            configureSql(serverCfg);
 
             var ignite = Ignition.start(serverCfg);
             igniteServers.add(ignite);
@@ -111,8 +114,10 @@ class IgniteInstanceClientTest implements IgniteInstance {
         clientCfg.setIgniteInstanceName("clientNode");
         clientCfg.setWorkDirectory(
                 baseWorkDir.resolve("clientNode").toAbsolutePath().toString());
+        LOG.info("Ignite %s work directory: %s"
+                .formatted("clientNode", clientCfg.getWorkDirectory()));
         clientCfg.setClientMode(true); // Mark this node as client
-        configureDiscovery(clientCfg);
+        configureDiscovery(clientCfg, 0, totalNodeCount);
 
         try {
             igniteClient = Ignition.start(clientCfg);
@@ -183,29 +188,64 @@ class IgniteInstanceClientTest implements IgniteInstance {
         return igniteClient;
     }
 
-    // Helper method to configure discovery with specified ports
-    private static void configureDiscovery(IgniteConfiguration cfg) {
+    private static void configureDiscovery(
+            IgniteConfiguration cfg, int nodeIndex, int totalNodeCount) {
+
         cfg.setGridLogger(new Slf4jLogger());
         cfg.setPeerClassLoadingEnabled(false);
+        cfg.setConsistentId("node-" + nodeIndex);
+        cfg.setLocalHost("127.0.0.1");
 
         var discoverySpi = new TcpDiscoverySpi();
-        discoverySpi.setLocalPort(47500); // Starting port for discovery
-        discoverySpi.setLocalPortRange(10); // Port range for discovery (47500 to 47509)
 
-        // Set up an IP Finder for discovery
+        // Hard-wire the specific port for this node (no network discovery)
+        discoverySpi.setLocalPort(47500 + nodeIndex);
+        discoverySpi.setLocalPortRange(0);
+
+        // Set up an IP Finder with static addresses for all nodes
         var ipFinder = new TcpDiscoveryVmIpFinder();
-        ipFinder.setAddresses(Arrays.asList("127.0.0.1:47500..47509")); // Specify a range of ports
+        var addresses = new ArrayList<String>(totalNodeCount);
+        for (var i = 0; i < totalNodeCount; i++) {
+            addresses.add("127.0.0.1:" + (47500 + i));
+        }
+        ipFinder.setAddresses(addresses);
         discoverySpi.setIpFinder(ipFinder);
+
+        // since embedded, shorten time allocated for discovery
+        discoverySpi.setJoinTimeout(5000);
+        discoverySpi.setNetworkTimeout(5000);
+
+        var communicationSpi = new TcpCommunicationSpi();
+        // no need for unlimited in a test environment
+        communicationSpi.setMessageQueueLimit(1024);
+        cfg.setCommunicationSpi(communicationSpi);
 
         cfg.setDiscoverySpi(discoverySpi);
     }
 
-    private static void configureSql(IgniteConfiguration cfg) {
-        cfg.setSqlConfiguration(new SqlConfiguration()
-                .setQueryEnginesConfiguration(
-                        new IndexingQueryEngineConfiguration()
-                                .setDefault(true)));
-    }
+    // Helper method to configure discovery with specified ports
+    //    private static void configureDiscovery(IgniteConfiguration cfg) {
+    //        cfg.setGridLogger(new Slf4jLogger());
+    //        cfg.setPeerClassLoadingEnabled(false);
+    //
+    //        var discoverySpi = new TcpDiscoverySpi();
+    //        discoverySpi.setLocalPort(47500); // Starting port for discovery
+    //        discoverySpi.setLocalPortRange(10); // Port range for discovery (47500 to 47509)
+    //
+    //        // Set up an IP Finder for discovery
+    //        var ipFinder = new TcpDiscoveryVmIpFinder();
+    //        ipFinder.setAddresses(Arrays.asList("127.0.0.1:47500..47509")); // Specify a range of ports
+    //        discoverySpi.setIpFinder(ipFinder);
+    //
+    //        cfg.setDiscoverySpi(discoverySpi);
+    //    }
+
+    //    private static void configureSql(IgniteConfiguration cfg) {
+    //        cfg.setSqlConfiguration(new SqlConfiguration()
+    //                .setQueryEnginesConfiguration(
+    //                        new IndexingQueryEngineConfiguration()
+    //                                .setDefault(true)));
+    //    }
 
     private static void configurePersistentStorage(IgniteConfiguration cfg) {
         cfg.setDataStorageConfiguration(

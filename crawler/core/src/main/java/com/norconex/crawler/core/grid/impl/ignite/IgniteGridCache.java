@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 
@@ -25,10 +23,6 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.CacheEntryProcessor;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
-import org.apache.ignite.cache.QueryEntity;
-import org.apache.ignite.cache.QueryIndex;
-import org.apache.ignite.cache.query.QueryCursor;
-import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.configuration.CacheConfiguration;
 
 import com.norconex.crawler.core.grid.GridCache;
@@ -56,15 +50,21 @@ public class IgniteGridCache<T> implements GridCache<T> {
                 CacheWriteSynchronizationMode.FULL_SYNC);
         cfg.setReadFromBackup(false);
 
-        // Creating SQL table in order to get accurate row count. See getSize().
-        cfg.setSqlSchema("PUBLIC");
-        var queryEntity = new QueryEntity(String.class, type)
-                .setTableName(name)// + IgniteGridStorage.Suffix.CACHE)
-                .setKeyFieldName("key")
-                .addQueryField("key", String.class.getName(), null)
-                .addQueryField("value", type.getName(), null);
-        queryEntity.setIndexes(List.of(new QueryIndex("key")));
-        cfg.setQueryEntities(Collections.singletonList(queryEntity));
+        // Until we have better... for size()
+        cfg.setStatisticsEnabled(true);
+
+        //        // Creating SQL table in order to get accurate row count. See getSize().
+        //
+        //        cfg.setSqlSchema("PUBLIC");
+        //        var queryEntity = new QueryEntity(String.class, Object.class)
+        //                .setTableName(name)// + IgniteGridStorage.Suffix.CACHE)
+        //                .setKeyFieldName("key")
+        //                .addQueryField("key", String.class.getName(), null);
+        //        //                .addQueryField("value", type.getName(), null);
+        //        //        queryEntity.setValueType(BinaryObject.class.getName());
+        //
+        //        queryEntity.setIndexes(List.of(new QueryIndex("key")));
+        //        cfg.setQueryEntities(Collections.singletonList(queryEntity));
 
         cache = ignite.getOrCreateCache(cfg);
     }
@@ -133,12 +133,14 @@ public class IgniteGridCache<T> implements GridCache<T> {
 
     @Override
     public long size() {
+        //TODO rely on atomic long instead for counting. :-(
+        return cache.metrics().getCacheSize();
         // Use SQL to get accurate record count. It is apparently the most
         // efficient way to get it.
-        var query = new SqlFieldsQuery(
-                "SELECT COUNT(*) FROM %s".formatted(name));
-        QueryCursor<List<?>> cursor = cache.query(query);
-        return (Long) cursor.getAll().get(0).get(0);
+        //        var query = new SqlFieldsQuery(
+        //                "SELECT COUNT(*) FROM %s".formatted(name));
+        //        QueryCursor<List<?>> cursor = cache.query(query);
+        //        return (Long) cursor.getAll().get(0).get(0);
     }
 
     @StandardException

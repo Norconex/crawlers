@@ -61,6 +61,7 @@ public class GenericUrlNormalizerConfig {
         REMOVE_FRAGMENT(UrlNormalizer::removeFragment),
         REMOVE_QUERY_STRING(UrlNormalizer::removeQueryString),
         REMOVE_SESSION_IDS(UrlNormalizer::removeSessionIds),
+        REMOVE_TRAILING_FRAGMENT(UrlNormalizer::removeTrailingFragment),
         REMOVE_TRAILING_QUESTION_MARK(
                 UrlNormalizer::removeTrailingQuestionMark),
         REMOVE_TRAILING_SLASH(UrlNormalizer::removeTrailingSlash),

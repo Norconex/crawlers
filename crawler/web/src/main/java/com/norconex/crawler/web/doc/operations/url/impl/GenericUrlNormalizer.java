@@ -84,6 +84,7 @@ import lombok.ToString;
  *   <li>{@link UrlNormalizer#removeFragment() removeFragment}</li>
  *   <li>{@link UrlNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
  *   <li>{@link UrlNormalizer#removeSessionIds() removeSessionIds}</li>
+ *   <li>{@link UrlNormalizer#removeTrailingFragment() removeTrailingFragment} (since 3.1.0)</li>
  *   <li>{@link UrlNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
  *   <li>{@link UrlNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
  *   <li>{@link UrlNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
