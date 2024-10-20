@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core;
 
+import static java.util.Optional.ofNullable;
+
 import java.nio.file.Path;
 
 import com.norconex.commons.lang.ClassUtil;
@@ -51,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Crawler extends CrawlerContext {
 
     //NOTE: this is a lightweight version of the crawler that only controls
-    // and report on actual crawler instances running on nodes. It has access 
+    // and report on actual crawler instances running on nodes. It has access
     // to grid system and some monitoring and that is pretty much it.
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
@@ -104,7 +106,11 @@ public class Crawler extends CrawlerContext {
         try {
             LOG.info("Executing command: {}",
                     command.getClass().getSimpleName());
+            ofNullable(getCallbacks().getBeforeCommand())
+                    .ifPresent(c -> c.accept(this));
             command.execute(this);
+            ofNullable(getCallbacks().getAfterCommand())
+                    .ifPresent(c -> c.accept(this));
         } finally {
             close();
         }

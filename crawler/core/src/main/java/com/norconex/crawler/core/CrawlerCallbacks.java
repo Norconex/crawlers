@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.impl.CrawlTask;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -28,27 +29,35 @@ import lombok.Getter;
 @Getter
 public class CrawlerCallbacks {
 
-    //TODO maybe rename methods to end with "Task"?
-    
+    /**
+     * Invoked after a command is initialized, but before it gets executed.
+     */
+    Consumer<Crawler> beforeCommand;
+    /**
+     * Invoked after a command has been executed, but before resources are
+     * closed.
+     */
+    Consumer<Crawler> afterCommand;
+
     /**
      * Gives crawler implementations a chance to prepare before execution
-     * starts. Invoked right after the
+     * of {@link CrawlTask} starts. Invoked right after the
      * {@link CrawlerEvent#CRAWLER_RUN_BEGIN} event is fired.
      * This method is different than the {@link #initCrawler()} method,
      * which is invoked for any type of actions where as this one is only
      * invoked before an effective request for crawling.
      */
-    Consumer<CrawlerTaskContext> beforeCrawlerExecution;
+    Consumer<CrawlerTaskContext> beforeCrawlTask;
 
     /**
      * Gives crawler implementations a chance to do something right after
-     * the crawler is done processing its last reference, before all resources
-     * are shut down.
+     * the {@link CrawlTask} is done processing its last reference, before all
+     * task resources are shut down.
      * Invoked right after {@link CrawlerEvent#CRAWLER_STOP_END} or
      * {@link CrawlerEvent#CRAWLER_RUN_END} (depending which of the two is
      * triggered).
      */
-    Consumer<CrawlerTaskContext> afterCrawlerExecution;
+    Consumer<CrawlerTaskContext> afterCrawlTask;
 
     //MAYBE: are those used? Should they be?
     // Add those that are missing to ReferencesProcessor

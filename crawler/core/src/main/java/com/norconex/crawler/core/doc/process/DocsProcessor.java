@@ -39,7 +39,7 @@ public class DocsProcessor implements Runnable {
     private final DocProcessingLedger ledger;
     private final CrawlerState state;
 
-    private int resumableMaxDocs;
+    private int maxDocs;
 
     public DocsProcessor(CrawlerTaskContext crawler) {
         this.crawler = crawler;
@@ -51,12 +51,12 @@ public class DocsProcessor implements Runnable {
     public void run() {
         try {
             init();
-            ofNullable(crawler.getCallbacks().getBeforeCrawlerExecution())
+            ofNullable(crawler.getCallbacks().getBeforeCrawlTask())
                     .ifPresent(cb -> cb.accept(crawler));
             execute();
         } finally {
             try {
-                ofNullable(crawler.getCallbacks().getAfterCrawlerExecution())
+                ofNullable(crawler.getCallbacks().getAfterCrawlTask())
                         .ifPresent(cb -> cb.accept(crawler));
             } finally {
                 destroy();
@@ -67,15 +67,15 @@ public class DocsProcessor implements Runnable {
     private void init() {
         // max documents
         var cfgMaxDocs = crawler.getConfiguration().getMaxDocuments();
-        resumableMaxDocs = cfgMaxDocs;
+        maxDocs = cfgMaxDocs;
         if (cfgMaxDocs > -1 && state.isResuming()) {
-            resumableMaxDocs += ledger.getProcessedCount();
+            maxDocs += ledger.getProcessedCount();
             LOG.info("""
                     Adding configured maximum documents ({})\s\
                     to this resumed session. The combined maximum\s\
                     documents for this run and previous stopped one(s) is: {}
                     """,
-                    cfgMaxDocs, resumableMaxDocs);
+                    cfgMaxDocs, maxDocs);
         }
     }
 
@@ -164,11 +164,11 @@ public class DocsProcessor implements Runnable {
         // Check if we merge with StopCrawlerOnMaxEventListener
         // or if we remove maxDocument in favor of the listener.
         // what about clustering?
-        var isMax = resumableMaxDocs > -1
-                && ledger.getProcessedCount() >= resumableMaxDocs;
+        var isMax = maxDocs > -1
+                && ledger.getProcessedCount() >= maxDocs;
         if (isMax) {
             LOG.info("Maximum documents reached for this crawling session: {}",
-                    resumableMaxDocs);
+                    maxDocs);
         }
         return isMax;
     }

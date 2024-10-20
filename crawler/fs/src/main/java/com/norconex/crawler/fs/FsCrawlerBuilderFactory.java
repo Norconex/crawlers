@@ -17,7 +17,7 @@ package com.norconex.crawler.fs;
 import com.norconex.crawler.core.CrawlerBuilder;
 import com.norconex.crawler.core.CrawlerBuilderFactory;
 import com.norconex.crawler.core.CrawlerCallbacks;
-import com.norconex.crawler.fs.callbacks.BeforeFsCrawlerExecution;
+import com.norconex.crawler.fs.callbacks.BeforeFsCommand;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.doc.pipelines.FsDocPipelines;
 import com.norconex.crawler.fs.fetch.FileFetcherProvider;
@@ -26,12 +26,11 @@ public class FsCrawlerBuilderFactory implements CrawlerBuilderFactory {
     @Override
     public CrawlerBuilder create() {
         return new CrawlerBuilder()
-        .fetcherProvider(new FileFetcherProvider())
-        .callbacks(CrawlerCallbacks.builder()
-                .beforeCrawlerExecution(
-                        new BeforeFsCrawlerExecution())
-                .build())
-        .docPipelines(FsDocPipelines.get())
-        .docContextType(FsCrawlDocContext.class);
+                .fetcherProvider(new FileFetcherProvider())
+                .callbacks(CrawlerCallbacks.builder()
+                        .beforeCommand(new BeforeFsCommand())
+                        .build())
+                .docPipelines(FsDocPipelines.get())
+                .docContextType(FsCrawlDocContext.class);
     }
 }

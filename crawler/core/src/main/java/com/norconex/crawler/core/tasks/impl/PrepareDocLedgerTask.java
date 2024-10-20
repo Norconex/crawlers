@@ -36,7 +36,8 @@ public class PrepareDocLedgerTask extends GridInitializedCrawlerTask {
     public static final String KEY_INITIALIZING = "ledger.initializing";
 
     @Override
-    protected void runWithInitializedCrawler(CrawlerTaskContext crawler, String arg) {
+    protected void runWithInitializedCrawler(
+            CrawlerTaskContext crawler, String arg) {
         var globalCache = crawler.getGrid().storage().getGlobalCache();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
@@ -51,12 +52,14 @@ public class PrepareDocLedgerTask extends GridInitializedCrawlerTask {
     }
 
     private void prepareForCrawl(CrawlerTaskContext crawler) {
-        var grid = crawler.getGrid().storage();
-        grid.getGlobalCache();
+        var storage = crawler.getGrid().storage();
+        storage.getGlobalCache();
         var ledger = crawler.getDocProcessingLedger();
         var state = crawler.getState();
 
-        if (state.isResuming()) {
+        var isResuming = !ledger.isQueueEmpty();
+        state.setResuming(isResuming);
+        if (isResuming) {
 
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently

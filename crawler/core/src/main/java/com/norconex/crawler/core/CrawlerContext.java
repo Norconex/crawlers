@@ -67,6 +67,7 @@ public abstract class CrawlerContext implements Closeable {
     private final BeanMapper beanMapper;
     private final Class<? extends CrawlDocContext> docContextType;
     private final EventManager eventManager;
+    private final CrawlerCallbacks callbacks;
 
     // Set in init()
     private Grid grid;
@@ -83,6 +84,7 @@ public abstract class CrawlerContext implements Closeable {
         beanMapper = b.beanMapper();
         this.builderFactoryClass = builderFactoryClass;
         docContextType = b.docContextType();
+        callbacks = b.callbacks();
         eventManager = new EventManager(b.eventManager());
     }
 

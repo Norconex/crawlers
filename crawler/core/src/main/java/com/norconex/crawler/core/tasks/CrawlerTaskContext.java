@@ -35,7 +35,6 @@ import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.CrawlerBuilder;
 import com.norconex.crawler.core.CrawlerBuilderFactory;
 import com.norconex.crawler.core.CrawlerBuilderModifier;
-import com.norconex.crawler.core.CrawlerCallbacks;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
@@ -74,7 +73,6 @@ public class CrawlerTaskContext extends CrawlerContext {
 
     // --- Set in constructor ---
     private final DocPipelines docPipelines;
-    private final CrawlerCallbacks callbacks;
     private final CrawlerSessionAttributes attributes;
 
     //TODO have queue services? that way it will match pipelines?
@@ -101,7 +99,6 @@ public class CrawlerTaskContext extends CrawlerContext {
         super(b, builderFactoryClass);
 
         attributes = b.context();
-        callbacks = b.callbacks();
         committerService = CommitterService
                 .<CrawlDoc>builder()
                 .committers(getConfiguration().getCommitters())
@@ -137,7 +134,7 @@ public class CrawlerTaskContext extends CrawlerContext {
         }
         return new CrawlerTaskContext(builder, builderFactoryClass);
     }
-    
+
     public CrawlDocContext newDocContext(@NonNull String reference) {
         var docContext = ClassUtil.newInstance(getDocContextType());
         docContext.setReference(reference);
@@ -241,7 +238,7 @@ public class CrawlerTaskContext extends CrawlerContext {
                             + tempDir, e);
                 }
             }
-            //TODO register failure instead and block? If at least one 
+            //TODO register failure instead and block? If at least one
             // detected on client node, it failed
             safeClose(() -> getState().setTerminatedProperly(true));
             safeClose(() -> getStopper().destroy());

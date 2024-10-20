@@ -65,9 +65,6 @@ public class DocProcessingLedger { //implements Closeable {
         queue = storage.getQueue("queue", String.class);
         processed = storage.getCache(processedCacheName, String.class);
         cached = storage.getCache(cachedCacheName, String.class);
-
-        var resuming = !isQueueEmpty();
-        crawler.getState().setResuming(resuming);
     }
 
     public Stage getProcessingStage(String id) {
