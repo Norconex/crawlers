@@ -17,7 +17,6 @@ package com.norconex.crawler.core.grid.impl.ignite;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheAtomicityMode;
@@ -81,15 +80,13 @@ public class IgniteGridCache<T> implements GridCache<T> {
 
     @Override
     public boolean update(String key, SerializableUnaryOperator<T> updater) {
-        var changed = new MutableBoolean();
-        cache.invoke(key,
-                (CacheEntryProcessor<String, T, T>) (entry, arguments) -> {
+        return cache.invoke(key, (CacheEntryProcessor<String, T,
+                Boolean>) (entry, arguments) -> {
                     var existingValue = entry.getValue();
                     var newValue = updater.apply(existingValue);
-                    changed.setValue(Objects.equals(existingValue, newValue));
-                    return newValue;
+                    entry.setValue(newValue);
+                    return !Objects.equals(existingValue, newValue);
                 });
-        return changed.booleanValue();
     }
 
     @Override
