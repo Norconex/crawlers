@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,16 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.client.cli;
+package com.norconex.crawler.core.commands;
 
-import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.Crawler;
 
-import lombok.experimental.StandardException;
-
-/**
- * Runtime exception for command line errors.
- */
-@StandardException
-public class CliException extends CrawlerException {
-    private static final long serialVersionUID = 1L;
+public interface Command {
+    void execute(Crawler crawler);
 }

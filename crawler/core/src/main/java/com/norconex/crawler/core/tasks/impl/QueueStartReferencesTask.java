@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.tasks.impl;
 
-import com.norconex.crawler.core.client.commands.CrawlCommand;
+import com.norconex.crawler.core.commands.CrawlCommand;
 import com.norconex.crawler.core.grid.GridInitializedCrawlerTask;
 import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 

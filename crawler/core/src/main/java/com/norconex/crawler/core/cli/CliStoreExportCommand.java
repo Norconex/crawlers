@@ -12,23 +12,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.client.cli;
+package com.norconex.crawler.core.cli;
+
+import java.nio.file.Path;
 
 import com.norconex.crawler.core.Crawler;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 /**
- * Clean the Collector crawling history.
+ * Export crawl store to specified file.
  */
 @Command(
-    name = "clean",
-    description = "Clean the Collector crawling history (to start fresh)"
+    name = "storeexport",
+    description = "Export crawl store to specified directory"
 )
-public class CliCleanCommand extends CliSubCommandBase {
+@EqualsAndHashCode
+@ToString
+public class CliStoreExportCommand extends CliSubCommandBase {
+
+    @Option(
+        names = { "-d", "-dir" },
+        description = "Export directory",
+        required = true
+    )
+    private Path dir;
+    //TODO add format?
+    //TODO add compress?
 
     @Override
     protected void runCommand(Crawler crawlerClient) {
-        crawlerClient.clean();
+        crawlerClient.cacheExport(dir);
     }
 }

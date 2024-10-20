@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,27 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.client.cli;
+package com.norconex.crawler.core.cli;
 
 import com.norconex.crawler.core.Crawler;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import picocli.CommandLine.Command;
 
 /**
- * Stop a crawler.
+ * Clean the Collector crawling history.
  */
 @Command(
-    name = "stop",
-    description = "Stop a crawler"
+    name = "clean",
+    description = "Clean the Collector crawling history (to start fresh)"
 )
-@EqualsAndHashCode
-@ToString
-public class CliStopCommand extends CliSubCommandBase {
+public class CliCleanCommand extends CliSubCommandBase {
 
     @Override
     protected void runCommand(Crawler crawlerClient) {
-        crawlerClient.stop();
+        crawlerClient.clean();
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.client.cli;
+package com.norconex.crawler.core.cli;
+
+import java.nio.file.Path;
 
 import com.norconex.crawler.core.Crawler;
 
@@ -22,31 +24,24 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 /**
- * Start a crawler.
+ * Import crawl store from specified file.
  */
 @Command(
-    name = "start",
-    description = "Start a crawler"
+    name = "storeimport",
+    description = "Import crawl store from specified files"
 )
 @EqualsAndHashCode
 @ToString
-public class CliStartCommand extends CliSubCommandBase {
-
+public class CliStoreImportCommand extends CliSubCommandBase {
     @Option(
-        names = { "-clean" },
-        description = """
-                Clean stored data from previous crawl runs \
-                before start. Same as invoking the "clean" and \
-                "start" commands one after the other.""",
-        required = false
+        names = { "-f", "-file" },
+        description = "Data store files to import.",
+        required = true
     )
-    private boolean clean;
+    private Path inFile;
 
     @Override
     protected void runCommand(Crawler crawlerClient) {
-        if (clean) {
-            crawlerClient.clean();
-        }
-        crawlerClient.crawl();
+        crawlerClient.cacheImport(inFile);
     }
 }

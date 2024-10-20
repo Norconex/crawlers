@@ -18,7 +18,7 @@ import java.util.Optional;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.client.cli.CliCrawlerLauncher;
+import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
 /**
  * Facade for launching or obtaining a Web Crawler.

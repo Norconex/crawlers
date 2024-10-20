@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.client.commands;
+package com.norconex.crawler.core.commands;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.grid.GridTxOptions;

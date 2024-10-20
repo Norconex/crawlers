@@ -19,8 +19,8 @@ import static java.util.Optional.ofNullable;
 import java.nio.file.Path;
 
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.crawler.core.client.commands.Command;
-import com.norconex.crawler.core.client.commands.CrawlCommand;
+import com.norconex.crawler.core.commands.Command;
+import com.norconex.crawler.core.commands.CrawlCommand;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;

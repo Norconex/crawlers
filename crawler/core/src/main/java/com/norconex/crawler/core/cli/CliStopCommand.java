@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,36 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.client.cli;
-
-import java.nio.file.Path;
+package com.norconex.crawler.core.cli;
 
 import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 
 /**
- * Import crawl store from specified file.
+ * Stop a crawler.
  */
 @Command(
-    name = "storeimport",
-    description = "Import crawl store from specified files"
+    name = "stop",
+    description = "Stop a crawler"
 )
 @EqualsAndHashCode
 @ToString
-public class CliStoreImportCommand extends CliSubCommandBase {
-    @Option(
-        names = { "-f", "-file" },
-        description = "Data store files to import.",
-        required = true
-    )
-    private Path inFile;
+public class CliStopCommand extends CliSubCommandBase {
 
     @Override
     protected void runCommand(Crawler crawlerClient) {
-        crawlerClient.cacheImport(inFile);
+        crawlerClient.stop();
     }
 }

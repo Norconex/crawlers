@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.client.cli.CliException;
+import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
 import com.norconex.crawler.core.tasks.CrawlerTaskContext;
