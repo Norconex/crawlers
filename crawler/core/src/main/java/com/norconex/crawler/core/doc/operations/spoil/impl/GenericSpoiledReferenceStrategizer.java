@@ -61,8 +61,8 @@ public class GenericSpoiledReferenceStrategizer implements
             strategy = configuration.getFallbackStrategy();
         }
         if (strategy == null) {
-            strategy = GenericSpoiledReferenceStrategizerConfig
-                    .DEFAULT_FALLBACK_STRATEGY;
+            strategy =
+                    GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
         }
         return strategy;
     }

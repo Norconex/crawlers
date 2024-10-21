@@ -90,7 +90,8 @@ class WithCrawlerExtension implements
     @Override
     public void afterEach(ExtensionContext context) throws IOException {
         // End session
-        var crawler = (CrawlerTaskContext) context.getStore(GLOBAL).remove(CRAWLER_KEY);
+        var crawler = (CrawlerTaskContext) context.getStore(GLOBAL)
+                .remove(CRAWLER_KEY);
         // if not already ended normally, stop it.
         if (crawler != null && !crawler.getState().isTerminatedProperly()) {
             CrawlerTestUtil.destroyCrawler(crawler);
@@ -152,7 +153,8 @@ class WithCrawlerExtension implements
                 "Unsupported parameter type: " + parameterType);
     }
 
-    private Optional<CrawlerTaskContext> crawler(ExtensionContext extensionContext) {
+    private Optional<CrawlerTaskContext>
+            crawler(ExtensionContext extensionContext) {
         return ofNullable(
                 (CrawlerTaskContext) extensionContext
                         .getStore(GLOBAL).get(CRAWLER_KEY));

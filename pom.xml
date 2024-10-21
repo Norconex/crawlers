@@ -176,6 +176,11 @@
         <artifactId>nx-committer-core</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.norconex.crawler</groupId>
+        <artifactId>nx-shaded-libs</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -1072,6 +1077,7 @@
 
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
+    <module>shaded</module>
     <module>committer/core</module> 
     <module>committer/solr</module>
     <module>committer/elasticsearch</module>

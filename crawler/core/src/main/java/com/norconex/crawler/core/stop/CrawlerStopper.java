@@ -56,5 +56,6 @@ public interface CrawlerStopper {
      *     not running.
      * @throws CrawlerStopperException could not stop running crawl session.
      */
-    boolean fireStopRequest(CrawlerTaskContext crawler) throws CrawlerStopperException;
+    boolean fireStopRequest(CrawlerTaskContext crawler)
+            throws CrawlerStopperException;
 }

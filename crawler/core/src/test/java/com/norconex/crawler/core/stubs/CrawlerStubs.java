@@ -28,11 +28,13 @@ public final class CrawlerStubs {
     private CrawlerStubs() {
     }
 
-    public static CrawlerTaskContext crawler(Path workDir, CrawlerConfig config) {
-        return CrawlerTaskContext.create(MemoryCrawlerBuilderFactory.class, b -> {
-            config.setWorkDir(workDir);
-            b.configuration(config);
-        });
+    public static CrawlerTaskContext crawler(Path workDir,
+            CrawlerConfig config) {
+        return CrawlerTaskContext.create(MemoryCrawlerBuilderFactory.class,
+                b -> {
+                    config.setWorkDir(workDir);
+                    b.configuration(config);
+                });
     }
 
     public static CrawlerTaskContext memoryCrawler(Path workDir) {

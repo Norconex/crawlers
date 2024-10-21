@@ -29,7 +29,8 @@ public class QueueStartReferencesTask extends GridInitializedCrawlerTask {
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected void runWithInitializedCrawler(CrawlerTaskContext crawler, String arg) {
+    protected void runWithInitializedCrawler(CrawlerTaskContext crawler,
+            String arg) {
         var globalCache = crawler.getGrid().storage().getGlobalCache();
         globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "false");
         crawler.getDocPipelines()

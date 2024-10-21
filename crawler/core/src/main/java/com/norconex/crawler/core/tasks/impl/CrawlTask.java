@@ -26,7 +26,8 @@ public class CrawlTask extends GridInitializedCrawlerTask {
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected void runWithInitializedCrawler(CrawlerTaskContext crawler, String arg) {
+    protected void runWithInitializedCrawler(CrawlerTaskContext crawler,
+            String arg) {
         new DocsProcessor(crawler).run();
     }
 
