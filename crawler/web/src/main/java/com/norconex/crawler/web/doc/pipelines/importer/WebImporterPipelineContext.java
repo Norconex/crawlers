@@ -16,8 +16,8 @@ package com.norconex.crawler.web.doc.pipelines.importer;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.robot.RobotsMeta;
 
 import lombok.Data;

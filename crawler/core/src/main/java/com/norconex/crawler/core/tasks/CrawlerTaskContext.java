@@ -41,14 +41,14 @@ import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.CrawlerSessionAttributes;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.pipelines.DedupService;
-import com.norconex.crawler.core.doc.pipelines.DocPipelines;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.stop.CrawlerStopper;
 import com.norconex.crawler.core.stop.impl.FileBasedStopper;
+import com.norconex.crawler.core.tasks.crawl.pipelines.DedupService;
+import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
 import com.norconex.importer.Importer;
 import com.norconex.importer.doc.DocContext;
 

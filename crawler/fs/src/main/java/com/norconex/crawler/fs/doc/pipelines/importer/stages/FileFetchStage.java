@@ -18,12 +18,12 @@ import java.time.ZonedDateTime;
 
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchUtil;
+import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;

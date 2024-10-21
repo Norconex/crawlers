@@ -16,9 +16,9 @@ package com.norconex.crawler.core.commands;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.grid.GridTxOptions;
-import com.norconex.crawler.core.tasks.impl.CrawlTask;
-import com.norconex.crawler.core.tasks.impl.PrepareDocLedgerTask;
-import com.norconex.crawler.core.tasks.impl.QueueStartReferencesTask;
+import com.norconex.crawler.core.tasks.crawl.CrawlTask;
+import com.norconex.crawler.core.tasks.crawl.PrepareDocLedgerTask;
+import com.norconex.crawler.core.tasks.crawl.QueueStartReferencesTask;
 
 import lombok.extern.slf4j.Slf4j;
 

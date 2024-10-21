@@ -21,11 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
-import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.AbstractImporterStage;
+import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;

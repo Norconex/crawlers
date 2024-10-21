@@ -17,8 +17,8 @@ package com.norconex.crawler.web.doc.pipelines.queue.stages;
 import java.util.function.Predicate;
 
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.robot.RobotsTxtFilter;

@@ -31,7 +31,7 @@ public final class CliCrawlerLauncher {
             String... args) {
 
         var cmdLine = new CommandLine(
-                new CliCommandRunner(crawlerBuilderFactoryClass));
+                new CliRunner(crawlerBuilderFactoryClass));
 
         cmdLine.setExecutionExceptionHandler(
                 (var ex, var cli, var parseResult) -> {

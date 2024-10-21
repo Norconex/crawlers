@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.doc.operations.filter.OnMatch;
+import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
 
 class SegmentCountUrlFilterTest {
 

@@ -24,12 +24,12 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.process.DocProcessingLedger;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
 import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.crawl.process.DocProcessingLedger;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;

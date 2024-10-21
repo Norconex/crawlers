@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.web.robot;
 
-import com.norconex.crawler.core.doc.operations.filter.OnMatch;
-import com.norconex.crawler.core.doc.operations.filter.OnMatchFilter;
-import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
+import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatchFilter;
+import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
 
 /**
  * Holds a robots.txt rule. The {@link #getOnMatch()} method

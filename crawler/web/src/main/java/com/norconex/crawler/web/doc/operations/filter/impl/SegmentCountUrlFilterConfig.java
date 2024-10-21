@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.filter.impl;
 
-import com.norconex.crawler.core.doc.operations.filter.OnMatch;
+import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -17,11 +17,11 @@ package com.norconex.crawler.fs.doc.pipelines.importer.stages;
 import java.util.Set;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
-import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.AbstractImporterStage;
+import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.path.FsPath;

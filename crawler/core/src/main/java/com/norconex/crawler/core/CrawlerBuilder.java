@@ -19,10 +19,10 @@ import java.util.function.Function;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.pipelines.DocPipelines;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
 
 import lombok.Getter;
 import lombok.NonNull;

@@ -27,9 +27,9 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
+import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.WebCrawlerSessionAttributes;
 import com.norconex.crawler.web.WebCrawlerSessionAttributes.SitemapPresence;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;

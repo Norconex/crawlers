@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 
 import com.google.common.base.Objects;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.util.Web;
 
