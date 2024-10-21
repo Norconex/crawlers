@@ -29,27 +29,27 @@ import lombok.ToString;
 public class IgniteGrid implements Grid {
 
     @NonNull
-    private final IgniteInstance igniteInstance;
+    private final IgniteGridInstance igniteGridInstance;
 
     @Override
     public GridStorage storage() {
-        return new IgniteGridStorage(igniteInstance);
+        return new IgniteGridStorage(igniteGridInstance);
     }
 
     @Override
     public GridCompute compute() {
-        return new IgniteGridCompute(igniteInstance);
+        return new IgniteGridCompute(igniteGridInstance);
     }
 
     @Override
     public void close() {
         // NOOP: Nothing to close
-        //        igniteInstance.close();
+        //        igniteGridInstance.close();
     }
 
     //    @Getter
-    //    private final IgniteGridConnectorConfig configuration =
-    //            new IgniteGridConnectorConfig();
+    //    private final LocalGridConnectorConfig configuration =
+    //            new LocalGridConnectorConfig();
     //
     //    @Override
     //    public synchronized GridClient client(CrawlerClient crawlerClient) {

@@ -23,7 +23,7 @@ import lombok.ToString;
 //TODO needed?  DELETE ME
 @EqualsAndHashCode
 @ToString
-public class IgniteAttributes extends HashMap<String, Object> {
+public class IgniteGridAttributes extends HashMap<String, Object> {
 
     private static final long serialVersionUID = 1L;
 
@@ -37,7 +37,7 @@ public class IgniteAttributes extends HashMap<String, Object> {
         return Boolean.TRUE.equals(get(KEY_IS_LEADER));
     }
 
-    public IgniteAttributes setActivationLeader(boolean isLeader) {
+    public IgniteGridAttributes setActivationLeader(boolean isLeader) {
         put(KEY_IS_LEADER, isLeader);
         return this;
     }
@@ -46,15 +46,15 @@ public class IgniteAttributes extends HashMap<String, Object> {
         return (int) getOrDefault(KEY_EXPECTED_SERVER_COUNT, 0);
     }
 
-    public IgniteAttributes setActivationExpectedServerCount(int count) {
+    public IgniteGridAttributes setActivationExpectedServerCount(int count) {
         put(KEY_EXPECTED_SERVER_COUNT, count);
         return this;
     }
 
-    public IgniteAttributes() {
+    public IgniteGridAttributes() {
     }
 
-    public IgniteAttributes(Map<? extends String, ? extends Object> m) {
+    public IgniteGridAttributes(Map<? extends String, ? extends Object> m) {
         super(m);
     }
 
@@ -62,7 +62,7 @@ public class IgniteAttributes extends HashMap<String, Object> {
     //        return (int) getOrDefault(KEY_QUORUM, 0);
     //    }
     //
-    //    public IgniteAttributes setActivationQuorum(int quorum) {
+    //    public IgniteGridAttributes setActivationQuorum(int quorum) {
     //        put(KEY_QUORUM, quorum);
     //        return this;
     //    }
@@ -71,7 +71,7 @@ public class IgniteAttributes extends HashMap<String, Object> {
     //        return (long) getOrDefault(KEY_SERVER_TIMEOUT, 60_000);
     //    }
     //
-    //    public IgniteAttributes setActivationServerTimeout(long timeout) {
+    //    public IgniteGridAttributes setActivationServerTimeout(long timeout) {
     //        put(KEY_SERVER_TIMEOUT, timeout);
     //        return this;
     //    }

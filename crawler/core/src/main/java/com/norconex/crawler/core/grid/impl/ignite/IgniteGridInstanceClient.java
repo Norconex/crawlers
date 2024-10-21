@@ -30,11 +30,11 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-class IgniteInstanceClient implements IgniteInstance {
+class IgniteGridInstanceClient implements IgniteGridInstance {
 
     private final Ignite ignite;
 
-    IgniteInstanceClient(CrawlerConfig cfg) {
+    IgniteGridInstanceClient(CrawlerConfig cfg) {
         var igniteCfg = new IgniteConfiguration();
         igniteCfg.setClientMode(true);
         igniteCfg.setGridLogger(new Slf4jLogger());

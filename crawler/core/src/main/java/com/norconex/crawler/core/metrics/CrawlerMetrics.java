@@ -95,6 +95,8 @@ public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
     @Override
     public void close() {
         flushBatch();
-        scheduler.shutdown();
+        if (scheduler != null) {
+            scheduler.shutdown();
+        }
     }
 }

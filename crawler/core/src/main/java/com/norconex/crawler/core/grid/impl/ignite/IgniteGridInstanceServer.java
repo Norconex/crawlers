@@ -26,7 +26,7 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-class IgniteInstanceServer implements IgniteInstance {
+class IgniteGridInstanceServer implements IgniteGridInstance {
 
     // have main here or re-use same main, knowing it is a server and not
     // a client?  Passing an extra flag maybe?

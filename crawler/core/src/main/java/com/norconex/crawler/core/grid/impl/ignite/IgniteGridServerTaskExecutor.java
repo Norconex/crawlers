@@ -29,9 +29,9 @@ import com.norconex.crawler.core.tasks.CrawlerTaskContext;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public final class IgniteServerTaskExecutor {
+public final class IgniteGridServerTaskExecutor {
 
-    private IgniteServerTaskExecutor() {
+    private IgniteGridServerTaskExecutor() {
     }
 
     // Static method that gets the Ignite instance internally

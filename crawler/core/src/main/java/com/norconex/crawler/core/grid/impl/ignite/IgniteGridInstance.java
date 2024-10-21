@@ -20,7 +20,7 @@ import org.apache.ignite.Ignite;
  * Wrapper around a client Ignite instance, abstracting initialization
  * and closing.
  */
-interface IgniteInstance {
+interface IgniteGridInstance {
 
     Ignite get();
 }

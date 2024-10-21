@@ -39,14 +39,14 @@ public class IgniteGridConnector
     @Override
     public Grid connect(CrawlerContext crawlerContext) {
         if (!crawlerContext.isClient()) {
-            return new IgniteGrid(new IgniteInstanceServer());
+            return new IgniteGrid(new IgniteGridInstanceServer());
         }
 
         var cfg = crawlerContext.getConfiguration();
         var igniteInstance =
-                IgniteInstanceClientTest.isIgniteTestClientEnabled()
-                        ? new IgniteInstanceClientTest(cfg)
-                        : new IgniteInstanceClient(cfg);
+                IgniteGridInstanceClientTest.isIgniteTestClientEnabled()
+                        ? new IgniteGridInstanceClientTest(cfg)
+                        : new IgniteGridInstanceClient(cfg);
         // serialize crawler builder factory and config to create the
         // crawler on each nodes
         var crawlerCfgWriter = new StringWriter();

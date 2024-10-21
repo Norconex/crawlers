@@ -15,6 +15,10 @@
 package com.norconex.crawler.core;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableRunnable;
@@ -23,6 +27,8 @@ import org.slf4j.MDC;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
+import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.Grid;
@@ -71,6 +77,9 @@ public abstract class CrawlerContext implements Closeable {
 
     // Set in init()
     private Grid grid;
+    private Path workDir; //TODO <-- we want to keep this? use grid store instead?
+    private Path tempDir; //TODO <-- we want to keep this? use grid store instead?
+    private CachedStreamFactory streamFactory;
 
     // Others
     private final DocProcessingLedger docProcessingLedger =
@@ -88,6 +97,11 @@ public abstract class CrawlerContext implements Closeable {
         eventManager = new EventManager(b.eventManager());
     }
 
+    /**
+     * Whether this code is running on a client node or server node.
+     * Relevant in a clustered environment.
+     * @return <code>true</code> if on a client node
+     */
     public abstract boolean isClient();
 
     public void init() {
@@ -115,6 +129,23 @@ public abstract class CrawlerContext implements Closeable {
             LOG.info("JMX support disabled. To enable, set -DenableJMX=true "
                     + "system property as a JVM argument.");
         }
+
+        // need those? // maybe append cluster node id?
+        workDir = Optional.ofNullable(getConfiguration().getWorkDir())
+                .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
+                .resolve(FileUtil.toSafeFileName(getId()));
+        tempDir = workDir.resolve("temp");
+        try {
+            // Will also create workdir parent:
+            Files.createDirectories(tempDir);
+        } catch (IOException e) {
+            throw new CrawlerException(
+                    "Could not create directory: " + tempDir, e);
+        }
+        streamFactory = new CachedStreamFactory(
+                (int) getConfiguration().getMaxStreamCachePoolSize(),
+                (int) getConfiguration().getMaxStreamCacheSize(),
+                tempDir);
     }
 
     @Override
@@ -127,6 +158,17 @@ public abstract class CrawlerContext implements Closeable {
         safeClose(MDC::clear);
         safeClose(metrics::close);
         safeClose(eventManager::clearListeners);
+
+        safeClose(() -> {
+            if (tempDir != null) {
+                try {
+                    FileUtil.delete(tempDir.toFile());
+                } catch (IOException e) {
+                    LOG.error("Could not delete the temporary directory:"
+                            + tempDir, e);
+                }
+            }
+        });
     }
 
     //TODO document they do not cross over nodes

@@ -43,21 +43,21 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * <p>
  * Ignite client instance selected regardless of crawler configuration
- * when the {@value IgniteInstanceClientTest#PROP_IGNITE_TEST} system property
+ * when the {@value IgniteGridInstanceClientTest#PROP_IGNITE_TEST} system property
  * is set to <code>true</code>.
  * </p>
  * <p>
  * In addition to a client node, it creates one or more embedded Ignite server
  * nodes using ports in the range 47500..47509. The exact quantity of server
  * nodes is specified by the
- * {@value IgniteInstanceClientTest#PROP_IGNITE_TEST_SERVER_QTY} system
+ * {@value IgniteGridInstanceClientTest#PROP_IGNITE_TEST_SERVER_QTY} system
  * property. Default is 1 and maximum is 10.
  * </p>
  */
 @EqualsAndHashCode
 @ToString
 @Slf4j
-class IgniteInstanceClientTest implements IgniteInstance {
+class IgniteGridInstanceClientTest implements IgniteGridInstance {
 
     static final String PROP_IGNITE_TEST = "grid.ignite.test";
     static final String PROP_IGNITE_TEST_SERVER_QTY =
@@ -67,10 +67,10 @@ class IgniteInstanceClientTest implements IgniteInstance {
     private final List<Ignite> igniteServers = new ArrayList<>();
 
     public static boolean isIgniteTestClientEnabled() {
-        return Boolean.getBoolean(IgniteInstanceClientTest.PROP_IGNITE_TEST);
+        return Boolean.getBoolean(IgniteGridInstanceClientTest.PROP_IGNITE_TEST);
     }
 
-    IgniteInstanceClientTest(CrawlerConfig cfg) {
+    IgniteGridInstanceClientTest(CrawlerConfig cfg) {
 
         var baseWorkDir = cfg.getWorkDir() == null
                 ? Path.of(SystemProperties.getJavaIoTmpdir())
@@ -91,7 +91,7 @@ class IgniteInstanceClientTest implements IgniteInstance {
                     .formatted(instanceName, serverCfg.getWorkDirectory()));
 
             //TODO delete this line?
-            serverCfg.setUserAttributes(new IgniteAttributes()
+            serverCfg.setUserAttributes(new IgniteGridAttributes()
                     .setActivationLeader(i == 0)
                     .setActivationExpectedServerCount(serverNodeQty));
 

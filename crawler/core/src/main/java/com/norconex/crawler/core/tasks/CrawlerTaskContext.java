@@ -16,9 +16,6 @@ package com.norconex.crawler.core.tasks;
 
 import static java.util.Optional.ofNullable;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
@@ -29,15 +26,12 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.service.CommitterService;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.CrawlerBuilder;
 import com.norconex.crawler.core.CrawlerBuilderFactory;
 import com.norconex.crawler.core.CrawlerBuilderModifier;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.CrawlerSessionAttributes;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
@@ -89,11 +83,10 @@ public class CrawlerTaskContext extends CrawlerContext {
     private DedupService dedupService = new DedupService();
 
     // --- Set in init ---
-    Path workDir; //TODO <-- we want to keep this? use ignite store instead?
-    Path tempDir; //TODO <-- we want to keep this? use ignite store instead?
-    CachedStreamFactory streamFactory;
+    //    Path workDir; //TODO <-- we want to keep this? use ignite store instead?
+    //    Path tempDir; //TODO <-- we want to keep this? use ignite store instead?
+    //    CachedStreamFactory streamFactory;
 
-    @SuppressWarnings("resource")
     CrawlerTaskContext(CrawlerBuilder b,
             Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
         super(b, builderFactoryClass);
@@ -167,26 +160,26 @@ public class CrawlerTaskContext extends CrawlerContext {
     // local init...
     @Override
     public void init() {
+        fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
         super.init();
         //TODO differentiate between CRAWLER_* events and CRAWLER_TASK_* events?
-        fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
 
-        // need those? // maybe append cluster node id?
-        workDir = Optional.ofNullable(getConfiguration().getWorkDir())
-                .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
-                .resolve(FileUtil.toSafeFileName(getId()));
-        tempDir = workDir.resolve("temp");
-        try {
-            // Will also create workdir parent:
-            Files.createDirectories(tempDir);
-        } catch (IOException e) {
-            throw new CrawlerException(
-                    "Could not create directory: " + tempDir, e);
-        }
-        streamFactory = new CachedStreamFactory(
-                (int) getConfiguration().getMaxStreamCachePoolSize(),
-                (int) getConfiguration().getMaxStreamCacheSize(),
-                tempDir);
+        //        // need those? // maybe append cluster node id?
+        //        workDir = Optional.ofNullable(getConfiguration().getWorkDir())
+        //                .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
+        //                .resolve(FileUtil.toSafeFileName(getId()));
+        //        tempDir = workDir.resolve("temp");
+        //        try {
+        //            // Will also create workdir parent:
+        //            Files.createDirectories(tempDir);
+        //        } catch (IOException e) {
+        //            throw new CrawlerException(
+        //                    "Could not create directory: " + tempDir, e);
+        //        }
+        //        streamFactory = new CachedStreamFactory(
+        //                (int) getConfiguration().getMaxStreamCachePoolSize(),
+        //                (int) getConfiguration().getMaxStreamCacheSize(),
+        //                tempDir);
 
         //TODO DO WE STILL LOCK?
         //        state.init(execution.lock);
@@ -211,40 +204,40 @@ public class CrawlerTaskContext extends CrawlerContext {
         fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
         try {
             // Defer shutdown
-            Optional.ofNullable(
+            safeClose(() -> Optional.ofNullable(
                     getConfiguration().getDeferredShutdownDuration())
                     .filter(d -> d.toMillis() > 0)
                     .ifPresent(d -> {
-                        LOG.info("Deferred shutdown requested. Pausing for {} "
-                                + "starting from this UTC moment: {}",
+                        LOG.info(
+                                "Deferred shutdown requested. Pausing for {} "
+                                        + "starting from this UTC moment: {}",
                                 DurationFormatter.FULL.format(d),
                                 LocalDateTime.now(ZoneOffset.UTC));
                         Sleeper.sleepMillis(d.toMillis());
                         LOG.info("Shutdown resumed.");
-                    });
-
+                    }));
             safeClose(() -> getGrid().close());
             safeClose(() -> ofNullable(committerService)
                     .ifPresent(CommitterService::close));
             safeClose(() -> ofNullable(dedupService)
                     .ifPresent(DedupService::close));
         } finally {
-            // close state last
-            if (tempDir != null) {
-                try {
-                    FileUtil.delete(tempDir.toFile());
-                } catch (IOException e) {
-                    LOG.error("Could not delete the temporary directory:"
-                            + tempDir, e);
-                }
-            }
+            //            // close state last
+            //            if (tempDir != null) {
+            //                try {
+            //                    FileUtil.delete(tempDir.toFile());
+            //                } catch (IOException e) {
+            //                    LOG.error("Could not delete the temporary directory:"
+            //                            + tempDir, e);
+            //                }
+            //            }
             //TODO register failure instead and block? If at least one
             // detected on client node, it failed
             safeClose(() -> getState().setTerminatedProperly(true));
             safeClose(() -> getStopper().destroy());
+            safeClose(super::close);
             fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
         }
-        super.close();
     }
 
     // --- Commands ------------------------------------------------------------

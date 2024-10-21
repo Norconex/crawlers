@@ -21,7 +21,6 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>${shaded-h2.version}</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -39,13 +38,26 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <useDependencyReducedPomInJar>true</useDependencyReducedPomInJar>
               <relocations>
                 <relocation>
                   <pattern>org.h2</pattern>
                   <shadedPattern>com.norconex.shaded.h2</shadedPattern>
                 </relocation>
               </relocations>
+              <filters>
+                <filter>
+                  <artifact>com.h2database:h2</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>META-INF/maven/com.h2database/h2/**</exclude>
+                  </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>

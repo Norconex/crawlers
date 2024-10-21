@@ -36,8 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 //MAYBE: consider moving to Nx Commons
 public class IntervalTaskRunner {
 
-    private final ScheduledExecutorService scheduler =
-            Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService scheduler;
     private CountDownLatch latch;
     private Future<?> future;
     private final AtomicBoolean stopRequested = new AtomicBoolean(false);
@@ -46,6 +45,7 @@ public class IntervalTaskRunner {
 
     public void start(Runnable task) {
         stopRequested.set(false);
+        scheduler = Executors.newScheduledThreadPool(1);
         latch = new CountDownLatch(1);
         future = scheduler.scheduleAtFixedRate(() -> {
             if (stopRequested.get()) {
@@ -83,10 +83,14 @@ public class IntervalTaskRunner {
         if (future != null) {
             future.cancel(false); // Cancel the scheduled task
         }
+        if (scheduler == null) {
+            return;
+        }
         scheduler.shutdown();
         try {
             if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
-                // If termination didn't complete within the timeout, force shutdown
+                // If termination didn't complete within the timeout,
+                // force shutdown
                 scheduler.shutdownNow();
                 if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
                     LOG.error("Scheduler did not terminate");
