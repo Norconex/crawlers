@@ -37,7 +37,7 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
@@ -125,11 +125,11 @@ public class UrlStatusCrawlerEventListener implements
 
     @Override
     public void accept(Event event) {
-        if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
-            init((CrawlerTaskContext) event.getSource());
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            init((TaskContext) event.getSource());
             return;
         }
-        if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
             try {
                 csvPrinter.close();
             } catch (IOException e) {
@@ -166,7 +166,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private void init(CrawlerTaskContext crawler) {
+    private void init(TaskContext crawler) {
 
         var baseDir = getBaseDir(crawler);
         var timestamp = "";
@@ -213,7 +213,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private Path getBaseDir(CrawlerTaskContext crawler) {
+    private Path getBaseDir(TaskContext crawler) {
         if (configuration.getOutputDir() == null) {
             return crawler.getWorkDir();
         }

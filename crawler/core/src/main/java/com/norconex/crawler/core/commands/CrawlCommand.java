@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.commands;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.GridTxOptions;
 import com.norconex.crawler.core.tasks.crawl.CrawlTask;
 import com.norconex.crawler.core.tasks.crawl.PrepareDocLedgerTask;
@@ -32,7 +32,7 @@ public class CrawlCommand implements Command {
             "crawl.start.refs.queued";
 
     @Override
-    public void execute(Crawler crawlerClient) {
+    public void execute(CrawlerContext crawlerClient) {
         prepareDocLedger(crawlerClient);
         queueStartReferences(crawlerClient);
         crawlDocs(crawlerClient);
@@ -41,7 +41,7 @@ public class CrawlCommand implements Command {
     }
 
     // On 1 node, block
-    private void prepareDocLedger(Crawler crawlerClient) {
+    private void prepareDocLedger(CrawlerContext crawlerClient) {
         LOG.info("Preparing document processing ledger for crawling...");
         crawlerClient.getGrid().compute().runTask(
                 PrepareDocLedgerTask.class,
@@ -54,7 +54,7 @@ public class CrawlCommand implements Command {
     }
 
     // On 1 node, block unless config says async
-    private void queueStartReferences(Crawler crawlerClient) {
+    private void queueStartReferences(CrawlerContext crawlerClient) {
         var cfg = crawlerClient.getConfiguration();
         var grid = crawlerClient.getGrid();
         if (crawlerClient.getState().isResuming()) {
@@ -74,7 +74,7 @@ public class CrawlCommand implements Command {
     }
 
     // On all nodes, block
-    private void crawlDocs(Crawler crawlerClient) {
+    private void crawlDocs(CrawlerContext crawlerClient) {
         LOG.info("Crawling...");
         crawlerClient.getGrid().compute().runTask(CrawlTask.class, null,
                 GridTxOptions.builder()

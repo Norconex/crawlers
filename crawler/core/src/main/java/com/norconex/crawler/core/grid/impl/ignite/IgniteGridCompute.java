@@ -110,7 +110,7 @@ public class IgniteGridCompute implements GridCompute {
 
             if (opts.isSingleton()) {
                 future = igniteGridInstance.get().compute()
-                        .runAsync(() -> IgniteGridServerTaskExecutor
+                        .runAsync(() -> IgniteGridServerTaskRunner
                                 .execute(className, arg));//  finalTask::run);
                 //            future = ignite.services().deployClusterSingletonAsync(name,
                 //                    service);
@@ -124,7 +124,7 @@ public class IgniteGridCompute implements GridCompute {
                 // TODO take values from ignite config?
                 //            ignite.services().clusterGroup().
                 future = igniteGridInstance.get().compute()
-                        .broadcastAsync(() -> IgniteGridServerTaskExecutor
+                        .broadcastAsync(() -> IgniteGridServerTaskRunner
                                 .execute(className, arg)); //finalTask::run);
                 //
                 //            future = ignite.services().deployMultipleAsync(name,

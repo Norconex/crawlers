@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.grid.GridCache;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +55,7 @@ public class DedupService implements Closeable {
 
     private boolean initialized;
 
-    public void init(CrawlerTaskContext crawler) {
+    public void init(TaskContext crawler) {
         if (initialized) {
             throw new IllegalStateException("Already initialized.");
         }

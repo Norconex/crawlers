@@ -24,23 +24,25 @@ import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 
 //TODO document the optional ones and their default values
 @Accessors(fluent = true)
-@Setter
-@Getter
+@Data
 @NonNull
-public class CrawlerBuilder {
-    private CrawlerConfig configuration = new CrawlerConfig();
+public class CrawlerSpec {
+    //    private CrawlerConfig configuration = new CrawlerConfig();
+    private Class<? extends CrawlerConfig> crawlerConfigClass =
+            CrawlerConfig.class;
     private DocPipelines docPipelines;
     private CrawlerCallbacks callbacks = CrawlerCallbacks.builder().build();
     private BeanMapper beanMapper = BeanMapper.DEFAULT;
-    private EventManager eventManager;
-    private CrawlerSessionAttributes context = new CrawlerSessionAttributes();
+    private EventManager eventManager = new EventManager();
+    //TODO delete attributes and use store instead
+    private CrawlerSessionAttributes attributes =
+            new CrawlerSessionAttributes();
 
     /**
      * The exact type of {@link CrawlDocContext} if your crawler is subclassing

@@ -26,15 +26,15 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 class CrawlerEventTest {
 
-    private static CrawlerTaskContext crawler;
+    private static TaskContext crawler;
 
     @BeforeAll
     static void beforeAll(@TempDir Path tempDir) {
-        crawler = CrawlerStubs.memoryCrawler(tempDir);
+        crawler = CrawlerStubs.memoryTaskContext(tempDir);
     }
 
     @Test
@@ -63,7 +63,7 @@ class CrawlerEventTest {
                 .docContext(new CrawlDocContext("someref"))
                 .exception(new CliException("someexception"))
                 .message("somemessage")
-                .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
+                .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
                 .source(crawler)
                 .subject("somesubject");
         c.accept(b);

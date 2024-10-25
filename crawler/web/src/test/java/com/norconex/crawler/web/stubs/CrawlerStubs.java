@@ -18,9 +18,8 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.web.WebCrawler;
-import com.norconex.crawler.web.WebCrawlerBuilderFactory;
 import com.norconex.crawler.web.WebCrawlerConfig;
 
 public final class CrawlerStubs {
@@ -39,7 +38,7 @@ public final class CrawlerStubs {
     //        return memoryCrawlerBuilder(workDir, c).build();
     //    }
     //
-    //    public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
+    //    public static CrawlerSpec memoryCrawlerBuilder(Path workDir) {
     //        return memoryCrawlerBuilder(workDir, null);
     //    }
 
@@ -59,20 +58,34 @@ public final class CrawlerStubs {
         return WebCrawler.create(webCrawlerConfig);
     }
 
-    public static CrawlerTaskContext memoryCrawlerTaskContext(Path workDir) {
+    //    public static TaskContext memoryTaskContext(
+    //            Path workDir, WebCrawlerConfig config) {
+    //        var memConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
+    //        if (config != null) {
+    //            BeanUtil.copyProperties(memConfig, config);
+    //        }
+    //        var context = new TaskContext(WebCrawlerSpecProvider.class, config);
+    //        BeanUtil.copyProperties(context.getConfiguration(), memConfig);
+    //        context.getConfiguration().setWorkDir(workDir);
+    //        return context;
+    //    }
+
+    public static TaskContext memoryCrawlerTaskContext(Path workDir) {
         return memoryCrawlerTaskContext(workDir, null);
     }
 
-    public static CrawlerTaskContext memoryCrawlerTaskContext(
+    public static TaskContext memoryCrawlerTaskContext(
             Path workDir, Consumer<WebCrawlerConfig> c) {
         var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(webCrawlerConfig);
         }
 
-        return CrawlerTaskContext.create(WebCrawlerBuilderFactory.class, b -> {
-            b.configuration(webCrawlerConfig);
-        });
+        return null;
+        //        return memoryTaskContext(workDir, webCrawlerConfig);
+        //        return TaskContext.create(WebCrawlerSpecProvider.class, b -> {
+        //            b.configuration(webCrawlerConfig);
+        //        });
     }
 
     //    public static Crawler memoryCrawlerClient(Path workDir) {
@@ -88,7 +101,7 @@ public final class CrawlerStubs {
     //        return WebCrawler.create(webCrawlerConfig);
     //    }
 
-    //    public static CrawlerBuilder memoryCrawlerBuilder(
+    //    public static CrawlerSpec memoryCrawlerBuilder(
     //            Path workDir, Consumer<WebCrawlerConfig> c) {
     //
     //

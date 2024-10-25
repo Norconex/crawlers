@@ -18,8 +18,8 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.MemoryCrawlerBuilderFactory;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.MemoryCrawlerSpecProvider;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 public final class CrawlerStubs {
 
@@ -28,30 +28,37 @@ public final class CrawlerStubs {
     private CrawlerStubs() {
     }
 
-    public static CrawlerTaskContext crawler(Path workDir,
-            CrawlerConfig config) {
-        return CrawlerTaskContext.create(MemoryCrawlerBuilderFactory.class,
-                b -> {
-                    config.setWorkDir(workDir);
-                    b.configuration(config);
-                });
+    public static TaskContext memoryTaskContext(
+            Path workDir, CrawlerConfig config) {
+        //NOTE: we could just assume that the workDir is set in config already,
+        // but we want to enforce passing one when testing
+        var cfg = config != null ? config : new CrawlerConfig();
+        var context = new TaskContext(MemoryCrawlerSpecProvider.class, cfg);
+        context.getConfiguration().setWorkDir(workDir);
+        return context;
+        //        return TaskContext.create(MemoryCrawlerSpecProvider.class,
+        //                b -> {
+        //                    config.setWorkDir(workDir);
+        //                    b.configuration(config);
+        //                });
     }
 
-    public static CrawlerTaskContext memoryCrawler(Path workDir) {
-        return memoryCrawler(workDir, null);
+    public static TaskContext memoryTaskContext(Path workDir) {
+        return memoryTaskContext(workDir, (CrawlerConfig) null);
     }
 
-    public static CrawlerTaskContext memoryCrawler(
+    public static TaskContext memoryTaskContext(
             Path workDir, Consumer<CrawlerConfig> c) {
         var crawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(crawlerConfig);
         }
 
-        return CrawlerTaskContext.create(MemoryCrawlerBuilderFactory.class,
-                b -> b.configuration(crawlerConfig));
+        return memoryTaskContext(workDir, crawlerConfig);
+        //        return TaskContext.create(MemoryCrawlerSpecProvider.class,
+        //                b -> b.configuration(crawlerConfig));
 
-        //        return Crawler.create(MemoryCrawlerBuilderFactory.class, crawlerConfig);
+        //        return Crawler.create(MemoryCrawlerSpecProvider.class, crawlerConfig);
     }
     //
     //    public static Crawler memoryCrawler(Path workDir) {
@@ -63,11 +70,11 @@ public final class CrawlerStubs {
     //        return memoryCrawlerBuilder(workDir, c).build();
     //    }
     //
-    //    public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
+    //    public static CrawlerSpec memoryCrawlerBuilder(Path workDir) {
     //        return memoryCrawlerBuilder(workDir, null);
     //    }
     //
-    //    public static CrawlerBuilder memoryCrawlerBuilder(
+    //    public static CrawlerSpec memoryCrawlerBuilder(
     //            Path workDir, Consumer<CrawlerConfig> c) {
     //        var b = Crawler
     //                .builder()

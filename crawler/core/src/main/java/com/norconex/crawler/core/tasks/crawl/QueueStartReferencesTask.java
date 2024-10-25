@@ -15,8 +15,8 @@
 package com.norconex.crawler.core.tasks.crawl;
 
 import com.norconex.crawler.core.commands.CrawlCommand;
-import com.norconex.crawler.core.grid.GridInitializedCrawlerTask;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.grid.GridTask;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 /**
  * Prepare the doc processing ledger for a new or incremental crawl.
@@ -24,18 +24,17 @@ import com.norconex.crawler.core.tasks.CrawlerTaskContext;
  * or simply logs the current progress if resuming from an incomplete
  * previous crawl.
  */
-public class QueueStartReferencesTask extends GridInitializedCrawlerTask {
+public class QueueStartReferencesTask implements GridTask {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected void runWithInitializedCrawler(CrawlerTaskContext crawler,
-            String arg) {
-        var globalCache = crawler.getGrid().storage().getGlobalCache();
+    public void run(TaskContext taskContext, String arg) {
+        var globalCache = taskContext.getGrid().storage().getGlobalCache();
         globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "false");
-        crawler.getDocPipelines()
+        taskContext.getDocPipelines()
                 .getQueuePipeline()
-                .initializeQueue(crawler);
+                .initializeQueue(taskContext);
         globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "true");
     }
 }

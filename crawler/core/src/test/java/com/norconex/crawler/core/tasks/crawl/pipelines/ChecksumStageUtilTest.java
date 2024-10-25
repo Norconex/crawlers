@@ -40,7 +40,7 @@ class ChecksumStageUtilTest {
     void testResolveMetaChecksum() {
         // true is new/modified
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new ImporterPipelineContext(crawler, doc);
 
@@ -90,7 +90,7 @@ class ChecksumStageUtilTest {
     void testResolveDocumentChecksum() {
         // true is new/modified
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(crawler, doc);
 

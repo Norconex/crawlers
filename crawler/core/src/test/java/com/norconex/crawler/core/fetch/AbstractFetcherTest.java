@@ -74,12 +74,12 @@ class AbstractFetcherTest {
         };
         f.accept(
                 CrawlerEvent.builder()
-                        .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
+                        .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
                         .source(crawler)
                         .build());
         f.accept(
                 CrawlerEvent.builder()
-                        .name(CrawlerEvent.CRAWLER_RUN_END)
+                        .name(CrawlerEvent.CRAWLER_CRAWL_END)
                         .source(crawler)
                         .build());
         f.accept(

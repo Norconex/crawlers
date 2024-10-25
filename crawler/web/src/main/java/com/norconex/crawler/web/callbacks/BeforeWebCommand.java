@@ -16,7 +16,7 @@ package com.norconex.crawler.web.callbacks;
 
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.util.Web;
 
@@ -26,11 +26,11 @@ import lombok.extern.slf4j.Slf4j;
  * Web crawler-specific initialization before the crawler starts.
  */
 @Slf4j
-class BeforeWebCommand implements Consumer<Crawler> {
+class BeforeWebCommand implements Consumer<CrawlerContext> {
 
     @Override
-    public void accept(Crawler crawler) {
-        var cfg = Web.config(crawler);
+    public void accept(CrawlerContext crawlerContext) {
+        var cfg = Web.config(crawlerContext);
         var scope = "";
         if (cfg.getUrlScopeResolver() instanceof GenericUrlScopeResolver res) {
             var scopeCfg = res.getConfiguration();

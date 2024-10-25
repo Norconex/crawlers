@@ -25,7 +25,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebCrawlerSessionAttributes;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
@@ -42,7 +42,7 @@ public final class Web {
     }
 
     public static void fireIfUrlOutOfScope(
-            CrawlerTaskContext crawler,
+            TaskContext crawler,
             WebCrawlDocContext docContext,
             UrlScope urlScope) {
         if (!urlScope.isInScope()) {
@@ -62,11 +62,11 @@ public final class Web {
     }
 
     public static WebCrawlerSessionAttributes
-            sessionAttributes(CrawlerTaskContext crawler) {
+            sessionAttributes(TaskContext crawler) {
         return (WebCrawlerSessionAttributes) crawler.getAttributes();
     }
 
-    public static HttpFetcher fetcher(CrawlerTaskContext crawler) {
+    public static HttpFetcher fetcher(TaskContext crawler) {
         return (HttpFetcher) crawler.getFetcher();
     }
 
@@ -79,7 +79,7 @@ public final class Web {
         return (WebCrawlDocContext) crawlDoc.getCachedDocContext();
     }
 
-    public static RobotsTxt robotsTxt(CrawlerTaskContext crawler,
+    public static RobotsTxt robotsTxt(TaskContext crawler,
             String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())

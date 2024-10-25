@@ -14,21 +14,22 @@
  */
 package com.norconex.crawler.core.tasks.crawl;
 
-import com.norconex.crawler.core.grid.GridInitializedCrawlerTask;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.grid.GridTask;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.process.DocsProcessor;
 
 /**
- * Performs a crawl by getting references from the crawl queue.
+ * Performs a crawl by getting references from the crawl queue until there
+ * are no more in the queue or being processed.
  */
-public class CrawlTask extends GridInitializedCrawlerTask {
+public class CrawlTask implements GridTask {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected void runWithInitializedCrawler(CrawlerTaskContext crawler,
-            String arg) {
-        new DocsProcessor(crawler).run();
+    public void run(TaskContext taskContext, String arg) {
+        //TODO maybe merge DocsProcessor here instead?
+        new DocsProcessor(taskContext).run();
     }
 
 }

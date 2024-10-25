@@ -66,7 +66,7 @@ public class GenericUrlScopeResolver
     private WebCrawlerSessionAttributes crawlerContext;
 
     @Override
-    protected void onCrawlerRunBegin(CrawlerEvent event) {
+    protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         LOG.debug("UrlCrawlScopeStrategy initialized with crawler context.");
         crawlerContext =
                 (WebCrawlerSessionAttributes) event.getSource().getAttributes();

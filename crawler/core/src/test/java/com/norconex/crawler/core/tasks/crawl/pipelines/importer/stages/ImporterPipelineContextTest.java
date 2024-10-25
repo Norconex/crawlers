@@ -34,7 +34,7 @@ class ImporterPipelineContextTest {
     void testImporterPipelineContext(@TempDir Path tempDir) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
         var ctx = new ImporterPipelineContext(crawler, doc);
 
         // metadata: disabled; document: enabled

@@ -135,7 +135,7 @@ public class FeaturedImageResolver
     //--- Init. ----------------------------------------------------------------
 
     @Override
-    protected void onCrawlerRunBegin(CrawlerEvent event) {
+    protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         var workDir = event.getSource().getWorkDir();
 
         // Initialize image cache directory

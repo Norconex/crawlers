@@ -17,8 +17,8 @@ package com.norconex.crawler.core.tasks.crawl;
 import java.util.Locale;
 
 import com.norconex.commons.lang.PercentFormatter;
-import com.norconex.crawler.core.grid.GridInitializedCrawlerTask;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.grid.GridTask;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,33 +29,32 @@ import lombok.extern.slf4j.Slf4j;
  * previous crawl.
  */
 @Slf4j
-public class PrepareDocLedgerTask extends GridInitializedCrawlerTask {
+public class PrepareDocLedgerTask implements GridTask {
 
     private static final long serialVersionUID = 1L;
 
     public static final String KEY_INITIALIZING = "ledger.initializing";
 
     @Override
-    protected void runWithInitializedCrawler(
-            CrawlerTaskContext crawler, String arg) {
-        var globalCache = crawler.getGrid().storage().getGlobalCache();
+    public void run(TaskContext taskContext, String arg) {
+        var globalCache = taskContext.getGrid().storage().getGlobalCache();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
             throw new IllegalStateException("Already initializing.");
         }
         globalCache.put(KEY_INITIALIZING, "true");
         try {
-            prepareForCrawl(crawler);
+            prepareForCrawl(taskContext);
         } finally {
             globalCache.put(KEY_INITIALIZING, "false");
         }
     }
 
-    private void prepareForCrawl(CrawlerTaskContext crawler) {
-        var storage = crawler.getGrid().storage();
+    private void prepareForCrawl(TaskContext taskContext) {
+        var storage = taskContext.getGrid().storage();
         storage.getGlobalCache();
-        var ledger = crawler.getDocProcessingLedger();
-        var state = crawler.getState();
+        var ledger = taskContext.getDocProcessingLedger();
+        var state = taskContext.getState();
 
         var isResuming = !ledger.isQueueEmpty();
         state.setResuming(isResuming);
@@ -68,7 +67,7 @@ public class PrepareDocLedgerTask extends GridInitializedCrawlerTask {
                         + ledger.getQueueCount()
                         + ledger.getCachedCount();
                 LOG.info("RESUMING \"{}\" at {} ({}/{}).",
-                        crawler.getId(),
+                        taskContext.getId(),
                         PercentFormatter.format(
                                 processedCount, totalCount, 2, Locale.ENGLISH),
                         processedCount, totalCount);

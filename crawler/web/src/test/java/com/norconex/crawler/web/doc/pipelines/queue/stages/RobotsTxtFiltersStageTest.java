@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -79,7 +79,7 @@ class RobotsTxtFiltersStageTest {
                 "No match in robot.txt");
     }
 
-    private boolean testAllow(CrawlerTaskContext crawler, final String url) {
+    private boolean testAllow(TaskContext crawler, final String url) {
         var ctx = new QueuePipelineContext(
                 crawler, new WebCrawlDocContext(url, 0));
         var filterStage = new RobotsTxtFiltersStage();

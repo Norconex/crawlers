@@ -14,18 +14,18 @@
  */
 package com.norconex.crawler.fs;
 
-import com.norconex.crawler.core.CrawlerBuilder;
-import com.norconex.crawler.core.CrawlerBuilderFactory;
 import com.norconex.crawler.core.CrawlerCallbacks;
+import com.norconex.crawler.core.CrawlerSpec;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.fs.callbacks.BeforeFsCommand;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.doc.pipelines.FsDocPipelines;
 import com.norconex.crawler.fs.fetch.FileFetcherProvider;
 
-public class FsCrawlerBuilderFactory implements CrawlerBuilderFactory {
+public class FsCrawlerSpecProvider implements CrawlerSpecProvider {
     @Override
-    public CrawlerBuilder create() {
-        return new CrawlerBuilder()
+    public CrawlerSpec get() {
+        return new CrawlerSpec()
                 .fetcherProvider(new FileFetcherProvider())
                 .callbacks(CrawlerCallbacks.builder()
                         .beforeCommand(new BeforeFsCommand())

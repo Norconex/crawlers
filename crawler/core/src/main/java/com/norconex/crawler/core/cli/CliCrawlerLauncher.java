@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.CrawlerBuilderFactory;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 
 import lombok.NonNull;
 import picocli.CommandLine;
@@ -26,12 +26,10 @@ public final class CliCrawlerLauncher {
     }
 
     public static int launch(
-            @NonNull Class<
-                    ? extends CrawlerBuilderFactory> crawlerBuilderFactoryClass,
+            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
             String... args) {
 
-        var cmdLine = new CommandLine(
-                new CliRunner(crawlerBuilderFactoryClass));
+        var cmdLine = new CommandLine(new CliRunner(specProviderClass));
 
         cmdLine.setExecutionExceptionHandler(
                 (var ex, var cli, var parseResult) -> {

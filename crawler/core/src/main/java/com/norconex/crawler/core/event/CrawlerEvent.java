@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -53,13 +53,13 @@ public class CrawlerEvent extends Event {
     /**
      * The crawler is about to begin crawling.
      */
-    public static final String CRAWLER_RUN_BEGIN = "CRAWLER_RUN_BEGIN";
+    public static final String CRAWLER_CRAWL_BEGIN = "CRAWLER_CRAWL_BEGIN";
     /**
      * The crawler completed crawling execution normally
      * (without being stopped). This event is triggered before the crawler
      * resources are released.
      */
-    public static final String CRAWLER_RUN_END = "CRAWLER_RUN_END";
+    public static final String CRAWLER_CRAWL_END = "CRAWLER_CRAWL_END";
 
     /**
      * The crawler just started a new crawling thread.
@@ -103,6 +103,16 @@ public class CrawlerEvent extends Event {
             "CRAWLER_STORE_IMPORT_BEGIN";
     public static final String CRAWLER_STORE_IMPORT_END =
             "CRAWLER_STORE_IMPORT_END";
+
+    public static final String TASK_CONTEXT_INIT_BEGIN =
+            "TASK_CONTEX_INIT_BEGIN";
+    public static final String TASK_CONTEXT_INIT_END = "TASK_CONTEXT_INIT_END";
+    public static final String TASK_RUN_BEGIN = "TASK_RUN_BEGIN";
+    public static final String TASK_RUN_END = "TASK_RUN_END";
+    public static final String TASK_CONTEXT_SHUTDOWN_BEGIN =
+            "TASK_CONTEXT_SHUTDOWN_BEGIN";
+    public static final String TASK_CONTEXT_SHUTDOWN_END =
+            "TASK_CONTEXT_SHUTDOWN_END";
 
     public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
 
@@ -205,12 +215,12 @@ public class CrawlerEvent extends Event {
     }
 
     @Override
-    public CrawlerTaskContext getSource() {
-        return (CrawlerTaskContext) super.getSource();
+    public TaskContext getSource() {
+        return (TaskContext) super.getSource();
     }
 
     public boolean isCrawlerShutdown() {
-        return is(CRAWLER_RUN_END, CRAWLER_STOP_END);
+        return is(CRAWLER_CRAWL_END, CRAWLER_STOP_END);
     }
 
     @Override

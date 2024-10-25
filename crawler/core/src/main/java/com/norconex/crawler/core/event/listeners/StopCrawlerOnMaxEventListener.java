@@ -25,7 +25,7 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -94,11 +94,11 @@ public class StopCrawlerOnMaxEventListener implements
     private Map<String, AtomicLong> eventCounts = new ConcurrentHashMap<>();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private CrawlerTaskContext crawler;
+    private TaskContext crawler;
 
     @Override
     public void accept(Event event) {
-        if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             eventCounts.clear();
             crawler = ((CrawlerEvent) event).getSource();
         }

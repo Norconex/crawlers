@@ -202,7 +202,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     }
 
     @Override
-    protected void onCrawlerRunBegin(CrawlerEvent event) {
+    protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         sitemapStore = event.getSource()
                 .getGrid().storage().getCache(
                         SITEMAP_STORE_NAME, SitemapRecord.class);

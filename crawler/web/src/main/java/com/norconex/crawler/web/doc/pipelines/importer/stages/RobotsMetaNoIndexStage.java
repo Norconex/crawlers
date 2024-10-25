@@ -32,10 +32,10 @@ public class RobotsMetaNoIndexStage extends AbstractImporterStage {
         var canIndex = ctx.getRobotsMeta() == null
                 || !ctx.getRobotsMeta().isNoindex();
         if (!canIndex) {
-            ctx.getCrawler().fire(
+            ctx.getTaskContext().fire(
                     CrawlerEvent.builder()
                             .name(WebCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX)
-                            .source(ctx.getCrawler())
+                            .source(ctx.getTaskContext())
                             .subject(ctx.getRobotsMeta())
                             .docContext(ctx.getDoc().getDocContext())
                             .build());

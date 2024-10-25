@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.CrawlerState;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.Getter;
@@ -35,13 +35,13 @@ import lombok.extern.slf4j.Slf4j;
 public class DocsProcessor implements Runnable {
 
     @Getter
-    private final CrawlerTaskContext crawler;
+    private final TaskContext crawler;
     private final DocProcessingLedger ledger;
     private final CrawlerState state;
 
     private int maxDocs;
 
-    public DocsProcessor(CrawlerTaskContext crawler) {
+    public DocsProcessor(TaskContext crawler) {
         this.crawler = crawler;
         ledger = crawler.getDocProcessingLedger();
         state = crawler.getState();
@@ -174,7 +174,7 @@ public class DocsProcessor implements Runnable {
     }
 
     //    private void logJmxState() {
-    //        if (Boolean.getBoolean(CrawlerTaskContext.SYS_PROP_ENABLE_JMX)) {
+    //        if (Boolean.getBoolean(TaskContext.SYS_PROP_ENABLE_JMX)) {
     //            LOG.info("JMX support enabled.");
     //        } else {
     //            LOG.info("JMX support disabled. To enable, set -DenableJMX=true "

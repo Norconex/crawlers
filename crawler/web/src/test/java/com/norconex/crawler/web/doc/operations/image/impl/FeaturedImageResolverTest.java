@@ -40,7 +40,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Quality;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
@@ -55,7 +55,7 @@ class FeaturedImageResolverTest {
 
     @WithCrawlerTest
     void testProcessFeaturedImage(
-            ClientAndServer client, CrawlerTaskContext crawler)
+            ClientAndServer client, TaskContext crawler)
             throws IOException {
         WebsiteMock.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
         WebsiteMock.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);
@@ -77,7 +77,7 @@ class FeaturedImageResolverTest {
                 .setLargest(true)
                 .setImageCacheSize(0)
                 .setScaleDimensions(null);
-        fip.onCrawlerRunBegin(
+        fip.onCrawlerCrawlBegin(
                 CrawlerEvent.builder()
                         .name("test")
                         .source(crawler)

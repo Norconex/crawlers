@@ -23,7 +23,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core.tasks.crawl.process.DocProcessorContext;
@@ -32,7 +32,7 @@ import com.norconex.crawler.core.tasks.crawl.process.DocProcessorFinalize;
 class DocProcessorFinalizeTest {
 
     @WithCrawlerTest
-    void testThreadActionFinalize(CrawlerTaskContext crawler) {
+    void testThreadActionFinalize(TaskContext crawler) {
         var strategy = new MutableObject<>(
                 SpoiledReferenceStrategy.IGNORE);
         SpoiledReferenceStrategizer spoiledHandler =

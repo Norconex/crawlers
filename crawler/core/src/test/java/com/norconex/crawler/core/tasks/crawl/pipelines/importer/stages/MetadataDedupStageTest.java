@@ -29,7 +29,7 @@ import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DedupService;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataDedupStage;
@@ -38,7 +38,7 @@ import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataD
 class MetadataDedupStageTest {
 
     @Mock
-    private CrawlerTaskContext crawler;
+    private TaskContext crawler;
     @Mock
     private DedupService dedupService;
 

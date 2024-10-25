@@ -25,7 +25,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridSet;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.EqualsAndHashCode;
@@ -99,14 +99,14 @@ public class DeleteRejectedEventListener implements
         if (CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN.equals(event.getName())) {
             doneCrawling = true;
             commitDeletions(crawlerEvent.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
+        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
             init(crawlerEvent.getSource());
         } else {
             storeRejection(crawlerEvent);
         }
     }
 
-    private void init(CrawlerTaskContext crawler) {
+    private void init(TaskContext crawler) {
         // Delete any previously created store. We do it here instead
         // of on completion in case users want to keep a record between
         // two crawl executions.
@@ -138,7 +138,7 @@ public class DeleteRejectedEventListener implements
         refStore.add(docInfo.getReference());
     }
 
-    private void commitDeletions(CrawlerTaskContext crawler) {
+    private void commitDeletions(TaskContext crawler) {
         ConcurrentUtil.block(crawler.getGrid().compute().runOnce(
                 "delete-rejected-listener-commit", () -> {
                     if (LOG.isInfoEnabled()) {

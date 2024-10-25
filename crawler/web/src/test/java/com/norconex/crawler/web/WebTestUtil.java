@@ -228,14 +228,20 @@ public final class WebTestUtil {
      * @return Memory committer
      */
     public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
-        return (MemoryCommitter) crawler.getConfiguration().getCommitters()
+        return (MemoryCommitter) crawler
+                .getCrawlerContext()
+                .getConfiguration()
+                .getCommitters()
                 .get(0);
     }
 
     public static GenericHttpFetcher firstHttpFetcher(
             @NonNull Crawler crawler) {
         return (GenericHttpFetcher) crawler
-                .getConfiguration().getFetchers().get(0);
+                .getCrawlerContext()
+                .getConfiguration()
+                .getFetchers()
+                .get(0);
     }
 
     public static GenericHttpFetcherConfig firstHttpFetcherConfig(
@@ -286,7 +292,9 @@ public final class WebTestUtil {
     }
 
     public static void ignoreAllIgnorables(Crawler crawler) {
-        ignoreAllIgnorables((WebCrawlerConfig) crawler.getConfiguration());
+        ignoreAllIgnorables((WebCrawlerConfig) crawler
+                .getCrawlerContext()
+                .getConfiguration());
     }
 
     public static void ignoreAllIgnorables(WebCrawlerConfig config) {

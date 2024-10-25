@@ -18,14 +18,14 @@ import static java.util.Optional.ofNullable;
 
 import java.nio.file.Path;
 
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.commands.Command;
 import com.norconex.crawler.core.commands.CrawlCommand;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 //TODO maybe rename to Crawler and have server side be CrawlerNode?
@@ -50,7 +50,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @EqualsAndHashCode
 @Getter
-public class Crawler extends CrawlerContext {
+@RequiredArgsConstructor
+public class Crawler {
 
     //NOTE: this is a lightweight version of the crawler that only controls
     // and report on actual crawler instances running on nodes. It has access
@@ -59,27 +60,28 @@ public class Crawler extends CrawlerContext {
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
 
     private CrawlerProgressLogger progressLogger;
+    private final CrawlerContext crawlerContext;
 
-    Crawler(CrawlerBuilder b,
-            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
-        super(b, builderFactoryClass);
-    }
-
-    public static Crawler create(
-            @NonNull Class<CrawlerBuilderFactory> builderFactoryClass) {
-        return create(builderFactoryClass, null);
-    }
-
-    public static Crawler create(
-            @NonNull Class<? extends CrawlerBuilderFactory> builderFactoryClass,
-            CrawlerBuilderModifier builderModifier) {
-        var factory = ClassUtil.newInstance(builderFactoryClass);
-        var builder = factory.create();
-        if (builderModifier != null) {
-            builderModifier.modify(builder);
-        }
-        return new Crawler(builder, builderFactoryClass);
-    }
+    //    Crawler(CrawlerSpec b,
+    //            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
+    //        super(b, builderFactoryClass);
+    //    }
+    //
+    //    public static Crawler create(
+    //            @NonNull Class<CrawlerBuilderFactory> builderFactoryClass) {
+    //        return create(builderFactoryClass, null);
+    //    }
+    //
+    //    public static Crawler create(
+    //            @NonNull Class<? extends CrawlerBuilderFactory> builderFactoryClass,
+    //            CrawlerBuilderModifier builderModifier) {
+    //        var factory = ClassUtil.newInstance(builderFactoryClass);
+    //        var builder = factory.create();
+    //        if (builderModifier != null) {
+    //            builderModifier.modify(builder);
+    //        }
+    //        return new Crawler(builder, builderFactoryClass);
+    //    }
 
     public void crawl() {
         executeCommand(new CrawlCommand());
@@ -106,39 +108,39 @@ public class Crawler extends CrawlerContext {
         try {
             LOG.info("Executing command: {}",
                     command.getClass().getSimpleName());
-            ofNullable(getCallbacks().getBeforeCommand())
-                    .ifPresent(c -> c.accept(this));
-            command.execute(this);
-            ofNullable(getCallbacks().getAfterCommand())
-                    .ifPresent(c -> c.accept(this));
+            ofNullable(crawlerContext.getCallbacks().getBeforeCommand())
+                    .ifPresent(c -> c.accept(crawlerContext));
+            command.execute(crawlerContext);
+            ofNullable(crawlerContext.getCallbacks().getAfterCommand())
+                    .ifPresent(c -> c.accept(crawlerContext));
         } finally {
             close();
         }
     }
 
-    @Override
-    public void init() {
-        LogUtil.logCommandIntro(LOG, getConfiguration());
+    private void init() {
+        crawlerContext.fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+        LogUtil.logCommandIntro(LOG, crawlerContext.getConfiguration());
 
-        super.init();
+        crawlerContext.init();
 
         progressLogger = new CrawlerProgressLogger(
-                getMetrics(),
-                getConfiguration().getMinProgressLoggingInterval());
+                crawlerContext.getMetrics(),
+                crawlerContext.getConfiguration()
+                        .getMinProgressLoggingInterval());
         progressLogger.startTracking();
+        crawlerContext.fire(CrawlerEvent.CRAWLER_INIT_END);
     }
 
-    @Override
-    public void close() {
+    private void close() {
+        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
+
         progressLogger.stopTracking();
         LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
         LOG.info("Crawler {}",
-                (getState().isStopped() ? "stopped." : "completed."));
-        super.close();
-    }
-
-    @Override
-    public boolean isClient() {
-        return true;
+                (crawlerContext.getState().isStopped() ? "stopped."
+                        : "completed."));
+        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
+        crawlerContext.close();
     }
 }

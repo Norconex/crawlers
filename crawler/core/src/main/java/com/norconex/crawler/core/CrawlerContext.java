@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core;
 
+import static java.util.Optional.ofNullable;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableRunnable;
 import org.slf4j.MDC;
 
+import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
@@ -34,19 +37,21 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.process.DocProcessingLedger;
 import com.norconex.crawler.core.util.LogUtil;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 //TODO maybe rename to Crawler and have server side be CrawlerNode?
 
 /**
  * <p>
- * Base crawler class holding contextual properties for running the crawler or
+ * Crawler class holding state properties required for running the crawler or
  * crawler tasks.
  * </p>
  * <h3>JMX Support</h3>
@@ -63,13 +68,16 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @Getter
 @Slf4j
-public abstract class CrawlerContext implements Closeable {
+public class CrawlerContext implements Closeable {
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
 
     // Set in constructor
     private final CrawlerConfig configuration;
-    private final Class<? extends CrawlerBuilderFactory> builderFactoryClass;
+
+    // NEEDED?
+    private final Class<? extends CrawlerSpecProvider> specProviderClass;
+
     private final BeanMapper beanMapper;
     private final Class<? extends CrawlDocContext> docContextType;
     private final EventManager eventManager;
@@ -87,22 +95,79 @@ public abstract class CrawlerContext implements Closeable {
     private final CrawlerState state = new CrawlerState();
     private CrawlerMetrics metrics = new CrawlerMetrics();
 
-    protected CrawlerContext(CrawlerBuilder b,
-            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
-        configuration = b.configuration();
-        beanMapper = b.beanMapper();
-        this.builderFactoryClass = builderFactoryClass;
-        docContextType = b.docContextType();
-        callbacks = b.callbacks();
-        eventManager = new EventManager(b.eventManager());
+    //    protected CrawlerContext(CrawlerSpec spec,
+    //            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
+    //        configuration = spec.configuration();
+    //        beanMapper = spec.beanMapper();
+    //        this.builderFactoryClass = builderFactoryClass;
+    //        docContextType = spec.docContextType();
+    //        callbacks = spec.callbacks();
+    //        eventManager = new EventManager(spec.eventManager());
+    //    }
+
+    @Getter(value = AccessLevel.PROTECTED)
+    private final CrawlerSpec crawlerSpec;
+
+    public CrawlerContext(CrawlerContext ctx) {
+        configuration = ctx.getConfiguration();
+        beanMapper = ctx.getBeanMapper();
+        specProviderClass = ctx.getSpecProviderClass();
+        docContextType = ctx.getDocContextType();
+        callbacks = ctx.getCallbacks();
+        eventManager =
+                ofNullable(ctx.getEventManager()).orElse(new EventManager()); // new EventManager(ctx.getEventManager());
+        crawlerSpec = ctx.getCrawlerSpec();
     }
+
+    public CrawlerContext(
+            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
+            CrawlerConfig crawlerConfig) {
+        var spec = ClassUtil.newInstance(specProviderClass).get();
+        crawlerSpec = spec;
+        configuration = ofNullable(crawlerConfig).orElseGet(
+                () -> ClassUtil.newInstance(spec.crawlerConfigClass()));
+        //        configuration = spec.configuration();
+
+        beanMapper = spec.beanMapper();
+        this.specProviderClass = specProviderClass;
+        docContextType = spec.docContextType();
+        callbacks = spec.callbacks();
+        eventManager =
+                ofNullable(spec.eventManager()).orElse(new EventManager());//new EventManager(spec.eventManager());
+    }
+
+    //    public CrawlerContext(
+    //            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass) {
+    //        this(ClassUtil.newInstance(specProviderClass));
+    //    }
+    //
+    //    protected CrawlerContext(@NonNull CrawlerSpecProvider specProvider) {
+    //        // Make sure we can create new instances
+    //        var specProvClass = specProvider.getClass();
+    //        try {
+    //            specProvClass.getConstructor();
+    //        } catch (NoSuchMethodException e) {
+    //            throw new CrawlerException("Implementation of CrawlerSpecProvider "
+    //                    + "class must have a public no-argument constructor.", e);
+    //        }
+    //        var spec = specProvider.get();
+    //        crawlerSpec = spec;
+    //        configuration = spec.configuration();
+    //        beanMapper = spec.beanMapper();
+    //        specProviderClass = specProvClass;
+    //        docContextType = spec.docContextType();
+    //        callbacks = spec.callbacks();
+    //        eventManager = new EventManager(spec.eventManager());
+    //    }
 
     /**
      * Whether this code is running on a client node or server node.
      * Relevant in a clustered environment.
      * @return <code>true</code> if on a client node
      */
-    public abstract boolean isClient();
+    public boolean isClient() {
+        return true;
+    }
 
     public void init() {
         // NOTE: order matters
@@ -122,7 +187,7 @@ public abstract class CrawlerContext implements Closeable {
 
         metrics.init(this);
 
-        if (Boolean.getBoolean(CrawlerTaskContext.SYS_PROP_ENABLE_JMX)) {
+        if (Boolean.getBoolean(TaskContext.SYS_PROP_ENABLE_JMX)) {
             CrawlerMetricsJMX.register(this);
             LOG.info("JMX support enabled.");
         } else {
@@ -150,7 +215,7 @@ public abstract class CrawlerContext implements Closeable {
 
     @Override
     public void close() {
-        if (Boolean.getBoolean(CrawlerTaskContext.SYS_PROP_ENABLE_JMX)) {
+        if (Boolean.getBoolean(TaskContext.SYS_PROP_ENABLE_JMX)) {
             LOG.info("Unregistering JMX crawler MBeans.");
             safeClose(() -> CrawlerMetricsJMX.unregister(this));
         }

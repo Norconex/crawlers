@@ -43,7 +43,7 @@ class CommonAttribsResolutionStageTest {
                         </html>
                         """);
         var ctx = new ImporterPipelineContext(
-                CrawlerStubs.memoryCrawler(Path.of(".")), doc);
+                CrawlerStubs.memoryTaskContext(Path.of(".")), doc);
         new CommonAttribsResolutionStage().test(ctx);
 
         assertThat(doc.getDocContext().getCharset()).isEqualTo(UTF_8);

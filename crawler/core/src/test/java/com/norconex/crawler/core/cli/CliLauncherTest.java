@@ -28,7 +28,7 @@ import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.crawler.core.MemoryCrawlerBuilderFactory;
+import com.norconex.crawler.core.MemoryCrawlerSpecProvider;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
@@ -81,7 +81,7 @@ class CliLauncherTest {
         // Simulate Picocli Exception
         var captured = SystemUtil.callAndCaptureOutput(
                 () -> CliCrawlerLauncher.launch(
-                        MemoryCrawlerBuilderFactory.class,
+                        MemoryCrawlerSpecProvider.class,
                         "clean", "-config=", "-config="));
         assertThat(captured.getReturnValue()).isNotZero();
         assertThat(captured.getStdErr()).contains(
@@ -206,12 +206,12 @@ class CliLauncherTest {
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_INIT_END,
-                CrawlerEvent.CRAWLER_RUN_BEGIN,
+                CrawlerEvent.CRAWLER_CRAWL_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                CrawlerEvent.CRAWLER_RUN_END,
+                CrawlerEvent.CRAWLER_CRAWL_END,
                 CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
@@ -251,12 +251,12 @@ class CliLauncherTest {
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_INIT_END,
-                CrawlerEvent.CRAWLER_RUN_BEGIN,
+                CrawlerEvent.CRAWLER_CRAWL_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                CrawlerEvent.CRAWLER_RUN_END,
+                CrawlerEvent.CRAWLER_CRAWL_END,
                 CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,

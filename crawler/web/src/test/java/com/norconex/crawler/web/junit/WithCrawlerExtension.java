@@ -90,12 +90,20 @@ class WithCrawlerExtension implements
             crawler.crawl();
         } else {
             //            CrawlerCoreTestUtil.initCrawler(crawler);
-            crawler.init();
+            //            crawler.init();
+            crawler.getCrawlerContext().init();
+
             //            GridCrawlerTaskExecutor.initLocalCrawler(crawler);
-            crawler.fire(
+            //            crawler.fire(
+            //                    CrawlerEvent
+            //                            .builder()
+            //                            .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
+            //                            .source(crawler)
+            //                            .build());
+            crawler.getCrawlerContext().fire(
                     CrawlerEvent
                             .builder()
-                            .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
+                            .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
                             .source(crawler)
                             .build());
         }
@@ -106,16 +114,17 @@ class WithCrawlerExtension implements
         // End session
         var crawler = (Crawler) context.getStore(GLOBAL).remove(CRAWLER_KEY);
 
-        crawler.fire(
+        crawler.getCrawlerContext().fire(
                 CrawlerEvent
                         .builder()
-                        .name(CrawlerEvent.CRAWLER_RUN_END)
+                        .name(CrawlerEvent.CRAWLER_CRAWL_END)
                         .source(crawler)
                         .build());
 
         // if not already ended normally, stop it.
-        if (crawler != null && !crawler.getState().isTerminatedProperly()) {
-            crawler.close();
+        if (crawler != null && !crawler.getCrawlerContext().getState()
+                .isTerminatedProperly()) {
+            crawler.getCrawlerContext().close();
             //            GridCrawlerTaskExecutor.shutdownLocalCrawler(crawler);
 
             //            CrawlerCoreTestUtil.destroyCrawler(crawler);
@@ -186,7 +195,8 @@ class WithCrawlerExtension implements
     private Optional<MemoryCommitter> firstCommitter(
             ExtensionContext extensionContext) {
         return crawler(extensionContext)
-                .map(crwl -> crwl.getConfiguration().getCommitters())
+                .map(crwl -> crwl.getCrawlerContext().getConfiguration()
+                        .getCommitters())
                 .filter(cmtrs -> !cmtrs.isEmpty())
                 .map(cmtrs -> cmtrs.get(0))
                 .map(MemoryCommitter.class::cast);

@@ -41,12 +41,12 @@ class FileFetcherProviderTest {
 
         var crawler = FsCrawler.create(crawlerCfg);
 
-        assertThat(p.apply(crawler).getFetchers())
+        assertThat(p.apply(crawler.getCrawlerContext()).getFetchers())
                 .containsExactly(new LocalFetcher()); // default fetcher
 
         crawlerCfg.setFetchers(List.of(new HdfsFetcher(), new SmbFetcher()));
         crawler = FsCrawler.create(crawlerCfg);
-        assertThat(p.apply(crawler).getFetchers())
+        assertThat(p.apply(crawler.getCrawlerContext()).getFetchers())
                 .containsExactly(new HdfsFetcher(), new SmbFetcher());
     }
 }

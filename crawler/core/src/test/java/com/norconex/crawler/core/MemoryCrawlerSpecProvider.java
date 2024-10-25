@@ -15,17 +15,13 @@
 package com.norconex.crawler.core;
 
 import com.norconex.crawler.core.mocks.MockFetcher;
-import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
 import com.norconex.crawler.core.stubs.PipelineStubs;
 
-//TODO if only used in CliLauncher, maybe we won't need it... since
-// it is only to test exception being thrown.
-public class MemoryCrawlerBuilderFactory implements CrawlerBuilderFactory {
+public class MemoryCrawlerSpecProvider implements CrawlerSpecProvider {
 
     @Override
-    public CrawlerBuilder create() {
-        return new CrawlerBuilder()
-                .configuration(CrawlerConfigStubs.memoryCrawlerConfig(null))
+    public CrawlerSpec get() {
+        return new CrawlerSpec()
                 .fetcherProvider(crawler -> new MockFetcher())
                 .docPipelines(PipelineStubs.pipelines());
     }

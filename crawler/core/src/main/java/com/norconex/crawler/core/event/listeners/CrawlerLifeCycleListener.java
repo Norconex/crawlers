@@ -37,11 +37,16 @@ public abstract class CrawlerLifeCycleListener
             onCrawlerInitBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_INIT_END)) {
             onCrawlerInitEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
-            onCrawlerRunBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
-            onCrawlerRunEnd(event);
+        } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            onCrawlerCrawlBegin(event);
+        } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
+            onCrawlerCrawlEnd(event);
             onCrawlerShutdown(event);
+        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
+            onTaskRunBegin(event);
+        } else if (event.is(CrawlerEvent.TASK_RUN_END)) {
+            onTaskRunEnd(event);
+            onTaskShutdown(event);
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)) {
             onCrawlerRunThreadBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)) {
@@ -64,7 +69,7 @@ public abstract class CrawlerLifeCycleListener
 
     /**
      * Triggered when a crawler is ending its execution on either
-     * a {@link CrawlerEvent#CRAWLER_RUN_END} or
+     * a {@link CrawlerEvent#CRAWLER_CRAWL_END} or
      * {@link CrawlerEvent#CRAWLER_STOP_END} event.
      * @param event crawler event
      */
@@ -80,11 +85,23 @@ public abstract class CrawlerLifeCycleListener
         //NOOP
     }
 
-    protected void onCrawlerRunBegin(CrawlerEvent event) {
+    protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         //NOOP
     }
 
-    protected void onCrawlerRunEnd(CrawlerEvent event) {
+    protected void onCrawlerCrawlEnd(CrawlerEvent event) {
+        //NOOP
+    }
+
+    private void onTaskRunEnd(CrawlerEvent event) {
+        //NOOP
+    }
+
+    private void onTaskRunBegin(CrawlerEvent event) {
+        //NOOP
+    }
+
+    private void onTaskShutdown(CrawlerEvent event) {
         //NOOP
     }
 

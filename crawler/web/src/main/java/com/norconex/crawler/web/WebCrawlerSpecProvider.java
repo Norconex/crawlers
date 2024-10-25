@@ -14,23 +14,24 @@
  */
 package com.norconex.crawler.web;
 
-import com.norconex.crawler.core.CrawlerBuilder;
-import com.norconex.crawler.core.CrawlerBuilderFactory;
+import com.norconex.crawler.core.CrawlerSpec;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
 
-public class WebCrawlerBuilderFactory implements CrawlerBuilderFactory {
+public class WebCrawlerSpecProvider implements CrawlerSpecProvider {
 
     @Override
-    public CrawlerBuilder create() {
-        return new CrawlerBuilder()
-                .configuration(new WebCrawlerConfig())
+    public CrawlerSpec get() {
+        return new CrawlerSpec()
+                .crawlerConfigClass(WebCrawlerConfig.class)
+                //                .configuration(new WebCrawlerConfig())
                 .fetcherProvider(new HttpFetcherProvider())
                 .callbacks(WebCrawlerCallbacks.get())
                 .docPipelines(WebDocPipelines.get())
                 .docContextType(WebCrawlDocContext.class)
-                .context(new WebCrawlerSessionAttributes());
+                .attributes(new WebCrawlerSessionAttributes());
     }
 }

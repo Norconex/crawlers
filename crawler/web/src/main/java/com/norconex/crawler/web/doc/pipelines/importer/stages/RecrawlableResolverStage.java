@@ -39,7 +39,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
             return true;
         }
 
-        var rr = Web.config(ctx.getCrawler()).getRecrawlableResolver();
+        var rr = Web.config(ctx.getTaskContext()).getRecrawlableResolver();
         if (rr == null) {
             // no resolver means we process it.
             return true;
@@ -60,10 +60,10 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
                         "{} is not ready to be recrawled, skipping it.",
                         cachedInfo.getReference());
             }
-            ctx.getCrawler().fire(
+            ctx.getTaskContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_PREMATURE)
-                            .source(ctx.getCrawler())
+                            .source(ctx.getTaskContext())
                             .subject(rr)
                             .docContext(ctx.getDoc().getDocContext())
                             .build());

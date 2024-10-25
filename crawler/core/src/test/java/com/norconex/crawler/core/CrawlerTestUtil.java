@@ -25,7 +25,7 @@ import org.junit.platform.commons.JUnitException;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -47,19 +47,19 @@ public final class CrawlerTestUtil {
     private CrawlerTestUtil() {
     }
 
-    public static void initCrawler(CrawlerTaskContext crawler) {
+    public static void initCrawler(TaskContext crawler) {
         //        GridCrawlerTaskExecutor.initLocalCrawler(crawler);
         //        CrawlerCommandExecuter.init(new CommandExecution(crawler, "TEST"));
     }
 
-    public static void destroyCrawler(CrawlerTaskContext crawler) {
+    public static void destroyCrawler(TaskContext crawler) {
         //        GridCrawlerTaskExecutor.shutdownLocalCrawler(crawler);
         //        CrawlerCommandExecuter.orderlyShutdown(
         //                new CommandExecution(crawler, "TEST"));
     }
 
     public static MemoryCommitter firstCommitter(
-            @NonNull CrawlerTaskContext crawler) {
+            @NonNull TaskContext crawler) {
         return (MemoryCommitter) crawler.getConfiguration().getCommitters()
                 .get(0);
     }
@@ -75,7 +75,7 @@ public final class CrawlerTestUtil {
         //        return CrawlerTestUtil.firstCommitter(crawler);
     }
 
-    public static void dumpStoreKeys(CrawlerTaskContext crawler) {
+    public static void dumpStoreKeys(TaskContext crawler) {
         //        initCrawler(crawler);
         //        var engine = crawler.getDataStoreEngine();
         //        System.err.println("KEY DUMP FOR ALL STORES:");
@@ -96,7 +96,7 @@ public final class CrawlerTestUtil {
             @NonNull Path workDir,
             Consumer<CrawlerConfig> configModifier,
             @NonNull FailableRunnable<Exception> runnable) {
-        var crawler = CrawlerStubs.memoryCrawler(workDir, configModifier);
+        var crawler = CrawlerStubs.memoryTaskContext(workDir, configModifier);
         initCrawler(crawler);
         try {
             runnable.run();

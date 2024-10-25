@@ -33,7 +33,7 @@ class CrawlerLaunchTest {
         //        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
         System.setProperty("tempDir", tempDir.toString());
         var exitVal = CliCrawlerLauncher.launch(
-                MemoryCrawlerBuilderFactory.class,
+                MemoryCrawlerSpecProvider.class,
                 "start",
                 "-config=./src/test/resources/memoryCrawler.yaml");
         assertThat(exitVal).isZero();

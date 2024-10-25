@@ -17,7 +17,7 @@ package com.norconex.crawler.core.tasks.crawl.process;
 import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.tasks.crawl.process.DocsProcessor.ProcessFlags;
 
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 class OrphanDocsProcessor {
 
-    private final CrawlerTaskContext crawler;
+    private final TaskContext crawler;
     private final DocsProcessor docProcessor;
     private final DocProcessingLedger ledger;
 

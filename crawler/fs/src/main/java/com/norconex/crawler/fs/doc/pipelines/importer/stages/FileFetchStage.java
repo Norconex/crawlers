@@ -59,7 +59,7 @@ public class FileFetchStage extends AbstractImporterStage {
         }
 
         var docRecord = (FsCrawlDocContext) ctx.getDoc().getDocContext();
-        var fetcher = (FileFetcher) ctx.getCrawler().getFetcher();
+        var fetcher = (FileFetcher) ctx.getTaskContext().getFetcher();
         FileFetchResponse response;
         try {
             response = fetcher.fetch(
@@ -87,14 +87,14 @@ public class FileFetchStage extends AbstractImporterStage {
         docRecord.setState(state);
 
         if (state.isGoodState()) {
-            ctx.getCrawler().fire(
+            ctx.getTaskContext().fire(
                     CrawlerEvent.builder()
                             .name(
                                     FetchDirective.METADATA.is(
                                             getFetchDirective())
                                                     ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
                                                     : CrawlerEvent.DOCUMENT_FETCHED)
-                            .source(ctx.getCrawler())
+                            .source(ctx.getTaskContext())
                             .subject(response)
                             .docContext(docRecord)
                             .build());
@@ -108,10 +108,10 @@ public class FileFetchStage extends AbstractImporterStage {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
 
-        ctx.getCrawler().fire(
+        ctx.getTaskContext().fire(
                 CrawlerEvent.builder()
                         .name(eventType)
-                        .source(ctx.getCrawler())
+                        .source(ctx.getTaskContext())
                         .subject(response)
                         .docContext(docRecord)
                         .build());
@@ -120,6 +120,7 @@ public class FileFetchStage extends AbstractImporterStage {
         // In either case, whether we break the pipeline or not (returning
         // false or true) depends on http fetch methods supported.
         return FetchUtil.shouldContinueOnBadStatus(
-                ctx.getCrawler(), originalCrawlDocState, getFetchDirective());
+                ctx.getTaskContext(), originalCrawlDocState,
+                getFetchDirective());
     }
 }

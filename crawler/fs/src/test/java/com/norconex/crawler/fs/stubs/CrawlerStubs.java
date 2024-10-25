@@ -17,11 +17,12 @@ package com.norconex.crawler.fs.stubs;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
+import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.fs.FsCrawler;
-import com.norconex.crawler.fs.FsCrawlerBuilderFactory;
+import com.norconex.crawler.fs.FsCrawlerSpecProvider;
 
 public final class CrawlerStubs {
 
@@ -49,27 +50,39 @@ public final class CrawlerStubs {
         //        return memoryCrawlerBuilder(workDir, c).build();
     }
 
-    public static CrawlerTaskContext memoryCrawlerTaskContext(Path workDir) {
-        return memoryCrawlerTaskContext(workDir, null);
+    public static TaskContext memoryTaskContext(
+            Path workDir, CrawlerConfig config) {
+        var memConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
+        if (config != null) {
+            BeanUtil.copyProperties(memConfig, config);
+        }
+        var context = new TaskContext(FsCrawlerSpecProvider.class, memConfig);
+        context.getConfiguration().setWorkDir(workDir);
+        return context;
     }
 
-    public static CrawlerTaskContext memoryCrawlerTaskContext(
+    public static TaskContext memoryTaskContext(Path workDir) {
+        return memoryTaskContext(workDir, (CrawlerConfig) null);
+    }
+
+    public static TaskContext memoryTaskContext(
             Path workDir, Consumer<CrawlerConfig> c) {
         var crawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(crawlerConfig);
         }
 
-        return CrawlerTaskContext.create(FsCrawlerBuilderFactory.class, b -> {
-            b.configuration(crawlerConfig);
-        });
+        return memoryTaskContext(workDir, crawlerConfig);
+        //        return TaskContext.create(FsCrawlerSpecProvider.class, b -> {
+        //            b.configuration(crawlerConfig);
+        //        });
     }
 
-    //    public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
+    //    public static CrawlerSpec memoryCrawlerBuilder(Path workDir) {
     //        return memoryCrawlerBuilder(workDir, null);
     //    }
     //
-    //    public static CrawlerBuilder memoryCrawlerBuilder(
+    //    public static CrawlerSpec memoryCrawlerBuilder(
     //            Path workDir, Consumer<CrawlerConfig> c) {
     //        var b = SneakyFsCrawler
     //                .builder()
@@ -82,7 +95,7 @@ public final class CrawlerStubs {
     //    }
     //
     //    static class SneakyFsCrawler extends FsCrawler {
-    //        static CrawlerBuilder builder() {
+    //        static CrawlerSpec builder() {
     //            return crawlerBuilderSupplier.get();
     //        }
     //    }

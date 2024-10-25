@@ -21,7 +21,7 @@ import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
@@ -99,18 +99,22 @@ public abstract class AbstractFetcher<
         // Here we rely on session startup instead of
         // crawler startup to avoid being invoked multiple
         // times (once for each crawler)
-        if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
+
+        //TODO, also handle CRAWLER_CRAWL_[BEGIN|END] if we ever need
+        // fetcher on client side.
+
+        if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
             fetcherStartup((CrawlerContext) event.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
-            fetcherShutdown((CrawlerTaskContext) event.getSource());
+        } else if (event.is(CrawlerEvent.TASK_RUN_END)) {
+            fetcherShutdown((TaskContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadBegin((CrawlerTaskContext) event.getSource());
+            fetcherThreadBegin((TaskContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadEnd((CrawlerTaskContext) event.getSource());
+            fetcherThreadEnd((TaskContext) event.getSource());
         }
     }
 

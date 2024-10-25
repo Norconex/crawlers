@@ -41,7 +41,7 @@ class MetadataChecksumStageTest {
     void testMetadataChecksumStage() {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
         crawler.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 
@@ -76,7 +76,7 @@ class MetadataChecksumStageTest {
         var meta = new Properties();
         meta.add("key", "value");
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
+        var crawler = CrawlerStubs.memoryTaskContext(tempDir, cfg -> {
             cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED)
                     .setMetadataChecksummer(checksummer);
         });

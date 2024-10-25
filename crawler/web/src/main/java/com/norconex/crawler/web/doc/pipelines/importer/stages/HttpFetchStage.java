@@ -62,7 +62,7 @@ public class HttpFetchStage extends AbstractImporterStage {
         }
 
         var docRecord = ctx.getDoc().getDocContext();
-        var fetcher = (HttpFetcher) ctx.getCrawler().getFetcher();
+        var fetcher = (HttpFetcher) ctx.getTaskContext().getFetcher();
 
         var httpMethod = FetchDirective.METADATA.is(getFetchDirective())
                 ? HttpMethod.HEAD
@@ -103,24 +103,24 @@ public class HttpFetchStage extends AbstractImporterStage {
         //TODO really do here??  or just do it if different than response?
         docRecord.setState(state);
         if (CrawlDocState.UNMODIFIED.equals(state)) {
-            ctx.getCrawler().fire(
+            ctx.getTaskContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                            .source(ctx.getCrawler())
+                            .source(ctx.getTaskContext())
                             .subject(response)
                             .docContext(docRecord)
                             .build());
             return false;
         }
         if (state.isGoodState()) {
-            ctx.getCrawler().fire(
+            ctx.getTaskContext().fire(
                     CrawlerEvent.builder()
                             .name(
                                     FetchDirective.METADATA
                                             .is(getFetchDirective())
                                                     ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
                                                     : CrawlerEvent.DOCUMENT_FETCHED)
-                            .source(ctx.getCrawler())
+                            .source(ctx.getTaskContext())
                             .subject(response)
                             .docContext(docRecord)
                             .build());
@@ -134,10 +134,10 @@ public class HttpFetchStage extends AbstractImporterStage {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
 
-        ctx.getCrawler().fire(
+        ctx.getTaskContext().fire(
                 CrawlerEvent.builder()
                         .name(eventType)
-                        .source(ctx.getCrawler())
+                        .source(ctx.getTaskContext())
                         .subject(response)
                         .docContext(docRecord)
                         .build());
@@ -146,6 +146,7 @@ public class HttpFetchStage extends AbstractImporterStage {
         // In either case, whether we break the pipeline or not (returning
         // false or true) depends on the fetch directives supported.
         return FetchUtil.shouldContinueOnBadStatus(
-                ctx.getCrawler(), originalCrawlDocState, getFetchDirective());
+                ctx.getTaskContext(), originalCrawlDocState,
+                getFetchDirective());
     }
 }

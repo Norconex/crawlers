@@ -62,7 +62,7 @@ public class CliConfigRender extends CliBase {
     //    private int indent = 2;
 
     @Override
-    public void runCommand(Crawler crawlerClient) {
+    public void runCommand(Crawler crawler) {
         //TODO support different format, either explicit, on file extension
         // or default to XML
         try (var out = output != null
@@ -75,8 +75,8 @@ public class CliConfigRender extends CliBase {
                     .findFirst()
                     .orElse(Format.JSON);
 
-            crawlerClient.getBeanMapper().write(
-                    crawlerClient.getConfiguration(),
+            crawler.getCrawlerContext().getBeanMapper().write(
+                    crawler.getCrawlerContext().getConfiguration(),
                     out,
                     f);
             if (output == null) {

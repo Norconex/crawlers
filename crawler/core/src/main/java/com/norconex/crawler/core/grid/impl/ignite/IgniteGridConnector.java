@@ -56,8 +56,10 @@ public class IgniteGridConnector
         var globalCache = igniteInstance.get()
                 .getOrCreateCache(IgniteGridKeys.GLOBAL_CACHE);
         globalCache.put(IgniteGridKeys.CRAWLER_CONFIG, crawlerCfgStr);
-        globalCache.put(IgniteGridKeys.CRAWLER_BUILDER_FACTORY_CLASS,
-                crawlerContext.getBuilderFactoryClass().getName());
+        globalCache.put(IgniteGridKeys.CRAWLER_SPEC_PROVIDER_CLASS,
+                crawlerContext.getSpecProviderClass().getName());
+        //        globalCache.put(IgniteGridKeys.CRAWLER_CONFIG_CLASS,
+        //                crawlerContext.getConfiguration().getClass());
 
         igniteInstance.get().getOrCreateCache(IgniteGridKeys.RUN_ONCE_CACHE)
                 .clear();

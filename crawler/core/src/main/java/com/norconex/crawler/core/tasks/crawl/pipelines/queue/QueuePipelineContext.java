@@ -15,7 +15,7 @@
 package com.norconex.crawler.core.tasks.crawl.pipelines.queue;
 
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.Data;
 
@@ -28,6 +28,6 @@ import lombok.Data;
  */
 @Data
 public class QueuePipelineContext {
-    private final CrawlerTaskContext crawler;
+    private final TaskContext crawler;
     private final CrawlDocContext docContext;
 }

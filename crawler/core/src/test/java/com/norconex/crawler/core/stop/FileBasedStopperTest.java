@@ -48,7 +48,7 @@ class FileBasedStopperTest {
         //                    if (CrawlerEvent.CRAWLER_INIT_END.equals(ev.getName())) {
         //                        receiver.listenForStopRequest(crawler);
         //                        isRunning.setValue(true);
-        //                    } else if (CrawlerEvent.CRAWLER_RUN_BEGIN.equals(
+        //                    } else if (CrawlerEvent.CRAWLER_CRAWL_BEGIN.equals(
         //                            ev.getName())) {
         //                        emmitter.fireStopRequest(crawler);
         //                    } else if (CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN.equals(

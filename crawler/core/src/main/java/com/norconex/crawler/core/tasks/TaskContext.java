@@ -27,12 +27,10 @@ import com.norconex.committer.core.service.CommitterService;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
-import com.norconex.crawler.core.CrawlerBuilder;
-import com.norconex.crawler.core.CrawlerBuilderFactory;
-import com.norconex.crawler.core.CrawlerBuilderModifier;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSessionAttributes;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -60,9 +58,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @EqualsAndHashCode
 @Getter
-public class CrawlerTaskContext extends CrawlerContext {
+public class TaskContext extends CrawlerContext {
 
-    private static final InheritableThreadLocal<CrawlerTaskContext> INSTANCE =
+    //TODO add constructor taking CrawlerContext as an option to initialize
+    // and at that point, the init on the initial crawler context
+    // would have been called already.. so only do if not invoked form this
+    // new constructor
+
+    private static final InheritableThreadLocal<TaskContext> INSTANCE =
             new InheritableThreadLocal<>();
 
     // --- Set in constructor ---
@@ -87,11 +90,33 @@ public class CrawlerTaskContext extends CrawlerContext {
     //    Path tempDir; //TODO <-- we want to keep this? use ignite store instead?
     //    CachedStreamFactory streamFactory;
 
-    CrawlerTaskContext(CrawlerBuilder b,
-            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
-        super(b, builderFactoryClass);
+    //    public TaskContext(
+    //            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass) {
+    //        this(ClassUtil.newInstance(specProviderClass).get());
+    //    }
+    //
+    //    private TaskContext(@NonNull CrawlerSpec spec) {
+    //        this(ClassUtil.newInstance(specProviderClass).get());
+    //    }
 
-        attributes = b.context();
+    public TaskContext(
+            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
+            CrawlerConfig crawlerConfig) {
+        this(new CrawlerContext(specProviderClass, crawlerConfig));
+    }
+
+    //    protected TaskContext(
+    //            @NonNull CrawlerSpecProvider specProvider) {
+    //        this(new CrawlerContext(specProvider));
+    //    }
+
+    @SuppressWarnings("resource")
+    public TaskContext(CrawlerContext ctx) {
+        super(ctx);
+
+        var spec = getCrawlerSpec();
+
+        attributes = spec.attributes();
         committerService = CommitterService
                 .<CrawlDoc>builder()
                 .committers(getConfiguration().getCommitters())
@@ -108,25 +133,25 @@ public class CrawlerTaskContext extends CrawlerContext {
         importer = new Importer(
                 getConfiguration().getImporterConfig(),
                 getEventManager());
-        fetcher = b.fetcherProvider().apply(this);
-        docPipelines = b.docPipelines();
+        fetcher = spec.fetcherProvider().apply(this);
+        docPipelines = spec.docPipelines();
     }
 
-    public static CrawlerTaskContext create(
-            @NonNull Class<CrawlerBuilderFactory> builderFactoryClass) {
-        return create(builderFactoryClass, null);
-    }
-
-    public static CrawlerTaskContext create(
-            @NonNull Class<? extends CrawlerBuilderFactory> builderFactoryClass,
-            CrawlerBuilderModifier builderModifier) {
-        var factory = ClassUtil.newInstance(builderFactoryClass);
-        var builder = factory.create();
-        if (builderModifier != null) {
-            builderModifier.modify(builder);
-        }
-        return new CrawlerTaskContext(builder, builderFactoryClass);
-    }
+    //        public static TaskContext create(
+    //                @NonNull Class<CrawlerBuilderFactory> builderFactoryClass) {
+    //            return create(builderFactoryClass, null);
+    //        }
+    //
+    //    public static TaskContext create(
+    //            @NonNull Class<? extends CrawlerBuilderFactory> builderFactoryClass,
+    //            CrawlerBuilderModifier builderModifier) {
+    //        var factory = ClassUtil.newInstance(builderFactoryClass);
+    //        var builder = factory.create();
+    //        if (builderModifier != null) {
+    //            builderModifier.modify(builder);
+    //        }
+    //        return new TaskContext(builder, builderFactoryClass);
+    //    }
 
     public CrawlDocContext newDocContext(@NonNull String reference) {
         var docContext = ClassUtil.newInstance(getDocContextType());
@@ -147,7 +172,7 @@ public class CrawlerTaskContext extends CrawlerContext {
      *
      * @return a crawler instance
      */
-    public static CrawlerTaskContext get() {
+    public static TaskContext get() {
         var cs = INSTANCE.get();
         if (cs == null) {
             throw new IllegalStateException("Crawler is not initialized.");
@@ -160,7 +185,7 @@ public class CrawlerTaskContext extends CrawlerContext {
     // local init...
     @Override
     public void init() {
-        fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+        fire(CrawlerEvent.TASK_CONTEXT_INIT_BEGIN);
         super.init();
         //TODO differentiate between CRAWLER_* events and CRAWLER_TASK_* events?
 
@@ -196,12 +221,12 @@ public class CrawlerTaskContext extends CrawlerContext {
 
         getStopper().listenForStopRequest(this);
 
-        fire(CrawlerEvent.CRAWLER_INIT_END);
+        fire(CrawlerEvent.TASK_CONTEXT_INIT_END);
     }
 
     @Override
     public void close() {
-        fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
+        fire(CrawlerEvent.TASK_CONTEXT_SHUTDOWN_BEGIN);
         try {
             // Defer shutdown
             safeClose(() -> Optional.ofNullable(
@@ -236,7 +261,7 @@ public class CrawlerTaskContext extends CrawlerContext {
             safeClose(() -> getState().setTerminatedProperly(true));
             safeClose(() -> getStopper().destroy());
             safeClose(super::close);
-            fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
+            fire(CrawlerEvent.TASK_CONTEXT_SHUTDOWN_END);
         }
     }
 

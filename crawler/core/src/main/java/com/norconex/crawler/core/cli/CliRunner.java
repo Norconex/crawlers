@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.CrawlerBuilderFactory;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.commons.lang.ClassUtil;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.util.About;
 
 import lombok.EqualsAndHashCode;
@@ -72,8 +72,7 @@ public class CliRunner implements Runnable {
     //      private final Crawler crawler;
     @Getter
     @NonNull
-    private final Class<
-            ? extends CrawlerBuilderFactory> crawlerBuilderFactoryClass;
+    private final Class<? extends CrawlerSpecProvider> specProviderClass;
     //    private final CrawlerConfig crawlerConfig; //TODO pass Class instead? Or builder with Class on it?
 
     //    @NonNull
@@ -97,10 +96,14 @@ public class CliRunner implements Runnable {
     @Override
     public void run() {
         if (version) {
-            CrawlerTaskContext.create(crawlerBuilderFactoryClass, b -> {
-                spec.commandLine().getOut().println(
-                        About.about(b.configuration(), false));
-            });
+
+            ClassUtil.newInstance(specProviderClass).get();
+            About.about(null);
+
+            //            TaskContext.create(crawlerBuilderFactoryClass, b -> {
+            //                spec.commandLine().getOut().println(
+            //                        About.about(b.configuration(), false));
+            //            });
         }
     }
 

@@ -14,12 +14,12 @@
  */
 package com.norconex.crawler.core.stop;
 
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 
 /**
  * <p>
  * Responsible for shutting down a crawl session upon explicit invocation
- * of {@link #fireStopRequest(CrawlerTaskContext)} or when specific conditions are
+ * of {@link #fireStopRequest(TaskContext)} or when specific conditions are
  * met.
  * See concrete implementation for what those conditions could be.
  * </p>
@@ -37,7 +37,7 @@ public interface CrawlerStopper {
      * @param crawler the crawl session
      * @throws CrawlerStopperException could not listen to stop requests.
      */
-    void listenForStopRequest(CrawlerTaskContext crawler)
+    void listenForStopRequest(TaskContext crawler)
             throws CrawlerStopperException;
 
     /**
@@ -56,6 +56,6 @@ public interface CrawlerStopper {
      *     not running.
      * @throws CrawlerStopperException could not stop running crawl session.
      */
-    boolean fireStopRequest(CrawlerTaskContext crawler)
+    boolean fireStopRequest(TaskContext crawler)
             throws CrawlerStopperException;
 }

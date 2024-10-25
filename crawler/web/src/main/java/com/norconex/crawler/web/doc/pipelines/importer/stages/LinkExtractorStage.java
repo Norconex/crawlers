@@ -51,11 +51,11 @@ public class LinkExtractorStage extends AbstractImporterStage {
         var ctx = (WebImporterPipelineContext) context;
 
         var linkTypes =
-                Web.config(ctx.getCrawler()).getKeepReferencedLinks();
+                Web.config(ctx.getTaskContext()).getKeepReferencedLinks();
 
         // If the current page is the deepest allowed, only extract its URL
         // if configured to do so.
-        var maxDepth = Web.config(ctx.getCrawler()).getMaxDepth();
+        var maxDepth = Web.config(ctx.getTaskContext()).getMaxDepth();
         if (maxDepth != -1
                 && ctx.getDoc().getDocContext().getDepth() == maxDepth
                 && !linkTypes.contains(ReferencedLinkType.MAXDEPTH)) {
@@ -91,10 +91,10 @@ public class LinkExtractorStage extends AbstractImporterStage {
                     docLinks.outScope.toArray(EMPTY_STRING_ARRAY));
         }
 
-        ctx.getCrawler().fire(
+        ctx.getTaskContext().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.URLS_EXTRACTED)
-                        .source(ctx.getCrawler())
+                        .source(ctx.getTaskContext())
                         .subject(ctx.getDoc().getReference())
                         .docContext(ctx.getDoc().getDocContext())
                         .message(Integer.toString(docLinks.inScope.size()))
@@ -106,15 +106,17 @@ public class LinkExtractorStage extends AbstractImporterStage {
             WebImporterPipelineContext ctx,
             UniqueDocLinks docLinks, Link link) {
 
-        var linkTypes = Web.config(ctx.getCrawler()).getKeepReferencedLinks();
+        var linkTypes =
+                Web.config(ctx.getTaskContext()).getKeepReferencedLinks();
 
         try {
             String reference = ctx.getDoc().getDocContext().getReference();
 
             var scopedUrlCtx = new WebCrawlDocContext(link.getUrl());
-            var urlScope = Web.config(ctx.getCrawler())
+            var urlScope = Web.config(ctx.getTaskContext())
                     .getUrlScopeResolver().resolve(reference, scopedUrlCtx);
-            Web.fireIfUrlOutOfScope(ctx.getCrawler(), scopedUrlCtx, urlScope);
+            Web.fireIfUrlOutOfScope(ctx.getTaskContext(), scopedUrlCtx,
+                    urlScope);
             if (urlScope.isInScope()) {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace(
@@ -144,7 +146,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
 
     private Set<Link> extractLinks(WebImporterPipelineContext ctx) {
         String reference = ctx.getDoc().getDocContext().getReference();
-        var extractors = Web.config(ctx.getCrawler()).getLinkExtractors();
+        var extractors = Web.config(ctx.getTaskContext()).getLinkExtractors();
         if (extractors.isEmpty()) {
             LOG.debug(
                     "No configured link extractor.  No links will be "
@@ -197,10 +199,11 @@ public class LinkExtractorStage extends AbstractImporterStage {
             if (!link.getMetadata().isEmpty()) {
                 newURL.setReferrerLinkMetadata(link.getMetadata().toString());
             }
-            ctx.getCrawler()
+            ctx.getTaskContext()
                     .getDocPipelines()
                     .getQueuePipeline()
-                    .accept(new QueuePipelineContext(ctx.getCrawler(), newURL));
+                    .accept(new QueuePipelineContext(ctx.getTaskContext(),
+                            newURL));
             String afterQueueURL = newURL.getReference();
             if (LOG.isDebugEnabled() && !link.getUrl().equals(afterQueueURL)) {
                 LOG.debug(

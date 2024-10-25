@@ -39,7 +39,7 @@ class DocumentChecksumStageTest {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(
-                CrawlerStubs.memoryCrawler(tempDir), doc);
+                CrawlerStubs.memoryTaskContext(tempDir), doc);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
@@ -51,7 +51,7 @@ class DocumentChecksumStageTest {
     void testNoDocumentChecksummer() {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
         BeanMapper.DEFAULT.read(
                 crawler.getConfiguration(),
                 new StringReader("""
@@ -69,7 +69,7 @@ class DocumentChecksumStageTest {
 
     @Test
     void testRejectedUnmodified() {
-        var crawler = CrawlerStubs.memoryCrawler(tempDir);
+        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
 
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
         doc.getDocContext().setContentChecksum(crawler
@@ -83,7 +83,7 @@ class DocumentChecksumStageTest {
                 .createDocumentChecksum(doc));
 
         var ctx = new CommitterPipelineContext(
-                CrawlerStubs.memoryCrawler(tempDir), doc);
+                CrawlerStubs.memoryTaskContext(tempDir), doc);
 
         var stage = new DocumentChecksumStage();
         assertThat(stage.test(ctx)).isFalse();

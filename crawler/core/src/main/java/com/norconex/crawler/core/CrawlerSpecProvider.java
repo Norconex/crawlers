@@ -14,10 +14,11 @@
  */
 package com.norconex.crawler.core;
 
-public class SimpleCrawlerBuilderFactory implements CrawlerBuilderFactory {
-
-    @Override
-    public CrawlerBuilder create() {
-        return new CrawlerBuilder();
-    }
+/**
+ * Creates an initialized crawler builder, which can be further tuned
+ * as/if needed. Implementations must have a no-arguments public constructor.
+ */
+@FunctionalInterface
+public interface CrawlerSpecProvider {
+    CrawlerSpec get();
 }

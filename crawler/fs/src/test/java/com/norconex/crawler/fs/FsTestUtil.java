@@ -52,7 +52,7 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
@@ -233,13 +233,16 @@ public final class FsTestUtil {
     }
 
     public static MemoryCommitter
-            firstCommitter(@NonNull CrawlerTaskContext crawler) {
+            firstCommitter(@NonNull TaskContext crawler) {
         return (MemoryCommitter) crawler.getConfiguration().getCommitters()
                 .get(0);
     }
 
     public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
-        return (MemoryCommitter) crawler.getConfiguration().getCommitters()
+        return (MemoryCommitter) crawler
+                .getCrawlerContext()
+                .getConfiguration()
+                .getCommitters()
                 .get(0);
     }
 

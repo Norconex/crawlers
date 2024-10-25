@@ -45,7 +45,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -137,7 +137,7 @@ public class WebDriverHttpFetcher
         browser = configuration.getBrowser();
         if (c != null) {
             //TODO add to base CrawlerContext class instead of casting?
-            streamFactory = ((CrawlerTaskContext) c).getStreamFactory();
+            streamFactory = ((TaskContext) c).getStreamFactory();
         } else {
             streamFactory = new CachedStreamFactory();
         }

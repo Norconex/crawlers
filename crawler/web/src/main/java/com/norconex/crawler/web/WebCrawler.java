@@ -14,9 +14,8 @@
  */
 package com.norconex.crawler.web;
 
-import java.util.Optional;
-
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
@@ -52,7 +51,7 @@ public final class WebCrawler {
      * @return execution status code
      */
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(WebCrawlerBuilderFactory.class, args);
+        return CliCrawlerLauncher.launch(WebCrawlerSpecProvider.class, args);
     }
 
     /**
@@ -61,8 +60,11 @@ public final class WebCrawler {
      * @return crawler
      */
     public static Crawler create(WebCrawlerConfig crawlerConfig) {
-        return Crawler.create(WebCrawlerBuilderFactory.class, b -> 
-            b.configuration(Optional.ofNullable(crawlerConfig)
-                    .orElseGet(WebCrawlerConfig::new)));
+        var ctx =
+                new CrawlerContext(WebCrawlerSpecProvider.class, crawlerConfig);
+        return new Crawler(ctx);
+        //        return Crawler.create(WebCrawlerSpecProvider.class, b ->
+        //            b.configuration(Optional.ofNullable(crawlerConfig)
+        //                    .orElseGet(WebCrawlerConfig::new)));
     }
 }

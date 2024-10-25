@@ -14,10 +14,9 @@
  */
 package com.norconex.crawler.fs;
 
-import java.util.Optional;
-
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
 public final class FsCrawler {
@@ -41,13 +40,17 @@ public final class FsCrawler {
     }
 
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(FsCrawlerBuilderFactory.class, args);
+        return CliCrawlerLauncher.launch(FsCrawlerSpecProvider.class, args);
     }
 
     public static Crawler create(CrawlerConfig crawlerConfig) {
-        return Crawler.create(FsCrawlerBuilderFactory.class, b -> {
-            b.configuration(Optional.ofNullable(crawlerConfig)
-                    .orElseGet(CrawlerConfig::new));
-        });
+        var ctx =
+                new CrawlerContext(FsCrawlerSpecProvider.class, crawlerConfig);
+        return new Crawler(ctx);
+
+        //        return Crawler.create(FsCrawlerSpecProvider.class, b -> {
+        //            b.configuration(Optional.ofNullable(crawlerConfig)
+        //                    .orElseGet(CrawlerConfig::new));
+        //        });
     }
 }

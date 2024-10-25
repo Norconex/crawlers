@@ -30,7 +30,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.CrawlerTaskContext;
+import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.importer.doc.DocContext;
 
@@ -46,7 +46,7 @@ class DocProcessor implements Runnable {
 
     private final CountDownLatch latch;
     private final int threadIndex;
-    private final CrawlerTaskContext crawler;
+    private final TaskContext crawler;
     private final boolean deleting;
     private final boolean orphan;
     private final DocsProcessor crawlRunner;
