@@ -96,8 +96,9 @@ public class IgniteGridStorage implements GridStorage {
     @Override
     public <T> GridSet<T> getSet(
             String storeName, Class<? extends T> objectType) {
-        cacheObjectAndStoreTypes(storeName, objectType, GridQueue.class);
-        return new IgniteGridSet<>(igniteGridInstance.get(), storeName, objectType);
+        cacheObjectAndStoreTypes(storeName, objectType, GridSet.class);
+        return new IgniteGridSet<>(igniteGridInstance.get(), storeName,
+                objectType);
     }
 
     @JsonIgnore
@@ -150,7 +151,8 @@ public class IgniteGridStorage implements GridStorage {
             objectAndStoreTypes() {
         if (cacheObjectAndStoreTypes == null) {
             cacheObjectAndStoreTypes = new IgniteGridCache<>(
-                    igniteGridInstance.get(), STORE_TYPES_KEY, IgniteBiTuple.class);
+                    igniteGridInstance.get(), STORE_TYPES_KEY,
+                    IgniteBiTuple.class);
         }
         return cacheObjectAndStoreTypes;
     }

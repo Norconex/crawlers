@@ -16,13 +16,13 @@ package com.norconex.crawler.core.grid.impl.local;
 
 import java.nio.file.Path;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridStorage;
 import com.norconex.shaded.h2.mvstore.MVStore;
 
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
@@ -34,28 +34,36 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-@RequiredArgsConstructor
 public class LocalGrid implements Grid {
 
     private final Path storeDir;
     private final MVStore mvstore;
+    private final CrawlerContext crawlerContext;
+    private final LocalGridCompute gridCompute;
+    private final LocalGridStorage gridStorage;
+
+    public LocalGrid(
+            Path storeDir, MVStore mvstore, CrawlerContext crawlerContext) {
+        this.storeDir = storeDir;
+        this.mvstore = mvstore;
+        this.crawlerContext = crawlerContext;
+        gridCompute = new LocalGridCompute(mvstore, crawlerContext);
+        gridStorage = new LocalGridStorage(mvstore);
+    }
 
     @Override
     public GridCompute compute() {
-        // TODO Auto-generated method stub
-        return null;
+        return gridCompute;
     }
 
     @Override
     public GridStorage storage() {
-        // TODO Auto-generated method stub
-        return null;
+        return gridStorage;
     }
 
     @Override
     public void close() {
-        // TODO Auto-generated method stub
-
+        gridCompute.close();
+        mvstore.close();
     }
-
 }

@@ -103,9 +103,9 @@ public abstract class AbstractFetcher<
         //TODO, also handle CRAWLER_CRAWL_[BEGIN|END] if we ever need
         // fetcher on client side.
 
-        if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
+        if (event.is(CrawlerEvent.TASK_CONTEXT_INIT_BEGIN)) {
             fetcherStartup((CrawlerContext) event.getSource());
-        } else if (event.is(CrawlerEvent.TASK_RUN_END)) {
+        } else if (event.is(CrawlerEvent.TASK_CONTEXT_SHUTDOWN_BEGIN)) {
             fetcherShutdown((TaskContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                 && Thread.currentThread().equals(

@@ -88,12 +88,9 @@ public class CrawlerContext implements Closeable {
     private Path workDir; //TODO <-- we want to keep this? use grid store instead?
     private Path tempDir; //TODO <-- we want to keep this? use grid store instead?
     private CachedStreamFactory streamFactory;
-
-    // Others
-    private final DocProcessingLedger docProcessingLedger =
-            new DocProcessingLedger();
-    private final CrawlerState state = new CrawlerState();
-    private CrawlerMetrics metrics = new CrawlerMetrics();
+    private DocProcessingLedger docProcessingLedger;
+    private CrawlerState state;
+    private CrawlerMetrics metrics;
 
     //    protected CrawlerContext(CrawlerSpec spec,
     //            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
@@ -108,6 +105,8 @@ public class CrawlerContext implements Closeable {
     @Getter(value = AccessLevel.PROTECTED)
     private final CrawlerSpec crawlerSpec;
 
+    private boolean initialized;
+
     public CrawlerContext(CrawlerContext ctx) {
         configuration = ctx.getConfiguration();
         beanMapper = ctx.getBeanMapper();
@@ -117,6 +116,14 @@ public class CrawlerContext implements Closeable {
         eventManager =
                 ofNullable(ctx.getEventManager()).orElse(new EventManager()); // new EventManager(ctx.getEventManager());
         crawlerSpec = ctx.getCrawlerSpec();
+        streamFactory = ctx.streamFactory;
+        grid = ctx.grid;
+        workDir = ctx.workDir;
+        tempDir = ctx.tempDir;
+        docProcessingLedger = ctx.docProcessingLedger;
+        state = ctx.state;
+        metrics = ctx.metrics;
+        initialized = ctx.initialized;
     }
 
     public CrawlerContext(
@@ -170,6 +177,33 @@ public class CrawlerContext implements Closeable {
     }
 
     public void init() {
+        // if this instance is already initialized, do nothing.
+        if (initialized) {
+            return;
+        }
+        initialized = true; // important to flag it early
+
+        // need those? // maybe append cluster node id?
+        workDir = Optional.ofNullable(getConfiguration().getWorkDir())
+                .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
+                .resolve(FileUtil.toSafeFileName(getId()));
+        tempDir = workDir.resolve("temp");
+        try {
+            // Will also create workdir parent:
+            Files.createDirectories(tempDir);
+        } catch (IOException e) {
+            throw new CrawlerException(
+                    "Could not create directory: " + tempDir, e);
+        }
+        streamFactory = new CachedStreamFactory(
+                (int) getConfiguration().getMaxStreamCachePoolSize(),
+                (int) getConfiguration().getMaxStreamCacheSize(),
+                tempDir);
+
+        docProcessingLedger = new DocProcessingLedger();
+        state = new CrawlerState();
+        metrics = new CrawlerMetrics();
+
         // NOTE: order matters
         grid = configuration.getGridConnector().connect(this);
         state.init(this);
@@ -194,23 +228,6 @@ public class CrawlerContext implements Closeable {
             LOG.info("JMX support disabled. To enable, set -DenableJMX=true "
                     + "system property as a JVM argument.");
         }
-
-        // need those? // maybe append cluster node id?
-        workDir = Optional.ofNullable(getConfiguration().getWorkDir())
-                .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
-                .resolve(FileUtil.toSafeFileName(getId()));
-        tempDir = workDir.resolve("temp");
-        try {
-            // Will also create workdir parent:
-            Files.createDirectories(tempDir);
-        } catch (IOException e) {
-            throw new CrawlerException(
-                    "Could not create directory: " + tempDir, e);
-        }
-        streamFactory = new CachedStreamFactory(
-                (int) getConfiguration().getMaxStreamCachePoolSize(),
-                (int) getConfiguration().getMaxStreamCacheSize(),
-                tempDir);
     }
 
     @Override
@@ -234,6 +251,7 @@ public class CrawlerContext implements Closeable {
                 }
             }
         });
+        initialized = false;
     }
 
     //TODO document they do not cross over nodes

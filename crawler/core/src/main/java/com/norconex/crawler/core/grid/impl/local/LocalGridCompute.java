@@ -14,18 +14,33 @@
  */
 package com.norconex.crawler.core.grid.impl.local;
 
+import java.io.Closeable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.norconex.commons.lang.ClassUtil;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridTask;
 import com.norconex.crawler.core.grid.GridTxOptions;
+import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.shaded.h2.mvstore.MVStore;
+import com.norconex.shaded.h2.mvstore.tx.TransactionStore;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Executes tasks locally.
  */
-public class LocalGridCompute implements GridCompute {
+@Slf4j
+@RequiredArgsConstructor
+public class LocalGridCompute implements GridCompute, Closeable {
+
+    private final MVStore mvStore;
+    private final CrawlerContext crawlerContext;
+    private TaskContext taskContext;
 
     @Override
     public Future<?> runOnce(String jobName, Runnable runnable)
@@ -38,10 +53,66 @@ public class LocalGridCompute implements GridCompute {
         }
     }
 
+    /**
+     * <p>
+     * Only some transaction options are supported from {@link GridTxOptions}.
+     * Details:
+     * </p>
+     * <ul>
+     *   <li><b>Atomic</b>: Supported</li>
+     *   <li>
+     *     <b>Lock</b>: Ignored. Lock is enabled automatically when atomic is
+     *     <code>true</code>. Can't change this behavior.
+     *   </li>
+     *   <li><b>Block</b>: Not applicable in a local grid.</li>
+     *   <li><b>Singleton</b>: Not applicable in a local grid.</li>
+     * </ul>
+     */
     @Override
-    public void runTask(Class<? extends GridTask> taskClass, String arg,
+    public void runTask(
+            Class<? extends GridTask> taskClass,
+            String arg,
             GridTxOptions opts) throws GridException {
-        // TODO Auto-generated method stub
 
+        var gridTask = ClassUtil.newInstance(taskClass);
+        Runnable gridRunnable = () -> gridTask.run(getTaskContext(), arg);
+        if (opts.isAtomic()) {
+            gridRunnable = withAtomic(gridRunnable);
+        }
+        gridRunnable.run();
     }
+
+    // lazy-loading is important here
+    private synchronized TaskContext getTaskContext() {
+        if (taskContext == null) {
+            taskContext = new TaskContext(crawlerContext);
+            taskContext.init(); // closed by LocalGrid#close()
+        }
+        return taskContext;
+    }
+
+    private Runnable withAtomic(Runnable runnableWrapper) {
+        // Also locks by default
+        return () -> {
+            var txStore = new TransactionStore(mvStore);
+            var tx = txStore.begin(); // Begin transaction
+            try {
+                runnableWrapper.run();
+                tx.commit();
+            } catch (Exception e) {
+                tx.rollback();
+                LOG.error("Compute transaction rolled back due to an "
+                        + "unexpected error.", e);
+            }
+        };
+    }
+
+    @Override
+    public void close() {
+        // other member variables are closed elsewhere
+        if (taskContext != null) {
+            taskContext.close();
+        }
+    }
+
 }

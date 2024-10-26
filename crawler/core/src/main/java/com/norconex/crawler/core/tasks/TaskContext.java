@@ -98,6 +98,7 @@ public class TaskContext extends CrawlerContext {
     //    private TaskContext(@NonNull CrawlerSpec spec) {
     //        this(ClassUtil.newInstance(specProviderClass).get());
     //    }
+    private boolean initialized;
 
     public TaskContext(
             @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
@@ -185,6 +186,12 @@ public class TaskContext extends CrawlerContext {
     // local init...
     @Override
     public void init() {
+        // if this instance is already initialized, do nothing.
+        if (initialized) {
+            return;
+        }
+        initialized = true; // important to flag it early
+
         fire(CrawlerEvent.TASK_CONTEXT_INIT_BEGIN);
         super.init();
         //TODO differentiate between CRAWLER_* events and CRAWLER_TASK_* events?
@@ -262,6 +269,7 @@ public class TaskContext extends CrawlerContext {
             safeClose(() -> getStopper().destroy());
             safeClose(super::close);
             fire(CrawlerEvent.TASK_CONTEXT_SHUTDOWN_END);
+            initialized = false;
         }
     }
 

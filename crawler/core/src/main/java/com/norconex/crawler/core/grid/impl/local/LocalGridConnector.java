@@ -121,7 +121,15 @@ public class LocalGridConnector
 
         mvstore.commit();
 
-        return new LocalGrid(storeDir, mvstore);
+        //TODO fix circular reference where CrawlerContext
+        // initializes the Grid and the grid initializes the TaskContext
+        // which depends on CrawlerContext to be initialized.
+        // Do some lazy loading.
+
+        //        var taskContext = new TaskContext(crawlerContext);
+        //        taskContext.init(); // closed by LocalGrid#close()
+
+        return new LocalGrid(storeDir, mvstore, crawlerContext);
     }
 
     private Integer asInt(Long l) {

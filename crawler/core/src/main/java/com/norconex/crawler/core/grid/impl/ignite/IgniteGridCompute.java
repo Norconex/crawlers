@@ -85,9 +85,9 @@ public class IgniteGridCompute implements GridCompute {
 
     @Override
     public void runTask(
-            Class<? extends GridTask> taskClass, String arg,
-            GridTxOptions opts)
-            throws GridException {
+            Class<? extends GridTask> taskClass,
+            String arg,
+            GridTxOptions opts) throws GridException {
 
         var className = taskClass.getName();
         var gridRunnable = gridRunnable(className, arg, opts);
