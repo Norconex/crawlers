@@ -69,8 +69,6 @@ public abstract class CliBase implements Runnable {
                 parent.getSpecProviderClass(), null);
         loadConfiguration(crawlerContext);
         runCommand(new Crawler(crawlerContext));
-        //        runCommand(Crawler.create(parent.getCrawlerBuilderFactoryClass(),
-        //                (CrawlerBuilderModifier) this::loadConfiguration));
     }
 
     protected abstract void runCommand(Crawler crawler);

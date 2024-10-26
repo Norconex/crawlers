@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.tasks.crawl;
 
-import com.norconex.crawler.core.commands.CrawlCommand;
 import com.norconex.crawler.core.grid.GridTask;
 import com.norconex.crawler.core.tasks.TaskContext;
 
@@ -30,11 +29,11 @@ public class QueueStartReferencesTask implements GridTask {
 
     @Override
     public void run(TaskContext taskContext, String arg) {
-        var globalCache = taskContext.getGrid().storage().getGlobalCache();
-        globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "false");
+        taskContext.getGrid().storage().getGlobalCache();
+        //    globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "false");
         taskContext.getDocPipelines()
                 .getQueuePipeline()
                 .initializeQueue(taskContext);
-        globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "true");
+        //    globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "true");
     }
 }

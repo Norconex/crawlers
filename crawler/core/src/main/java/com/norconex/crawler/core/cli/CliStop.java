@@ -32,7 +32,7 @@ import picocli.CommandLine.Command;
 public class CliStop extends CliBase {
 
     @Override
-    protected void runCommand(Crawler crawlerClient) {
-        crawlerClient.stop();
+    protected void runCommand(Crawler crawler) {
+        crawler.stop();
     }
 }

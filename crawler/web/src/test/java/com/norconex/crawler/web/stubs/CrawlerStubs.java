@@ -88,11 +88,11 @@ public final class CrawlerStubs {
         //        });
     }
 
-    //    public static Crawler memoryCrawlerClient(Path workDir) {
-    //        return memoryCrawlerClient(workDir, null);
+    //    public static Crawler memorycrawler(Path workDir) {
+    //        return memorycrawler(workDir, null);
     //    }
     //
-    //    public static Crawler memoryCrawlerClient(
+    //    public static Crawler memorycrawler(
     //            Path workDir, Consumer<WebCrawlerConfig> c) {
     //        var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
     //        if (c != null) {

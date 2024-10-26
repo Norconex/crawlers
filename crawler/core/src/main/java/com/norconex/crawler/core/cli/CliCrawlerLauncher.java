@@ -20,6 +20,11 @@ import lombok.NonNull;
 import picocli.CommandLine;
 import picocli.CommandLine.PicocliException;
 
+/**
+ * Launches a crawler command with given crawler specifications and
+ * command-line arguments. Typically not invoked directly, and used by
+ * crawler implementations (e.g., FS, Web).
+ */
 public final class CliCrawlerLauncher {
 
     private CliCrawlerLauncher() {

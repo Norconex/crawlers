@@ -16,6 +16,7 @@ package com.norconex.crawler.core.commands;
 
 import com.norconex.crawler.core.CrawlerContext;
 
+@FunctionalInterface
 public interface Command {
     void execute(CrawlerContext crawlerContext);
 }

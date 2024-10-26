@@ -41,7 +41,7 @@ public class CliStoreImport extends CliBase {
     private Path inFile;
 
     @Override
-    protected void runCommand(Crawler crawlerClient) {
-        crawlerClient.cacheImport(inFile);
+    protected void runCommand(Crawler crawler) {
+        crawler.storageImport(inFile);
     }
 }

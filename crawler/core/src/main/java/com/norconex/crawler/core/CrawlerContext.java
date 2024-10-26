@@ -179,9 +179,15 @@ public class CrawlerContext implements Closeable {
     public void init() {
         // if this instance is already initialized, do nothing.
         if (initialized) {
+            System.err.println("!! XXX Crawler context already initialized.");
             return;
         }
+        System.err.println(
+                "<CRAWLER_CONTEXT_INIT> // XXX Initializing Crawler context");
         initialized = true; // important to flag it early
+
+        System.err.println("XXX LISTENERS FROM SCAN.");
+        getEventManager().addListenersFromScan(getConfiguration());
 
         // need those? // maybe append cluster node id?
         workDir = Optional.ofNullable(getConfiguration().getWorkDir())
@@ -217,8 +223,6 @@ public class CrawlerContext implements Closeable {
         LogUtil.setMdcCrawlerId(getId());
         Thread.currentThread().setName(getId());
 
-        getEventManager().addListenersFromScan(getConfiguration());
-
         metrics.init(this);
 
         if (Boolean.getBoolean(TaskContext.SYS_PROP_ENABLE_JMX)) {
@@ -228,10 +232,13 @@ public class CrawlerContext implements Closeable {
             LOG.info("JMX support disabled. To enable, set -DenableJMX=true "
                     + "system property as a JVM argument.");
         }
+        System.err.println(
+                "</CRAWLER_CONTEXT_INIT> XXX Crawler context initialized");
     }
 
     @Override
     public void close() {
+        System.err.println("<CRAWLER_CONTEXT_CLOSE> // XXX");
         if (Boolean.getBoolean(TaskContext.SYS_PROP_ENABLE_JMX)) {
             LOG.info("Unregistering JMX crawler MBeans.");
             safeClose(() -> CrawlerMetricsJMX.unregister(this));
@@ -252,6 +259,7 @@ public class CrawlerContext implements Closeable {
             }
         });
         initialized = false;
+        System.err.println("</CRAWLER_CONTEXT_CLOSE> // XXX");
     }
 
     //TODO document they do not cross over nodes

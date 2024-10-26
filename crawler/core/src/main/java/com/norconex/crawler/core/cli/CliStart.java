@@ -43,10 +43,10 @@ public class CliStart extends CliBase {
     private boolean clean;
 
     @Override
-    protected void runCommand(Crawler crawlerClient) {
+    protected void runCommand(Crawler crawler) {
         if (clean) {
-            crawlerClient.clean();
+            crawler.clean();
         }
-        crawlerClient.crawl();
+        crawler.crawl();
     }
 }

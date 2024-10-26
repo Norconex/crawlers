@@ -27,7 +27,7 @@ import picocli.CommandLine.Command;
 )
 public class CliConfigCheck extends CliBase {
     @Override
-    public void runCommand(Crawler crawlerClient) {
+    public void runCommand(Crawler crawler) {
         // Reaching this method means no errors were found. Simply state so.
         out().println();
         out().println("No configuration errors detected.");

@@ -21,7 +21,7 @@ import java.io.Closeable;
  */
 //High-level interface for abstracting different grid technologies
 public interface Grid extends Closeable {
-    //    GridClient client(CrawlerClient crawlerClient);
+    //    GridClient client(crawler crawler);
     //
     //    GridServer server(Crawler crawler);
 

@@ -150,12 +150,7 @@ public class CrawlerConfig {
     /**
      * The Grid Connector.
      */
-    private GridConnector gridConnector = new LocalGridConnector();
-
-    //    /**
-    //     * The data store engine.
-    //     */
-    //    private DataStoreEngine dataStoreEngine = new MvStoreDataStoreEngine();
+    private GridConnector gridConnector = new LocalGridConnector();// new IgniteGridConnector();
 
     /**
      * Whether the start references should be loaded asynchronously. When

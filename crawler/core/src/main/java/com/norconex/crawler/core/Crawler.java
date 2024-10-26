@@ -95,11 +95,11 @@ public class Crawler {
         //TODO implement me
     }
 
-    public void cacheExport(Path dir) {
+    public void storageExport(Path dir) {
         //TODO implement me
     }
 
-    public void cacheImport(Path inFile) {
+    public void storageImport(Path inFile) {
         //TODO implement me
     }
 

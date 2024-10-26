@@ -44,7 +44,7 @@ public class CliStoreExport extends CliBase {
     //TODO add compress?
 
     @Override
-    protected void runCommand(Crawler crawlerClient) {
-        crawlerClient.cacheExport(dir);
+    protected void runCommand(Crawler crawler) {
+        crawler.storageExport(dir);
     }
 }

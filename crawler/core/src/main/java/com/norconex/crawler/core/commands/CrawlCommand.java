@@ -28,22 +28,22 @@ public class CrawlCommand implements Command {
     //TODO have a general life-cycle facade or procesing-state facade
     // where all the global keys can be found.  Or is the
     // DocProcessingLedger already for that?
-    public static final String KEY_START_REFS_QUEUED =
-            "crawl.start.refs.queued";
+    //    public static final String KEY_START_REFS_QUEUED =
+    //            "crawl.start.refs.queued";
 
     @Override
-    public void execute(CrawlerContext crawlerClient) {
-        prepareDocLedger(crawlerClient);
-        queueStartReferences(crawlerClient);
-        crawlDocs(crawlerClient);
-        //Needed? -->        finalizeExecution(crawlerClient);
+    public void execute(CrawlerContext crawlerContext) {
+        prepareDocLedger(crawlerContext);
+        queueStartReferences(crawlerContext);
+        crawlDocs(crawlerContext);
+        //Needed? -->        finalizeExecution(crawlerContext);
         //   Yes: if only to have each nodes call "close()" on themselves.
     }
 
     // On 1 node, block
-    private void prepareDocLedger(CrawlerContext crawlerClient) {
+    private void prepareDocLedger(CrawlerContext crawlerContext) {
         LOG.info("Preparing document processing ledger for crawling...");
-        crawlerClient.getGrid().compute().runTask(
+        crawlerContext.getGrid().compute().runTask(
                 PrepareDocLedgerTask.class,
                 null,
                 GridTxOptions.builder()
@@ -54,10 +54,10 @@ public class CrawlCommand implements Command {
     }
 
     // On 1 node, block unless config says async
-    private void queueStartReferences(CrawlerContext crawlerClient) {
-        var cfg = crawlerClient.getConfiguration();
-        var grid = crawlerClient.getGrid();
-        if (crawlerClient.getState().isResuming()) {
+    private void queueStartReferences(CrawlerContext crawlerContext) {
+        var cfg = crawlerContext.getConfiguration();
+        var grid = crawlerContext.getGrid();
+        if (crawlerContext.getState().isResuming()) {
             LOG.info("Unfinished previous crawl detected. Resuming...");
         } else {
             LOG.info("Queuing start references ({})...",
@@ -74,22 +74,22 @@ public class CrawlCommand implements Command {
     }
 
     // On all nodes, block
-    private void crawlDocs(CrawlerContext crawlerClient) {
+    private void crawlDocs(CrawlerContext crawlerContext) {
         LOG.info("Crawling...");
-        crawlerClient.getGrid().compute().runTask(CrawlTask.class, null,
+        crawlerContext.getGrid().compute().runTask(CrawlTask.class, null,
                 GridTxOptions.builder()
                         .name("crawl")
                         .block(true)
                         .build());
     }
 
-    //    private void finalizeExecution(Crawler crawlerClient) {
+    //    private void finalizeExecution(Crawler crawlerContext) {
     //        // TODO Auto-generated method stub
     //
     //    }
 
     //    // On all nodes, block
-    //    private void handleOrphanDocs(CrawlerClient crawlerClient) {
+    //    private void handleOrphanDocs(crawlerContext crawlerContext) {
     //        LOG.warn("TODO: Implement me");
     //    }
 }

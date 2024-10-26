@@ -188,12 +188,16 @@ public class TaskContext extends CrawlerContext {
     public void init() {
         // if this instance is already initialized, do nothing.
         if (initialized) {
+            System.err.println("!! XXX Task context already initialized");
+
             return;
         }
+        System.err.println("<TASK_CONTEXT_INIT> XXX Initializing Task context");
         initialized = true; // important to flag it early
 
-        fire(CrawlerEvent.TASK_CONTEXT_INIT_BEGIN);
         super.init();
+
+        fire(CrawlerEvent.TASK_CONTEXT_INIT_BEGIN);
         //TODO differentiate between CRAWLER_* events and CRAWLER_TASK_* events?
 
         //        // need those? // maybe append cluster node id?
@@ -229,10 +233,12 @@ public class TaskContext extends CrawlerContext {
         getStopper().listenForStopRequest(this);
 
         fire(CrawlerEvent.TASK_CONTEXT_INIT_END);
+        System.err.println("</TASK_CONTEXT_INIT> XXX Task context initialized");
     }
 
     @Override
     public void close() {
+        System.err.println("<TASK_CONTEXT_CLOSE> // XXX");
         fire(CrawlerEvent.TASK_CONTEXT_SHUTDOWN_BEGIN);
         try {
             // Defer shutdown
@@ -271,6 +277,7 @@ public class TaskContext extends CrawlerContext {
             fire(CrawlerEvent.TASK_CONTEXT_SHUTDOWN_END);
             initialized = false;
         }
+        System.err.println("</TASK_CONTEXT_CLOSE> // XXX");
     }
 
     // --- Commands ------------------------------------------------------------

@@ -20,6 +20,7 @@ import java.util.concurrent.Future;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridTask;
@@ -74,12 +75,15 @@ public class LocalGridCompute implements GridCompute, Closeable {
             String arg,
             GridTxOptions opts) throws GridException {
 
+        var taskContext = getTaskContext();
         var gridTask = ClassUtil.newInstance(taskClass);
-        Runnable gridRunnable = () -> gridTask.run(getTaskContext(), arg);
+        Runnable gridRunnable = () -> gridTask.run(taskContext, arg);
         if (opts.isAtomic()) {
             gridRunnable = withAtomic(gridRunnable);
         }
+        taskContext.fire(CrawlerEvent.TASK_RUN_BEGIN, taskClass.getName());
         gridRunnable.run();
+        taskContext.fire(CrawlerEvent.TASK_RUN_END, taskClass.getName());
     }
 
     // lazy-loading is important here

@@ -56,11 +56,6 @@ public class CliConfigRender extends CliBase {
     )
     private String format;
 
-    //    @Option(names = { "-i", "-indent" },
-    //            description = "Number of spaces used for indentation (default: 2).",
-    //            required = false)
-    //    private int indent = 2;
-
     @Override
     public void runCommand(Crawler crawler) {
         //TODO support different format, either explicit, on file extension
@@ -83,9 +78,8 @@ public class CliConfigRender extends CliBase {
                 out().println(((StringWriter) out).toString());
             }
         } catch (InvalidPathException | IOException e) {
-            err().println(
-                    "Could not render config: "
-                            + ExceptionUtil.getFormattedMessages(e));
+            err().println("Could not render config: "
+                    + ExceptionUtil.getFormattedMessages(e));
         }
     }
 }

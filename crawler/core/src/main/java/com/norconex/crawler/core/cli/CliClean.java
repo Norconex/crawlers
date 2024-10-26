@@ -28,7 +28,7 @@ import picocli.CommandLine.Command;
 public class CliClean extends CliBase {
 
     @Override
-    protected void runCommand(Crawler crawlerClient) {
-        crawlerClient.clean();
+    protected void runCommand(Crawler crawler) {
+        crawler.clean();
     }
 }

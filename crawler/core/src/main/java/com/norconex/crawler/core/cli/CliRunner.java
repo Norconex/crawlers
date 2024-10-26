@@ -64,20 +64,11 @@ import picocli.CommandLine.Spec;
 @ToString
 @RequiredArgsConstructor
 public class CliRunner implements Runnable {
-    //
-    //    @NonNull
-    //    private final CrawlerImpl crawlerImpl;
-    //      @Getter
-    //      @NonNull
-    //      private final Crawler crawler;
+
     @Getter
     @NonNull
     private final Class<? extends CrawlerSpecProvider> specProviderClass;
-    //    private final CrawlerConfig crawlerConfig; //TODO pass Class instead? Or builder with Class on it?
 
-    //    @NonNull
-    //    private final BeanMapper beanMapper;
-    //
     @Option(
         names = { "-h", "-help" },
         usageHelp = true,
@@ -96,27 +87,8 @@ public class CliRunner implements Runnable {
     @Override
     public void run() {
         if (version) {
-
             ClassUtil.newInstance(specProviderClass).get();
             About.about(null);
-
-            //            TaskContext.create(crawlerBuilderFactoryClass, b -> {
-            //                spec.commandLine().getOut().println(
-            //                        About.about(b.configuration(), false));
-            //            });
         }
     }
-
-    //    @Override
-    //    public int handleExecutionException(
-    //            Exception ex, CommandLine commandLine, ParseResult parseResult)
-    //                    throws Exception {
-    //        if (ex instanceof PicocliException) {
-    //            commandLine.getErr().println(ex.getMessage());
-    //            commandLine.getErr().println();
-    //            commandLine.usage(commandLine.getErr());
-    //            return -1;
-    //        }
-    //        throw ex;
-    //    }
 }

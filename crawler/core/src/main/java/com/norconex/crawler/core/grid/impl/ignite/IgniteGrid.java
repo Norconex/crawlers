@@ -52,9 +52,9 @@ public class IgniteGrid implements Grid {
     //            new LocalGridConnectorConfig();
     //
     //    @Override
-    //    public synchronized GridClient client(CrawlerClient crawlerClient) {
+    //    public synchronized GridClient client(crawler crawler) {
     //        if (client == null) {
-    //            client = new IgniteGridClient(crawlerClient);
+    //            client = new IgniteGridClient(crawler);
     //        }
     //        return client;
     //    }
