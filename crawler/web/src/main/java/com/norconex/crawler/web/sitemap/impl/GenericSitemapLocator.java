@@ -21,7 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.sitemap.SitemapLocator;
 import com.norconex.crawler.web.util.Web;
@@ -53,7 +53,7 @@ public class GenericSitemapLocator implements
 
     @Override
     public List<String> locations(String reference,
-            TaskContext crawler) {
+            CrawlerContext crawler) {
         List<String> resolvedpaths = new ArrayList<>(configuration.getPaths());
         if (!configuration.isRobotsTxtSitemapDisabled()) {
             var robotsTxt = Web.robotsTxt(crawler, reference);

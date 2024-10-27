@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.web.WebCrawler;
 import com.norconex.crawler.web.WebCrawlerConfig;
 
@@ -58,23 +58,23 @@ public final class CrawlerStubs {
         return WebCrawler.create(webCrawlerConfig);
     }
 
-    //    public static TaskContext memoryTaskContext(
+    //    public static CrawlerContext memoryCrawlerContext(
     //            Path workDir, WebCrawlerConfig config) {
     //        var memConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
     //        if (config != null) {
     //            BeanUtil.copyProperties(memConfig, config);
     //        }
-    //        var context = new TaskContext(WebCrawlerSpecProvider.class, config);
+    //        var context = new CrawlerContext(WebCrawlerSpecProvider.class, config);
     //        BeanUtil.copyProperties(context.getConfiguration(), memConfig);
     //        context.getConfiguration().setWorkDir(workDir);
     //        return context;
     //    }
 
-    public static TaskContext memoryCrawlerTaskContext(Path workDir) {
-        return memoryCrawlerTaskContext(workDir, null);
+    public static CrawlerContext memoryCrawlerCrawlerContext(Path workDir) {
+        return memoryCrawlerCrawlerContext(workDir, null);
     }
 
-    public static TaskContext memoryCrawlerTaskContext(
+    public static CrawlerContext memoryCrawlerCrawlerContext(
             Path workDir, Consumer<WebCrawlerConfig> c) {
         var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
@@ -82,8 +82,8 @@ public final class CrawlerStubs {
         }
 
         return null;
-        //        return memoryTaskContext(workDir, webCrawlerConfig);
-        //        return TaskContext.create(WebCrawlerSpecProvider.class, b -> {
+        //        return memoryCrawlerContext(workDir, webCrawlerConfig);
+        //        return CrawlerContext.create(WebCrawlerSpecProvider.class, b -> {
         //            b.configuration(webCrawlerConfig);
         //        });
     }

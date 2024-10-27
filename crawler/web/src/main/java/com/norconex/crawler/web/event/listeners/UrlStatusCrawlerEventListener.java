@@ -35,9 +35,9 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
@@ -126,7 +126,7 @@ public class UrlStatusCrawlerEventListener implements
     @Override
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
-            init((TaskContext) event.getSource());
+            init((CrawlerContext) event.getSource());
             return;
         }
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
@@ -166,7 +166,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private void init(TaskContext crawler) {
+    private void init(CrawlerContext crawler) {
 
         var baseDir = getBaseDir(crawler);
         var timestamp = "";
@@ -213,7 +213,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private Path getBaseDir(TaskContext crawler) {
+    private Path getBaseDir(CrawlerContext crawler) {
         if (configuration.getOutputDir() == null) {
             return crawler.getWorkDir();
         }

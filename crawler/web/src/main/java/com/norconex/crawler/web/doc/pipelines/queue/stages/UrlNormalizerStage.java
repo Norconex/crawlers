@@ -25,7 +25,8 @@ import com.norconex.crawler.web.util.Web;
 public class UrlNormalizerStage implements Predicate<QueuePipelineContext> {
     @Override
     public boolean test(QueuePipelineContext ctx) {
-        var normalizers = Web.config(ctx.getCrawler()).getUrlNormalizers();
+        var normalizers =
+                Web.config(ctx.getCrawlerContext()).getUrlNormalizers();
         if (!normalizers.isEmpty()) {
             String originalRef = ctx.getDocContext().getReference();
             var url = WebUrlNormalizer.normalizeURL(originalRef, normalizers);

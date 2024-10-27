@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -38,27 +38,28 @@ class RobotsTxtFiltersStageTest {
 
     @Test
     void testAllow() {
-        var crawler = CrawlerStubs.memoryCrawlerTaskContext(tempDir, cfg -> cfg
-                .setRobotsTxtProvider(new StandardRobotsTxtProvider() {
-                    @Override
-                    public synchronized RobotsTxt getRobotsTxt(
-                            HttpFetcher fetcher, String url) {
-                        try {
-                            return parseRobotsTxt(
-                                    IOUtils.toInputStream("""
+        var crawler =
+                CrawlerStubs.memoryCrawlerCrawlerContext(tempDir, cfg -> cfg
+                        .setRobotsTxtProvider(new StandardRobotsTxtProvider() {
+                            @Override
+                            public synchronized RobotsTxt getRobotsTxt(
+                                    HttpFetcher fetcher, String url) {
+                                try {
+                                    return parseRobotsTxt(
+                                            IOUtils.toInputStream("""
                                             User-agent: *
 
                                             Disallow: /rejectMost/*
                                             Allow: /rejectMost/butNotThisOne/*
                                             """,
-                                            StandardCharsets.UTF_8),
-                                    url,
-                                    "test-crawler");
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }));
+                                                    StandardCharsets.UTF_8),
+                                            url,
+                                            "test-crawler");
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        }));
 
         // An allow for a robot rule should now be rejecting all non-allowing.
         // It should allows sub directories that have their parent rejected
@@ -79,7 +80,7 @@ class RobotsTxtFiltersStageTest {
                 "No match in robot.txt");
     }
 
-    private boolean testAllow(TaskContext crawler, final String url) {
+    private boolean testAllow(CrawlerContext crawler, final String url) {
         var ctx = new QueuePipelineContext(
                 crawler, new WebCrawlDocContext(url, 0));
         var filterStage = new RobotsTxtFiltersStage();

@@ -32,8 +32,8 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerTestUtil;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 @Disabled
 class WithCrawlerExtension implements
@@ -90,7 +90,7 @@ class WithCrawlerExtension implements
     @Override
     public void afterEach(ExtensionContext context) throws IOException {
         // End session
-        var crawler = (TaskContext) context.getStore(GLOBAL)
+        var crawler = (CrawlerContext) context.getStore(GLOBAL)
                 .remove(CRAWLER_KEY);
         // if not already ended normally, stop it.
         if (crawler != null && !crawler.getState().isTerminatedProperly()) {
@@ -122,7 +122,7 @@ class WithCrawlerExtension implements
             throws ParameterResolutionException {
 
         Class<?> parameterType = parameterContext.getParameter().getType();
-        return TaskContext.class.isAssignableFrom(parameterType)
+        return CrawlerContext.class.isAssignableFrom(parameterType)
                 || MemoryCommitter.class.isAssignableFrom(parameterType)
                 || Path.class.isAssignableFrom(parameterType);
     }
@@ -136,7 +136,7 @@ class WithCrawlerExtension implements
         Class<?> parameterType = parameterContext.getParameter().getType();
 
         // Crawler
-        if (TaskContext.class.isAssignableFrom(parameterType)) {
+        if (CrawlerContext.class.isAssignableFrom(parameterType)) {
             return crawler(extensionContext).orElse(null);
         }
         // First committer
@@ -153,10 +153,10 @@ class WithCrawlerExtension implements
                 "Unsupported parameter type: " + parameterType);
     }
 
-    private Optional<TaskContext>
+    private Optional<CrawlerContext>
             crawler(ExtensionContext extensionContext) {
         return ofNullable(
-                (TaskContext) extensionContext
+                (CrawlerContext) extensionContext
                         .getStore(GLOBAL).get(CRAWLER_KEY));
     }
 

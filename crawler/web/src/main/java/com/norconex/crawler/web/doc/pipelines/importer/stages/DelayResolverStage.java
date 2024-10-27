@@ -24,11 +24,11 @@ import com.norconex.crawler.web.util.Web;
 public class DelayResolverStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext ctx) {
-        var delayResolver = Web.config(ctx.getTaskContext()).getDelayResolver();
+        var delayResolver = Web.config(ctx.getCrawlerContext()).getDelayResolver();
         if (delayResolver != null) {
             String reference = ctx.getDoc().getDocContext().getReference();
             delayResolver.delay(
-                    Web.robotsTxt(ctx.getTaskContext(), reference), reference);
+                    Web.robotsTxt(ctx.getCrawlerContext(), reference), reference);
         }
         return true;
     }

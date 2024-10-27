@@ -19,8 +19,8 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -49,6 +49,15 @@ public class CrawlerEvent extends Event {
      * The crawler has been initialized.
      */
     public static final String CRAWLER_INIT_END = "CRAWLER_INIT_END";
+
+    public static final String CRAWLER_CONTEXT_INIT_BEGIN =
+            "CRAWLER_CONTEX_INIT_BEGIN";
+    public static final String CRAWLER_CONTEXT_INIT_END =
+            "CRAWLER_CONTEX_INIT_END";
+    public static final String CRAWLER_CONTEXT_SHUTDOWN_BEGIN =
+            "CRAWLER_CONTEXT_SHUTDOWN_BEGIN";
+    public static final String CRAWLER_CONTEXT_SHUTDOWN_END =
+            "CRAWLER_CONTEXT_SHUTDOWN_BEGIN";
 
     /**
      * The crawler is about to begin crawling.
@@ -104,15 +113,15 @@ public class CrawlerEvent extends Event {
     public static final String CRAWLER_STORE_IMPORT_END =
             "CRAWLER_STORE_IMPORT_END";
 
-    public static final String TASK_CONTEXT_INIT_BEGIN =
-            "TASK_CONTEX_INIT_BEGIN";
-    public static final String TASK_CONTEXT_INIT_END = "TASK_CONTEXT_INIT_END";
+    //    public static final String TASK_CONTEXT_INIT_BEGIN =
+    //            "TASK_CONTEX_INIT_BEGIN";
+    //    public static final String TASK_CONTEXT_INIT_END = "TASK_CONTEXT_INIT_END";
     public static final String TASK_RUN_BEGIN = "TASK_RUN_BEGIN";
     public static final String TASK_RUN_END = "TASK_RUN_END";
-    public static final String TASK_CONTEXT_SHUTDOWN_BEGIN =
-            "TASK_CONTEXT_SHUTDOWN_BEGIN";
-    public static final String TASK_CONTEXT_SHUTDOWN_END =
-            "TASK_CONTEXT_SHUTDOWN_END";
+    //    public static final String TASK_CONTEXT_SHUTDOWN_BEGIN =
+    //            "TASK_CONTEXT_SHUTDOWN_BEGIN";
+    //    public static final String TASK_CONTEXT_SHUTDOWN_END =
+    //            "TASK_CONTEXT_SHUTDOWN_END";
 
     public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
 
@@ -215,8 +224,8 @@ public class CrawlerEvent extends Event {
     }
 
     @Override
-    public TaskContext getSource() {
-        return (TaskContext) super.getSource();
+    public CrawlerContext getSource() {
+        return (CrawlerContext) super.getSource();
     }
 
     public boolean isCrawlerShutdown() {

@@ -32,7 +32,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.junit.WithCrawlerTest;
@@ -47,7 +47,7 @@ class GenericSitemapResolverTest {
     @Test
     @WithCrawlerTest
     void testResolveSitemaps(
-            ClientAndServer client, TaskContext crawler)
+            ClientAndServer client, CrawlerContext crawler)
             throws IOException {
 
         // We test having a sitemap index file pointing to sitemap files, and

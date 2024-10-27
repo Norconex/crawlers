@@ -37,14 +37,14 @@ public class QueueReferenceStage implements Predicate<QueuePipelineContext> {
             return true;
         }
 
-        var ledger = ctx.getCrawler().getDocProcessingLedger();
+        var ledger = ctx.getCrawlerContext().getDocProcessingLedger();
         var stage = ledger.getProcessingStage(ref);
 
         //TODO make this a reusable method somewhere, or part of the
         //DocTrackerService?
         //        if (Stage.ACTIVE.is(stage)) {
         //            debug("Already being processed: %s", ref);
-        //        } else 
+        //        } else
         if (Stage.QUEUED.is(stage)) {
             debug("Already queued: %s", ref);
         } else if (Stage.PROCESSED.is(stage)) {

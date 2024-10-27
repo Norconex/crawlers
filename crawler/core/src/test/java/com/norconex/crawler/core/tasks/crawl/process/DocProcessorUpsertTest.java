@@ -20,11 +20,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
-import com.norconex.crawler.core.tasks.TaskContext;
-import com.norconex.crawler.core.tasks.crawl.process.DocProcessorContext;
-import com.norconex.crawler.core.tasks.crawl.process.DocProcessorUpsert;
 import com.norconex.importer.response.ImporterResponse;
 
 class DocProcessorUpsertTest {
@@ -33,26 +31,21 @@ class DocProcessorUpsertTest {
         @Override
         public void accept(CrawlerConfig cfg) {
             cfg.getImporterConfig().setResponseProcessors(
-                    List.of(
-                            resp -> resp.setNestedResponses(
-                                    List.of(
-                                            new ImporterResponse(
-                                                    CrawlDocStubs.crawlDoc(
-                                                            "childResponse1")),
-                                            new ImporterResponse(
-                                                    CrawlDocStubs
-                                                            .crawlDoc(
-                                                                    "childResponse2"))))));
+                    List.of(resp -> resp.setNestedResponses(List.of(
+                            new ImporterResponse(CrawlDocStubs.crawlDoc(
+                                    "childResponse1")),
+                            new ImporterResponse(CrawlDocStubs.crawlDoc(
+                                    "childResponse2"))))));
         }
     }
 
     @WithCrawlerTest(configModifier = ConfigModifier.class)
-    void testThreadActionUpsert(TaskContext crawler) {
+    void testThreadActionUpsert(CrawlerContext crawler) {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new DocProcessorContext();
         ctx.finalized(false);
-        ctx.crawler(crawler);
+        ctx.crawlerContext(crawler);
         ctx.doc(doc);
         ctx.docContext(doc.getDocContext());
 

@@ -32,7 +32,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -43,7 +43,7 @@ import com.norconex.crawler.web.robot.RobotsTxtFilter;
 class StandardRobotsTxtProviderTest {
 
     @WithCrawlerTest
-    void testGetRobotsTxt(ClientAndServer client, TaskContext crawler) {
+    void testGetRobotsTxt(ClientAndServer client, CrawlerContext crawler) {
 
         client.when(request().withPath("/robots.txt"))
                 .respond(response()

@@ -28,7 +28,7 @@ final class DocProcessorDelete {
         LOG.debug("Deleting reference: {}", ctx.doc().getReference());
         ctx.doc().getDocContext().setState(CrawlDocState.DELETED);
         // Event triggered by service
-        ctx.crawler().getCommitterService().delete(ctx.doc());
+        ctx.crawlerContext().getCommitterService().delete(ctx.doc());
         DocProcessorFinalize.execute(ctx);
     }
 }

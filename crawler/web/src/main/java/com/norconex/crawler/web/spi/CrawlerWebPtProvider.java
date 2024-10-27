@@ -25,14 +25,12 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.tasks.crawl.operations.DocumentConsumer;
 import com.norconex.crawler.core.tasks.crawl.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
-import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
@@ -76,7 +74,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, WebUrlNormalizer.class);
         addPolyType(map, UrlScopeResolver.class);
 
-        map.put(CrawlerConfig.class, WebCrawlerConfig.class);
+        //        map.put(CrawlerConfig.class, WebCrawlerConfig.class);
         map.putAll(
                 Fetcher.class, List.of(
                         GenericHttpFetcher.class,

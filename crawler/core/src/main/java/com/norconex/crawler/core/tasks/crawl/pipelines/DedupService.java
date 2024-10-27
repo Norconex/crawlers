@@ -17,9 +17,9 @@ package com.norconex.crawler.core.tasks.crawl.pipelines;
 import java.io.Closeable;
 import java.util.Optional;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.grid.GridCache;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +55,7 @@ public class DedupService implements Closeable {
 
     private boolean initialized;
 
-    public void init(TaskContext crawler) {
+    public void init(CrawlerContext crawler) {
         if (initialized) {
             throw new IllegalStateException("Already initialized.");
         }

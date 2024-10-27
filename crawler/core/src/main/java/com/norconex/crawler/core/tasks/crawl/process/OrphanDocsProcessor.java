@@ -17,7 +17,7 @@ package com.norconex.crawler.core.tasks.crawl.process;
 import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.tasks.crawl.process.DocsProcessor.ProcessFlags;
 
@@ -28,19 +28,19 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 class OrphanDocsProcessor {
 
-    private final TaskContext crawler;
+    private final CrawlerContext crawlerContext;
     private final DocsProcessor docProcessor;
     private final DocProcessingLedger ledger;
 
     OrphanDocsProcessor(DocsProcessor docProcessor) {
         this.docProcessor = docProcessor;
-        crawler = docProcessor.getCrawler();
-        ledger = crawler.getDocProcessingLedger();
+        crawlerContext = docProcessor.getCrawlerContext();
+        ledger = crawlerContext.getDocProcessingLedger();
     }
 
     void handleOrphans() {
 
-        var strategy = crawler.getConfiguration().getOrphansStrategy();
+        var strategy = crawlerContext.getConfiguration().getOrphansStrategy();
         if (strategy == null) {
             // null is same as ignore
             strategy = OrphansStrategy.IGNORE;
@@ -69,16 +69,15 @@ class OrphanDocsProcessor {
         LOG.info("Reprocessing any cached/orphan references...");
 
         var count = new MutableLong();
-        crawler.getDocProcessingLedger()
+        crawlerContext.getDocProcessingLedger()
                 .forEachCached((ref, docInfo) -> {
                     docProcessor
-                            .getCrawler()
+                            .getCrawlerContext()
                             .getDocPipelines()
                             .getQueuePipeline()
-                            .accept(
-                                    new QueuePipelineContext(
-                                            docProcessor.getCrawler(),
-                                            docInfo));
+                            .accept(new QueuePipelineContext(
+                                    docProcessor.getCrawlerContext(),
+                                    docInfo));
                     count.increment();
                     return true;
                 });

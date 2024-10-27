@@ -43,11 +43,11 @@ public class LocalGrid implements Grid {
     private final LocalGridStorage gridStorage;
 
     public LocalGrid(
-            Path storeDir, MVStore mvstore, CrawlerContext crawlerContext) {
+            Path storeDir, MVStore mvstore, CrawlerContext commandContext) {
         this.storeDir = storeDir;
         this.mvstore = mvstore;
-        this.crawlerContext = crawlerContext;
-        gridCompute = new LocalGridCompute(mvstore, crawlerContext);
+        crawlerContext = commandContext;
+        gridCompute = new LocalGridCompute(mvstore, commandContext);
         gridStorage = new LocalGridStorage(mvstore);
     }
 
@@ -63,7 +63,6 @@ public class LocalGrid implements Grid {
 
     @Override
     public void close() {
-        gridCompute.close();
         mvstore.close();
     }
 }

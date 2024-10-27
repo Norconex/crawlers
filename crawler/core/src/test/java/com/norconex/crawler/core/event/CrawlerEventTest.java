@@ -23,18 +23,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.stubs.CrawlerStubs;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 class CrawlerEventTest {
 
-    private static TaskContext crawler;
+    private static CrawlerContext crawler;
 
     @BeforeAll
     static void beforeAll(@TempDir Path tempDir) {
-        crawler = CrawlerStubs.memoryTaskContext(tempDir);
+        crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
     }
 
     @Test

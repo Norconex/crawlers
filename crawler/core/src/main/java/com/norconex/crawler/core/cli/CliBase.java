@@ -17,9 +17,12 @@ package com.norconex.crawler.core.cli;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 
+import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlerSpec;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.EqualsAndHashCode;
@@ -65,9 +68,10 @@ public abstract class CliBase implements Runnable {
 
     @Override
     public void run() {
+        var spec = ClassUtil.newInstance(parent.getSpecProviderClass()).get();
         var crawlerContext = new CrawlerContext(
-                parent.getSpecProviderClass(), null);
-        loadConfiguration(crawlerContext);
+                parent.getSpecProviderClass(), loadConfiguration(spec));
+        //        loadConfiguration(crawlerContext);
         runCommand(new Crawler(crawlerContext));
     }
 
@@ -81,21 +85,21 @@ public abstract class CliBase implements Runnable {
         return spec.commandLine().getErr();
     }
 
-    private void loadConfiguration(CrawlerContext crawlerContext) {
+    private CrawlerConfig loadConfiguration(CrawlerSpec spec) {
         if (getConfigFile() == null || !getConfigFile().toFile().isFile()) {
             throw new CliException(
                     "Configuration file does not exist or is not valid: "
                             + getConfigFile().toFile().getAbsolutePath());
         }
-
-        var cfg = crawlerContext.getConfiguration();
+        //        var cfg = ClassUtil.newInstance(spec.crawlerConfigClass());
+        //        var cfg = crawlerContext.getConfiguration();
         try {
-            ConfigurationLoader
+            return ConfigurationLoader
                     .builder()
                     .variablesFile(getVariablesFile())
-                    .beanMapper(crawlerContext.getBeanMapper())
+                    .beanMapper(spec.beanMapper())
                     .build()
-                    .toObject(getConfigFile(), cfg);
+                    .toObject(getConfigFile(), spec.crawlerConfigClass());
         } catch (ConstraintViolationException e) {
             if (!e.getConstraintViolations().isEmpty()) {
                 var b = new StringBuilder();
@@ -112,6 +116,7 @@ public abstract class CliBase implements Runnable {
                                 .append(".\n"));
                 throw new CliException(b.toString());
             }
+            throw e;
         }
     }
 }

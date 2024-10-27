@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.tasks.crawl;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.GridTask;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 /**
  * Prepare the doc processing ledger for a new or incremental crawl.
@@ -28,12 +28,12 @@ public class QueueStartReferencesTask implements GridTask {
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void run(TaskContext taskContext, String arg) {
-        taskContext.getGrid().storage().getGlobalCache();
+    public void run(CrawlerContext crawlerContext, String arg) {
+        crawlerContext.getGrid().storage().getGlobalCache();
         //    globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "false");
-        taskContext.getDocPipelines()
+        crawlerContext.getDocPipelines()
                 .getQueuePipeline()
-                .initializeQueue(taskContext);
+                .initializeQueue(crawlerContext);
         //    globalCache.put(CrawlCommand.KEY_START_REFS_QUEUED, "true");
     }
 }

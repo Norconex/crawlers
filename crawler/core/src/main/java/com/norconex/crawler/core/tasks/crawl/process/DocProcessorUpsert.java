@@ -47,10 +47,11 @@ final class DocProcessorUpsert {
         LOG.debug("Processing reference: {}", ctx.doc().getReference());
 
         var response = ctx
-                .crawler()
+                .crawlerContext()
                 .getDocPipelines()
                 .getImporterPipeline()
-                .apply(new ImporterPipelineContext(ctx.crawler(), ctx.doc()));
+                .apply(new ImporterPipelineContext(ctx.crawlerContext(),
+                        ctx.doc()));
         ctx.importerResponse(response);
 
         // no response means rejected even if it should not be the
@@ -81,11 +82,11 @@ final class DocProcessorUpsert {
             // TODO have a docInfoFactory instead and arguments
             /// dictate whether it is a child, embedded, or top level
             var childDocRec = ctx
-                    .crawler()
+                    .crawlerContext()
                     .newDocContext(ctx.docContext());
             childDocRec.setReference(childResponse.getReference());
             var childCachedDocRec = ctx
-                    .crawler()
+                    .crawlerContext()
                     .getDocProcessingLedger()
                     .getCached(childResponse.getReference())
                     .orElse(null);
@@ -107,7 +108,7 @@ final class DocProcessorUpsert {
             }
 
             var childCtx = new DocProcessorContext()
-                    .crawler(ctx.crawler())
+                    .crawlerContext(ctx.crawlerContext())
                     .orphan(ctx.orphan())
                     .doc(childCrawlDoc)
                     .docContext(childDocRec)
@@ -129,24 +130,26 @@ final class DocProcessorUpsert {
         }
 
         if (response.isSuccess()) {
-            ctx.crawler().fire(
+            ctx.crawlerContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.DOCUMENT_IMPORTED)
-                            .source(ctx.crawler())
+                            .source(ctx.crawlerContext())
                             .docContext(docRecord)
                             .subject(response)
                             .message(msg)
                             .build());
-            ctx.crawler().getDocPipelines().getCommitterPipeline().accept(
-                    new CommitterPipelineContext(ctx.crawler(), ctx.doc()));
+            ctx.crawlerContext().getDocPipelines().getCommitterPipeline()
+                    .accept(
+                            new CommitterPipelineContext(ctx.crawlerContext(),
+                                    ctx.doc()));
             return true;
         }
 
         docRecord.setState(CrawlDocState.REJECTED);
-        ctx.crawler().fire(
+        ctx.crawlerContext().fire(
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.REJECTED_IMPORT)
-                        .source(ctx.crawler())
+                        .source(ctx.crawlerContext())
                         .docContext(docRecord)
                         .subject(response)
                         .message(msg)

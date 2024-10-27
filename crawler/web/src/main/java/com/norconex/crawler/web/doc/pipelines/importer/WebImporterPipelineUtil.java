@@ -41,7 +41,7 @@ public final class WebImporterPipelineUtil {
             String redirectURL) {
 
         var ctx = (WebImporterPipelineContext) context;
-        var docTracker = ctx.getTaskContext().getDocProcessingLedger();
+        var docTracker = ctx.getCrawlerContext().getDocProcessingLedger();
 
         var docContext = (WebCrawlDocContext) ctx.getDoc().getDocContext();
         String sourceURL = docContext.getReference();
@@ -63,10 +63,10 @@ public final class WebImporterPipelineUtil {
                 .userAgent(response.getUserAgent())
                 .build();
 
-        ctx.getTaskContext().fire(
+        ctx.getCrawlerContext().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.REJECTED_REDIRECTED)
-                        .source(ctx.getTaskContext())
+                        .source(ctx.getCrawlerContext())
                         .subject(newResponse)
                         .docContext(docContext)
                         .message(
@@ -137,15 +137,15 @@ public final class WebImporterPipelineUtil {
             return;
         }
 
-        var urlScope = Web.config(ctx.getTaskContext())
+        var urlScope = Web.config(ctx.getCrawlerContext())
                 .getUrlScopeResolver().resolve(
                         docContext.getReference(), newRec);
-        Web.fireIfUrlOutOfScope(ctx.getTaskContext(), newRec, urlScope);
+        Web.fireIfUrlOutOfScope(ctx.getCrawlerContext(), newRec, urlScope);
         if (urlScope.isInScope()) {
-            ctx.getTaskContext()
+            ctx.getCrawlerContext()
                     .getDocPipelines()
                     .getQueuePipeline()
-                    .accept(new QueuePipelineContext(ctx.getTaskContext(),
+                    .accept(new QueuePipelineContext(ctx.getCrawlerContext(),
                             newRec));
         } else {
             LOG.debug("URL redirect target not in scope: {}", redirectURL);

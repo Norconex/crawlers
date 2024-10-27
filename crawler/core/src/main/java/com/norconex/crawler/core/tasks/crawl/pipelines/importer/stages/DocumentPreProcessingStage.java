@@ -21,13 +21,14 @@ import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipeline
 public class DocumentPreProcessingStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext ctx) {
-        for (DocumentConsumer preProc : ctx.getTaskContext().getConfiguration()
+        for (DocumentConsumer preProc : ctx.getCrawlerContext()
+                .getConfiguration()
                 .getPreImportConsumers()) {
-            preProc.accept(ctx.getTaskContext().getFetcher(), ctx.getDoc());
-            ctx.getTaskContext().fire(
+            preProc.accept(ctx.getCrawlerContext().getFetcher(), ctx.getDoc());
+            ctx.getCrawlerContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.DOCUMENT_PREIMPORTED)
-                            .source(ctx.getTaskContext())
+                            .source(ctx.getCrawlerContext())
                             .subject(preProc)
                             .docContext(ctx.getDoc().getDocContext())
                             .build());

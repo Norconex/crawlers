@@ -20,9 +20,9 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 
@@ -30,10 +30,10 @@ import com.norconex.crawler.web.doc.WebDocMetadata;
  * Initialize a Web CrawlDoc.
  */
 class WebCrawlDocInitializer
-        implements BiConsumer<TaskContext, CrawlDoc> {
+        implements BiConsumer<CrawlerContext, CrawlDoc> {
 
     @Override
-    public void accept(TaskContext crawler, CrawlDoc doc) {
+    public void accept(CrawlerContext crawler, CrawlDoc doc) {
         var docRecord = (WebCrawlDocContext) doc.getDocContext();
         var cachedDocRecord = (WebCrawlDocContext) doc.getCachedDocContext();
         var metadata = doc.getMetadata();

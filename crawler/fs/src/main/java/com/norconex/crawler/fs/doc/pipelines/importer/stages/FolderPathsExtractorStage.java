@@ -40,7 +40,7 @@ public class FolderPathsExtractorStage extends AbstractImporterStage {
             return true;
         }
 
-        var fetcher = (FileFetcher) ctx.getTaskContext().getFetcher();
+        var fetcher = (FileFetcher) ctx.getCrawlerContext().getFetcher();
 
         var docContext = (FsCrawlDocContext) ctx.getDoc().getDocContext();
         if (docContext.isFolder()) {
@@ -58,12 +58,12 @@ public class FolderPathsExtractorStage extends AbstractImporterStage {
                         fsPath.getUri(), docContext.getDepth() + 1);
                 newPath.setFile(fsPath.isFile());
                 newPath.setFolder(fsPath.isFolder());
-                ctx.getTaskContext()
+                ctx.getCrawlerContext()
                         .getDocPipelines()
                         .getQueuePipeline()
                         .accept(
                                 new QueuePipelineContext(
-                                        ctx.getTaskContext(), newPath));
+                                        ctx.getCrawlerContext(), newPath));
             }
         }
 

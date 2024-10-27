@@ -43,7 +43,7 @@ class OnMatchFiltersResolverTest {
 
     @Test
     void testIsRejectedByMetadataFilters() {
-        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
+        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
 
         // match - include
@@ -134,7 +134,7 @@ class OnMatchFiltersResolverTest {
             FetchDirective currentDirective,
             boolean expected) {
         CrawlDocStubs.crawlDocWithCache("ref", "content");
-        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
+        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
         var cfg = crawler.getConfiguration();
         cfg.setMetadataFetchSupport(metaSupport);
         cfg.setDocumentFetchSupport(docSupport);

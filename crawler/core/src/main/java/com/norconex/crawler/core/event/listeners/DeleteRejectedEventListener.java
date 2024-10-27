@@ -21,11 +21,11 @@ import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridSet;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.EqualsAndHashCode;
@@ -106,13 +106,13 @@ public class DeleteRejectedEventListener implements
         }
     }
 
-    private void init(TaskContext crawler) {
+    private void init(CrawlerContext crawlerContext) {
         // Delete any previously created store. We do it here instead
         // of on completion in case users want to keep a record between
         // two crawl executions.
-        refStore = crawler.getGrid().storage()
+        refStore = crawlerContext.getGrid().storage()
                 .getSet(DELETED_REFS_CACHE_NAME, String.class);
-        ConcurrentUtil.block(crawler.getGrid().compute()
+        ConcurrentUtil.block(crawlerContext.getGrid().compute()
                 .runOnce("delete-rejected-listener-init", () -> {
                     LOG.info("Clearing any previous deleted references cache.");
                     refStore.clear();
@@ -138,15 +138,15 @@ public class DeleteRejectedEventListener implements
         refStore.add(docInfo.getReference());
     }
 
-    private void commitDeletions(TaskContext crawler) {
-        ConcurrentUtil.block(crawler.getGrid().compute().runOnce(
+    private void commitDeletions(CrawlerContext crawlerContext) {
+        ConcurrentUtil.block(crawlerContext.getGrid().compute().runOnce(
                 "delete-rejected-listener-commit", () -> {
                     if (LOG.isInfoEnabled()) {
                         LOG.info("Committing {} rejected references for "
                                 + "deletion...", refStore.size());
                     }
                     refStore.forEach(ref -> {
-                        crawler.getCommitterService()
+                        crawlerContext.getCommitterService()
                                 .delete(new CrawlDoc(
                                         new CrawlDocContext(ref),
                                         CachedInputStream

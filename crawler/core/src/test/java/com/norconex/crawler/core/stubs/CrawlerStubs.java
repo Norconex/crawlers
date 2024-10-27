@@ -18,8 +18,8 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.MemoryCrawlerSpecProvider;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 public final class CrawlerStubs {
 
@@ -28,34 +28,34 @@ public final class CrawlerStubs {
     private CrawlerStubs() {
     }
 
-    public static TaskContext memoryTaskContext(
+    public static CrawlerContext memoryCrawlerContext(
             Path workDir, CrawlerConfig config) {
         //NOTE: we could just assume that the workDir is set in config already,
         // but we want to enforce passing one when testing
         var cfg = config != null ? config : new CrawlerConfig();
-        var context = new TaskContext(MemoryCrawlerSpecProvider.class, cfg);
+        var context = new CrawlerContext(MemoryCrawlerSpecProvider.class, cfg);
         context.getConfiguration().setWorkDir(workDir);
         return context;
-        //        return TaskContext.create(MemoryCrawlerSpecProvider.class,
+        //        return CrawlerContext.create(MemoryCrawlerSpecProvider.class,
         //                b -> {
         //                    config.setWorkDir(workDir);
         //                    b.configuration(config);
         //                });
     }
 
-    public static TaskContext memoryTaskContext(Path workDir) {
-        return memoryTaskContext(workDir, (CrawlerConfig) null);
+    public static CrawlerContext memoryCrawlerContext(Path workDir) {
+        return memoryCrawlerContext(workDir, (CrawlerConfig) null);
     }
 
-    public static TaskContext memoryTaskContext(
+    public static CrawlerContext memoryCrawlerContext(
             Path workDir, Consumer<CrawlerConfig> c) {
         var crawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(crawlerConfig);
         }
 
-        return memoryTaskContext(workDir, crawlerConfig);
-        //        return TaskContext.create(MemoryCrawlerSpecProvider.class,
+        return memoryCrawlerContext(workDir, crawlerConfig);
+        //        return CrawlerContext.create(MemoryCrawlerSpecProvider.class,
         //                b -> b.configuration(crawlerConfig));
 
         //        return Crawler.create(MemoryCrawlerSpecProvider.class, crawlerConfig);

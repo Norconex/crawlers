@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CoreQueueInitializer implements QueueInitializer {
 
     public static final ToIntFunction<QueueInitContext> fromList = ctx -> {
-        var cfg = ctx.getCrawler().getConfiguration();
+        var cfg = ctx.getCrawlerContext().getConfiguration();
         var cnt = 0;
         for (String ref : cfg.getStartReferences()) {
             if (StringUtils.isNotBlank(ref)) {
@@ -59,7 +59,7 @@ public class CoreQueueInitializer implements QueueInitializer {
     };
 
     public static final ToIntFunction<QueueInitContext> fromFiles = ctx -> {
-        var cfg = ctx.getCrawler().getConfiguration();
+        var cfg = ctx.getCrawlerContext().getConfiguration();
         var refsFiles = cfg.getStartReferencesFiles();
         var cnt = 0;
         for (Path refsFile : refsFiles) {
@@ -86,7 +86,7 @@ public class CoreQueueInitializer implements QueueInitializer {
     };
 
     public static final ToIntFunction<QueueInitContext> fromProviders = ctx -> {
-        var cfg = ctx.getCrawler().getConfiguration();
+        var cfg = ctx.getCrawlerContext().getConfiguration();
         var providers = cfg.getStartReferencesProviders();
         var cnt = 0;
         for (ReferencesProvider provider : providers) {

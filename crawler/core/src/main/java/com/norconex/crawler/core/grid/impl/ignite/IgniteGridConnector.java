@@ -22,9 +22,12 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 @EqualsAndHashCode
 @ToString
@@ -36,9 +39,14 @@ public class IgniteGridConnector
     private final IgniteGridConnectorConfig configuration =
             new IgniteGridConnectorConfig();
 
+    @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
+    @Accessors(chain = true)
+    private boolean serverNode;
+
     @Override
     public Grid connect(CrawlerContext crawlerContext) {
-        if (!crawlerContext.isClient()) {
+        if (serverNode) {
             return new IgniteGrid(new IgniteGridInstanceServer());
         }
 
@@ -58,9 +66,6 @@ public class IgniteGridConnector
         globalCache.put(IgniteGridKeys.CRAWLER_CONFIG, crawlerCfgStr);
         globalCache.put(IgniteGridKeys.CRAWLER_SPEC_PROVIDER_CLASS,
                 crawlerContext.getSpecProviderClass().getName());
-        //        globalCache.put(IgniteGridKeys.CRAWLER_CONFIG_CLASS,
-        //                crawlerContext.getConfiguration().getClass());
-
         igniteInstance.get().getOrCreateCache(IgniteGridKeys.RUN_ONCE_CACHE)
                 .clear();
 

@@ -19,20 +19,18 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core.tasks.crawl.process.DocProcessorContext;
-import com.norconex.crawler.core.tasks.crawl.process.DocProcessorFinalize;
 
 class DocProcessorFinalizeTest {
 
     @WithCrawlerTest
-    void testThreadActionFinalize(TaskContext crawler) {
+    void testThreadActionFinalize(CrawlerContext crawler) {
         var strategy = new MutableObject<>(
                 SpoiledReferenceStrategy.IGNORE);
         SpoiledReferenceStrategizer spoiledHandler =
@@ -48,7 +46,7 @@ class DocProcessorFinalizeTest {
 
         // no doc set and no status set: one should be created and bad status
         ctx.finalized(false);
-        ctx.crawler(crawler);
+        ctx.crawlerContext(crawler);
         ctx.docContext(new CrawlDocContext("ref"));
 
         DocProcessorFinalize.execute(ctx);

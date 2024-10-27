@@ -25,20 +25,19 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DedupService;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataDedupStage;
 
 @MockitoSettings
 class MetadataDedupStageTest {
 
     @Mock
-    private TaskContext crawler;
+    private CrawlerContext crawler;
     @Mock
     private DedupService dedupService;
 

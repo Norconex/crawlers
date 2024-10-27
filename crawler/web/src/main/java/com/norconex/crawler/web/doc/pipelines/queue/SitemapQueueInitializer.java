@@ -33,7 +33,7 @@ public class SitemapQueueInitializer
     @Override
     public int applyAsInt(QueueInitContext queueInitCtx) {
 
-        var cfg = Web.config(queueInitCtx.getCrawler());
+        var cfg = Web.config(queueInitCtx.getCrawlerContext());
         var sitemapURLs = cfg.getStartReferencesSitemaps();
         var sitemapResolver = cfg.getSitemapResolver();
 
@@ -55,7 +55,8 @@ public class SitemapQueueInitializer
         for (String url : sitemapURLs) {
             sitemapResolver.resolve(
                     SitemapContext.builder()
-                            .fetcher(Web.fetcher(queueInitCtx.getCrawler()))
+                            .fetcher(Web
+                                    .fetcher(queueInitCtx.getCrawlerContext()))
                             .location(url)
                             .urlConsumer(urlConsumer)
                             .build());

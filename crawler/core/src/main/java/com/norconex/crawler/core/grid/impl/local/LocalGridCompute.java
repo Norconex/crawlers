@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.grid.impl.local;
 
-import java.io.Closeable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -25,7 +24,6 @@ import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridTask;
 import com.norconex.crawler.core.grid.GridTxOptions;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.shaded.h2.mvstore.MVStore;
 import com.norconex.shaded.h2.mvstore.tx.TransactionStore;
 
@@ -37,11 +35,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LocalGridCompute implements GridCompute, Closeable {
+public class LocalGridCompute implements GridCompute {
 
     private final MVStore mvStore;
     private final CrawlerContext crawlerContext;
-    private TaskContext taskContext;
 
     @Override
     public Future<?> runOnce(String jobName, Runnable runnable)
@@ -75,24 +72,14 @@ public class LocalGridCompute implements GridCompute, Closeable {
             String arg,
             GridTxOptions opts) throws GridException {
 
-        var taskContext = getTaskContext();
         var gridTask = ClassUtil.newInstance(taskClass);
-        Runnable gridRunnable = () -> gridTask.run(taskContext, arg);
+        Runnable gridRunnable = () -> gridTask.run(crawlerContext, arg);
         if (opts.isAtomic()) {
             gridRunnable = withAtomic(gridRunnable);
         }
-        taskContext.fire(CrawlerEvent.TASK_RUN_BEGIN, taskClass.getName());
+        crawlerContext.fire(CrawlerEvent.TASK_RUN_BEGIN, taskClass.getName());
         gridRunnable.run();
-        taskContext.fire(CrawlerEvent.TASK_RUN_END, taskClass.getName());
-    }
-
-    // lazy-loading is important here
-    private synchronized TaskContext getTaskContext() {
-        if (taskContext == null) {
-            taskContext = new TaskContext(crawlerContext);
-            taskContext.init(); // closed by LocalGrid#close()
-        }
-        return taskContext;
+        crawlerContext.fire(CrawlerEvent.TASK_RUN_END, taskClass.getName());
     }
 
     private Runnable withAtomic(Runnable runnableWrapper) {
@@ -110,13 +97,4 @@ public class LocalGridCompute implements GridCompute, Closeable {
             }
         };
     }
-
-    @Override
-    public void close() {
-        // other member variables are closed elsewhere
-        if (taskContext != null) {
-            taskContext.close();
-        }
-    }
-
 }

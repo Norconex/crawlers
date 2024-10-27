@@ -21,7 +21,6 @@ import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
@@ -103,18 +102,18 @@ public abstract class AbstractFetcher<
         //TODO, also handle CRAWLER_CRAWL_[BEGIN|END] if we ever need
         // fetcher on client side.
 
-        if (event.is(CrawlerEvent.TASK_CONTEXT_INIT_BEGIN)) {
+        if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)) {
             fetcherStartup((CrawlerContext) event.getSource());
-        } else if (event.is(CrawlerEvent.TASK_CONTEXT_SHUTDOWN_BEGIN)) {
-            fetcherShutdown((TaskContext) event.getSource());
+        } else if (event.is(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)) {
+            fetcherShutdown((CrawlerContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadBegin((TaskContext) event.getSource());
+            fetcherThreadBegin((CrawlerContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadEnd((TaskContext) event.getSource());
+            fetcherThreadEnd((CrawlerContext) event.getSource());
         }
     }
 

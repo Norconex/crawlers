@@ -40,7 +40,7 @@ class GenericSitemapLocatorTest {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(locator));
 
-        var crawler = CrawlerStubs.memoryCrawlerTaskContext(tempDir, cfg -> {
+        var crawler = CrawlerStubs.memoryCrawlerCrawlerContext(tempDir, cfg -> {
             cfg.setStartReferences(List.of("http://example.com/index.html"));
         });
 

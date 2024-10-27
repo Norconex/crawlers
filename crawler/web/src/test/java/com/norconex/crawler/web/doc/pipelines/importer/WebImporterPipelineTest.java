@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchDirective;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.WebDocMetadata;
@@ -38,7 +38,7 @@ import com.norconex.importer.doc.DocMetadata;
 class WebImporterPipelineTest {
 
     @Test
-    void testCanonicalStageSameReferenceContent(TaskContext crawler) {
+    void testCanonicalStageSameReferenceContent(CrawlerContext crawler) {
         var reference = "http://www.example.com/file.pdf";
         var contentValid = "<html><head><title>Test</title>\n"
                 + "<link rel=\"canonical\"\n href=\"\n" + reference + "\" />\n"
@@ -55,7 +55,7 @@ class WebImporterPipelineTest {
     }
 
     @Test
-    void testCanonicalStageSameReferenceHeader(TaskContext crawler) {
+    void testCanonicalStageSameReferenceHeader(CrawlerContext crawler) {
         var reference = "http://www.example.com/file.pdf";
         var doc = new CrawlDoc(
                 new WebCrawlDocContext(reference, 0), null,
@@ -68,7 +68,7 @@ class WebImporterPipelineTest {
     }
 
     @Test
-    void testKeepMaxDepthLinks(TaskContext crawler) {
+    void testKeepMaxDepthLinks(CrawlerContext crawler) {
         var reference = "http://www.example.com/file.html";
         var content = "<html><head><title>Test</title>\n"
                 + "</head><body><a href=\"link.html\">A link</a></body></html>";
@@ -84,7 +84,7 @@ class WebImporterPipelineTest {
         doc.getMetadata().set(DocMetadata.CONTENT_TYPE, "text/html");
 
         var ctx = new WebImporterPipelineContext(crawler, doc);
-        Web.config(ctx.getTaskContext()).setMaxDepth(2);
+        Web.config(ctx.getCrawlerContext()).setMaxDepth(2);
 
         var stage = new LinkExtractorStage();
 
@@ -95,7 +95,7 @@ class WebImporterPipelineTest {
                         WebDocMetadata.REFERENCED_URLS).size());
 
         // Here 1 URL shouled be extracted even if max depth is reached.
-        Web.config(ctx.getTaskContext()).setKeepReferencedLinks(
+        Web.config(ctx.getCrawlerContext()).setKeepReferencedLinks(
                 Set.of(
                         ReferencedLinkType.INSCOPE,
                         ReferencedLinkType.MAXDEPTH));

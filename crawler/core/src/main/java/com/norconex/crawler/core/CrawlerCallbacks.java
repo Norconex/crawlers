@@ -19,7 +19,6 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.CrawlTask;
 
 import lombok.Builder;
@@ -44,7 +43,7 @@ public class CrawlerCallbacks {
      * of {@link CrawlTask} starts. Invoked right after the
      * {@link CrawlerEvent#TASK_RUN_BEGIN} event is fired.
      */
-    Consumer<TaskContext> beforeCrawlTask;
+    Consumer<CrawlerContext> beforeCrawlTask;
 
     /**
      * Gives crawler implementations a chance to do something right after
@@ -55,16 +54,16 @@ public class CrawlerCallbacks {
      * {@link CrawlerEvent#TASK_RUN_END} (depending which of the two is
      * triggered).
      */
-    Consumer<TaskContext> afterCrawlTask;
+    Consumer<CrawlerContext> afterCrawlTask;
 
     //MAYBE: are those used? Should they be?
     // Add those that are missing to ReferencesProcessor
-    BiConsumer<TaskContext, CrawlDoc> beforeDocumentProcessing;
-    BiConsumer<TaskContext, CrawlDoc> afterDocumentProcessing;
+    BiConsumer<CrawlerContext, CrawlDoc> beforeDocumentProcessing;
+    BiConsumer<CrawlerContext, CrawlDoc> afterDocumentProcessing;
 
     //MAYBE: need those, or we can replace beforeDocumentFinalizing
     // (the only one used) with after processing?
-    BiConsumer<TaskContext, CrawlDoc> beforeDocumentFinalizing;
-    BiConsumer<TaskContext, CrawlDoc> afterDocumentFinalizing;
+    BiConsumer<CrawlerContext, CrawlDoc> beforeDocumentFinalizing;
+    BiConsumer<CrawlerContext, CrawlDoc> afterDocumentFinalizing;
 
 }

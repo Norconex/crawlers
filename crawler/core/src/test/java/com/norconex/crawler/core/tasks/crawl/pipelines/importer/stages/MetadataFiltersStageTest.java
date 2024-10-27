@@ -40,7 +40,7 @@ class MetadataFiltersStageTest {
     void testMetadataFiltersStage(@TempDir Path tempDir) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
+        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
         crawler.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 

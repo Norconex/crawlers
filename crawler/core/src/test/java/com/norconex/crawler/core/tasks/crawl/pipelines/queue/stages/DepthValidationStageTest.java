@@ -34,7 +34,7 @@ class DepthValidationStageTest {
 
         var docRec = new CrawlDocContext("ref");
         docRec.setDepth(3);
-        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
+        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
         var ctx = new QueuePipelineContext(crawler, docRec);
 
         // Unlimited depth

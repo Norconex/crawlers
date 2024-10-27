@@ -22,11 +22,11 @@ import org.apache.ignite.Ignition;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridTask;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,20 +45,20 @@ public final class IgniteGridServerTaskRunner {
         // Create a new instance of the task
         var task = (GridTask) ClassUtil.newInstance(taskClass);
 
-        try (var taskContext = createTaskContext()) {
+        try (var crawlerContext = createCrawlerContext()) {
             LOG.info("Running task \"{}\" on crawler \"{}\"",
-                    className, taskContext.getConfiguration().getId());
-            taskContext.init();
-            taskContext.fire(CrawlerEvent.TASK_RUN_BEGIN, className);
-            task.run(taskContext, arg);
-            taskContext.fire(CrawlerEvent.TASK_RUN_END, className);
+                    className, crawlerContext.getConfiguration().getId());
+            crawlerContext.init();
+            crawlerContext.fire(CrawlerEvent.TASK_RUN_BEGIN, className);
+            task.run(crawlerContext, arg);
+            crawlerContext.fire(CrawlerEvent.TASK_RUN_END, className);
         } catch (RuntimeException e) {
             LOG.error("Could not run task.", e);
             throw e;
         }
     }
 
-    static TaskContext createTaskContext() {
+    static CrawlerContext createCrawlerContext() {
         var ignite = Ignition.localIgnite();
         var initCache = ignite.<String, String>getOrCreateCache(
                 IgniteGridKeys.GLOBAL_CACHE);
@@ -77,7 +77,8 @@ public final class IgniteGridServerTaskRunner {
 
         var r = new StringReader(configStr);
         spec.beanMapper().read(cfg, r, Format.JSON);
-        return new TaskContext(specProviderClass, cfg);
+        ((IgniteGridConnector) cfg.getGridConnector()).setServerNode(true);
+        return new CrawlerContext(specProviderClass, cfg);
     }
 
     private static Class<? extends CrawlerSpecProvider>

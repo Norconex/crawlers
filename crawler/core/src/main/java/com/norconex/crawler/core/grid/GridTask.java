@@ -16,12 +16,12 @@ package com.norconex.crawler.core.grid;
 
 import java.io.Serializable;
 
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 
 /**
  * Code meant to run on server node (in a clustered environment).
  */
 @FunctionalInterface
 public interface GridTask extends Serializable {
-    void run(TaskContext taskContext, String arg);
+    void run(CrawlerContext crawlerContext, String arg);
 }

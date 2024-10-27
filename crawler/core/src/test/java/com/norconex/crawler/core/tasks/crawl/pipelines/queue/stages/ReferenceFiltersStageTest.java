@@ -38,7 +38,7 @@ class ReferenceFiltersStageTest {
 
     @Test
     void testReferenceFiltersStage() {
-        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
+        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
         var docRecord = new CrawlDocContext("ref");
         var stage = new ReferenceFiltersStage();
 

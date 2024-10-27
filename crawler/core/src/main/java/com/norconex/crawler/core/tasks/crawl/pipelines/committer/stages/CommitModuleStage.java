@@ -25,7 +25,7 @@ public class CommitModuleStage implements Predicate<CommitterPipelineContext> {
     @Override
     public boolean test(CommitterPipelineContext ctx) {
         // Event triggered by service
-        ctx.getCrawler()
+        ctx.getCrawlerContext()
                 .getCommitterService()
                 .upsert(ctx.getDoc());
 

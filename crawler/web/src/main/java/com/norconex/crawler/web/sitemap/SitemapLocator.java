@@ -16,7 +16,7 @@ package com.norconex.crawler.web.sitemap;
 
 import java.util.List;
 
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 
 /**
  * <p>
@@ -35,5 +35,5 @@ import com.norconex.crawler.core.tasks.TaskContext;
  */
 @FunctionalInterface
 public interface SitemapLocator {
-    List<String> locations(String url, TaskContext crawler);
+    List<String> locations(String url, CrawlerContext crawler);
 }

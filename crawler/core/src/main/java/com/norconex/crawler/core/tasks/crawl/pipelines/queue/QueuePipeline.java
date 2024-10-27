@@ -22,8 +22,8 @@ import java.util.function.Function;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.commons.lang.function.Predicates;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.AllArgsConstructor;
@@ -70,7 +70,7 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
      * @param crawler the crawler
      * @return queue initialization completion status
      */
-    public MutableBoolean initializeQueue(TaskContext crawler) {
+    public MutableBoolean initializeQueue(CrawlerContext crawlerContext) {
         //--- Queue initial references ---------------------------------
         //TODO if we resume, shall we not queue again? What if it stopped
         // in the middle of initial queuing, then to be safe we have to
@@ -83,10 +83,11 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
         if (initializer != null) {
             LOG.info("Queueing initial references...");
             var queueInitContext = new QueueInitContext(
-                    crawler,
-                    crawler.getState().isResuming(),
-                    rec -> accept(new QueuePipelineContext(crawler, rec)));
-            var cfg = crawler.getConfiguration();
+                    crawlerContext,
+                    crawlerContext.getState().isResuming(),
+                    rec -> accept(
+                            new QueuePipelineContext(crawlerContext, rec)));
+            var cfg = crawlerContext.getConfiguration();
             if (cfg.isStartReferencesAsync()) {
                 queueInitialized = initializeQueueAsync(queueInitContext);
             } else {
@@ -111,8 +112,8 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
         var executor = Executors.newSingleThreadExecutor();
         try {
             executor.submit(() -> {
-                LogUtil.setMdcCrawlerId(ctx.getCrawler().getId());
-                Thread.currentThread().setName(ctx.getCrawler().getId());
+                LogUtil.setMdcCrawlerId(ctx.getCrawlerContext().getId());
+                Thread.currentThread().setName(ctx.getCrawlerContext().getId());
                 LOG.info("Queuing start references asynchronously.");
                 initializer.accept(ctx);
                 doneStatus.setTrue();
@@ -145,13 +146,13 @@ public class QueuePipeline implements Consumer<QueuePipelineContext> {
     @AllArgsConstructor
     public static class QueueInitContext {
         @Getter
-        private final TaskContext crawler;
+        private final CrawlerContext crawlerContext;
         @Getter
         private final boolean resuming;
         private final Consumer<CrawlDocContext> queuer;
 
         public void queue(@NonNull String reference) {
-            var rec = crawler.newDocContext(reference);
+            var rec = crawlerContext.newDocContext(reference);
             rec.setDepth(0);
             queue(rec);
         }

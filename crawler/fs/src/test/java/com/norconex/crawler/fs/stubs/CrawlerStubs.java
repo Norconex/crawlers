@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.tasks.TaskContext;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.fs.FsCrawler;
 import com.norconex.crawler.fs.FsCrawlerSpecProvider;
 
@@ -50,30 +50,31 @@ public final class CrawlerStubs {
         //        return memoryCrawlerBuilder(workDir, c).build();
     }
 
-    public static TaskContext memoryTaskContext(
+    public static CrawlerContext memoryCrawlerContext(
             Path workDir, CrawlerConfig config) {
         var memConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (config != null) {
             BeanUtil.copyProperties(memConfig, config);
         }
-        var context = new TaskContext(FsCrawlerSpecProvider.class, memConfig);
+        var context =
+                new CrawlerContext(FsCrawlerSpecProvider.class, memConfig);
         context.getConfiguration().setWorkDir(workDir);
         return context;
     }
 
-    public static TaskContext memoryTaskContext(Path workDir) {
-        return memoryTaskContext(workDir, (CrawlerConfig) null);
+    public static CrawlerContext memoryCrawlerContext(Path workDir) {
+        return memoryCrawlerContext(workDir, (CrawlerConfig) null);
     }
 
-    public static TaskContext memoryTaskContext(
+    public static CrawlerContext memoryCrawlerContext(
             Path workDir, Consumer<CrawlerConfig> c) {
         var crawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(crawlerConfig);
         }
 
-        return memoryTaskContext(workDir, crawlerConfig);
-        //        return TaskContext.create(FsCrawlerSpecProvider.class, b -> {
+        return memoryCrawlerContext(workDir, crawlerConfig);
+        //        return CrawlerContext.create(FsCrawlerSpecProvider.class, b -> {
         //            b.configuration(crawlerConfig);
         //        });
     }

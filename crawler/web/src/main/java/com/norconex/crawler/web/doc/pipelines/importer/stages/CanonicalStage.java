@@ -54,7 +54,7 @@ public class CanonicalStage extends AbstractImporterStage {
         var ctx = (WebImporterPipelineContext) context;
 
         var detector =
-                Web.config(ctx.getTaskContext()).getCanonicalLinkDetector();
+                Web.config(ctx.getCrawlerContext()).getCanonicalLinkDetector();
 
         //Return right away if canonical links are ignored or no detector.
         if (detector == null) {
@@ -108,7 +108,7 @@ public class CanonicalStage extends AbstractImporterStage {
         }
 
         var detector =
-                Web.config(ctx.getTaskContext()).getCanonicalLinkDetector();
+                Web.config(ctx.getCrawlerContext()).getCanonicalLinkDetector();
         var docRec = (WebCrawlDocContext) ctx.getDoc().getDocContext();
         String reference = docRec.getReference();
 
@@ -118,7 +118,7 @@ public class CanonicalStage extends AbstractImporterStage {
         // the queue pipeline, since that pipeline performs the
         // normalization after a few other steps.
         var normalizedCanURL = WebUrlNormalizer.normalizeURL(
-                canURL, Web.config(ctx.getTaskContext()).getUrlNormalizers());
+                canURL, Web.config(ctx.getCrawlerContext()).getUrlNormalizers());
         if (normalizedCanURL == null) {
             LOG.info("""
                     Canonical URL detected is null after\s\
@@ -156,10 +156,10 @@ public class CanonicalStage extends AbstractImporterStage {
         newRecord.setReferrerReference(reference);
 
         var scopedUrlCtx = new WebCrawlDocContext(canURL);
-        var urlScope = Web.config(ctx.getTaskContext())
+        var urlScope = Web.config(ctx.getCrawlerContext())
                 .getUrlScopeResolver()
                 .resolve(docRec.getReference(), scopedUrlCtx);
-        Web.fireIfUrlOutOfScope(ctx.getTaskContext(), scopedUrlCtx, urlScope);
+        Web.fireIfUrlOutOfScope(ctx.getCrawlerContext(), scopedUrlCtx, urlScope);
         if (!urlScope.isInScope()) {
             LOG.debug(
                     "Canonical URL is out of scope and will be ignored: "
@@ -174,17 +174,17 @@ public class CanonicalStage extends AbstractImporterStage {
                         canonical URL will be queued for processing: {}""",
                 canURL);
 
-        ctx.getTaskContext()
+        ctx.getCrawlerContext()
                 .getDocPipelines()
                 .getQueuePipeline()
-                .accept(new QueuePipelineContext(ctx.getTaskContext(),
+                .accept(new QueuePipelineContext(ctx.getCrawlerContext(),
                         newRecord));
 
         docRec.setState(CrawlDocState.REJECTED);
-        ctx.getTaskContext().fire(
+        ctx.getCrawlerContext().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.REJECTED_NONCANONICAL)
-                        .source(ctx.getTaskContext())
+                        .source(ctx.getCrawlerContext())
                         .subject(detector)
                         .docContext(docRec)
                         .message(

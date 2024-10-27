@@ -22,10 +22,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.CrawlerState;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.Getter;
@@ -35,14 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 public class DocsProcessor implements Runnable {
 
     @Getter
-    private final TaskContext crawler;
+    private final CrawlerContext crawlerContext;
     private final DocProcessingLedger ledger;
     private final CrawlerState state;
 
     private int maxDocs;
 
-    public DocsProcessor(TaskContext crawler) {
-        this.crawler = crawler;
+    public DocsProcessor(CrawlerContext crawler) {
+        crawlerContext = crawler;
         ledger = crawler.getDocProcessingLedger();
         state = crawler.getState();
     }
@@ -51,13 +51,13 @@ public class DocsProcessor implements Runnable {
     public void run() {
         try {
             init();
-            ofNullable(crawler.getCallbacks().getBeforeCrawlTask())
-                    .ifPresent(cb -> cb.accept(crawler));
+            ofNullable(crawlerContext.getCallbacks().getBeforeCrawlTask())
+                    .ifPresent(cb -> cb.accept(crawlerContext));
             execute();
         } finally {
             try {
-                ofNullable(crawler.getCallbacks().getAfterCrawlTask())
-                        .ifPresent(cb -> cb.accept(crawler));
+                ofNullable(crawlerContext.getCallbacks().getAfterCrawlTask())
+                        .ifPresent(cb -> cb.accept(crawlerContext));
             } finally {
                 destroy();
             }
@@ -66,7 +66,7 @@ public class DocsProcessor implements Runnable {
 
     private void init() {
         // max documents
-        var cfgMaxDocs = crawler.getConfiguration().getMaxDocuments();
+        var cfgMaxDocs = crawlerContext.getConfiguration().getMaxDocuments();
         maxDocs = cfgMaxDocs;
         if (cfgMaxDocs > -1 && state.isResuming()) {
             maxDocs += ledger.getProcessedCount();
@@ -83,17 +83,19 @@ public class DocsProcessor implements Runnable {
         try {
             //TODO wrapping in thread stuff (BEGIN/END, etc.) is similar to
             // DocProcessor#run(), consider making it a shared method.
-            LogUtil.setMdcCrawlerId(crawler.getId());
-            Thread.currentThread().setName(crawler.getId() + "#queue-init");
+            LogUtil.setMdcCrawlerId(crawlerContext.getId());
+            Thread.currentThread()
+                    .setName(crawlerContext.getId() + "#queue-init");
             LOG.debug("Crawler thread 'init-queue' started.");
-            crawler.fire(CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
-            crawler.getDocPipelines()
+            crawlerContext.fire(CRAWLER_RUN_THREAD_BEGIN,
+                    Thread.currentThread());
+            crawlerContext.getDocPipelines()
                     .getQueuePipeline()
-                    .initializeQueue(crawler);
+                    .initializeQueue(crawlerContext);
 
         } finally {
-            crawler.fire(CRAWLER_RUN_THREAD_END, Thread.currentThread());
-            Thread.currentThread().setName(crawler.getId());
+            crawlerContext.fire(CRAWLER_RUN_THREAD_END, Thread.currentThread());
+            Thread.currentThread().setName(crawlerContext.getId());
         }
 
         if (state.isStopRequested() || state.isStopped()) {
@@ -118,13 +120,13 @@ public class DocsProcessor implements Runnable {
         if (state.isStopRequested()) {
             state.setStopped(true);
             //                state.setStopRequested(false);
-            crawler.fire(CrawlerEvent.CRAWLER_STOP_END);
+            crawlerContext.fire(CrawlerEvent.CRAWLER_STOP_END);
         }
         //        }
     }
 
     void crawlReferences(final ProcessFlags flags) {
-        var numThreads = crawler.getConfiguration().getNumThreads();
+        var numThreads = crawlerContext.getConfiguration().getNumThreads();
         final var latch = new CountDownLatch(numThreads);
         var execService = Executors.newFixedThreadPool(numThreads);
         try {
@@ -133,7 +135,7 @@ public class DocsProcessor implements Runnable {
                 LOG.debug("Crawler thread #{} starting...", threadIndex);
                 execService.execute(
                         DocProcessor.builder()
-                                .crawler(crawler)
+                                .crawlerContext(crawlerContext)
                                 .latch(latch)
                                 .threadIndex(threadIndex)
                                 .deleting(flags.delete)
@@ -174,7 +176,7 @@ public class DocsProcessor implements Runnable {
     }
 
     //    private void logJmxState() {
-    //        if (Boolean.getBoolean(TaskContext.SYS_PROP_ENABLE_JMX)) {
+    //        if (Boolean.getBoolean(CrawlerContext.SYS_PROP_ENABLE_JMX)) {
     //            LOG.info("JMX support enabled.");
     //        } else {
     //            LOG.info("JMX support disabled. To enable, set -DenableJMX=true "

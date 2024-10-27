@@ -15,8 +15,8 @@
 package com.norconex.crawler.web.doc.pipelines.importer;
 
 import com.norconex.commons.lang.bean.BeanUtil;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.robot.RobotsMeta;
 
@@ -33,12 +33,12 @@ public class WebImporterPipelineContext extends ImporterPipelineContext {
      * @since 2.8.0
      */
     public WebImporterPipelineContext(ImporterPipelineContext ipc) {
-        super(ipc.getTaskContext(), ipc.getDoc());
+        super(ipc.getCrawlerContext(), ipc.getDoc());
         BeanUtil.copyProperties(this, ipc);
     }
 
     public WebImporterPipelineContext(
-            TaskContext crawler, CrawlDoc doc) {
+            CrawlerContext crawler, CrawlDoc doc) {
         super(crawler, doc);
     }
 }

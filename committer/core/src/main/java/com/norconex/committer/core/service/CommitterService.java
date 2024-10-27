@@ -25,6 +25,7 @@ import static com.norconex.committer.core.service.CommitterServiceEvent.COMMITTE
 import static com.norconex.committer.core.service.CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_BEGIN;
 import static com.norconex.committer.core.service.CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_END;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -62,7 +63,7 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 @Data
 @Setter(AccessLevel.NONE)
-public class CommitterService<T> {
+public class CommitterService<T> implements Closeable {
 
     @Default
     private List<Committer> committers = Collections.emptyList();
@@ -160,6 +161,7 @@ public class CommitterService<T> {
      *     one or more of the registered committers (wraps last exception
      *     captured)
      */
+    @Override
     public void close() throws CommitterServiceException {
         fire(COMMITTER_SERVICE_CLOSE_BEGIN, committers, null);
         executeAll("close", Committer::close);

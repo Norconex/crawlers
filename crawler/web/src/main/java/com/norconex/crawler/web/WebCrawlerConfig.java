@@ -470,6 +470,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
+//@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME)
 public class WebCrawlerConfig extends CrawlerConfig {
 
     /**

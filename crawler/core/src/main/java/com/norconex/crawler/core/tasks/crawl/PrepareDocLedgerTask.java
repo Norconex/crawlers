@@ -17,8 +17,8 @@ package com.norconex.crawler.core.tasks.crawl;
 import java.util.Locale;
 
 import com.norconex.commons.lang.PercentFormatter;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.GridTask;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,25 +36,25 @@ public class PrepareDocLedgerTask implements GridTask {
     public static final String KEY_INITIALIZING = "ledger.initializing";
 
     @Override
-    public void run(TaskContext taskContext, String arg) {
-        var globalCache = taskContext.getGrid().storage().getGlobalCache();
+    public void run(CrawlerContext crawlerContext, String arg) {
+        var globalCache = crawlerContext.getGrid().storage().getGlobalCache();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
             throw new IllegalStateException("Already initializing.");
         }
         globalCache.put(KEY_INITIALIZING, "true");
         try {
-            prepareForCrawl(taskContext);
+            prepareForCrawl(crawlerContext);
         } finally {
             globalCache.put(KEY_INITIALIZING, "false");
         }
     }
 
-    private void prepareForCrawl(TaskContext taskContext) {
-        var storage = taskContext.getGrid().storage();
+    private void prepareForCrawl(CrawlerContext crawlerContext) {
+        var storage = crawlerContext.getGrid().storage();
         storage.getGlobalCache();
-        var ledger = taskContext.getDocProcessingLedger();
-        var state = taskContext.getState();
+        var ledger = crawlerContext.getDocProcessingLedger();
+        var state = crawlerContext.getState();
 
         var isResuming = !ledger.isQueueEmpty();
         state.setResuming(isResuming);
@@ -67,7 +67,7 @@ public class PrepareDocLedgerTask implements GridTask {
                         + ledger.getQueueCount()
                         + ledger.getCachedCount();
                 LOG.info("RESUMING \"{}\" at {} ({}/{}).",
-                        taskContext.getId(),
+                        crawlerContext.getId(),
                         PercentFormatter.format(
                                 processedCount, totalCount, 2, Locale.ENGLISH),
                         processedCount, totalCount);

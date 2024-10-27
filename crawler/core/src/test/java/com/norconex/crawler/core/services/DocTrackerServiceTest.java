@@ -21,8 +21,8 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
-import com.norconex.crawler.core.tasks.TaskContext;
 
 @Disabled
 class DocTrackerServiceTest {
@@ -31,7 +31,7 @@ class DocTrackerServiceTest {
     private Path tempDir;
 
     @WithCrawlerTest
-    void testCleanCrawl(TaskContext crawler) {
+    void testCleanCrawl(CrawlerContext crawler) {
         var service = crawler.getDocProcessingLedger();
         // forEachXXX returns true by default when there are no matches
         // we use this here to figure out emptiness for all stages
@@ -41,7 +41,7 @@ class DocTrackerServiceTest {
     }
 
     @WithCrawlerTest
-    void testIncrementalCrawl(TaskContext crawler) {
+    void testIncrementalCrawl(CrawlerContext crawler) {
         //        var service = crawler.getDocProcessingLedger();
         //        service.prepareForCrawl();
         //        service.processed(new CrawlDocContext("ref1"));
@@ -56,7 +56,7 @@ class DocTrackerServiceTest {
     }
 
     @WithCrawlerTest
-    void testResumeCrawl(TaskContext crawler) {
+    void testResumeCrawl(CrawlerContext crawler) {
         //        var service = crawler.getDocProcessingLedger();
         //        service.queue(new CrawlDocContext("q-ref"));
         //        service.processed(new CrawlDocContext("p-ref"));

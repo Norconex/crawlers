@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.tasks.crawl;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.GridTask;
-import com.norconex.crawler.core.tasks.TaskContext;
 import com.norconex.crawler.core.tasks.crawl.process.DocsProcessor;
 
 /**
@@ -27,9 +27,9 @@ public class CrawlTask implements GridTask {
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void run(TaskContext taskContext, String arg) {
+    public void run(CrawlerContext crawlerContext, String arg) {
         //TODO maybe merge DocsProcessor here instead?
-        new DocsProcessor(taskContext).run();
+        new DocsProcessor(crawlerContext).run();
     }
 
 }

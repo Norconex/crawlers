@@ -68,13 +68,12 @@ final class DocProcessorFinalize {
 
             // important to call this before copying properties further down
             //TODO revisit all the before/after on crawlerImpl
-            ofNullable(
-                    ctx
-                            .crawler()
-                            .getCallbacks()
-                            .getBeforeDocumentFinalizing())
-                                    .ifPresent(bdf -> bdf.accept(ctx.crawler(),
-                                            doc));
+            ofNullable(ctx
+                    .crawlerContext()
+                    .getCallbacks()
+                    .getBeforeDocumentFinalizing())
+                            .ifPresent(bdf -> bdf.accept(ctx.crawlerContext(),
+                                    doc));
 
             //--- If doc crawl was incomplete, set missing info from cache -----
             // If document is not new or modified, it did not go through
@@ -99,7 +98,7 @@ final class DocProcessorFinalize {
 
         //--- Mark reference as Processed --------------------------------------
         try {
-            ctx.crawler()
+            ctx.crawlerContext()
                     .getDocProcessingLedger()
                     .processed(docRecord);
 
@@ -111,10 +110,11 @@ final class DocProcessorFinalize {
                     docRecord.getReference(), e.getMessage(), e);
         } finally {
             ofNullable(ctx
-                    .crawler()
+                    .crawlerContext()
                     .getCallbacks()
                     .getAfterDocumentFinalizing())
-                            .ifPresent(adf -> adf.accept(ctx.crawler(), doc));
+                            .ifPresent(adf -> adf.accept(ctx.crawlerContext(),
+                                    doc));
         }
 
         try {
@@ -149,7 +149,7 @@ final class DocProcessorFinalize {
             // markReferenceVariationsAsProcessed(...) method
 
             var strategy = Optional.ofNullable(
-                    ctx.crawler()
+                    ctx.crawlerContext()
                             .getConfiguration()
                             .getSpoiledReferenceStrategizer())
                     .map(srs -> srs.resolveSpoiledReferenceStrategy(
@@ -198,7 +198,7 @@ final class DocProcessorFinalize {
 
             var originalDocRec = ctx.docContext().withReference(originalRef);
             originalDocRec.setOriginalReference(null);
-            ctx.crawler()
+            ctx.crawlerContext()
                     .getDocProcessingLedger()
                     .processed(originalDocRec);
         }

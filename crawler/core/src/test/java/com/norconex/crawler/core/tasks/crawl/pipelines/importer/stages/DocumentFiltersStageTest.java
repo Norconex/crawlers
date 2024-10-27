@@ -42,7 +42,7 @@ class DocumentFiltersStageTest {
     @Test
     void testDocumentFiltersStage() {
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var crawler = CrawlerStubs.memoryTaskContext(tempDir);
+        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
         var ctx = new ImporterPipelineContext(crawler, doc);
         var stage = new DocumentFiltersStage();
 

@@ -43,7 +43,7 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
 
     @Override
     public boolean test(QueuePipelineContext ctx) {
-        var cfg = (WebCrawlerConfig) ctx.getCrawler().getConfiguration();
+        var cfg = (WebCrawlerConfig) ctx.getCrawlerContext().getConfiguration();
 
         if (cfg.getRobotsTxtProvider() == null) {
             return true;
@@ -52,10 +52,10 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
         var filter = findRejectingRobotsFilter(ctx);
         if (filter != null) {
             ctx.getDocContext().setState(CrawlDocState.REJECTED);
-            ctx.getCrawler().fire(
+            ctx.getCrawlerContext().fire(
                     CrawlerEvent.builder()
                             .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
-                            .source(ctx.getCrawler())
+                            .source(ctx.getCrawlerContext())
                             .subject(filter)
                             .docContext(ctx.getDocContext())
                             .build());
@@ -77,7 +77,7 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
             QueuePipelineContext ctx) {
 
         var robotsTxt = Web.robotsTxt(
-                ctx.getCrawler(), ctx.getDocContext().getReference());
+                ctx.getCrawlerContext(), ctx.getDocContext().getReference());
         if (robotsTxt == null) {
             return null;
         }
