@@ -24,10 +24,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.committer.stages.DocumentChecksumStage;
 
 class DocumentChecksumStageTest {
 
@@ -39,7 +38,7 @@ class DocumentChecksumStageTest {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(
-                CrawlerStubs.memoryCrawlerContext(tempDir), doc);
+                MockCrawler.memoryCrawler(tempDir).getContext(), doc);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
@@ -51,7 +50,7 @@ class DocumentChecksumStageTest {
     void testNoDocumentChecksummer() {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
+        var crawler = MockCrawler.memoryCrawler(tempDir).getContext();
         BeanMapper.DEFAULT.read(
                 crawler.getConfiguration(),
                 new StringReader("""
@@ -69,7 +68,7 @@ class DocumentChecksumStageTest {
 
     @Test
     void testRejectedUnmodified() {
-        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
+        var crawler = MockCrawler.memoryCrawler(tempDir).getContext();
 
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
         doc.getDocContext().setContentChecksum(crawler
@@ -83,7 +82,7 @@ class DocumentChecksumStageTest {
                 .createDocumentChecksum(doc));
 
         var ctx = new CommitterPipelineContext(
-                CrawlerStubs.memoryCrawlerContext(tempDir), doc);
+                MockCrawler.memoryCrawler(tempDir).getContext(), doc);
 
         var stage = new DocumentChecksumStage();
         assertThat(stage.test(ctx)).isFalse();

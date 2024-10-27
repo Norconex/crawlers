@@ -22,13 +22,12 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatchFilter;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.DocumentFiltersStage;
 import com.norconex.importer.doc.Doc;
 
 import lombok.AllArgsConstructor;
@@ -42,25 +41,25 @@ class DocumentFiltersStageTest {
     @Test
     void testDocumentFiltersStage() {
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
-        var ctx = new ImporterPipelineContext(crawler, doc);
+        var crawler = MockCrawler.memoryCrawler(tempDir);
+        var ctx = new ImporterPipelineContext(crawler.getContext(), doc);
         var stage = new DocumentFiltersStage();
 
         // no filters is equal to a match
         assertThat(stage.test(ctx)).isTrue();
 
         // test match
-        crawler.getConfiguration().setDocumentFilters(
+        crawler.getContext().getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.INCLUDE, true)));
         assertThat(stage.test(ctx)).isTrue();
 
         // test no match
-        crawler.getConfiguration().setDocumentFilters(
+        crawler.getContext().getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.INCLUDE, false)));
         assertThat(stage.test(ctx)).isFalse();
 
         // exclude
-        crawler.getConfiguration().setDocumentFilters(
+        crawler.getContext().getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.EXCLUDE, false)));
         assertThat(stage.test(ctx)).isFalse();
 

@@ -29,8 +29,8 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithCrawlerTest;
-import com.norconex.crawler.core.mocks.MockNoopGrid;
-import com.norconex.crawler.core.mocks.MockNoopGridConnector;
+import com.norconex.crawler.core.mocks.grid.MockNoopGrid;
+import com.norconex.crawler.core.mocks.grid.MockNoopGridConnector;
 
 class CrawlerTest {
 

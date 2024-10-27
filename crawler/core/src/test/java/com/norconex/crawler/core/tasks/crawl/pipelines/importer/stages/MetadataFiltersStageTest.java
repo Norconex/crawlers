@@ -27,12 +27,11 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericMetadataFilter;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataFiltersStage;
 
 class MetadataFiltersStageTest {
 
@@ -40,7 +39,7 @@ class MetadataFiltersStageTest {
     void testMetadataFiltersStage(@TempDir Path tempDir) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
+        var crawler = MockCrawler.memoryCrawler(tempDir).getContext();
         crawler.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 

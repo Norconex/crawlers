@@ -70,8 +70,8 @@ public class CliConfigRender extends CliBase {
                     .findFirst()
                     .orElse(Format.JSON);
 
-            crawler.getCrawlerContext().getBeanMapper().write(
-                    crawler.getCrawlerContext().getConfiguration(),
+            crawler.getContext().getBeanMapper().write(
+                    crawler.getContext().getConfiguration(),
                     out,
                     f);
             if (output == null) {

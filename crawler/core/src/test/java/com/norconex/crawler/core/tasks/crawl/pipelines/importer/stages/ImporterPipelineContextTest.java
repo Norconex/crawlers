@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
 
 class ImporterPipelineContextTest {
@@ -34,11 +34,12 @@ class ImporterPipelineContextTest {
     void testImporterPipelineContext(@TempDir Path tempDir) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
-        var ctx = new ImporterPipelineContext(crawler, doc);
+        var crawlerContext =
+                MockCrawler.memoryCrawler(tempDir).getContext();
+        var ctx = new ImporterPipelineContext(crawlerContext, doc);
 
         // metadata: disabled; document: enabled
-        crawler.getConfiguration().setMetadataFetchSupport(
+        crawlerContext.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.DISABLED);
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isFalse();
@@ -46,7 +47,7 @@ class ImporterPipelineContextTest {
         assertThat(ctx.isFetchDirectiveEnabled(DOCUMENT)).isTrue();
 
         // metadata: enabled; document: enabled
-        crawler.getConfiguration().setMetadataFetchSupport(
+        crawlerContext.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isTrue();

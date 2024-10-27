@@ -60,7 +60,7 @@ public class Crawler {
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
 
     private CrawlerProgressLogger progressLogger;
-    private final CrawlerContext crawlerContext;
+    private final CrawlerContext context;
 
     //    Crawler(CrawlerSpec b,
     //            Class<? extends CrawlerBuilderFactory> builderFactoryClass) {
@@ -108,39 +108,39 @@ public class Crawler {
         try {
             LOG.info("Executing command: {}",
                     command.getClass().getSimpleName());
-            ofNullable(crawlerContext.getCallbacks().getBeforeCommand())
-                    .ifPresent(c -> c.accept(crawlerContext));
-            command.execute(crawlerContext);
-            ofNullable(crawlerContext.getCallbacks().getAfterCommand())
-                    .ifPresent(c -> c.accept(crawlerContext));
+            ofNullable(context.getCallbacks().getBeforeCommand())
+                    .ifPresent(c -> c.accept(context));
+            command.execute(context);
+            ofNullable(context.getCallbacks().getAfterCommand())
+                    .ifPresent(c -> c.accept(context));
         } finally {
             close();
         }
     }
 
     private void init() {
-        crawlerContext.fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
-        LogUtil.logCommandIntro(LOG, crawlerContext.getConfiguration());
+        context.fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+        LogUtil.logCommandIntro(LOG, context.getConfiguration());
 
-        crawlerContext.init();
+        context.init();
 
         progressLogger = new CrawlerProgressLogger(
-                crawlerContext.getMetrics(),
-                crawlerContext.getConfiguration()
+                context.getMetrics(),
+                context.getConfiguration()
                         .getMinProgressLoggingInterval());
         progressLogger.startTracking();
-        crawlerContext.fire(CrawlerEvent.CRAWLER_INIT_END);
+        context.fire(CrawlerEvent.CRAWLER_INIT_END);
     }
 
     private void close() {
-        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
+        context.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
 
         progressLogger.stopTracking();
         LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
         LOG.info("Crawler {}",
-                (crawlerContext.getState().isStopped() ? "stopped."
+                (context.getState().isStopped() ? "stopped."
                         : "completed."));
-        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
-        crawlerContext.close();
+        context.fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
+        context.close();
     }
 }

@@ -22,10 +22,9 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.CommonAttribsResolutionStage;
 import com.norconex.importer.doc.DocMetadata;
 
 class CommonAttribsResolutionStageTest {
@@ -43,7 +42,8 @@ class CommonAttribsResolutionStageTest {
                         </html>
                         """);
         var ctx = new ImporterPipelineContext(
-                CrawlerStubs.memoryCrawlerContext(Path.of(".")), doc);
+                MockCrawler.memoryCrawler(Path.of(".")).getContext(),
+                doc);
         new CommonAttribsResolutionStage().test(ctx);
 
         assertThat(doc.getDocContext().getCharset()).isEqualTo(UTF_8);

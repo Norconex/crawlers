@@ -25,9 +25,9 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.MockNoopGrid;
-import com.norconex.crawler.core.mocks.MockNoopGridConnector;
-import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
+import com.norconex.crawler.core.mocks.grid.MockNoopGrid;
+import com.norconex.crawler.core.mocks.grid.MockNoopGridConnector;
+import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 class CrawlerConfigTest {
 
@@ -43,7 +43,7 @@ class CrawlerConfigTest {
                                 GridConnector.class,
                                 List.of(MockNoopGridConnector.class))
                         .build().assertWriteRead(
-                                CrawlerConfigStubs
+                                StubCrawlerConfig
                                         .randomMemoryCrawlerConfig(tempDir)));
     }
 }

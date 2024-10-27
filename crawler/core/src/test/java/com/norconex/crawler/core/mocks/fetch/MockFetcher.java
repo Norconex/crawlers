@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.mocks;
+package com.norconex.crawler.core.mocks.fetch;
 
 import java.io.ByteArrayInputStream;
 

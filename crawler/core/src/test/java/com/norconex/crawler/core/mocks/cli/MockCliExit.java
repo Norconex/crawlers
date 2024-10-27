@@ -12,28 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.mocks;
+package com.norconex.crawler.core.mocks.cli;
 
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridCompute;
-import com.norconex.crawler.core.grid.GridStorage;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.Data;
 
 @Data
-public class MockNoopGrid implements Grid {
+public class MockCliExit {
+    private int code = -1;
+    private String stdOut;
+    private String stdErr;
+    private final List<String> events = new ArrayList<>();
 
-    @Override
-    public GridCompute compute() {
-        return null;
-    }
-
-    @Override
-    public GridStorage storage() {
-        return null;
-    }
-
-    @Override
-    public void close() {
+    public boolean ok() {
+        return code == 0;
     }
 }

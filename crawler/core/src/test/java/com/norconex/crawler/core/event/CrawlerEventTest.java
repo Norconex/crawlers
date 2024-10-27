@@ -26,7 +26,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
+import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 
 class CrawlerEventTest {
 
@@ -34,7 +34,7 @@ class CrawlerEventTest {
 
     @BeforeAll
     static void beforeAll(@TempDir Path tempDir) {
-        crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
+        crawler = MockCrawler.memoryCrawler(tempDir).getContext();
     }
 
     @Test
@@ -43,7 +43,7 @@ class CrawlerEventTest {
 
         assertThat(event.isCrawlerShutdown()).isFalse();
         assertThat(event.getSubject()).hasToString("somesubject");
-        assertThat(event.getSource()).hasToString(CrawlerStubs.CRAWLER_ID);
+        assertThat(event.getSource()).hasToString(MockCrawler.CRAWLER_ID);
         assertThat(event.getDocContext().getReference()).isEqualTo("someref");
         assertThat(event).hasToString("someref - somemessage");
 
@@ -54,7 +54,7 @@ class CrawlerEventTest {
         assertThat(event).hasToString("someref - somesubject");
 
         event = event(b -> b.message(null).subject(null));
-        assertThat(event).hasToString("someref - " + CrawlerStubs.CRAWLER_ID);
+        assertThat(event).hasToString("someref - " + MockCrawler.CRAWLER_ID);
     }
 
     private CrawlerEvent event(

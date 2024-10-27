@@ -240,7 +240,7 @@ public final class FsTestUtil {
 
     public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
         return (MemoryCommitter) crawler
-                .getCrawlerContext()
+                .getContext()
                 .getConfiguration()
                 .getCommitters()
                 .get(0);

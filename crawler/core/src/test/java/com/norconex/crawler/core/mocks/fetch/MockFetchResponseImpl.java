@@ -12,28 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.mocks;
+package com.norconex.crawler.core.mocks.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.doc.CrawlDocState;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 @Data
-@RequiredArgsConstructor
-@Getter
-public class MockFetchRequest implements FetchRequest {
+@Accessors(chain = true)
+public class MockFetchResponseImpl implements MockFetchResponse {
 
-    private final CrawlDoc doc;
-
-    public MockFetchRequest(String ref) {
-        doc = CrawlDocStubs.crawlDoc(ref);
-    }
-
-    public String getRef() {
-        return doc.getReference();
-    }
+    private CrawlDocState crawlDocState;
+    private Exception exception;
+    private String reasonPhrase;
+    private int statusCode;
 }

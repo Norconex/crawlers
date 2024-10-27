@@ -44,8 +44,8 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.MockNoopGrid;
-import com.norconex.crawler.core.mocks.MockNoopGridConnector;
+import com.norconex.crawler.core.mocks.grid.MockNoopGrid;
+import com.norconex.crawler.core.mocks.grid.MockNoopGridConnector;
 import com.norconex.crawler.core.tasks.crawl.operations.DocumentConsumer;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
@@ -54,7 +54,7 @@ import com.norconex.importer.ImporterConfig;
 
 import lombok.NonNull;
 
-public final class CrawlerConfigStubs {
+public final class StubCrawlerConfig {
 
     public static final String CRAWLER_ID = "test-crawler";
 
@@ -102,12 +102,22 @@ public final class CrawlerConfigStubs {
                     .excludeType(DocumentConsumer.class::equals)
                     .excludeType(ReferencesProvider.class::equals));
 
-    private CrawlerConfigStubs() {
+    private StubCrawlerConfig() {
     }
 
     public static CrawlerConfig memoryCrawlerConfig(Path workDir) {
-        return new CrawlerConfig()
-                .setId(CRAWLER_ID)
+        return toMemoryCrawlerConfig(workDir, new CrawlerConfig());
+    }
+
+    /**
+     * Takes an existing config and make it a "memory" config.
+     * @param workDir test working directory
+     * @param cfg crawler config
+     * @return same config instance, for chaining
+     */
+    public static CrawlerConfig toMemoryCrawlerConfig(
+            Path workDir, CrawlerConfig cfg) {
+        return cfg.setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
                 .setCommitters(List.of(new MemoryCommitter()));
@@ -121,11 +131,7 @@ public final class CrawlerConfigStubs {
                 .setCommitters(List.of(new MemoryCommitter()));
     }
 
-    public static Path writeConfigToDir(
-            Path workDir,
-            @NonNull Consumer<CrawlerConfig> c) {
-        var config = memoryCrawlerConfig(workDir);
-        c.accept(config);
+    public static Path writeConfigToDir(@NonNull CrawlerConfig config) {
         var file = config
                 .getWorkDir()
                 .resolve(TimeIdGenerator.next() + ".yaml");
@@ -135,5 +141,13 @@ public final class CrawlerConfigStubs {
             throw new UncheckedIOException(e);
         }
         return file;
+    }
+
+    public static Path writeConfigToDir(
+            Path workDir,
+            @NonNull Consumer<CrawlerConfig> c) {
+        var config = memoryCrawlerConfig(workDir);
+        c.accept(config);
+        return writeConfigToDir(config);
     }
 }

@@ -25,11 +25,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
+import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.stages.ReferenceFiltersStage;
 
 class ReferenceFiltersStageTest {
 
@@ -38,7 +37,7 @@ class ReferenceFiltersStageTest {
 
     @Test
     void testReferenceFiltersStage() {
-        var crawler = CrawlerStubs.memoryCrawlerContext(tempDir);
+        var crawler = MockCrawler.memoryCrawler(tempDir).getContext();
         var docRecord = new CrawlDocContext("ref");
         var stage = new ReferenceFiltersStage();
 
