@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.util.About;
 
@@ -87,8 +86,7 @@ public class CliRunner implements Runnable {
     @Override
     public void run() {
         if (version) {
-            ClassUtil.newInstance(specProviderClass).get();
-            About.about(null);
+            spec.commandLine().getOut().println(About.about(null));
         }
     }
 }

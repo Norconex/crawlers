@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.io.TempDir;
 
@@ -122,8 +123,6 @@ class CliCrawlerLauncherTest {
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).contains(
                 "C R A W L E R",
-                "Committers:",
-                "Memory (Norconex Committer Core)",
                 "Runtime:",
                 "Name:",
                 "Version:",
@@ -333,8 +332,14 @@ class CliCrawlerLauncherTest {
     private MockCliExit launch(
             Class<? extends GridConnector> gridConnClass,
             String... cmdArgs) {
-        return MockCliLauncher.launch(tempDir, cfg -> cfg
-                .setGridConnector(ClassUtil.newInstance(gridConnClass)),
-                cmdArgs);
+        return MockCliLauncher
+                .builder()
+                .args(List.of(cmdArgs))
+                .workDir(tempDir)
+                .logErrors(true)
+                .configModifier(cfg -> cfg
+                        .setGridConnector(ClassUtil.newInstance(gridConnClass)))
+                .build()
+                .launch();
     }
 }

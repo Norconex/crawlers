@@ -68,9 +68,10 @@ public abstract class CliBase implements Runnable {
 
     @Override
     public void run() {
-        var spec = ClassUtil.newInstance(parent.getSpecProviderClass()).get();
+        var crawlerSpec =
+                ClassUtil.newInstance(parent.getSpecProviderClass()).get();
         var crawlerContext = new CrawlerContext(
-                parent.getSpecProviderClass(), loadConfiguration(spec));
+                parent.getSpecProviderClass(), loadConfiguration(crawlerSpec));
         //        loadConfiguration(crawlerContext);
         runCommand(new Crawler(crawlerContext));
     }

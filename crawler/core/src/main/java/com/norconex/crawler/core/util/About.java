@@ -50,7 +50,7 @@ public final class About {
 
             w.println(NORCONEX_ASCII);
 
-            w.println("Version:\n  " + releaseVersion(config.getClass()));
+            w.println("Version:\n  " + releaseVersion(About.class));
 
             if (config != null) {
                 // committer
