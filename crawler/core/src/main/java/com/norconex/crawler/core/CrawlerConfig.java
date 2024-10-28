@@ -33,7 +33,7 @@ import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
+import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.tasks.crawl.operations.DocumentConsumer;
 import com.norconex.crawler.core.tasks.crawl.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.tasks.crawl.operations.checksum.MetadataChecksummer;
@@ -150,7 +150,7 @@ public class CrawlerConfig {
     /**
      * The Grid Connector.
      */
-    private GridConnector gridConnector = new IgniteGridConnector(); //new LocalGridConnector();
+    private GridConnector gridConnector = new LocalGridConnector();
 
     /**
      * Whether the start references should be loaded asynchronously. When

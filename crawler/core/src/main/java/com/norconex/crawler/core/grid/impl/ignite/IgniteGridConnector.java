@@ -44,6 +44,15 @@ public class IgniteGridConnector
     @Accessors(chain = true)
     private boolean serverNode;
 
+    private IgniteGridInstance instance;
+
+    public IgniteGridConnector(IgniteGridInstance instance) {
+        this.instance = instance;
+    }
+
+    public IgniteGridConnector() {
+    }
+
     @Override
     public Grid connect(CrawlerContext crawlerContext) {
         if (serverNode) {
@@ -51,10 +60,18 @@ public class IgniteGridConnector
         }
 
         var cfg = crawlerContext.getConfiguration();
-        var igniteInstance =
-                IgniteGridInstanceClientTest.isIgniteTestClientEnabled()
-                        ? new IgniteGridInstanceClientTest(cfg)
-                        : new IgniteGridInstanceClient(cfg);
+        var igniteInstance = instance != null
+                ? instance
+                : new IgniteGridInstanceClient(cfg);
+
+        //TODO do a MockConnector that
+        //
+        //            igniteInstance =
+        //                    IgniteGridInstanceClientTest.isIgniteTestClientEnabled()
+        //                            ? new IgniteGridInstanceClientTest(cfg)
+        //                            : new IgniteGridInstanceClient(cfg);
+        //        }
+
         // serialize crawler builder factory and config to create the
         // crawler on each nodes
         var crawlerCfgWriter = new StringWriter();

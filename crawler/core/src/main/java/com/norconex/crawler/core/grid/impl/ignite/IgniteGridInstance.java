@@ -16,11 +16,17 @@ package com.norconex.crawler.core.grid.impl.ignite;
 
 import org.apache.ignite.Ignite;
 
+//TODO instead of using system properties for test client,
+// make client configurable... and maybe have the test implementation
+// under test package only.
+// Or, make it configurable programatically with "default" visibility so
+// only tests can set their test client.
+
 /**
  * Wrapper around a client Ignite instance, abstracting initialization
  * and closing.
  */
-interface IgniteGridInstance {
+public interface IgniteGridInstance {
 
     Ignite get();
 }

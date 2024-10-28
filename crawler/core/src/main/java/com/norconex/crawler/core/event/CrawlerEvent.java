@@ -44,11 +44,11 @@ public class CrawlerEvent extends Event {
     /**
      * The crawler began its initialization.
      */
-    public static final String CRAWLER_INIT_BEGIN = "CRAWLER_INIT_BEGIN";
+    //    public static final String CRAWLER_INIT_BEGIN = "CRAWLER_INIT_BEGIN";
     /**
      * The crawler has been initialized.
      */
-    public static final String CRAWLER_INIT_END = "CRAWLER_INIT_END";
+    //    public static final String CRAWLER_INIT_END = "CRAWLER_INIT_END";
 
     public static final String CRAWLER_CONTEXT_INIT_BEGIN =
             "CRAWLER_CONTEX_INIT_BEGIN";

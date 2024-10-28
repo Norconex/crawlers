@@ -36,12 +36,12 @@ class CrawlerLifeCycleListenerTest {
         }
 
         @Override
-        protected void onCrawlerInitBegin(CrawlerEvent event) {
+        protected void onCrawlerContextInitBegin(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerInitBegin");
         }
 
         @Override
-        protected void onCrawlerInitEnd(CrawlerEvent event) {
+        protected void onCrawlerContextInitEnd(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerInitEnd");
         }
 
@@ -88,10 +88,10 @@ class CrawlerLifeCycleListenerTest {
 
     @Test
     void testCrawlerLifeCycleListener() {
-        assertThat(m(CrawlerEvent.CRAWLER_INIT_BEGIN)).isEqualTo(
-                "onCrawlerEvent+onCrawlerInitBegin");
-        assertThat(m(CrawlerEvent.CRAWLER_INIT_END)).isEqualTo(
-                "onCrawlerEvent+onCrawlerInitEnd");
+        assertThat(m(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN)).isEqualTo(
+                "onCrawlerEvent+onCrawlerContextInitBegin");
+        assertThat(m(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)).isEqualTo(
+                "onCrawlerEvent+onCrawlerContextInitEnd");
         assertThat(m(CrawlerEvent.CRAWLER_CRAWL_BEGIN)).isEqualTo(
                 "onCrawlerEvent+onCrawlerRunBegin");
         assertThat(m(CrawlerEvent.CRAWLER_CRAWL_END)).isEqualTo(

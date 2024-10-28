@@ -23,6 +23,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+/**
+ * <p>
+ * Uses Apache Ignite to run the crawler on a cluster (grid).
+ * </p>
+ */
 @EqualsAndHashCode
 @ToString
 @RequiredArgsConstructor
@@ -44,32 +49,5 @@ public class IgniteGrid implements Grid {
     @Override
     public void close() {
         // NOOP: Nothing to close
-        //        igniteGridInstance.close();
     }
-
-    //    @Getter
-    //    private final LocalGridConnectorConfig configuration =
-    //            new LocalGridConnectorConfig();
-    //
-    //    @Override
-    //    public synchronized GridClient client(crawler crawler) {
-    //        if (client == null) {
-    //            client = new IgniteGridClient(crawler);
-    //        }
-    //        return client;
-    //    }
-    //
-    //    @Override
-    //    public GridServer server(Crawler crawler) {
-    //        return new IgniteGridServer();
-    //    }
-    //
-    //    @Override
-    //    public void close() {
-    //        if (client != null) {
-    //            client.close();
-    //            client = null;
-    //        }
-    //    }
-
 }

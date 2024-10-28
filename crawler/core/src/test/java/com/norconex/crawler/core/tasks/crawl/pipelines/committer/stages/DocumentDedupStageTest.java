@@ -17,12 +17,12 @@ package com.norconex.crawler.core.tasks.crawl.pipelines.committer.stages;
 import org.junit.jupiter.api.Disabled;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.junit.WithCrawlerTest;
+import com.norconex.crawler.core.junit.CrawlerTest;
 
 @Disabled("TO MIGRATE")
 class DocumentDedupStageTest {
 
-    @WithCrawlerTest(config = """
+    @CrawlerTest(config = """
             documentDeduplicate: true
             """)
     void testTest(CrawlerContext crawler) {

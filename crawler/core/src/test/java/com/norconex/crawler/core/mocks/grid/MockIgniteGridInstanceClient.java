@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.grid.impl.ignite;
+package com.norconex.crawler.core.mocks.grid;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.SystemProperties;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteException;
@@ -33,8 +32,9 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.GridException;
+import com.norconex.crawler.core.grid.impl.ignite.IgniteGridAttributes;
+import com.norconex.crawler.core.grid.impl.ignite.IgniteGridInstance;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -43,41 +43,41 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * <p>
  * Ignite client instance selected regardless of crawler configuration
- * when the {@value IgniteGridInstanceClientTest#PROP_IGNITE_TEST} system property
- * is set to <code>true</code>.
+ * when the {@value MockIgniteGridInstanceClient#PROP_IGNITE_TEST} system
+ * property is set to <code>true</code>.
  * </p>
  * <p>
- * In addition to a client node, it creates one or more embedded Ignite server
- * nodes using ports in the range 47500..47509. The exact quantity of server
- * nodes is specified by the
- * {@value IgniteGridInstanceClientTest#PROP_IGNITE_TEST_SERVER_QTY} system
- * property. Default is 1 and maximum is 10.
+ * Use
+ * {@value MockIgniteGridInstanceClient#PROP_IGNITE_TEST_SERVER_QTY} system
+ * property to define the number of server nodes to use.
+ * Default is 1.
  * </p>
  */
 @EqualsAndHashCode
 @ToString
 @Slf4j
-class IgniteGridInstanceClientTest implements IgniteGridInstance {
+class MockIgniteGridInstanceClient implements IgniteGridInstance {
 
-    static final String PROP_IGNITE_TEST = "grid.ignite.test";
-    static final String PROP_IGNITE_TEST_SERVER_QTY =
-            "grid.ignite.test.servers-qty";
-
+    //    static final String PROP_IGNITE_TEST = "grid.ignite.test";
+    //    static final String PROP_IGNITE_TEST_SERVER_QTY =
+    //            "grid.ignite.test.servers-qty";
+    //
     private final Ignite igniteClient;
     private final List<Ignite> igniteServers = new ArrayList<>();
 
-    public static boolean isIgniteTestClientEnabled() {
-        return Boolean.getBoolean(IgniteGridInstanceClientTest.PROP_IGNITE_TEST);
-    }
+    //    public static boolean isIgniteTestClientEnabled() {
+    //        return Boolean
+    //                .getBoolean(MockIgniteGridInstanceClient.PROP_IGNITE_TEST);
+    //    }
 
-    IgniteGridInstanceClientTest(CrawlerConfig cfg) {
+    MockIgniteGridInstanceClient(Path baseWorkDir, int serverNodes) {
 
-        var baseWorkDir = cfg.getWorkDir() == null
-                ? Path.of(SystemProperties.getJavaIoTmpdir())
-                : cfg.getWorkDir();
+        //        var baseWorkDir = cfg.getWorkDir() == null
+        //                ? Path.of(SystemProperties.getJavaIoTmpdir())
+        //                : cfg.getWorkDir();
 
-        int serverNodeQty =
-                Integer.getInteger(PROP_IGNITE_TEST_SERVER_QTY, 1);
+        var serverNodeQty = Math.max(serverNodes, 1);
+        //                Integer.getInteger(PROP_IGNITE_TEST_SERVER_QTY, 1);
         var totalNodeCount = serverNodeQty + 1;
         for (var i = 0; i < serverNodeQty; i++) {
             var nodeIndex = i + 1;

@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
@@ -62,8 +61,6 @@ public class MockCliLauncher {
             }
         }
 
-        new MutableObject<CrawlerConfig>();
-
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
                 () -> CliCrawlerLauncher.launch(
                         MockCrawlerSpecProvider.class,
@@ -73,10 +70,13 @@ public class MockCliLauncher {
         exit.setCode(captured.getReturnValue());
         exit.setStdOut(captured.getStdOut());
         exit.setStdErr(captured.getStdErr());
+
         try {
             var evtFile = workDir.resolve(MockCliEventWriter.EVENTS_FILE_NAME);
-            exit.getEvents().addAll(Files.readAllLines(evtFile));
-            Files.delete(evtFile);
+            if (Files.exists(evtFile)) {
+                exit.getEvents().addAll(Files.readAllLines(evtFile));
+                Files.delete(evtFile);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

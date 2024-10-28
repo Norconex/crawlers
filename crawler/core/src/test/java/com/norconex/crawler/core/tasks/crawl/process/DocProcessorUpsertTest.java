@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.junit.WithCrawlerTest;
+import com.norconex.crawler.core.junit.CrawlerTest;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.response.ImporterResponse;
 
@@ -39,7 +39,7 @@ class DocProcessorUpsertTest {
         }
     }
 
-    @WithCrawlerTest(configModifier = ConfigModifier.class)
+    @CrawlerTest(configModifier = ConfigModifier.class)
     void testThreadActionUpsert(CrawlerContext crawler) {
 
         var doc = CrawlDocStubs.crawlDoc("ref");

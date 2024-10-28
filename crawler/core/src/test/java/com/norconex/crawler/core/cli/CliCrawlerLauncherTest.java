@@ -14,27 +14,30 @@
  */
 package com.norconex.crawler.core.cli;
 
-import static com.norconex.crawler.core.mocks.cli.MockCliLauncher.launch;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
+import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
+import com.norconex.crawler.core.mocks.cli.MockCliExit;
+import com.norconex.crawler.core.mocks.cli.MockCliLauncher;
 import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class CliLauncherTest {
+class CliCrawlerLauncherTest {
 
     // MAYBE: a class for each crawler action/test?
     // MAYBE: write unit tests for <app> help command
@@ -43,9 +46,9 @@ class CliLauncherTest {
     @TempDir
     private Path tempDir;
 
-    @Test
-    void testNoArgs() throws IOException {
-        var exit = launch(tempDir);
+    @ParameterizedGridConnectorTest
+    void testNoArgs(Class<? extends GridConnector> gridConnClass) {
+        var exit = launch(gridConnClass);
         assertThat(exit.ok()).isFalse();
         assertThat(exit.getStdErr()).contains("No arguments provided.");
         assertThat(exit.getStdOut()).contains(
@@ -53,17 +56,18 @@ class CliLauncherTest {
                 "help configcheck");
     }
 
-    @Test
-    void testErrors() throws Exception {
+    @ParameterizedGridConnectorTest
+    void testErrors(Class<? extends GridConnector> gridConnClass)
+            throws Exception {
         // Bad args
-        var exit1 = launch(tempDir, "potato", "--soup");
+        var exit1 = launch(gridConnClass, "potato", "--soup");
         assertThat(exit1.ok()).isFalse();
         assertThat(exit1.getStdErr()).contains(
                 "Unmatched arguments");
 
         // Non existant config file
         var exit2 = launch(
-                tempDir,
+                gridConnClass,
                 "configcheck",
                 "-config=" + TimeIdGenerator.next() + "IDontExist");
         assertThat(exit2.ok()).isFalse();
@@ -71,14 +75,14 @@ class CliLauncherTest {
                 "Configuration file does not exist");
 
         // Simulate Picocli Exception
-        var exit3 = launch(tempDir, "clean", "-config=", "-config=");
+        var exit3 = launch(gridConnClass, "clean", "-config=", "-config=");
         assertThat(exit3.ok()).isFalse();
         assertThat(exit3.getStdErr()).contains(
                 "should be specified only once",
                 "Usage:",
                 "Clean the");
 
-        var exit4 = launch(tempDir, "clean", "-config=", "-config=");
+        var exit4 = launch(gridConnClass, "clean", "-config=", "-config=");
         assertThat(exit4.ok()).isFalse();
         assertThat(exit4.getStdErr()).contains(
                 "should be specified only once",
@@ -90,15 +94,15 @@ class CliLauncherTest {
         Files.writeString(file, """
                 <crawler badAttr="badAttr"></crawler>
                 """);
-        var exit5 = launch(tempDir, "configcheck", "-config=" + file);
+        var exit5 = launch(gridConnClass, "configcheck", "-config=" + file);
         assertThat(exit5.ok()).isFalse();
         assertThat(exit5.getStdErr()).contains(
                 "Unrecognized field \"badAttr\"");
     }
 
-    @Test
-    void testHelp() throws IOException {
-        var exit = launch(tempDir, "-h");
+    @ParameterizedGridConnectorTest
+    void testHelp(Class<? extends GridConnector> gridConnClass) {
+        var exit = launch(gridConnClass, "-h");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).contains(
                 "Usage:",
@@ -112,9 +116,9 @@ class CliLauncherTest {
                 "storeimport");
     }
 
-    @Test
-    void testVersion() throws IOException {
-        var exit = launch(tempDir, "-v");
+    @ParameterizedGridConnectorTest
+    void testVersion(Class<? extends GridConnector> gridConnClass) {
+        var exit = launch(gridConnClass, "-v");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).contains(
                 "C R A W L E R",
@@ -127,16 +131,17 @@ class CliLauncherTest {
                 .doesNotContain("null");
     }
 
-    @Test
-    void testConfigCheck() throws IOException {
-        var exit = launch(tempDir, "configcheck", "-config=");
+    @ParameterizedGridConnectorTest
+    void testConfigCheck(Class<? extends GridConnector> gridConnClass) {
+        var exit = launch(gridConnClass, "configcheck", "-config=");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).containsIgnoringWhitespaces(
                 "No configuration errors detected.");
     }
 
-    @Test
-    void testBadConfig() throws IOException {
+    @ParameterizedGridConnectorTest
+    void testBadConfig(Class<? extends GridConnector> gridConnClass)
+            throws IOException {
         var cfgFile = tempDir.resolve("badconfig.xml");
         Files.writeString(cfgFile, """
                 <crawler>
@@ -144,15 +149,16 @@ class CliLauncherTest {
                 </crawler>
                 """);
 
-        var exit = launch(tempDir,
+        var exit = launch(gridConnClass,
                 "configcheck", "-config=" + cfgFile.toAbsolutePath());
         assertThat(exit.ok()).isFalse();
         assertThat(exit.getStdErr()).contains(
                 "\"numThreads\" must be greater than or equal to 1.");
     }
 
-    @Test
-    void testStoreExportImport() throws IOException {
+    @ParameterizedGridConnectorTest
+    void testStoreExportImport(Class<? extends GridConnector> gridConnClass)
+            throws IOException {
         var exportDir = tempDir.resolve("exportdir");
         var exportFile = exportDir.resolve(MockCrawler.CRAWLER_ID + ".zip");
         var configFile = StubCrawlerConfig.writeConfigToDir(
@@ -160,7 +166,7 @@ class CliLauncherTest {
 
         // Export
         var exit1 = launch(
-                tempDir,
+                gridConnClass,
                 "storeexport",
                 "-config=" + configFile,
                 "-dir=" + exportDir);
@@ -170,28 +176,29 @@ class CliLauncherTest {
 
         // Import
         var exit2 = launch(
-                tempDir,
+                gridConnClass,
                 "storeimport",
                 "-config=" + configFile,
                 "-file=" + exportFile);
         assertThat(exit2.ok()).isTrue();
     }
 
-    @Test
-    void testStart() throws IOException {
+    @ParameterizedGridConnectorTest
+    void testStart(Class<? extends GridConnector> gridConnClass)
+            throws IOException {
         LOG.debug("=== Run 1: Start ===");
-        var exit1 = launch(tempDir, "start", "-config=");
+        var exit1 = launch(gridConnClass, "start", "-config=");
         if (!exit1.ok()) {
             LOG.error("Could not start crawler properly. Output:\n{}", exit1);
         }
         assertThat(exit1.ok()).isTrue();
         assertThat(exit1.getEvents()).containsExactly(
-                CrawlerEvent.CRAWLER_INIT_BEGIN,
+                CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                CrawlerEvent.CRAWLER_INIT_END,
+                CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
@@ -207,16 +214,16 @@ class CliLauncherTest {
 
         LOG.debug("=== Run 2: Clean and Start ===");
         var exit2 = launch(
-                tempDir, "start", "-clean", "-config=");
+                gridConnClass, "start", "-clean", "-config=");
         assertThat(exit2.ok()).withFailMessage(exit2.getStdErr()).isTrue();
         assertThat(exit2.getEvents()).containsExactly(
                 // Clean flow
-                CrawlerEvent.CRAWLER_INIT_BEGIN,
+                CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                CrawlerEvent.CRAWLER_INIT_END,
+                CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CLEAN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_BEGIN,
@@ -231,12 +238,12 @@ class CliLauncherTest {
                 CrawlerEvent.CRAWLER_SHUTDOWN_END,
 
                 // Regular flow
-                CrawlerEvent.CRAWLER_INIT_BEGIN,
+                CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                CrawlerEvent.CRAWLER_INIT_END,
+                CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
@@ -254,17 +261,18 @@ class CliLauncherTest {
         // and recreated
     }
 
-    @Test
-    void testClean() throws IOException {
-        var exit = launch(tempDir, "clean", "-config=");
+    @ParameterizedGridConnectorTest
+    void testClean(Class<? extends GridConnector> gridConnClass)
+            throws IOException {
+        var exit = launch(gridConnClass, "clean", "-config=");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getEvents()).containsExactly(
-                CrawlerEvent.CRAWLER_INIT_BEGIN,
+                CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                CrawlerEvent.CRAWLER_INIT_END,
+                CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CLEAN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_BEGIN,
@@ -281,17 +289,19 @@ class CliLauncherTest {
 
     //TODO move this to its own test with more elaborate tests involving
     // actually stopping a crawl session and being on a cluster?
-    @Test
-    void testStop() throws IOException {
-        var exit = launch(tempDir, "stop", "-config=");
+    @ParameterizedGridConnectorTest
+    void testStop(Class<? extends GridConnector> gridConnClass)
+            throws IOException {
+        var exit = launch(gridConnClass, "stop", "-config=");
         assertThat(exit.ok()).isTrue();
     }
 
-    @Test
-    void testConfigRender() throws IOException {
+    @ParameterizedGridConnectorTest
+    void testConfigRender(Class<? extends GridConnector> gridConnClass)
+            throws IOException {
         var cfgFile = StubCrawlerConfig.writeConfigToDir(tempDir, cfg -> {});
 
-        var exit1 = launch(tempDir, "configrender", "-config=" + cfgFile);
+        var exit1 = launch(gridConnClass, "configrender", "-config=" + cfgFile);
         assertThat(exit1.ok()).isTrue();
         // check that some entries not explicitely configured are NOT present
         // (with V4, "default" values are not exported):
@@ -299,7 +309,7 @@ class CliLauncherTest {
 
         var renderedFile = tempDir.resolve("configrender.xml");
         var exit2 = launch(
-                tempDir,
+                gridConnClass,
                 "configrender",
                 "-config=" + cfgFile,
                 "-output=" + renderedFile);
@@ -308,14 +318,23 @@ class CliLauncherTest {
                 exit1.getStdOut().trim());
     }
 
-    @Test
-    void testFailingConfigRender() throws IOException {
+    @ParameterizedGridConnectorTest
+    void testFailingConfigRender(
+            Class<? extends GridConnector> gridConnClass) {
         var exit = launch(
-                tempDir,
+                gridConnClass,
                 "configrender",
                 "-config=",
                 // passing a directory to get FileNotFoundException
                 "-output=" + tempDir.toAbsolutePath());
         assertThat(exit.getStdErr()).contains("FileNotFoundException");
+    }
+
+    private MockCliExit launch(
+            Class<? extends GridConnector> gridConnClass,
+            String... cmdArgs) {
+        return MockCliLauncher.launch(tempDir, cfg -> cfg
+                .setGridConnector(ClassUtil.newInstance(gridConnClass)),
+                cmdArgs);
     }
 }

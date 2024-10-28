@@ -19,7 +19,9 @@ import org.apache.commons.collections4.MultiValuedMap;
 
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
+import com.norconex.crawler.core.mocks.grid.MockIgniteGridConnector;
 
 public class CoreTestPtProvider implements PolymorphicTypeProvider {
 
@@ -28,6 +30,7 @@ public class CoreTestPtProvider implements PolymorphicTypeProvider {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
         map.put(EventListener.class, MockCliEventWriter.class);
+        map.put(GridConnector.class, MockIgniteGridConnector.class);
         return map;
     }
 }

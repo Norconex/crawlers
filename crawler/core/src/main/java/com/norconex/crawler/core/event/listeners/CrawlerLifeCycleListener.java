@@ -33,10 +33,10 @@ public abstract class CrawlerLifeCycleListener
             return;
         }
         onCrawlerEvent(event);
-        if (event.is(CrawlerEvent.CRAWLER_INIT_BEGIN)) {
-            onCrawlerInitBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_INIT_END)) {
-            onCrawlerInitEnd(event);
+        if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN)) {
+            onCrawlerContextInitBegin(event);
+        } else if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)) {
+            onCrawlerContextInitEnd(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             onCrawlerCrawlBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
@@ -77,11 +77,11 @@ public abstract class CrawlerLifeCycleListener
         //NOOP
     }
 
-    protected void onCrawlerInitBegin(CrawlerEvent event) {
+    protected void onCrawlerContextInitBegin(CrawlerEvent event) {
         //NOOP
     }
 
-    protected void onCrawlerInitEnd(CrawlerEvent event) {
+    protected void onCrawlerContextInitEnd(CrawlerEvent event) {
         //NOOP
     }
 

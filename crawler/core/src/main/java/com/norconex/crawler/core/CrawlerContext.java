@@ -178,9 +178,8 @@ public class CrawlerContext implements Closeable {
         }
         initialized = true; // important to flag it early
 
-        getEventManager().addListenersFromScan(getConfiguration());
-
-        fire(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN);
+        //        eventManager.addListeners((Collection<EventListener<
+        //                Event>>) (Collection<?>) configuration.getEventListeners());
 
         // need those? // maybe append cluster node id?
         workDir = Optional.ofNullable(getConfiguration().getWorkDir())
@@ -198,6 +197,9 @@ public class CrawlerContext implements Closeable {
                 (int) getConfiguration().getMaxStreamCachePoolSize(),
                 (int) getConfiguration().getMaxStreamCacheSize(),
                 tempDir);
+
+        eventManager.addListenersFromScan(getConfiguration());
+        fire(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN);
 
         docProcessingLedger = new DocProcessingLedger();
         state = new CrawlerState();

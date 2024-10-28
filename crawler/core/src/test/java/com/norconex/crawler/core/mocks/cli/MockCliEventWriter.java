@@ -33,7 +33,7 @@ public final class MockCliEventWriter
 
     @Override
     public void accept(Event event) {
-        if (event.is(CrawlerEvent.CRAWLER_INIT_BEGIN)) {
+        if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN)) {
             eventFile = ((CrawlerEvent) event)
                     .getSource()
                     .getWorkDir()

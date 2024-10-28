@@ -24,11 +24,11 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.junit.WithCrawlerTest;
+import com.norconex.crawler.core.junit.CrawlerTest;
 
 class DeleteRejectedEventListenerTest {
 
-    @WithCrawlerTest(
+    @CrawlerTest(
         run = true,
         config = """
                 startReferences:

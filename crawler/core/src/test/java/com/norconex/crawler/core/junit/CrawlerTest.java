@@ -21,22 +21,37 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.function.Consumer;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerSpecProvider;
+import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
+import com.norconex.crawler.core.mocks.grid.MockIgniteGridConnector;
 
 /**
  * <p>
  * Initializes a crawl session before each test execution and destroys it after
  * each execution.
+ * Expands upon {@link WithTestGrid}.
  * </p>
  */
 @Retention(RUNTIME)
-@Target({ ElementType.METHOD, ElementType.TYPE })
-@ExtendWith(WithCrawlerExtension.class)
-@Test
-public @interface WithCrawlerTest {
+@Target({ ElementType.METHOD })
+@ExtendWith(CrawlerTestExtension.class)
+@TestTemplate
+public @interface CrawlerTest {
+
+    /**
+     * Use a the given crawler specs.
+     * @return crawler specs
+     */
+    Class<? extends CrawlerSpecProvider> specProvider() default MockCrawlerSpecProvider.class;
+
+    Class<? extends GridConnector>[] gridConnectors() default {
+            LocalGridConnector.class, MockIgniteGridConnector.class };
 
     /**
      * Whether to run the crawler before executing the test. Otherwise

@@ -118,8 +118,8 @@ public class Crawler {
         }
     }
 
-    private void init() {
-        context.fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
+    protected void init() {
+        //        context.fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
         LogUtil.logCommandIntro(LOG, context.getConfiguration());
 
         context.init();
@@ -129,10 +129,10 @@ public class Crawler {
                 context.getConfiguration()
                         .getMinProgressLoggingInterval());
         progressLogger.startTracking();
-        context.fire(CrawlerEvent.CRAWLER_INIT_END);
+        //        context.fire(CrawlerEvent.CRAWLER_INIT_END);
     }
 
-    private void close() {
+    protected void close() {
         context.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
 
         progressLogger.stopTracking();
