@@ -53,7 +53,7 @@ public final class IgniteGridServerTaskRunner {
             task.run(crawlerContext, arg);
             crawlerContext.fire(CrawlerEvent.TASK_RUN_END, className);
         } catch (RuntimeException e) {
-            LOG.error("Could not run task.", e);
+            LOG.error("Could not run task '%s'.".formatted(className), e);
             throw e;
         }
     }

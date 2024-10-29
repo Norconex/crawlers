@@ -58,8 +58,8 @@ class DeleteRejectedEventListenerTest {
     //            method: WILDCARD
     //            pattern: "mock:delete*"
 
-    void testDeleteRejectedEventListener(CrawlerContext crawler,
-            MemoryCommitter mem) {
+    void testDeleteRejectedEventListener(
+            CrawlerContext crawler, MemoryCommitter mem) {
 
         //        var crawlerCfg = TestUtil.getFirstCrawlerConfig(crawlSession);
         //        crawlerCfg.addEventListener(new DeleteRejectedEventListener());

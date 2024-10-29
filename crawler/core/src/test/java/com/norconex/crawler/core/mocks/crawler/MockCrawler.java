@@ -72,7 +72,7 @@ public final class MockCrawler extends Crawler {
 
         //Do grid via annotation instead:
         var conn = new MockIgniteGridConnector();
-        conn.getConfiguration().setServerNodes(2);
+        conn.setServerNodes(2);
         cfg.setGridConnector(conn);
         return new MockCrawler(
                 new CrawlerContext(MockCrawlerSpecProvider.class, cfg));

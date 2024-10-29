@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
+import org.apache.ignite.Ignition;
+
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridStorage;
@@ -48,6 +50,8 @@ public class IgniteGrid implements Grid {
 
     @Override
     public void close() {
+        Ignition.stopAll(false);
+        //        igniteGridInstance.get().close();
         // NOOP: Nothing to close
     }
 }

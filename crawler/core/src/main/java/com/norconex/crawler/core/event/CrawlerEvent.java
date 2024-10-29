@@ -51,9 +51,9 @@ public class CrawlerEvent extends Event {
     //    public static final String CRAWLER_INIT_END = "CRAWLER_INIT_END";
 
     public static final String CRAWLER_CONTEXT_INIT_BEGIN =
-            "CRAWLER_CONTEX_INIT_BEGIN";
+            "CRAWLER_CONTEXT_INIT_BEGIN";
     public static final String CRAWLER_CONTEXT_INIT_END =
-            "CRAWLER_CONTEX_INIT_END";
+            "CRAWLER_CONTEXT_INIT_END";
     public static final String CRAWLER_CONTEXT_SHUTDOWN_BEGIN =
             "CRAWLER_CONTEXT_SHUTDOWN_BEGIN";
     public static final String CRAWLER_CONTEXT_SHUTDOWN_END =

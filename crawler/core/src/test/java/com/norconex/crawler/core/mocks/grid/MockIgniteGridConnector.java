@@ -14,37 +14,37 @@
  */
 package com.norconex.crawler.core.mocks.grid;
 
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
-import com.norconex.crawler.core.mocks.grid.MockIgniteGridConnector.MockIgniteGridConnectorConfig;
 
-import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Runs embedded ignite servers.
  */
-public class MockIgniteGridConnector
-        implements GridConnector, Configurable<MockIgniteGridConnectorConfig> {
+public class MockIgniteGridConnector extends IgniteGridConnector {
+
+    //    @Getter
+    //    private final GridConnectorConfig configuration =
+    //            new MockIgniteGridConnectorConfig();
 
     @Getter
-    private final MockIgniteGridConnectorConfig configuration =
-            new MockIgniteGridConnectorConfig();
+    @Setter
+    private int serverNodes = 1;
 
     @Override
     public Grid connect(CrawlerContext crawlerContext) {
         return new IgniteGridConnector(new MockIgniteGridInstanceClient(
                 crawlerContext.getConfiguration().getWorkDir(),
-                configuration.serverNodes)).connect(crawlerContext);
+                serverNodes)).connect(crawlerContext);
     }
 
-    @Data
-    public class MockIgniteGridConnectorConfig {
-        //        private Path workDir;
-        private int serverNodes = 1;
-    }
+    //    @Data
+    //    public class MockIgniteGridConnectorConfig
+    //            extends IgniteGridConnectorConfig {
+    //        private int serverNodes = 1;
+    //    }
 
 }

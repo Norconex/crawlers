@@ -79,6 +79,8 @@ class MockIgniteGridInstanceClient implements IgniteGridInstance {
         var serverNodeQty = Math.max(serverNodes, 1);
         //                Integer.getInteger(PROP_IGNITE_TEST_SERVER_QTY, 1);
         var totalNodeCount = serverNodeQty + 1;
+        LOG.info("Creating %s Ignite embedded server nodes."
+                .formatted(serverNodeQty));
         for (var i = 0; i < serverNodeQty; i++) {
             var nodeIndex = i + 1;
             var serverCfg = new IgniteConfiguration();
