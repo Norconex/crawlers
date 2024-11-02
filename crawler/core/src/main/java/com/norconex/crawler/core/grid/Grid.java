@@ -29,6 +29,8 @@ public interface Grid extends Closeable {
 
     GridStorage storage();
 
+    GridServices services();
+
     /**
      * Closes the underlying connection to this grid.  Typically does not
      * close the grid itself (refer to implementation).

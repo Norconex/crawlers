@@ -14,11 +14,15 @@
  */
 package com.norconex.crawler.web;
 
+import java.util.List;
+
 import com.norconex.crawler.core.CrawlerSpec;
 import com.norconex.crawler.core.CrawlerSpecProvider;
+import com.norconex.crawler.core.services.crawl.impl.CoreQueueInitializer;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
+import com.norconex.crawler.web.doc.pipelines.queue.SitemapQueueInitializer;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
 
 public class WebCrawlerSpecProvider implements CrawlerSpecProvider {
@@ -26,12 +30,17 @@ public class WebCrawlerSpecProvider implements CrawlerSpecProvider {
     @Override
     public CrawlerSpec get() {
         return new CrawlerSpec()
+                .queueInitializer(new CoreQueueInitializer(List.of(
+                        new SitemapQueueInitializer(),
+                        CoreQueueInitializer.fromList,
+                        CoreQueueInitializer.fromFiles,
+                        CoreQueueInitializer.fromProviders)))
                 .crawlerConfigClass(WebCrawlerConfig.class)
                 //                .configuration(new WebCrawlerConfig())
                 .fetcherProvider(new HttpFetcherProvider())
                 .callbacks(WebCrawlerCallbacks.get())
                 .docPipelines(WebDocPipelines.get())
-                .docContextType(WebCrawlDocContext.class)
-                .attributes(new WebCrawlerSessionAttributes());
+                .docContextType(WebCrawlDocContext.class);
+        //                .attributes(new WebCrawlerSessionAttributes());
     }
 }

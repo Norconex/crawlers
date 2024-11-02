@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<Configuration status="INFO" name="Norconex Web Crawler">
+<Configuration status="DEBUG" name="Norconex Web Crawler">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout>
@@ -31,7 +31,7 @@
     <Logger name="ImporterEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="CommitterEvent" level="INFO" additivity="false">
+    <Logger name="CommitterEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     
@@ -219,7 +219,7 @@
     <Logger name="CommitterEvent.COMMITTER_INIT_ERROR" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="CommitterEvent.COMMITTER_UPSERT_BEGIN" level="INFO" additivity="false">
+    <Logger name="CommitterEvent.COMMITTER_UPSERT_BEGIN" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="CommitterEvent.COMMITTER_UPSERT_END" level="WARN" additivity="false">

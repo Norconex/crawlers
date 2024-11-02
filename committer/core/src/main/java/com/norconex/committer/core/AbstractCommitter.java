@@ -202,12 +202,11 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
     }
 
     protected final void fireDebug(String name, CommitterRequest req) {
-        fire(
-                CommitterEvent.builder()
-                        .name(name)
-                        .source(this)
-                        .request(req)
-                        .build(),
+        fire(CommitterEvent.builder()
+                .name(name)
+                .source(this)
+                .request(req)
+                .build(),
                 Level.DEBUG);
     }
 
@@ -216,12 +215,11 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
     }
 
     protected final void fireInfo(String name, CommitterRequest req) {
-        fire(
-                CommitterEvent.builder()
-                        .name(name)
-                        .source(this)
-                        .request(req)
-                        .build(),
+        fire(CommitterEvent.builder()
+                .name(name)
+                .source(this)
+                .request(req)
+                .build(),
                 Level.INFO);
     }
 
@@ -231,13 +229,12 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
 
     protected final void fireError(
             String name, CommitterRequest req, Exception e) {
-        fire(
-                CommitterEvent.builder()
-                        .name(name)
-                        .source(this)
-                        .request(req)
-                        .exception(e)
-                        .build(),
+        fire(CommitterEvent.builder()
+                .name(name)
+                .source(this)
+                .request(req)
+                .exception(e)
+                .build(),
                 Level.ERROR);
     }
 

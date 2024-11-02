@@ -23,6 +23,7 @@ import lombok.NonNull;
 public class CrawlerState {
 
     private static final String KEY_CACHE = "CrawlerState";
+    private static final String KEY_QUEUE_INITIALIZED = ".queueInitialized";
     private static final String KEY_RESUMING = KEY_CACHE + ".resuming";
     private static final String KEY_TERMINATED_OK = KEY_CACHE + ".terminatedOK";
     private static final String KEY_STOPPED = KEY_CACHE + ".stopped";
@@ -39,38 +40,46 @@ public class CrawlerState {
     //TODO consider how these should be set/get in a multi-node environment
 
     public boolean isResuming() {
-        return getValue(KEY_RESUMING);
+        return getState(KEY_RESUMING);
     }
 
     public void setResuming(boolean resumed) {
-        setValue(KEY_RESUMING, resumed);
+        setState(KEY_RESUMING, resumed);
+    }
+
+    public boolean isQueueInitialized() {
+        return getState(KEY_QUEUE_INITIALIZED);
+    }
+
+    public void setQueueInitialized(boolean queueInitialized) {
+        setState(KEY_QUEUE_INITIALIZED, queueInitialized);
     }
 
     public boolean isTerminatedProperly() {
-        return getValue(KEY_TERMINATED_OK);
+        return getState(KEY_TERMINATED_OK);
     }
 
     public void setTerminatedProperly(boolean terminatedProperly) {
-        setValue(KEY_TERMINATED_OK, terminatedProperly);
+        setState(KEY_TERMINATED_OK, terminatedProperly);
     }
 
     public boolean isStopped() {
-        return getValue(KEY_STOPPED);
+        return getState(KEY_STOPPED);
     }
 
     public void setStopped(boolean stoped) {
-        setValue(KEY_STOPPED, stoped);
+        setState(KEY_STOPPED, stoped);
     }
 
     public boolean isStopRequested() {
-        return getValue(KEY_STOP_REQUESTED);
+        return getState(KEY_STOP_REQUESTED);
     }
 
     public void setStopRequested(boolean stopRequested) {
-        setValue(KEY_STOP_REQUESTED, stopRequested);
+        setState(KEY_STOP_REQUESTED, stopRequested);
     }
 
-    private void setValue(String key, boolean value) {
+    public void setState(String key, boolean value) {
         if (cache == null) {
             throw new IllegalStateException(
                     "CrawlerState must be initialized before usage.");
@@ -78,7 +87,7 @@ public class CrawlerState {
         cache.put(key, value);
     }
 
-    private boolean getValue(String key) {
+    public boolean getState(String key) {
         if (cache == null) {
             throw new IllegalStateException(
                     "CrawlerState must be initialized before usage.");

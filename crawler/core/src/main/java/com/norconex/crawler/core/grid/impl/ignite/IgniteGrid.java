@@ -14,11 +14,13 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import org.apache.ignite.Ignition;
+import org.apache.ignite.Ignite;
 
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
+import com.norconex.crawler.core.grid.GridServices;
 import com.norconex.crawler.core.grid.GridStorage;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -35,22 +37,55 @@ import lombok.ToString;
 @RequiredArgsConstructor
 public class IgniteGrid implements Grid {
 
+    //    @NonNull
+    //    private final IgniteGridInstance igniteGridInstance;
     @NonNull
-    private final IgniteGridInstance igniteGridInstance;
+    private final Ignite ignite;
 
     @Override
     public GridStorage storage() {
-        return new IgniteGridStorage(igniteGridInstance);
+        return new IgniteGridStorage(ignite);
     }
 
     @Override
     public GridCompute compute() {
-        return new IgniteGridCompute(igniteGridInstance);
+        return new IgniteGridCompute(ignite);
+    }
+
+    @Override
+    public GridServices services() {
+        return new IgniteGridServices(ignite);
     }
 
     @Override
     public void close() {
-        Ignition.stopAll(false);
+        ExceptionSwallower.swallow(() -> {
+            //TODO fine another location where to get rid of service?
+            // because an exception is thrown when already taken care of
+            ignite.services().cancel(IgniteGridKeys.CONTEXT_SERVICE);
+        });
+
+        //        var serviceName = IgniteGridKeys.CONTEXT_SERVICE;
+        //        var services = ignite.services();
+        //        var serviceDescriptor = services.serviceDescriptors()
+        //                .stream()
+        //                .filter(sd -> serviceName.equals(sd.name()))
+        //                .findAny();
+        //
+        //        if (serviceDescriptor.isPresent()) {
+        //            System.err.println(
+        //                    "Service is active. Cancelling service: " + serviceName);
+        //
+        //            services.cancel(IgniteGridKeys.CONTEXT_SERVICE);
+        //
+        //            //            services.cancel(serviceName);
+        //        } else {
+        //            System.err.println("Service is not active: " + serviceName);
+        //        }
+        //        System.err.println("XXX About to cancel service.");
+        //        ignite.services().cancel(IgniteGridKeys.CONTEXT_SERVICE);
+        //        System.err.println("XXX service cancelled.");
+        //        Ignition.stopAll(false);
         //        igniteGridInstance.get().close();
         // NOOP: Nothing to close
     }

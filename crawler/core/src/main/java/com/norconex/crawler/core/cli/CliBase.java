@@ -21,7 +21,6 @@ import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpec;
 
 import jakarta.validation.ConstraintViolationException;
@@ -70,10 +69,12 @@ public abstract class CliBase implements Runnable {
     public void run() {
         var crawlerSpec =
                 ClassUtil.newInstance(parent.getSpecProviderClass()).get();
-        var crawlerContext = new CrawlerContext(
-                parent.getSpecProviderClass(), loadConfiguration(crawlerSpec));
+        //        new CrawlerContext(
+        //                parent.getSpecProviderClass(), loadConfiguration(crawlerSpec));
         //        loadConfiguration(crawlerContext);
-        runCommand(new Crawler(crawlerContext));
+        //        runCommand(new Crawler(crawlerContext));
+        runCommand(new Crawler(parent.getSpecProviderClass(),
+                loadConfiguration(crawlerSpec)));
     }
 
     protected abstract void runCommand(Crawler crawler);

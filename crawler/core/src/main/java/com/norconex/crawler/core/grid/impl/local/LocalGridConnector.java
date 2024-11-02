@@ -19,9 +19,12 @@ import java.nio.file.Path;
 
 import org.apache.commons.io.FileUtils;
 
+import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.unit.DataUnit;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.GridException;
@@ -43,8 +46,11 @@ public class LocalGridConnector
     private final LocalGridConnectorConfig configuration =
             new LocalGridConnectorConfig();
 
+    @SuppressWarnings("resource")
     @Override
-    public Grid connect(CrawlerContext crawlerContext) {
+    public Grid connect(
+            Class<? extends CrawlerSpecProvider> specProviderClass,
+            CrawlerConfig crawlerConfig) {
         var builder = new MVStore.Builder();
         if (configuration.getPageSplitSize() != null) {
             //MVStore expects it as bytes
@@ -79,6 +85,10 @@ public class LocalGridConnector
         if (Long.valueOf(0).equals(configuration.getAutoCommitDelay())) {
             builder.autoCommitDisabled();
         }
+
+        var grid = new LocalGrid();
+        var spec = ClassUtil.newInstance(specProviderClass).get();
+        var crawlerContext = new CrawlerContext(spec, crawlerConfig, grid);
 
         Path storeDir = null;
         if (configuration.isEphemeral()) {
@@ -128,8 +138,9 @@ public class LocalGridConnector
 
         //        var taskContext = new CrawlerContext(crawlerContext);
         //        taskContext.init(); // closed by LocalGrid#close()
+        grid.init(mvstore, crawlerContext);
 
-        return new LocalGrid(storeDir, mvstore, crawlerContext);
+        return grid;
     }
 
     private Integer asInt(Long l) {

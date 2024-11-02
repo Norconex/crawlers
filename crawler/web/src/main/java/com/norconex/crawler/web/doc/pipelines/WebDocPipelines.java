@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.web.doc.pipelines;
 
-import java.util.List;
-
 import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
@@ -31,7 +29,6 @@ import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.ImportMod
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataChecksumStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataDedupStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataFiltersStage;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.CoreQueueInitializer;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.stages.DepthValidationStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.stages.QueueReferenceStage;
@@ -45,103 +42,90 @@ import com.norconex.crawler.web.doc.pipelines.importer.stages.LinkExtractorStage
 import com.norconex.crawler.web.doc.pipelines.importer.stages.RecrawlableResolverStage;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.RobotsMetaCreateStage;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.RobotsMetaNoIndexStage;
-import com.norconex.crawler.web.doc.pipelines.queue.SitemapQueueInitializer;
 import com.norconex.crawler.web.doc.pipelines.queue.stages.RobotsTxtFiltersStage;
 import com.norconex.crawler.web.doc.pipelines.queue.stages.SitemapResolutionStage;
 import com.norconex.crawler.web.doc.pipelines.queue.stages.UrlNormalizerStage;
 
 public final class WebDocPipelines {
 
-    private static final DocPipelines PIPELINE =
-            DocPipelines
-                    .builder()
-                    .queuePipeline(
-                            QueuePipeline
-                                    .builder()
-                                    .initializer(
-                                            new CoreQueueInitializer(
-                                                    List.of(
-                                                            new SitemapQueueInitializer(),
-                                                            CoreQueueInitializer.fromList,
-                                                            CoreQueueInitializer.fromFiles,
-                                                            CoreQueueInitializer.fromProviders)))
-                                    .stages(
-                                            Predicates.allOf(
-                                                    new DepthValidationStage(),
-                                                    new ReferenceFiltersStage(),
-                                                    new RobotsTxtFiltersStage(),
-                                                    new UrlNormalizerStage(),
-                                                    new SitemapResolutionStage(),
-                                                    new QueueReferenceStage()))
-                                    .build())
-                    .importerPipeline(
-                            ImporterPipeline
-                                    .builder()
-                                    .contextAdapter(
-                                            ctx -> ctx instanceof WebImporterPipelineContext wipc
-                                                    ? wipc
-                                                    : new WebImporterPipelineContext(
-                                                            ctx))
-                                    .stages(
-                                            Predicates.allOf(
-                                                    // if an orphan is reprocessed, it could be that it
-                                                    // is no longer referenced because of deletion.
-                                                    // Because of that, we need to process it again to
-                                                    // find out so we ignore the "is re-crawlable"
-                                                    // stage.
+    private static final DocPipelines PIPELINE = DocPipelines.builder()
+            .queuePipeline(QueuePipeline.builder()
+                    //                                    .initializer(
+                    //                                            new CoreQueueInitializer(
+                    //                                                    List.of(
+                    //                                                            new SitemapQueueInitializer(),
+                    //                                                            CoreQueueInitializer.fromList,
+                    //                                                            CoreQueueInitializer.fromFiles,
+                    //                                                            CoreQueueInitializer.fromProviders)))
+                    .stages(Predicates.allOf(
+                            new DepthValidationStage(),
+                            new ReferenceFiltersStage(),
+                            new RobotsTxtFiltersStage(),
+                            new UrlNormalizerStage(),
+                            new SitemapResolutionStage(),
+                            new QueueReferenceStage()))
+                    .build())
+            .importerPipeline(ImporterPipeline.builder().contextAdapter(
+                    ctx -> ctx instanceof WebImporterPipelineContext wipc
+                            ? wipc
+                            : new WebImporterPipelineContext(ctx))
+                    .stages(Predicates.allOf(
+                            // if an orphan is reprocessed, it could be that it
+                            // is no longer referenced because of deletion.
+                            // Because of that, we need to process it again to
+                            // find out so we ignore the "is re-crawlable"
+                            // stage.
 
-                                                    //TODO have this flag part of context and make
-                                                    // this pipeline defined statically
-                                                    //TODO move to Core and add to FS as well?
-                                                    new RecrawlableResolverStage(),
+                            //TODO have this flag part of context and make
+                            // this pipeline defined statically
+                            //TODO move to Core and add to FS as well?
+                            new RecrawlableResolverStage(),
 
-                                                    //TODO rename DelayResolver to HitInterval ??
-                                                    //TODO move to Core and add to FS as well?
-                                                    new DelayResolverStage(),
+                            //TODO rename DelayResolver to HitInterval ??
+                            //TODO move to Core and add to FS as well?
+                            new DelayResolverStage(),
 
-                                                    // When HTTP headers are fetched (HTTP "HEAD")
-                                                    // before document:
-                                                    new HttpFetchStage(
-                                                            FetchDirective.METADATA),
-                                                    new MetadataFiltersStage(
-                                                            FetchDirective.METADATA),
-                                                    new CanonicalStage(
-                                                            FetchDirective.METADATA),
-                                                    new MetadataChecksumStage(
-                                                            FetchDirective.METADATA),
-                                                    new MetadataDedupStage(
-                                                            FetchDirective.METADATA),
+                            // When HTTP headers are fetched (HTTP "HEAD")
+                            // before document:
+                            new HttpFetchStage(
+                                    FetchDirective.METADATA),
+                            new MetadataFiltersStage(
+                                    FetchDirective.METADATA),
+                            new CanonicalStage(
+                                    FetchDirective.METADATA),
+                            new MetadataChecksumStage(
+                                    FetchDirective.METADATA),
+                            new MetadataDedupStage(
+                                    FetchDirective.METADATA),
 
-                                                    // HTTP "GET" and onward:
-                                                    new HttpFetchStage(
-                                                            FetchDirective.DOCUMENT),
-                                                    new CanonicalStage(
-                                                            FetchDirective.DOCUMENT),
-                                                    new RobotsMetaCreateStage(),
-                                                    new LinkExtractorStage(),
-                                                    new RobotsMetaNoIndexStage(),
-                                                    new MetadataFiltersStage(
-                                                            FetchDirective.DOCUMENT),
-                                                    new MetadataChecksumStage(
-                                                            FetchDirective.DOCUMENT),
-                                                    new MetadataDedupStage(
-                                                            FetchDirective.DOCUMENT),
-                                                    new DocumentFiltersStage(),
-                                                    new DocumentPreProcessingStage(),
-                                                    new ImportModuleStage()))
-                                    .build())
-                    .committerPipeline(
-                            CommitterPipeline
-                                    .builder()
-                                    .stages(
-                                            Predicates.allOf(
-                                                    new DocumentChecksumStage(),
-                                                    new DocumentDedupStage(),
-                                                    new DocumentPostProcessingStage(),
-                                                    new PostImportLinksStage(),
-                                                    new CommitModuleStage()))
-                                    .build())
-                    .build();
+                            // HTTP "GET" and onward:
+                            new HttpFetchStage(
+                                    FetchDirective.DOCUMENT),
+                            new CanonicalStage(
+                                    FetchDirective.DOCUMENT),
+                            new RobotsMetaCreateStage(),
+                            new LinkExtractorStage(),
+                            new RobotsMetaNoIndexStage(),
+                            new MetadataFiltersStage(
+                                    FetchDirective.DOCUMENT),
+                            new MetadataChecksumStage(
+                                    FetchDirective.DOCUMENT),
+                            new MetadataDedupStage(
+                                    FetchDirective.DOCUMENT),
+                            new DocumentFiltersStage(),
+                            new DocumentPreProcessingStage(),
+                            new ImportModuleStage()))
+                    .build())
+            .committerPipeline(CommitterPipeline.builder()
+                    .stages(
+                            Predicates.allOf(
+                                    new DocumentChecksumStage(),
+                                    new DocumentDedupStage(),
+                                    new DocumentPostProcessingStage(),
+                                    new PostImportLinksStage(),
+                                    new CommitModuleStage()))
+                    .build())
+            .build();
 
     private WebDocPipelines() {
     }

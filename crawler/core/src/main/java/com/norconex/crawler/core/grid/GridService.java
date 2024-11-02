@@ -14,16 +14,12 @@
  */
 package com.norconex.crawler.core.grid;
 
-import java.util.concurrent.Future;
+import com.norconex.crawler.core.CrawlerContext;
 
-public interface GridCompute {
+public interface GridService {
+    void start(CrawlerContext crawlerContext);
 
-    Future<?> runOnce(String jobName, Runnable runnable)
-            throws GridException;
+    void init(CrawlerContext crawlerContext);
 
-    void runTask(
-            Class<? extends GridTask> taskClass,
-            String arg,
-            GridTxOptions opts)
-            throws GridException;
+    void end(CrawlerContext crawlerContext);
 }

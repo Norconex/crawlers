@@ -104,8 +104,8 @@ public class CrawlerContext implements Closeable {
 
     //--- Set in constructor ---
     private final CrawlerConfig configuration;
-    private final Class<? extends CrawlerSpecProvider> specProviderClass;//Need?
-    private final CrawlerSpec spec;//Need?
+    //    private final Class<? extends CrawlerSpecProvider> specProviderClass;//Need?
+    private final CrawlerSpec spec;
 
     private final BeanMapper beanMapper;
     private final Class<? extends CrawlDocContext> docContextType;
@@ -120,7 +120,7 @@ public class CrawlerContext implements Closeable {
     // TODO really have the following ones here or make them part of one of
     // the super class?
     private final DocPipelines docPipelines; // server only?
-    private final CrawlerSessionAttributes attributes; // server only?
+    //    private final CrawlerSessionAttributes attributes; // server only?
     private final Fetcher<? extends FetchRequest,
             ? extends FetchResponse> fetcher; // server only?
     // TODO remove stopper listener when we are fully using an accessible store?
@@ -138,19 +138,23 @@ public class CrawlerContext implements Closeable {
 
     @SuppressWarnings("resource")
     public CrawlerContext(
-            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
-            CrawlerConfig crawlerConfig) {
-        spec = ClassUtil.newInstance(specProviderClass).get();
+            CrawlerSpec crawlerSpec,
+            //            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
+            CrawlerConfig crawlerConfig,
+            Grid grid) {
+        this.grid = grid;
+        //        spec = ClassUtil.newInstance(specProviderClass).get();
+        spec = crawlerSpec;
         configuration = ofNullable(crawlerConfig).orElseGet(
                 () -> ClassUtil.newInstance(spec.crawlerConfigClass()));
         beanMapper = spec.beanMapper();
-        this.specProviderClass = specProviderClass;
+        //        this.specProviderClass = specProviderClass;
         docContextType = spec.docContextType();
         callbacks = spec.callbacks();
         eventManager =
                 ofNullable(spec.eventManager()).orElse(new EventManager());
 
-        attributes = spec.attributes();
+        //        attributes = spec.attributes();
         committerService = CommitterService
                 .<CrawlDoc>builder()
                 .committers(configuration.getCommitters())
@@ -206,7 +210,7 @@ public class CrawlerContext implements Closeable {
         metrics = new CrawlerMetrics();
 
         // NOTE: order matters
-        grid = configuration.getGridConnector().connect(this);
+        //        grid = configuration.getGridConnector().connect(this);
         state.init(this);
         docProcessingLedger.init(this);
 

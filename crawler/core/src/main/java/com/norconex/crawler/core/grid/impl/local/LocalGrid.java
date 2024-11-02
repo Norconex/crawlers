@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
+import com.norconex.crawler.core.grid.GridServices;
 import com.norconex.crawler.core.grid.GridStorage;
 import com.norconex.shaded.h2.mvstore.MVStore;
 
@@ -36,33 +37,51 @@ import lombok.ToString;
 @ToString
 public class LocalGrid implements Grid {
 
-    private final Path storeDir;
-    private final MVStore mvstore;
-    private final CrawlerContext crawlerContext;
-    private final LocalGridCompute gridCompute;
-    private final LocalGridStorage gridStorage;
+    private MVStore mvstore;
+    private Path storeDir;
+    private CrawlerContext crawlerContext;
+    private LocalGridCompute gridCompute;
+    private LocalGridStorage gridStorage;
 
-    public LocalGrid(
-            Path storeDir, MVStore mvstore, CrawlerContext commandContext) {
-        this.storeDir = storeDir;
+    public void init(MVStore mvstore, CrawlerContext crawlerContext) {
         this.mvstore = mvstore;
-        crawlerContext = commandContext;
-        gridCompute = new LocalGridCompute(mvstore, commandContext);
+        this.crawlerContext = crawlerContext;
+        gridCompute = new LocalGridCompute(mvstore, crawlerContext);
         gridStorage = new LocalGridStorage(mvstore);
     }
 
     @Override
+    public GridServices services() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public GridCompute compute() {
+        if (gridCompute == null) {
+            throw new IllegalStateException("LocalGrid not initialized.");
+        }
         return gridCompute;
     }
 
     @Override
     public GridStorage storage() {
+        if (gridStorage == null) {
+            throw new IllegalStateException("LocalGrid not initialized.");
+        }
         return gridStorage;
     }
 
     @Override
     public void close() {
         mvstore.close();
+        gridCompute = null;
+        gridStorage = null;
+        storeDir = null;
+        mvstore = null;
+        if (crawlerContext != null) {
+            crawlerContext.close();
+        }
+        crawlerContext = null;
     }
 }

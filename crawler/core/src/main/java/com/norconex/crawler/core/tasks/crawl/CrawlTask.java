@@ -29,6 +29,7 @@ public class CrawlTask implements GridTask {
     @Override
     public void run(CrawlerContext crawlerContext, String arg) {
         //TODO maybe merge DocsProcessor here instead?
+        System.err.println("XXX About to run DocsProcessor...");
         new DocsProcessor(crawlerContext).run();
     }
 

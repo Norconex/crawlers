@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.tasks.crawl.pipelines.queue;
+package com.norconex.crawler.core.services.crawl.impl;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,7 +29,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipeline.QueueInitContext;
+import com.norconex.crawler.core.services.crawl.QueueInitContext;
+import com.norconex.crawler.core.services.crawl.QueueInitializer;
+import com.norconex.crawler.core.tasks.crawl.pipelines.queue.ReferencesProvider;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -130,8 +132,7 @@ public class CoreQueueInitializer implements QueueInitializer {
             cnt += init.applyAsInt(ctx);
         }
         if (LOG.isInfoEnabled()) {
-            LOG.info(
-                    "{} start URLs identified.",
+            LOG.info("{} start URLs identified.",
                     NumberFormat.getNumberInstance().format(cnt));
         }
     }

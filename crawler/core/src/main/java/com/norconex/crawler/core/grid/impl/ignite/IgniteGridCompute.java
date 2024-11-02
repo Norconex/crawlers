@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ignite.Ignite;
 import org.apache.ignite.lang.IgniteFuture;
 
 import com.norconex.commons.lang.Sleeper;
@@ -33,19 +34,23 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class IgniteGridCompute implements GridCompute {
 
-    private final IgniteGridInstance igniteGridInstance;
+    private final Ignite ignite;
 
     @Override
     public Future<?> runOnce(String jobName, Runnable runnable) {
-        var lock = igniteGridInstance.get().reentrantLock(
-                jobName, true, true, true);
-        var runOnceCache =
-                igniteGridInstance.get().<String, String>getOrCreateCache(
-                        IgniteGridKeys.RUN_ONCE_CACHE);
+        var lock = ignite.reentrantLock(jobName, true, true, true);
+        var runOnceCache = ignite.<String, String>getOrCreateCache(
+                IgniteGridKeys.RUN_ONCE_CACHE);
         var chosenOne = false;
         try {
             lock.lock();
+            //            runOnceCache.clear();
             chosenOne = runOnceCache.putIfAbsent(jobName, "running");
+
+            System.err.println("XXX Am I the chosen one? " + chosenOne);
+            System.err.println("XXX Job name: " + jobName);
+            System.err.println(
+                    "XXX Existing Value: " + runOnceCache.get(jobName));
         } finally {
             lock.unlock();
         }
@@ -109,7 +114,7 @@ public class IgniteGridCompute implements GridCompute {
             IgniteFuture<Void> future;
 
             if (opts.isSingleton()) {
-                future = igniteGridInstance.get().compute()
+                future = ignite.compute()
                         .runAsync(() -> IgniteGridServerTaskRunner
                                 .execute(className, arg));//  finalTask::run);
                 //            future = ignite.services().deployClusterSingletonAsync(name,
@@ -123,7 +128,7 @@ public class IgniteGridCompute implements GridCompute {
 
                 // TODO take values from ignite config?
                 //            ignite.services().clusterGroup().
-                future = igniteGridInstance.get().compute()
+                future = ignite.compute()
                         .broadcastAsync(() -> IgniteGridServerTaskRunner
                                 .execute(className, arg)); //finalTask::run);
                 //
@@ -140,7 +145,7 @@ public class IgniteGridCompute implements GridCompute {
     private Runnable withLock(String name, Runnable runnableWrapper) {
         return () -> {
             var lock =
-                    igniteGridInstance.get().reentrantLock(name + "-lock", true,
+                    ignite.reentrantLock(name + "-lock", true,
                             true, true);
             try {
                 lock.lock();
@@ -153,7 +158,7 @@ public class IgniteGridCompute implements GridCompute {
 
     private Runnable withAtomic(Runnable runnableWrapper) {
         return () -> {
-            try (var tx = igniteGridInstance.get().transactions().txStart()) {
+            try (var tx = ignite.transactions().txStart()) {
                 runnableWrapper.run();
                 tx.commit();
             }

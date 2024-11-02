@@ -12,21 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.grid.impl.ignite;
+package com.norconex.crawler.core.grid;
 
-import org.apache.ignite.Ignite;
+import java.util.concurrent.Future;
 
-//TODO instead of using system properties for test client,
-// make client configurable... and maybe have the test implementation
-// under test package only.
-// Or, make it configurable programatically with "default" visibility so
-// only tests can set their test client.
+public interface GridServices {
 
-/**
- * Wrapper around a client Ignite instance, abstracting initialization
- * and closing.
- */
-public interface IgniteGridInstance {
+    Future<?> start(String serviceName,
+            Class<? extends GridService> serviceClass);
 
-    Ignite get();
+    <T extends GridService> T get(String serviceName);
+
+    Future<?> end(String serviceName);
 }

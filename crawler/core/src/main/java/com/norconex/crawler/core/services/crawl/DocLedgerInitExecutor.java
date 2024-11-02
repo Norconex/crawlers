@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.tasks.crawl;
+package com.norconex.crawler.core.services.crawl;
 
 import java.util.Locale;
 
 import com.norconex.commons.lang.PercentFormatter;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.grid.GridTask;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,14 +28,14 @@ import lombok.extern.slf4j.Slf4j;
  * previous crawl.
  */
 @Slf4j
-public class PrepareDocLedgerTask implements GridTask {
-
-    private static final long serialVersionUID = 1L;
+final class DocLedgerInitExecutor {
 
     public static final String KEY_INITIALIZING = "ledger.initializing";
 
-    @Override
-    public void run(CrawlerContext crawlerContext, String arg) {
+    private DocLedgerInitExecutor() {
+    }
+
+    public static void execute(CrawlerContext crawlerContext) {
         var globalCache = crawlerContext.getGrid().storage().getGlobalCache();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
@@ -50,7 +49,7 @@ public class PrepareDocLedgerTask implements GridTask {
         }
     }
 
-    private void prepareForCrawl(CrawlerContext crawlerContext) {
+    private static void prepareForCrawl(CrawlerContext crawlerContext) {
         var storage = crawlerContext.getGrid().storage();
         storage.getGlobalCache();
         var ledger = crawlerContext.getDocProcessingLedger();

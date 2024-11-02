@@ -32,7 +32,6 @@ import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.ImportMod
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataChecksumStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataDedupStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataFiltersStage;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.CoreQueueInitializer;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.stages.DepthValidationStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.stages.QueueReferenceStage;
@@ -46,7 +45,7 @@ public final class FsDocPipelines {
             .builder()
             .queuePipeline(QueuePipeline
                     .builder()
-                    .initializer(new CoreQueueInitializer())
+                    //                    .initializer(new CoreQueueInitializer())
                     .stages(Predicates.allOf(
                             new DepthValidationStage(),
                             new ReferenceFiltersStage(),

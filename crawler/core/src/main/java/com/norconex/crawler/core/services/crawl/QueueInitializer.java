@@ -12,11 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.commands;
+package com.norconex.crawler.core.services.crawl;
 
-import com.norconex.crawler.core.CrawlerContext;
+import java.util.function.Consumer;
 
 @FunctionalInterface
-public interface Command {
-    void execute(CrawlerContext crawlerContext);
+public interface QueueInitializer extends Consumer<QueueInitContext> {
 }

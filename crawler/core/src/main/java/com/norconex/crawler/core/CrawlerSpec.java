@@ -22,6 +22,7 @@ import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.services.crawl.QueueInitializer;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
 
 import lombok.Data;
@@ -36,13 +37,14 @@ public class CrawlerSpec {
     //    private CrawlerConfig configuration = new CrawlerConfig();
     private Class<? extends CrawlerConfig> crawlerConfigClass =
             CrawlerConfig.class;
+    private QueueInitializer queueInitializer;
     private DocPipelines docPipelines;
     private CrawlerCallbacks callbacks = CrawlerCallbacks.builder().build();
     private BeanMapper beanMapper = BeanMapper.DEFAULT;
     private EventManager eventManager = new EventManager();
     //TODO delete attributes and use store instead
-    private CrawlerSessionAttributes attributes =
-            new CrawlerSessionAttributes();
+    //    private CrawlerSessionAttributes attributes =
+    //            new CrawlerSessionAttributes();
 
     /**
      * The exact type of {@link CrawlDocContext} if your crawler is subclassing

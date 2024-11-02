@@ -88,12 +88,12 @@ class DocProcessor implements Runnable {
                 return false;
             }
 
-            var docBrief = crawlerContext
+            var docContext = crawlerContext
                     .getDocProcessingLedger()
                     .pollQueue()
                     .orElse(null);
-            LOG.trace("Pulled next reference from Queue: {}", docBrief);
-            ctx.docContext(docBrief);
+            LOG.trace("Pulled next reference from Queue: {}", docContext);
+            ctx.docContext(docContext);
             if (ctx.docContext() == null) {
                 return isCrawlerStillActive() || isQueueStillInitializing();
             }
@@ -177,8 +177,7 @@ class DocProcessor implements Runnable {
     }
 
     private boolean isQueueStillInitializing() {
-        if (crawlerContext.getDocPipelines().getQueuePipeline()
-                .isQueueInitialized()) {
+        if (crawlerContext.getState().isQueueInitialized()) {
             return false;
         }
         LOG.info("References are still being queued. "

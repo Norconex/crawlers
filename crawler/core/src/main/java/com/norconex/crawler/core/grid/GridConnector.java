@@ -14,7 +14,8 @@
  */
 package com.norconex.crawler.core.grid;
 
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 
 /**
  * Underlying system used to compute tasks and store crawl session data.
@@ -22,5 +23,7 @@ import com.norconex.crawler.core.CrawlerContext;
 //High-level interface for abstracting different grid technologies
 public interface GridConnector {
 
-    Grid connect(CrawlerContext crawlerContext);
+    Grid connect(
+            Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
+            CrawlerConfig crawlerConfig);
 }

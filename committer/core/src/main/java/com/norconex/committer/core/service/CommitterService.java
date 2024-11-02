@@ -211,6 +211,7 @@ public class CommitterService<T> implements Closeable {
                 ? "none"
                 : targets.stream().map(c -> c.getClass().getSimpleName())
                         .collect(Collectors.joining(",")));
+        System.err.println("XXX event name: " + eventName);
         getEventManager().fire(
                 CommitterServiceEvent.builder()
                         .name(eventName)

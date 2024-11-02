@@ -19,6 +19,7 @@ import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
 
 import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.mocks.fetch.MockFetchStage;
+import com.norconex.crawler.core.services.crawl.impl.CoreQueueInitializer;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipeline;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.stages.CommitModuleStage;
@@ -32,7 +33,6 @@ import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.ImportMod
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataChecksumStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataDedupStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.MetadataFiltersStage;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.CoreQueueInitializer;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.stages.DepthValidationStage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.stages.QueueReferenceStage;

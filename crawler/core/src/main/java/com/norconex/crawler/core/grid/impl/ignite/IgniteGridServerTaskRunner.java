@@ -14,16 +14,10 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import java.io.StringReader;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
 
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridTask;
@@ -45,10 +39,10 @@ public final class IgniteGridServerTaskRunner {
         // Create a new instance of the task
         var task = (GridTask) ClassUtil.newInstance(taskClass);
 
-        try (var crawlerContext = createCrawlerContext()) {
+        try (var crawlerContext = getCrawlerContext()) {
             LOG.info("Running task \"{}\" on crawler \"{}\"",
                     className, crawlerContext.getConfiguration().getId());
-            crawlerContext.init();
+            //            crawlerContext.init();
             crawlerContext.fire(CrawlerEvent.TASK_RUN_BEGIN, className);
             task.run(crawlerContext, arg);
             crawlerContext.fire(CrawlerEvent.TASK_RUN_END, className);
@@ -58,42 +52,48 @@ public final class IgniteGridServerTaskRunner {
         }
     }
 
-    static CrawlerContext createCrawlerContext() {
+    static CrawlerContext getCrawlerContext() {
         var ignite = Ignition.localIgnite();
-        var initCache = ignite.<String, String>getOrCreateCache(
-                IgniteGridKeys.GLOBAL_CACHE);
+        var contextService = ignite.services().serviceProxy(
+                IgniteGridKeys.CONTEXT_SERVICE, IgniteGridInitService.class,
+                false);
+        return contextService.getContext();
 
-        var specProviderClass = specProviderClassFromIgnite(initCache);
-        var spec = ClassUtil.newInstance(
-                specProviderClass).get();
-        var cfg = ClassUtil.newInstance(spec.crawlerConfigClass());
-
-        var configStr = initCache.get(IgniteGridKeys.CRAWLER_CONFIG);
-        if (StringUtils.isBlank(configStr)) {
-            throw new GridException("""
-                Crawler on grid server node not initialized: could not find
-                crawler configuration in Ignite cache.""");
-        }
-
-        var r = new StringReader(configStr);
-        spec.beanMapper().read(cfg, r, Format.JSON);
-        ((IgniteGridConnector) cfg.getGridConnector()).setServerNode(true);
-        return new CrawlerContext(specProviderClass, cfg);
+        //        var ignite = Ignition.localIgnite();
+        //        var initCache = ignite.<String, String>getOrCreateCache(
+        //                IgniteGridKeys.GLOBAL_CACHE);
+        //
+        //        var specProviderClass = specProviderClassFromIgnite(initCache);
+        //        var spec = ClassUtil.newInstance(
+        //                specProviderClass).get();
+        //        var cfg = ClassUtil.newInstance(spec.crawlerConfigClass());
+        //
+        //        var configStr = initCache.get(IgniteGridKeys.CRAWLER_CONFIG);
+        //        if (StringUtils.isBlank(configStr)) {
+        //            throw new GridException("""
+        //                Crawler on grid server node not initialized: could not find
+        //                crawler configuration in Ignite cache.""");
+        //        }
+        //
+        //        var r = new StringReader(configStr);
+        //        spec.beanMapper().read(cfg, r, Format.JSON);
+        //        //        ((IgniteGridConnector) cfg.getGridConnector()).setServerNode(true);
+        //        return new CrawlerContext(specProviderClass, cfg);
     }
 
-    private static Class<? extends CrawlerSpecProvider>
-            specProviderClassFromIgnite(
-                    IgniteCache<String, String> initCache) {
-        var className = initCache
-                .get(IgniteGridKeys.CRAWLER_SPEC_PROVIDER_CLASS);
-        if (StringUtils.isBlank(className)) {
-            throw new GridException("""
-                Crawler on grid server node not initialized. \
-                Could not find class name in global Ignite cache under key: %s\
-                """.formatted(IgniteGridKeys.CRAWLER_SPEC_PROVIDER_CLASS));
-        }
-        return classFor(className);
-    }
+    //    private static Class<? extends CrawlerSpecProvider>
+    //            specProviderClassFromIgnite(
+    //                    IgniteCache<String, String> initCache) {
+    //        var className = initCache
+    //                .get(IgniteGridKeys.CRAWLER_SPEC_PROVIDER_CLASS);
+    //        if (StringUtils.isBlank(className)) {
+    //            throw new GridException("""
+    //                Crawler on grid server node not initialized. \
+    //                Could not find class name in global Ignite cache under key: %s\
+    //                """.formatted(IgniteGridKeys.CRAWLER_SPEC_PROVIDER_CLASS));
+    //        }
+    //        return classFor(className);
+    //    }
 
     @SuppressWarnings("unchecked")
     private static <T> Class<T> classFor(String className) {

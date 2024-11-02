@@ -12,12 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.tasks.crawl.pipelines.queue;
+package com.norconex.crawler.core.grid.impl.ignite;
 
-import java.util.function.Consumer;
+import org.apache.ignite.services.Service;
 
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipeline.QueueInitContext;
+import com.norconex.crawler.core.CrawlerContext;
 
-@FunctionalInterface
-public interface QueueInitializer extends Consumer<QueueInitContext> {
+// Ignite requires that the service is an interface when accessing it
+public interface IgniteGridInitService extends Service {
+
+    CrawlerContext getContext();
+    //
+    //    CrawlerConfig getCrawlerConfig();
+
 }

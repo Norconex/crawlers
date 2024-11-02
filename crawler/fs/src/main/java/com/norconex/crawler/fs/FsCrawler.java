@@ -16,7 +16,6 @@ package com.norconex.crawler.fs;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
 public final class FsCrawler {
@@ -44,9 +43,13 @@ public final class FsCrawler {
     }
 
     public static Crawler create(CrawlerConfig crawlerConfig) {
-        var ctx =
-                new CrawlerContext(FsCrawlerSpecProvider.class, crawlerConfig);
-        return new Crawler(ctx);
+        //        var grid = crawlerConfig.getGridConnector()
+        //                .connect(FsCrawlerSpecProvider.class, crawlerConfig);
+        //        var ctx = new CrawlerContext(
+        //                new FsCrawlerSpecProvider().get(),
+        //                crawlerConfig,
+        //                grid);
+        return new Crawler(FsCrawlerSpecProvider.class, crawlerConfig);
 
         //        return Crawler.create(FsCrawlerSpecProvider.class, b -> {
         //            b.configuration(Optional.ofNullable(crawlerConfig)

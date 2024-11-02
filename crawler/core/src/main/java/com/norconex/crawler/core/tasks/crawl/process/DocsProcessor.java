@@ -89,9 +89,9 @@ public class DocsProcessor implements Runnable {
             LOG.debug("Crawler thread 'init-queue' started.");
             crawlerContext.fire(CRAWLER_RUN_THREAD_BEGIN,
                     Thread.currentThread());
-            crawlerContext.getDocPipelines()
-                    .getQueuePipeline()
-                    .initializeQueue(crawlerContext);
+            //            crawlerContext.getDocPipelines()
+            //                    .getQueuePipeline()
+            //                    .initializeQueue(crawlerContext);
 
         } finally {
             crawlerContext.fire(CRAWLER_RUN_THREAD_END, Thread.currentThread());

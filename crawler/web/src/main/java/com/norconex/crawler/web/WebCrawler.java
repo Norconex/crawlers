@@ -15,7 +15,6 @@
 package com.norconex.crawler.web;
 
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
@@ -34,6 +33,7 @@ public final class WebCrawler {
      * @param args command-line options
      */
     public static void main(String[] args) {
+        //System.setProperty("IGNITE_QUIET", "false");
         try {
             System.exit(launch(args));
         } catch (Exception e) {
@@ -60,9 +60,9 @@ public final class WebCrawler {
      * @return crawler
      */
     public static Crawler create(WebCrawlerConfig crawlerConfig) {
-        var ctx =
-                new CrawlerContext(WebCrawlerSpecProvider.class, crawlerConfig);
-        return new Crawler(ctx);
+        return new Crawler(WebCrawlerSpecProvider.class, crawlerConfig);
+        //        var ctx = new CrawlerContext(WebCrawlerSpecProvider.class, crawlerConfig);
+        //        return new Crawler(ctx);
         //        return Crawler.create(WebCrawlerSpecProvider.class, b ->
         //            b.configuration(Optional.ofNullable(crawlerConfig)
         //                    .orElseGet(WebCrawlerConfig::new)));

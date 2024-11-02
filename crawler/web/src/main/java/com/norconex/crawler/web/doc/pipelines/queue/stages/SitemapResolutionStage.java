@@ -29,10 +29,11 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
+import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.web.WebCrawlerSessionAttributes;
-import com.norconex.crawler.web.WebCrawlerSessionAttributes.SitemapPresence;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
+import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver.SitemapPresence;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.sitemap.SitemapContext;
 import com.norconex.crawler.web.util.Web;
@@ -46,14 +47,30 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
     private static final Map<String, Object> lockTable =
             new ConcurrentHashMap<>();
 
+    private GridCache<SitemapPresence> resolvedSites;
+
+    private synchronized void ensureCache(QueuePipelineContext ctx) {
+        if (resolvedSites == null) {
+            resolvedSites = Web.gridCache(
+                    ctx.getCrawlerContext(),
+                    UrlScopeResolver.RESOLVED_SITES_CACHE_NAME,
+                    SitemapPresence.class);
+        }
+    }
+
     @Override
     public boolean test(QueuePipelineContext ctx) { //NOSONAR
-
+        ensureCache(ctx);
         var cfg = Web.config(ctx.getCrawlerContext());
         var docRec = (WebCrawlDocContext) ctx.getDocContext();
-        var crawlerContext =
-                (WebCrawlerSessionAttributes) ctx.getCrawlerContext()
-                        .getAttributes();
+        //        var resolvedSites = Web.gridCache(
+        //                ctx.getCrawlerContext(),
+        //                UrlScopeResolver.RESOLVED_SITES_CACHE_NAME,
+        //                SitemapPresence.class);
+        //
+        //                ctx.getCrawlerContext().getGrid().getr
+        //                (WebCrawlerSessionAttributes) ctx.getCrawlerContext()
+        //                        .getAttributes();
 
         // Both a sitemap resolver and locator must be set (which they are
         // by default) to attempt sitemap discovery and processing for a
@@ -79,12 +96,21 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         // we are done processing the sitemap. It will them be
         // either PRESENT, or NONE, based on the presence of at least one
         // sitemap URL or not (we treat empty sitemaps as having no sitemaps).
-        var presence = ofNullable(
-                crawlerContext
-                        .getResolvedWebsites()
-                        .putIfAbsent(
-                                urlRoot, SitemapPresence.RESOLVING))
-                                        .orElse(SitemapPresence.RESOLVING);
+
+        var presenceRef = new MutableObject<SitemapPresence>();
+        resolvedSites.update(urlRoot, pres -> {
+            presenceRef.setValue(
+                    ofNullable(pres).orElse(SitemapPresence.RESOLVING));
+            return presenceRef.getValue();
+        });
+        var presence = presenceRef.getValue();
+
+        //        var presence = ofNullable(
+        //                resolvedSites
+        //                        .getResolvedWebsites()
+        //                        .putIfAbsent(
+        //                                urlRoot, SitemapPresence.RESOLVING))
+        //                                        .orElse(SitemapPresence.RESOLVING);
 
         // Process sitemap
         if (presence == SitemapPresence.RESOLVING) {
@@ -99,7 +125,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         }
 
         // Now that we processed the sitemap, refresh its presence status
-        presence = crawlerContext.getResolvedWebsites().get(urlRoot);
+        presence = resolvedSites.get(urlRoot);
 
         // If sitemap presence is NONE, it has been resolved and we ignore
         // "stayOnSitemap". We return right away, accepting the URL.
@@ -120,11 +146,15 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
     private void resolveSitemap(String urlRoot, QueuePipelineContext ctx) {
         // check again here in case it was resolved by another thread while
         // waiting.
-        var crawlerContext = Web.sessionAttributes(ctx.getCrawlerContext());
-
-        if (crawlerContext
-                .getResolvedWebsites()
-                .get(urlRoot) != SitemapPresence.RESOLVING) {
+        //        var crawlerContext = Web.sessionAttributes(ctx.getCrawlerContext());
+        //
+        //        if (crawlerContext
+        //                .getResolvedWebsites()
+        //                .get(urlRoot) != SitemapPresence.RESOLVING) {
+        //            return;
+        //        }
+        //
+        if (resolvedSites.get(urlRoot) != SitemapPresence.RESOLVING) {
             return;
         }
 
@@ -167,9 +197,10 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
 
             var cnt = urlCount.getAndIncrement();
             if ((cnt == 0)) {
-                crawlerContext
-                        .getResolvedWebsites()
-                        .put(urlRoot, SitemapPresence.PRESENT);
+                resolvedSites.put(urlRoot, SitemapPresence.PRESENT);
+                //                crawlerContext
+                //                        .getResolvedWebsites()
+                //                        .put(urlRoot, SitemapPresence.PRESENT);
             }
         };
 
@@ -202,9 +233,10 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         if (StringUtils.isBlank(foundLocation.getValue())) {
             eventMsg = "No sitemap found or sitemap was empty for %s."
                     .formatted(urlRoot);
-            crawlerContext
-                    .getResolvedWebsites()
-                    .put(urlRoot, SitemapPresence.NONE);
+            resolvedSites.put(urlRoot, SitemapPresence.NONE);
+            //            crawlerContext
+            //                    .getResolvedWebsites()
+            //                    .put(urlRoot, SitemapPresence.NONE);
         } else {
             // the presence is already set to PRESENT at this point.
             eventMsg = urlCount.toInteger()

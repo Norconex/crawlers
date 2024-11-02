@@ -25,8 +25,8 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlerSessionAttributes;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
@@ -38,6 +38,13 @@ import lombok.NonNull;
 public final class Web {
 
     private Web() {
+    }
+
+    public static <T> GridCache<T> gridCache(
+            @NonNull CrawlerContext crawlerContext,
+            @NonNull String name,
+            @NonNull Class<? extends T> type) {
+        return crawlerContext.getGrid().storage().getCache(name, type);
     }
 
     public static void fireIfUrlOutOfScope(
@@ -60,10 +67,10 @@ public final class Web {
         return (WebCrawlerConfig) crawler.getConfiguration();
     }
 
-    public static WebCrawlerSessionAttributes
-            sessionAttributes(CrawlerContext crawler) {
-        return (WebCrawlerSessionAttributes) crawler.getAttributes();
-    }
+    //    public static WebCrawlerSessionAttributes
+    //            sessionAttributes(CrawlerContext crawler) {
+    //        return (WebCrawlerSessionAttributes) crawler.getAttributes();
+    //    }
 
     public static HttpFetcher fetcher(CrawlerContext crawler) {
         return (HttpFetcher) crawler.getFetcher();

@@ -17,5 +17,17 @@ package com.norconex.crawler.web.doc.operations.scope;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 
 public interface UrlScopeResolver {
+
+    //TODO refactor a bit so the cache creation/usage is abstracted from impl
+    // having just this here forces impls to know and use the key, or even
+    // use the cache altogether.
+
+    public enum SitemapPresence {
+        RESOLVING, PRESENT, NONE
+    }
+
+    String RESOLVED_SITES_CACHE_NAME =
+            UrlScopeResolver.class.getSimpleName() + ".resolvedSites";
+
     UrlScope resolve(String inScopeURL, WebCrawlDocContext candidateDocContext);
 }
