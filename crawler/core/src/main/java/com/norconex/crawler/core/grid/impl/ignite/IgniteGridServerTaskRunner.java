@@ -31,21 +31,23 @@ public final class IgniteGridServerTaskRunner {
     }
 
     // Static method that gets the Ignite instance internally
-    public static void execute(String className, String arg) {
+    public static <T> T execute(String className, String arg) {
 
         // Load the task class dynamically
         var taskClass = classFor(className);
 
         // Create a new instance of the task
-        var task = (GridTask) ClassUtil.newInstance(taskClass);
+        @SuppressWarnings("unchecked")
+        var task = (GridTask<T>) ClassUtil.newInstance(taskClass);
 
         try (var crawlerContext = getCrawlerContext()) {
             LOG.info("Running task \"{}\" on crawler \"{}\"",
                     className, crawlerContext.getConfiguration().getId());
             //            crawlerContext.init();
             crawlerContext.fire(CrawlerEvent.TASK_RUN_BEGIN, className);
-            task.run(crawlerContext, arg);
+            var result = task.run(crawlerContext, arg);
             crawlerContext.fire(CrawlerEvent.TASK_RUN_END, className);
+            return result;
         } catch (RuntimeException e) {
             LOG.error("Could not run task '%s'.".formatted(className), e);
             throw e;

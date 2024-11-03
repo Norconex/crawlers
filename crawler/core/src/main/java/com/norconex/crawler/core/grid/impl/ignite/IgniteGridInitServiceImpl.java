@@ -49,9 +49,6 @@ public class IgniteGridInitServiceImpl implements IgniteGridInitService {
     @Override
     public void init() throws Exception {
 
-        Ignition.localIgnite().getOrCreateCache(
-                IgniteGridKeys.RUN_ONCE_CACHE).clear();
-
         var spec = ClassUtil.newInstance(specProviderClass).get();
         crawlerConfig = spec.beanMapper().read(
                 spec.crawlerConfigClass(),
@@ -62,6 +59,8 @@ public class IgniteGridInitServiceImpl implements IgniteGridInitService {
                 crawlerConfig,
                 new IgniteGrid(Ignition.localIgnite()));
         context.init();
+        context.getGrid().storage().getCache(
+                IgniteGridKeys.RUN_ONCE_CACHE, String.class).clear();
     }
 
     @Override

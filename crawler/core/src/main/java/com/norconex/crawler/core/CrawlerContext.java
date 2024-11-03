@@ -54,6 +54,7 @@ import com.norconex.crawler.core.stop.impl.FileBasedStopper;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DedupService;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
 import com.norconex.crawler.core.tasks.crawl.process.DocProcessingLedger;
+import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.importer.Importer;
@@ -182,14 +183,18 @@ public class CrawlerContext implements Closeable {
         }
         initialized = true; // important to flag it early
 
+        //--- Ensure good state/config ---
+        if (StringUtils.isBlank(getId())) {
+            throw new CrawlerException(
+                    "Crawler must be given a unique identifier (id).");
+        }
+
         //        eventManager.addListeners((Collection<EventListener<
         //                Event>>) (Collection<?>) configuration.getEventListeners());
 
         // need those? // maybe append cluster node id?
-        workDir = Optional.ofNullable(getConfiguration().getWorkDir())
-                .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
-                .resolve(FileUtil.toSafeFileName(getId()));
-        tempDir = workDir.resolve("temp");
+        workDir = ConfigUtil.resolveWorkDir(getConfiguration());
+        tempDir = ConfigUtil.resolveTempDir(getConfiguration());
         try {
             // Will also create workdir parent:
             Files.createDirectories(tempDir);
@@ -214,11 +219,6 @@ public class CrawlerContext implements Closeable {
         state.init(this);
         docProcessingLedger.init(this);
 
-        //--- Ensure good state/config ---
-        if (StringUtils.isBlank(getId())) {
-            throw new CrawlerException(
-                    "Crawler must be given a unique identifier (id).");
-        }
         LogUtil.setMdcCrawlerId(getId());
         Thread.currentThread().setName(getId());
 

@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ignite.Ignite;
 import org.apache.ignite.lang.IgniteBiTuple;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -62,7 +61,7 @@ public class IgniteGridStorage implements GridStorage {
         }
     }
 
-    private final Ignite ignite;
+    private final IgniteGrid igniteGrid;
 
     private IgniteGridCache<
             IgniteBiTuple<Class<?>, Class<?>>> cacheObjectAndStoreTypes;
@@ -72,14 +71,17 @@ public class IgniteGridStorage implements GridStorage {
     public <T> GridCache<T> getCache(
             @NonNull String storeName, @NonNull Class<? extends T> objectType) {
         cacheObjectAndStoreTypes(storeName, objectType, GridCache.class);
-        return new IgniteGridCache<>(ignite, storeName, objectType);
+        return new IgniteGridCache<>(
+                igniteGrid.getIgnite(), storeName, objectType);
     }
 
     @JsonIgnore
     @Override
     public GridCache<String> getGlobalCache() {
         return new IgniteGridCache<>(
-                ignite, IgniteGridKeys.GLOBAL_CACHE, String.class);
+                igniteGrid.getIgnite(),
+                IgniteGridKeys.GLOBAL_CACHE,
+                String.class);
     }
 
     @JsonIgnore
@@ -87,7 +89,8 @@ public class IgniteGridStorage implements GridStorage {
     public <T> GridQueue<T> getQueue(
             String storeName, Class<? extends T> objectType) {
         cacheObjectAndStoreTypes(storeName, objectType, GridQueue.class);
-        return new IgniteGridQueue<>(ignite, storeName, objectType);
+        return new IgniteGridQueue<>(
+                igniteGrid.getIgnite(), storeName, objectType);
     }
 
     @JsonIgnore
@@ -95,8 +98,8 @@ public class IgniteGridStorage implements GridStorage {
     public <T> GridSet<T> getSet(
             String storeName, Class<? extends T> objectType) {
         cacheObjectAndStoreTypes(storeName, objectType, GridSet.class);
-        return new IgniteGridSet<>(ignite, storeName,
-                objectType);
+        return new IgniteGridSet<>(
+                igniteGrid.getIgnite(), storeName, objectType);
     }
 
     @JsonIgnore
@@ -134,7 +137,7 @@ public class IgniteGridStorage implements GridStorage {
         }
         return ClassUtil.newInstance(
                 concreteType,
-                ignite,
+                igniteGrid,
                 storeName,
                 objectType);
     }
@@ -149,7 +152,8 @@ public class IgniteGridStorage implements GridStorage {
             objectAndStoreTypes() {
         if (cacheObjectAndStoreTypes == null) {
             cacheObjectAndStoreTypes = new IgniteGridCache<>(
-                    ignite, STORE_TYPES_KEY,
+                    igniteGrid.getIgnite(),
+                    STORE_TYPES_KEY,
                     IgniteBiTuple.class);
         }
         return cacheObjectAndStoreTypes;
@@ -157,7 +161,7 @@ public class IgniteGridStorage implements GridStorage {
 
     private ListValuedMap<String, String> getActualStoreNames() {
         var names = new ArrayListValuedHashMap<String, String>();
-        ignite.cacheNames().forEach(
+        igniteGrid.getIgnite().cacheNames().forEach(
                 nm -> names.put(
                         StringUtils.substringBeforeLast(nm, SUFFIX_SEPARATOR),
                         nm));

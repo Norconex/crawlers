@@ -20,8 +20,10 @@ import com.norconex.crawler.core.CrawlerContext;
 
 /**
  * Code meant to run on server node (in a clustered environment).
+ * @param <T> type of return value, which can be {@link Void}.
  */
 @FunctionalInterface
-public interface GridTask extends Serializable {
-    void run(CrawlerContext crawlerContext, String arg);
+public interface GridTask<T> extends Serializable {
+    //void run(CrawlerContext crawlerContext, String arg);
+    T run(CrawlerContext crawlerContext, String arg);
 }

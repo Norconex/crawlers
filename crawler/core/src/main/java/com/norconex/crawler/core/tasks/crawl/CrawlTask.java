@@ -22,15 +22,22 @@ import com.norconex.crawler.core.tasks.crawl.process.DocsProcessor;
  * Performs a crawl by getting references from the crawl queue until there
  * are no more in the queue or being processed.
  */
-public class CrawlTask implements GridTask {
+public class CrawlTask implements GridTask<Void> {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void run(CrawlerContext crawlerContext, String arg) {
+    public Void run(CrawlerContext crawlerContext, String arg) {
         //TODO maybe merge DocsProcessor here instead?
         System.err.println("XXX About to run DocsProcessor...");
         new DocsProcessor(crawlerContext).run();
+        return null;
     }
+    //    @Override
+    //    public void run(CrawlerContext crawlerContext, String arg) {
+    //        //TODO maybe merge DocsProcessor here instead?
+    //        System.err.println("XXX About to run DocsProcessor...");
+    //        new DocsProcessor(crawlerContext).run();
+    //    }
 
 }

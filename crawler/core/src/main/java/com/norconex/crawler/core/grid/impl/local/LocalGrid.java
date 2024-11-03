@@ -16,6 +16,8 @@ package com.norconex.crawler.core.grid.impl.local;
 
 import java.nio.file.Path;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
@@ -42,33 +44,31 @@ public class LocalGrid implements Grid {
     private CrawlerContext crawlerContext;
     private LocalGridCompute gridCompute;
     private LocalGridStorage gridStorage;
+    private LocalGridServices gridServices;
 
     public void init(MVStore mvstore, CrawlerContext crawlerContext) {
         this.mvstore = mvstore;
         this.crawlerContext = crawlerContext;
         gridCompute = new LocalGridCompute(mvstore, crawlerContext);
         gridStorage = new LocalGridStorage(mvstore);
+        gridServices = new LocalGridServices(crawlerContext);
     }
 
     @Override
     public GridServices services() {
-        // TODO Auto-generated method stub
-        return null;
+        ensureInit();
+        return gridServices;
     }
 
     @Override
     public GridCompute compute() {
-        if (gridCompute == null) {
-            throw new IllegalStateException("LocalGrid not initialized.");
-        }
+        ensureInit();
         return gridCompute;
     }
 
     @Override
     public GridStorage storage() {
-        if (gridStorage == null) {
-            throw new IllegalStateException("LocalGrid not initialized.");
-        }
+        ensureInit();
         return gridStorage;
     }
 
@@ -83,5 +83,11 @@ public class LocalGrid implements Grid {
             crawlerContext.close();
         }
         crawlerContext = null;
+    }
+
+    private void ensureInit() {
+        if (ObjectUtils.anyNull(gridCompute, gridStorage, gridServices)) {
+            throw new IllegalStateException("LocalGrid not initialized.");
+        }
     }
 }

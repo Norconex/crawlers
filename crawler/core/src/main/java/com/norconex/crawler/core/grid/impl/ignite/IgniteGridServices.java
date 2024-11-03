@@ -17,7 +17,6 @@ package com.norconex.crawler.core.grid.impl.ignite;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.services.Service;
 
@@ -35,25 +34,33 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class IgniteGridServices implements GridServices {
 
-    private final Ignite ignite;
+    private final IgniteGrid igniteGrid;
 
     @Override
     public Future<?> start(
             String serviceName, Class<? extends GridService> serviceClass) {
         return CompletableFuture.runAsync(() -> {
-            //            ignite.services().deployClusterSingletonAsync(
-            //                    serviceName, new ServiceAdapter(serviceClass)).get();
-            ignite.services().deployClusterSingleton(
-                    serviceName, new ServiceAdapter(serviceClass));
+            System.err.println("XXX DEPLOYING THE CRAWL SERVICE...");
+            igniteGrid.getIgnite().services().deployClusterSingletonAsync(
+                    serviceName,
+                    new ServiceAdapter(serviceName, serviceClass))
+                    .get();
+            //            ignite.services().deployClusterSingleton(
+            //                    serviceName, new ServiceAdapter(serviceClass));
 
-            System.err.println("XXX AM I DONE RUNNING?");
+            System.err
+                    .println("XXX AM I REALLY DONE RUNNING THE CRAWL SERVICE?");
 
-            var cache = ignite.getOrCreateCache(IgniteGridKeys.GLOBAL_CACHE);
-            var endedKey = serviceClass.getSimpleName() + ".ended";
-            while (!Boolean.valueOf((String) cache.get(endedKey))) {
-                System.err.println("XXX is the services ended?...");
-                Sleeper.sleepSeconds(5);
+            var cache = igniteGrid.storage().getCache(
+                    IgniteGridKeys.RUN_ONCE_CACHE, String.class);
+            var endedKey = serviceName + ".ended";
+            while (!Boolean.parseBoolean(cache.get(endedKey))) {
+                System.err.println("XXX is the services ended? GOT from "
+                        + serviceClass.getSimpleName() + ".ended : "
+                        + cache.get(endedKey));
+                Sleeper.sleepSeconds(1);
             }
+            cache.delete(endedKey);
         });
     }
 
@@ -61,7 +68,7 @@ public class IgniteGridServices implements GridServices {
     @Override
     public <T extends GridService> T get(String serviceName) {
         try {
-            var serviceAdapter = ignite.services().serviceProxy(
+            var serviceAdapter = igniteGrid.getIgnite().services().serviceProxy(
                     serviceName, ServiceAdapter.class, false);
             return (T) serviceAdapter.getService();
         } catch (IgniteException e) {
@@ -74,12 +81,17 @@ public class IgniteGridServices implements GridServices {
     @Override
     public Future<?> end(String serviceName) {
         return CompletableFuture.runAsync(
-                () -> ignite.services().cancelAsync(serviceName).get());
+                () -> igniteGrid
+                        .getIgnite()
+                        .services()
+                        .cancelAsync(serviceName)
+                        .get());
     }
 
     @RequiredArgsConstructor
     public static class ServiceAdapter implements Service {
         private static final long serialVersionUID = 1L;
+        private final String serviceName;
         private final Class<? extends GridService> serviceClass;
         @Getter
         private transient GridService service;
@@ -106,11 +118,15 @@ public class IgniteGridServices implements GridServices {
             //            Sleeper.sleepSeconds(4);
 
             service.start(crawlerContext);
+
+            System.err.println("XXX Setting " + serviceClass.getSimpleName()
+                    + ".ended to true.");
+
             crawlerContext
                     .getGrid()
                     .storage()
-                    .getGlobalCache()
-                    .put(serviceClass.getSimpleName() + ".ended", "true");
+                    .getCache(IgniteGridKeys.RUN_ONCE_CACHE, String.class)
+                    .put(serviceName + ".ended", "true");
             System.err.println("XXX ENDED");
         }
 

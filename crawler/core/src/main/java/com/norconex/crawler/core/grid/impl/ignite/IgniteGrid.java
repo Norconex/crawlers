@@ -22,7 +22,9 @@ import com.norconex.crawler.core.grid.GridServices;
 import com.norconex.crawler.core.grid.GridStorage;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -40,21 +42,22 @@ public class IgniteGrid implements Grid {
     //    @NonNull
     //    private final IgniteGridInstance igniteGridInstance;
     @NonNull
+    @Getter(value = AccessLevel.PACKAGE)
     private final Ignite ignite;
 
     @Override
     public GridStorage storage() {
-        return new IgniteGridStorage(ignite);
+        return new IgniteGridStorage(this);
     }
 
     @Override
     public GridCompute compute() {
-        return new IgniteGridCompute(ignite);
+        return new IgniteGridCompute(this);
     }
 
     @Override
     public GridServices services() {
-        return new IgniteGridServices(ignite);
+        return new IgniteGridServices(this);
     }
 
     @Override

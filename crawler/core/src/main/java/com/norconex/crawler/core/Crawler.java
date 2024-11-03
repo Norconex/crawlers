@@ -19,7 +19,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.norconex.crawler.core.grid.GridService;
-import com.norconex.crawler.core.grid.GridTask;
 import com.norconex.crawler.core.services.crawl.CrawlService;
 
 import lombok.EqualsAndHashCode;
@@ -112,14 +111,14 @@ public class Crawler {
         //TODO implement me
     }
 
-    public static class TestTask implements GridTask {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public void run(CrawlerContext crawlerContext, String arg) {
-            System.err.println("XXXXXXXXXX hello world!!!!!!!");
-        }
-    }
+    //    public static class TestTask implements GridTask {
+    //        private static final long serialVersionUID = 1L;
+    //
+    //        @Override
+    //        public void run(CrawlerContext crawlerContext, String arg) {
+    //            System.err.println("XXXXXXXXXX hello world!!!!!!!");
+    //        }
+    //    }
 
     private void executeCommand(Class<? extends GridService> gridServiceClass) {
         //        CrawlerSpecProvider crawlerSpecProvider =

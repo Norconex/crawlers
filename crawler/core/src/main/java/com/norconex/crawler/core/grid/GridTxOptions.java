@@ -48,19 +48,19 @@ public class GridTxOptions {
      * "singleton" is <code>true</code>.
      */
     private boolean lock;
-    /**
-     * Whether to block all store clients execution until execution is
-     * completed on all nodes. When singleton is <code>true</code> all nodes
-     * will wait for the single instance executing to be done.
-     */
-    private boolean block;
-    /**
-     * Whether only one store client can execute. Other clients will
-     * wait until completion only if "block" is <code>true</code>.
-     * Setting "lock" to <code>true</code> has no effect when "singleton" is
-     * <code>true</code>.
-     */
-    private boolean singleton;
+    //    /**
+    //     * Whether to block all store clients execution until execution is
+    //     * completed on all nodes. When singleton is <code>true</code> all nodes
+    //     * will wait for the single instance executing to be done.
+    //     */
+    //    private boolean block;
+    //    /**
+    //     * Whether only one store client can execute. Other clients will
+    //     * wait until completion only if "block" is <code>true</code>.
+    //     * Setting "lock" to <code>true</code> has no effect when "singleton" is
+    //     * <code>true</code>.
+    //     */
+    //    private boolean singleton;
     //    /**
     //     * Whether an execution of the same name can be run again within
     //     * a crawl session. This is mainly useful if we have a late-joiner node

@@ -14,12 +14,12 @@
  */
 package com.norconex.crawler.core.services.crawl;
 
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerProgressLogger;
 import com.norconex.crawler.core.grid.GridService;
 import com.norconex.crawler.core.grid.GridTxOptions;
 import com.norconex.crawler.core.tasks.crawl.CrawlTask;
+import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -55,21 +55,12 @@ public class CrawlService implements GridService {
     @Override
     public void start(CrawlerContext crawlerContext) {
 
-        System.err.println("XXX I AM AT YOUR SERVICE!");
-
         DocLedgerInitExecutor.execute(crawlerContext);
-
-        System.err.println("XXX GOT THE LEDGER.");
-
         QueueInitExecutor.execute(crawlerContext);
-
-        System.err.println("XXX INITIALIZED THE QUEUE.");
-
         crawlDocs(crawlerContext);
 
         System.err.println("XXX I THINK I AM DONE.");
 
-        Sleeper.sleepMinutes(1);
         // process orphans
         // finalize
     }
@@ -110,11 +101,16 @@ public class CrawlService implements GridService {
     // On all nodes, block
     private void crawlDocs(CrawlerContext crawlerContext) {
         LOG.info("Crawling...");
-        crawlerContext.getGrid().compute().runTask(CrawlTask.class, null,
-                GridTxOptions.builder()
-                        .name("crawl")
-                        .block(true)
-                        .build());
+        ConcurrentUtil.block(crawlerContext
+                .getGrid()
+                .compute()
+                .runOnAll(
+                        CrawlTask.class,
+                        null,
+                        GridTxOptions
+                                .builder()
+                                .name("crawl")
+                                .build()));
     }
 
     //    private void finalizeExecution(Crawler crawlerContext) {

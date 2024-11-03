@@ -27,6 +27,7 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.util.SerializableUnaryOperator;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.StandardException;
@@ -34,6 +35,7 @@ import lombok.experimental.StandardException;
 public class IgniteGridCache<T> implements GridCache<T> {
 
     private String name;
+    @Getter(value = AccessLevel.PACKAGE)
     private final IgniteCache<String, T> cache;
     @Getter
     private final Class<? extends T> type;

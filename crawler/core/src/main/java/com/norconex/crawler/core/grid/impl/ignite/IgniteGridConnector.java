@@ -16,7 +16,6 @@ package com.norconex.crawler.core.grid.impl.ignite;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import org.apache.ignite.Ignition;
 import org.apache.ignite.cluster.ClusterState;
@@ -36,6 +35,7 @@ import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.util.ConfigUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -65,8 +65,8 @@ public class IgniteGridConnector
         //TODO apply config settings from crawler config
         var igniteCfg = new IgniteConfiguration();
         igniteCfg.setGridLogger(new Slf4jLogger());
-        igniteCfg.setIgniteInstanceName(
-                crawlerConfig.getId() + "__" + UUID.randomUUID().toString());
+        //        igniteCfg.setIgniteInstanceName(
+        //                crawlerConfig.getId() + "__" + UUID.randomUUID().toString());
 
         //        igniteCfg.setClusterStateOnStart(ClusterState.ACTIVE);
         //        igniteCfg.setAutoActivationEnabled(false)
@@ -125,12 +125,14 @@ public class IgniteGridConnector
 
     private static void configureWorkDirectory(
             CrawlerConfig crawlerCfg, IgniteConfiguration igniteCfg) {
-        //        var baseWorkDir = crawlerCfg.getWorkDir();
-        //        igniteCfg.setWorkDirectory(baseWorkDir.resolve(instanceName)
-        //                .toAbsolutePath().toString());
-        //
-        //        LOG.info("Ignite %s work directory: %s"
-        //                .formatted(instanceName, serverCfg.getWorkDirectory()));
+        var instanceName = igniteCfg.getIgniteInstanceName();
+        igniteCfg.setWorkDirectory(
+                ConfigUtil.resolveWorkDir(crawlerCfg)
+                        //                        .resolve(FileUtil.toSafeFileName(instanceName))
+                        .toAbsolutePath().toString());
+        System.err.println("XXX WORK DIR IS: " + igniteCfg.getWorkDirectory());
+        LOG.info("Ignite %s work directory: %s"
+                .formatted(instanceName, igniteCfg.getWorkDirectory()));
     }
 
     //TODO have this using crawler/ignite config

@@ -113,7 +113,7 @@ public class DeleteRejectedEventListener implements
         refStore = crawlerContext.getGrid().storage()
                 .getSet(DELETED_REFS_CACHE_NAME, String.class);
         ConcurrentUtil.block(crawlerContext.getGrid().compute()
-                .runOnce("delete-rejected-listener-init", () -> {
+                .runOnceOnLocal("delete-rejected-listener-init", () -> {
                     LOG.info("Clearing any previous deleted references cache.");
                     refStore.clear();
                 }));
@@ -139,7 +139,7 @@ public class DeleteRejectedEventListener implements
     }
 
     private void commitDeletions(CrawlerContext crawlerContext) {
-        ConcurrentUtil.block(crawlerContext.getGrid().compute().runOnce(
+        ConcurrentUtil.block(crawlerContext.getGrid().compute().runOnceOnLocal(
                 "delete-rejected-listener-commit", () -> {
                     if (LOG.isInfoEnabled()) {
                         LOG.info("Committing {} rejected references for "
