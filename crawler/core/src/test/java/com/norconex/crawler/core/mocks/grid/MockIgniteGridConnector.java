@@ -30,11 +30,12 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGrid;
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridAttributes;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
+import com.norconex.crawler.core.util.ConfigUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -57,13 +58,17 @@ public class MockIgniteGridConnector extends IgniteGridConnector {
     private int serverNodes = 1;
 
     @Override
-    public Grid connect(CrawlerContext crawlerContext) {
+    public Grid connect(
+            Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
+            CrawlerConfig crawlerConfig) {
+
+        //TODO support multiple nodes for testing.
 
         var serverNodeQty = Math.max(serverNodes, 1);
         var totalNodeCount = serverNodeQty + 1;
         LOG.info("Creating %s Ignite embedded server nodes."
                 .formatted(serverNodeQty));
-        var baseWorkDir = crawlerContext.getConfiguration().getWorkDir();
+        var baseWorkDir = ConfigUtil.resolveWorkDir(crawlerConfig);
 
         //        for (var i = 0; i < serverNodeQty; i++) {
         var nodeIndex = 1; // i + 1;
@@ -77,9 +82,9 @@ public class MockIgniteGridConnector extends IgniteGridConnector {
                 .formatted(instanceName, serverCfg.getWorkDirectory()));
 
         //TODO delete this line?
-        serverCfg.setUserAttributes(new IgniteGridAttributes()
-                .setActivationLeader(true)//i == 0)
-                .setActivationExpectedServerCount(serverNodeQty));
+        //        serverCfg.setUserAttributes(new IgniteGridAttributes()
+        //                .setActivationLeader(true)//i == 0)
+        //                .setActivationExpectedServerCount(serverNodeQty));
 
         // persist
         var storageCfg = new DataStorageConfiguration();
@@ -89,49 +94,10 @@ public class MockIgniteGridConnector extends IgniteGridConnector {
 
         configureDiscovery(serverCfg, nodeIndex, totalNodeCount);
         configurePersistentStorage(serverCfg);
-        //            configureSql(serverCfg);
 
         var ignite = Ignition.start(serverCfg);
-        //            igniteServers.add(ignite);
-
-        //        }
-        // force to use only one for now... until we figure out
-        // how best to test locally
         return new IgniteGrid(ignite);
-
-        //        // Configuration for Client Node
-        //        var clientCfg = new IgniteConfiguration();
-        //        clientCfg.setIgniteInstanceName("clientNode");
-        //        clientCfg.setWorkDirectory(
-        //                baseWorkDir.resolve("clientNode").toAbsolutePath().toString());
-        //        LOG.info("Ignite %s work directory: %s"
-        //                .formatted("clientNode", clientCfg.getWorkDirectory()));
-        //        clientCfg.setClientMode(true); // Mark this node as client
-        //        configureDiscovery(clientCfg, 0, totalNodeCount);
-        //
-        //        try {
-        //            var ignite = Ignition.start(clientCfg);
-        //            if (checkAndActivateCluster(ignite, serverNodeQty,
-        //                    serverNodeQty, 60_000)) {
-        //                LOG.info("Cluster activated successfully.");
-        //            } else {
-        //                LOG.info("Failed to activate cluster.");
-        //            }
-        //            return new IgniteGrid(ignite);
-        //        } catch (IgniteException e) {
-        //            throw new GridException("Ignite failed to start.", e);
-        //        }
-
-        //        return new IgniteGridConnector(new MockIgniteGridInstanceClient(
-        //                crawlerContext.getConfiguration().getWorkDir(),
-        //                serverNodes)).connect(crawlerContext);
     }
-
-    //    @Data
-    //    public class MockIgniteGridConnectorConfig
-    //            extends IgniteGridConnectorConfig {
-    //        private int serverNodes = 1;
-    //    }
 
     public static boolean checkAndActivateCluster(
             Ignite ignite, int expectedServerCount, int quorum, long timeout) {
@@ -190,7 +156,7 @@ public class MockIgniteGridConnector extends IgniteGridConnector {
         cfg.setGridLogger(new Slf4jLogger());
         cfg.setPeerClassLoadingEnabled(false);
         cfg.setConsistentId("node-" + nodeIndex);
-        cfg.setLocalHost("127.0.0.1");
+        cfg.setLocalHost("127.0.0.1"); // <-- very slow without this
 
         var discoverySpi = new TcpDiscoverySpi();
 

@@ -19,7 +19,6 @@ import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
 
 import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.mocks.fetch.MockFetchStage;
-import com.norconex.crawler.core.services.crawl.impl.CoreQueueInitializer;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipeline;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.stages.CommitModuleStage;
@@ -49,7 +48,7 @@ public final class PipelineStubs {
                 .queuePipeline(
                         QueuePipeline
                                 .builder()
-                                .initializer(new CoreQueueInitializer())
+                                //                                .initializer(new CoreQueueInitializer())
                                 .stages(
                                         Predicates.allOf(
                                                 new DepthValidationStage(),

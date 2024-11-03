@@ -19,7 +19,6 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.mocks.grid.MockIgniteGridConnector;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
@@ -28,26 +27,28 @@ public final class MockCrawler extends Crawler {
 
     public static final String CRAWLER_ID = StubCrawlerConfig.CRAWLER_ID;
 
-    private MockCrawler(CrawlerContext ctx) {
-        super(ctx);
+    public MockCrawler(
+            Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
+            CrawlerConfig crawlerConfig) {
+        super(crawlerSpecProviderClass, crawlerConfig);
     }
 
     public static MockCrawler memoryCrawler(Path workDir) {
         return memoryCrawler(workDir, (CrawlerConfig) null);
     }
 
-    public static MockCrawler memoryCrawler(Path workDir,
-            CrawlerConfig config) {
+    public static MockCrawler memoryCrawler(
+            Path workDir, CrawlerConfig config) {
         //NOTE: we could just assume that the workDir is set in config already,
         // but we want to enforce passing one when testing
         var cfg = config != null
                 ? StubCrawlerConfig.toMemoryCrawlerConfig(workDir, config)
                 : StubCrawlerConfig.memoryCrawlerConfig(workDir);
-        return new MockCrawler(
-                new CrawlerContext(MockCrawlerSpecProvider.class, cfg));
+        return new MockCrawler(MockCrawlerSpecProvider.class, cfg);
     }
 
-    public static MockCrawler memoryCrawler(Path workDir,
+    public static MockCrawler memoryCrawler(
+            Path workDir,
             CrawlerConfig config,
             Class<? extends CrawlerSpecProvider> specProviderClass) {
         //NOTE: we could just assume that the workDir is set in config already,
@@ -60,7 +61,7 @@ public final class MockCrawler extends Crawler {
         if (specClass == null) {
             specClass = MockCrawlerSpecProvider.class;
         }
-        return new MockCrawler(new CrawlerContext(specClass, cfg));
+        return new MockCrawler(specClass, cfg);
     }
 
     public static MockCrawler memoryCrawler(
@@ -74,18 +75,6 @@ public final class MockCrawler extends Crawler {
         var conn = new MockIgniteGridConnector();
         conn.setServerNodes(2);
         cfg.setGridConnector(conn);
-        return new MockCrawler(
-                new CrawlerContext(MockCrawlerSpecProvider.class, cfg));
+        return new MockCrawler(MockCrawlerSpecProvider.class, cfg);
     }
-
-    @Override
-    public void init() {
-        super.init();
-    }
-
-    @Override
-    public void close() {
-        super.close();
-    }
-
 }

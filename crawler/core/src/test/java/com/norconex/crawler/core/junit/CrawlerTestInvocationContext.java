@@ -29,6 +29,7 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.util.ConfigUtil;
 
 import lombok.Getter;
 
@@ -104,14 +105,14 @@ class CrawlerTestInvocationContext
                 }
                 // CrawlerContext
                 if (CrawlerContext.class.isAssignableFrom(paramType)) {
-                    return crawlerOpt.map(Crawler::getContext).orElse(null);
+                    return CrawlerContext.get();
+                    //return crawlerOpt.map(Crawler::getContext).orElse(null);
                 }
                 // First committer
                 if (MemoryCommitter.class.isAssignableFrom(paramType)) {
                     return crawlerOpt
                             .map(crwl -> crwl
-                                    .getContext()
-                                    .getConfiguration()
+                                    .getCrawlerConfig()
                                     .getCommitters())
                             .filter(cmtrs -> !cmtrs.isEmpty())
                             .map(cmtrs -> cmtrs.get(0))
@@ -121,8 +122,8 @@ class CrawlerTestInvocationContext
                 // Temp dir.
                 if (Path.class.isAssignableFrom(paramType)) {
                     return crawlerOpt
-                            .map(Crawler::getContext)
-                            .map(CrawlerContext::getWorkDir)
+                            .map(Crawler::getCrawlerConfig)
+                            .map(ConfigUtil::resolveWorkDir)
                             .orElse(null);
                 }
 

@@ -293,6 +293,7 @@ class CliCrawlerLauncherTest {
             throws IOException {
         var exit = launch(gridConnClass, "stop", "-config=");
         assertThat(exit.ok()).isTrue();
+        throw new UnsupportedOperationException("IMPLEMENT ME");
     }
 
     @ParameterizedGridConnectorTest
@@ -315,6 +316,7 @@ class CliCrawlerLauncherTest {
         assertThat(exit2.ok()).isTrue();
         assertThat(Files.readString(renderedFile).trim()).isEqualTo(
                 exit1.getStdOut().trim());
+        throw new UnsupportedOperationException("IMPLEMENT ME");
     }
 
     @ParameterizedGridConnectorTest

@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
@@ -30,6 +31,7 @@ import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
+import com.norconex.crawler.core.util.ConfigUtil;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -48,9 +50,11 @@ public class MockCliLauncher {
     private final boolean logErrors;
 
     public MockCliExit launch() {
+        var workDirRef = new MutableObject<Path>();
         //NOTE configuration will be read from file, but applied on top
         // of existing config so we can pre-configure items here.
         var cfgFile = StubCrawlerConfig.writeConfigToDir(workDir, cfg -> {
+            workDirRef.setValue(ConfigUtil.resolveWorkDir(cfg));
             if (configModifier != null) {
                 configModifier.accept(cfg);
             }
@@ -83,7 +87,8 @@ public class MockCliLauncher {
         }
 
         try {
-            var evtFile = workDir.resolve(MockCliEventWriter.EVENTS_FILE_NAME);
+            var evtFile = workDirRef.getValue()
+                    .resolve(MockCliEventWriter.EVENTS_FILE_NAME);
             if (Files.exists(evtFile)) {
                 exit.getEvents().addAll(Files.readAllLines(evtFile));
                 Files.delete(evtFile);

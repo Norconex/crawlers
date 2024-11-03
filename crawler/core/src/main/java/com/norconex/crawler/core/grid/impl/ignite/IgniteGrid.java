@@ -39,8 +39,6 @@ import lombok.ToString;
 @RequiredArgsConstructor
 public class IgniteGrid implements Grid {
 
-    //    @NonNull
-    //    private final IgniteGridInstance igniteGridInstance;
     @NonNull
     @Getter(value = AccessLevel.PACKAGE)
     private final Ignite ignite;

@@ -28,7 +28,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.mocks.grid.MockNoopGrid;
 import com.norconex.crawler.core.mocks.grid.MockNoopGridConnector;
 
 class CrawlerTest {
@@ -53,7 +52,7 @@ class CrawlerTest {
         var mem = CrawlerTestUtil.runWithConfig(
                 tempDir,
                 cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
-                        .setGridConnector(crawlerContext -> new MockNoopGrid())
+                        .setGridConnector(new MockNoopGridConnector())
 
                         //                        .setGridConnector(new MvStoreDataStoreEngine() {
                         //                            @Override

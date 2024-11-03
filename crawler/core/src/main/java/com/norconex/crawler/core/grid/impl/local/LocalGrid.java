@@ -74,15 +74,17 @@ public class LocalGrid implements Grid {
 
     @Override
     public void close() {
-        mvstore.close();
+        //        if (crawlerContext != null) {
+        //            crawlerContext.close();
+        //        }
+        if (mvstore != null && !mvstore.isClosed()) {
+            mvstore.close();
+        }
+        crawlerContext = null;
         gridCompute = null;
         gridStorage = null;
         storeDir = null;
         mvstore = null;
-        if (crawlerContext != null) {
-            crawlerContext.close();
-        }
-        crawlerContext = null;
     }
 
     private void ensureInit() {

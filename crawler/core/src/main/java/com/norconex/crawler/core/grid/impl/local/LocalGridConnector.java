@@ -28,6 +28,7 @@ import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.GridException;
+import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.shaded.h2.mvstore.MVStore;
 import com.norconex.shaded.h2.mvstore.MVStoreException;
 
@@ -86,15 +87,14 @@ public class LocalGridConnector
             builder.autoCommitDisabled();
         }
 
-        var grid = new LocalGrid();
         var spec = ClassUtil.newInstance(specProviderClass).get();
-        var crawlerContext = new CrawlerContext(spec, crawlerConfig, grid);
+        var workDir = ConfigUtil.resolveWorkDir(crawlerConfig);
 
         Path storeDir = null;
         if (configuration.isEphemeral()) {
             builder.fileName(null);
         } else {
-            storeDir = crawlerContext.getWorkDir().resolve("datastore");
+            storeDir = workDir.resolve("datastore");
             try {
                 FileUtils.forceMkdir(storeDir.toFile());
             } catch (IOException e) {
@@ -110,11 +110,11 @@ public class LocalGridConnector
             mvstore = builder.open();
         } catch (MVStoreException e) {
             LOG.warn("""
-                        An exception occurred while trying to open the store engine.\s\
-                        This could happen due to an abnormal shutdown on a previous\s\
-                        execution of the crawler. An attempt will be made to recover.\s\
-                        It is advised to back-up the store engine if you want to\s\
-                        preserve the crawl history.""",
+                    An exception occurred while trying to open the store engine.\s\
+                    This could happen due to an abnormal shutdown on a previous\s\
+                    execution of the crawler. An attempt will be made to recover.\s\
+                    It is advised to back-up the store engine if you want to\s\
+                    preserve the crawl history.""",
                     e);
             builder.recoveryMode();
             mvstore = builder.open();
@@ -137,9 +137,10 @@ public class LocalGridConnector
         // Do some lazy loading.
 
         //        var taskContext = new CrawlerContext(crawlerContext);
-        //        taskContext.init(); // closed by LocalGrid#close()
+        var grid = new LocalGrid();
+        var crawlerContext = new CrawlerContext(spec, crawlerConfig, grid);
         grid.init(mvstore, crawlerContext);
-
+        crawlerContext.init(); // closed by LocalGrid#close()
         return grid;
     }
 

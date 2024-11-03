@@ -35,7 +35,6 @@ import com.norconex.crawler.core.mocks.grid.MockIgniteGridConnector;
  * <p>
  * Initializes a crawl session before each test execution and destroys it after
  * each execution.
- * Expands upon {@link WithTestGrid}.
  * </p>
  */
 @Retention(RUNTIME)

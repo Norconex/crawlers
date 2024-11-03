@@ -16,6 +16,7 @@ package com.norconex.crawler.core.mocks.grid;
 
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
+import com.norconex.crawler.core.grid.GridServices;
 import com.norconex.crawler.core.grid.GridStorage;
 
 import lombok.Data;
@@ -35,5 +36,10 @@ public class MockNoopGrid implements Grid {
 
     @Override
     public void close() {
+    }
+
+    @Override
+    public GridServices services() {
+        return null;
     }
 }

@@ -14,13 +14,17 @@
  */
 package com.norconex.crawler.core.mocks.grid;
 
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 
 public class MockNoopGridConnector implements GridConnector {
+
     @Override
-    public Grid connect(CrawlerContext crawlerContext) {
+    public Grid connect(
+            Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
+            CrawlerConfig crawlerConfig) {
         return new MockNoopGrid();
     }
 }
