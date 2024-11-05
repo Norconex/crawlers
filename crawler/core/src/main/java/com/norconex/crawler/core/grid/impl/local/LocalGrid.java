@@ -15,6 +15,8 @@
 package com.norconex.crawler.core.grid.impl.local;
 
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -40,17 +42,19 @@ import lombok.ToString;
 public class LocalGrid implements Grid {
 
     private MVStore mvstore;
-    private Path storeDir;
     private CrawlerContext crawlerContext;
     private LocalGridCompute gridCompute;
     private LocalGridStorage gridStorage;
     private LocalGridServices gridServices;
 
-    public void init(MVStore mvstore, CrawlerContext crawlerContext) {
+    public void init(
+            Path storeDir,
+            MVStore mvstore,
+            CrawlerContext crawlerContext) {
         this.mvstore = mvstore;
         this.crawlerContext = crawlerContext;
         gridCompute = new LocalGridCompute(mvstore, crawlerContext);
-        gridStorage = new LocalGridStorage(mvstore);
+        gridStorage = new LocalGridStorage(storeDir, mvstore);
         gridServices = new LocalGridServices(crawlerContext);
     }
 
@@ -73,18 +77,26 @@ public class LocalGrid implements Grid {
     }
 
     @Override
-    public void close() {
-        //        if (crawlerContext != null) {
-        //            crawlerContext.close();
-        //        }
-        if (mvstore != null && !mvstore.isClosed()) {
-            mvstore.close();
-        }
-        crawlerContext = null;
-        gridCompute = null;
-        gridStorage = null;
-        storeDir = null;
-        mvstore = null;
+    public Future<Void> shutdown() {
+        return CompletableFuture.runAsync(() -> {
+            //        if (crawlerContext != null) {
+            //            crawlerContext.close();
+            //        }
+            if (mvstore != null && !mvstore.isClosed()) {
+                //            mvstore.close();
+            }
+            if (crawlerContext != null) {
+                crawlerContext.close();
+            }
+
+            gridServices.closeAll();
+            //TODO shutdown all services by calling "end" on each.
+        });
+
+        //        crawlerContext = null;
+        //        gridCompute = null;
+        //        gridStorage = null;
+        //        mvstore = null;
     }
 
     private void ensureInit() {

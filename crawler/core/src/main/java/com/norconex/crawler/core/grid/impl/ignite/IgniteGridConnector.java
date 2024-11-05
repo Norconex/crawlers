@@ -58,10 +58,6 @@ public class IgniteGridConnector
             Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
             CrawlerConfig crawlerConfig) {
 
-        //        var cfg = crawlerContext.getConfiguration();
-
-        //TODO set context as service
-
         //TODO apply config settings from crawler config
         var igniteCfg = new IgniteConfiguration();
         igniteCfg.setGridLogger(new Slf4jLogger());
@@ -93,33 +89,20 @@ public class IgniteGridConnector
         }
         LOG.info("Cluster is now active.");
 
-        //        // Get the current cluster nodes
-        //        var currentNodes = ignite.cluster().nodes();
-        //        // Set the baseline topology to the current nodes
-        //        ignite.cluster().setBaselineTopology(currentNodes);
-
-        //        ignite.services().deployClusterSingleton(
-
         var jsonWriter = new StringWriter();
         ClassUtil.newInstance(crawlerSpecProviderClass).get()
                 .beanMapper()
                 .write(crawlerConfig, jsonWriter, Format.JSON);
         var jsonConfig = jsonWriter.toString();
 
-        // Each node has the context and config in a service, so no
+        // Each node has the context and config in a local service, so no
         // need to recreate with each tasks
-        ignite.services().deployNodeSingletonAsync(
+        // The deployment returns once the service init() is done.
+        ignite.services().deployNodeSingleton(
                 IgniteGridKeys.CONTEXT_SERVICE,
-                new IgniteGridInitServiceImpl(
-                        crawlerSpecProviderClass, jsonConfig))
-                .get();
+                new IgniteGridCrawlerContextServiceImpl(
+                        crawlerSpecProviderClass, jsonConfig));
 
-        //        Grid grid = new IgniteGrid(ignite);
-        //        grid.compute().runOnce("clear-runonce-cache", () -> {
-        //            Ignition.localIgnite()
-        //                    .getOrCreateCache(IgniteGridKeys.RUN_ONCE_CACHE).clear();
-        //        });
-        //        return grid;
         return new IgniteGrid(ignite);
     }
 
@@ -182,31 +165,3 @@ public class IgniteGridConnector
     }
 
 }
-
-//        igniteCfg.setPeerClassLoadingEnabled(true);
-//        igniteCfg.setDeploymentMode(DeploymentMode.CONTINUOUS);
-//        var igniteInstance = instance != null
-//                ? instance
-//                : new IgniteGridInstanceClient(cfg);
-//
-//        //TODO do a MockConnector that
-//        //
-//        //            igniteInstance =
-//        //                    IgniteGridInstanceClientTest.isIgniteTestClientEnabled()
-//        //                            ? new IgniteGridInstanceClientTest(cfg)
-//        //                            : new IgniteGridInstanceClient(cfg);
-//        //        }
-//
-//        // serialize crawler builder factory and config to create the
-//        // crawler on each nodes
-//        var crawlerCfgWriter = new StringWriter();
-//        crawlerContext.getBeanMapper().write(
-//                cfg, crawlerCfgWriter, Format.JSON);
-//        var crawlerCfgStr = crawlerCfgWriter.toString();
-//        var globalCache = igniteInstance.get()
-//                .getOrCreateCache(IgniteGridKeys.GLOBAL_CACHE);
-//        globalCache.put(IgniteGridKeys.CRAWLER_CONFIG, crawlerCfgStr);
-//        globalCache.put(IgniteGridKeys.CRAWLER_SPEC_PROVIDER_CLASS,
-//                crawlerContext.getSpecProviderClass().getName());
-//        igniteInstance.get().getOrCreateCache(IgniteGridKeys.RUN_ONCE_CACHE)
-//                .clear();

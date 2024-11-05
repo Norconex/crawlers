@@ -30,7 +30,7 @@ import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.FetchUtil;
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericReferenceFilter;
@@ -43,43 +43,43 @@ class OnMatchFiltersResolverTest {
 
     @Test
     void testIsRejectedByMetadataFilters() {
-        var crawler = MockCrawler.memoryCrawler(tempDir).getContext();
+        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
 
         // match - include
-        crawler.getConfiguration().setMetadataFilters(
-                List.of(
-                        configure(
-                                new GenericReferenceFilter(), cfg -> cfg
-                                        .setValueMatcher(basic("ref"))
-                                        .setOnMatch(OnMatch.INCLUDE))));
-        var ctx1 = new ImporterPipelineContext(crawler, doc);
-        crawler.getDocPipelines().getImporterPipeline().apply(ctx1);
+        crawlerContext
+                .getConfiguration()
+                .setMetadataFilters(List.of(configure(
+                        new GenericReferenceFilter(), cfg -> cfg
+                                .setValueMatcher(basic("ref"))
+                                .setOnMatch(OnMatch.INCLUDE))));
+        var ctx1 = new ImporterPipelineContext(crawlerContext, doc);
+        crawlerContext.getDocPipelines().getImporterPipeline().apply(ctx1);
 
         assertThat(ctx1.getDoc().getDocContext().getState())
                 .isNotSameAs(CrawlDocState.REJECTED);
 
         // match - exclude
-        crawler.getConfiguration().setMetadataFilters(
-                List.of(
-                        configure(
-                                new GenericReferenceFilter(), cfg -> cfg
-                                        .setValueMatcher(basic("ref"))
-                                        .setOnMatch(OnMatch.EXCLUDE))));
-        var ctx2 = new ImporterPipelineContext(crawler, doc);
-        crawler.getDocPipelines().getImporterPipeline().apply(ctx2);
+        crawlerContext
+                .getConfiguration()
+                .setMetadataFilters(List.of(configure(
+                        new GenericReferenceFilter(), cfg -> cfg
+                                .setValueMatcher(basic("ref"))
+                                .setOnMatch(OnMatch.EXCLUDE))));
+        var ctx2 = new ImporterPipelineContext(crawlerContext, doc);
+        crawlerContext.getDocPipelines().getImporterPipeline().apply(ctx2);
         assertThat(ctx2.getDoc().getDocContext().getState())
                 .isSameAs(CrawlDocState.REJECTED);
 
         // no match - include
-        crawler.getConfiguration().setMetadataFilters(
-                List.of(
-                        configure(
-                                new GenericReferenceFilter(), cfg -> cfg
-                                        .setValueMatcher(basic("noref"))
-                                        .setOnMatch(OnMatch.INCLUDE))));
-        var ctx3 = new ImporterPipelineContext(crawler, doc);
-        crawler.getDocPipelines().getImporterPipeline().apply(ctx3);
+        crawlerContext
+                .getConfiguration()
+                .setMetadataFilters(List.of(configure(
+                        new GenericReferenceFilter(), cfg -> cfg
+                                .setValueMatcher(basic("noref"))
+                                .setOnMatch(OnMatch.INCLUDE))));
+        var ctx3 = new ImporterPipelineContext(crawlerContext, doc);
+        crawlerContext.getDocPipelines().getImporterPipeline().apply(ctx3);
         assertThat(ctx3.getDoc().getDocContext().getState())
                 .isSameAs(CrawlDocState.REJECTED);
     }
@@ -134,15 +134,14 @@ class OnMatchFiltersResolverTest {
             FetchDirective currentDirective,
             boolean expected) {
         CrawlDocStubs.crawlDocWithCache("ref", "content");
-        var crawler = MockCrawler.memoryCrawler(tempDir).getContext();
-        var cfg = crawler.getConfiguration();
+        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var cfg = crawlerContext.getConfiguration();
         cfg.setMetadataFetchSupport(metaSupport);
         cfg.setDocumentFetchSupport(docSupport);
 
-        assertThat(
-                FetchUtil.shouldContinueOnBadStatus(
-                        crawler,
-                        originalDocState,
-                        currentDirective)).isEqualTo(expected);
+        assertThat(FetchUtil.shouldContinueOnBadStatus(
+                crawlerContext,
+                originalDocState,
+                currentDirective)).isEqualTo(expected);
     }
 }

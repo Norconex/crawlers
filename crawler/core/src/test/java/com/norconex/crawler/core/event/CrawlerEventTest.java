@@ -27,14 +27,15 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 
 class CrawlerEventTest {
 
-    private static CrawlerContext crawler;
+    private static CrawlerContext crawlerContext;
 
     @BeforeAll
     static void beforeAll(@TempDir Path tempDir) {
-        crawler = MockCrawler.memoryCrawler(tempDir).getContext();
+        crawlerContext = MockCrawlerContext.memoryContext(tempDir);
     }
 
     @Test
@@ -64,7 +65,7 @@ class CrawlerEventTest {
                 .exception(new CliException("someexception"))
                 .message("somemessage")
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
-                .source(crawler)
+                .source(crawlerContext)
                 .subject("somesubject");
         c.accept(b);
         return b.build();

@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.grid.impl.local;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -53,10 +54,12 @@ public class LocalGridStorage implements GridStorage {
 
     private final MVStore mvStore;
     private final MVMap<String, String> storeTypes;
+    private final Path storeDir;
 
     private final Map<String, GridStore<?>> openedStores = new HashMap<>();
 
-    public LocalGridStorage(MVStore mvStore) {
+    public LocalGridStorage(Path storeDir, MVStore mvStore) {
+        this.storeDir = storeDir;
         this.mvStore = mvStore;
         storeTypes = mvStore.openMap(STORE_TYPES_KEY);
         mvStore.commit();
@@ -110,6 +113,22 @@ public class LocalGridStorage implements GridStorage {
                     name,
                     entry.getStoreType()));
         });
+    }
+
+    @Override
+    public void clean() {
+        mvStore.getMapNames().forEach(storeName -> {
+            mvStore.removeMap(storeName);
+        });
+        //        mvStore.close();
+        //        if (storeDir != null) {
+        //            try {
+        //                FileUtils.deleteDirectory(storeDir.toFile());
+        //            } catch (IOException e) {
+        //                throw new GridException("Could not delete crawl store: " +
+        //                        storeDir, e);
+        //            }
+        //        }
     }
 
     GridStore<?> concreteStore(

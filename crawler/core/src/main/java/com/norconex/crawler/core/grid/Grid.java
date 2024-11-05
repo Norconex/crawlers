@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.core.grid;
 
-import java.io.Closeable;
+import java.util.concurrent.Future;
 
 /**
  * Underlying system used to compute tasks and store crawl session data.
  */
 //High-level interface for abstracting different grid technologies
-public interface Grid extends Closeable {
+public interface Grid {
     //    GridClient client(crawler crawler);
     //
     //    GridServer server(Crawler crawler);
@@ -32,9 +32,10 @@ public interface Grid extends Closeable {
     GridServices services();
 
     /**
-     * Closes the underlying connection to this grid.  Typically does not
-     * close the grid itself (refer to implementation).
+     * Shuts down the grid by asking all services to terminate. The shutdown
+     * is not forced upon services. Each should know how best to terminate
+     * themselves.
+     * @return a future
      */
-    @Override
-    void close();
+    Future<Void> shutdown();
 }

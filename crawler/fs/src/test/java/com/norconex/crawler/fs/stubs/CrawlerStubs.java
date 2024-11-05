@@ -17,12 +17,10 @@ package com.norconex.crawler.fs.stubs;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
-import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.fs.FsCrawler;
-import com.norconex.crawler.fs.FsCrawlerSpecProvider;
 
 public final class CrawlerStubs {
 
@@ -52,14 +50,18 @@ public final class CrawlerStubs {
 
     public static CrawlerContext memoryCrawlerContext(
             Path workDir, CrawlerConfig config) {
+        /*
         var memConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (config != null) {
             BeanUtil.copyProperties(memConfig, config);
         }
         var context =
-                new CrawlerContext(FsCrawlerSpecProvider.class, memConfig);
+                new CrawlerContext(new FsCrawlerSpecProvider().get(), memConfig,
+                        new MockNoopGrid());
         context.getConfiguration().setWorkDir(workDir);
         return context;
+        */
+        return null;
     }
 
     public static CrawlerContext memoryCrawlerContext(Path workDir) {

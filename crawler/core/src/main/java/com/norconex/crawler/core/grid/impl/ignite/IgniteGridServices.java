@@ -132,6 +132,7 @@ public class IgniteGridServices implements GridServices {
 
         @Override
         public void cancel() {
+            System.err.println("XXX Cancelling service: " + serviceName);
             service.end(crawlerContext);
 
         }

@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.function.FailableRunnable;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 
 import lombok.NonNull;
 
@@ -78,16 +78,16 @@ public final class CrawlerTestUtil {
             @NonNull Path workDir,
             Consumer<CrawlerConfig> configModifier,
             @NonNull FailableRunnable<Exception> runnable) {
-        var crawler =
-                MockCrawler.memoryCrawler(workDir, configModifier).getContext();
-        initCrawler(crawler);
+        var crawlerContext =
+                MockCrawlerContext.memoryContext(workDir, configModifier);
+        initCrawler(crawlerContext);
         try {
             runnable.run();
         } catch (Exception e) {
             throw new CrawlerException("Exception during test.", e);
         }
-        destroyCrawler(crawler);
-        return CrawlerTestUtil.firstCommitter(crawler);
+        destroyCrawler(crawlerContext);
+        return CrawlerTestUtil.firstCommitter(crawlerContext);
     }
 
     //    public static CliLaunchExit cliLaunch(

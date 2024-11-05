@@ -28,7 +28,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class IgniteGridInitServiceImpl implements IgniteGridInitService {
+public class IgniteGridCrawlerContextServiceImpl
+        implements IgniteGridCrawlerContextService {
 
     private static final long serialVersionUID = 1L;
 
@@ -39,12 +40,6 @@ public class IgniteGridInitServiceImpl implements IgniteGridInitService {
 
     private final Class<? extends CrawlerSpecProvider> specProviderClass;
     private final String jsonConfig;
-
-    // Constructor to accept an already initialized context
-    //    public IgniteGridServiceImpl(CrawlerContext context) {
-    //        this.context = context;
-    //        testString = "Hello!";
-    //    }
 
     @Override
     public void init() throws Exception {
@@ -65,6 +60,10 @@ public class IgniteGridInitServiceImpl implements IgniteGridInitService {
 
     @Override
     public void cancel() {
+        System.err.println(
+                "XXX IGNITE Grid Service Impl Cancel() called. CLOSING CONTEXT");
+        //TODO here since created here, or in CrawlService?
+        // here is likely best, but do it last?  Probably OK wither way to leave it here for now
         context.close();
     }
 }

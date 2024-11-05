@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.tasks.crawl.process;
 
-import static com.norconex.crawler.core.event.CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN;
-import static com.norconex.crawler.core.event.CrawlerEvent.CRAWLER_RUN_THREAD_END;
 import static java.util.Optional.ofNullable;
 
 import java.util.concurrent.CountDownLatch;
@@ -26,7 +24,6 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.CrawlerState;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -80,23 +77,23 @@ public class DocsProcessor implements Runnable {
     }
 
     private void execute() {
-        try {
-            //TODO wrapping in thread stuff (BEGIN/END, etc.) is similar to
-            // DocProcessor#run(), consider making it a shared method.
-            LogUtil.setMdcCrawlerId(crawlerContext.getId());
-            Thread.currentThread()
-                    .setName(crawlerContext.getId() + "#queue-init");
-            LOG.debug("Crawler thread 'init-queue' started.");
-            crawlerContext.fire(CRAWLER_RUN_THREAD_BEGIN,
-                    Thread.currentThread());
-            //            crawlerContext.getDocPipelines()
-            //                    .getQueuePipeline()
-            //                    .initializeQueue(crawlerContext);
-
-        } finally {
-            crawlerContext.fire(CRAWLER_RUN_THREAD_END, Thread.currentThread());
-            Thread.currentThread().setName(crawlerContext.getId());
-        }
+        //        try {
+        //            //TODO wrapping in thread stuff (BEGIN/END, etc.) is similar to
+        //            // DocProcessor#run(), consider making it a shared method.
+        //            LogUtil.setMdcCrawlerId(crawlerContext.getId());
+        //            Thread.currentThread()
+        //                    .setName(crawlerContext.getId() + "#queue-init");
+        //            LOG.debug("Crawler thread 'init-queue' started.");
+        //            crawlerContext.fire(CRAWLER_RUN_THREAD_BEGIN,
+        //                    Thread.currentThread());
+        //            //            crawlerContext.getDocPipelines()
+        //            //                    .getQueuePipeline()
+        //            //                    .initializeQueue(crawlerContext);
+        //
+        //        } finally {
+        //            crawlerContext.fire(CRAWLER_RUN_THREAD_END, Thread.currentThread());
+        //            Thread.currentThread().setName(crawlerContext.getId());
+        //        }
 
         if (state.isStopRequested() || state.isStopped()) {
             return;

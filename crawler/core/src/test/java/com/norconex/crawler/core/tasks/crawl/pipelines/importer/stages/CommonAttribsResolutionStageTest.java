@@ -20,14 +20,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
 import com.norconex.importer.doc.DocMetadata;
 
 class CommonAttribsResolutionStageTest {
+
+    @TempDir
+    Path tempDir;
+
     @Test
     void testCommonAttribsResolutionStage() {
         var doc = CrawlDocStubs.crawlDoc(
@@ -42,8 +47,7 @@ class CommonAttribsResolutionStageTest {
                         </html>
                         """);
         var ctx = new ImporterPipelineContext(
-                MockCrawler.memoryCrawler(Path.of(".")).getContext(),
-                doc);
+                MockCrawlerContext.memoryContext(tempDir), doc);
         new CommonAttribsResolutionStage().test(ctx);
 
         assertThat(doc.getDocContext().getCharset()).isEqualTo(UTF_8);

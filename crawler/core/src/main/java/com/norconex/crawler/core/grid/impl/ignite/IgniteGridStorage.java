@@ -123,6 +123,12 @@ public class IgniteGridStorage implements GridStorage {
         });
     }
 
+    @Override
+    public void clean() {
+        igniteGrid.getIgnite().destroyCaches(
+                igniteGrid.getIgnite().cacheNames());
+    }
+
     GridStore<?> concreteStore(
             Class<?> storeSuperType,
             String storeName,
@@ -167,4 +173,5 @@ public class IgniteGridStorage implements GridStorage {
                         nm));
         return names;
     }
+
 }

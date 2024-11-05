@@ -28,11 +28,11 @@ import lombok.extern.slf4j.Slf4j;
  * previous crawl.
  */
 @Slf4j
-final class DocLedgerInitExecutor {
+final class DocLedgerPrepareExecutor {
 
     public static final String KEY_INITIALIZING = "ledger.initializing";
 
-    private DocLedgerInitExecutor() {
+    private DocLedgerPrepareExecutor() {
     }
 
     public static void execute(CrawlerContext crawlerContext) {

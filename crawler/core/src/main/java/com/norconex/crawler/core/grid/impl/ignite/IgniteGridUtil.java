@@ -35,11 +35,11 @@ public final class IgniteGridUtil {
     //        return getInitService().getCrawlerConfig();
     //    }
 
-    private static IgniteGridInitService getInitService() {
+    private static IgniteGridCrawlerContextService getInitService() {
         try {
             var ignite = Ignition.localIgnite();
             return ignite.services().serviceProxy(
-                    IgniteGridKeys.CONTEXT_SERVICE, IgniteGridInitService.class,
+                    IgniteGridKeys.CONTEXT_SERVICE, IgniteGridCrawlerContextService.class,
                     false);
         } catch (IgniteException e) {
             LOG.error("Could not obtain crawler context from Ignite session. "

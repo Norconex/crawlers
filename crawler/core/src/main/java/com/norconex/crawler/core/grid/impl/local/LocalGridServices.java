@@ -59,4 +59,8 @@ public class LocalGridServices implements GridServices {
         }
         return CompletableFuture.completedFuture(null);
     }
+
+    void closeAll() {
+        services.values().forEach(srv -> srv.end(crawlerContext));
+    }
 }

@@ -139,7 +139,7 @@ public class LocalGridConnector
         //        var taskContext = new CrawlerContext(crawlerContext);
         var grid = new LocalGrid();
         var crawlerContext = new CrawlerContext(spec, crawlerConfig, grid);
-        grid.init(mvstore, crawlerContext);
+        grid.init(storeDir, mvstore, crawlerContext);
         crawlerContext.init(); // closed by LocalGrid#close()
         return grid;
     }

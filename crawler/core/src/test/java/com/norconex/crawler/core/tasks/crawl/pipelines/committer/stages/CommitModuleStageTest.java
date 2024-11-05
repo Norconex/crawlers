@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipelineContext;
 
@@ -30,7 +30,7 @@ class CommitModuleStageTest {
     @Test
     void testCommitModuleStage(@TempDir Path tempDir) {
         var ctx = new CommitterPipelineContext(
-                MockCrawler.memoryCrawler(tempDir).getContext(),
+                MockCrawlerContext.memoryContext(tempDir),
                 CrawlDocStubs.crawlDoc("ref"));
         assertThatNoException().isThrownBy(
                 () -> new CommitModuleStage().test(ctx));

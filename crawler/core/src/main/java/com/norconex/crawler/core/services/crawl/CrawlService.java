@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CrawlService implements GridService {
 
-    public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
+    //    public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
 
     private CrawlerProgressLogger progressLogger;
 
@@ -55,27 +55,34 @@ public class CrawlService implements GridService {
     @Override
     public void start(CrawlerContext crawlerContext) {
 
-        DocLedgerInitExecutor.execute(crawlerContext);
+        DocLedgerPrepareExecutor.execute(crawlerContext);
         QueueInitExecutor.execute(crawlerContext);
         crawlDocs(crawlerContext);
 
-        System.err.println("XXX I THINK I AM DONE.");
+        System.err.println("XXX I THINK I AM DONE, shutting down.");
 
         // process orphans
         // finalize
+
+        crawlerContext.getGrid().shutdown();
+        System.err.println("XXX SHUT DOWN called.");
     }
 
     @Override
     public void end(CrawlerContext crawlerContext) {
+        System.err.println("XXX Ending crawl service...");
         //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
         //
-        //        progressLogger.stopTracking();
-        //        LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
-        //        LOG.info("Crawler {}",
-        //                (crawlerContext.getState().isStopped() ? "stopped."
-        //                        : "completed."));
+        progressLogger.stopTracking();
+        LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
+        LOG.info("Crawler {}",
+                (crawlerContext.getState().isStopped() ? "stopped."
+                        : "completed."));
         //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
         //        crawlerContext.close();
+        //System.err.println("XXX About to close crawler context.");
+        //crawlerContext.close();
+        //System.err.println("XXX Closed crawler context");
     }
 
     //    // On 1 node, block unless config says async

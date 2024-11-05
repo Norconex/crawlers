@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.core.mocks.grid;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridServices;
@@ -35,7 +38,8 @@ public class MockNoopGrid implements Grid {
     }
 
     @Override
-    public void close() {
+    public Future<Void> shutdown() {
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

@@ -36,4 +36,5 @@ public interface GridStorage {
 
     void forEachStore(Consumer<GridStore<?>> storeConsumer);
 
+    void clean();
 }

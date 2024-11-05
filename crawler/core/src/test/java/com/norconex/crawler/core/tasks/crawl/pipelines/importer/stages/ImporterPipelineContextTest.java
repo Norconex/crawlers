@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
 
@@ -34,8 +34,7 @@ class ImporterPipelineContextTest {
     void testImporterPipelineContext(@TempDir Path tempDir) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawlerContext =
-                MockCrawler.memoryCrawler(tempDir).getContext();
+        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
         var ctx = new ImporterPipelineContext(crawlerContext, doc);
 
         // metadata: disabled; document: enabled

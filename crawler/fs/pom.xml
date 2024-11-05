@@ -176,6 +176,24 @@
     <!-- Test + provided dependencies: -->
 
     <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-crawler-core</artifactId>
+      <classifier>test</classifier>
+      <version>${parent.version}</version>
+<!--      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </exclusion>
+      </exclusions>
+-->      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>

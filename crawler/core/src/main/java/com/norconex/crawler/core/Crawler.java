@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.norconex.crawler.core.grid.GridService;
+import com.norconex.crawler.core.services.CleanService;
 import com.norconex.crawler.core.services.crawl.CrawlService;
 
 import lombok.EqualsAndHashCode;
@@ -71,7 +72,7 @@ public class Crawler {
     }
 
     public void clean() {
-        //TODO implement me
+        executeService(CleanService.class);
     }
 
     public void storageExport(Path dir) {
@@ -97,26 +98,33 @@ public class Crawler {
         var serviceName = gridServiceClass.getSimpleName();
         LOG.info("Executing service: {}", serviceName);
 
-        try (var grid = crawlerConfig
+        var grid = crawlerConfig
                 .getGridConnector()
-                .connect(crawlerSpecProviderClass, crawlerConfig)) {
+                .connect(crawlerSpecProviderClass, crawlerConfig);
 
-            Future<?> future =
-                    grid.services().start(serviceName, gridServiceClass);
+        Future<?> future =
+                grid.services().start(serviceName, gridServiceClass);
 
-            try {
-                future.get();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new CrawlerException(
-                        "Could not execute crawler service.", e);
-            } catch (ExecutionException e) {
-                throw new CrawlerException(
-                        "Could not execute crawler service.", e);
-            }
-            //TODO ???????? do we explicitly end the service?
-            LOG.info("Done executing \"{}\".", serviceName);
+        System.err.println(
+                "XXX Crawler class has invoked the crawl service. Blocking");
+
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CrawlerException(
+                    "Could not execute crawler service.", e);
+        } catch (ExecutionException e) {
+            throw new CrawlerException(
+                    "Could not execute crawler service.", e);
         }
+
+        System.err.println(
+                "XXX CrawlService has returned... start() is done. Was end/cancel called everywhere?");
+
+        //TODO ???????? do we explicitly end the service?
+        //        System.err.println(
+        //                "XXX Crawler class has invoked the crawl service. Nothign to do. Shall we block/wait?");
 
         //TODO what about these? are they handled?
         //        ofNullable(context.getCallbacks().getBeforeCommand())

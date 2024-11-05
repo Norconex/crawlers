@@ -24,7 +24,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipelineContext;
 
@@ -38,7 +38,7 @@ class DocumentChecksumStageTest {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(
-                MockCrawler.memoryCrawler(tempDir).getContext(), doc);
+                MockCrawlerContext.memoryContext(tempDir), doc);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
@@ -50,16 +50,16 @@ class DocumentChecksumStageTest {
     void testNoDocumentChecksummer() {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var crawler = MockCrawler.memoryCrawler(tempDir).getContext();
+        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
         BeanMapper.DEFAULT.read(
-                crawler.getConfiguration(),
+                crawlerContext.getConfiguration(),
                 new StringReader("""
                         <crawler id="id">\
                         <documentChecksummer />\
                         </crawler>"""),
                 Format.XML);
 
-        var ctx = new CommitterPipelineContext(crawler, doc);
+        var ctx = new CommitterPipelineContext(crawlerContext, doc);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
@@ -68,21 +68,21 @@ class DocumentChecksumStageTest {
 
     @Test
     void testRejectedUnmodified() {
-        var crawler = MockCrawler.memoryCrawler(tempDir).getContext();
+        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
 
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
-        doc.getDocContext().setContentChecksum(crawler
+        doc.getDocContext().setContentChecksum(crawlerContext
                 .getConfiguration()
                 .getDocumentChecksummer()
                 .createDocumentChecksum(doc));
 
-        doc.getCachedDocContext().setContentChecksum(crawler
+        doc.getCachedDocContext().setContentChecksum(crawlerContext
                 .getConfiguration()
                 .getDocumentChecksummer()
                 .createDocumentChecksum(doc));
 
         var ctx = new CommitterPipelineContext(
-                MockCrawler.memoryCrawler(tempDir).getContext(), doc);
+                MockCrawlerContext.memoryContext(tempDir), doc);
 
         var stage = new DocumentChecksumStage();
         assertThat(stage.test(ctx)).isFalse();

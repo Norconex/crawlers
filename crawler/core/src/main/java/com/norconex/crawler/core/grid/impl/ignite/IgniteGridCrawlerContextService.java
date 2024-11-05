@@ -19,7 +19,7 @@ import org.apache.ignite.services.Service;
 import com.norconex.crawler.core.CrawlerContext;
 
 // Ignite requires that the service is an interface when accessing it
-public interface IgniteGridInitService extends Service {
+public interface IgniteGridCrawlerContextService extends Service {
 
     CrawlerContext getContext();
     //

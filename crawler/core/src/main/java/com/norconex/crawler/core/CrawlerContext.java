@@ -275,7 +275,7 @@ public class CrawlerContext implements Closeable {
 
         swallow(MDC::clear);
         ExceptionSwallower.close(metrics::close);
-        swallow(eventManager::clearListeners);
+        //        swallow(eventManager::clearListeners);
         swallow(() -> {
             if (tempDir != null) {
                 FileUtil.delete(tempDir.toFile());
@@ -287,7 +287,8 @@ public class CrawlerContext implements Closeable {
 
         initialized = false;
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
-        ExceptionSwallower.close(grid);
+        swallow(eventManager::clearListeners);
+        //        ExceptionSwallower.close(grid);  // not opened here, so should not close here
     }
 
     public CrawlDocContext newDocContext(@NonNull String reference) {

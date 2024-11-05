@@ -261,8 +261,7 @@ class CliCrawlerLauncherTest {
     }
 
     @ParameterizedGridConnectorTest
-    void testClean(Class<? extends GridConnector> gridConnClass)
-            throws IOException {
+    void testClean(Class<? extends GridConnector> gridConnClass) {
         var exit = launch(gridConnClass, "clean", "-config=");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getEvents()).containsExactly(
@@ -278,19 +277,18 @@ class CliCrawlerLauncherTest {
                 CommitterEvent.COMMITTER_CLEAN_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
                 CrawlerEvent.CRAWLER_CLEAN_END,
-                CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN,
+                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
-                CrawlerEvent.CRAWLER_SHUTDOWN_END);
+                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
     }
 
     //TODO move this to its own test with more elaborate tests involving
     // actually stopping a crawl session and being on a cluster?
     @ParameterizedGridConnectorTest
-    void testStop(Class<? extends GridConnector> gridConnClass)
-            throws IOException {
+    void testStop(Class<? extends GridConnector> gridConnClass) {
         var exit = launch(gridConnClass, "stop", "-config=");
         assertThat(exit.ok()).isTrue();
         throw new UnsupportedOperationException("IMPLEMENT ME");

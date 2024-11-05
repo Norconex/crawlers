@@ -18,12 +18,9 @@ import static java.util.Optional.ofNullable;
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.lang.annotation.Annotation;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -33,14 +30,7 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.web.WebCrawler;
-import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 class WithCrawlerExtension implements
         BeforeEachCallback,
@@ -53,23 +43,23 @@ class WithCrawlerExtension implements
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-
+        /*
         // Create a temporary directory before each test
         var tempDir = Files.createTempDirectory("crawler-core");
         context.getStore(GLOBAL).put(TEMP_DIR_KEY, tempDir);
-
+        
         var annot = getAnnotation(context, WithCrawlerTest.class);
         var crawlerConfig = annot.randomConfig()
                 ? CrawlerConfigStubs.randomMemoryCrawlerConfig(tempDir)
                 : CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
-
+        
         // apply custom config from text
         StringUtil.ifNotBlank(
                 annot.config(), cfgStr -> BeanMapper.DEFAULT.read(
                         crawlerConfig,
                         new StringReader(cfgStr),
                         BeanMapper.detectFormat(cfgStr)));
-
+        
         // apply config modifier from consumer
         if (annot.configModifier() != null) {
             @SuppressWarnings("unchecked")
@@ -77,22 +67,22 @@ class WithCrawlerExtension implements
                     .newInstance(annot.configModifier());
             c.accept(crawlerConfig);
         }
-
+        
         //        var crawler = CrawlerStubs
         //                .memoryCrawlerBuilder(tempDir)
         //                .configuration(crawlerConfig)
         //                .build();
         var crawler = WebCrawler.create(crawlerConfig);
-
+        
         context.getStore(GLOBAL).put(CRAWLER_KEY, crawler);
-
+        
         if (annot.run()) {
             crawler.crawl();
         } else {
             //            CrawlerCoreTestUtil.initCrawler(crawler);
             //            crawler.init();
             crawler.getContext().init();
-
+        
             //            GridCrawlerTaskExecutor.initLocalCrawler(crawler);
             //            crawler.fire(
             //                    CrawlerEvent
@@ -107,29 +97,31 @@ class WithCrawlerExtension implements
                             .source(crawler)
                             .build());
         }
+        */
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws IOException {
+        /*
         // End session
         var crawler = (Crawler) context.getStore(GLOBAL).remove(CRAWLER_KEY);
-
+        
         crawler.getContext().fire(
                 CrawlerEvent
                         .builder()
                         .name(CrawlerEvent.CRAWLER_CRAWL_END)
                         .source(crawler)
                         .build());
-
+        
         // if not already ended normally, stop it.
         if (crawler != null && !crawler.getContext().getState()
                 .isTerminatedProperly()) {
             crawler.getContext().close();
             //            GridCrawlerTaskExecutor.shutdownLocalCrawler(crawler);
-
+        
             //            CrawlerCoreTestUtil.destroyCrawler(crawler);
         }
-
+        
         // Clean up the temporary directory after each test
         var tempDir = (Path) context.getStore(
                 ExtensionContext.Namespace.GLOBAL).remove(TEMP_DIR_KEY);
@@ -146,6 +138,7 @@ class WithCrawlerExtension implements
                         }
                     });
         }
+        */
     }
 
     @Override
@@ -194,12 +187,13 @@ class WithCrawlerExtension implements
 
     private Optional<MemoryCommitter> firstCommitter(
             ExtensionContext extensionContext) {
-        return crawler(extensionContext)
-                .map(crwl -> crwl.getContext().getConfiguration()
-                        .getCommitters())
-                .filter(cmtrs -> !cmtrs.isEmpty())
-                .map(cmtrs -> cmtrs.get(0))
-                .map(MemoryCommitter.class::cast);
+        throw new UnsupportedOperationException("IMPLEMENT ME");
+        //        return crawler(extensionContext)
+        //                .map(crwl -> crwl.getContext().getConfiguration()
+        //                        .getCommitters())
+        //                .filter(cmtrs -> !cmtrs.isEmpty())
+        //                .map(cmtrs -> cmtrs.get(0))
+        //                .map(MemoryCommitter.class::cast);
     }
 
     private <T extends Annotation> T getAnnotation(

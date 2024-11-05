@@ -57,7 +57,7 @@ public final class IgniteGridServerTaskRunner {
     static CrawlerContext getCrawlerContext() {
         var ignite = Ignition.localIgnite();
         var contextService = ignite.services().serviceProxy(
-                IgniteGridKeys.CONTEXT_SERVICE, IgniteGridInitService.class,
+                IgniteGridKeys.CONTEXT_SERVICE, IgniteGridCrawlerContextService.class,
                 false);
         return contextService.getContext();
 

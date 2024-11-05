@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 import org.apache.ignite.Ignite;
 
 import com.norconex.crawler.core.grid.Grid;
@@ -59,11 +62,16 @@ public class IgniteGrid implements Grid {
     }
 
     @Override
-    public void close() {
-        ExceptionSwallower.swallow(() -> {
-            //TODO fine another location where to get rid of service?
-            // because an exception is thrown when already taken care of
-            ignite.services().cancel(IgniteGridKeys.CONTEXT_SERVICE);
+    public Future<Void> shutdown() {
+        // Cancel all running services, which will trigger the cancel -> end
+        // method.
+        return CompletableFuture.runAsync(() -> {
+            ExceptionSwallower.swallow(() -> {
+                //TODO fine another location where to get rid of service?
+                // because an exception is thrown when already taken care of
+                ignite.services().cancelAllAsync();
+            });
+            //            crawlerContext.close();
         });
 
         //        var serviceName = IgniteGridKeys.CONTEXT_SERVICE;
