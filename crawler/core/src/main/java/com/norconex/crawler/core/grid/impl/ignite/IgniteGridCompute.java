@@ -22,6 +22,8 @@ import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.apache.ignite.transactions.TransactionConcurrency;
+import org.apache.ignite.transactions.TransactionIsolation;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.grid.GridCompute;
@@ -40,8 +42,8 @@ public class IgniteGridCompute implements GridCompute {
     private final IgniteGrid igniteGrid;
 
     @Override
-    public Future<?> runOnceOnLocal(
-            String jobName, Runnable runnable) throws GridException {
+    public <T> Future<T> runLocalOnce(String jobName, Callable<T> callable)
+            throws GridException {
 
         var lock = igniteGrid.getIgnite().reentrantLock(
                 jobName, true, true, true);
@@ -51,7 +53,17 @@ public class IgniteGridCompute implements GridCompute {
         var chosenOne = false;
         try {
             lock.lock();
-            chosenOne = runOnceCache.put(jobName, "running");
+            var existingStatus = runOnceCache.get(jobName);
+            if (existingStatus != null) {
+                chosenOne = false;
+                if (hasJobRan(existingStatus)) {
+                    LOG.info("Job \"{}\" already ran with status: \"{}\".",
+                            jobName, existingStatus);
+                    return CompletableFuture.completedFuture(null);
+                }
+            } else {
+                chosenOne = runOnceCache.put(jobName, "running");
+            }
 
             //            chosenOne = ((IgniteGridCache<String>) runOnceCache).getCache()
             //                    .putIfAbsent(jobName, "running");
@@ -70,8 +82,9 @@ public class IgniteGridCompute implements GridCompute {
                 LOG.info("Running job once: {}", jobName);
                 return executor.submit(() -> {
                     try {
-                        runnable.run();
+                        var value = callable.call();
                         runOnceCache.put(jobName, "done");
+                        return value;
                     } finally {
                         runOnceCache.put(jobName, "failed");
                     }
@@ -84,17 +97,35 @@ public class IgniteGridCompute implements GridCompute {
                 while (!done) {
                     var status = runOnceCache.get(jobName);
                     if (StringUtils.isBlank(status)
-                            || StringUtils.equalsAny(status, "done",
-                                    "failed")) {
+                            || hasJobRan(status)) {
                         done = true;
                     } else {
                         Sleeper.sleepSeconds(1);
                     }
                 }
+                return null;
             });
         } finally {
             executor.shutdown();
         }
+    }
+
+    @Override
+    public <T> Future<T> runLocalAtomic(Callable<T> callable)
+            throws GridException {
+        return CompletableFuture.supplyAsync(() -> {
+            try (var tx = igniteGrid.getIgnite().transactions().txStart(
+                    TransactionConcurrency.PESSIMISTIC,
+                    TransactionIsolation.REPEATABLE_READ)) {
+                var result = callable.call();
+                tx.commit();
+                return result;
+            } catch (Exception e) {
+                System.err.println("XXX ERROR in runLocalAtomic: ");
+                e.printStackTrace(System.err);
+                throw new GridException("Grid transaction failed.", e);
+            }
+        });
     }
 
     @Override
@@ -123,6 +154,10 @@ public class IgniteGridCompute implements GridCompute {
                         () -> IgniteGridServerTaskRunner.execute(
                                 //TODO can we pass the class to execute instead of its string representation?
                                 taskClass.getName(), arg)));
+    }
+
+    private boolean hasJobRan(String status) {
+        return StringUtils.equalsAny(status, "done", "failed");
     }
 
     private <T> Future<T> doRunTask(

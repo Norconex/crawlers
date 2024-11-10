@@ -47,14 +47,20 @@ public class LocalGridCompute implements GridCompute {
     private final CrawlerContext crawlerContext;
 
     @Override
-    public Future<?> runOnceOnLocal(String jobName, Runnable runnable)
+    public <T> Future<T> runLocalOnce(String jobName, Callable<T> callable)
             throws GridException {
         var executor = Executors.newFixedThreadPool(1);
         try {
-            return executor.submit(runnable::run);
+            return executor.submit(callable::call);
         } finally {
             executor.shutdown();
         }
+    }
+
+    @Override
+    public <T> Future<T> runLocalAtomic(Callable<T> callable)
+            throws GridException {
+        return CompletableFuture.supplyAsync(() -> executeWithAtomic(callable));
     }
 
     /**

@@ -25,6 +25,7 @@ import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.grid.GridQueue;
 import com.norconex.crawler.core.util.SerialUtil;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,13 +44,15 @@ public class DocProcessingLedger { //implements Closeable {
     private Class<? extends CrawlDocContext> type;
     private GridCache<String> globalCache;
     private CrawlerContext crawlerContext;
+    @Getter
+    private int maxDocsProcessed;
 
     // return true if resuming (holds records that have not been processed),
     // false otherwise
-    public void init(CrawlerContext crawler) {
-        crawlerContext = crawler;
-        type = crawler.getDocContextType();
-        var storage = crawler.getGrid().storage();
+    public void init(CrawlerContext crawlerContext) {
+        this.crawlerContext = crawlerContext;
+        type = crawlerContext.getDocContextType();
+        var storage = crawlerContext.getGrid().storage();
 
         // Because we can't rename caches in all impl, we use references.
         globalCache = storage.getGlobalCache();
@@ -65,6 +68,16 @@ public class DocProcessingLedger { //implements Closeable {
         queue = storage.getQueue("queue", String.class);
         processed = storage.getCache(processedCacheName, String.class);
         cached = storage.getCache(cachedCacheName, String.class);
+
+        var cfgMaxDocs = crawlerContext.getConfiguration().getMaxDocuments();
+        maxDocsProcessed = cfgMaxDocs;
+        if (cfgMaxDocs > -1 && crawlerContext.getState().isResuming()) {
+            maxDocsProcessed += getProcessedCount();
+            LOG.info("""
+                    An additional maximum of {} processed documents is added to
+                    this resumed session, for a maximum total of {}.
+                    """, cfgMaxDocs, maxDocsProcessed);
+        }
     }
 
     public Stage getProcessingStage(String id) {
@@ -197,5 +210,20 @@ public class DocProcessingLedger { //implements Closeable {
         var processedBefore = processed;
         processed = cached;
         cached = processedBefore;
+    }
+
+    public boolean isMaxDocsProcessedReached() {
+        //TODO replace check for "processedCount" vs "maxDocuments"
+        // with event counts vs max committed, max processed, max etc...
+        // Check if we merge with StopCrawlerOnMaxEventListener
+        // or if we remove maxDocument in favor of the listener.
+        // what about clustering?
+        var isMax = maxDocsProcessed > -1
+                && getProcessedCount() >= maxDocsProcessed;
+        if (isMax) {
+            LOG.info("Maximum documents reached for this crawling session: {}",
+                    maxDocsProcessed);
+        }
+        return isMax;
     }
 }

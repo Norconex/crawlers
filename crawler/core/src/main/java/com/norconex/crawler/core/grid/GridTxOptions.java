@@ -43,9 +43,9 @@ public class GridTxOptions {
      */
     private boolean atomic;
     /**
-     * Whether only one store client <b>at a time</b> can execute. Locked
-     * executors on a multi-node environment will execute sequentially unless
-     * "singleton" is <code>true</code>.
+     * Whether only one caller <b>at a time</b> can execute a transaction of
+     * the same name. Locked executors on a multi-node environment will
+     * execute sequentially.
      */
     private boolean lock;
     //    /**

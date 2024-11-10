@@ -1,6 +1,11 @@
 TODO:
 ==============
 
+- Test concurrency. E.g., polling a queue within runLocalAtomic should not result
+  in the same entry being pulled... and the size should not be adjusted until
+  committed.  A rollback must put an entry back in the queue. (up to a max
+  number of times to prevent infinite loops?) 
+
 - Maybe group classes under actions, like ./crawl/ for most classes
   and ./clean/ for clean classes, etc.?
   - Maybe further move those actions/tasks under ./server?

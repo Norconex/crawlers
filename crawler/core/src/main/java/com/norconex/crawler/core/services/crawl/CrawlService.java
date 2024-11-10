@@ -14,11 +14,17 @@
  */
 package com.norconex.crawler.core.services.crawl;
 
+import static java.util.Optional.ofNullable;
+
+import org.apache.commons.lang3.mutable.MutableLong;
+
+import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerProgressLogger;
 import com.norconex.crawler.core.grid.GridService;
 import com.norconex.crawler.core.grid.GridTxOptions;
 import com.norconex.crawler.core.tasks.crawl.CrawlTask;
+import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.LogUtil;
 
@@ -57,7 +63,10 @@ public class CrawlService implements GridService {
 
         DocLedgerPrepareExecutor.execute(crawlerContext);
         QueueInitExecutor.execute(crawlerContext);
-        crawlDocs(crawlerContext);
+        processQueue(crawlerContext, null);
+        if (!crawlerContext.getState().isStopRequested()) {
+            handleOrphans(crawlerContext);
+        }
 
         System.err.println("XXX I THINK I AM DONE, shutting down.");
 
@@ -85,48 +94,72 @@ public class CrawlService implements GridService {
         //System.err.println("XXX Closed crawler context");
     }
 
-    //    // On 1 node, block unless config says async
-    //    private void queueStartReferences(CrawlerContext crawlerContext) {
-    //        var cfg = crawlerContext.getConfiguration();
-    //        var grid = crawlerContext.getGrid();
-    //        if (crawlerContext.getState().isResuming()) {
-    //            LOG.info("Unfinished previous crawl detected. Resuming...");
-    //        } else {
-    //            LOG.info("Queuing start references ({})...",
-    //                    cfg.isStartReferencesAsync() ? "async" : "");
-    //            grid.compute().runTask(
-    //                    QueueInitExecutor.class,
-    //                    null,
-    //                    GridTxOptions.builder()
-    //                            .name("queue-start-refs")
-    //                            .block(!cfg.isStartReferencesAsync())
-    //                            .singleton(true)
-    //                            .build());
-    //        }
-    //    }
-
     // On all nodes, block
-    private void crawlDocs(CrawlerContext crawlerContext) {
-        LOG.info("Crawling...");
+    private void processQueue(CrawlerContext crawlerContext, String arg) {
+        LOG.info("Processing queue...");
         ConcurrentUtil.block(crawlerContext
                 .getGrid()
                 .compute()
                 .runOnAll(
                         CrawlTask.class,
-                        null,
+                        arg,
                         GridTxOptions
                                 .builder()
-                                .name("crawl")
+                                .name("crawl-" + ofNullable(arg).orElse("main"))
                                 .build()));
     }
 
-    //    private void finalizeExecution(Crawler crawlerContext) {
-    //        // TODO Auto-generated method stub
-    //
-    //    }
+    // Queue orphans for reprocess/delete here.
+    private void handleOrphans(CrawlerContext crawlerContext) {
+        var strategy = crawlerContext.getConfiguration().getOrphansStrategy();
+        // If PROCESS, we do not care to validate if really orphan since
+        // all cache items will be reprocessed regardless
+        if (strategy == OrphansStrategy.PROCESS) {
+            reprocessCacheOrphans(crawlerContext);
+        } else if (strategy == OrphansStrategy.DELETE) {
+            deleteCacheOrphans(crawlerContext);
+        }
+        // Else, do nothing
+    }
 
-    //    // On all nodes, block
-    //    private void handleOrphanDocs(crawlerContext crawlerContext) {
-    //        LOG.warn("TODO: Implement me");
-    //    }
+    void reprocessCacheOrphans(CrawlerContext ctx) {
+        if (ctx.getDocProcessingLedger().isMaxDocsProcessedReached()) {
+            LOG.info("""
+                Max documents reached. \
+                Not reprocessing orphans (if any). \
+                Run the crawler again to resume.""");
+            return;
+        }
+        LOG.info("Queueing orphan references for processing...");
+        var count = new MutableLong();
+        ctx.getDocProcessingLedger().forEachCached((ref, docInfo) -> {
+            ctx.getDocPipelines()
+                    .getQueuePipeline()
+                    .accept(new QueuePipelineContext(ctx, docInfo));
+            count.increment();
+            return true;
+        });
+        if (count.longValue() > 0) {
+            LOG.info("Reprocessing {} orphan references...", count);
+            processQueue(ctx, CrawlTask.ARG_FLAG_ORPHAN);
+        }
+        LOG.info("Reprocessed {} cached/orphan references.", count);
+    }
+
+    void deleteCacheOrphans(CrawlerContext ctx) {
+        LOG.info("Queueing orphan references for deletion...");
+
+        var count = new MutableLong();
+
+        ctx.getDocProcessingLedger().forEachCached((k, v) -> {
+            ctx.getDocProcessingLedger().queue(v);
+            count.increment();
+            return true;
+        });
+        if (count.longValue() > 0) {
+            LOG.info("Deleting {} orphan references...", count);
+            processQueue(ctx, CrawlTask.ARG_FLAG_DELETE);
+        }
+        LOG.info("Deleted {} orphan references.", count);
+    }
 }

@@ -42,14 +42,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Builder
-class DocProcessor implements Runnable {
+public class DocProcessor implements Runnable {
 
     private final CountDownLatch latch;
     private final int threadIndex;
     private final CrawlerContext crawlerContext;
     private final boolean deleting;
     private final boolean orphan;
-    private final DocsProcessor crawlRunner;
 
     private final TimeoutWatcher activeTimeoutWatcher = new TimeoutWatcher();
     //    private final TimeoutWatcher queueInitTimeoutWatcher = new TimeoutWatcher();
@@ -88,37 +87,63 @@ class DocProcessor implements Runnable {
                 return false;
             }
 
-            var docContext = crawlerContext
-                    .getDocProcessingLedger()
-                    .pollQueue()
-                    .orElse(null);
-            LOG.trace("Pulled next reference from Queue: {}", docContext);
-            ctx.docContext(docContext);
-            if (ctx.docContext() == null) {
-                return isCrawlerStillActive() || isQueueStillInitializing();
-            }
-            activeTimeoutWatcher.reset();
+            return crawlerContext.getGrid().compute().runLocalAtomic(() -> {
+                var docContext = crawlerContext
+                        .getDocProcessingLedger()
+                        .pollQueue()
+                        .orElse(null);
+                LOG.trace("Pulled next reference from Queue: {}", docContext);
+                System.err.println("XXX pulled next ref: " + docContext);
 
-            ctx.doc(createDocWithDocRecordFromCache(ctx.docContext()));
+                ctx.docContext(docContext);
+                if (ctx.docContext() == null) {
+                    //                    System.err.println(
+                    //                            "XXX Crawler still active? "
+                    //                                    + isCrawlerStillActive());
+                    //                    System.err.println("XXX Queue still initalizing? "
+                    //                            + isQueueStillInitializing());
+                    //TODO return false if queue is empty and we are done based on whatever conditions
+                    return false;
 
-            // Before document processing
-            ofNullable(
-                    crawlerContext.getCallbacks().getBeforeDocumentProcessing())
-                            .ifPresent(bdp -> bdp.accept(crawlerContext,
-                                    ctx.doc()));
+                    //TODO call these atomic methods outside transaction
+                    //return
+                    //isCrawlerStillActive() ||
+                    //isQueueStillInitializing();
 
-            if (deleting) {
-                DocProcessorDelete.execute(ctx);
-            } else {
-                DocProcessorUpsert.execute(ctx);
-            }
+                    //TODO wait X amount of time before returning, in case
+                    // the queue will be filled somehow by an external process?
+                    // make the default small enough.
 
-            // After document processing
-            ofNullable(
-                    crawlerContext.getCallbacks().getAfterDocumentProcessing())
-                            .ifPresent(adp -> adp.accept(crawlerContext,
-                                    ctx.doc()));
-        } catch (RuntimeException e) {
+                }
+                activeTimeoutWatcher.reset();
+
+                ctx.doc(createDocWithDocRecordFromCache(ctx.docContext()));
+
+                // Before document processing
+                ofNullable(
+                        crawlerContext.getCallbacks()
+                                .getBeforeDocumentProcessing())
+                                        .ifPresent(bdp -> bdp.accept(
+                                                crawlerContext,
+                                                ctx.doc()));
+
+                if (deleting) {
+                    DocProcessorDelete.execute(ctx);
+                } else {
+                    DocProcessorUpsert.execute(ctx);
+                }
+
+                // After document processing
+                ofNullable(
+                        crawlerContext.getCallbacks()
+                                .getAfterDocumentProcessing())
+                                        .ifPresent(adp -> adp.accept(
+                                                crawlerContext,
+                                                ctx.doc()));
+                return true;
+            }).get();
+
+        } catch (Exception e) {
             if (handleExceptionAndCheckIfStopCrawler(ctx, e)) {
                 crawlerContext.stop();
                 return false;
@@ -142,7 +167,8 @@ class DocProcessor implements Runnable {
         if (deleting) {
             return false;
         }
-        return crawlRunner.isMaxDocsReached();
+        return crawlerContext.getDocProcessingLedger()
+                .isMaxDocsProcessedReached();
     }
 
     private boolean isCrawlerStillActive() {
@@ -151,10 +177,13 @@ class DocProcessor implements Runnable {
         var queueEmpty =
                 crawlerContext.getDocProcessingLedger().isQueueEmpty();
         if (/*activeEmpty && */ queueEmpty) {
+            System.err.println("XXX Queue is empty.");
+
             LOG.trace("Queue is empty and no documents are currently"
                     + "being processed.");
             return false;
         }
+        System.err.println("XXX Queue not yet empty.");
         Sleeper.sleepMillis(1); // to avoid fast loops taking all CPU
         // If there are some activity left, it means the queue
         // can grow again, we stop processing this non-existing doc
@@ -213,7 +242,7 @@ class DocProcessor implements Runnable {
 
     // true to stop crawler
     private boolean handleExceptionAndCheckIfStopCrawler(
-            DocProcessorContext ctx, RuntimeException e) {
+            DocProcessorContext ctx, Exception e) {
         var stopTheCrawler = true;
         // if an exception was thrown and there is no CrawlDocRecord we
         // stop the crawler since it means we can't no longer read for the
