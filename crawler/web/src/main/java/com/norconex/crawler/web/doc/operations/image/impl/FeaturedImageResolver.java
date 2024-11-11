@@ -407,8 +407,8 @@ public class FeaturedImageResolver
             FetchResponse resp = fetcher.fetch(
                     new HttpFetchRequest(doc, HttpMethod.GET));
             if (resp != null
-                    && resp.getCrawlDocState() != null
-                    && resp.getCrawlDocState().isGoodState()) {
+                    && resp.getResolutionStatus() != null
+                    && resp.getResolutionStatus().isGoodState()) {
                 var bufImage = ImageIO.read(doc.getInputStream());
                 doc.dispose();
                 if (bufImage == null) {

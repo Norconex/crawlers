@@ -18,7 +18,7 @@ import java.util.function.BiConsumer;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 
@@ -58,7 +58,7 @@ class BeforeWebCrawlDocFinalizing
         // accessing child links normally.
         var state = httpData.getState();
         if (!state.isSkipped() && !state.isOneOf(
-                CrawlDocState.BAD_STATUS, CrawlDocState.ERROR)) {
+                DocResolutionStatus.BAD_STATUS, DocResolutionStatus.ERROR)) {
             return;
         }
 

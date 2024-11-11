@@ -116,7 +116,7 @@ public class CrawlerProgressLogger {
                 .append("\n  Avg. throughput: ")
                 .append(divideDownStr(processedCount * 1000, elapsed, 1))
                 .append(" processed/seconds")
-                .append("\n  Event counts:");
+                .append("\n  Event counts (incl. resumed):");
         monitor.getEventCounts().entrySet().stream().forEach(
                 en -> b.append("\n    ")
                         .append(StringUtils.rightPad(en.getKey() + ": ", 27))

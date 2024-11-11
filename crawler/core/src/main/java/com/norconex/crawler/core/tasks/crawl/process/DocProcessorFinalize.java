@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategy;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +61,7 @@ final class DocProcessorFinalize {
                     "Reference status is unknown for \"{}\". "
                             + "This should not happen. Assuming bad status.",
                     docRecord.getReference());
-            docRecord.setState(CrawlDocState.BAD_STATUS);
+            docRecord.setState(DocResolutionStatus.BAD_STATUS);
         }
 
         try {
@@ -134,7 +134,7 @@ final class DocProcessorFinalize {
 
         //--- Deal with bad states (if not already deleted) ----------------
         if (!docRecord.getState().isGoodState()
-                && !docRecord.getState().isOneOf(CrawlDocState.DELETED)) {
+                && !docRecord.getState().isOneOf(DocResolutionStatus.DELETED)) {
 
             //TODO If duplicate, consider it as spoiled if a cache version
             // exists in a good state.
@@ -166,7 +166,7 @@ final class DocProcessorFinalize {
                 // marked as deleted.
                 if (cachedDocRecord != null
                         && !cachedDocRecord.getState().isOneOf(
-                                CrawlDocState.DELETED)) {
+                                DocResolutionStatus.DELETED)) {
                     DocProcessorDelete.execute(ctx);
                 }
             } else // GRACE_ONCE:
@@ -174,7 +174,7 @@ final class DocProcessorFinalize {
             // but not already marked as deleted.
             if (cachedDocRecord != null
                     && !cachedDocRecord.getState().isOneOf(
-                            CrawlDocState.DELETED)) {
+                            DocResolutionStatus.DELETED)) {
                 if (!cachedDocRecord.getState().isGoodState()) {
                     DocProcessorDelete.execute(ctx);
                 } else {

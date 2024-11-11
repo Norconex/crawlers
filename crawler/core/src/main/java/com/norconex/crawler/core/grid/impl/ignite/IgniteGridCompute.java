@@ -22,8 +22,6 @@ import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.apache.ignite.transactions.TransactionConcurrency;
-import org.apache.ignite.transactions.TransactionIsolation;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.grid.GridCompute;
@@ -109,24 +107,25 @@ public class IgniteGridCompute implements GridCompute {
             executor.shutdown();
         }
     }
-
-    @Override
-    public <T> Future<T> runLocalAtomic(Callable<T> callable)
-            throws GridException {
-        return CompletableFuture.supplyAsync(() -> {
-            try (var tx = igniteGrid.getIgnite().transactions().txStart(
-                    TransactionConcurrency.PESSIMISTIC,
-                    TransactionIsolation.REPEATABLE_READ)) {
-                var result = callable.call();
-                tx.commit();
-                return result;
-            } catch (Exception e) {
-                System.err.println("XXX ERROR in runLocalAtomic: ");
-                e.printStackTrace(System.err);
-                throw new GridException("Grid transaction failed.", e);
-            }
-        });
-    }
+    //
+    //    @Override
+    //    public <T> Future<T> runLocalAtomic(Callable<T> callable)
+    //            throws GridException {
+    //        return CompletableFuture.supplyAsync(() -> {
+    //            try (var tx = igniteGrid.getIgnite().transactions().txStart(
+    //                    TransactionConcurrency.PESSIMISTIC,
+    //                    TransactionIsolation.REPEATABLE_READ)) {
+    //                var result = callable.call();
+    //                System.err.println("   XXX result: " + result);
+    //                tx.commit();
+    //                return result;
+    //            } catch (Exception e) {
+    //                System.err.println("XXX ERROR in runLocalAtomic: ");
+    //                e.printStackTrace(System.err);
+    //                throw new GridException("Grid transaction failed.", e);
+    //            }
+    //        });
+    //    }
 
     @Override
     public <T> Future<Collection<? extends T>> runOnAll(

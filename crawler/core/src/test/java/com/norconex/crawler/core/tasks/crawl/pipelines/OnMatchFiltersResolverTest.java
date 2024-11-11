@@ -26,7 +26,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.FetchUtil;
@@ -57,7 +57,7 @@ class OnMatchFiltersResolverTest {
         crawlerContext.getDocPipelines().getImporterPipeline().apply(ctx1);
 
         assertThat(ctx1.getDoc().getDocContext().getState())
-                .isNotSameAs(CrawlDocState.REJECTED);
+                .isNotSameAs(DocResolutionStatus.REJECTED);
 
         // match - exclude
         crawlerContext
@@ -69,7 +69,7 @@ class OnMatchFiltersResolverTest {
         var ctx2 = new ImporterPipelineContext(crawlerContext, doc);
         crawlerContext.getDocPipelines().getImporterPipeline().apply(ctx2);
         assertThat(ctx2.getDoc().getDocContext().getState())
-                .isSameAs(CrawlDocState.REJECTED);
+                .isSameAs(DocResolutionStatus.REJECTED);
 
         // no match - include
         crawlerContext
@@ -81,7 +81,7 @@ class OnMatchFiltersResolverTest {
         var ctx3 = new ImporterPipelineContext(crawlerContext, doc);
         crawlerContext.getDocPipelines().getImporterPipeline().apply(ctx3);
         assertThat(ctx3.getDoc().getDocContext().getState())
-                .isSameAs(CrawlDocState.REJECTED);
+                .isSameAs(DocResolutionStatus.REJECTED);
     }
 
     @ParameterizedTest
@@ -128,7 +128,7 @@ class OnMatchFiltersResolverTest {
             BAD_STATUS, DISABLED, DISABLED, DOCUMENT, false
             """)
     void testShouldAbortOnBadStatus(
-            CrawlDocState originalDocState,
+            DocResolutionStatus originalDocState,
             FetchDirectiveSupport metaSupport,
             FetchDirectiveSupport docSupport,
             FetchDirective currentDirective,

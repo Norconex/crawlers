@@ -16,7 +16,7 @@ package com.norconex.crawler.core.tasks.crawl.pipelines.committer.stages;
 
 import java.util.function.Predicate;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipelineContext;
 
@@ -45,7 +45,7 @@ public class DocumentDedupStage implements Predicate<CommitterPipelineContext> {
                         "REJECTED duplicate content checkum found for: {}",
                         docContext.getReference());
             }
-            docContext.setState(CrawlDocState.REJECTED);
+            docContext.setState(DocResolutionStatus.REJECTED);
             ctx.getCrawlerContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_DUPLICATE)

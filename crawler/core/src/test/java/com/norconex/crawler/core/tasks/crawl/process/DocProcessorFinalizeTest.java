@@ -22,7 +22,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.junit.CrawlerTest;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategy;
@@ -52,7 +52,7 @@ class DocProcessorFinalizeTest {
         DocProcessorFinalize.execute(ctx);
         assertThat(ctx.doc()).isNotNull();
         assertThat(ctx.docContext().getState()).isSameAs(
-                CrawlDocState.BAD_STATUS);
+                DocResolutionStatus.BAD_STATUS);
 
         // spoiled strategies
         var doc = ctx.doc();
@@ -63,22 +63,22 @@ class DocProcessorFinalizeTest {
                         doc.getInputStream()));
 
         ctx.finalized(false);
-        ctx.docContext().setState(CrawlDocState.BAD_STATUS);
+        ctx.docContext().setState(DocResolutionStatus.BAD_STATUS);
         strategy.setValue(SpoiledReferenceStrategy.DELETE);
         assertThatNoException().isThrownBy(() -> {
             DocProcessorFinalize.execute(ctx);
         });
 
         ctx.finalized(false);
-        ctx.docContext().setState(CrawlDocState.BAD_STATUS);
+        ctx.docContext().setState(DocResolutionStatus.BAD_STATUS);
         strategy.setValue(SpoiledReferenceStrategy.GRACE_ONCE);
         assertThatNoException().isThrownBy(() -> {
             DocProcessorFinalize.execute(ctx);
         });
 
         ctx.finalized(false);
-        ctx.docContext().setState(CrawlDocState.BAD_STATUS);
-        ctx.doc().getCachedDocContext().setState(CrawlDocState.MODIFIED);
+        ctx.docContext().setState(DocResolutionStatus.BAD_STATUS);
+        ctx.doc().getCachedDocContext().setState(DocResolutionStatus.MODIFIED);
         strategy.setValue(SpoiledReferenceStrategy.GRACE_ONCE);
         assertThatNoException().isThrownBy(() -> {
             DocProcessorFinalize.execute(ctx);
@@ -86,7 +86,7 @@ class DocProcessorFinalizeTest {
 
         // good status with modified ref
         ctx.finalized(false);
-        ctx.docContext().setState(CrawlDocState.MODIFIED);
+        ctx.docContext().setState(DocResolutionStatus.MODIFIED);
         ctx.docContext().setOriginalReference("original");
         assertThatNoException().isThrownBy(() -> {
             DocProcessorFinalize.execute(ctx);

@@ -57,7 +57,7 @@ public class CrawlerEvent extends Event {
     public static final String CRAWLER_CONTEXT_SHUTDOWN_BEGIN =
             "CRAWLER_CONTEXT_SHUTDOWN_BEGIN";
     public static final String CRAWLER_CONTEXT_SHUTDOWN_END =
-            "CRAWLER_CONTEXT_SHUTDOWN_BEGIN";
+            "CRAWLER_CONTEXT_SHUTDOWN_END";
 
     /**
      * The crawler is about to begin crawling.

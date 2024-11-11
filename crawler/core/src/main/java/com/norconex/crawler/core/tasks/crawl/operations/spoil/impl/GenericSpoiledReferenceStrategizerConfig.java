@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategy;
 
 import lombok.Data;
@@ -36,29 +36,29 @@ public class GenericSpoiledReferenceStrategizerConfig {
     public static final SpoiledReferenceStrategy DEFAULT_FALLBACK_STRATEGY =
             SpoiledReferenceStrategy.DELETE;
 
-    private final Map<CrawlDocState, SpoiledReferenceStrategy> mappings =
+    private final Map<DocResolutionStatus, SpoiledReferenceStrategy> mappings =
             new HashMap<>();
     private SpoiledReferenceStrategy fallbackStrategy =
             DEFAULT_FALLBACK_STRATEGY;
 
     public GenericSpoiledReferenceStrategizerConfig() {
         // store default mappings
-        mappings.put(CrawlDocState.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
+        mappings.put(DocResolutionStatus.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
         mappings.put(
-                CrawlDocState.BAD_STATUS,
+                DocResolutionStatus.BAD_STATUS,
                 SpoiledReferenceStrategy.GRACE_ONCE);
-        mappings.put(CrawlDocState.ERROR, SpoiledReferenceStrategy.GRACE_ONCE);
+        mappings.put(DocResolutionStatus.ERROR, SpoiledReferenceStrategy.GRACE_ONCE);
     }
 
     @JsonIgnore
     public GenericSpoiledReferenceStrategizerConfig setMapping(
-            CrawlDocState state, SpoiledReferenceStrategy strategy) {
+            DocResolutionStatus state, SpoiledReferenceStrategy strategy) {
         mappings.put(state, strategy);
         return this;
     }
 
     public GenericSpoiledReferenceStrategizerConfig setMappings(
-            Map<CrawlDocState, SpoiledReferenceStrategy> mappings) {
+            Map<DocResolutionStatus, SpoiledReferenceStrategy> mappings) {
         this.mappings.clear();
         this.mappings.putAll(mappings);
         return this;

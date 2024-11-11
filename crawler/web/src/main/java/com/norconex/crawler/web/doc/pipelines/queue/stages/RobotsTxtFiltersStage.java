@@ -16,7 +16,7 @@ package com.norconex.crawler.web.doc.pipelines.queue.stages;
 
 import java.util.function.Predicate;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
@@ -51,7 +51,7 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
 
         var filter = findRejectingRobotsFilter(ctx);
         if (filter != null) {
-            ctx.getDocContext().setState(CrawlDocState.REJECTED);
+            ctx.getDocContext().setState(DocResolutionStatus.REJECTED);
             ctx.getCrawlerContext().fire(
                     CrawlerEvent.builder()
                             .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)

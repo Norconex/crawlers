@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.mocks.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class MockFetchResponseImpl implements MockFetchResponse {
 
-    private CrawlDocState crawlDocState;
+    private DocResolutionStatus resolutionStatus;
     private Exception exception;
     private String reasonPhrase;
     private int statusCode;

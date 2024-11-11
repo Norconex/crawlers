@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.web.doc.pipelines.importer;
 
-import com.norconex.crawler.core.doc.CrawlDocContext.Stage;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocProcessingStage;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
@@ -45,7 +45,8 @@ public final class WebImporterPipelineUtil {
 
         var docContext = (WebCrawlDocContext) ctx.getDoc().getDocContext();
         String sourceURL = docContext.getReference();
-        var redirectStage = docTracker.getProcessingStage(redirectURL);
+        //        var redirectStage = docTracker.getProcessingStage(redirectURL);
+        var redirectStage = docContext.getProcessingStage();
 
         var requeue = false;
 
@@ -53,7 +54,7 @@ public final class WebImporterPipelineUtil {
         docContext.setState(WebCrawlDocState.REDIRECT);
 
         var newResponse = GenericHttpFetchResponse.builder()
-                .crawlDocState(WebCrawlDocState.REDIRECT)
+                .resolutionStatus(WebCrawlDocState.REDIRECT)
                 .reasonPhrase(
                         response.getReasonPhrase()
                                 + " (target: " + redirectURL + ")")
@@ -76,11 +77,12 @@ public final class WebImporterPipelineUtil {
 
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
-        if (Stage.QUEUED.is(redirectStage)) {
+        if (DocProcessingStage.QUEUED.is(redirectStage)) {
             rejectRedirectDup("queued", sourceURL, redirectURL);
             return;
         }
-        if (Stage.PROCESSED.is(redirectStage)) {
+        if (DocProcessingStage.RESOLVED.is(redirectStage)
+                || DocProcessingStage.UNRESOLVED.is(redirectStage)) {
             // If part of redirect trail, allow a second queueing
             // but not more.  This in case redirecting back to self is
             // part of a normal flow (e.g. weird login).
@@ -149,7 +151,7 @@ public final class WebImporterPipelineUtil {
                             newRec));
         } else {
             LOG.debug("URL redirect target not in scope: {}", redirectURL);
-            newRec.setState(CrawlDocState.REJECTED);
+            newRec.setState(DocResolutionStatus.REJECTED);
         }
     }
 

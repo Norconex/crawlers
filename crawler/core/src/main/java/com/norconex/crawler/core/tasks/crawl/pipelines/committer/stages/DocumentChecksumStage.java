@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.pipelines.ChecksumStageUtil;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipelineContext;
@@ -42,7 +42,7 @@ public class DocumentChecksumStage
             if (docContext.getState() == null
                     || !docContext.getState().isNewOrModified()) {
                 // NEW is default state (?)
-                docContext.setState(CrawlDocState.NEW);
+                docContext.setState(DocResolutionStatus.NEW);
             }
             return true;
         }

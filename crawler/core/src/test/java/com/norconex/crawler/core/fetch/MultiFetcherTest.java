@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetchResponse;
 import com.norconex.crawler.core.mocks.fetch.MockFetchResponseImpl;
@@ -66,7 +66,8 @@ class MultiFetcherTest {
         assertThat(
                 ((MultiFetchResponse<?>) resp)
                         .getFetchResponses()).hasSize(1);
-        assertThat(resp.getCrawlDocState()).isSameAs(CrawlDocState.UNSUPPORTED);
+        assertThat(resp.getResolutionStatus())
+                .isSameAs(DocResolutionStatus.UNSUPPORTED);
     }
 
     private MultiFetcher<MockFetchRequest, MockFetchResponse> multiFetcher(
@@ -77,7 +78,7 @@ class MultiFetcherTest {
                 .responseListAdapter(MockMultiFetcherResponse::new)
                 .unsuccessfulResponseAdaptor(
                         (state, msg, ex) -> new MockFetchResponseImpl()
-                                .setCrawlDocState(state)
+                                .setResolutionStatus(state)
                                 .setReasonPhrase(msg)
                                 .setException(ex))
                 .maxRetries(1)

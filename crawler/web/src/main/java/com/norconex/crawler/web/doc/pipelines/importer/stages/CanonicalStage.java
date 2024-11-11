@@ -20,7 +20,7 @@ import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
@@ -180,7 +180,7 @@ public class CanonicalStage extends AbstractImporterStage {
                 .accept(new QueuePipelineContext(ctx.getCrawlerContext(),
                         newRecord));
 
-        docRec.setState(CrawlDocState.REJECTED);
+        docRec.setState(DocResolutionStatus.REJECTED);
         ctx.getCrawlerContext().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.REJECTED_NONCANONICAL)

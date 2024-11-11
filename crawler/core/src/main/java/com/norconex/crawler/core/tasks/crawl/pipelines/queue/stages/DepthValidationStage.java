@@ -16,7 +16,7 @@ package com.norconex.crawler.core.tasks.crawl.pipelines.queue.stages;
 
 import java.util.function.Predicate;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 
@@ -35,7 +35,7 @@ public class DepthValidationStage implements Predicate<QueuePipelineContext> {
                     "URL too deep to process ({}): {}",
                     docCtx.getDepth(),
                     docCtx.getReference());
-            docCtx.setState(CrawlDocState.TOO_DEEP);
+            docCtx.setState(DocResolutionStatus.TOO_DEEP);
             ctx.getCrawlerContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_TOO_DEEP)

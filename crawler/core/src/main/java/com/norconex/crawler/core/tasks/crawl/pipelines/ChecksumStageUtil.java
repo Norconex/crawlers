@@ -19,7 +19,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,7 +65,7 @@ public final class ChecksumStageUtil {
         // if there was nothing in cache, or what is in cache is a deleted
         // doc, consider as new.
         if (cachedDocInfo == null
-                || CrawlDocState.DELETED.isOneOf(cachedDocInfo.getState())) {
+                || DocResolutionStatus.DELETED.isOneOf(cachedDocInfo.getState())) {
             LOG.debug(
                     "ACCEPTED {} checkum (new): Reference={}",
                     type, docContext.getReference());
@@ -74,7 +74,7 @@ public final class ChecksumStageUtil {
             // docs (which otherwise do not have a status.
             // But if already has a status, keep it.
             if (docContext.getState() == null) {
-                docContext.setState(CrawlDocState.NEW);
+                docContext.setState(DocResolutionStatus.NEW);
             }
             return true;
         }
@@ -94,7 +94,7 @@ public final class ChecksumStageUtil {
                         "REJECTED {} checkum (unmodified): Reference={}",
                         type, docContext.getReference());
             }
-            docContext.setState(CrawlDocState.UNMODIFIED);
+            docContext.setState(DocResolutionStatus.UNMODIFIED);
 
             //            var s = new StringBuilder();
             //            if (subject != null) {
@@ -112,7 +112,7 @@ public final class ChecksumStageUtil {
             return false;
         }
 
-        docContext.setState(CrawlDocState.MODIFIED);
+        docContext.setState(DocResolutionStatus.MODIFIED);
         LOG.debug(
                 "ACCEPTED {} checksum (modified): Reference={}",
                 type, docContext.getReference());

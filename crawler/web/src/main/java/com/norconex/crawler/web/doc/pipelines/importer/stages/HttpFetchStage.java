@@ -19,7 +19,7 @@ import java.time.ZonedDateTime;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
@@ -99,10 +99,10 @@ public class HttpFetchStage extends AbstractImporterStage {
             return false;
         }
 
-        var state = response.getCrawlDocState();
+        var state = response.getResolutionStatus();
         //TODO really do here??  or just do it if different than response?
         docRecord.setState(state);
-        if (CrawlDocState.UNMODIFIED.equals(state)) {
+        if (DocResolutionStatus.UNMODIFIED.equals(state)) {
             ctx.getCrawlerContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_UNMODIFIED)
@@ -128,7 +128,7 @@ public class HttpFetchStage extends AbstractImporterStage {
         }
 
         String eventType = null;
-        if (state.isOneOf(CrawlDocState.NOT_FOUND)) {
+        if (state.isOneOf(DocResolutionStatus.NOT_FOUND)) {
             eventType = CrawlerEvent.REJECTED_NOTFOUND;
         } else {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;

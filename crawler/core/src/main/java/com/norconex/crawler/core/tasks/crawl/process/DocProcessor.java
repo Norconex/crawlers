@@ -18,18 +18,14 @@ import static com.norconex.crawler.core.event.CrawlerEvent.CRAWLER_RUN_THREAD_BE
 import static com.norconex.crawler.core.event.CrawlerEvent.CRAWLER_RUN_THREAD_END;
 import static java.util.Optional.ofNullable;
 
-import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.time.StopWatch;
 
-import com.norconex.commons.lang.Sleeper;
-import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.importer.doc.DocContext;
@@ -50,9 +46,6 @@ public class DocProcessor implements Runnable {
     private final boolean deleting;
     private final boolean orphan;
 
-    private final TimeoutWatcher activeTimeoutWatcher = new TimeoutWatcher();
-    //    private final TimeoutWatcher queueInitTimeoutWatcher = new TimeoutWatcher();
-
     @Override
     public void run() {
         LogUtil.setMdcCrawlerId(crawlerContext.getId());
@@ -60,11 +53,15 @@ public class DocProcessor implements Runnable {
                 .setName(crawlerContext.getId() + "#" + threadIndex);
         LOG.debug("Crawler thread #{} started.", threadIndex);
         try {
+            var activityChecker =
+                    new ActivityChecker(crawlerContext, deleting);
             crawlerContext.fire(CRAWLER_RUN_THREAD_BEGIN,
                     Thread.currentThread());
             while (!crawlerContext.getState().isStopped()
                     && !crawlerContext.getState().isStopRequested()) {
-                if (!processNextReference()) {
+                if (!processNextReference(activityChecker)) {
+                    // At this point all threads/nodes shall reach the same
+                    // conclusion and break, effectively ending crawling.
                     break;
                 }
             }
@@ -77,71 +74,45 @@ public class DocProcessor implements Runnable {
     }
 
     // return true to continue and false to abort/break
-    private boolean processNextReference() {
+    private boolean processNextReference(ActivityChecker activityChecker) {
         var ctx = new DocProcessorContext()
                 .crawlerContext(crawlerContext)
                 .orphan(orphan);
         try {
-            if (isMaxDocsReached()) {
-                crawlerContext.stop();
-                return false;
+            var docContext = crawlerContext
+                    .getDocProcessingLedger()
+                    .pollQueue()
+                    .orElse(null);
+            LOG.trace("Pulled next reference from Queue: {}", docContext);
+            System.err.println("XXX pulled next ref: " + docContext);
+
+            ctx.docContext(docContext);
+            if (ctx.docContext() == null) {
+                return activityChecker.isActive();
             }
 
-            return crawlerContext.getGrid().compute().runLocalAtomic(() -> {
-                var docContext = crawlerContext
-                        .getDocProcessingLedger()
-                        .pollQueue()
-                        .orElse(null);
-                LOG.trace("Pulled next reference from Queue: {}", docContext);
-                System.err.println("XXX pulled next ref: " + docContext);
+            ctx.doc(createDocWithDocRecordFromCache(ctx.docContext()));
 
-                ctx.docContext(docContext);
-                if (ctx.docContext() == null) {
-                    //                    System.err.println(
-                    //                            "XXX Crawler still active? "
-                    //                                    + isCrawlerStillActive());
-                    //                    System.err.println("XXX Queue still initalizing? "
-                    //                            + isQueueStillInitializing());
-                    //TODO return false if queue is empty and we are done based on whatever conditions
-                    return false;
+            // Before document processing
+            ofNullable(crawlerContext
+                    .getCallbacks()
+                    .getBeforeDocumentProcessing())
+                            .ifPresent(bdp -> bdp.accept(
+                                    crawlerContext, ctx.doc()));
 
-                    //TODO call these atomic methods outside transaction
-                    //return
-                    //isCrawlerStillActive() ||
-                    //isQueueStillInitializing();
+            if (deleting) {
+                DocProcessorDelete.execute(ctx);
+            } else {
+                DocProcessorUpsert.execute(ctx);
+            }
 
-                    //TODO wait X amount of time before returning, in case
-                    // the queue will be filled somehow by an external process?
-                    // make the default small enough.
-
-                }
-                activeTimeoutWatcher.reset();
-
-                ctx.doc(createDocWithDocRecordFromCache(ctx.docContext()));
-
-                // Before document processing
-                ofNullable(
-                        crawlerContext.getCallbacks()
-                                .getBeforeDocumentProcessing())
-                                        .ifPresent(bdp -> bdp.accept(
-                                                crawlerContext,
-                                                ctx.doc()));
-
-                if (deleting) {
-                    DocProcessorDelete.execute(ctx);
-                } else {
-                    DocProcessorUpsert.execute(ctx);
-                }
-
-                // After document processing
-                ofNullable(
-                        crawlerContext.getCallbacks()
-                                .getAfterDocumentProcessing())
-                                        .ifPresent(adp -> adp.accept(
-                                                crawlerContext,
-                                                ctx.doc()));
-                return true;
-            }).get();
+            // After document processing
+            ofNullable(crawlerContext.getCallbacks()
+                    .getAfterDocumentProcessing())
+                            .ifPresent(adp -> adp.accept(
+                                    crawlerContext,
+                                    ctx.doc()));
+            return true;
 
         } catch (Exception e) {
             if (handleExceptionAndCheckIfStopCrawler(ctx, e)) {
@@ -154,74 +125,54 @@ public class DocProcessor implements Runnable {
         return true;
     }
 
+    //    private boolean processNextReferenceAtomically(DocProcessorContext ctx) {
+    //        var docContext = crawlerContext
+    //                .getDocProcessingLedger()
+    //                .pollQueue()
+    //                .orElse(null);
+    //        LOG.trace("Pulled next reference from Queue: {}", docContext);
+    //        System.err.println("XXX pulled next ref: " + docContext);
+    //
+    //        ctx.docContext(docContext);
+    //        if (ctx.docContext() == null) {
+    //            //NOTE: A null value indicates an empty queue, but we return
+    //            // "true" because we do not want to end processing just yet.
+    //            // We want to give a chance to the loop in run() method to check
+    //            // if all conditions are meant to stop crawling (e.g., wait for
+    //            // queue initialization, for idle timeout, etc.).
+    //            return true;
+    //        }
+    //
+    //        ctx.doc(createDocWithDocRecordFromCache(ctx.docContext()));
+    //
+    //        // Before document processing
+    //        ofNullable(crawlerContext
+    //                .getCallbacks()
+    //                .getBeforeDocumentProcessing())
+    //                        .ifPresent(bdp -> bdp.accept(
+    //                                crawlerContext, ctx.doc()));
+    //
+    //        if (deleting) {
+    //            DocProcessorDelete.execute(ctx);
+    //        } else {
+    //            DocProcessorUpsert.execute(ctx);
+    //        }
+    //
+    //        // After document processing
+    //        ofNullable(crawlerContext.getCallbacks()
+    //                .getAfterDocumentProcessing())
+    //                        .ifPresent(adp -> adp.accept(
+    //                                crawlerContext,
+    //                                ctx.doc()));
+    //        return true;
+    //    }
+
     //--- DocRecord & Doc init. methods ----------------------------------------
-
-    private boolean isMaxDocsReached() {
-        //TODO replace check for "processedCount" vs "maxDocuments"
-        // with event counts vs max committed, max processed, max etc...
-        // or the event listeners that does it with more flexibility
-        // is enough?
-
-        // If deleting we don't care about checking if max is reached,
-        // we proceed.
-        if (deleting) {
-            return false;
-        }
-        return crawlerContext.getDocProcessingLedger()
-                .isMaxDocsProcessedReached();
-    }
-
-    private boolean isCrawlerStillActive() {
-        //        var activeEmpty =
-        //                crawler.getDocProcessingLedger().isActiveEmpty();
-        var queueEmpty =
-                crawlerContext.getDocProcessingLedger().isQueueEmpty();
-        if (/*activeEmpty && */ queueEmpty) {
-            System.err.println("XXX Queue is empty.");
-
-            LOG.trace("Queue is empty and no documents are currently"
-                    + "being processed.");
-            return false;
-        }
-        System.err.println("XXX Queue not yet empty.");
-        Sleeper.sleepMillis(1); // to avoid fast loops taking all CPU
-        // If there are some activity left, it means the queue
-        // can grow again, we stop processing this non-existing doc
-        // and let parent wait an try again, for as long as the activity timeout
-        // is not reached.
-        if (activeTimeoutWatcher.isTimedOut(
-                crawlerContext.getConfiguration().getIdleTimeout())) {
-            //            Documents still being processed by\s\
-            //            other crawler threads: {}.
-            LOG.warn("""
-                    Crawler thread has been idle for more than {} and will\s\
-                    be shut down. \s\
-                    Crawler queue empty: {}.""",
-                    DurationFormatter.FULL.format(
-                            crawlerContext.getConfiguration().getIdleTimeout()),
-                    /*!activeEmpty,*/ queueEmpty);
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isQueueStillInitializing() {
-        if (crawlerContext.getState().isQueueInitialized()) {
-            return false;
-        }
-        LOG.info("References are still being queued. "
-                + "Waiting for new references...");
-        Sleeper.sleepSeconds(5);
-        return true;
-    }
 
     private CrawlDoc createDocWithDocRecordFromCache(DocContext docRec) {
         // put timer for whole thread or closer to just importer
         // or have importer offer its own timer, in addition.
         // var elapsedTime = Timer.timeWatch(() ->
-
-        //WAS:            processNextQueuedRecord(docRecord.get(), flags))
-        //                    .toString();
         var cachedDocRec = crawlerContext
                 .getDocProcessingLedger()
                 .getCached(docRec.getReference())
@@ -263,7 +214,7 @@ public class DocProcessor implements Runnable {
             return stopTheCrawler;
         }
 
-        rec.setState(CrawlDocState.ERROR);
+        rec.setState(DocResolutionStatus.ERROR);
         if (LOG.isDebugEnabled()) {
             LOG.info("Could not process document: {} ({})",
                     ctx.docContext().getReference(), e.getMessage(), e);
@@ -301,27 +252,4 @@ public class DocProcessor implements Runnable {
         return !stopTheCrawler;
     }
 
-    // thread safe
-    //TODO maybe move to commons lang?
-    private static class TimeoutWatcher {
-        private final StopWatch watch = new StopWatch();
-
-        private void reset() {
-            watch.reset();
-        }
-
-        void track() {
-            if (!watch.isStarted()) {
-                watch.start();
-            }
-        }
-
-        boolean isTimedOut(Duration duration) {
-            if (duration == null) {
-                return false;
-            }
-            track();
-            return watch.getTime() > duration.toMillis();
-        }
-    }
 }

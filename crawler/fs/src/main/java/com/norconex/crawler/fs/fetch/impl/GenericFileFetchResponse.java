@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.fs.fetch.impl;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 
 import lombok.Builder;
@@ -24,7 +24,7 @@ import lombok.Data;
 @Builder
 @Data
 public class GenericFileFetchResponse implements FileFetchResponse {
-    private CrawlDocState crawlDocState;
+    private DocResolutionStatus resolutionStatus;
     boolean file;
     boolean folder;
 

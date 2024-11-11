@@ -17,7 +17,7 @@ package com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages;
 import java.util.function.Predicate;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.tasks.crawl.pipelines.OnMatchFiltersResolver;
@@ -52,7 +52,7 @@ public class DocumentFiltersStage
                                     .subject(f)
                                     .message(msg)
                                     .build());
-                    doc.getDocContext().setState(CrawlDocState.REJECTED);
+                    doc.getDocContext().setState(DocResolutionStatus.REJECTED);
                 })
                 .build()
                 .isAccepted();

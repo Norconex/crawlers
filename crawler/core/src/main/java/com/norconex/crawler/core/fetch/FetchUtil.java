@@ -15,7 +15,7 @@
 package com.norconex.crawler.core.fetch;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 
 import lombok.NonNull;
 
@@ -29,7 +29,7 @@ public final class FetchUtil {
 
     public static boolean shouldContinueOnBadStatus(
             @NonNull CrawlerContext crawler,
-            CrawlDocState originalCrawlDocState,
+            DocResolutionStatus originalCrawlDocState,
             @NonNull FetchDirective fetchDirective) {
         // Note: a disabled directive should never get here,
         // and when both are enabled, DOCUMENT always comes after METADATA.
@@ -57,7 +57,7 @@ public final class FetchUtil {
             // we continue
             return FetchDirectiveSupport.OPTIONAL.is(docSupport)
                     && FetchDirectiveSupport.isEnabled(metaSupport)
-                    && CrawlDocState.isGoodState(originalCrawlDocState);
+                    && DocResolutionStatus.isGoodState(originalCrawlDocState);
         }
 
         // At this point it would imply the directive for which we are asking

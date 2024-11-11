@@ -42,7 +42,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
@@ -212,7 +212,7 @@ public class WebDriverHttpFetcher
                         + "'httpSniffer'.";
             }
             return GenericHttpFetchResponse.builder()
-                    .crawlDocState(CrawlDocState.UNSUPPORTED)
+                    .resolutionStatus(DocResolutionStatus.UNSUPPORTED)
                     .reasonPhrase(reason)
                     .statusCode(-1)
                     .build();
@@ -245,7 +245,7 @@ public class WebDriverHttpFetcher
         }
         return GenericHttpFetchResponse
                 .builder()
-                .crawlDocState(CrawlDocState.NEW)
+                .resolutionStatus(DocResolutionStatus.NEW)
                 .statusCode(200)
                 .reasonPhrase("No exception thrown, but real status code "
                         + "unknown. Capture headers for real status code.")
@@ -364,9 +364,10 @@ public class WebDriverHttpFetcher
                     .reasonPhrase(sniffedResponse.getReasonPhrase())
                     .userAgent(getUserAgent());
             if (statusCode >= 200 && statusCode < 300) {
-                response = b.crawlDocState(CrawlDocState.NEW).build();
+                response = b.resolutionStatus(DocResolutionStatus.NEW).build();
             } else {
-                response = b.crawlDocState(CrawlDocState.BAD_STATUS).build();
+                response = b.resolutionStatus(
+                        DocResolutionStatus.BAD_STATUS).build();
             }
         }
 

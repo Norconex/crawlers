@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.tasks.crawl.process;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +26,7 @@ final class DocProcessorDelete {
 
     static void execute(DocProcessorContext ctx) {
         LOG.debug("Deleting reference: {}", ctx.doc().getReference());
-        ctx.doc().getDocContext().setState(CrawlDocState.DELETED);
+        ctx.doc().getDocContext().setState(DocResolutionStatus.DELETED);
         // Event triggered by service
         ctx.crawlerContext().getCommitterService().delete(ctx.doc());
         DocProcessorFinalize.execute(ctx);

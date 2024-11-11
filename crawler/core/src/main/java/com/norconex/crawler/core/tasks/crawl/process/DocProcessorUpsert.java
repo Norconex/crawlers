@@ -18,7 +18,7 @@ import org.apache.commons.io.input.NullInputStream;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
@@ -59,7 +59,7 @@ final class DocProcessorUpsert {
         if (response == null) {
             if ((docRecord.getState() != null)
                     && docRecord.getState().isNewOrModified()) {
-                docRecord.setState(CrawlDocState.REJECTED);
+                docRecord.setState(DocResolutionStatus.REJECTED);
             }
             DocProcessorFinalize.execute(ctx);
             return false;
@@ -145,7 +145,7 @@ final class DocProcessorUpsert {
             return true;
         }
 
-        docRecord.setState(CrawlDocState.REJECTED);
+        docRecord.setState(DocResolutionStatus.REJECTED);
         ctx.crawlerContext().fire(
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.REJECTED_IMPORT)

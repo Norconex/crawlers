@@ -18,7 +18,6 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDocContext.Stage;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 
 import lombok.extern.slf4j.Slf4j;
@@ -38,27 +37,12 @@ public class QueueReferenceStage implements Predicate<QueuePipelineContext> {
         }
 
         var ledger = ctx.getCrawlerContext().getDocProcessingLedger();
-        var stage = ledger.getProcessingStage(ref);
-
-        //TODO make this a reusable method somewhere, or part of the
-        //DocTrackerService?
-        //        if (Stage.ACTIVE.is(stage)) {
-        //            debug("Already being processed: %s", ref);
-        //        } else
-        if (Stage.QUEUED.is(stage)) {
-            debug("Already queued: %s", ref);
-        } else if (Stage.PROCESSED.is(stage)) {
-            debug("Already processed: %s", ref);
+        if (ledger.isInActiveLedger(ref)) {
+            LOG.debug("Reference already accounted for: {}", ref);
         } else {
             ledger.queue(ctx.getDocContext());
-            debug("Queued for processing: %s", ref);
+            LOG.debug("Queued for processing: {}", ref);
         }
         return true;
-    }
-
-    private void debug(String message, Object... values) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format(message, values));
-        }
     }
 }

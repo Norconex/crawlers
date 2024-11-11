@@ -30,7 +30,7 @@ import org.apache.commons.vfs2.provider.local.LocalFile;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
@@ -118,7 +118,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
 
             if (fileObject == null || !fileObject.exists()) {
                 return GenericFileFetchResponse.builder()
-                        .crawlDocState(CrawlDocState.NOT_FOUND)
+                        .resolutionStatus(DocResolutionStatus.NOT_FOUND)
                         .build();
             }
 
@@ -134,7 +134,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             //TODO set status if not found or whatever bad state
 
             return GenericFileFetchResponse.builder()
-                    .crawlDocState(CrawlDocState.NEW)
+                    .resolutionStatus(DocResolutionStatus.NEW)
                     .file(fileObject.isFile())
                     .folder(fileObject.isFolder())
                     .build();

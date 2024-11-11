@@ -17,7 +17,7 @@ package com.norconex.crawler.web.doc.pipelines.queue.stages;
 import java.util.function.Predicate;
 
 import com.google.common.base.Objects;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.util.Web;
@@ -31,7 +31,7 @@ public class UrlNormalizerStage implements Predicate<QueuePipelineContext> {
             String originalRef = ctx.getDocContext().getReference();
             var url = WebUrlNormalizer.normalizeURL(originalRef, normalizers);
             if (url == null) {
-                ctx.getDocContext().setState(CrawlDocState.REJECTED);
+                ctx.getDocContext().setState(DocResolutionStatus.REJECTED);
                 return false;
             }
             if (!Objects.equal(originalRef, url)) {

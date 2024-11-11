@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.core.mocks.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.FetchResponse;
 
 public interface MockFetchResponse extends FetchResponse {
 
     @Override
-    CrawlDocState getCrawlDocState();
+    DocResolutionStatus getResolutionStatus();
 
     @Override
     Exception getException();

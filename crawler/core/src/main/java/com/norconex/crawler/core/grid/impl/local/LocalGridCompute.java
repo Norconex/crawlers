@@ -57,11 +57,11 @@ public class LocalGridCompute implements GridCompute {
         }
     }
 
-    @Override
-    public <T> Future<T> runLocalAtomic(Callable<T> callable)
-            throws GridException {
-        return CompletableFuture.supplyAsync(() -> executeWithAtomic(callable));
-    }
+    //    @Override
+    //    public <T> Future<T> runLocalAtomic(Callable<T> callable)
+    //            throws GridException {
+    //        return CompletableFuture.supplyAsync(() -> executeWithAtomic(callable));
+    //    }
 
     /**
      * <p>

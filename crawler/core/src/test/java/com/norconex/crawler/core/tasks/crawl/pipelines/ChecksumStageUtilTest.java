@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core.tasks.crawl.pipelines;
 
-import static com.norconex.crawler.core.doc.CrawlDocState.MODIFIED;
-import static com.norconex.crawler.core.doc.CrawlDocState.NEW;
-import static com.norconex.crawler.core.doc.CrawlDocState.UNMODIFIED;
+import static com.norconex.crawler.core.doc.DocResolutionStatus.MODIFIED;
+import static com.norconex.crawler.core.doc.DocResolutionStatus.NEW;
+import static com.norconex.crawler.core.doc.DocResolutionStatus.UNMODIFIED;
 import static com.norconex.crawler.core.tasks.crawl.pipelines.ChecksumStageUtil.resolveDocumentChecksum;
 import static com.norconex.crawler.core.tasks.crawl.pipelines.ChecksumStageUtil.resolveMetaChecksum;
 import static org.assertj.core.api.Assertions.assertThat;

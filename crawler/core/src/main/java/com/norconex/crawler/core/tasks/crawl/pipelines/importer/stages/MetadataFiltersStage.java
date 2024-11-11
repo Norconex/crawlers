@@ -15,7 +15,7 @@
 package com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.MetadataFilter;
@@ -63,7 +63,7 @@ public class MetadataFiltersStage extends AbstractImporterStage {
                                     .message(msg)
                                     .build());
                     ctx.getDoc().getDocContext()
-                            .setState(CrawlDocState.REJECTED);
+                            .setState(DocResolutionStatus.REJECTED);
                 })
                 .build()
                 .isAccepted();

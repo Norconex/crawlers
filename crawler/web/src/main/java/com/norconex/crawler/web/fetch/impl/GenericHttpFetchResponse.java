@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 
 import lombok.Builder;
@@ -27,7 +27,7 @@ import lombok.Data;
 @Builder
 @Data
 public class GenericHttpFetchResponse implements HttpFetchResponse {
-    private CrawlDocState crawlDocState;
+    private DocResolutionStatus resolutionStatus;
     private int statusCode;
     private String reasonPhrase;
     private Exception exception;

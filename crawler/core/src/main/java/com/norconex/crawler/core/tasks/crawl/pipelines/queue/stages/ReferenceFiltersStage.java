@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.tasks.crawl.pipelines.OnMatchFiltersResolver;
@@ -66,7 +66,7 @@ public class ReferenceFiltersStage implements Predicate<QueuePipelineContext> {
                                     .subject(f)
                                     .message(msg + msgSuffix)
                                     .build());
-                    ctx.getDocContext().setState(CrawlDocState.REJECTED);
+                    ctx.getDocContext().setState(DocResolutionStatus.REJECTED);
                 })
                 .build()
                 .isAccepted();

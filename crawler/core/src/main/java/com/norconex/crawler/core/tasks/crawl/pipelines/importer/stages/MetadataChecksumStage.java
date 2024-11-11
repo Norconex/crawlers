@@ -16,7 +16,7 @@ package com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.tasks.crawl.pipelines.ChecksumStageUtil;
@@ -46,7 +46,7 @@ public class MetadataChecksumStage extends AbstractImporterStage {
                 .getMetadataChecksummer();
         if (check == null) {
             // NEW is default state (?)
-            ctx.getDoc().getDocContext().setState(CrawlDocState.NEW);
+            ctx.getDoc().getDocContext().setState(DocResolutionStatus.NEW);
             return true;
         }
         var headers = ctx.getDoc().getMetadata();

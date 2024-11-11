@@ -29,7 +29,7 @@ public final class ConcurrentUtil {
      * @param future the future to block
      * @return the future response, if any, or <code>null</code>
      */
-    public static Object block(Future<?> future) {
+    public static <T> T block(Future<T> future) {
         if (future == null) {
             return null;
         }

@@ -82,7 +82,7 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
 
     @Override
     public boolean isEmpty() {
-        return idSet.isEmpty();
+        return queue.isEmpty();
     }
 
     @Override
@@ -92,7 +92,7 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
 
     @Override
     public long size() {
-        return idSet.size();
+        return queue.size();
     }
 
     @Override
@@ -119,7 +119,11 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
 
     @Override
     public Optional<T> poll() {
-        return ofNullable(queue.poll()).map(QueueEntry::getObject);
+        var queueEntry = queue.poll();
+        if (queueEntry != null) {
+            idSet.remove(queueEntry.key);
+        }
+        return ofNullable(queueEntry).map(QueueEntry::getObject);
     }
 
     @Data

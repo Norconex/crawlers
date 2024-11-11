@@ -89,7 +89,7 @@ import org.apache.hc.core5.util.Timeout;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
@@ -299,14 +299,14 @@ public class GenericHttpFetcher
                     userToken = ctx.getUserToken();
 
                     return responseBuilder
-                            .crawlDocState(CrawlDocState.NEW)
+                            .resolutionStatus(DocResolutionStatus.NEW)
                             .build();
                 }
 
                 // UNMODIFIED
                 if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                     return responseBuilder
-                            .crawlDocState(CrawlDocState.UNMODIFIED)
+                            .resolutionStatus(DocResolutionStatus.UNMODIFIED)
                             .build();
                 }
 
@@ -316,7 +316,7 @@ public class GenericHttpFetcher
                 if (configuration.getNotFoundStatusCodes()
                         .contains(statusCode)) {
                     return responseBuilder
-                            .crawlDocState(CrawlDocState.NOT_FOUND)
+                            .resolutionStatus(DocResolutionStatus.NOT_FOUND)
                             .build();
                 }
 
@@ -325,7 +325,7 @@ public class GenericHttpFetcher
                         "Unsupported HTTP Response: {}",
                         response.getReasonPhrase());
                 return responseBuilder
-                        .crawlDocState(CrawlDocState.BAD_STATUS)
+                        .resolutionStatus(DocResolutionStatus.BAD_STATUS)
                         .build();
             });
 

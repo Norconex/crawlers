@@ -88,8 +88,8 @@ public class CrawlerConfig {
         IGNORE
     }
 
-    public static final Duration DEFAULT_IDLE_PROCESSING_TIMEOUT =
-            Duration.ofMinutes(10);
+    public static final Duration DEFAULT_IDLE_TIMEOUT =
+            Duration.ofSeconds(0);
     public static final Duration DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL =
             Duration.ofSeconds(30);
 
@@ -213,15 +213,18 @@ public class CrawlerConfig {
     private int maxDepth = -1;
 
     /**
-     * The maximum amount of time to wait before shutting down an inactive
-     * crawler thread.
-     * A document taking longer to process than the specified timeout
-     * when no other thread are available to process remaining documents
-     * is also considered "inactive". Default is
+     * The maximum amount of time to wait before shutting down an idle crawler.
+     * A crawler is considered idle when its queue is empty and there are
+     * no reference being actively processed.
+     * Differs from {@link #deferredShutdownDuration} in that additions to
+     * the crawler queue will restart the processing.
+     * A non-zero value can be useful if the crawler queue can be populated
+     * by an external process. Default is zero (does not wait).
      * {@value #DEFAULT_IDLE_PROCESSING_TIMEOUT}. A <code>null</code>
-     * value means no timeouts.
+     * value is equivalent to zero.
+     * The smallest considered unit is seconds (milliseconds are rounded up).
      */
-    private Duration idleTimeout;
+    private Duration idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     /**
      * Minimum amount of time to wait between each logging of crawling

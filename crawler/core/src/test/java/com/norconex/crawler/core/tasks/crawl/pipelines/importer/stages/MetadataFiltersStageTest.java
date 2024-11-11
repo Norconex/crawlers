@@ -24,7 +24,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
@@ -53,9 +53,9 @@ class MetadataFiltersStageTest {
                                 .setValueMatcher(TextMatcher.basic("blah"))
                                 .setOnMatch(OnMatch.EXCLUDE))));
         var ctx = new ImporterPipelineContext(crawlerContext, doc);
-        doc.getDocContext().setState(CrawlDocState.NEW);
+        doc.getDocContext().setState(DocResolutionStatus.NEW);
         new MetadataFiltersStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getDocContext().getState()).isSameAs(CrawlDocState.NEW);
+        assertThat(doc.getDocContext().getState()).isSameAs(DocResolutionStatus.NEW);
 
         // Filter matching
         crawlerContext.getConfiguration().setMetadataFilters(
@@ -68,9 +68,9 @@ class MetadataFiltersStageTest {
                                                 TextMatcher.basic("somevalue"))
                                         .setOnMatch(OnMatch.EXCLUDE))));
         ctx = new ImporterPipelineContext(crawlerContext, doc);
-        doc.getDocContext().setState(CrawlDocState.NEW);
+        doc.getDocContext().setState(DocResolutionStatus.NEW);
         new MetadataFiltersStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getDocContext().getState()).isSameAs(
-                CrawlDocState.REJECTED);
+                DocResolutionStatus.REJECTED);
     }
 }

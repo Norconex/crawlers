@@ -53,7 +53,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
@@ -301,8 +301,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
                         CrawlDocStubs.crawlDocHtml("http://example.com"),
                         HttpMethod.HEAD));
         assertThat(response.getReasonPhrase()).contains("To obtain headers");
-        assertThat(response.getCrawlDocState()).isEqualTo(
-                CrawlDocState.UNSUPPORTED);
+        assertThat(response.getResolutionStatus()).isEqualTo(
+                DocResolutionStatus.UNSUPPORTED);
     }
 
     @Test

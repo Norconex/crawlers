@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.pipelines.importer.stages;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.AbstractImporterStage;
@@ -67,7 +67,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
                             .subject(rr)
                             .docContext(ctx.getDoc().getDocContext())
                             .build());
-            currentData.setState(CrawlDocState.PREMATURE);
+            currentData.setState(DocResolutionStatus.PREMATURE);
         }
         return isRecrawlable;
     }

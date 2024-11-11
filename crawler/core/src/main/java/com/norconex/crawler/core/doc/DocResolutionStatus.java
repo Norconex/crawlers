@@ -34,9 +34,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
     getterVisibility = JsonAutoDetect.Visibility.NONE,
     isGetterVisibility = JsonAutoDetect.Visibility.NONE
 )
-public class CrawlDocState implements Serializable {
+//TODO maybe rename something along the lines of DocProcessingStatus?
+public class DocResolutionStatus implements Serializable {
 
-    private static final Map<String, CrawlDocState> STATUSES =
+    private static final Map<String, DocResolutionStatus> STATUSES =
             new HashMap<>();
 
     //MAYBE refactor to facilitate JSON serialization without annotations?
@@ -47,26 +48,26 @@ public class CrawlDocState implements Serializable {
     // no checksum defined... then it is nether new nor modified.
     private static final long serialVersionUID = 6542269270632505768L;
 
-    public static final CrawlDocState NEW = new CrawlDocState("NEW");
-    public static final CrawlDocState MODIFIED =
-            new CrawlDocState("MODIFIED");
-    public static final CrawlDocState UNMODIFIED =
-            new CrawlDocState("UNMODIFIED");
-    public static final CrawlDocState ERROR = new CrawlDocState("ERROR");
-    public static final CrawlDocState REJECTED =
-            new CrawlDocState("REJECTED");
-    public static final CrawlDocState BAD_STATUS =
-            new CrawlDocState("BAD_STATUS");
-    public static final CrawlDocState DELETED = new CrawlDocState("DELETED");
-    public static final CrawlDocState NOT_FOUND =
-            new CrawlDocState("NOT_FOUND");
+    public static final DocResolutionStatus NEW = new DocResolutionStatus("NEW");
+    public static final DocResolutionStatus MODIFIED =
+            new DocResolutionStatus("MODIFIED");
+    public static final DocResolutionStatus UNMODIFIED =
+            new DocResolutionStatus("UNMODIFIED");
+    public static final DocResolutionStatus ERROR = new DocResolutionStatus("ERROR");
+    public static final DocResolutionStatus REJECTED =
+            new DocResolutionStatus("REJECTED");
+    public static final DocResolutionStatus BAD_STATUS =
+            new DocResolutionStatus("BAD_STATUS");
+    public static final DocResolutionStatus DELETED = new DocResolutionStatus("DELETED");
+    public static final DocResolutionStatus NOT_FOUND =
+            new DocResolutionStatus("NOT_FOUND");
     /**
      * For collectors that support it, this state indicates a previously
      * crawled document is not yet ready to be re-crawled.  It may or may not
      * be re-crawled in the next crawl session (if ready).
          */
-    public static final CrawlDocState PREMATURE =
-            new CrawlDocState("PREMATURE");
+    public static final DocResolutionStatus PREMATURE =
+            new DocResolutionStatus("PREMATURE");
 
     //TODO testing this... remove if not used:
     /**
@@ -74,10 +75,10 @@ public class CrawlDocState implements Serializable {
      * not supported by the collector or one of its configured
      * component.
          */
-    public static final CrawlDocState UNSUPPORTED =
-            new CrawlDocState("UNSUPPORTED");
+    public static final DocResolutionStatus UNSUPPORTED =
+            new DocResolutionStatus("UNSUPPORTED");
 
-    public static final CrawlDocState TOO_DEEP = new CrawlDocState("TOO_DEEP");
+    public static final DocResolutionStatus TOO_DEEP = new DocResolutionStatus("TOO_DEEP");
 
     @JsonProperty
     @JsonValue
@@ -87,7 +88,7 @@ public class CrawlDocState implements Serializable {
      * Constructor.
      * @param state state code
      */
-    protected CrawlDocState(String state) {
+    protected DocResolutionStatus(String state) {
         this.state = state;
         STATUSES.put(state, this);
     }
@@ -113,7 +114,7 @@ public class CrawlDocState implements Serializable {
      * @param state the state to test
      * @return <code>true</code> if status is valid.
      */
-    public static boolean isGoodState(CrawlDocState state) {
+    public static boolean isGoodState(DocResolutionStatus state) {
         return state == null ? false : state.isGoodState();
     }
 
@@ -134,11 +135,11 @@ public class CrawlDocState implements Serializable {
         return isOneOf(UNMODIFIED, PREMATURE);
     }
 
-    public boolean isOneOf(CrawlDocState... states) {
+    public boolean isOneOf(DocResolutionStatus... states) {
         if (ArrayUtils.isEmpty(states)) {
             return false;
         }
-        for (CrawlDocState crawlState : states) {
+        for (DocResolutionStatus crawlState : states) {
             if (equals(crawlState)) {
                 return true;
             }
@@ -147,11 +148,11 @@ public class CrawlDocState implements Serializable {
     }
 
     @JsonCreator
-    public static synchronized CrawlDocState valueOf(
+    public static synchronized DocResolutionStatus valueOf(
             @JsonProperty("state") String state) {
         var refState = STATUSES.get(state);
         if (refState == null) {
-            refState = new CrawlDocState(state);
+            refState = new DocResolutionStatus(state);
         }
         return refState;
     }

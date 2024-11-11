@@ -42,7 +42,7 @@ public class FileFetcherProvider
                 fetchers,
                 FileMultiFetchResponse::new,
                 (state, msg, ex) -> GenericFileFetchResponse.builder()
-                        .crawlDocState(state)
+                        .resolutionStatus(state)
                         .reasonPhrase(msg)
                         .exception(ex)
                         .build(),

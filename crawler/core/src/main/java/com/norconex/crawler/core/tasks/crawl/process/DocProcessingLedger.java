@@ -19,7 +19,7 @@ import java.util.function.BiPredicate;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.CrawlDocContext.Stage;
+import com.norconex.crawler.core.doc.DocProcessingStage;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.grid.GridQueue;
@@ -29,8 +29,16 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+//TODO instead of making an atomic call to hold the queue entry,
+// save if in processed store right away before returning, but
+// have a flag that says "processed entirely" which is false by default,
+// and also add field to capture an error.
+
 @Slf4j
 public class DocProcessingLedger { //implements Closeable {
+
+    //TODO rename DocLedger
+    //TODO remove all synchronized keywords?
 
     public static final String KEY_PROCESSED_CACHE = "ledger.process.cache";
     public static final String KEY_CACHED_CACHE = "ledger.cached.cache";
@@ -80,15 +88,25 @@ public class DocProcessingLedger { //implements Closeable {
         }
     }
 
-    public Stage getProcessingStage(String id) {
-        if (queue.contains(id)) {
-            return Stage.QUEUED;
-        }
-        if (processed.contains(id)) {
-            return Stage.PROCESSED;
-        }
-        return null;
+    /**
+     * Gets whether a reference is in the ledger, excluding cache.
+     * @param ref document reference
+     * @return <code>true</code> if in "active" ledger
+     */
+    public boolean isInActiveLedger(String ref) {
+        return queue.contains(ref) || processed.contains(ref);
     }
+
+    //TODO delete me since stage is now part of the DocContext
+    //    public DocProcessingStage getProcessingStage(String id) {
+    //        if (queue.contains(id)) {
+    //            return DocProcessingStage.QUEUED;
+    //        }
+    //        if (processed.contains(id)) {
+    //            return DocProcessingStage.PROCESSED;
+    //        }
+    //        return null;
+    //    }
 
     //--- Processed ---
 
@@ -109,15 +127,16 @@ public class DocProcessingLedger { //implements Closeable {
                 .map(json -> SerialUtil.fromJson(json, type));
     }
 
-    public synchronized void processed(@NonNull CrawlDocContext docRec) {
-        processed.put(docRec.getReference(), SerialUtil.toJsonString(docRec));
-        var cacheDeleted = cached.delete(docRec.getReference());
+    public synchronized void processed(@NonNull CrawlDocContext docCtx) {
+        docCtx.setProcessingStage(DocProcessingStage.RESOLVED);
+        processed.put(docCtx.getReference(), SerialUtil.toJsonString(docCtx));
+        var cacheDeleted = cached.delete(docCtx.getReference());
         LOG.debug("Saved processed: {} (Deleted from cache: {})", // Deleted from active: {})",
-                docRec.getReference(), cacheDeleted);//, activeDeleted);
+                docCtx.getReference(), cacheDeleted);//, activeDeleted);
         crawlerContext.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_PROCESSED)
                 .source(crawlerContext)
-                .docContext(docRec)
+                .docContext(docCtx)
                 .build());
     }
 
@@ -142,6 +161,7 @@ public class DocProcessingLedger { //implements Closeable {
     }
 
     public void queue(@NonNull CrawlDocContext docContext) {
+        docContext.setProcessingStage(DocProcessingStage.QUEUED);
         queue.put(docContext.getReference(),
                 SerialUtil.toJsonString(docContext));
         LOG.debug("Saved queued: {}", docContext.getReference());
@@ -152,9 +172,31 @@ public class DocProcessingLedger { //implements Closeable {
                 .build());
     }
 
-    // get and delete and mark as active
-    public synchronized Optional<CrawlDocContext> pollQueue() {
-        return queue.poll().map(json -> SerialUtil.fromJson(json, type));
+    @SuppressWarnings("unchecked")
+    public /*synchronized*/ Optional<CrawlDocContext> pollQueue() {
+        var opt = queue
+                .poll()
+                .map(json -> SerialUtil.fromJson(json, type));
+        opt.ifPresent(doc -> {
+            doc.setProcessingStage(DocProcessingStage.UNRESOLVED);
+            processed.put(doc.getReference(),
+                    SerialUtil.toJsonString(doc));
+        });
+        return (Optional<CrawlDocContext>) opt;
+        //
+        //
+        //        return (Optional<CrawlDocContext>) ConcurrentUtil.block(
+        //                crawlerContext.getGrid().compute().runLocalAtomic(() -> {
+        //                    var opt = queue
+        //                            .poll()
+        //                            .map(json -> SerialUtil.fromJson(json, type));
+        //                    opt.ifPresent(doc -> {
+        //                        doc.setProcessingStage(DocProcessingStage.UNRESOLVED);
+        //                        processed.put(doc.getReference(),
+        //                                SerialUtil.toJsonString(doc));
+        //                    });
+        //                    return opt;
+        //                }));
     }
 
     public boolean forEachQueued(

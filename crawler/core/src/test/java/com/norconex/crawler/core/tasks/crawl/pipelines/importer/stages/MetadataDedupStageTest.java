@@ -26,7 +26,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
@@ -56,16 +56,16 @@ class MetadataDedupStageTest {
 
         // Has duplicate meta
         var ctx = new ImporterPipelineContext(crawler, doc);
-        doc.getDocContext().setState(CrawlDocState.NEW);
+        doc.getDocContext().setState(DocResolutionStatus.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getDocContext().getState()).isSameAs(
-                CrawlDocState.REJECTED);
+                DocResolutionStatus.REJECTED);
 
         // Does not have duplicate meta
         when(dedupService.findOrTrackMetadata(Mockito.any()))
                 .thenReturn(Optional.empty());
-        doc.getDocContext().setState(CrawlDocState.NEW);
+        doc.getDocContext().setState(DocResolutionStatus.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getDocContext().getState()).isSameAs(CrawlDocState.NEW);
+        assertThat(doc.getDocContext().getState()).isSameAs(DocResolutionStatus.NEW);
     }
 }

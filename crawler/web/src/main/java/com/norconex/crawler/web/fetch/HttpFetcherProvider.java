@@ -49,7 +49,7 @@ public class HttpFetcherProvider
                 fetchers,
                 HttpMultiFetchResponse::new,
                 (state, msg, ex) -> GenericHttpFetchResponse.builder()
-                        .crawlDocState(state)
+                        .resolutionStatus(state)
                         .reasonPhrase(msg)
                         .exception(ex)
                         .build(),

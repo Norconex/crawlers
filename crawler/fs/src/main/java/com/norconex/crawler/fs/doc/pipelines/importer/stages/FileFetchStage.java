@@ -17,7 +17,7 @@ package com.norconex.crawler.fs.doc.pipelines.importer.stages;
 import java.time.ZonedDateTime;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
@@ -82,7 +82,7 @@ public class FileFetchStage extends AbstractImporterStage {
         meta.set(DocMetadata.CONTENT_TYPE, docRecord.getContentType());
         meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getCharset());
 
-        var state = response.getCrawlDocState();
+        var state = response.getResolutionStatus();
         //TODO really do here??  or just do it if different than response?
         docRecord.setState(state);
 
@@ -102,7 +102,7 @@ public class FileFetchStage extends AbstractImporterStage {
         }
 
         String eventType = null;
-        if (state.isOneOf(CrawlDocState.NOT_FOUND)) {
+        if (state.isOneOf(DocResolutionStatus.NOT_FOUND)) {
             eventType = CrawlerEvent.REJECTED_NOTFOUND;
         } else {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;

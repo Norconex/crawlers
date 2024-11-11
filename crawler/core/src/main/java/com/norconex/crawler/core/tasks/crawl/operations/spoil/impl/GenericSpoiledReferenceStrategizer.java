@@ -15,7 +15,7 @@
 package com.norconex.crawler.core.tasks.crawl.operations.spoil.impl;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategy;
 
@@ -54,7 +54,7 @@ public class GenericSpoiledReferenceStrategizer implements
 
     @Override
     public SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
-            String reference, CrawlDocState state) {
+            String reference, DocResolutionStatus state) {
 
         var strategy = configuration.getMappings().get(state);
         if (strategy == null) {

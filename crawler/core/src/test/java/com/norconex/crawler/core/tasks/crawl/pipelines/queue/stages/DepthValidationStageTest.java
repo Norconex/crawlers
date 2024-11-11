@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 
@@ -38,20 +38,20 @@ class DepthValidationStageTest {
 
         // Unlimited depth
         crawlerContext.getConfiguration().setMaxDepth(-1);
-        docRec.setState(CrawlDocState.NEW);
+        docRec.setState(DocResolutionStatus.NEW);
         new DepthValidationStage().test(ctx);
-        assertThat(docRec.getState()).isSameAs(CrawlDocState.NEW);
+        assertThat(docRec.getState()).isSameAs(DocResolutionStatus.NEW);
 
         // Max depth
         crawlerContext.getConfiguration().setMaxDepth(3);
-        docRec.setState(CrawlDocState.NEW);
+        docRec.setState(DocResolutionStatus.NEW);
         new DepthValidationStage().test(ctx);
-        assertThat(docRec.getState()).isSameAs(CrawlDocState.NEW);
+        assertThat(docRec.getState()).isSameAs(DocResolutionStatus.NEW);
 
         // Over max depth
         crawlerContext.getConfiguration().setMaxDepth(2);
-        docRec.setState(CrawlDocState.NEW);
+        docRec.setState(DocResolutionStatus.NEW);
         new DepthValidationStage().test(ctx);
-        assertThat(docRec.getState()).isSameAs(CrawlDocState.TOO_DEEP);
+        assertThat(docRec.getState()).isSameAs(DocResolutionStatus.TOO_DEEP);
     }
 }
