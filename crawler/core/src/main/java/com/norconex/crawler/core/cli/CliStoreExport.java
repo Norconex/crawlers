@@ -40,11 +40,18 @@ public class CliStoreExport extends CliBase {
         required = true
     )
     private Path dir;
-    //TODO add format?
-    //TODO add compress?
+
+    @Option(
+        names = { "-pretty" },
+        description = "Pretty-print the exported JSON files.",
+        required = false
+    )
+    private boolean pretty;
+
+    //TODO make compress configurable?
 
     @Override
     protected void runCommand(Crawler crawler) {
-        crawler.storageExport(dir);
+        crawler.storageExport(dir, pretty);
     }
 }

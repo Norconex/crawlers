@@ -55,13 +55,13 @@ public class CrawlerState {
         setState(KEY_QUEUE_INITIALIZED, queueInitialized);
     }
 
-    public boolean isTerminatedProperly() {
-        return getState(KEY_TERMINATED_OK);
-    }
-
-    public void setTerminatedProperly(boolean terminatedProperly) {
-        setState(KEY_TERMINATED_OK, terminatedProperly);
-    }
+    //    public boolean isTerminatedProperly() {
+    //        return getState(KEY_TERMINATED_OK);
+    //    }
+    //
+    //    public void setTerminatedProperly(boolean terminatedProperly) {
+    //        setState(KEY_TERMINATED_OK, terminatedProperly);
+    //    }
 
     public boolean isStopped() {
         return getState(KEY_STOPPED);

@@ -15,12 +15,15 @@
 package com.norconex.crawler.core;
 
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import com.norconex.crawler.core.grid.GridService;
 import com.norconex.crawler.core.services.CleanService;
+import com.norconex.crawler.core.services.StopService;
+import com.norconex.crawler.core.services.StoreExportService;
+import com.norconex.crawler.core.services.StoreImportService;
 import com.norconex.crawler.core.services.crawl.CrawlService;
+import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -64,88 +67,65 @@ public class Crawler {
     }
 
     public void crawl() {
-        executeService(CrawlService.class);
+        executeService(CrawlService.class, null);
     }
 
     public void stop() {
-        //TODO implement me
+        executeService(StopService.class, null);
     }
 
     public void clean() {
-        executeService(CleanService.class);
+        executeService(CleanService.class, null);
     }
 
-    public void storageExport(Path dir) {
-        //TODO implement me
+    public void storageExport(Path dir, boolean pretty) {
+        executeService(
+                StoreExportService.class,
+                SerialUtil.toJsonString(new StoreExportService.Args(
+                        dir.toAbsolutePath().toString(),
+                        pretty)));
     }
 
     public void storageImport(Path inFile) {
-        //TODO implement me
+        executeService(
+                StoreImportService.class, inFile.toAbsolutePath().toString());
     }
 
-    //    public static class TestTask implements GridTask {
-    //        private static final long serialVersionUID = 1L;
-    //
-    //        @Override
-    //        public void run(CrawlerContext crawlerContext, String arg) {
-    //            System.err.println("XXXXXXXXXX hello world!!!!!!!");
-    //        }
-    //    }
-
     protected void executeService(
-            Class<? extends GridService> gridServiceClass) {
+            Class<? extends GridService> gridServiceClass, String arg) {
 
         var serviceName = gridServiceClass.getSimpleName();
         LOG.info("Executing service: {}", serviceName);
-
         var grid = crawlerConfig
                 .getGridConnector()
                 .connect(crawlerSpecProviderClass, crawlerConfig);
 
-        Future<?> future =
-                grid.services().start(serviceName, gridServiceClass);
+        // Block until main services is done
+        ConcurrentUtil.block(
+                grid.services().start(serviceName, gridServiceClass, arg));
 
-        System.err.println(
-                "XXX Crawler class has invoked the crawl service. Blocking");
+        //        // trying...
+        //MAYBE? Instead pass a "terminating" flag to start? That way
+        // in this case it will be the singleton service that will
+        // invoke shutdown as opposed to every nodes.
 
-        try {
-            future.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new CrawlerException(
-                    "Could not execute crawler service.", e);
-        } catch (ExecutionException e) {
-            throw new CrawlerException(
-                    "Could not execute crawler service.", e);
-        }
+        LOG.info("Shutting down the crawler...");
+        ConcurrentUtil.block(grid.shutdown());
+        LOG.info("Crawler shudown complete.");
 
-        System.err.println(
-                "XXX CrawlService has returned... start() is done. Was end/cancel called everywhere?");
+        //MAYBE, or remove the events:
+        //        crawlerContext.fire(CrawlerEvent
+        //                .builder()
+        //                .name(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN)
+        //                .source(this)
+        //                .message("Starting to shut down crawler.")
+        //                .build());
+        //        crawlerContext.fire(CrawlerEvent
+        //                .builder()
+        //                .name(CrawlerEvent.CRAWLER_SHUTDOWN_END)
+        //                .source(this)
+        //                .message("Done shutting down the crawler.")
+        //                .build());
 
-        //TODO ???????? do we explicitly end the service?
-        //        System.err.println(
-        //                "XXX Crawler class has invoked the crawl service. Nothign to do. Shall we block/wait?");
-
-        //TODO what about these? are they handled?
-        //        ofNullable(context.getCallbacks().getBeforeCommand())
-        //                .ifPresent(c -> c.accept(context));
-        //        command.execute(context);
-        //        ofNullable(context.getCallbacks().getAfterCommand())
-        //                .ifPresent(c -> c.accept(context));
     }
-
-    //    private void executeCommand_OLD(Command command) {
-    //        init();
-    //        try {
-    //            LOG.info("Executing command: {}",
-    //                    command.getClass().getSimpleName());
-    //            ofNullable(context.getCallbacks().getBeforeCommand())
-    //                    .ifPresent(c -> c.accept(context));
-    //            command.execute(context);
-    //            ofNullable(context.getCallbacks().getAfterCommand())
-    //                    .ifPresent(c -> c.accept(context));
-    //        } finally {
-    //            close();
-    //        }
-    //    }
 }

@@ -19,7 +19,7 @@ import com.norconex.crawler.core.CrawlerContext;
 public interface GridService {
     void start(CrawlerContext crawlerContext);
 
-    void init(CrawlerContext crawlerContext);
+    void init(CrawlerContext crawlerContext, String arg);
 
     void end(CrawlerContext crawlerContext);
 }

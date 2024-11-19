@@ -21,6 +21,7 @@ import org.apache.commons.lang3.mutable.MutableLong;
 import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerProgressLogger;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridService;
 import com.norconex.crawler.core.grid.GridTxOptions;
 import com.norconex.crawler.core.tasks.crawl.CrawlTask;
@@ -49,7 +50,7 @@ public class CrawlService implements GridService {
     //            "crawl.start.refs.queued";
 
     @Override
-    public void init(CrawlerContext crawlerContext) {
+    public void init(CrawlerContext crawlerContext, String arg) {
         LogUtil.logCommandIntro(LOG, crawlerContext.getConfiguration());
         progressLogger = new CrawlerProgressLogger(
                 crawlerContext.getMetrics(),
@@ -61,6 +62,13 @@ public class CrawlService implements GridService {
     @Override
     public void start(CrawlerContext crawlerContext) {
 
+        crawlerContext.fire(CrawlerEvent
+                .builder()
+                .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
+                .source(this)
+                .message("Crawl service started.")
+                .build());
+
         DocLedgerPrepareExecutor.execute(crawlerContext);
         QueueInitExecutor.execute(crawlerContext);
         processQueue(crawlerContext, null);
@@ -68,18 +76,38 @@ public class CrawlService implements GridService {
             handleOrphans(crawlerContext);
         }
 
-        System.err.println("XXX I THINK I AM DONE, shutting down.");
+        //        System.err.println("XXX I THINK I AM DONE, shutting down.");
 
         // process orphans
         // finalize
+        //                crawlerContext.fire(CrawlerEvent
+        //                        .builder()
+        //                        .name(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN)
+        //                        .source(this)
+        //                        .message("Starting to shut down crawler.")
+        //                        .build());
+        //
+        //        //        crawlerContext.getGrid().shutdown();
+        //        //        System.err.println("XXX SHUT DOWN called.");
 
-        crawlerContext.getGrid().shutdown();
-        System.err.println("XXX SHUT DOWN called.");
+        crawlerContext.fire(CrawlerEvent
+                .builder()
+                .name(CrawlerEvent.CRAWLER_CRAWL_END)
+                .source(this)
+                .message("Done crawling.")
+                .build());
+
     }
 
     @Override
     public void end(CrawlerContext crawlerContext) {
-        System.err.println("XXX Ending crawl service...");
+        //        crawlerContext.fire(CrawlerEvent
+        //                .builder()
+        //                .name(CrawlerEvent.CRAWLER_SHUTDOWN_END)
+        //                .source(this)
+        //                .message("Done shutting down the crawler.")
+        //                .build());
+        //        System.err.println("XXX Ending crawl service...");
         //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
         //
         progressLogger.stopTracking();

@@ -91,15 +91,15 @@ public class CrawlerEvent extends Event {
      */
     public static final String CRAWLER_STOP_END = "CRAWLER_STOP_END";
 
-    /**
-     * Issued when the crawler is done processing and is about to shut down.
-     */
-    public static final String CRAWLER_SHUTDOWN_BEGIN =
-            "CRAWLER_SHUTDOWN_BEGIN";
-    /**
-     * Issued when the crawler is done processing and has shut down.
-     */
-    public static final String CRAWLER_SHUTDOWN_END = "CRAWLER_SHUTDOWN_END";
+    //    /**
+    //     * Issued when the crawler is done processing and is about to shut down.
+    //     */
+    //    public static final String CRAWLER_SHUTDOWN_BEGIN =
+    //            "CRAWLER_SHUTDOWN_BEGIN";
+    //    /**
+    //     * Issued when the crawler is done processing and has shut down.
+    //     */
+    //    public static final String CRAWLER_SHUTDOWN_END = "CRAWLER_SHUTDOWN_END";
 
     public static final String CRAWLER_CLEAN_BEGIN = "CRAWLER_CLEAN_BEGIN";
     public static final String CRAWLER_CLEAN_END = "CRAWLER_CLEAN_END";

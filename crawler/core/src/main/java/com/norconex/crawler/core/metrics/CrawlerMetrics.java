@@ -41,6 +41,7 @@ public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
             new ConcurrentHashMap<>();
     private GridCache<Long> eventCountsCache;
     private ScheduledExecutorService scheduler;
+    private boolean closed;
 
     public void init(CrawlerContext crawlerContext) {
         ledger = crawlerContext.getDocProcessingLedger();
@@ -60,6 +61,8 @@ public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
     private void flushBatch() {
         synchronized (eventCountsBatch) {
             eventCountsBatch.forEach((eventName, increment) -> {
+                //THE PROBLEM: eventCountCache has been removed by "clean service"
+                // so it fails here
                 eventCountsCache.update(eventName,
                         count -> (ofNullable(count).orElse(0L) + increment));
                 eventCountsBatch.put(eventName, 0L);
@@ -94,6 +97,10 @@ public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
 
     @Override
     public void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
         flushBatch();
         if (scheduler != null) {
             scheduler.shutdown();

@@ -38,19 +38,25 @@ public class IgniteGridServices implements GridServices {
 
     @Override
     public Future<?> start(
-            String serviceName, Class<? extends GridService> serviceClass) {
+            String serviceName,
+            Class<? extends GridService> serviceClass,
+            String arg) {
         return CompletableFuture.runAsync(() -> {
             System.err.println("XXX DEPLOYING THE CRAWL SERVICE...");
-            igniteGrid.getIgnite().services().deployClusterSingletonAsync(
-                    serviceName,
-                    new ServiceAdapter(serviceName, serviceClass))
-                    .get();
+
+            //NOTE: returns after service init()... start still running.
+            IgniteGridUtil.block(igniteGrid.getIgnite().services()
+                    .deployClusterSingletonAsync(
+                            serviceName,
+                            new ServiceAdapter(serviceName, serviceClass,
+                                    arg)));
             //            ignite.services().deployClusterSingleton(
             //                    serviceName, new ServiceAdapter(serviceClass));
 
             System.err
                     .println("XXX AM I REALLY DONE RUNNING THE CRAWL SERVICE?");
 
+            // block until start() is done...
             var cache = igniteGrid.storage().getCache(
                     IgniteGridKeys.RUN_ONCE_CACHE, String.class);
             var endedKey = serviceName + ".ended";
@@ -93,6 +99,7 @@ public class IgniteGridServices implements GridServices {
         private static final long serialVersionUID = 1L;
         private final String serviceName;
         private final Class<? extends GridService> serviceClass;
+        private final String arg;
         @Getter
         private transient GridService service;
         @Getter
@@ -102,7 +109,7 @@ public class IgniteGridServices implements GridServices {
         public void init() throws Exception {
             crawlerContext = IgniteGridUtil.getCrawlerContext();
             service = ClassUtil.newInstance(serviceClass);
-            service.init(crawlerContext);
+            service.init(crawlerContext, arg);
 
             //            crawlerContext
             //                    .getGrid()

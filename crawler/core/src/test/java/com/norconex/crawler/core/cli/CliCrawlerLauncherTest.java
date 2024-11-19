@@ -199,17 +199,17 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
+                CrawlerEvent.TASK_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_END,
+                CrawlerEvent.TASK_RUN_END,
                 CrawlerEvent.CRAWLER_CRAWL_END,
-                CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN,
+                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
-                CrawlerEvent.CRAWLER_SHUTDOWN_END);
+                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
 
         LOG.debug("=== Run 2: Clean and Start ===");
         var exit2 = launch(
@@ -229,12 +229,12 @@ class CliCrawlerLauncherTest {
                 CommitterEvent.COMMITTER_CLEAN_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
                 CrawlerEvent.CRAWLER_CLEAN_END,
-                CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN,
+                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
-                CrawlerEvent.CRAWLER_SHUTDOWN_END,
+                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END,
 
                 // Regular flow
                 CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
@@ -244,18 +244,17 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
+                CrawlerEvent.TASK_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_END,
+                CrawlerEvent.TASK_RUN_END,
                 CrawlerEvent.CRAWLER_CRAWL_END,
-                CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN,
+                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
-                CrawlerEvent.CRAWLER_SHUTDOWN_END);
-
+                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
         //TODO verify that crawlstore from previous run was deleted
         // and recreated
     }

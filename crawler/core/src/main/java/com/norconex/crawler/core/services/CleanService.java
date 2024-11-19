@@ -24,11 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 public class CleanService implements GridService {
 
     @Override
-    public void init(CrawlerContext crawlerContext) {
-        //        LogUtil.setMdcCrawlerId(crawlerContext.getId());
+    public void init(CrawlerContext crawlerContext, String arg) {
         Thread.currentThread().setName(crawlerContext.getId() + "/CLEAN");
-        //TODO do we still lock?        lock();
-
     }
 
     @Override
@@ -42,7 +39,24 @@ public class CleanService implements GridService {
                 .build());
 
         crawlerContext.getCommitterService().clean();
+
+        // Close metrics prematurely, before cleaning, or it will want to
+        // report on a blown-away store:
+        crawlerContext.getMetrics().close();
+
         crawlerContext.getGrid().storage().clean();
+
+        //        try {
+        //            System.err.println("XXX CLEAN CALLING SHUTDOWN");
+        //            System.err.flush();
+        //            //            crawlerContext.getMetrics().flush();
+        //            crawlerContext.getGrid().shutdown().get();
+        //            System.err.println("XXX CLEAN CALLED SHUTDOWN");
+        //            System.err.flush();
+        //        } catch (InterruptedException | ExecutionException e) {
+        //            // TODO Auto-generated catch block
+        //            e.printStackTrace();
+        //        }
 
         crawlerContext.fire(CrawlerEvent
                 .builder()
@@ -51,21 +65,11 @@ public class CleanService implements GridService {
                 .message("Done cleaning crawler.")
                 .build());
 
-        //        mvStore.close();
-        //        if (storeDir != null) {
-        //            try {
-        //                FileUtils.deleteDirectory(storeDir.toFile());
-        //            } catch (IOException e) {
-        //                throw new GridException("Could not delete crawl store: " +
-        //                        storeDir, e);
-        //            }
-        //        }
-
-        //        crawlerContext.close();
     }
 
     @Override
     public void end(CrawlerContext crawlerContext) {
+
         //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
         //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
 

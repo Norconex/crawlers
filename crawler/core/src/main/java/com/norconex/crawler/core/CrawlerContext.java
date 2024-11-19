@@ -49,8 +49,6 @@ import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
-import com.norconex.crawler.core.stop.CrawlerStopper;
-import com.norconex.crawler.core.stop.impl.FileBasedStopper;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DedupService;
 import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
 import com.norconex.crawler.core.tasks.crawl.process.DocProcessingLedger;
@@ -100,7 +98,7 @@ public class CrawlerContext implements Closeable {
     // into two context classes that overlap much.
 
     //--- Set on declaration ---
-    private final CrawlerStopper stopper = new FileBasedStopper(); // server only?
+    //    private final CrawlerStopper stopper = new FileBasedStopper(); // server only?
     private final DedupService dedupService = new DedupService(); // server only?
 
     //--- Set in constructor ---
@@ -242,13 +240,15 @@ public class CrawlerContext implements Closeable {
 
         dedupService.init(this);
 
-        getStopper().listenForStopRequest(this);
+        //        getStopper().listenForStopRequest(this);
 
         fire(CrawlerEvent.CRAWLER_CONTEXT_INIT_END);
     }
 
     @Override
     public void close() {
+        System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXX CrawlerContext.close()");
+        System.err.flush();
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN);
 
         // Defer shutdown
@@ -282,8 +282,8 @@ public class CrawlerContext implements Closeable {
             }
         }, "Could not delete the temporary directory:" + tempDir);
 
-        swallow(() -> state.setTerminatedProperly(true));
-        swallow(() -> getStopper().destroy());
+        //        swallow(() -> state.setTerminatedProperly(true));
+        //        swallow(() -> getStopper().destroy());
 
         initialized = false;
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);

@@ -14,8 +14,16 @@
  */
 package com.norconex.crawler.core.cli;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
+import com.norconex.commons.lang.ClassUtil;
+import com.norconex.commons.lang.ExceptionUtil;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
@@ -53,26 +61,27 @@ public class CliConfigRender extends CliBase {
     public void runCommand(Crawler crawler) {
         //TODO support different format, either explicit, on file extension
         // or default to XML
-        //        try (var out = output != null
-        //                ? new FileWriter(output.toFile())
-        //                : new StringWriter()) {
-        //
-        //            var f = Stream
-        //                    .of(Format.values())
-        //                    .filter(v -> v.name().equalsIgnoreCase(format))
-        //                    .findFirst()
-        //                    .orElse(Format.JSON);
-        //
-        //            crawler.getContext().getBeanMapper().write(
-        //                    crawler.getContext().getConfiguration(),
-        //                    out,
-        //                    f);
-        //            if (output == null) {
-        //                out().println(((StringWriter) out).toString());
-        //            }
-        //        } catch (InvalidPathException | IOException e) {
-        //            err().println("Could not render config: "
-        //                    + ExceptionUtil.getFormattedMessages(e));
-        //        }
+        try (var out = output != null
+                ? new FileWriter(output.toFile())
+                : new StringWriter()) {
+
+            var f = Stream
+                    .of(Format.values())
+                    .filter(v -> v.name().equalsIgnoreCase(format))
+                    .findFirst()
+                    .orElse(Format.JSON);
+
+            ClassUtil
+                    .newInstance(crawler.getCrawlerSpecProviderClass())
+                    .get()
+                    .beanMapper()
+                    .write(crawler.getCrawlerConfig(), out, f);
+            if (output == null) {
+                out().println(((StringWriter) out).toString());
+            }
+        } catch (InvalidPathException | IOException e) {
+            err().println("Could not render config: "
+                    + ExceptionUtil.getFormattedMessages(e));
+        }
     }
 }

@@ -25,7 +25,6 @@ import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.stop.CrawlerStopper;
 import com.norconex.crawler.core.tasks.crawl.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.tasks.crawl.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.DocumentFilter;
@@ -50,7 +49,7 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        addPolyType(map, CrawlerStopper.class); //TODO really want it configurable? maybe default choses between file-based and store-based.
+        //        addPolyType(map, CrawlerStopper.class); //TODO really want it configurable? maybe default choses between file-based and store-based.
         addPolyType(map, GridConnector.class);
         addPolyType(map, DocumentChecksummer.class);
         addPolyType(map, DocumentFilter.class);

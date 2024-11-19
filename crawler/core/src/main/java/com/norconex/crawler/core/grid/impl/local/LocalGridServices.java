@@ -35,13 +35,34 @@ public class LocalGridServices implements GridServices {
 
     @Override
     public Future<?> start(
-            String serviceName, Class<? extends GridService> serviceClass) {
+            String serviceName,
+            Class<? extends GridService> serviceClass,
+            String arg) {
+
+        System.err.println("XXX STARTING SERVICE: " + serviceName);
+        System.err.flush();
+
         var gridService = ClassUtil.newInstance(serviceClass);
         services.put(serviceName, gridService);
-        return CompletableFuture.runAsync(() -> {
-            gridService.init(crawlerContext);
+
+        //???: Return right after init async. A blocking of init should not block
+        // start.
+        Future<?> future = CompletableFuture.runAsync(() -> {
+            gridService.init(crawlerContext, arg);
+            System.err
+                    .println("XXX DONE with service init for: " + serviceName);
+            System.err.flush();
             gridService.start(crawlerContext);
+            System.err
+                    .println("XXX DONE with service start for: " + serviceName);
+            System.err.flush();
+            //CompletableFuture.runAsync(() -> gridService.start(crawlerContext));
         });
+
+        System.err.println("XXX RETURNING FUTURE FOR SERVICE: " + serviceName);
+        System.err.flush();
+
+        return future;
     }
 
     @SuppressWarnings("unchecked")

@@ -96,7 +96,7 @@ public class DeleteRejectedEventListener implements
             return;
         }
 
-        if (CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN.equals(event.getName())) {
+        if (CrawlerEvent.CRAWLER_CRAWL_END.equals(event.getName())) {
             doneCrawling = true;
             commitDeletions(crawlerEvent.getSource());
         } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {

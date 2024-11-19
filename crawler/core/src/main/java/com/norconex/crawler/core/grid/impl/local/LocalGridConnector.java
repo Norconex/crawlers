@@ -47,7 +47,6 @@ public class LocalGridConnector
     private final LocalGridConnectorConfig configuration =
             new LocalGridConnectorConfig();
 
-    @SuppressWarnings("resource")
     @Override
     public Grid connect(
             Class<? extends CrawlerSpecProvider> specProviderClass,
@@ -110,11 +109,11 @@ public class LocalGridConnector
             mvstore = builder.open();
         } catch (MVStoreException e) {
             LOG.warn("""
-                    An exception occurred while trying to open the store engine.\s\
-                    This could happen due to an abnormal shutdown on a previous\s\
-                    execution of the crawler. An attempt will be made to recover.\s\
-                    It is advised to back-up the store engine if you want to\s\
-                    preserve the crawl history.""",
+                An exception occurred while trying to open the store engine.\s\
+                This could happen due to an abnormal shutdown on a previous\s\
+                execution of the crawler. An attempt will be made to recover.\s\
+                It is advised to back-up the store engine if you want to\s\
+                preserve the crawl history.""",
                     e);
             builder.recoveryMode();
             mvstore = builder.open();

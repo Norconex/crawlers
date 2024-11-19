@@ -54,7 +54,7 @@ public class LocalGrid implements Grid {
         this.mvstore = mvstore;
         this.crawlerContext = crawlerContext;
         gridCompute = new LocalGridCompute(mvstore, crawlerContext);
-        gridStorage = new LocalGridStorage(storeDir, mvstore);
+        gridStorage = new LocalGridStorage(mvstore);
         gridServices = new LocalGridServices(crawlerContext);
     }
 
@@ -82,14 +82,16 @@ public class LocalGrid implements Grid {
             //        if (crawlerContext != null) {
             //            crawlerContext.close();
             //        }
-            if (mvstore != null && !mvstore.isClosed()) {
-                //            mvstore.close();
-            }
             if (crawlerContext != null) {
                 crawlerContext.close();
             }
 
             gridServices.closeAll();
+
+            if (mvstore != null && !mvstore.isClosed()) {
+                mvstore.close();
+            }
+
             //TODO shutdown all services by calling "end" on each.
         });
 

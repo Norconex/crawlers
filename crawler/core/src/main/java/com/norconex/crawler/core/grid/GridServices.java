@@ -19,14 +19,17 @@ import java.util.concurrent.Future;
 public interface GridServices {
 
     /**
-     * Start a service. The future returns when the service is no longer
-     * running.
+     * Starts a service. The future is completed when the service
+     * has/was ended.
      * @param serviceName a unique service name
      * @param serviceClass class of the service to run
+     * @param arg optional argument if the service expects one
      * @return a future
      */
-    Future<?> start(String serviceName,
-            Class<? extends GridService> serviceClass);
+    Future<?> start(
+            String serviceName,
+            Class<? extends GridService> serviceClass,
+            String arg);
 
     <T extends GridService> T get(String serviceName);
 
