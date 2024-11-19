@@ -28,7 +28,7 @@
 
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
-    <kafka.version>3.5.0</kafka.version>
+    <kafka.version>3.7.1</kafka.version>
     <gson.version>2.11.0</gson.version>
   </properties>
   <inceptionYear>2023</inceptionYear>
