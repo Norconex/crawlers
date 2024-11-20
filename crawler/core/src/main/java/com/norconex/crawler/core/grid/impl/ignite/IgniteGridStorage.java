@@ -143,7 +143,7 @@ public class IgniteGridStorage implements GridStorage {
         }
         return ClassUtil.newInstance(
                 concreteType,
-                igniteGrid,
+                igniteGrid.getIgnite(),
                 storeName,
                 objectType);
     }

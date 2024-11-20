@@ -16,6 +16,7 @@ package com.norconex.crawler.core.stubs;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
@@ -144,10 +145,37 @@ public final class StubCrawlerConfig {
     }
 
     public static Path writeConfigToDir(
-            Path workDir,
-            @NonNull Consumer<CrawlerConfig> c) {
+            Path workDir, Consumer<CrawlerConfig> c) {
         var config = memoryCrawlerConfig(workDir);
-        c.accept(config);
+        if (c != null) {
+            c.accept(config);
+        }
         return writeConfigToDir(config);
+    }
+
+    public static void writeOrUpdateConfigToFile(
+            Path configFile, Consumer<CrawlerConfig> c) {
+        CrawlerConfig config = null;
+        if (Files.exists(configFile)) {
+            config = new CrawlerConfig();
+            try (Reader r = Files.newBufferedReader(configFile)) {
+                BeanMapper.DEFAULT.read(config, r,
+                        Format.fromPath(configFile, Format.JSON));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            config = toMemoryCrawlerConfig(configFile.getParent(), config);
+        } else {
+            config = memoryCrawlerConfig(configFile.getParent());
+        }
+
+        if (c != null) {
+            c.accept(config);
+        }
+        try (Writer w = Files.newBufferedWriter(configFile)) {
+            BeanMapper.DEFAULT.write(config, w, Format.YAML);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

@@ -15,12 +15,14 @@
 package com.norconex.crawler.core.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterEvent;
@@ -35,6 +37,7 @@ import com.norconex.crawler.core.mocks.cli.MockCliLauncher;
 import com.norconex.crawler.core.mocks.crawler.MockCrawler;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -57,18 +60,16 @@ class CliCrawlerLauncherTest {
                 "help configcheck");
     }
 
-    @ParameterizedGridConnectorTest
-    void testErrors(Class<? extends GridConnector> gridConnClass)
+    @Test
+    void testErrors()
             throws Exception {
         // Bad args
-        var exit1 = launch(gridConnClass, "potato", "--soup");
+        var exit1 = launchVerbatim("potato", "--soup");
         assertThat(exit1.ok()).isFalse();
-        assertThat(exit1.getStdErr()).contains(
-                "Unmatched arguments");
+        assertThat(exit1.getStdErr()).contains("Unmatched arguments");
 
         // Non existant config file
-        var exit2 = launch(
-                gridConnClass,
+        var exit2 = launchVerbatim(
                 "configcheck",
                 "-config=" + TimeIdGenerator.next() + "IDontExist");
         assertThat(exit2.ok()).isFalse();
@@ -76,14 +77,14 @@ class CliCrawlerLauncherTest {
                 "Configuration file does not exist");
 
         // Simulate Picocli Exception
-        var exit3 = launch(gridConnClass, "clean", "-config=", "-config=");
+        var exit3 = launchVerbatim("clean", "-config=", "-config=");
         assertThat(exit3.ok()).isFalse();
         assertThat(exit3.getStdErr()).contains(
                 "should be specified only once",
                 "Usage:",
                 "Clean the");
 
-        var exit4 = launch(gridConnClass, "clean", "-config=", "-config=");
+        var exit4 = launchVerbatim("clean", "-config=", "-config=");
         assertThat(exit4.ok()).isFalse();
         assertThat(exit4.getStdErr()).contains(
                 "should be specified only once",
@@ -95,7 +96,7 @@ class CliCrawlerLauncherTest {
         Files.writeString(file, """
                 <crawler badAttr="badAttr"></crawler>
                 """);
-        var exit5 = launch(gridConnClass, "configcheck", "-config=" + file);
+        var exit5 = launchVerbatim("configcheck", "-config=" + file);
         assertThat(exit5.ok()).isFalse();
         assertThat(exit5.getStdErr()).contains(
                 "Unrecognized field \"badAttr\"");
@@ -148,16 +149,18 @@ class CliCrawlerLauncherTest {
                 </crawler>
                 """);
 
-        var exit = launch(gridConnClass,
-                "configcheck", "-config=" + cfgFile.toAbsolutePath());
-        assertThat(exit.ok()).isFalse();
-        assertThat(exit.getStdErr()).contains(
-                "\"numThreads\" must be greater than or equal to 1.");
+        assertThatExceptionOfType(ConstraintViolationException.class)
+                .isThrownBy(() -> { //NOSONAR
+                    launch(gridConnClass,
+                            "configcheck",
+                            "-config=" + cfgFile.toAbsolutePath());
+                })
+                .toString()
+                .contains("\"numThreads\" must be greater than or equal to 1.");
     }
 
     @ParameterizedGridConnectorTest
-    void testStoreExportImport(Class<? extends GridConnector> gridConnClass)
-            throws IOException {
+    void testStoreExportImport(Class<? extends GridConnector> gridConnClass) {
         var exportDir = tempDir.resolve("exportdir");
         var exportFile = exportDir.resolve(MockCrawler.CRAWLER_ID + ".zip");
         var configFile = StubCrawlerConfig.writeConfigToDir(
@@ -288,9 +291,10 @@ class CliCrawlerLauncherTest {
     // actually stopping a crawl session and being on a cluster?
     @ParameterizedGridConnectorTest
     void testStop(Class<? extends GridConnector> gridConnClass) {
+        // we are just testing that the CLI is launching, not that it actually
+        // stopped, which is tested separately.
         var exit = launch(gridConnClass, "stop", "-config=");
         assertThat(exit.ok()).isTrue();
-        throw new UnsupportedOperationException("IMPLEMENT ME");
     }
 
     @ParameterizedGridConnectorTest
@@ -300,9 +304,11 @@ class CliCrawlerLauncherTest {
 
         var exit1 = launch(gridConnClass, "configrender", "-config=" + cfgFile);
         assertThat(exit1.ok()).isTrue();
-        // check that some entries not explicitely configured are NOT present
+        // check that some entries not explicitly configured are NOT present
         // (with V4, "default" values are not exported):
         assertThat(exit1.getStdOut()).doesNotContain("<importer");
+
+        cfgFile = StubCrawlerConfig.writeConfigToDir(tempDir, cfg -> {});
 
         var renderedFile = tempDir.resolve("configrender.xml");
         var exit2 = launch(
@@ -310,10 +316,10 @@ class CliCrawlerLauncherTest {
                 "configrender",
                 "-config=" + cfgFile,
                 "-output=" + renderedFile);
+
         assertThat(exit2.ok()).isTrue();
         assertThat(Files.readString(renderedFile).trim()).isEqualTo(
                 exit1.getStdOut().trim());
-        throw new UnsupportedOperationException("IMPLEMENT ME");
     }
 
     @ParameterizedGridConnectorTest
@@ -326,6 +332,10 @@ class CliCrawlerLauncherTest {
                 // passing a directory to get FileNotFoundException
                 "-output=" + tempDir.toAbsolutePath());
         assertThat(exit.getStdErr()).contains("FileNotFoundException");
+    }
+
+    private MockCliExit launchVerbatim(String... cmdArgs) {
+        return MockCliLauncher.launchVerbatim(cmdArgs);
     }
 
     private MockCliExit launch(

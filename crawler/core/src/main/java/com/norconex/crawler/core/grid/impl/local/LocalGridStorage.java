@@ -93,7 +93,7 @@ public class LocalGridStorage implements GridStorage {
     @JsonIgnore
     @Override
     public Set<String> getStoreNames() {
-        return getActualStoreNames()
+        return getStoreNamesAndVariations()
                 .keySet()
                 .stream()
                 .filter(nm -> !STORE_TYPES_KEY.equals(nm))
@@ -158,19 +158,25 @@ public class LocalGridStorage implements GridStorage {
         return store;
     }
 
-    private ListValuedMap<String, String> getActualStoreNames() {
+    // We return "external" names and their internal variations.
+    // We don't return the one for storing types, that is an internal one.
+    private ListValuedMap<String, String> getStoreNamesAndVariations() {
         var names = new ArrayListValuedHashMap<String, String>();
-        mvStore.getMapNames().forEach(
-                nm -> names.put(
+        mvStore.getMapNames().forEach(nm -> {
+            if (!STORE_TYPES_KEY.equals(nm)) {
+                names.put(
                         StringUtils.substringBeforeLast(nm, SUFFIX_SEPARATOR),
-                        nm));
+                        nm);
+            }
+
+        });
         return names;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    class StoreTypes {
+    static class StoreTypes {
         private Class<?> objectType;
         private Class<?> storeType;
     }

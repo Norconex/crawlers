@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.cli;
 
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.norconex.commons.lang.ClassUtil;
@@ -84,13 +85,13 @@ public abstract class CliBase implements Runnable {
     }
 
     private CrawlerConfig loadConfiguration(CrawlerSpec spec) {
-        if (getConfigFile() == null || !getConfigFile().toFile().isFile()) {
+        if (getConfigFile() == null
+                || !Files.exists(getConfigFile())
+                || !getConfigFile().toFile().isFile()) {
             throw new CliException(
                     "Configuration file does not exist or is not valid: "
                             + getConfigFile().toFile().getAbsolutePath());
         }
-        //        var cfg = ClassUtil.newInstance(spec.crawlerConfigClass());
-        //        var cfg = crawlerContext.getConfiguration();
         try {
             return ConfigurationLoader
                     .builder()

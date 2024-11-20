@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -51,36 +52,42 @@ public class MockCliLauncher {
 
     public MockCliExit launch() {
         var workDirRef = new MutableObject<Path>();
-        //NOTE configuration will be read from file, but applied on top
-        // of existing config so we can pre-configure items here.
-        var cfgFile = StubCrawlerConfig.writeConfigToDir(workDir, cfg -> {
+        Consumer<CrawlerConfig> modifierWrapper = cfg -> {
             workDirRef.setValue(ConfigUtil.resolveWorkDir(cfg));
             if (configModifier != null) {
                 configModifier.accept(cfg);
             }
-            cfg.addEventListener(new MockCliEventWriter());
-        });
+            if (cfg.getEventListeners().stream()
+                    .noneMatch(MockCliEventWriter.class::isInstance)) {
+                cfg.addEventListener(new MockCliEventWriter());
+            }
+        };
 
-        // replace config path with created path if argument was supplied
-        // without a file
-        var cmdArgs = args != null ? args.toArray(ArrayUtils.EMPTY_STRING_ARRAY)
-                : ArrayUtils.EMPTY_STRING_ARRAY;
-        for (var i = 0; i < cmdArgs.length; i++) {
-            var arg = cmdArgs[i];
-            if (StringUtils.equalsAny(arg, "-config=", "-c=")) {
-                cmdArgs[i] = "-config=" + cfgFile;
+        var cfgFileStr = getConfigPathStrFromArgs();
+        Path cfgFile = null;
+        if (StringUtils.isNotBlank(cfgFileStr)) {
+            cfgFile = Path.of(cfgFileStr);
+            StubCrawlerConfig.writeOrUpdateConfigToFile(cfgFile,
+                    modifierWrapper);
+
+        } else {
+            cfgFile = StubCrawlerConfig.writeConfigToDir(
+                    workDir, modifierWrapper);
+        }
+
+        // Replace config path with created path if argument was supplied
+        // without a file.
+        var cmdArgs = args.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+        if ("".equals(cfgFileStr)) {
+            for (var i = 0; i < cmdArgs.length; i++) {
+                var arg = cmdArgs[i];
+                if (StringUtils.equalsAny(arg, "-config=", "-c=")) {
+                    cmdArgs[i] = "-config=" + cfgFile;
+                }
             }
         }
 
-        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
-                () -> CliCrawlerLauncher.launch(
-                        MockCrawlerSpecProvider.class,
-                        cmdArgs));
-
-        var exit = new MockCliExit();
-        exit.setCode(captured.getReturnValue());
-        exit.setStdOut(captured.getStdOut());
-        exit.setStdErr(captured.getStdErr());
+        var exit = launchVerbatim(cmdArgs);
 
         if (logErrors && StringUtils.isNotBlank(exit.getStdErr())) {
             LOG.error(exit.getStdErr());
@@ -98,6 +105,42 @@ public class MockCliLauncher {
         }
         return exit;
     }
+
+    /**
+     * Does not interpret the command or modify the config file.
+     * The returned exit object does not have captured events.
+     */
+    public static MockCliExit launchVerbatim(String... cmdArgs) {
+        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
+                () -> CliCrawlerLauncher.launch(
+                        MockCrawlerSpecProvider.class,
+                        cmdArgs));
+        var exit = new MockCliExit();
+        exit.setCode(captured.getReturnValue());
+        exit.setStdOut(captured.getStdOut());
+        exit.setStdErr(captured.getStdErr());
+        return exit;
+    }
+
+    // null, no supplied
+    // empty, arg name supplied, no value
+    // not-empty, has a config file argument
+    private String getConfigPathStrFromArgs() {
+        if (CollectionUtils.isEmpty(args)) {
+            return null;
+        }
+        for (String arg : args) {
+            if (StringUtils.startsWithAny(arg, "-config", "-c")) {
+                return StringUtils.substringAfter(arg, "=").trim();
+            }
+        }
+        return null;
+    }
+
+    // if passed as argument, load it from file first
+    //    private Path resolveConfigFile() {
+    //
+    //    }
 
     //    public static MockCliExit launch_DELETE(
     //            @NonNull Path workDir,

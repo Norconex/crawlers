@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.crawler.core.CrawlerConfig;
@@ -100,7 +101,7 @@ class CrawlerTestExtension implements
                 annot.config(), cfgStr -> BeanMapper.DEFAULT.read(
                         crawlerConfig,
                         new StringReader(cfgStr),
-                        BeanMapper.detectFormat(cfgStr)));
+                        Format.fromContent(cfgStr, Format.XML)));
 
         // apply config modifier from consumer
         if (annot.configModifier() != null) {
