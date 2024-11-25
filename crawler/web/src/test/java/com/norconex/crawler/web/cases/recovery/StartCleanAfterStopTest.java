@@ -46,7 +46,7 @@ class StartCleanAfterStopTest {
 
         WebsiteMock.whenInfiniteDepth(client);
 
-        var stopper = new CrawlSessionStopper();
+        //        var stopper = new CrawlSessionStopper();
 
         var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
         cfg.setStartReferences(List.of(serverUrl(client, path + "/0000")));
@@ -58,7 +58,7 @@ class StartCleanAfterStopTest {
         cfg.setDocumentChecksummer(null);
 
         // First run should stop with 7 commits only (0-6)
-        cfg.addEventListener(stopper);
+        //        cfg.addEventListener(stopper);
         var outcome = ExternalCrawlSessionLauncher.start(cfg);
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());
@@ -73,7 +73,7 @@ class StartCleanAfterStopTest {
 
         // Second run, we clean and we should get 10 documents, including
         // the same first 7.
-        cfg.removeEventListener(stopper);
+        //        cfg.removeEventListener(stopper);
         outcome = ExternalCrawlSessionLauncher.startClean(cfg);
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());

@@ -62,14 +62,6 @@ public class IgniteGridCompute implements GridCompute {
             } else {
                 chosenOne = runOnceCache.put(jobName, "running");
             }
-
-            //            chosenOne = ((IgniteGridCache<String>) runOnceCache).getCache()
-            //                    .putIfAbsent(jobName, "running");
-
-            System.err.println("XXX Am I the chosen one? " + chosenOne);
-            System.err.println("XXX Job name: " + jobName);
-            System.err.println(
-                    "XXX Existing Value: " + runOnceCache.get(jobName));
         } finally {
             lock.unlock();
         }
@@ -90,7 +82,7 @@ public class IgniteGridCompute implements GridCompute {
             }
             LOG.info("Job run by another node: {}", jobName);
             return executor.submit(() -> {
-                //TODO have a timeout?
+                //TODO have a timeout where we force exit?
                 var done = false;
                 while (!done) {
                     var status = runOnceCache.get(jobName);
@@ -107,25 +99,6 @@ public class IgniteGridCompute implements GridCompute {
             executor.shutdown();
         }
     }
-    //
-    //    @Override
-    //    public <T> Future<T> runLocalAtomic(Callable<T> callable)
-    //            throws GridException {
-    //        return CompletableFuture.supplyAsync(() -> {
-    //            try (var tx = igniteGrid.getIgnite().transactions().txStart(
-    //                    TransactionConcurrency.PESSIMISTIC,
-    //                    TransactionIsolation.REPEATABLE_READ)) {
-    //                var result = callable.call();
-    //                System.err.println("   XXX result: " + result);
-    //                tx.commit();
-    //                return result;
-    //            } catch (Exception e) {
-    //                System.err.println("XXX ERROR in runLocalAtomic: ");
-    //                e.printStackTrace(System.err);
-    //                throw new GridException("Grid transaction failed.", e);
-    //            }
-    //        });
-    //    }
 
     @Override
     public <T> Future<Collection<? extends T>> runOnAll(
@@ -151,7 +124,6 @@ public class IgniteGridCompute implements GridCompute {
                 taskClass.getName(), opts,
                 () -> igniteGrid.getIgnite().compute().call(
                         () -> IgniteGridServerTaskRunner.execute(
-                                //TODO can we pass the class to execute instead of its string representation?
                                 taskClass.getName(), arg)));
     }
 

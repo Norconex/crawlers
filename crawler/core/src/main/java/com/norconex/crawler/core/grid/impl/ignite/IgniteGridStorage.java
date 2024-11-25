@@ -116,10 +116,12 @@ public class IgniteGridStorage implements GridStorage {
     public void forEachStore(Consumer<GridStore<?>> storeConsumer) {
         getStoreNames().forEach(name -> {
             var objAndStoreTypes = objectAndStoreTypes().get(name);
-            storeConsumer.accept(concreteStore(
-                    objAndStoreTypes.get2(),
-                    name,
-                    objAndStoreTypes.get1()));
+            if (objAndStoreTypes != null) {
+                storeConsumer.accept(concreteStore(
+                        objAndStoreTypes.get2(),
+                        name,
+                        objAndStoreTypes.get1()));
+            }
         });
     }
 

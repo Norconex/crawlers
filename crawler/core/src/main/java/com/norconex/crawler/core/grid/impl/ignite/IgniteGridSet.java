@@ -37,7 +37,7 @@ public class IgniteGridSet<T> implements GridSet<T> {
     private final Class<? extends T> type;
 
     @NonNull
-    IgniteGridSet(Ignite ignite, String name, Class<? extends T> type) {
+    public IgniteGridSet(Ignite ignite, String name, Class<? extends T> type) {
         this.type = type;
         this.name = name;
         set = ignite.set(

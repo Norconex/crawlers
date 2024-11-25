@@ -53,9 +53,6 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class Crawler {
 
-    //TODO ensure it is supported somewhere else in code
-    //    public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
-
     private final Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass;
     private final CrawlerConfig crawlerConfig;
 
@@ -111,21 +108,10 @@ public class Crawler {
 
         LOG.info("Shutting down the crawler...");
         ConcurrentUtil.block(grid.shutdown());
-        LOG.info("Crawler shudown complete.");
 
-        //MAYBE, or remove the events:
-        //        crawlerContext.fire(CrawlerEvent
-        //                .builder()
-        //                .name(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN)
-        //                .source(this)
-        //                .message("Starting to shut down crawler.")
-        //                .build());
-        //        crawlerContext.fire(CrawlerEvent
-        //                .builder()
-        //                .name(CrawlerEvent.CRAWLER_SHUTDOWN_END)
-        //                .source(this)
-        //                .message("Done shutting down the crawler.")
-        //                .build());
+        // Despite blocking... it only blocks sending the command, not until
+        // it is shut down...
+        LOG.info("Crawler shudown complete.");
 
     }
 }

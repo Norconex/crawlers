@@ -37,18 +37,9 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class CrawlerEvent extends Event {
 
-    //TODO rename some to be "CRAWLTASK_..."
+    //MAYBE rename some to be "CRAWLTASK_..."?
 
     private static final long serialVersionUID = 1L;
-
-    /**
-     * The crawler began its initialization.
-     */
-    //    public static final String CRAWLER_INIT_BEGIN = "CRAWLER_INIT_BEGIN";
-    /**
-     * The crawler has been initialized.
-     */
-    //    public static final String CRAWLER_INIT_END = "CRAWLER_INIT_END";
 
     public static final String CRAWLER_CONTEXT_INIT_BEGIN =
             "CRAWLER_CONTEXT_INIT_BEGIN";
@@ -84,22 +75,14 @@ public class CrawlerEvent extends Event {
     /**
      * Issued when a request to stop the crawler has been received.
      */
-    public static final String CRAWLER_STOP_BEGIN = "CRAWLER_STOP_BEGIN";
+    public static final String CRAWLER_STOP_REQUEST_BEGIN =
+            "CRAWLER_STOP_REQUEST_BEGIN";
     /**
      * Issued when a request to stop the crawler has been fully executed
      * (crawler stopped).
      */
-    public static final String CRAWLER_STOP_END = "CRAWLER_STOP_END";
-
-    //    /**
-    //     * Issued when the crawler is done processing and is about to shut down.
-    //     */
-    //    public static final String CRAWLER_SHUTDOWN_BEGIN =
-    //            "CRAWLER_SHUTDOWN_BEGIN";
-    //    /**
-    //     * Issued when the crawler is done processing and has shut down.
-    //     */
-    //    public static final String CRAWLER_SHUTDOWN_END = "CRAWLER_SHUTDOWN_END";
+    public static final String CRAWLER_STOP_REQUEST_END =
+            "CRAWLER_STOP_REQUEST_END";
 
     public static final String CRAWLER_CLEAN_BEGIN = "CRAWLER_CLEAN_BEGIN";
     public static final String CRAWLER_CLEAN_END = "CRAWLER_CLEAN_END";
@@ -113,15 +96,8 @@ public class CrawlerEvent extends Event {
     public static final String CRAWLER_STORE_IMPORT_END =
             "CRAWLER_STORE_IMPORT_END";
 
-    //    public static final String TASK_CONTEXT_INIT_BEGIN =
-    //            "TASK_CONTEX_INIT_BEGIN";
-    //    public static final String TASK_CONTEXT_INIT_END = "TASK_CONTEXT_INIT_END";
     public static final String TASK_RUN_BEGIN = "TASK_RUN_BEGIN";
     public static final String TASK_RUN_END = "TASK_RUN_END";
-    //    public static final String TASK_CONTEXT_SHUTDOWN_BEGIN =
-    //            "TASK_CONTEXT_SHUTDOWN_BEGIN";
-    //    public static final String TASK_CONTEXT_SHUTDOWN_END =
-    //            "TASK_CONTEXT_SHUTDOWN_END";
 
     public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
 
@@ -229,7 +205,7 @@ public class CrawlerEvent extends Event {
     }
 
     public boolean isCrawlerShutdown() {
-        return is(CRAWLER_CRAWL_END, CRAWLER_STOP_END);
+        return is(CRAWLER_CRAWL_END, CRAWLER_STOP_REQUEST_END);
     }
 
     @Override

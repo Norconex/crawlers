@@ -22,12 +22,10 @@ import lombok.NonNull;
 @Data
 public class CrawlerState {
 
-    private static final String KEY_CACHE = "CrawlerState";
-    private static final String KEY_QUEUE_INITIALIZED = ".queueInitialized";
-    private static final String KEY_RESUMING = KEY_CACHE + ".resuming";
-    private static final String KEY_TERMINATED_OK = KEY_CACHE + ".terminatedOK";
-    private static final String KEY_STOPPED = KEY_CACHE + ".stopped";
-    private static final String KEY_STOP_REQUESTED =
+    public static final String KEY_CACHE = "CrawlerState";
+    public static final String KEY_QUEUE_INITIALIZED = ".queueInitialized";
+    public static final String KEY_RESUMING = KEY_CACHE + ".resuming";
+    public static final String KEY_STOP_REQUESTED =
             KEY_CACHE + ".stopRequested";
 
     private GridCache<Boolean> cache;
@@ -36,8 +34,6 @@ public class CrawlerState {
         cache = crawlerContext.getGrid().storage().getCache(
                 "CrawlerState", Boolean.class);
     }
-
-    //TODO consider how these should be set/get in a multi-node environment
 
     public boolean isResuming() {
         return getState(KEY_RESUMING);
@@ -53,22 +49,6 @@ public class CrawlerState {
 
     public void setQueueInitialized(boolean queueInitialized) {
         setState(KEY_QUEUE_INITIALIZED, queueInitialized);
-    }
-
-    //    public boolean isTerminatedProperly() {
-    //        return getState(KEY_TERMINATED_OK);
-    //    }
-    //
-    //    public void setTerminatedProperly(boolean terminatedProperly) {
-    //        setState(KEY_TERMINATED_OK, terminatedProperly);
-    //    }
-
-    public boolean isStopped() {
-        return getState(KEY_STOPPED);
-    }
-
-    public void setStopped(boolean stoped) {
-        setState(KEY_STOPPED, stoped);
     }
 
     public boolean isStopRequested() {

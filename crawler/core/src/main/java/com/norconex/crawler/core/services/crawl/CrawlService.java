@@ -39,15 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CrawlService implements GridService {
 
-    //    public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
-
     private CrawlerProgressLogger progressLogger;
-
-    //TODO have a general life-cycle facade or procesing-state facade
-    // where all the global keys can be found.  Or is the
-    // DocProcessingLedger already for that?
-    //    public static final String KEY_START_REFS_QUEUED =
-    //            "crawl.start.refs.queued";
 
     @Override
     public void init(CrawlerContext crawlerContext, String arg) {
@@ -60,7 +52,7 @@ public class CrawlService implements GridService {
     }
 
     @Override
-    public void start(CrawlerContext crawlerContext) {
+    public void execute(CrawlerContext crawlerContext) {
 
         crawlerContext.fire(CrawlerEvent
                 .builder()
@@ -76,20 +68,6 @@ public class CrawlService implements GridService {
             handleOrphans(crawlerContext);
         }
 
-        //        System.err.println("XXX I THINK I AM DONE, shutting down.");
-
-        // process orphans
-        // finalize
-        //                crawlerContext.fire(CrawlerEvent
-        //                        .builder()
-        //                        .name(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN)
-        //                        .source(this)
-        //                        .message("Starting to shut down crawler.")
-        //                        .build());
-        //
-        //        //        crawlerContext.getGrid().shutdown();
-        //        //        System.err.println("XXX SHUT DOWN called.");
-
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_END)
@@ -97,29 +75,14 @@ public class CrawlService implements GridService {
                 .message("Done crawling.")
                 .build());
 
+        progressLogger.stopTracking();
+        LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
+        LOG.info("Crawler ended");
     }
 
     @Override
-    public void end(CrawlerContext crawlerContext) {
-        //        crawlerContext.fire(CrawlerEvent
-        //                .builder()
-        //                .name(CrawlerEvent.CRAWLER_SHUTDOWN_END)
-        //                .source(this)
-        //                .message("Done shutting down the crawler.")
-        //                .build());
-        //        System.err.println("XXX Ending crawl service...");
-        //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
-        //
-        progressLogger.stopTracking();
-        LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
-        LOG.info("Crawler {}",
-                (crawlerContext.getState().isStopped() ? "stopped."
-                        : "completed."));
-        //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
-        //        crawlerContext.close();
-        //System.err.println("XXX About to close crawler context.");
-        //crawlerContext.close();
-        //System.err.println("XXX Closed crawler context");
+    public void stop(CrawlerContext crawlerContext) {
+        crawlerContext.getState().setStopRequested(true);
     }
 
     // On all nodes, block

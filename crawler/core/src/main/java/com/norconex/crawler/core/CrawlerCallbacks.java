@@ -50,7 +50,6 @@ public class CrawlerCallbacks {
      * the {@link CrawlTask} is done processing its last reference, before all
      * task resources are shut down.
      * Invoked right after
-    //     * {@link CrawlerEvent#CRAWLER_STOP_END} or
      * {@link CrawlerEvent#TASK_RUN_END} (depending which of the two is
      * triggered).
      */

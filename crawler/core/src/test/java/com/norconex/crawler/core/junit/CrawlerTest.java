@@ -27,9 +27,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
-import com.norconex.crawler.core.mocks.grid.MockIgniteGridConnector;
 
 /**
  * <p>
@@ -50,7 +50,10 @@ public @interface CrawlerTest {
     Class<? extends CrawlerSpecProvider> specProvider() default MockCrawlerSpecProvider.class;
 
     Class<? extends GridConnector>[] gridConnectors() default {
-            LocalGridConnector.class, MockIgniteGridConnector.class };
+            LocalGridConnector.class,
+            IgniteGridConnector.class
+            //            MockIgniteGridConnector.class
+    };
 
     /**
      * Whether to run the crawler before executing the test. Otherwise

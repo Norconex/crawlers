@@ -44,7 +44,8 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
     private final Class<? extends T> type;
 
     @NonNull
-    IgniteGridQueue(Ignite ignite, String name, Class<? extends T> type) {
+    public IgniteGridQueue(Ignite ignite, String name,
+            Class<? extends T> type) {
         this.type = type;
         this.name = name;
         queue = ignite.queue(name + IgniteGridStorage.Suffix.QUEUE,

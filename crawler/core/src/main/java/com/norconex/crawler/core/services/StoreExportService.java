@@ -68,7 +68,7 @@ public class StoreExportService implements GridService {
     }
 
     @Override
-    public void start(CrawlerContext crawlerContext) {
+    public void execute(CrawlerContext crawlerContext) {
 
         try {
             var storage = crawlerContext.getGrid().storage();
@@ -105,7 +105,7 @@ public class StoreExportService implements GridService {
     }
 
     @Override
-    public void end(CrawlerContext crawlerContext) {
+    public void stop(CrawlerContext crawlerContext) {
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_STORE_EXPORT_END)

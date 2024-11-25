@@ -52,20 +52,12 @@ class ActivityChecker {
     }
 
     private boolean doIsActive() {
-
         if (isMaxDocsReached()) {
             return false;
         }
-
         if (isQueueInitializedAndEmpty()) {
             return !isQueueStillEmptyAfterIdleTimeout();
         }
-
-        System.err.println("XXX Queue empty?: "
-                + crawlerContext.getDocProcessingLedger().isQueueEmpty());
-        System.err.println("XXX Queue size: "
-                + crawlerContext.getDocProcessingLedger().getQueueCount());
-
         return true;
     }
 

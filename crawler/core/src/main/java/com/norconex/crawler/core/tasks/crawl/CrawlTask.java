@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridTask;
 import com.norconex.crawler.core.tasks.crawl.process.DocProcessor;
 
@@ -43,10 +42,8 @@ public class CrawlTask implements GridTask<Void> {
 
     @Override
     public Void run(CrawlerContext crawlerContext, String arg) {
-        //TODO maybe merge DocsProcessor here instead?
-        System.err.println("XXX About to run DocsProcessor...");
         var state = crawlerContext.getState();
-        if (state.isStopRequested() || state.isStopped()) {
+        if (state.isStopRequested()) {
             return null;
         }
 
@@ -66,29 +63,10 @@ public class CrawlTask implements GridTask<Void> {
             LOG.info("Crawling references...");
             crawlReferences(crawlerContext, flags);
         } finally {
-            try {
-                ofNullable(crawlerContext.getCallbacks().getAfterCrawlTask())
-                        .ifPresent(cb -> cb.accept(crawlerContext));
-            } finally {
-                //TODO do this here??
-                LOG.info("Crawler {}",
-                        (crawlerContext.getState().isStopped() ? "stopped."
-                                : "completed."));
-                if (state.isStopRequested()) {
-                    state.setStopped(true);
-                    crawlerContext.fire(CrawlerEvent.CRAWLER_STOP_END);
-                }
-            }
+            ofNullable(crawlerContext.getCallbacks().getAfterCrawlTask())
+                    .ifPresent(cb -> cb.accept(crawlerContext));
         }
 
-        //TODO do this here??
-        LOG.info("Crawler {}",
-                (crawlerContext.getState().isStopped() ? "stopped."
-                        : "completed."));
-        if (crawlerContext.getState().isStopRequested()) {
-            crawlerContext.getState().setStopped(true);
-            crawlerContext.fire(CrawlerEvent.CRAWLER_STOP_END);
-        }
         return null;
     }
 
@@ -125,13 +103,6 @@ public class CrawlTask implements GridTask<Void> {
             }
         }
     }
-
-    //    @Override
-    //    public void run(CrawlerContext crawlerContext, String arg) {
-    //        //TODO maybe merge DocsProcessor here instead?
-    //        System.err.println("XXX About to run DocsProcessor...");
-    //        new DocsProcessor(crawlerContext).run();
-    //    }
 
     @Data
     @Accessors(fluent = true)

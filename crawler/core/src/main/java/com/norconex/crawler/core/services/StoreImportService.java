@@ -58,7 +58,7 @@ public class StoreImportService implements GridService {
     }
 
     @Override
-    public void start(CrawlerContext crawlerContext) {
+    public void execute(CrawlerContext crawlerContext) {
 
         // Export/Import is normally executed in a controlled environment
         // so not susceptible to Zip Bomb attacks.
@@ -81,7 +81,7 @@ public class StoreImportService implements GridService {
     }
 
     @Override
-    public void end(CrawlerContext crawlerContext) {
+    public void stop(CrawlerContext crawlerContext) {
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_STORE_IMPORT_END)

@@ -39,30 +39,12 @@ public class LocalGridServices implements GridServices {
             Class<? extends GridService> serviceClass,
             String arg) {
 
-        System.err.println("XXX STARTING SERVICE: " + serviceName);
-        System.err.flush();
-
         var gridService = ClassUtil.newInstance(serviceClass);
         services.put(serviceName, gridService);
-
-        //???: Return right after init async. A blocking of init should not block
-        // start.
-        Future<?> future = CompletableFuture.runAsync(() -> {
+        return CompletableFuture.runAsync(() -> {
             gridService.init(crawlerContext, arg);
-            System.err
-                    .println("XXX DONE with service init for: " + serviceName);
-            System.err.flush();
-            gridService.start(crawlerContext);
-            System.err
-                    .println("XXX DONE with service start for: " + serviceName);
-            System.err.flush();
-            //CompletableFuture.runAsync(() -> gridService.start(crawlerContext));
+            gridService.execute(crawlerContext);
         });
-
-        System.err.println("XXX RETURNING FUTURE FOR SERVICE: " + serviceName);
-        System.err.flush();
-
-        return future;
     }
 
     @SuppressWarnings("unchecked")
@@ -76,12 +58,12 @@ public class LocalGridServices implements GridServices {
         var service = services.get(serviceName);
         if (service != null) {
             return CompletableFuture.runAsync(
-                    () -> service.end(crawlerContext));
+                    () -> service.stop(crawlerContext));
         }
         return CompletableFuture.completedFuture(null);
     }
 
     void closeAll() {
-        services.values().forEach(srv -> srv.end(crawlerContext));
+        services.values().forEach(srv -> srv.stop(crawlerContext));
     }
 }

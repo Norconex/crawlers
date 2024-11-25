@@ -94,13 +94,13 @@ public class StopCrawlerOnMaxEventListener implements
     private Map<String, AtomicLong> eventCounts = new ConcurrentHashMap<>();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private CrawlerContext crawler;
+    private CrawlerContext crawlerContext;
 
     @Override
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             eventCounts.clear();
-            crawler = ((CrawlerEvent) event).getSource();
+            crawlerContext = ((CrawlerEvent) event).getSource();
         }
 
         if (!configuration.getEventMatcher().matches(event.getName())) {
@@ -112,8 +112,8 @@ public class StopCrawlerOnMaxEventListener implements
 
         if (isMaxReached()) {
             LOG.info("Maximum number of events reached for crawler: {}",
-                    crawler.getId());
-            crawler.stop();
+                    crawlerContext.getId());
+            crawlerContext.getState().setStopRequested(true);
         }
     }
 

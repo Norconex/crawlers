@@ -44,41 +44,6 @@ public interface GridCompute {
     <T> Future<T> runLocalOnce(String jobName, Callable<T> callable)
             throws GridException;
 
-    //    /**
-    //     * Runs the supplied {@link Callable} within an atomic transaction. That
-    //     * is, changes made to the grid store will be rolled-back when encountering
-    //     * an exception. The execution takes place on the node invoking this method.
-    //     * If you seek job execution fail-over, do not rely on this method.
-    //     * This method can be invoked any number of times.
-    //     * Because it is always executed by the calling node, this means no
-    //     * serialization is required.
-    //     * Changes to the grid made within this method call are not visible
-    //     * to other threads reading the grid until the method fully executed
-    //     * (i.e., until the transaction is committed). At the same time,
-    //     * obtained grid storage entries are locked, preventing other threads
-    //     * from accessing them (pessimistic lock).
-    //     * @param <T> Type of callable return value
-    //     * @param callable code to execute
-    //     * @return future with the callable return value (can be <code>null</code>)
-    //     * @throws GridException problem with runnable execution
-    //     */
-    //    <T> Future<T> runLocalAtomic(Callable<T> callable)
-    //            throws GridException;
-
-    //    void runTask_ORIGINAL(
-    //            Class<? extends GridTask> taskClass,
-    //            String arg,
-    //            GridTxOptions opts)
-    //            throws GridException;
-
-    //TODO if we go with something like this as the base class
-    // for everything else, also modify GridTask
-    //    <T> FutureTask<Collection<? extends T>> runTask(
-    //            Class<? extends GridTask> taskClass,
-    //            String arg,
-    //            GridTxOptions opts)
-    //            throws GridException;
-
     /**
      * Runs the supplied grid task on all grid nodes and have all node results
      * stored in a {@link Collection} in a {@link Future}.
@@ -100,7 +65,7 @@ public interface GridCompute {
     /**
      * Runs the supplied grid task on one node and have the result
      * stored in a {@link Future}. Unlike
-     * {@link #runLocalOnce(String, Runnable)}, there is no guarantee on
+     * {@link #runLocalOnce(String, Callable)}, there is no guarantee on
      * which node the code will be executed. In addition, the same task can be
      * executed any number of times by callers.
      * @param taskClass the task class to be instantiated and executed

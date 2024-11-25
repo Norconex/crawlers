@@ -41,21 +41,18 @@ public abstract class CrawlerLifeCycleListener
             onCrawlerCrawlBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
             onCrawlerCrawlEnd(event);
-            onCrawlerShutdown(event);
         } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
             onTaskRunBegin(event);
         } else if (event.is(CrawlerEvent.TASK_RUN_END)) {
             onTaskRunEnd(event);
-            onTaskShutdown(event);
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)) {
             onCrawlerRunThreadBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)) {
             onCrawlerRunThreadEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_STOP_BEGIN)) {
+        } else if (event.is(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)) {
             onCrawlerStopBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_STOP_END)) {
+        } else if (event.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
             onCrawlerStopEnd(event);
-            onCrawlerShutdown(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CLEAN_BEGIN)) {
             onCrawlerCleanBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CLEAN_END)) {
@@ -64,16 +61,6 @@ public abstract class CrawlerLifeCycleListener
     }
 
     protected void onCrawlerEvent(CrawlerEvent event) {
-        //NOOP
-    }
-
-    /**
-     * Triggered when a crawler is ending its execution on either
-     * a {@link CrawlerEvent#CRAWLER_CRAWL_END} or
-     * {@link CrawlerEvent#CRAWLER_STOP_END} event.
-     * @param event crawler event
-     */
-    protected void onCrawlerShutdown(CrawlerEvent event) {
         //NOOP
     }
 
@@ -93,15 +80,11 @@ public abstract class CrawlerLifeCycleListener
         //NOOP
     }
 
-    private void onTaskRunEnd(CrawlerEvent event) {
+    protected void onTaskRunEnd(CrawlerEvent event) {
         //NOOP
     }
 
-    private void onTaskRunBegin(CrawlerEvent event) {
-        //NOOP
-    }
-
-    private void onTaskShutdown(CrawlerEvent event) {
+    protected void onTaskRunBegin(CrawlerEvent event) {
         //NOOP
     }
 

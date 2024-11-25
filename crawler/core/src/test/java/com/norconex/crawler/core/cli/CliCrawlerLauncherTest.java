@@ -22,12 +22,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.apache.ignite.Ignition;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.ClassUtil;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridConnector;
@@ -49,6 +52,39 @@ class CliCrawlerLauncherTest {
 
     @TempDir
     private Path tempDir;
+
+    // Ensures ignite has no hold on the temp files before a cleanup attempt
+    // of the tempDir is made by Junit. If we have to do this work around
+    // too often, modify the ParameterizedGridConnectorTest to handle this.
+    @AfterEach
+    void tearDown() {
+        waitForGridShutdown();
+    }
+
+    private void waitForGridShutdown() {
+        if (isIgniteRunning()) {
+            LOG.info("Ignite still running, stopping it.");
+            Ignition.stopAll(true);
+        }
+        var cnt = 0;
+        do {
+            Sleeper.sleepMillis(500);
+            if (cnt >= 10) {
+                LOG.error("Ignite did not appear to shutdown.");
+                break;
+            }
+            cnt++;
+        } while (isIgniteRunning());
+    }
+
+    private boolean isIgniteRunning() {
+        try {
+            Ignition.ignite();
+            return true;
+        } catch (IllegalStateException e) {
+            return false;
+        }
+    }
 
     @ParameterizedGridConnectorTest
     void testNoArgs(Class<? extends GridConnector> gridConnClass) {
@@ -186,9 +222,7 @@ class CliCrawlerLauncherTest {
     }
 
     @ParameterizedGridConnectorTest
-    void testStart(Class<? extends GridConnector> gridConnClass)
-            throws IOException {
-        LOG.debug("=== Run 1: Start ===");
+    void testStart(Class<? extends GridConnector> gridConnClass) {
         var exit1 = launch(gridConnClass, "start", "-config=");
         if (!exit1.ok()) {
             LOG.error("Could not start crawler properly. Output:\n{}", exit1);
@@ -213,8 +247,11 @@ class CliCrawlerLauncherTest {
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
                 CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
+    }
 
-        LOG.debug("=== Run 2: Clean and Start ===");
+    @ParameterizedGridConnectorTest
+    void testStartAfterClean(Class<? extends GridConnector> gridConnClass) {
+
         var exit2 = launch(
                 gridConnClass, "start", "-clean", "-config=");
         assertThat(exit2.ok()).withFailMessage(exit2.getStdErr()).isTrue();
@@ -285,6 +322,7 @@ class CliCrawlerLauncherTest {
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
                 CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
+
     }
 
     //TODO move this to its own test with more elaborate tests involving

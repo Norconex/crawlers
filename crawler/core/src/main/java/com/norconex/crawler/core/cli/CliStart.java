@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.cli;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
@@ -46,6 +47,7 @@ public class CliStart extends CliBase {
     protected void runCommand(Crawler crawler) {
         if (clean) {
             crawler.clean();
+            Sleeper.sleepSeconds(3);
         }
         crawler.crawl();
     }

@@ -46,11 +46,13 @@ public class LocalGrid implements Grid {
     private LocalGridCompute gridCompute;
     private LocalGridStorage gridStorage;
     private LocalGridServices gridServices;
+    private boolean closed;
 
     public void init(
             Path storeDir,
             MVStore mvstore,
             CrawlerContext crawlerContext) {
+        closed = false;
         this.mvstore = mvstore;
         this.crawlerContext = crawlerContext;
         gridCompute = new LocalGridCompute(mvstore, crawlerContext);
@@ -78,10 +80,10 @@ public class LocalGrid implements Grid {
 
     @Override
     public Future<Void> shutdown() {
+        if (closed) {
+            return CompletableFuture.completedFuture(null);
+        }
         return CompletableFuture.runAsync(() -> {
-            //        if (crawlerContext != null) {
-            //            crawlerContext.close();
-            //        }
             if (crawlerContext != null) {
                 crawlerContext.close();
             }
@@ -91,14 +93,7 @@ public class LocalGrid implements Grid {
             if (mvstore != null && !mvstore.isClosed()) {
                 mvstore.close();
             }
-
-            //TODO shutdown all services by calling "end" on each.
         });
-
-        //        crawlerContext = null;
-        //        gridCompute = null;
-        //        gridStorage = null;
-        //        mvstore = null;
     }
 
     private void ensureInit() {

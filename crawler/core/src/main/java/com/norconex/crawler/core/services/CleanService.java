@@ -29,7 +29,7 @@ public class CleanService implements GridService {
     }
 
     @Override
-    public void start(CrawlerContext crawlerContext) {
+    public void execute(CrawlerContext crawlerContext) {
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_CLEAN_BEGIN)
@@ -46,32 +46,16 @@ public class CleanService implements GridService {
 
         crawlerContext.getGrid().storage().clean();
 
-        //        try {
-        //            System.err.println("XXX CLEAN CALLING SHUTDOWN");
-        //            System.err.flush();
-        //            //            crawlerContext.getMetrics().flush();
-        //            crawlerContext.getGrid().shutdown().get();
-        //            System.err.println("XXX CLEAN CALLED SHUTDOWN");
-        //            System.err.flush();
-        //        } catch (InterruptedException | ExecutionException e) {
-        //            // TODO Auto-generated catch block
-        //            e.printStackTrace();
-        //        }
-
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_CLEAN_END)
                 .source(this)
                 .message("Done cleaning crawler.")
                 .build());
-
     }
 
     @Override
-    public void end(CrawlerContext crawlerContext) {
-
-        //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN);
-        //        crawlerContext.fire(CrawlerEvent.CRAWLER_SHUTDOWN_END);
-
+    public void stop(CrawlerContext crawlerContext) {
+        //NOOP - It does not make sense to stop in the middle of a clean.
     }
 }

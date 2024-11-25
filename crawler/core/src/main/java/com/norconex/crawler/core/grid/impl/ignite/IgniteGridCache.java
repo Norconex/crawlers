@@ -41,7 +41,8 @@ public class IgniteGridCache<T> implements GridCache<T> {
     private final Class<? extends T> type;
 
     @NonNull
-    IgniteGridCache(Ignite ignite, String name, Class<? extends T> type) {
+    public IgniteGridCache(Ignite ignite, String name,
+            Class<? extends T> type) {
         this.type = type;
         this.name = name;
         var cfg = new CacheConfiguration<String, T>();

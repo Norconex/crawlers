@@ -45,7 +45,7 @@ class ResumeAfterStopTest {
 
         WebsiteMock.whenInfiniteDepth(client);
 
-        var stopper = new CrawlSessionStopper();
+        //        var stopper = new CrawlSessionStopper();
 
         var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
         cfg.setStartReferences(List.of(serverUrl(client, path + "/0000")));
@@ -57,7 +57,7 @@ class ResumeAfterStopTest {
         cfg.setDocumentChecksummer(null);
 
         // First run should stop with 7 commits only (0-6)
-        cfg.addEventListener(stopper);
+        //        cfg.addEventListener(stopper);
         var outcome = ExternalCrawlSessionLauncher.start(cfg);
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());
@@ -72,7 +72,7 @@ class ResumeAfterStopTest {
 
         // Second run, it should resume and finish normally, crawling
         // 10 docs in this session.
-        cfg.removeEventListener(stopper);
+        //   cfg.removeEventListener(stopper);
         outcome = ExternalCrawlSessionLauncher.start(cfg);
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());

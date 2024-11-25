@@ -14,40 +14,21 @@
  */
 package com.norconex.crawler.core.mocks.cli;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.event.CrawlerEvent;
 
-public final class MockCliEventWriter
-        implements EventListener<Event> {
+import lombok.extern.slf4j.Slf4j;
 
-    public static final String EVENTS_FILE_NAME = "events.txt";
+@Slf4j
+public final class MockCliEventWriter implements EventListener<Event> {
 
-    private Path eventFile;
+    public static final List<String> EVENTS = new ArrayList<>();
 
     @Override
     public void accept(Event event) {
-        if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN)) {
-            eventFile = ((CrawlerEvent) event)
-                    .getSource()
-                    .getWorkDir()
-                    .resolve(EVENTS_FILE_NAME);
-        }
-
-        try {
-            Files.writeString(
-                    eventFile,
-                    event.getName() + "\n",
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.APPEND);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        EVENTS.add(event.getName());
     }
 }

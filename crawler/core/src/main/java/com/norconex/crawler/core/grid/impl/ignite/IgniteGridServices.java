@@ -42,7 +42,7 @@ public class IgniteGridServices implements GridServices {
             Class<? extends GridService> serviceClass,
             String arg) {
         return CompletableFuture.runAsync(() -> {
-            System.err.println("XXX DEPLOYING THE CRAWL SERVICE...");
+            LOG.info("Deploying service: {}", serviceName);
 
             //NOTE: returns after service init()... start still running.
             IgniteGridUtil.block(igniteGrid.getIgnite().services()
@@ -50,20 +50,13 @@ public class IgniteGridServices implements GridServices {
                             serviceName,
                             new ServiceAdapter(serviceName, serviceClass,
                                     arg)));
-            //            ignite.services().deployClusterSingleton(
-            //                    serviceName, new ServiceAdapter(serviceClass));
 
-            System.err
-                    .println("XXX AM I REALLY DONE RUNNING THE CRAWL SERVICE?");
-
-            // block until start() is done...
+            // wait until start() is done...
             var cache = igniteGrid.storage().getCache(
                     IgniteGridKeys.RUN_ONCE_CACHE, String.class);
             var endedKey = serviceName + ".ended";
+            //TODO have a timeout to for exit after a while?
             while (!Boolean.parseBoolean(cache.get(endedKey))) {
-                System.err.println("XXX is the services ended? GOT from "
-                        + serviceClass.getSimpleName() + ".ended : "
-                        + cache.get(endedKey));
                 Sleeper.sleepSeconds(1);
             }
             cache.delete(endedKey);
@@ -110,37 +103,22 @@ public class IgniteGridServices implements GridServices {
             crawlerContext = IgniteGridUtil.getCrawlerContext();
             service = ClassUtil.newInstance(serviceClass);
             service.init(crawlerContext, arg);
-
-            //            crawlerContext
-            //                    .getGrid()
-            //                    .storage()
-            //                    .getGlobalCache()
-            //                    .put(serviceClass.getSimpleName() + ".initialized", "true");
         }
 
         @Override
         public void execute() throws Exception {
-
-            //            System.err.println("XXX Sleeping for 4 seconds...");
-            //            Sleeper.sleepSeconds(4);
-
-            service.start(crawlerContext);
-
-            System.err.println("XXX Setting " + serviceClass.getSimpleName()
-                    + ".ended to true.");
-
+            service.execute(crawlerContext);
             crawlerContext
                     .getGrid()
                     .storage()
                     .getCache(IgniteGridKeys.RUN_ONCE_CACHE, String.class)
                     .put(serviceName + ".ended", "true");
-            System.err.println("XXX ENDED");
         }
 
         @Override
         public void cancel() {
-            System.err.println("XXX Cancelling service: " + serviceName);
-            service.end(crawlerContext);
+            LOG.info("Stopping service: {}", serviceName);
+            service.stop(crawlerContext);
 
         }
     }

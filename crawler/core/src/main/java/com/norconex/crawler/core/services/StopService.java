@@ -17,7 +17,6 @@ package com.norconex.crawler.core.services;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridService;
-import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,27 +26,29 @@ public class StopService implements GridService {
     @Override
     public void init(CrawlerContext crawlerContext, String arg) {
         Thread.currentThread().setName(crawlerContext.getId() + "/STOP");
+    }
+
+    @Override
+    public void execute(CrawlerContext crawlerContext) {
         crawlerContext.fire(CrawlerEvent
                 .builder()
-                .name(CrawlerEvent.CRAWLER_STOP_BEGIN)
+                .name(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)
                 .source(this)
                 .message("Received request to stop the crawler.")
                 .build());
-    }
 
-    @Override
-    public void start(CrawlerContext crawlerContext) {
-        ConcurrentUtil.block(crawlerContext.getGrid().shutdown());
-    }
+        crawlerContext.getGrid().shutdown();
 
-    @Override
-    public void end(CrawlerContext crawlerContext) {
         crawlerContext.fire(CrawlerEvent
                 .builder()
-                .name(CrawlerEvent.CRAWLER_STOP_END)
+                .name(CrawlerEvent.CRAWLER_STOP_REQUEST_END)
                 .source(this)
                 .message("Crawler stopped")
                 .build());
+    }
 
+    @Override
+    public void stop(CrawlerContext crawlerContext) {
+        //NOOP
     }
 }

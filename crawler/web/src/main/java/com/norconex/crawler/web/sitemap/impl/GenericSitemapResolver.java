@@ -212,9 +212,4 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     protected void onCrawlerStopBegin(CrawlerEvent event) {
         stopping.setTrue();
     }
-
-    @Override
-    protected void onCrawlerShutdown(CrawlerEvent event) {
-        sitemapStore = null;
-    }
 }

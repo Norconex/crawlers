@@ -71,7 +71,7 @@ public class IgniteGridConnector
         configurePersistentStorage(igniteCfg);
         configureDiscovery(igniteCfg, 0, 1);
 
-        var ignite = Ignition.start(igniteCfg);
+        var ignite = Ignition.getOrStart(igniteCfg);
 
         // Perform initial activation if needed
         if (ignite.cluster().state() != ClusterState.ACTIVE) {
@@ -111,9 +111,7 @@ public class IgniteGridConnector
         var instanceName = igniteCfg.getIgniteInstanceName();
         igniteCfg.setWorkDirectory(
                 ConfigUtil.resolveWorkDir(crawlerCfg)
-                        //                        .resolve(FileUtil.toSafeFileName(instanceName))
                         .toAbsolutePath().toString());
-        System.err.println("XXX WORK DIR IS: " + igniteCfg.getWorkDirectory());
         LOG.info("Ignite %s work directory: %s"
                 .formatted(instanceName, igniteCfg.getWorkDirectory()));
     }

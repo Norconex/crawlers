@@ -15,12 +15,10 @@
 package com.norconex.crawler.core.mocks.crawler;
 
 import java.nio.file.Path;
-import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerSpecProvider;
-import com.norconex.crawler.core.mocks.grid.MockIgniteGridConnector;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 public final class MockCrawler extends Crawler {
@@ -62,19 +60,5 @@ public final class MockCrawler extends Crawler {
             specClass = MockCrawlerSpecProvider.class;
         }
         return new MockCrawler(specClass, cfg);
-    }
-
-    public static MockCrawler memoryCrawler(
-            Path workDir, Consumer<CrawlerConfig> c) {
-        var cfg = StubCrawlerConfig.memoryCrawlerConfig(workDir);
-        if (c != null) {
-            c.accept(cfg);
-        }
-
-        //Do grid via annotation instead:
-        var conn = new MockIgniteGridConnector();
-        conn.setServerNodes(2);
-        cfg.setGridConnector(conn);
-        return new MockCrawler(MockCrawlerSpecProvider.class, cfg);
     }
 }

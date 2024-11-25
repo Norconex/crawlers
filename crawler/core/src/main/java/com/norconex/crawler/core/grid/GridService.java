@@ -16,10 +16,29 @@ package com.norconex.crawler.core.grid;
 
 import com.norconex.crawler.core.CrawlerContext;
 
+/**
+ * Long running process or process that runs in parallel to other activities.
+ */
 public interface GridService {
-    void start(CrawlerContext crawlerContext);
 
+    /**
+     * Initialize the grid service.
+     * @param crawlerContext the initialized crawler context
+     * @param arg possible service argument
+     */
     void init(CrawlerContext crawlerContext, String arg);
 
-    void end(CrawlerContext crawlerContext);
+    /**
+     * Executes the service.  That typically includes starting a process
+     * and cleaning after it if necessary when done executing.
+     * @param crawlerContext the initialized crawler context
+     */
+    void execute(CrawlerContext crawlerContext);
+
+    /**
+     * Stops the service execution prematurely (if not already stopped).
+     * Has to be invoked explicitly. Never called directly by the grid.
+     * @param crawlerContext initialized crawler context
+     */
+    void stop(CrawlerContext crawlerContext);
 }

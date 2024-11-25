@@ -31,11 +31,6 @@ class CrawlerLifeCycleListenerTest {
         }
 
         @Override
-        protected void onCrawlerShutdown(CrawlerEvent event) {
-            method.setValue(method.getValue() + "+onCrawlerShutdown");
-        }
-
-        @Override
         protected void onCrawlerContextInitBegin(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerContextInitBegin");
         }
@@ -100,9 +95,9 @@ class CrawlerLifeCycleListenerTest {
                 "onCrawlerEvent+onCrawlerRunThreadBegin");
         assertThat(m(CrawlerEvent.CRAWLER_RUN_THREAD_END)).isEqualTo(
                 "onCrawlerEvent+onCrawlerRunThreadEnd");
-        assertThat(m(CrawlerEvent.CRAWLER_STOP_BEGIN)).isEqualTo(
+        assertThat(m(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)).isEqualTo(
                 "onCrawlerEvent+onCrawlerStopBegin");
-        assertThat(m(CrawlerEvent.CRAWLER_STOP_END)).isEqualTo(
+        assertThat(m(CrawlerEvent.CRAWLER_STOP_REQUEST_END)).isEqualTo(
                 "onCrawlerEvent+onCrawlerStopEnd+onCrawlerShutdown");
         assertThat(m(CrawlerEvent.CRAWLER_CLEAN_BEGIN)).isEqualTo(
                 "onCrawlerEvent+onCrawlerCleanBegin");

@@ -53,20 +53,6 @@ class CrawlerTest {
                 tempDir,
                 cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
                         .setGridConnector(new MockNoopGridConnector())
-
-                        //                        .setGridConnector(new MvStoreDataStoreEngine() {
-                        //                            @Override
-                        //                            public <T> DataStore<T> openStore(
-                        //                                    String storeName, Class<? extends T> type) {
-                        //                                return new MockNoopDataStore<>() {
-                        //                                    @Override
-                        //                                    public Optional<T> deleteFirst() {
-                        //                                        throw new UnsupportedOperationException(
-                        //                                                "TEST");
-                        //                                    }
-                        //                                };
-                        //                            }
-                        //                        })
                         .setNumThreads(2)
                         .addEventListener(evt -> {
                             if (evt.is(CrawlerEvent.CRAWLER_ERROR)) {
@@ -97,7 +83,7 @@ class CrawlerTest {
                             if (evt.is(CrawlerEvent.REJECTED_ERROR)) {
                                 exception.setValue(evt.getException());
                             }
-                            if (evt.is(CrawlerEvent.CRAWLER_STOP_END)) {
+                            if (evt.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
                                 stopped.setValue(true);
                             }
                         }));
@@ -118,7 +104,7 @@ class CrawlerTest {
                         .setNumThreads(2)
                         .setMaxDocuments(1)
                         .addEventListener(evt -> {
-                            if (evt.is(CrawlerEvent.CRAWLER_STOP_END)) {
+                            if (evt.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
                                 stopped.setValue(true);
                             }
                         }));

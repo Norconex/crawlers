@@ -98,12 +98,10 @@ public class CrawlerContext implements Closeable {
     // into two context classes that overlap much.
 
     //--- Set on declaration ---
-    //    private final CrawlerStopper stopper = new FileBasedStopper(); // server only?
-    private final DedupService dedupService = new DedupService(); // server only?
+    private final DedupService dedupService = new DedupService();
 
     //--- Set in constructor ---
     private final CrawlerConfig configuration;
-    //    private final Class<? extends CrawlerSpecProvider> specProviderClass;//Need?
     private final CrawlerSpec spec;
 
     private final BeanMapper beanMapper;
@@ -111,18 +109,13 @@ public class CrawlerContext implements Closeable {
     private final EventManager eventManager;
     private final CrawlerCallbacks callbacks;
 
-    //TODO have queue services? that way it will match pipelines?
     //TODO do we really need to make the committer service a java generic?
     private CommitterService<CrawlDoc> committerService;
     private Importer importer;
 
-    // TODO really have the following ones here or make them part of one of
-    // the super class?
-    private final DocPipelines docPipelines; // server only?
-    //    private final CrawlerSessionAttributes attributes; // server only?
+    private final DocPipelines docPipelines;
     private final Fetcher<? extends FetchRequest,
-            ? extends FetchResponse> fetcher; // server only?
-    // TODO remove stopper listener when we are fully using an accessible store?
+            ? extends FetchResponse> fetcher;
 
     //--- Set in init ---
     private Grid grid;
@@ -138,22 +131,17 @@ public class CrawlerContext implements Closeable {
     @SuppressWarnings("resource")
     public CrawlerContext(
             CrawlerSpec crawlerSpec,
-            //            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
             CrawlerConfig crawlerConfig,
             Grid grid) {
         this.grid = grid;
-        //        spec = ClassUtil.newInstance(specProviderClass).get();
         spec = crawlerSpec;
         configuration = ofNullable(crawlerConfig).orElseGet(
                 () -> ClassUtil.newInstance(spec.crawlerConfigClass()));
         beanMapper = spec.beanMapper();
-        //        this.specProviderClass = specProviderClass;
         docContextType = spec.docContextType();
         callbacks = spec.callbacks();
         eventManager =
                 ofNullable(spec.eventManager()).orElse(new EventManager());
-
-        //        attributes = spec.attributes();
         committerService = CommitterService
                 .<CrawlDoc>builder()
                 .committers(configuration.getCommitters())
@@ -187,9 +175,6 @@ public class CrawlerContext implements Closeable {
                     "Crawler must be given a unique identifier (id).");
         }
 
-        //        eventManager.addListeners((Collection<EventListener<
-        //                Event>>) (Collection<?>) configuration.getEventListeners());
-
         // need those? // maybe append cluster node id?
         workDir = ConfigUtil.resolveWorkDir(getConfiguration());
         tempDir = ConfigUtil.resolveTempDir(getConfiguration());
@@ -213,7 +198,6 @@ public class CrawlerContext implements Closeable {
         metrics = new CrawlerMetrics();
 
         // NOTE: order matters
-        //        grid = configuration.getGridConnector().connect(this);
         state.init(this);
         docProcessingLedger.init(this);
 
@@ -240,15 +224,11 @@ public class CrawlerContext implements Closeable {
 
         dedupService.init(this);
 
-        //        getStopper().listenForStopRequest(this);
-
         fire(CrawlerEvent.CRAWLER_CONTEXT_INIT_END);
     }
 
     @Override
     public void close() {
-        System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXX CrawlerContext.close()");
-        System.err.flush();
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN);
 
         // Defer shutdown
@@ -275,20 +255,15 @@ public class CrawlerContext implements Closeable {
 
         swallow(MDC::clear);
         ExceptionSwallower.close(metrics::close);
-        //        swallow(eventManager::clearListeners);
         swallow(() -> {
             if (tempDir != null) {
                 FileUtil.delete(tempDir.toFile());
             }
         }, "Could not delete the temporary directory:" + tempDir);
 
-        //        swallow(() -> state.setTerminatedProperly(true));
-        //        swallow(() -> getStopper().destroy());
-
         initialized = false;
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
         swallow(eventManager::clearListeners);
-        //        ExceptionSwallower.close(grid);  // not opened here, so should not close here
     }
 
     public CrawlDocContext newDocContext(@NonNull String reference) {
@@ -302,10 +277,6 @@ public class CrawlerContext implements Closeable {
         docContext.copyFrom(parentContext);
         return docContext;
     }
-
-    //    public boolean isClient() {
-    //        return true;
-    //    }
 
     /**
      * Gets the instance of the initialized crawler associated with the current
@@ -322,13 +293,6 @@ public class CrawlerContext implements Closeable {
         return cs;
     }
 
-    public void stop() {
-        //TODO implement me
-        //TODO still needed?
-        //throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    //TODO document they do not cross over nodes
     public void fire(Event event) {
         getEventManager().fire(event);
     }

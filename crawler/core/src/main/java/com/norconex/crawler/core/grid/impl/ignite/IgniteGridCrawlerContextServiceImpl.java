@@ -60,10 +60,6 @@ public class IgniteGridCrawlerContextServiceImpl
 
     @Override
     public void cancel() {
-        System.err.println(
-                "XXX IGNITE Grid Service Impl Cancel() called. CLOSING CONTEXT");
-        //TODO here since created here, or in CrawlService?
-        // here is likely best, but do it last?  Probably OK wither way to leave it here for now
         context.close();
     }
 }
