@@ -23,13 +23,13 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
-import com.norconex.crawler.core.junit.CrawlerTest;
+import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategy;
 
 class DocProcessorFinalizeTest {
 
-    @CrawlerTest
+    @CrawlTest
     void testThreadActionFinalize(CrawlerContext crawler) {
         var strategy = new MutableObject<>(
                 SpoiledReferenceStrategy.IGNORE);

@@ -58,7 +58,7 @@ final class QueueInitExecutor {
             LOG.info("Queuing start references ({})...",
                     crawlerContext.getConfiguration().isStartReferencesAsync()
                             ? "asynchronously"
-                            : "");
+                            : "synchronously");
         }
         //
         //        // depending on whether we are running the queuing sync or async,

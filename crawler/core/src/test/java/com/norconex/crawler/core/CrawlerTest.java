@@ -35,7 +35,7 @@ class CrawlerTest {
     @TempDir
     private Path tempDir;
 
-    @com.norconex.crawler.core.junit.CrawlerTest(
+    @com.norconex.crawler.core.junit.CrawlTest(
         run = true,
         config = """
                 numThreads: 2

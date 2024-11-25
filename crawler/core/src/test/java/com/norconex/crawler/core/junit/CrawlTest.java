@@ -39,9 +39,15 @@ import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
  */
 @Retention(RUNTIME)
 @Target({ ElementType.METHOD })
-@ExtendWith(CrawlerTestExtension.class)
+@ExtendWith(CrawlTestExtension.class)
 @TestTemplate
-public @interface CrawlerTest {
+public @interface CrawlTest {
+
+    // Execution order:
+    //    1. TestTemplateInvocationContext#getAdditionalExtensions()
+    //    2. BeforeTestExecutionCallback#beforeTestExecution()
+    //    3. ParameterResolver#resolveParameter()
+    //    4. Test template method execution.
 
     /**
      * Use a the given crawler specs.
@@ -52,7 +58,6 @@ public @interface CrawlerTest {
     Class<? extends GridConnector>[] gridConnectors() default {
             LocalGridConnector.class,
             IgniteGridConnector.class
-            //            MockIgniteGridConnector.class
     };
 
     /**

@@ -135,7 +135,6 @@ public class DeleteRejectedEventListener implements
                     event.getName());
             return;
         }
-
         refStore.add(docInfo.getReference());
     }
 

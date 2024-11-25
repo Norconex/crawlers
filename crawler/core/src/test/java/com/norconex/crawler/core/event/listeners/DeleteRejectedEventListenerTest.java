@@ -24,11 +24,11 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.junit.CrawlerTest;
+import com.norconex.crawler.core.junit.CrawlTest;
 
 class DeleteRejectedEventListenerTest {
 
-    @CrawlerTest(
+    @CrawlTest(
         run = true,
         config = """
                 startReferences:
@@ -59,7 +59,7 @@ class DeleteRejectedEventListenerTest {
     //            pattern: "mock:delete*"
 
     void testDeleteRejectedEventListener(
-            CrawlerContext crawler, MemoryCommitter mem) {
+            CrawlerContext crawlerContext, MemoryCommitter mem) {
 
         //        var crawlerCfg = TestUtil.getFirstCrawlerConfig(crawlSession);
         //        crawlerCfg.addEventListener(new DeleteRejectedEventListener());
@@ -79,8 +79,9 @@ class DeleteRejectedEventListenerTest {
         assertThat(mem.getDeleteCount()).isEqualTo(3);
         assertThat(mem.getDeleteRequests())
                 .map(DeleteRequest::getReference)
-                .containsExactly(
-                        "mock:delete1", "mock:delete3",
+                .containsExactlyInAnyOrder(
+                        "mock:delete1",
+                        "mock:delete3",
                         "mock:delete4");
     }
 

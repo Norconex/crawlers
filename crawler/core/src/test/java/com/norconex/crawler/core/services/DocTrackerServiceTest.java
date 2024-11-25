@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.junit.CrawlerTest;
+import com.norconex.crawler.core.junit.CrawlTest;
 
 @Disabled
 class DocTrackerServiceTest {
@@ -30,7 +30,7 @@ class DocTrackerServiceTest {
     @TempDir
     private Path tempDir;
 
-    @CrawlerTest
+    @CrawlTest
     void testCleanCrawl(CrawlerContext crawler) {
         var service = crawler.getDocProcessingLedger();
         // forEach[...] returns true by default when there are no matches
@@ -40,7 +40,7 @@ class DocTrackerServiceTest {
         assertThat(service.forEachQueued((s, r) -> false)).isTrue();
     }
 
-    @CrawlerTest
+    @CrawlTest
     void testIncrementalCrawl(CrawlerContext crawler) {
         //        var service = crawler.getDocProcessingLedger();
         //        service.prepareForCrawl();
@@ -55,7 +55,7 @@ class DocTrackerServiceTest {
         //        assertThat(service.getProcessingStage("ref1")).isNull();
     }
 
-    @CrawlerTest
+    @CrawlTest
     void testResumeCrawl(CrawlerContext crawler) {
         //        var service = crawler.getDocProcessingLedger();
         //        service.queue(new CrawlDocContext("q-ref"));

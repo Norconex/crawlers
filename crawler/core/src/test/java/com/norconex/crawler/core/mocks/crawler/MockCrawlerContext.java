@@ -39,22 +39,21 @@ public final class MockCrawlerContext extends CrawlerContext {
     }
 
     public static MockCrawlerContext memoryContext(
-            Path workDir, CrawlerConfig config) {
-        return memoryContext(workDir, config, new MockNoopGrid());
-    }
-
-    public static MockCrawlerContext memoryContext(
             Path workDir, Consumer<CrawlerConfig> configConsumer) {
         var config = StubCrawlerConfig.memoryCrawlerConfig(workDir);
         if (configConsumer != null) {
             configConsumer.accept(config);
         }
-        return memoryContext(workDir, config, new MockNoopGrid());
+        return memoryContext(workDir, config);
     }
 
     public static MockCrawlerContext memoryContext(
-            Path workDir, CrawlerConfig config, Grid grid) {
+            Path workDir, CrawlerConfig config) {
         config.setWorkDir(workDir);
+        var grid = config.getGridConnector() == null
+                ? new MockNoopGrid()
+                : config.getGridConnector().connect(
+                        MockCrawlerSpecProvider.class, config);
         return new MockCrawlerContext(
                 new MockCrawlerSpecProvider().get(),
                 config,

@@ -57,7 +57,7 @@ public class CrawlService implements GridService {
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
-                .source(this)
+                .source(crawlerContext)
                 .message("Crawl service started.")
                 .build());
 
@@ -71,7 +71,7 @@ public class CrawlService implements GridService {
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_END)
-                .source(this)
+                .source(crawlerContext)
                 .message("Done crawling.")
                 .build());
 

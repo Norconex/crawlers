@@ -27,7 +27,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.junit.CrawlerTest;
+import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericReferenceFilter;
@@ -48,7 +48,7 @@ class AbstractFetcherTest {
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();
     }
 
-    @CrawlerTest
+    @CrawlTest
     void testEvents(CrawlerContext crawler) {
         List<String> methodsCalled = new ArrayList<>();
         var f = new MockFetcher() {
