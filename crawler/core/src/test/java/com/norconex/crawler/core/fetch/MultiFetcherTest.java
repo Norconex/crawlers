@@ -31,22 +31,19 @@ class MultiFetcherTest {
 
     @Test
     void testAcceptedAndOKResponse() {
-        var mf = multiFetcher(
-                new MockFetcher()
-                        .setDenyRequest(false)
-                        .setReturnBadStatus(false));
+        var mf = multiFetcher(new MockFetcher()
+                .setDenyRequest(false)
+                .setReturnBadStatus(false));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
-        assertThat(
-                ((MultiFetchResponse<?>) resp)
-                        .getFetchResponses()).hasSize(1);
+        assertThat(((MultiFetchResponse<?>) resp)
+                .getFetchResponses()).hasSize(1);
     }
 
     @Test
     void testAcceptedAndBadResponse() {
-        var mf = multiFetcher(
-                new MockFetcher()
-                        .setDenyRequest(false)
-                        .setReturnBadStatus(true));
+        var mf = multiFetcher(new MockFetcher()
+                .setDenyRequest(false)
+                .setReturnBadStatus(true));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
         assertThat(
                 ((MultiFetchResponse<?>) resp)
@@ -55,10 +52,9 @@ class MultiFetcherTest {
 
     @Test
     void testDenied() {
-        var mf = multiFetcher(
-                new MockFetcher()
-                        .setDenyRequest(true)
-                        .setReturnBadStatus(false)); // <-- irrelevant
+        var mf = multiFetcher(new MockFetcher()
+                .setDenyRequest(true)
+                .setReturnBadStatus(false)); // <-- irrelevant
         var resp = mf.fetch(new MockFetchRequest("someRef"));
         // Even though there are no matching fetchers, there is always
         // at least once response returned. In this case, it will be

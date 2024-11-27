@@ -25,6 +25,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
@@ -33,8 +34,9 @@ import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
 
 /**
  * <p>
- * Initializes a crawl session before each test execution and destroys it after
- * each execution.
+ * Initializes a {@link CrawlerContext} before each test execution and destroys
+ * it after each execution. To have the crawler run before a test, set
+ * <code>run</code> to <code>true</code>.
  * </p>
  */
 @Retention(RUNTIME)

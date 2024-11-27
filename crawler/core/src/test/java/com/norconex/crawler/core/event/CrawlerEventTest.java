@@ -16,31 +16,19 @@ package com.norconex.crawler.core.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import java.util.function.Consumer;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.mocks.crawler.MockCrawler;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 
 class CrawlerEventTest {
 
-    private static CrawlerContext crawlerContext;
-
-    @BeforeAll
-    static void beforeAll(@TempDir Path tempDir) {
-        crawlerContext = MockCrawlerContext.memoryContext(tempDir);
-    }
-
-    @Test
-    void testCrawlerEvent() {
-        var event = event(b -> {});
+    @CrawlTest
+    void testCrawlerEvent(CrawlerContext ctx) {
+        var event = event(ctx, b -> {});
 
         assertThat(event.isCrawlerShutdown()).isFalse();
         assertThat(event.getSubject()).hasToString("somesubject");
@@ -48,17 +36,18 @@ class CrawlerEventTest {
         assertThat(event.getDocContext().getReference()).isEqualTo("someref");
         assertThat(event).hasToString("someref - somemessage");
 
-        event = event(b -> b.docContext(null));
+        event = event(ctx, b -> b.docContext(null));
         assertThat(event).hasToString("somemessage");
 
-        event = event(b -> b.message(null));
+        event = event(ctx, b -> b.message(null));
         assertThat(event).hasToString("someref - somesubject");
 
-        event = event(b -> b.message(null).subject(null));
+        event = event(ctx, b -> b.message(null).subject(null));
         assertThat(event).hasToString("someref - " + MockCrawler.CRAWLER_ID);
     }
 
     private CrawlerEvent event(
+            CrawlerContext crawlerContext,
             Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>> c) {
         CrawlerEvent.CrawlerEventBuilder<?, ?> b = CrawlerEvent.builder()
                 .docContext(new CrawlDocContext("someref"))
