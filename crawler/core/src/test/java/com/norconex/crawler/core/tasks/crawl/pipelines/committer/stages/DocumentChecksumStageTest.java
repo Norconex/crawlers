@@ -81,8 +81,7 @@ class DocumentChecksumStageTest {
                 .getDocumentChecksummer()
                 .createDocumentChecksum(doc));
 
-        var ctx = new CommitterPipelineContext(
-                MockCrawlerContext.memoryContext(tempDir), doc);
+        var ctx = new CommitterPipelineContext(crawlerContext, doc);
 
         var stage = new DocumentChecksumStage();
         assertThat(stage.test(ctx)).isFalse();

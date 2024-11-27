@@ -14,32 +14,32 @@
  */
 package com.norconex.crawler.core.tasks.crawl.pipelines.committer.stages;
 
-import org.junit.jupiter.api.Disabled;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipelineContext;
 
-@Disabled("TO MIGRATE")
 class DocumentDedupStageTest {
 
     @CrawlTest(config = """
             documentDeduplicate: true
             """)
-    void testTest(CrawlerContext crawler) {
+    void testTest(CrawlerContext ctx) {
 
-        //        crawler.getDocTrackerService().prepareForCrawl();
-        //        crawler.getServices().getDedupService().init(crawler);
-        //
-        //        // first time checksum is not found and will cache it.
-        //        var doc1 = CrawlDocStubs.crawlDoc("ref1", "content1");
-        //        doc1.getDocContext().setContentChecksum("content-checksum");
-        //        var ctx1 = new CommitterPipelineContext(crawler, doc1);
-        //        assertThat(new DocumentDedupStage().test(ctx1)).isTrue();
-        //
-        //        // second time checksum is found and will reject the dupl.
-        //        var doc2 = CrawlDocStubs.crawlDoc("ref2", "content2");
-        //        doc2.getDocContext().setContentChecksum("content-checksum");
-        //        var ctx2 = new CommitterPipelineContext(crawler, doc2);
-        //        assertThat(new DocumentDedupStage().test(ctx2)).isFalse();
+        ctx.getDocProcessingLedger();
+
+        // first time checksum is not found and will cache it.
+        var doc1 = CrawlDocStubs.crawlDoc("ref1", "content1");
+        doc1.getDocContext().setContentChecksum("content-checksum");
+        var ctx1 = new CommitterPipelineContext(ctx, doc1);
+        assertThat(new DocumentDedupStage().test(ctx1)).isTrue();
+
+        // second time checksum is found and will reject the dupl.
+        var doc2 = CrawlDocStubs.crawlDoc("ref2", "content2");
+        doc2.getDocContext().setContentChecksum("content-checksum");
+        var ctx2 = new CommitterPipelineContext(ctx, doc2);
+        assertThat(new DocumentDedupStage().test(ctx2)).isFalse();
     }
 }

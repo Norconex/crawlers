@@ -19,15 +19,14 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.stream.Stream;
 
-import org.apache.ignite.Ignition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +73,7 @@ class CrawlTestExtension implements
             // attempt of the tempDir is made by Junit. If we have to do this
             // work around too often, modify the ParameterizedGridConnectorTest
             // to handle this.
-            waitForGridShutdown();
+            GridTestUtil.waitForGridShutdown();
 
             // Clean up the temporary directory after each test
             var tempDir = params.getWorkDir();
@@ -91,31 +90,6 @@ class CrawlTestExtension implements
                             }
                         });
             }
-        }
-    }
-
-    private void waitForGridShutdown() {
-        if (isIgniteRunning()) {
-            LOG.info("Ignite still running, stopping it.");
-            Ignition.stopAll(true);
-        }
-        var cnt = 0;
-        do {
-            Sleeper.sleepMillis(500);
-            if (cnt >= 10) {
-                LOG.error("Ignite did not appear to shutdown.");
-                break;
-            }
-            cnt++;
-        } while (isIgniteRunning());
-    }
-
-    private boolean isIgniteRunning() {
-        try {
-            Ignition.ignite();
-            return true;
-        } catch (IllegalStateException e) {
-            return false;
         }
     }
 

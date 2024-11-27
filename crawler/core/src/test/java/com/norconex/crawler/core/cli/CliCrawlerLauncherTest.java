@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.apache.ignite.Ignition;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -30,10 +29,10 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
 import com.norconex.crawler.core.mocks.cli.MockCliExit;
 import com.norconex.crawler.core.mocks.cli.MockCliLauncher;
@@ -58,32 +57,7 @@ class CliCrawlerLauncherTest {
     // too often, modify the ParameterizedGridConnectorTest to handle this.
     @AfterEach
     void tearDown() {
-        waitForGridShutdown();
-    }
-
-    private void waitForGridShutdown() {
-        if (isIgniteRunning()) {
-            LOG.info("Ignite still running, stopping it.");
-            Ignition.stopAll(true);
-        }
-        var cnt = 0;
-        do {
-            Sleeper.sleepMillis(500);
-            if (cnt >= 10) {
-                LOG.error("Ignite did not appear to shutdown.");
-                break;
-            }
-            cnt++;
-        } while (isIgniteRunning());
-    }
-
-    private boolean isIgniteRunning() {
-        try {
-            Ignition.ignite();
-            return true;
-        } catch (IllegalStateException e) {
-            return false;
-        }
+        GridTestUtil.waitForGridShutdown();
     }
 
     @ParameterizedGridConnectorTest
