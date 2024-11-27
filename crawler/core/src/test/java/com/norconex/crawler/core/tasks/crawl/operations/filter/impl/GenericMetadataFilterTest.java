@@ -23,7 +23,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericMetadataFilter;
 
 class GenericMetadataFilterTest {
 
@@ -37,15 +36,13 @@ class GenericMetadataFilterTest {
 
         var doc1 = CrawlDocStubs.crawlDoc("ref", "blah", "field1", "value1");
         assertThat(f.acceptDocument(doc1)).isTrue();
-        assertThat(
-                f.acceptMetadata(
-                        doc1.getReference(), doc1.getMetadata())).isTrue();
+        assertThat(f.acceptMetadata(
+                doc1.getReference(), doc1.getMetadata())).isTrue();
 
         var doc2 = CrawlDocStubs.crawlDoc("ref", "blah", "field2", "value2");
         assertThat(f.acceptDocument(doc2)).isFalse();
-        assertThat(
-                f.acceptMetadata(
-                        doc2.getReference(), doc2.getMetadata())).isFalse();
+        assertThat(f.acceptMetadata(
+                doc2.getReference(), doc2.getMetadata())).isFalse();
 
         // null documents are considered a match
         assertThat(f.acceptDocument(null)).isTrue();

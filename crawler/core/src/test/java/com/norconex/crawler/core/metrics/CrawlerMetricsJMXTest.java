@@ -12,27 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.services.monitor;
+package com.norconex.crawler.core.metrics;
+
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-@Disabled
-class CrawlerMonitorJMXTest {
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+
+class CrawlerMetricsJMXTest {
 
     @TempDir
     private Path tempDir;
 
     @Test
     void testCrawlerMonitorJMX() {
-        //        assertThatNoException().isThrownBy(() -> {
-        //            var crawler = CrawlerStubs.memoryCrawler(tempDir);
-        //            crawler.start();
-        //            CrawlerMonitorJMX.register(crawler);
-        //            CrawlerMonitorJMX.unregister(crawler);
-        //        });
+        assertThatNoException().isThrownBy(() -> {
+            try (var ctx = MockCrawlerContext.memoryContext(tempDir)) {
+                ctx.init();
+                CrawlerMetricsJMX.register(ctx);
+                CrawlerMetricsJMX.unregister(ctx);
+            }
+        });
     }
 }

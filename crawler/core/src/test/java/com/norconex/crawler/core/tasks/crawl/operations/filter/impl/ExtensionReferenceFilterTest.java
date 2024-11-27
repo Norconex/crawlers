@@ -26,7 +26,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.ExtensionReferenceFilter;
 
 class ExtensionReferenceFilterTest {
 
@@ -64,13 +63,11 @@ class ExtensionReferenceFilterTest {
         Assertions.assertTrue(
                 filter.acceptReference("http://example.com/dir.pdf/file.com"));
 
-        Assertions.assertTrue(
-                filter.acceptReference(
-                        "http://example.com/dir.pdf/file.com?param1=something.pdf"));
+        Assertions.assertTrue(filter.acceptReference(
+                "http://example.com/dir.pdf/file.com?param1=something.pdf"));
 
-        Assertions.assertFalse(
-                filter.acceptReference(
-                        "http://example.com/dir.pdf/file.pdf?param1=something.com"));
+        Assertions.assertFalse(filter.acceptReference(
+                "http://example.com/dir.pdf/file.pdf?param1=something.com"));
 
         Assertions.assertTrue(filter.acceptReference("C:\\example\\file.com"));
 

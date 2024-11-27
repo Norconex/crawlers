@@ -12,37 +12,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.services;
+package com.norconex.crawler.core.tasks.crawl.process;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 
-@Disabled
-class DocTrackerServiceTest {
+class DocProcessingLedgerTest {
 
     @TempDir
     private Path tempDir;
 
     @CrawlTest
-    void testCleanCrawl(CrawlerContext crawler) {
-        var service = crawler.getDocProcessingLedger();
+    void testCleanCrawl(CrawlerContext ctx) {
+        var ledger = ctx.getDocProcessingLedger();
         // forEach[...] returns true by default when there are no matches
         // we use this here to figure out emptiness for all stages
-        assertThat(service.forEachCached((s, r) -> false)).isTrue();
-        assertThat(service.forEachProcessed((s, r) -> false)).isTrue();
-        assertThat(service.forEachQueued((s, r) -> false)).isTrue();
+        assertThat(ledger.forEachCached((s, r) -> false)).isTrue();
+        assertThat(ledger.forEachProcessed((s, r) -> false)).isTrue();
+        assertThat(ledger.forEachQueued((s, r) -> false)).isTrue();
     }
 
     @CrawlTest
-    void testIncrementalCrawl(CrawlerContext crawler) {
-        //        var service = crawler.getDocProcessingLedger();
+    void testIncrementalCrawl(CrawlerContext ctx) {
+        //        var service = ctx.getDocProcessingLedger();
         //        service.prepareForCrawl();
         //        service.processed(new CrawlDocContext("ref1"));
         //        service.close();

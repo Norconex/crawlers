@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core.tasks.crawl.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 
 class GenericSpoiledReferenceStrategizerTest {
 
