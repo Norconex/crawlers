@@ -19,13 +19,15 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.commons.lang.text.StringUtil;
+import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.mocks.crawler.MockCrawler;
@@ -59,11 +61,16 @@ public class CrawlTestExtensionInitialization
                 : StubCrawlerConfig.memoryCrawlerConfig(tempDir);
 
         // apply custom config from text
-        StringUtil.ifNotBlank(
-                annotation.config(), cfgStr -> BeanMapper.DEFAULT.read(
-                        crawlerConfig,
-                        new StringReader(cfgStr),
-                        Format.fromContent(cfgStr, Format.XML)));
+        if (StringUtils.isNotBlank(annotation.config())) {
+            var cfgStr = StringSubstitutor.replace(
+                    annotation.config(),
+                    MapUtil.<String, String>toMap(
+                            (Object[]) annotation.vars()));
+            BeanMapper.DEFAULT.read(
+                    crawlerConfig,
+                    new StringReader(cfgStr),
+                    Format.fromContent(cfgStr, Format.XML));
+        }
 
         // apply config modifier from consumer
         if (annotation.configModifier() != null) {

@@ -51,27 +51,9 @@ class DeleteRejectedEventListenerTest {
                              class: Reject
                 """
     )
-    //    referenceFilters:
-    //        - class: GenericReferenceFilter
-    //          onMatch: EXCLUDE
-    //          valueMatcher:
-    //            method: WILDCARD
-    //            pattern: "mock:delete*"
 
     void testDeleteRejectedEventListener(
             CrawlerContext crawlerContext, MemoryCommitter mem) {
-
-        //        var crawlerCfg = TestUtil.getFirstCrawlerConfig(crawlSession);
-        //        crawlerCfg.addEventListener(new DeleteRejectedEventListener());
-        //        var f = Configurable.configure(new GenericReferenceFilter(), cfg -> cfg
-        //                .setValueMatcher(TextMatcher.wildcard("mock:delete*"))
-        //                .setOnMatch(OnMatch.EXCLUDE));
-        //        crawlerCfg.getImporterConfig().setPreParseConsumer(
-        //                HandlerConsumerAdapter.fromHandlers(f));
-        //        crawlerCfg.setReferenceFilters(List.of(f));
-        //        crawlSession.start();
-        //
-        //        var mem = TestUtil.getFirstMemoryCommitter(crawlSession);
 
         assertThat(mem.getRequestCount()).isEqualTo(4);
 

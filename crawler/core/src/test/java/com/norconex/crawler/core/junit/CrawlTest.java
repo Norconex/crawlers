@@ -78,13 +78,36 @@ public @interface CrawlTest {
     /**
      * Text-based crawler configuration, applied on top of generated random
      * configuration if {@link #randomConfig()} is <code>true</code>.
+     * Variable <code>${interpolation}</code> is possible using {@link #vars()}.
      * @return crawler configuration string
      */
     String config() default "";
 
     /**
-     * A consumer to modify the configuration. Runs after
-     * {@link #config()}.
+     * <p>
+     * Pairs of key-values to be used as variable for the configuration
+     * provided by {@link #config()}. Each array entry is an alternating
+     * key or value. Example:
+     * </p>
+     * <pre>
+     * {@literal @}CrawlTest(
+     *   config = """
+     *       startReferences:
+     *         - "${ref1}"
+     *         - "${ref2}"
+     *       """,
+     *   vars = {
+     *      "ref1", "http://example.com/page1.html",
+     *      "ref2", "http://example.com/page2.html"
+     *   }
+     * )
+     * </pre>
+     * @return variables string
+     */
+    String[] vars() default {};
+
+    /**
+     * A consumer to modify the configuration obtained from {@link #config()}.
      * @return crawler configuration consumer
      */
     Class<? extends Consumer<

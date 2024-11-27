@@ -32,7 +32,11 @@ public class CrawlerState {
 
     public void init(@NonNull CrawlerContext crawlerContext) {
         cache = crawlerContext.getGrid().storage().getCache(
-                "CrawlerState", Boolean.class);
+                KEY_CACHE, Boolean.class);
+        crawlerContext.getGrid().compute().runLocalOnce(KEY_CACHE, () -> {
+            cache.clear();
+            return null;
+        });
     }
 
     public boolean isResuming() {

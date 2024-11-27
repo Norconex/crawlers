@@ -48,6 +48,10 @@ public class StopCrawlerOnMaxEventListenerConfig {
 
     private final TextMatcher eventMatcher = new TextMatcher();
     private OnMultiple onMultiple = OnMultiple.ANY;
+    /**
+     * The maximum number of events matching the event matcher on which
+     * we stop the crawler.
+     */
     private long maximum;
 
     /**
