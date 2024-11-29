@@ -55,18 +55,18 @@ class MetadataFiltersStageTest {
         var ctx = new ImporterPipelineContext(crawlerContext, doc);
         doc.getDocContext().setState(DocResolutionStatus.NEW);
         new MetadataFiltersStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getDocContext().getState()).isSameAs(DocResolutionStatus.NEW);
+        assertThat(doc.getDocContext().getState())
+                .isSameAs(DocResolutionStatus.NEW);
 
         // Filter matching
-        crawlerContext.getConfiguration().setMetadataFilters(
-                List.of(
-                        Configurable.configure(
-                                new GenericMetadataFilter(), cfg -> cfg
-                                        .setFieldMatcher(
-                                                TextMatcher.basic("myfield"))
-                                        .setValueMatcher(
-                                                TextMatcher.basic("somevalue"))
-                                        .setOnMatch(OnMatch.EXCLUDE))));
+        crawlerContext
+                .getConfiguration()
+                .setMetadataFilters(List.of(Configurable.configure(
+                        new GenericMetadataFilter(),
+                        cfg -> cfg
+                                .setFieldMatcher(TextMatcher.basic("myfield"))
+                                .setValueMatcher(TextMatcher.basic("somevalue"))
+                                .setOnMatch(OnMatch.EXCLUDE))));
         ctx = new ImporterPipelineContext(crawlerContext, doc);
         doc.getDocContext().setState(DocResolutionStatus.NEW);
         new MetadataFiltersStage(FetchDirective.METADATA).test(ctx);

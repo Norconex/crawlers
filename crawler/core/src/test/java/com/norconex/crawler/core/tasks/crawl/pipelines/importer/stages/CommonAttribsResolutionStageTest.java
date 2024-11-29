@@ -38,14 +38,14 @@ class CommonAttribsResolutionStageTest {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref",
                 """
-                        <html>
-                          <head><title>Sample 🧑‍💻 HTML</title></head>
-                          <body>
-                            <h1>HTML sample</h1>
-                            <p>Some HTML</p>
-                          </body>
-                        </html>
-                        """);
+                <html>
+                  <head><title>Sample 🧑‍💻 HTML</title></head>
+                  <body>
+                    <h1>HTML sample</h1>
+                    <p>Some HTML</p>
+                  </body>
+                </html>
+                """);
         var ctx = new ImporterPipelineContext(
                 MockCrawlerContext.memoryContext(tempDir), doc);
         new CommonAttribsResolutionStage().test(ctx);
@@ -54,14 +54,11 @@ class CommonAttribsResolutionStageTest {
         assertThat(doc.getDocContext().getContentType()).isEqualTo(
                 ContentType.HTML);
 
-        assertThat(
-                doc.getMetadata().getString(
-                        DocMetadata.CONTENT_ENCODING)).isEqualTo("UTF-8");
-        assertThat(
-                doc.getMetadata().getString(
-                        DocMetadata.CONTENT_TYPE)).isEqualTo("text/html");
-        assertThat(
-                doc.getMetadata().getString(
-                        DocMetadata.CONTENT_FAMILY)).isEqualTo("html");
+        assertThat(doc.getMetadata().getString(
+                DocMetadata.CONTENT_ENCODING)).isEqualTo("UTF-8");
+        assertThat(doc.getMetadata().getString(
+                DocMetadata.CONTENT_TYPE)).isEqualTo("text/html");
+        assertThat(doc.getMetadata().getString(
+                DocMetadata.CONTENT_FAMILY)).isEqualTo("html");
     }
 }

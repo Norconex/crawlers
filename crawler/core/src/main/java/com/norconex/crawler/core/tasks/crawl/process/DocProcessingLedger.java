@@ -97,17 +97,6 @@ public class DocProcessingLedger { //implements Closeable {
         return queue.contains(ref) || processed.contains(ref);
     }
 
-    //TODO delete me since stage is now part of the DocContext
-    //    public DocProcessingStage getProcessingStage(String id) {
-    //        if (queue.contains(id)) {
-    //            return DocProcessingStage.QUEUED;
-    //        }
-    //        if (processed.contains(id)) {
-    //            return DocProcessingStage.PROCESSED;
-    //        }
-    //        return null;
-    //    }
-
     //--- Processed ---
 
     public long getProcessedCount() {

@@ -24,22 +24,31 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.response.ImporterResponse;
+import com.norconex.importer.response.ImporterResponseProcessor;
 
-class DocProcessorUpsertTest {
+public class DocProcessorUpsertTest {
 
-    public static class ConfigModifier implements Consumer<CrawlerConfig> {
+    public static class TestResponseProcessor
+            implements ImporterResponseProcessor {
         @Override
-        public void accept(CrawlerConfig cfg) {
-            cfg.getImporterConfig().setResponseProcessors(
-                    List.of(resp -> resp.setNestedResponses(List.of(
-                            new ImporterResponse(CrawlDocStubs.crawlDoc(
-                                    "childResponse1")),
-                            new ImporterResponse(CrawlDocStubs.crawlDoc(
-                                    "childResponse2"))))));
+        public void processImporterResponse(ImporterResponse resp) {
+            resp.setNestedResponses(List.of(
+                    new ImporterResponse(CrawlDocStubs.crawlDoc(
+                            "childResponse1")),
+                    new ImporterResponse(CrawlDocStubs.crawlDoc(
+                            "childResponse2"))));
         }
     }
 
-    @CrawlTest(configModifier = ConfigModifier.class)
+    public static class TestConfigModifier implements Consumer<CrawlerConfig> {
+        @Override
+        public void accept(CrawlerConfig cfg) {
+            cfg.getImporterConfig().setResponseProcessors(
+                    List.of(new TestResponseProcessor()));
+        }
+    }
+
+    @CrawlTest(configModifier = TestConfigModifier.class)
     void testThreadActionUpsert(CrawlerContext crawler) {
 
         var doc = CrawlDocStubs.crawlDoc("ref");

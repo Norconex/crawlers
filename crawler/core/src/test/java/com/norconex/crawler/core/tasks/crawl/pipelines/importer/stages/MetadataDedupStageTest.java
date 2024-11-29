@@ -66,6 +66,7 @@ class MetadataDedupStageTest {
                 .thenReturn(Optional.empty());
         doc.getDocContext().setState(DocResolutionStatus.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getDocContext().getState()).isSameAs(DocResolutionStatus.NEW);
+        assertThat(doc.getDocContext().getState())
+                .isSameAs(DocResolutionStatus.NEW);
     }
 }

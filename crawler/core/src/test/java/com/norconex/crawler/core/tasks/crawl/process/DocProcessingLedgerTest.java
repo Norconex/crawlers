@@ -20,8 +20,14 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 
 class DocProcessingLedgerTest {
 
@@ -38,41 +44,35 @@ class DocProcessingLedgerTest {
         assertThat(ledger.forEachQueued((s, r) -> false)).isTrue();
     }
 
-    @CrawlTest
-    void testIncrementalCrawl(CrawlerContext ctx) {
-        //        var service = ctx.getDocProcessingLedger();
-        //        service.prepareForCrawl();
-        //        service.processed(new CrawlDocContext("ref1"));
-        //        service.close();
-        //
-        //        service.init();
-        //        service.prepareForCrawl();
-        //        assertThat(service.getActiveCount()).isZero();
-        //        assertThat(service.getProcessedCount()).isZero();
-        //        assertThat(service.getCached("ref1")).isPresent();
-        //        assertThat(service.getProcessingStage("ref1")).isNull();
-    }
+    @ParameterizedGridConnectorTest
+    void testPersistence(Class<? extends GridConnector> connClass) {
 
-    @CrawlTest
-    void testResumeCrawl(CrawlerContext crawler) {
-        //        var service = crawler.getDocProcessingLedger();
-        //        service.queue(new CrawlDocContext("q-ref"));
-        //        service.processed(new CrawlDocContext("p-ref"));
-        //
-        //        service.init();
-        //        service.prepareForCrawl();
-        //
-        //        assertThat(service.getActiveCount()).isZero();
-        //        assertThat(service.getProcessedCount()).isOne();
-        //        assertThat(service.getProcessed("p-ref")).isPresent();
-        //        assertThat(service.getProcessingStage("p-ref")).isSameAs(
-        //                Stage.PROCESSED);
-        //        assertThat(service.isProcessedEmpty()).isFalse();
-        //        assertThat(service.forEachCached((s, r) -> false)).isTrue();
-        //        assertThat(service.getProcessingStage("q-ref")).isSameAs(
-        //                Stage.QUEUED);
-        //        assertThat(service.getQueueCount()).isOne();
-        //        assertThat(service.pollQueue()).isPresent();
-        //        service.close();
+        var ctx1 = MockCrawlerContext.memoryContext(
+                tempDir,
+                cfg -> cfg.setGridConnector(ClassUtil.newInstance(connClass)));
+        ctx1.init();
+        var ledger1 = ctx1.getDocProcessingLedger();
+        ledger1.queue(new CrawlDocContext("ref:queue1"));
+        ledger1.queue(new CrawlDocContext("ref:queue2"));
+        ledger1.processed(new CrawlDocContext("ref:processed1"));
+        ledger1.processed(new CrawlDocContext("ref:processed2"));
+        ledger1.processed(new CrawlDocContext("ref:processed3"));
+        ctx1.close();
+        ctx1.getGrid().shutdown();
+        GridTestUtil.waitForGridShutdown();
+
+        // simulate resume
+
+        var ctx2 = MockCrawlerContext.memoryContext(
+                tempDir,
+                cfg -> cfg.setGridConnector(ClassUtil.newInstance(connClass)));
+        ctx2.init();
+        var ledger2 = ctx2.getDocProcessingLedger();
+        assertThat(ledger2.getQueueCount()).isEqualTo(2);
+        assertThat(ledger2.getProcessedCount()).isEqualTo(3);
+
+        ctx2.close();
+        ctx2.getGrid().shutdown();
+        GridTestUtil.waitForGridShutdown();
     }
 }

@@ -21,6 +21,8 @@ import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.junit.CrawlTestContextCapturerListener;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
+import com.norconex.crawler.core.tasks.crawl.process.DocProcessorUpsertTest;
+import com.norconex.importer.response.ImporterResponseProcessor;
 
 public class CoreTestPtProvider implements PolymorphicTypeProvider {
 
@@ -30,6 +32,8 @@ public class CoreTestPtProvider implements PolymorphicTypeProvider {
                 MultiMapUtils.newListValuedHashMap();
         map.put(EventListener.class, MockCliEventWriter.class);
         map.put(EventListener.class, CrawlTestContextCapturerListener.class);
+        map.put(ImporterResponseProcessor.class,
+                DocProcessorUpsertTest.TestResponseProcessor.class);
         return map;
     }
 }

@@ -16,6 +16,7 @@ package com.norconex.crawler.core.grid.impl.ignite;
 
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.Ignition;
+import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.lang.IgniteFuture;
 
 import com.norconex.crawler.core.CrawlerContext;
@@ -37,6 +38,11 @@ public final class IgniteGridUtil {
         try {
             return igniteFuture.get();
         } catch (IgniteException e) {
+            if (!isIgniteRunning()) {
+                LOG.warn("Could not wait for Ignite future to return due to "
+                        + "Ignite grid no longer running.");
+                return null;
+            }
             LOG.error("Clould not block Ignite future.", e);
             throw new GridException("Clould not block Ignite future.", e);
         }
@@ -53,6 +59,15 @@ public final class IgniteGridUtil {
             LOG.error("Could not obtain crawler context from Ignite session. "
                     + "Was it initialized and stored in session beforehand?");
             throw e;
+        }
+    }
+
+    private static boolean isIgniteRunning() {
+        try {
+            var ignite = Ignition.ignite();
+            return !((IgniteKernal) ignite).isStopping();
+        } catch (IllegalStateException e) {
+            return false;
         }
     }
 }
