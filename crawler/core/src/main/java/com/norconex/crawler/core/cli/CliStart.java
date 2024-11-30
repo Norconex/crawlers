@@ -47,6 +47,7 @@ public class CliStart extends CliBase {
     protected void runCommand(Crawler crawler) {
         if (clean) {
             crawler.clean();
+            //TODO wait for lock to go on mvstore instead of this
             Sleeper.sleepSeconds(3);
         }
         crawler.crawl();

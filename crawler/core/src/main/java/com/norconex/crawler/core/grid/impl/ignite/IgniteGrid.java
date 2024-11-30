@@ -63,11 +63,9 @@ public class IgniteGrid implements Grid {
 
     @Override
     public Future<Void> shutdown() {
-        return CompletableFuture.runAsync(() -> {
-            ExceptionSwallower.swallow(() -> {
-                IgniteGridUtil.block(ignite.services().cancelAllAsync());
-
-            });
-        });
+        return CompletableFuture.runAsync(
+                () -> ExceptionSwallower.swallow(
+                        () -> IgniteGridUtil.block(
+                                ignite.services().cancelAllAsync())));
     }
 }

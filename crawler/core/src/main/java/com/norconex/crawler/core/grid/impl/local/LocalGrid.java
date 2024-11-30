@@ -87,9 +87,7 @@ public class LocalGrid implements Grid {
             if (crawlerContext != null) {
                 crawlerContext.close();
             }
-
             gridServices.closeAll();
-
             if (mvstore != null && !mvstore.isClosed()) {
                 mvstore.close();
             }

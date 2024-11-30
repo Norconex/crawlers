@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.junit;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.function.Consumer;
@@ -47,12 +46,12 @@ public class CrawlTestExtensionInitialization
 
     @Override
     public void beforeTestExecution(ExtensionContext context)
-            throws IOException {
+            throws Exception {
         CrawlTestParameters.set(context, initialize(context));
     }
 
     public CrawlTestParameters initialize(ExtensionContext context)
-            throws IOException {
+            throws Exception {
         // Create a temporary directory before each test
         var tempDir = Files.createTempDirectory("crawltest");
 
@@ -84,30 +83,44 @@ public class CrawlTestExtensionInitialization
         crawlerConfig.setGridConnector(
                 ClassUtil.newInstance(gridConnectorClass));
 
-        // set listener to capture context instance
-        try {
-            crawlerConfig
-                    .addEventListener(new CrawlTestContextCapturerListener());
+        var crawler = MockCrawler.memoryCrawler(
+                tempDir, crawlerConfig, annotation.specProvider());
 
-            var crawler = MockCrawler.memoryCrawler(
-                    tempDir, crawlerConfig, annotation.specProvider());
-
+        var captures = CrawlTestCapturer.capture(crawler, crwl -> {
             if (annotation.run()) {
-                crawler.crawl();
+                crwl.crawl();
             } else {
                 MockCrawlerContext.memoryContext(tempDir, crawlerConfig).init();
             }
+        });
 
-            return new CrawlTestParameters()
-                    .setCrawler(crawler)
-                    .setCrawlerConfig(crawlerConfig)
-                    .setCrawlerContext(CrawlTestContextCapturerListener.context)
-                    .setMemoryCommitter(
-                            CrawlTestContextCapturerListener.committer)
-                    .setWorkDir(tempDir);
-        } finally {
-            CrawlTestContextCapturerListener.context = null;
-            CrawlTestContextCapturerListener.committer = null;
-        }
+        return new CrawlTestParameters()
+                .setCrawler(crawler)
+                .setCrawlerConfig(crawlerConfig)
+                .setCrawlerContext(captures.getContext())
+                .setMemoryCommitter(captures.getCommitter())
+                .setWorkDir(tempDir);
+
+        //        try {
+        //            crawlerConfig
+        //                    .addEventListener(new CrawlTestCapturer());
+        //
+        //            if (annotation.run()) {
+        //                crawler.crawl();
+        //            } else {
+        //                MockCrawlerContext.memoryContext(tempDir, crawlerConfig).init();
+        //            }
+        //
+        //            return new CrawlTestParameters()
+        //                    .setCrawler(crawler)
+        //                    .setCrawlerConfig(crawlerConfig)
+        //                    .setCrawlerContext(CrawlTestCapturer.context)
+        //                    .setMemoryCommitter(
+        //                            CrawlTestCapturer.committer)
+        //                    .setWorkDir(tempDir);
+        //        } finally {
+        //            CrawlTestCapturer.context = null;
+        //            CrawlTestCapturer.committer = null;
+        //        }
     }
 }

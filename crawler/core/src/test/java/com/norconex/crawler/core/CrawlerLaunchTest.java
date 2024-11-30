@@ -31,7 +31,6 @@ class CrawlerLaunchTest {
 
     @Test
     void test() {
-        //        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(tempDir);
         System.setProperty("tempDir", tempDir.toString());
         var exitVal = CliCrawlerLauncher.launch(
                 MockCrawlerSpecProvider.class,

@@ -51,4 +51,15 @@ public class StopService implements GridService {
     public void stop(CrawlerContext crawlerContext) {
         //NOOP
     }
+
+    //    /**
+    //     * Convenience method for stopping a grid without "launching"
+    //     * this service.
+    //     * @param crawlerContext crawler context
+    //     */
+    //    public static void stopGrid(CrawlerContext crawlerContext) {
+    //        var srv = new StopService();
+    //        srv.init(crawlerContext, null);
+    //        srv.execute(crawlerContext);
+    //    }
 }

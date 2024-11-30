@@ -48,17 +48,17 @@ public class StoreImportService implements GridService {
     @Override
     public void init(CrawlerContext crawlerContext, String arg) {
         Thread.currentThread().setName(crawlerContext.getId() + "/IMPORT");
+        inFile = Path.of(arg);
+    }
+
+    @Override
+    public void execute(CrawlerContext crawlerContext) {
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN)
                 .source(this)
                 .message("Importing crawler store.")
                 .build());
-        inFile = Path.of(arg);
-    }
-
-    @Override
-    public void execute(CrawlerContext crawlerContext) {
 
         // Export/Import is normally executed in a controlled environment
         // so not susceptible to Zip Bomb attacks.
@@ -75,6 +75,12 @@ public class StoreImportService implements GridService {
                 zipEntry = zipIn.getNextEntry(); //NOSONAR
             }
             zipIn.closeEntry();
+            crawlerContext.fire(CrawlerEvent
+                    .builder()
+                    .name(CrawlerEvent.CRAWLER_STORE_IMPORT_END)
+                    .source(this)
+                    .message("Done importing crawler store.")
+                    .build());
         } catch (IOException | ClassNotFoundException e) {
             throw new CrawlerException("Could not import file: " + inFile, e);
         }
@@ -82,12 +88,7 @@ public class StoreImportService implements GridService {
 
     @Override
     public void stop(CrawlerContext crawlerContext) {
-        crawlerContext.fire(CrawlerEvent
-                .builder()
-                .name(CrawlerEvent.CRAWLER_STORE_IMPORT_END)
-                .source(this)
-                .message("Done importing crawler store.")
-                .build());
+        //NOOP
     }
 
     @SuppressWarnings("unchecked")

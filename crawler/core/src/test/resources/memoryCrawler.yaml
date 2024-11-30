@@ -14,6 +14,7 @@
 # limitations under the License.
 #-------------------------------------------------------------------------------
 
+id: test-crawler
 workDir: ${tempDir|"./workdir"}
 numThreads: 1
 maxDocuments: 10

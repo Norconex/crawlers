@@ -30,7 +30,7 @@ class CrawlerEventTest {
     void testCrawlerEvent(CrawlerContext ctx) {
         var event = event(ctx, b -> {});
 
-        assertThat(event.isCrawlerShutdown()).isFalse();
+        //        assertThat(event.isCrawlerShutdown()).isFalse();
         assertThat(event.getSubject()).hasToString("somesubject");
         assertThat(event.getSource()).hasToString(MockCrawler.CRAWLER_ID);
         assertThat(event.getDocContext().getReference()).isEqualTo("someref");

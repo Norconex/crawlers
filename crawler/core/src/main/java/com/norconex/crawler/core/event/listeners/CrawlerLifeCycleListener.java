@@ -57,6 +57,8 @@ public abstract class CrawlerLifeCycleListener
             onCrawlerCleanBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CLEAN_END)) {
             onCrawlerCleanEnd(event);
+        } else if (event.is(CrawlerEvent.CRAWLER_ERROR)) {
+            onCrawlerError(event);
         }
     }
 
@@ -77,6 +79,10 @@ public abstract class CrawlerLifeCycleListener
     }
 
     protected void onCrawlerCrawlEnd(CrawlerEvent event) {
+        //NOOP
+    }
+
+    protected void onCrawlerError(CrawlerEvent event) {
         //NOOP
     }
 

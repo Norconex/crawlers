@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.mocks.crawler;
 
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
@@ -42,6 +43,17 @@ public final class MockCrawler extends Crawler {
         var cfg = config != null
                 ? StubCrawlerConfig.toMemoryCrawlerConfig(workDir, config)
                 : StubCrawlerConfig.memoryCrawlerConfig(workDir);
+        return new MockCrawler(MockCrawlerSpecProvider.class, cfg);
+    }
+
+    public static MockCrawler memoryCrawler(
+            Path workDir, Consumer<CrawlerConfig> configModifier) {
+        //NOTE: we could just assume that the workDir is set in config already,
+        // but we want to enforce passing one when testing
+        var cfg = StubCrawlerConfig.memoryCrawlerConfig(workDir);
+        if (configModifier != null) {
+            configModifier.accept(cfg);
+        }
         return new MockCrawler(MockCrawlerSpecProvider.class, cfg);
     }
 

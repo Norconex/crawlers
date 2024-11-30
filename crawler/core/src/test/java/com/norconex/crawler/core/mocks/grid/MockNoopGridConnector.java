@@ -19,6 +19,9 @@ import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 
+import lombok.Data;
+
+@Data
 public class MockNoopGridConnector implements GridConnector {
 
     @Override

@@ -106,8 +106,10 @@ public class Crawler {
         // in this case it will be the singleton service that will
         // invoke shutdown as opposed to every nodes.
 
+        //        if (!StopService.class.isAssignableFrom(gridServiceClass)) {
         LOG.info("Shutting down the crawler...");
         ConcurrentUtil.block(grid.shutdown());
+        //        }
 
         // Despite blocking... it only blocks sending the command, not until
         // it is shut down...

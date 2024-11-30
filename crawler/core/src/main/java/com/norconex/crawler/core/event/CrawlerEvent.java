@@ -204,10 +204,10 @@ public class CrawlerEvent extends Event {
         return (CrawlerContext) super.getSource();
     }
 
-    public boolean isCrawlerShutdown() {
-        return is(CRAWLER_CRAWL_END, CRAWLER_STOP_REQUEST_END);
-    }
-
+    //    public boolean isCrawlerShutdown() {
+    //        return is(CRAWLER_CRAWL_END);
+    //    }
+    //
     @Override
     public String toString() {
         var b = new StringBuilder();

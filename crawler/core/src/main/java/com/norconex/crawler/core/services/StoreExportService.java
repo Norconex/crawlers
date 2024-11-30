@@ -58,17 +58,17 @@ public class StoreExportService implements GridService {
     @Override
     public void init(CrawlerContext crawlerContext, @NonNull String arg) {
         Thread.currentThread().setName(crawlerContext.getId() + "/EXPORT");
+        args = SerialUtil.fromJson(arg, Args.class);
+    }
+
+    @Override
+    public void execute(CrawlerContext crawlerContext) {
         crawlerContext.fire(CrawlerEvent
                 .builder()
                 .name(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN)
                 .source(this)
                 .message("Exporting crawler storage.")
                 .build());
-        args = SerialUtil.fromJson(arg, Args.class);
-    }
-
-    @Override
-    public void execute(CrawlerContext crawlerContext) {
 
         try {
             var storage = crawlerContext.getGrid().storage();
@@ -98,6 +98,12 @@ public class StoreExportService implements GridService {
                 zipOS.flush();
             }
             LOG.info("Storage exported to file: {}", outFile);
+            crawlerContext.fire(CrawlerEvent
+                    .builder()
+                    .name(CrawlerEvent.CRAWLER_STORE_EXPORT_END)
+                    .source(this)
+                    .message("Done exporting crawler store.")
+                    .build());
         } catch (Exception e) {
             throw new CrawlerException(
                     "A problem occured while exporting crawler storage.", e);
@@ -106,12 +112,7 @@ public class StoreExportService implements GridService {
 
     @Override
     public void stop(CrawlerContext crawlerContext) {
-        crawlerContext.fire(CrawlerEvent
-                .builder()
-                .name(CrawlerEvent.CRAWLER_STORE_EXPORT_END)
-                .source(this)
-                .message("Done exporting crawler store.")
-                .build());
+        //NOOP
     }
 
     private void exportStore(

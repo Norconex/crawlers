@@ -114,6 +114,7 @@ public class DocProcessor implements Runnable {
 
         } catch (Exception e) {
             if (handleExceptionAndCheckIfStopCrawler(ctx, e)) {
+                crawlerContext.getState().setStopRequested(true);
                 return false;
             }
         } finally {
