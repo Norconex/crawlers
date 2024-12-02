@@ -14,16 +14,13 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-
 import org.apache.ignite.Ignite;
+import org.apache.ignite.Ignition;
 
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridServices;
 import com.norconex.crawler.core.grid.GridStorage;
-import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -62,10 +59,19 @@ public class IgniteGrid implements Grid {
     }
 
     @Override
-    public Future<Void> shutdown() {
-        return CompletableFuture.runAsync(
-                () -> ExceptionSwallower.swallow(
-                        () -> IgniteGridUtil.block(
-                                ignite.services().cancelAllAsync())));
+    public String nodeId() {
+        return ignite.cluster().localNode().id().toString();
+    }
+
+    @Override
+    public void nodeStop() {
+        //TODO need to do any cleanup before stop?
+        // this will stop the current node only.
+        Ignition.stop(false);
+    }
+
+    @Override
+    public void close() {
+        //NOOP: No resources to explicitly release
     }
 }

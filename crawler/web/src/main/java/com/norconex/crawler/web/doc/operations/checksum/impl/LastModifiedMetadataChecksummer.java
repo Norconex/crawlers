@@ -18,11 +18,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.commands.crawl.task.operations.checksum.AbstractMetadataChecksummer;
+import com.norconex.crawler.core.commands.crawl.task.operations.checksum.BaseChecksummerConfig;
+import com.norconex.crawler.core.commands.crawl.task.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.commands.crawl.task.operations.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.tasks.crawl.operations.checksum.AbstractMetadataChecksummer;
-import com.norconex.crawler.core.tasks.crawl.operations.checksum.BaseChecksummerConfig;
-import com.norconex.crawler.core.tasks.crawl.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.tasks.crawl.operations.checksum.impl.GenericMetadataChecksummer;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

@@ -28,12 +28,12 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
 

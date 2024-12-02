@@ -20,12 +20,6 @@ package com.norconex.crawler.core.grid.impl.ignite;
 public final class IgniteGridKeys {
 
     static final String GLOBAL_CACHE = "global-cache";
-    static final String CONTEXT_SERVICE = "context-service";
-    static final String CRAWLER_CONFIG = "crawler-config";
-    static final String CRAWLER_SPEC_PROVIDER_CLASS =
-            "crawler-spec-provider-class";
-    static final String CRAWLER_CONFIG_CLASS =
-            "crawler-config-class";
     public static final String RUN_ONCE_CACHE = "runonce-cache";
 
     private IgniteGridKeys() {

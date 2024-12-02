@@ -19,13 +19,13 @@ import java.time.ZonedDateTime;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchUtil;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineUtil;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;

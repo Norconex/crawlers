@@ -23,9 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 
 import com.norconex.committer.core.CommitterContext;
@@ -40,6 +41,10 @@ import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.time.DurationFormatter;
+import com.norconex.crawler.core.commands.crawl.CrawlStage;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.DedupService;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.DocPipelines;
+import com.norconex.crawler.core.commands.crawl.task.process.DocProcessingLedger;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -47,11 +52,9 @@ import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.grid.Grid;
+import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
-import com.norconex.crawler.core.tasks.crawl.pipelines.DedupService;
-import com.norconex.crawler.core.tasks.crawl.pipelines.DocPipelines;
-import com.norconex.crawler.core.tasks.crawl.process.DocProcessingLedger;
 import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
@@ -84,10 +87,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CrawlerContext implements Closeable {
 
-    private static final InheritableThreadLocal<CrawlerContext> INSTANCE =
-            new InheritableThreadLocal<>();
+    private static final Map<String, CrawlerContext> INSTANCES =
+            new HashMap<>();
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
+
+    private static final String KEY_RESUMING = "resuming";
+    private static final String KEY_STOPPING = "stopping";
+    private static final String KEY_QUEUE_INITIALIZED = "queueInitialized";
 
     // -- NOTE on server nodes ---
     // Some of the following fields are only used on server nodes when on a
@@ -123,16 +130,14 @@ public class CrawlerContext implements Closeable {
     private Path tempDir;
     private CachedStreamFactory streamFactory;
     private DocProcessingLedger docProcessingLedger;
-    private CrawlerState state;
     private CrawlerMetrics metrics;
-
-    private boolean initialized;
+    private GridCache<Boolean> stateCache;
 
     @SuppressWarnings("resource")
     public CrawlerContext(
-            CrawlerSpec crawlerSpec,
-            CrawlerConfig crawlerConfig,
-            Grid grid) {
+            @NonNull CrawlerSpec crawlerSpec,
+            @NonNull CrawlerConfig crawlerConfig,
+            @NonNull Grid grid) {
         this.grid = grid;
         spec = crawlerSpec;
         configuration = ofNullable(crawlerConfig).orElseGet(
@@ -159,20 +164,15 @@ public class CrawlerContext implements Closeable {
                 configuration.getImporterConfig(), eventManager);
         fetcher = spec.fetcherProvider().apply(this);
         docPipelines = spec.docPipelines();
-        INSTANCE.set(this);
     }
 
     public void init() {
-        // if this instance is already initialized, do nothing.
-        if (initialized) {
-            return;
-        }
-        initialized = true; // important to flag it early
+        // NOTE: order matters
 
-        //--- Ensure good state/config ---
-        if (StringUtils.isBlank(getId())) {
-            throw new CrawlerException(
-                    "Crawler must be given a unique identifier (id).");
+        if (INSTANCES.putIfAbsent(grid.nodeId(), this) != null) {
+            throw new IllegalStateException(
+                    "A crawler context was already created for this "
+                            + "local grid node.");
         }
 
         // need those? // maybe append cluster node id?
@@ -193,12 +193,17 @@ public class CrawlerContext implements Closeable {
         eventManager.addListenersFromScan(getConfiguration());
         fire(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN);
 
+        stateCache = grid.storage().getCache(
+                CrawlerContext.class.getSimpleName(), Boolean.class);
+        grid.compute().runLocalOnce(CrawlerContext.class.getSimpleName(),
+                () -> {
+                    stateCache.clear();
+                    return null;
+                });
+
         docProcessingLedger = new DocProcessingLedger();
-        state = new CrawlerState();
         metrics = new CrawlerMetrics();
 
-        // NOTE: order matters
-        state.init(this);
         docProcessingLedger.init(this);
 
         LogUtil.setMdcCrawlerId(getId());
@@ -261,9 +266,9 @@ public class CrawlerContext implements Closeable {
             }
         }, "Could not delete the temporary directory:" + tempDir);
 
-        initialized = false;
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
         swallow(eventManager::clearListeners);
+        INSTANCES.remove(grid.nodeId());
     }
 
     public CrawlDocContext newDocContext(@NonNull String reference) {
@@ -279,18 +284,90 @@ public class CrawlerContext implements Closeable {
     }
 
     /**
-     * Gets the instance of the initialized crawler associated with the current
-     * thread. If the crawler was not yet initialized, an
-     * {@link IllegalStateException} is thrown.
-     *
-     * @return a crawler instance
+     * Gets the last registered crawl stage.
+     * @return crawl stage
      */
-    public static CrawlerContext get() {
-        var cs = INSTANCE.get();
-        if (cs == null) {
-            throw new IllegalStateException("Crawler is not initialized.");
+    public CrawlStage getCrawlStage() {
+        return CrawlStage.of(grid
+                .storage()
+                .getGlobalCache()
+                .get(CrawlStage.class.getSimpleName()));
+    }
+
+    /**
+     * Whether a request was made to stop the crawler.
+     * @return <code>true</code> if stopping the crawler was requested
+     */
+    public boolean isStopping() {
+        return getState(KEY_STOPPING);
+    }
+
+    public void stop() {
+        LOG.info("Received request to stop the crawler.");
+        setState(KEY_STOPPING, true);
+    }
+
+    /**
+     * Whether the crawler has ended (done or stopped). Same
+     * as invoking <code>getCrawlStage() == CrawlStage.END</code>.
+     * @return <code>true</code> if the crawler has ended
+     */
+    public boolean isEnded() {
+        return getCrawlStage() == CrawlStage.ENDED;
+    }
+
+    public boolean isResuming() {
+        return getState(KEY_RESUMING);
+    }
+
+    public void resuming() {
+        setState(KEY_RESUMING, true);
+    }
+
+    public boolean isQueueInitialized() {
+        return getState(KEY_QUEUE_INITIALIZED);
+    }
+
+    public void queueInitialized() {
+        setState(KEY_QUEUE_INITIALIZED, true);
+    }
+
+    public static boolean isInitialized(String nodeId) {
+        return INSTANCES.get(nodeId) != null;
+    }
+
+    public static CrawlerContext get(String nodeId) {
+        var ctx = INSTANCES.get(nodeId);
+        if (ctx == null) {
+            throw new IllegalStateException(
+                    "CrawlerContext was not initialized.");
         }
-        return cs;
+        return ctx;
+    }
+
+    /**
+     * Sets arbitrary state flag valid for the duration of a crawl session
+     * only.
+     * @param key state key
+     * @param value state value
+     */
+    public void setState(String key, boolean value) {
+        if (stateCache == null) {
+            throw new IllegalStateException("Crawler context not initialized.");
+        }
+        stateCache.put(key, value);
+    }
+
+    /**
+     * Gets the state value matching the key.
+     * @param key state key
+     * @return state value
+     */
+    public boolean getState(String key) {
+        if (stateCache == null) {
+            throw new IllegalStateException("Crawler context not initialized.");
+        }
+        return Boolean.TRUE.equals(stateCache.get(key));
     }
 
     public void fire(Event event) {

@@ -16,7 +16,7 @@ package com.norconex.crawler.web.doc.operations.url;
 
 import java.util.List;
 
-import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.ReferenceFilter;
 
 /**
  * Responsible for normalizing URLs.  Normalization is taking a raw URL and

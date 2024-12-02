@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.web.doc.pipelines.importer.stages;
 
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.util.Web;
 

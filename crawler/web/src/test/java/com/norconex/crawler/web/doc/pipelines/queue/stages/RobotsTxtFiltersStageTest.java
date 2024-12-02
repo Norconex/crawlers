@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.robot.RobotsTxt;

@@ -16,8 +16,8 @@ package com.norconex.crawler.core.mocks.crawler;
 
 import com.norconex.crawler.core.CrawlerSpec;
 import com.norconex.crawler.core.CrawlerSpecProvider;
+import com.norconex.crawler.core.commands.crawl.service.impl.CoreQueueInitializer;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.services.crawl.impl.CoreQueueInitializer;
 import com.norconex.crawler.core.stubs.PipelineStubs;
 
 public class MockCrawlerSpecProvider implements CrawlerSpecProvider {

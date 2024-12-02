@@ -25,11 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.MetadataFilter;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatchFilter;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatchFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;

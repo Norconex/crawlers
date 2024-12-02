@@ -23,10 +23,10 @@ import java.util.Set;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.stages.AbstractImporterStage;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.AbstractImporterStage;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.WebDocMetadata;

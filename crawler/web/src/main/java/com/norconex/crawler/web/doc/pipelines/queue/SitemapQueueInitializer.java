@@ -20,7 +20,7 @@ import java.util.function.ToIntFunction;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.norconex.commons.lang.config.ConfigurationException;
-import com.norconex.crawler.core.services.crawl.QueueInitContext;
+import com.norconex.crawler.core.commands.crawl.service.QueueInitContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.sitemap.SitemapContext;
 import com.norconex.crawler.web.util.Web;

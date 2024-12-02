@@ -19,9 +19,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.util.Web;

@@ -41,7 +41,7 @@ import lombok.ToString;
 @RequiredArgsConstructor
 public class IgniteGridStorage implements GridStorage {
 
-    private static final String SUFFIX_SEPARATOR = "__";
+    static final String SUFFIX_SEPARATOR = "__";
     private static final String STORE_TYPES_KEY =
             "ignite.object.and.store.types";
 
@@ -127,8 +127,20 @@ public class IgniteGridStorage implements GridStorage {
 
     @Override
     public void clean() {
+        // We clear the "run-once" and "global-cache" and destroy others
         igniteGrid.getIgnite().destroyCaches(
-                igniteGrid.getIgnite().cacheNames());
+                igniteGrid
+                        .getIgnite()
+                        .cacheNames()
+                        .stream()
+                        .filter(nm -> StringUtils.equalsAny(
+                                IgniteGridUtil.cacheExternalName(nm),
+                                IgniteGridKeys.RUN_ONCE_CACHE,
+                                IgniteGridKeys.GLOBAL_CACHE))
+                        .toList());
+        igniteGrid.storage().getCache(
+                IgniteGridKeys.RUN_ONCE_CACHE, String.class).clear();
+        igniteGrid.storage().getGlobalCache().clear();
     }
 
     GridStore<?> concreteStore(
@@ -171,9 +183,8 @@ public class IgniteGridStorage implements GridStorage {
         var names = new ArrayListValuedHashMap<String, String>();
         igniteGrid.getIgnite().cacheNames().forEach(
                 nm -> names.put(
-                        StringUtils.substringBeforeLast(nm, SUFFIX_SEPARATOR),
+                        IgniteGridUtil.cacheExternalName(nm),
                         nm));
         return names;
     }
-
 }

@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import java.io.StringWriter;
 import java.util.ArrayList;
 
 import org.apache.ignite.Ignition;
@@ -27,9 +26,7 @@ import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerSpecProvider;
@@ -58,14 +55,16 @@ public class IgniteGridConnector
             Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
             CrawlerConfig crawlerConfig) {
 
+        //NOTE:
+        // - grid name is node name and must be unique for each node
+        // - cluster name is what is unique to the entire cluster
+        // - instance name are local only, in case multiple nodes on a JVM
+        //   otherwise the default "" is fine.
+        // - the consistent id is unique for each node on the cluster
+
         //TODO apply config settings from crawler config
         var igniteCfg = new IgniteConfiguration();
         igniteCfg.setGridLogger(new Slf4jLogger());
-        //        igniteCfg.setIgniteInstanceName(
-        //                crawlerConfig.getId() + "__" + UUID.randomUUID().toString());
-
-        //        igniteCfg.setClusterStateOnStart(ClusterState.ACTIVE);
-        //        igniteCfg.setAutoActivationEnabled(false)
 
         configureWorkDirectory(crawlerConfig, igniteCfg);
         configurePersistentStorage(igniteCfg);
@@ -88,20 +87,6 @@ public class IgniteGridConnector
             Sleeper.sleepMillis(2000);
         }
         LOG.info("Cluster is now active.");
-
-        var jsonWriter = new StringWriter();
-        ClassUtil.newInstance(crawlerSpecProviderClass).get()
-                .beanMapper()
-                .write(crawlerConfig, jsonWriter, Format.JSON);
-        var jsonConfig = jsonWriter.toString();
-
-        // Each node has the context and config in a local service, so no
-        // need to recreate with each tasks
-        // The deployment returns once the service init() is done.
-        ignite.services().deployNodeSingleton(
-                IgniteGridKeys.CONTEXT_SERVICE,
-                new IgniteGridCrawlerContextServiceImpl(
-                        crawlerSpecProviderClass, jsonConfig));
 
         return new IgniteGrid(ignite);
     }

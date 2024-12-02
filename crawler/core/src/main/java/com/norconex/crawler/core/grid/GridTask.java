@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.grid;
 
-import java.io.Serializable;
-
 import com.norconex.crawler.core.CrawlerContext;
 
 /**
@@ -23,7 +21,7 @@ import com.norconex.crawler.core.CrawlerContext;
  * @param <T> type of return value, which can be {@link Void}.
  */
 @FunctionalInterface
-public interface GridTask<T> extends Serializable {
+public interface GridTask<T> {
     //void run(CrawlerContext crawlerContext, String arg);
     T run(CrawlerContext crawlerContext, String arg);
 }

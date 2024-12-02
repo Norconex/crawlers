@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LocalGridCompute implements GridCompute {
 
     private final MVStore mvStore;
-    private final CrawlerContext crawlerContext;
+    private final String nodeId;
 
     @Override
     public <T> Future<T> runLocalOnce(String jobName, Callable<T> callable)
@@ -56,12 +56,6 @@ public class LocalGridCompute implements GridCompute {
             executor.shutdown();
         }
     }
-
-    //    @Override
-    //    public <T> Future<T> runLocalAtomic(Callable<T> callable)
-    //            throws GridException {
-    //        return CompletableFuture.supplyAsync(() -> executeWithAtomic(callable));
-    //    }
 
     /**
      * <p>
@@ -83,7 +77,7 @@ public class LocalGridCompute implements GridCompute {
             GridTxOptions opts) throws GridException {
         return doRunTask(taskClass.getName(), opts, () -> {
             var gridTask = ClassUtil.newInstance(taskClass);
-            return gridTask.run(crawlerContext, arg);
+            return gridTask.run(getCrawlerContext(), arg);
         });
     }
 
@@ -99,7 +93,7 @@ public class LocalGridCompute implements GridCompute {
             GridTxOptions opts) throws GridException {
         return doRunTask(taskClass.getName(), opts, () -> {
             var gridTask = ClassUtil.newInstance(taskClass);
-            var result = gridTask.run(crawlerContext, arg);
+            var result = gridTask.run(getCrawlerContext(), arg);
             return result == null ? List.of() : List.of(result);
         });
     }
@@ -109,7 +103,7 @@ public class LocalGridCompute implements GridCompute {
             GridTxOptions opts,
             Callable<T> task) throws GridException {
         return CompletableFuture.supplyAsync(() -> {
-            crawlerContext.fire(CrawlerEvent.TASK_RUN_BEGIN, taskName);
+            getCrawlerContext().fire(CrawlerEvent.TASK_RUN_BEGIN, taskName);
             var taskRef = new MutableObject<Callable<T>>(task);
             if (opts.isAtomic()) {
                 taskRef.setValue(() -> executeWithAtomic(taskRef.getValue()));
@@ -119,7 +113,7 @@ public class LocalGridCompute implements GridCompute {
             } catch (Exception e) {
                 throw new GridException("Coult not run task: " + taskName, e);
             } finally {
-                crawlerContext.fire(CrawlerEvent.TASK_RUN_END, taskName);
+                getCrawlerContext().fire(CrawlerEvent.TASK_RUN_END, taskName);
             }
         });
     }
@@ -136,5 +130,14 @@ public class LocalGridCompute implements GridCompute {
             throw new GridException("Compute transaction rolled back due to an "
                     + "unexpected error.", e);
         }
+    }
+
+    private CrawlerContext getCrawlerContext() {
+        var ctx = CrawlerContext.get(nodeId);
+        if (ctx == null) {
+            throw new IllegalStateException("Crawler context must be "
+                    + "initialized before using local grid compute.");
+        }
+        return ctx;
     }
 }

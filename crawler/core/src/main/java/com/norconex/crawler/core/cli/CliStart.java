@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
@@ -45,11 +44,6 @@ public class CliStart extends CliBase {
 
     @Override
     protected void runCommand(Crawler crawler) {
-        if (clean) {
-            crawler.clean();
-            //TODO wait for lock to go on mvstore instead of this
-            Sleeper.sleepSeconds(3);
-        }
-        crawler.crawl();
+        crawler.crawl(clean);
     }
 }

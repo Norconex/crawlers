@@ -14,9 +14,7 @@
  */
 package com.norconex.crawler.core.grid.impl.local;
 
-import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import java.util.UUID;
 
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -41,23 +39,18 @@ import lombok.ToString;
 @ToString
 public class LocalGrid implements Grid {
 
-    private MVStore mvstore;
-    private CrawlerContext crawlerContext;
-    private LocalGridCompute gridCompute;
-    private LocalGridStorage gridStorage;
-    private LocalGridServices gridServices;
-    private boolean closed;
+    private final MVStore mvstore;
+    private final LocalGridCompute gridCompute;
+    private final LocalGridStorage gridStorage;
+    private final LocalGridServices gridServices;
+    private final String nodeId = UUID.randomUUID().toString();
 
-    public void init(
-            Path storeDir,
-            MVStore mvstore,
-            CrawlerContext crawlerContext) {
-        closed = false;
+    public LocalGrid(MVStore mvstore) {
+
         this.mvstore = mvstore;
-        this.crawlerContext = crawlerContext;
-        gridCompute = new LocalGridCompute(mvstore, crawlerContext);
+        gridCompute = new LocalGridCompute(mvstore, nodeId);
         gridStorage = new LocalGridStorage(mvstore);
-        gridServices = new LocalGridServices(crawlerContext);
+        gridServices = new LocalGridServices(nodeId);
     }
 
     @Override
@@ -79,24 +72,27 @@ public class LocalGrid implements Grid {
     }
 
     @Override
-    public Future<Void> shutdown() {
-        if (closed) {
-            return CompletableFuture.completedFuture(null);
-        }
-        return CompletableFuture.runAsync(() -> {
-            if (crawlerContext != null) {
-                crawlerContext.close();
-            }
-            gridServices.closeAll();
-            if (mvstore != null && !mvstore.isClosed()) {
-                mvstore.close();
-            }
-        });
+    public String nodeId() {
+        return nodeId;
     }
 
     private void ensureInit() {
         if (ObjectUtils.anyNull(gridCompute, gridStorage, gridServices)) {
             throw new IllegalStateException("LocalGrid not initialized.");
+        }
+    }
+
+    @Override
+    public void nodeStop() {
+        if (CrawlerContext.isInitialized(nodeId)) {
+            CrawlerContext.get(nodeId).stop();
+        }
+    }
+
+    @Override
+    public void close() {
+        if (!mvstore.isClosed()) {
+            mvstore.close();
         }
     }
 }

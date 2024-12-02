@@ -29,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.ClassUtil;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridConnector;
@@ -186,6 +187,9 @@ class CliCrawlerLauncherTest {
         assertThat(exit1.ok()).isTrue();
         assertThat(exportFile).isNotEmptyFile();
 
+        // Wait a bit for mvstore lock to be released.
+        Sleeper.sleepSeconds(5);
+
         // Import
         var exit2 = launch(
                 gridConnClass,
@@ -230,33 +234,36 @@ class CliCrawlerLauncherTest {
                 gridConnClass, "start", "-clean", "-config=");
         assertThat(exit2.ok()).withFailMessage(exit2.getStdErr()).isTrue();
         assertThat(exit2.getEvents()).containsExactly(
-                // Clean flow
                 CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
+
+                // Perform cleaning
                 CrawlerEvent.CRAWLER_CLEAN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
                 CrawlerEvent.CRAWLER_CLEAN_END,
+
+                // Reset crawl context
                 CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
                 CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END,
-
-                // Regular flow
                 CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
+
+                // Regular crawl flow
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
                 CrawlerEvent.TASK_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,

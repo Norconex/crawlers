@@ -28,11 +28,11 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericReferenceFilter;
 
 class AbstractFetcherTest {
 

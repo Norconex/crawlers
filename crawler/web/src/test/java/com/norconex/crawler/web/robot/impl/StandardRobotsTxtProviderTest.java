@@ -33,8 +33,8 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.junit.WithCrawlerTest;
 import com.norconex.crawler.web.robot.RobotsTxtFilter;

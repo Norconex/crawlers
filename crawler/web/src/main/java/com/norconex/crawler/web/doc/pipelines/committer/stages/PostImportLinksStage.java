@@ -21,9 +21,9 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.crawler.core.commands.crawl.task.pipelines.committer.CommitterPipelineContext;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.tasks.crawl.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.util.Web;

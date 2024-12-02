@@ -29,8 +29,8 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.OnMatch;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.impl.ExtensionReferenceFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.ExtensionReferenceFilter;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;

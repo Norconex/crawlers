@@ -33,5 +33,5 @@ public interface GridServices {
 
     <T extends GridService> T get(String serviceName);
 
-    Future<?> end(String serviceName);
+    Future<?> stop(String serviceName);
 }

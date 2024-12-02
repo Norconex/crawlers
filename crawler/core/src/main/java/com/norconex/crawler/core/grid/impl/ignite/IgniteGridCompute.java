@@ -75,8 +75,9 @@ public class IgniteGridCompute implements GridCompute {
                         var value = callable.call();
                         runOnceCache.put(jobName, "done");
                         return value;
-                    } finally {
+                    } catch (Exception e) {
                         runOnceCache.put(jobName, "failed");
+                        return null;
                     }
                 });
             }
@@ -85,6 +86,9 @@ public class IgniteGridCompute implements GridCompute {
                 //TODO have a timeout where we force exit?
                 var done = false;
                 while (!done) {
+                    // The clean command can make it that there is no status
+                    // for a while, but the "runOnceCache" is the last one
+                    // cleared so the exiting from here is not premature.
                     var status = runOnceCache.get(jobName);
                     if (StringUtils.isBlank(status)
                             || hasJobRan(status)) {
@@ -110,8 +114,8 @@ public class IgniteGridCompute implements GridCompute {
                 taskClass.getName(),
                 opts,
                 () -> igniteGrid.getIgnite().compute().broadcast(
-                        () -> IgniteGridServerTaskRunner.execute(
-                                taskClass.getName(), arg)));
+                        () -> new IgniteGridTaskAdapter<>(taskClass, arg)
+                                .call()));
     }
 
     @Override
@@ -123,8 +127,8 @@ public class IgniteGridCompute implements GridCompute {
         return doRunTask(
                 taskClass.getName(), opts,
                 () -> igniteGrid.getIgnite().compute().call(
-                        () -> IgniteGridServerTaskRunner.execute(
-                                taskClass.getName(), arg)));
+                        () -> new IgniteGridTaskAdapter<>(taskClass, arg)
+                                .call()));
     }
 
     private boolean hasJobRan(String status) {

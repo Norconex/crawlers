@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class LocalGridServices implements GridServices {
     private final Map<String, GridService> services = new HashMap<>();
-    private final CrawlerContext crawlerContext;
+    private final String nodeId;
 
     @Override
     public Future<?> start(
@@ -42,8 +42,9 @@ public class LocalGridServices implements GridServices {
         var gridService = ClassUtil.newInstance(serviceClass);
         services.put(serviceName, gridService);
         return CompletableFuture.runAsync(() -> {
-            gridService.init(crawlerContext, arg);
-            gridService.execute(crawlerContext);
+            var ctx = getCrawlerContext();
+            gridService.init(ctx, arg);
+            gridService.execute(ctx);
         });
     }
 
@@ -54,16 +55,25 @@ public class LocalGridServices implements GridServices {
     }
 
     @Override
-    public Future<?> end(String serviceName) {
+    public Future<?> stop(String serviceName) {
         var service = services.get(serviceName);
         if (service != null) {
             return CompletableFuture.runAsync(
-                    () -> service.stop(crawlerContext));
+                    () -> service.stop(getCrawlerContext()));
         }
         return CompletableFuture.completedFuture(null);
     }
 
     void closeAll() {
-        services.values().forEach(srv -> srv.stop(crawlerContext));
+        services.values().forEach(srv -> srv.stop(getCrawlerContext()));
+    }
+
+    private CrawlerContext getCrawlerContext() {
+        var ctx = CrawlerContext.get(nodeId);
+        if (ctx == null) {
+            throw new IllegalStateException("Crawler context must be "
+                    + "initialized before using local grid services.");
+        }
+        return ctx;
     }
 }

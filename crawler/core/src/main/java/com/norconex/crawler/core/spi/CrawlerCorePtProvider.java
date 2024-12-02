@@ -23,14 +23,14 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core.commands.crawl.task.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.commands.crawl.task.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.commands.crawl.task.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.tasks.crawl.operations.checksum.DocumentChecksummer;
-import com.norconex.crawler.core.tasks.crawl.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.MetadataFilter;
-import com.norconex.crawler.core.tasks.crawl.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
 
 /**
  * <p>

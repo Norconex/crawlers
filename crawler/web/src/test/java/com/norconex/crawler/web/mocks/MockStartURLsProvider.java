@@ -18,7 +18,7 @@ import java.util.Iterator;
 
 import org.apache.commons.collections4.iterators.ObjectArrayIterator;
 
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.ReferencesProvider;
 
 import lombok.EqualsAndHashCode;
 

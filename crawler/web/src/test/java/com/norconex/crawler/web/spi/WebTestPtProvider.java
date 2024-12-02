@@ -20,7 +20,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.web.cases.recovery.JVMCrasher;
 import com.norconex.crawler.web.cases.recovery.TestCommitter;
 import com.norconex.crawler.web.mocks.MockStartURLsProvider;

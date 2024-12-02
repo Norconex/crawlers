@@ -16,14 +16,16 @@ package com.norconex.crawler.core;
 
 import java.nio.file.Path;
 
-import com.norconex.crawler.core.grid.GridService;
-import com.norconex.crawler.core.services.CleanService;
-import com.norconex.crawler.core.services.StopService;
-import com.norconex.crawler.core.services.StoreExportService;
-import com.norconex.crawler.core.services.StoreImportService;
-import com.norconex.crawler.core.services.crawl.CrawlService;
-import com.norconex.crawler.core.util.ConcurrentUtil;
-import com.norconex.crawler.core.util.SerialUtil;
+import org.apache.commons.lang3.StringUtils;
+
+import com.norconex.commons.lang.ClassUtil;
+import com.norconex.crawler.core.commands.Command;
+import com.norconex.crawler.core.commands.clean.CleanCommand;
+import com.norconex.crawler.core.commands.crawl.CrawlCommand;
+import com.norconex.crawler.core.commands.stop.StopCommand;
+import com.norconex.crawler.core.commands.storeexport.StoreExportCommand;
+import com.norconex.crawler.core.commands.storeimport.StoreImportCommand;
+import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -63,57 +65,60 @@ public class Crawler {
         this.crawlerConfig = crawlerConfig;
     }
 
+    /**
+     * Crawl without first cleaning the crawler (i.e., incremental crawling).
+     * Same as invoking <code>crawl(false)</code>.
+     */
     public void crawl() {
-        executeService(CrawlService.class, null);
+        crawl(false);
     }
 
-    public void stop() {
-        executeService(StopService.class, null);
+    /**
+     *
+     * @param startClean
+     */
+    public void crawl(boolean startClean) {
+        executeCommand(new CrawlCommand(startClean));
     }
 
     public void clean() {
-        executeService(CleanService.class, null);
+        executeCommand(new CleanCommand());
+    }
+
+    public void stop() {
+        executeCommand(new StopCommand());
     }
 
     public void storageExport(Path dir, boolean pretty) {
-        executeService(
-                StoreExportService.class,
-                SerialUtil.toJsonString(new StoreExportService.Args(
-                        dir.toAbsolutePath().toString(),
-                        pretty)));
+        executeCommand(new StoreExportCommand(dir, pretty));
     }
 
     public void storageImport(Path inFile) {
-        executeService(
-                StoreImportService.class, inFile.toAbsolutePath().toString());
+        executeCommand(new StoreImportCommand(inFile));
     }
 
-    protected void executeService(
-            Class<? extends GridService> gridServiceClass, String arg) {
+    private void validateConfig(CrawlerConfig config) {
+        if (StringUtils.isBlank(config.getId())) {
+            throw new CrawlerException(
+                    "Crawler must be given a unique identifier (id).");
+        }
+    }
 
-        var serviceName = gridServiceClass.getSimpleName();
-        LOG.info("Executing service: {}", serviceName);
-        var grid = crawlerConfig
+    protected void executeCommand(Command command) {
+        validateConfig(crawlerConfig);
+        LogUtil.logCommandIntro(LOG, crawlerConfig);
+
+        var spec = ClassUtil.newInstance(crawlerSpecProviderClass).get();
+        LOG.info("Executing command: {}", command.getClass().getSimpleName());
+        try (var grid = crawlerConfig
                 .getGridConnector()
-                .connect(crawlerSpecProviderClass, crawlerConfig);
-
-        // Block until main services is done
-        ConcurrentUtil.block(
-                grid.services().start(serviceName, gridServiceClass, arg));
-
-        //        // trying...
-        //MAYBE? Instead pass a "terminating" flag to start? That way
-        // in this case it will be the singleton service that will
-        // invoke shutdown as opposed to every nodes.
-
-        //        if (!StopService.class.isAssignableFrom(gridServiceClass)) {
-        LOG.info("Shutting down the crawler...");
-        ConcurrentUtil.block(grid.shutdown());
-        //        }
-
-        // Despite blocking... it only blocks sending the command, not until
-        // it is shut down...
-        LOG.info("Crawler shudown complete.");
-
+                .connect(crawlerSpecProviderClass, crawlerConfig)) {
+            // grid auto closes
+            try (var ctx = new CrawlerContext(spec, crawlerConfig, grid)) {
+                ctx.init();
+                command.execute(ctx);
+            }
+            grid.nodeStop();
+        }
     }
 }

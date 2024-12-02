@@ -14,12 +14,12 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.lang.IgniteFuture;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.GridException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +30,9 @@ public final class IgniteGridUtil {
     private IgniteGridUtil() {
     }
 
-    public static CrawlerContext getCrawlerContext() {
-        return getInitService().getContext();
+    public static String cacheExternalName(String internalName) {
+        return StringUtils.substringBeforeLast(
+                internalName, IgniteGridStorage.SUFFIX_SEPARATOR);
     }
 
     public static Object block(IgniteFuture<?> igniteFuture) {
@@ -45,20 +46,6 @@ public final class IgniteGridUtil {
             }
             LOG.error("Clould not block Ignite future.", e);
             throw new GridException("Clould not block Ignite future.", e);
-        }
-    }
-
-    private static IgniteGridCrawlerContextService getInitService() {
-        try {
-            var ignite = Ignition.localIgnite();
-            return ignite.services().serviceProxy(
-                    IgniteGridKeys.CONTEXT_SERVICE,
-                    IgniteGridCrawlerContextService.class,
-                    false);
-        } catch (IgniteException e) {
-            LOG.error("Could not obtain crawler context from Ignite session. "
-                    + "Was it initialized and stored in session beforehand?");
-            throw e;
         }
     }
 

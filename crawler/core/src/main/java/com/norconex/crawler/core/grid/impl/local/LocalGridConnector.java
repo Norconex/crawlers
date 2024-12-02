@@ -23,7 +23,6 @@ import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
@@ -86,7 +85,7 @@ public class LocalGridConnector
             builder.autoCommitDisabled();
         }
 
-        var spec = ClassUtil.newInstance(specProviderClass).get();
+        ClassUtil.newInstance(specProviderClass).get();
         var workDir = ConfigUtil.resolveWorkDir(crawlerConfig);
 
         Path storeDir = null;
@@ -126,21 +125,8 @@ public class LocalGridConnector
                     configuration.getAutoCommitDelay().intValue());
         }
 
-        //        storeTypes = mvstore.openMap(STORE_TYPES_KEY);
-
         mvstore.commit();
-
-        //TODO fix circular reference where CrawlerContext
-        // initializes the Grid and the grid initializes the CrawlerContext
-        // which depends on CrawlerContext to be initialized.
-        // Do some lazy loading.
-
-        //        var taskContext = new CrawlerContext(crawlerContext);
-        var grid = new LocalGrid();
-        var crawlerContext = new CrawlerContext(spec, crawlerConfig, grid);
-        grid.init(storeDir, mvstore, crawlerContext);
-        crawlerContext.init(); // closed by LocalGrid#close()
-        return grid;
+        return new LocalGrid(mvstore);
     }
 
     private Integer asInt(Long l) {

@@ -88,7 +88,7 @@ public class CrawlTestExtensionInitialization
 
         var captures = CrawlTestCapturer.capture(crawler, crwl -> {
             if (annotation.run()) {
-                crwl.crawl();
+                crwl.crawl(false);
             } else {
                 MockCrawlerContext.memoryContext(tempDir, crawlerConfig).init();
             }

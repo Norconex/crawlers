@@ -18,15 +18,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import org.apache.ignite.IgniteException;
-import org.apache.ignite.services.Service;
 
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.GridService;
 import com.norconex.crawler.core.grid.GridServices;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,11 +41,12 @@ public class IgniteGridServices implements GridServices {
             LOG.info("Deploying service: {}", serviceName);
 
             //NOTE: returns after service init()... start still running.
-            IgniteGridUtil.block(igniteGrid.getIgnite().services()
-                    .deployClusterSingletonAsync(
+            // so we wait for start to be done below
+            igniteGrid.getIgnite().services()
+                    .deployClusterSingleton(
                             serviceName,
-                            new ServiceAdapter(serviceName, serviceClass,
-                                    arg)));
+                            new IgniteGridServiceAdapter(serviceName,
+                                    serviceClass, arg));
 
             // wait until start() is done...
             var cache = igniteGrid.storage().getCache(
@@ -63,12 +60,12 @@ public class IgniteGridServices implements GridServices {
         });
     }
 
-    @SuppressWarnings("unchecked")
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends GridService> T get(String serviceName) {
         try {
             var serviceAdapter = igniteGrid.getIgnite().services().serviceProxy(
-                    serviceName, ServiceAdapter.class, false);
+                    serviceName, IgniteGridServiceAdapter.class, false);
             return (T) serviceAdapter.getService();
         } catch (IgniteException e) {
             LOG.error("Could not obtain crawler context from Ignite session. "
@@ -78,48 +75,12 @@ public class IgniteGridServices implements GridServices {
     }
 
     @Override
-    public Future<?> end(String serviceName) {
+    public Future<?> stop(String serviceName) {
         return CompletableFuture.runAsync(
                 () -> igniteGrid
                         .getIgnite()
                         .services()
-                        .cancelAsync(serviceName)
+                        .cancelAsync(serviceName)// NOT cancel, but a clean stop
                         .get());
-    }
-
-    @RequiredArgsConstructor
-    public static class ServiceAdapter implements Service {
-        private static final long serialVersionUID = 1L;
-        private final String serviceName;
-        private final Class<? extends GridService> serviceClass;
-        private final String arg;
-        @Getter
-        private transient GridService service;
-        @Getter
-        private transient CrawlerContext crawlerContext;
-
-        @Override
-        public void init() throws Exception {
-            crawlerContext = IgniteGridUtil.getCrawlerContext();
-            service = ClassUtil.newInstance(serviceClass);
-            service.init(crawlerContext, arg);
-        }
-
-        @Override
-        public void execute() throws Exception {
-            service.execute(crawlerContext);
-            crawlerContext
-                    .getGrid()
-                    .storage()
-                    .getCache(IgniteGridKeys.RUN_ONCE_CACHE, String.class)
-                    .put(serviceName + ".ended", "true");
-        }
-
-        @Override
-        public void cancel() {
-            LOG.info("Stopping service: {}", serviceName);
-            service.stop(crawlerContext);
-
-        }
     }
 }

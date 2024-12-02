@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.mocks.grid;
 
-import java.util.concurrent.Future;
+import java.util.UUID;
 
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
@@ -25,6 +25,8 @@ import lombok.Data;
 
 @Data
 public class MockNoopGrid implements Grid {
+
+    private final String nodeId = UUID.randomUUID().toString();
 
     @Override
     public GridCompute compute() {
@@ -37,12 +39,22 @@ public class MockNoopGrid implements Grid {
     }
 
     @Override
-    public Future<Void> shutdown() {
+    public GridServices services() {
         throw new UnsupportedOperationException("IN_TEST");
     }
 
     @Override
-    public GridServices services() {
+    public void nodeStop() {
         throw new UnsupportedOperationException("IN_TEST");
+    }
+
+    @Override
+    public String nodeId() {
+        return nodeId;
+    }
+
+    @Override
+    public void close() {
+        // NOOP
     }
 }

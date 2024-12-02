@@ -43,14 +43,14 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.commands.crawl.task.operations.DocumentConsumer;
+import com.norconex.crawler.core.commands.crawl.task.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.commands.crawl.task.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.mocks.grid.MockNoopGrid;
 import com.norconex.crawler.core.mocks.grid.MockNoopGridConnector;
-import com.norconex.crawler.core.tasks.crawl.operations.DocumentConsumer;
-import com.norconex.crawler.core.tasks.crawl.operations.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.tasks.crawl.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
-import com.norconex.crawler.core.tasks.crawl.pipelines.queue.ReferencesProvider;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.NonNull;
