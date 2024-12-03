@@ -103,14 +103,25 @@ class CliCrawlerLauncherTest {
                 "Clean the");
 
         // Bad config syntax
-        var file = tempDir.resolve("badConfig.xml");
-        Files.writeString(file, """
+        var file5 = tempDir.resolve("badConfig.xml");
+        Files.writeString(file5, """
                 <crawler badAttr="badAttr"></crawler>
                 """);
-        var exit5 = launchVerbatim("configcheck", "-config=" + file);
+        var exit5 = launchVerbatim("configcheck", "-config=" + file5);
         assertThat(exit5.ok()).isFalse();
         assertThat(exit5.getStdErr()).contains(
                 "Unrecognized field \"badAttr\"");
+
+        // Constraint violation
+        var file6 = tempDir.resolve("badConfig6.xml");
+        Files.writeString(file6, """
+                <crawler numThreads="0"></crawler>
+                """);
+        var exit6 = launchVerbatim("configcheck", "-config=" + file6);
+        assertThat(exit6.ok()).isFalse();
+        assertThat(exit6.getStdErr()).contains(
+                "Invalid value");
+
     }
 
     @ParameterizedGridConnectorTest

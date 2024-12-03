@@ -23,6 +23,7 @@ import org.apache.commons.collections4.iterators.ObjectArrayListIterator;
  * Provide references for crawling. You can implement this interface if you
  * need start references to be established dynamically when the crawler starts.
  */
+@FunctionalInterface
 public interface ReferencesProvider {
 
     /**
