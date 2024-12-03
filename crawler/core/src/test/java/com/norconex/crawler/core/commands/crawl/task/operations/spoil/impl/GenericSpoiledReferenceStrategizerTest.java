@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.commands.crawl.task.operations.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core.commands.crawl.task.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 
 class GenericSpoiledReferenceStrategizerTest {

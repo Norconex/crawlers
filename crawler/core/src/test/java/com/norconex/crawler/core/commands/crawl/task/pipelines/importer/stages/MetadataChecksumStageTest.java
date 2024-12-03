@@ -25,7 +25,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.commands.crawl.task.operations.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.stages.MetadataChecksumStage;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;

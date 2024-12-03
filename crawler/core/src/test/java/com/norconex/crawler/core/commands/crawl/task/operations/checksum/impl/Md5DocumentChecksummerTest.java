@@ -28,7 +28,6 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.commands.crawl.task.operations.checksum.impl.Md5DocumentChecksummer;
 import com.norconex.importer.doc.Doc;
 
 class Md5DocumentChecksummerTest {

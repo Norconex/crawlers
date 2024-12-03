@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.stages.ImportModuleStage;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 

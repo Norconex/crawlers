@@ -27,7 +27,6 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.stages.ReferenceFiltersStage;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 

@@ -25,7 +25,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.committer.stages.DocumentChecksumStage;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 

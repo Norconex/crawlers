@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.stages.DepthValidationStage;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;

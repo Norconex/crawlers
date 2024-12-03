@@ -25,8 +25,8 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.grid.MockNoopGrid;
-import com.norconex.crawler.core.mocks.grid.MockNoopGridConnector;
+import com.norconex.crawler.core.mocks.grid.MockFailingGrid;
+import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 class CrawlerConfigTest {
@@ -38,10 +38,10 @@ class CrawlerConfigTest {
                         .builder()
                         .polymorphicTypeImpl(
                                 Grid.class,
-                                List.of(MockNoopGrid.class))
+                                List.of(MockFailingGrid.class))
                         .polymorphicTypeImpl(
                                 GridConnector.class,
-                                List.of(MockNoopGridConnector.class))
+                                List.of(MockFailingGridConnector.class))
                         .build().assertWriteRead(
                                 StubCrawlerConfig
                                         .randomMemoryCrawlerConfig(tempDir)));

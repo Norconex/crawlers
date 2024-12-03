@@ -61,6 +61,7 @@ class DocProcessingLedgerTest {
         //        ctx1.getGrid().shutdown();
         ctx1.getGrid().nodeStop();
         GridTestUtil.waitForGridShutdown();
+        ctx1.getGrid().close();
 
         // simulate resume
 

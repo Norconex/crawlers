@@ -24,7 +24,7 @@ import com.norconex.crawler.core.grid.GridStorage;
 import lombok.Data;
 
 @Data
-public class MockNoopGrid implements Grid {
+public class MockFailingGrid implements Grid {
 
     private final String nodeId = UUID.randomUUID().toString();
 

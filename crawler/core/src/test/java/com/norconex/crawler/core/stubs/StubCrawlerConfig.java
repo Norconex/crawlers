@@ -49,8 +49,8 @@ import com.norconex.crawler.core.commands.crawl.task.operations.spoil.impl.Gener
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.grid.MockNoopGrid;
-import com.norconex.crawler.core.mocks.grid.MockNoopGridConnector;
+import com.norconex.crawler.core.mocks.grid.MockFailingGrid;
+import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.NonNull;
@@ -78,8 +78,8 @@ public final class StubCrawlerConfig {
                             Long.class,
                             () -> Math
                                     .abs(new LongRandomizer().getRandomValue()))
-                    .randomize(Grid.class, MockNoopGrid::new)
-                    .randomize(GridConnector.class, MockNoopGridConnector::new)
+                    .randomize(Grid.class, MockFailingGrid::new)
+                    .randomize(GridConnector.class, MockFailingGridConnector::new)
                     .randomize(ImporterConfig.class, ImporterConfig::new)
                     .randomize(
                             UpsertRequest.class,

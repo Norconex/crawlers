@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.stages.QueueReferenceStage;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 

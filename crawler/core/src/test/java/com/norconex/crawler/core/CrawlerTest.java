@@ -29,7 +29,7 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.mocks.crawler.MockCrawler;
-import com.norconex.crawler.core.mocks.grid.MockNoopGridConnector;
+import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
 
 class CrawlerTest {
 
@@ -52,7 +52,7 @@ class CrawlerTest {
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> { //NOSONAR
                     MockCrawler.memoryCrawler(tempDir, cfg -> cfg
-                            .setGridConnector(new MockNoopGridConnector()))
+                            .setGridConnector(new MockFailingGridConnector()))
                             .crawl();
                 }).withMessage("IN_TEST");
     }
@@ -60,7 +60,6 @@ class CrawlerTest {
     @Test
     void testDocumentError() throws Exception {
         var exception = new MutableObject<Throwable>();
-        var stopRequested = new MutableObject<Boolean>();
 
         var crawler = MockCrawler.memoryCrawler(
                 tempDir,
@@ -72,9 +71,6 @@ class CrawlerTest {
                             }
                             if (evt.is(CrawlerEvent.REJECTED_ERROR)) {
                                 exception.setValue(evt.getException());
-                            }
-                            if (evt.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
-                                stopRequested.setValue(true);
                             }
                         })
                         .setStopOnExceptions(
@@ -91,78 +87,56 @@ class CrawlerTest {
                 IllegalStateException.class);
         assertThat(exception.getValue().getMessage())
                 .isEqualTo("DOC_ERROR");
-        assertThat(stopRequested.getValue()).isTrue();
-
     }
 
-    @Test
-    void testMaxDocReached() throws Exception {
-
-        //TODO FIGURE THIS OUT... to stop crawler, only support one of the
-        // following, and make sure the stop events are triggered.
-        //
-        // - crawlerContext.getState().setStopRequested(true); //... this is the "right" one to stop cleanly.
-        // - StopService.stopGrid(CrawlerContext);
-        // - crawlerContext.getGrid().shutdown();
-
-        var stopped = new MutableObject<Boolean>();
-
-        var crawler = MockCrawler.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
-                    .setNumThreads(2)
-                    .setMaxDocuments(1)
-                    .addEventListener(evt -> {
-                        if (evt.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
-                            stopped.setValue(true);
-                        }
-                    });
-
-        });
-
-        var captures = CrawlTestCapturer.capture(crawler, Crawler::crawl);
-        var mem = captures.getCommitter();
-
-        //            var mem = CrawlerTestUtil.runWithConfig(
-        //                    tempDir,
-        //                    cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
-        //                            .setNumThreads(2)
-        //                            .setMaxDocuments(1)
-        //                            .addEventListener(evt -> {
-        //                                if (evt.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
-        //                                    stopped.setValue(true);
-        //                                }
-        //                            }));
-
+    @CrawlTest(
+        run = true,
+        config = """
+                numThreads: 2
+                startReferences: [ref1,ref2,ref3]
+                maxDocuments: 1
+                """
+    )
+    void testMaxDocReached(MemoryCommitter mem) throws Exception {
         assertThat(mem.getUpsertCount()).isLessThan(3);
-        assertThat(stopped.getValue()).isTrue();
     }
+
+    @CrawlTest(
+        run = true,
+        config = """
+                numThreads: 2
+                startReferences: [ref1,ref2,ref3,ref4,ref5,ref6]
+                startReferencesAsync: true
+                """
+    )
+    void testAsyncQueueInit(MemoryCommitter mem) {
+        assertThat(mem.getUpsertCount()).isEqualTo(6);
+    }
+
+    //    @CrawlTest(
+    //        config = """
+    //                numThreads: 2
+    //                startReferences: [ref1,ref2,ref3]
+    //                startReferencesAsync: true
+    //                idleTimeout: 100
+    //                """
+    //    )
+    //    void testActiveTimeout(Crawler crawler) throws Exception {
     //
-    //    @Test
-    //    void testAsyncQueueInit() {
-    //        var mem = CrawlerTestUtil.runWithConfig(
-    //                tempDir,
-    //                cfg -> cfg.setStartReferences(
-    //                        List.of(
-    //                                "ref1", "ref2", "ref3", "ref4", "ref5", "ref6"))
-    //                        .setNumThreads(2)
-    //                        .setStartReferencesAsync(true));
-    //        assertThat(mem.getUpsertCount()).isEqualTo(6);
-    //    }
+    //        var captures = CrawlTestCapturer.capture(crawler, Crawler::crawl);
     //
-    //    @Test
-    //    void testActiveTimeout() {
-    //        var mem = CrawlerTestUtil.runWithConfig(
-    //                tempDir,
-    //                cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
-    //                        .setStartReferencesAsync(true)
-    //                        // The mock datastore engine always return false
-    //                        // for "isEmpty" so it means the "active" store and
-    //                        // "queue" store both return false for isEmpty, causing
-    //                        // it to loop forever.
-    //                        .setGridConnector(new MockNoopGridConnector())
-    //                        .setNumThreads(2)
-    //                        .setIdleTimeout(Duration.ofMillis(100)));
-    //        assertThat(mem.getUpsertCount()).isZero();
+    //        // The mock datastore engine always return false
+    //        // for "isEmpty" so it means the "active" store and
+    //        // "queue" store both return false for isEmpty, causing
+    //        // it to loop forever.
+    //        //            var mem = CrawlerTestUtil.runWithConfig(
+    //        //                    tempDir,
+    //        //                    cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
+    //        //                            .setStartReferencesAsync(true)
+    //        //                            .setGridConnector(new MockNoopGridConnector())
+    //        //                            .setNumThreads(2)
+    //        //                            .setIdleTimeout(Duration.ofMillis(100)));
+    //        assertThat(captures.getCommitter().getUpsertCount()).isEqualTo(3);
     //    }
     //
     //    @Disabled

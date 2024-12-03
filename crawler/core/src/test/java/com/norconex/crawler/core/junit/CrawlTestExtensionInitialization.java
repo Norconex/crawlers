@@ -100,27 +100,5 @@ public class CrawlTestExtensionInitialization
                 .setCrawlerContext(captures.getContext())
                 .setMemoryCommitter(captures.getCommitter())
                 .setWorkDir(tempDir);
-
-        //        try {
-        //            crawlerConfig
-        //                    .addEventListener(new CrawlTestCapturer());
-        //
-        //            if (annotation.run()) {
-        //                crawler.crawl();
-        //            } else {
-        //                MockCrawlerContext.memoryContext(tempDir, crawlerConfig).init();
-        //            }
-        //
-        //            return new CrawlTestParameters()
-        //                    .setCrawler(crawler)
-        //                    .setCrawlerConfig(crawlerConfig)
-        //                    .setCrawlerContext(CrawlTestCapturer.context)
-        //                    .setMemoryCommitter(
-        //                            CrawlTestCapturer.committer)
-        //                    .setWorkDir(tempDir);
-        //        } finally {
-        //            CrawlTestCapturer.context = null;
-        //            CrawlTestCapturer.committer = null;
-        //        }
     }
 }

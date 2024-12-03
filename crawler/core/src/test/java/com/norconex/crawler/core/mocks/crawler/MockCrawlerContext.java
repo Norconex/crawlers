@@ -21,7 +21,7 @@ import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpec;
 import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.mocks.grid.MockNoopGrid;
+import com.norconex.crawler.core.mocks.grid.MockFailingGrid;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 public final class MockCrawlerContext extends CrawlerContext {
@@ -51,7 +51,7 @@ public final class MockCrawlerContext extends CrawlerContext {
             Path workDir, CrawlerConfig config) {
         config.setWorkDir(workDir);
         var grid = config.getGridConnector() == null
-                ? new MockNoopGrid()
+                ? new MockFailingGrid()
                 : config.getGridConnector().connect(
                         MockCrawlerSpecProvider.class, config);
         return new MockCrawlerContext(

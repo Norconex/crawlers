@@ -22,12 +22,12 @@ import com.norconex.crawler.core.grid.GridConnector;
 import lombok.Data;
 
 @Data
-public class MockNoopGridConnector implements GridConnector {
+public class MockFailingGridConnector implements GridConnector {
 
     @Override
     public Grid connect(
             Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
             CrawlerConfig crawlerConfig) {
-        return new MockNoopGrid();
+        return new MockFailingGrid();
     }
 }

@@ -23,7 +23,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.commands.crawl.task.operations.checksum.impl.GenericMetadataChecksummer;
 
 class GenericMetadataChecksummerTest {
 

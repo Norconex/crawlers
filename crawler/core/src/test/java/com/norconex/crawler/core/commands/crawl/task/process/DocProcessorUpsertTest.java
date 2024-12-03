@@ -21,8 +21,6 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.commands.crawl.task.process.DocProcessorContext;
-import com.norconex.crawler.core.commands.crawl.task.process.DocProcessorUpsert;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.response.ImporterResponse;

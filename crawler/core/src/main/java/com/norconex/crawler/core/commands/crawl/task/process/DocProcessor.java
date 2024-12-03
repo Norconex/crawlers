@@ -74,6 +74,15 @@ public class DocProcessor implements Runnable {
 
     // return true to continue and false to abort/break
     private boolean processNextReference(ActivityChecker activityChecker) {
+        // abort now if we've reach configured max documents
+        if (crawlerContext.getDocProcessingLedger()
+                .isMaxDocsProcessedReached()) {
+            if (!crawlerContext.isStopping()) {
+                crawlerContext.stop();
+            }
+            return false;
+        }
+
         var ctx = new DocProcessorContext()
                 .crawlerContext(crawlerContext)
                 .orphan(orphan);

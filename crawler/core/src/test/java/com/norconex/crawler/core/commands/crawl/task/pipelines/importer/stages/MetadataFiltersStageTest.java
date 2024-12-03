@@ -27,7 +27,6 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericMetadataFilter;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.stages.MetadataFiltersStage;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;

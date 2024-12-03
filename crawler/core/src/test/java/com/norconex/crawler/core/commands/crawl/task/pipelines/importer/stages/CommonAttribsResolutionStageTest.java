@@ -24,7 +24,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.stages.CommonAttribsResolutionStage;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.DocMetadata;
