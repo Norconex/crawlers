@@ -37,7 +37,7 @@ import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
 import com.norconex.crawler.core.mocks.cli.MockCliExit;
 import com.norconex.crawler.core.mocks.cli.MockCliLauncher;
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 import jakarta.validation.ConstraintViolationException;
@@ -184,7 +184,7 @@ class CliCrawlerLauncherTest {
     @ParameterizedGridConnectorTest
     void testStoreExportImport(Class<? extends GridConnector> gridConnClass) {
         var exportDir = tempDir.resolve("exportdir");
-        var exportFile = exportDir.resolve(MockCrawler.CRAWLER_ID + ".zip");
+        var exportFile = exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID + ".zip");
         var configFile = StubCrawlerConfig.writeConfigToDir(
                 tempDir, cfg -> {});
 

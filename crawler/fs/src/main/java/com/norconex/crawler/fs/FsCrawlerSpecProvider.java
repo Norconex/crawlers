@@ -19,8 +19,8 @@ import com.norconex.crawler.core.CrawlerSpec;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.commands.crawl.service.impl.CoreQueueInitializer;
 import com.norconex.crawler.fs.callbacks.BeforeFsCommand;
+import com.norconex.crawler.fs.commands.crawl.task.pipelines.FsDocPipelines;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
-import com.norconex.crawler.fs.doc.pipelines.FsDocPipelines;
 import com.norconex.crawler.fs.fetch.FileFetcherProvider;
 
 public class FsCrawlerSpecProvider implements CrawlerSpecProvider {

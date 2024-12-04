@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,30 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.metrics;
-
-import static org.assertj.core.api.Assertions.assertThatNoException;
+package com.norconex.crawler.fs.mock;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.fs.FsCrawlerSpecProvider;
 
-class CrawlerMetricsJMXTest {
+/**
+ * Same as {@link MockCrawlerBuilder}, but defaults to
+ * {@link FsCrawlerSpecProvider}.
+ */
+public final class MockFsCrawlerBuilder extends MockCrawlerBuilder {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testCrawlerMonitorJMX() {
-        assertThatNoException().isThrownBy(() -> {
-            try (var ctx = new MockCrawlerBuilder(tempDir).crawlerContext()) {
-                ctx.init();
-                CrawlerMetricsJMX.register(ctx);
-                CrawlerMetricsJMX.unregister(ctx);
-            }
-        });
+    public MockFsCrawlerBuilder(Path workDir) {
+        super(workDir);
+        specProviderClass(FsCrawlerSpecProvider.class);
     }
 }

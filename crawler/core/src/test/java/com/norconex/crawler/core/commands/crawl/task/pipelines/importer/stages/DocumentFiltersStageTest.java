@@ -26,7 +26,7 @@ import com.norconex.crawler.core.commands.crawl.task.operations.filter.DocumentF
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatchFilter;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.Doc;
 
@@ -41,7 +41,7 @@ class DocumentFiltersStageTest {
     @Test
     void testDocumentFiltersStage() {
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         var ctx = new ImporterPipelineContext(crawlerContext, doc);
         var stage = new DocumentFiltersStage();
 

@@ -41,7 +41,7 @@ public class BeforeFsCommand implements Consumer<CrawlerContext> {
                   Checksummer:    %s
                   Deduplication:  %s
                 """.formatted(
-                yn(crawlerContext.getState().isResuming()),
+                yn(crawlerContext.isResuming()),
                 yn(cfg.getMetadataChecksummer() != null),
                 yn(cfg.isMetadataDeduplicate()
                         && cfg.getMetadataChecksummer() != null),

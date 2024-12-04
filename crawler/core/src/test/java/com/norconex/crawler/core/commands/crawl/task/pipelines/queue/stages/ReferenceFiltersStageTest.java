@@ -28,7 +28,7 @@ import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 
 class ReferenceFiltersStageTest {
 
@@ -37,7 +37,7 @@ class ReferenceFiltersStageTest {
 
     @Test
     void testReferenceFiltersStage() {
-        var crawler = MockCrawlerContext.memoryContext(tempDir);
+        var crawler = new MockCrawlerBuilder(tempDir).crawlerContext();
         var docRecord = new CrawlDocContext("ref");
         var stage = new ReferenceFiltersStage();
 

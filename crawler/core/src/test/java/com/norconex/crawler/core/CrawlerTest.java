@@ -28,9 +28,10 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
 
+// Misc tests not fitting anywhere else
 class CrawlerTest {
 
     @TempDir
@@ -51,8 +52,10 @@ class CrawlerTest {
     void testCrawlerException() {
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> { //NOSONAR
-                    MockCrawler.memoryCrawler(tempDir, cfg -> cfg
-                            .setGridConnector(new MockFailingGridConnector()))
+                    new MockCrawlerBuilder(tempDir)
+                            .configModifier(cfg -> cfg.setGridConnector(
+                                    new MockFailingGridConnector()))
+                            .crawler()
                             .crawl();
                 }).withMessage("IN_TEST");
     }
@@ -61,9 +64,9 @@ class CrawlerTest {
     void testDocumentError() throws Exception {
         var exception = new MutableObject<Throwable>();
 
-        var crawler = MockCrawler.memoryCrawler(
-                tempDir,
-                cfg -> cfg.setStartReferences(List.of("ref1", "ref2", "ref3"))
+        var crawler = new MockCrawlerBuilder(tempDir)
+                .configModifier(cfg -> cfg
+                        .setStartReferences(List.of("ref1", "ref2", "ref3"))
                         .setNumThreads(2)
                         .addEventListener(evt -> {
                             if (evt.is(CrawlerEvent.DOCUMENT_IMPORTED)) {
@@ -74,9 +77,8 @@ class CrawlerTest {
                             }
                         })
                         .setStopOnExceptions(
-                                List.of(IllegalStateException.class))
-
-        );
+                                List.of(IllegalStateException.class)))
+                .crawler();
 
         var captures = CrawlTestCapturer.capture(crawler, Crawler::crawl);
 

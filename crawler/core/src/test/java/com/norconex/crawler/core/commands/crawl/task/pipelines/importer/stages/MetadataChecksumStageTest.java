@@ -28,7 +28,7 @@ import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.Importer
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class MetadataChecksumStageTest {
@@ -40,7 +40,7 @@ class MetadataChecksumStageTest {
     void testMetadataChecksumStage() {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         crawlerContext.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 
@@ -73,10 +73,12 @@ class MetadataChecksumStageTest {
         var meta = new Properties();
         meta.add("key", "value");
 
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir, cfg -> {
-            cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED)
-                    .setMetadataChecksummer(checksummer);
-        });
+        var crawlerContext = new MockCrawlerBuilder(tempDir)
+                .configModifier(cfg -> {
+                    cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED)
+                            .setMetadataChecksummer(checksummer);
+                })
+                .crawlerContext();
 
         var doc = CrawlDocStubs.crawlDocWithCache(
                 "ref", "content", "key", "value");

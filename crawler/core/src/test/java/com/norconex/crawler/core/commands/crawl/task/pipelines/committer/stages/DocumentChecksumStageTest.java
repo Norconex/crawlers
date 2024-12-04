@@ -25,7 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class DocumentChecksumStageTest {
@@ -38,7 +38,7 @@ class DocumentChecksumStageTest {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(
-                MockCrawlerContext.memoryContext(tempDir), doc);
+                new MockCrawlerBuilder(tempDir).crawlerContext(), doc);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
@@ -50,7 +50,7 @@ class DocumentChecksumStageTest {
     void testNoDocumentChecksummer() {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         BeanMapper.DEFAULT.read(
                 crawlerContext.getConfiguration(),
                 new StringReader("""
@@ -68,7 +68,7 @@ class DocumentChecksumStageTest {
 
     @Test
     void testRejectedUnmodified() {
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
 
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
         doc.getDocContext().setContentChecksum(crawlerContext

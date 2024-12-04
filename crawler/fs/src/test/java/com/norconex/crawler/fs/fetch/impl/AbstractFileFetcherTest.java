@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -42,15 +41,19 @@ public abstract class AbstractFileFetcherTest {
     protected abstract FileFetcher fetcher();
 
     @Test
-    void testFetchFiles() {
+    void testFetchFiles() throws Exception {
         var fetcher = fetcher();
         var basePath = getStartPath();
 
-        var mem = FsTestUtil.runWithConfig(
-                tempDir,
-                cfg -> cfg
-                        .setStartReferences(List.of(basePath))
-                        .setFetchers(List.of(fetcher)));
+        var mem = FsTestUtil
+                .crawlWithFetcher(tempDir, fetcher, basePath)
+                .getCommitter();
+
+        //        var memASDF = FsTestUtil.runWithConfig(
+        //                tempDir,
+        //                cfg -> cfg
+        //                        .setStartReferences(List.of(basePath))
+        //                        .setFetchers(List.of(fetcher)));
 
         assertThat(mem.getUpsertCount()).isEqualTo(8);
         assertThat(mem.getUpsertRequests())

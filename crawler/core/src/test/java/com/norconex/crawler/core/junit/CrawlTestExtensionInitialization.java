@@ -29,8 +29,7 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.crawler.MockCrawler;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 import lombok.RequiredArgsConstructor;
@@ -83,14 +82,19 @@ public class CrawlTestExtensionInitialization
         crawlerConfig.setGridConnector(
                 ClassUtil.newInstance(gridConnectorClass));
 
-        var crawler = MockCrawler.memoryCrawler(
-                tempDir, crawlerConfig, annotation.specProvider());
+        var crawler = new MockCrawlerBuilder(tempDir)
+                .config(crawlerConfig)
+                .specProviderClass(annotation.specProvider())
+                .crawler();
 
         var captures = CrawlTestCapturer.capture(crawler, crwl -> {
             if (annotation.run()) {
                 crwl.crawl(false);
             } else {
-                MockCrawlerContext.memoryContext(tempDir, crawlerConfig).init();
+                new MockCrawlerBuilder(tempDir)
+                        .config(crawlerConfig)
+                        .crawlerContext()
+                        .init();
             }
         });
 

@@ -12,12 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.doc.pipelines.importer.stages;
+package com.norconex.crawler.fs.commands.crawl.task.pipelines.importer.stages;
+
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.fs.doc.FsCrawlDocContext;
+import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
+
+import lombok.NonNull;
+import lombok.SneakyThrows;
 
 class FolderPathsExtractorStageTest {
 
@@ -26,12 +39,10 @@ class FolderPathsExtractorStageTest {
 
     @Test
     void testFetchExceptionWrapped() {
-        throw new RuntimeException("Implement me");
-        /*
         var doc = new CrawlDoc(new FsCrawlDocContext() {
             private static final long serialVersionUID = 1L;
             private int cnt;
-        
+
             @Override
             @SneakyThrows
             public @NonNull String getReference() {
@@ -40,22 +51,20 @@ class FolderPathsExtractorStageTest {
                 }
                 throw new FetchException("blah");
             }
-        
+
             @Override
             public boolean isFolder() {
                 return true;
             }
         });
-        
+
         var ctx = new ImporterPipelineContext(
-                CrawlerStubs.memoryCrawler(tempDir), doc);
-        
+                new MockFsCrawlerBuilder(tempDir).crawlerContext(), doc);
+
         assertThatExceptionOfType(CrawlerException.class)
                 .isThrownBy(() -> //NOSONAR
                 new FolderPathsExtractorStage(
                         FetchDirective.DOCUMENT).executeStage(ctx))
                 .withMessageContaining("Could not fetch child paths of:");
-            */
     }
-
 }

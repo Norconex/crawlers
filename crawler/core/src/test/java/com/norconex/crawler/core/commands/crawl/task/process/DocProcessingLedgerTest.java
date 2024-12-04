@@ -27,7 +27,7 @@ import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 
 class DocProcessingLedgerTest {
 
@@ -47,9 +47,10 @@ class DocProcessingLedgerTest {
     @ParameterizedGridConnectorTest
     void testPersistence(Class<? extends GridConnector> connClass) {
 
-        var ctx1 = MockCrawlerContext.memoryContext(
-                tempDir,
-                cfg -> cfg.setGridConnector(ClassUtil.newInstance(connClass)));
+        var ctx1 = new MockCrawlerBuilder(tempDir)
+                .configModifier(cfg -> cfg
+                        .setGridConnector(ClassUtil.newInstance(connClass)))
+                .crawlerContext();
         ctx1.init();
         var ledger1 = ctx1.getDocProcessingLedger();
         ledger1.queue(new CrawlDocContext("ref:queue1"));
@@ -58,23 +59,23 @@ class DocProcessingLedgerTest {
         ledger1.processed(new CrawlDocContext("ref:processed2"));
         ledger1.processed(new CrawlDocContext("ref:processed3"));
         ctx1.close();
-        //        ctx1.getGrid().shutdown();
         ctx1.getGrid().nodeStop();
         GridTestUtil.waitForGridShutdown();
         ctx1.getGrid().close();
 
         // simulate resume
 
-        var ctx2 = MockCrawlerContext.memoryContext(
-                tempDir,
-                cfg -> cfg.setGridConnector(ClassUtil.newInstance(connClass)));
+        var ctx2 = new MockCrawlerBuilder(tempDir)
+                .configModifier(
+                        cfg -> cfg.setGridConnector(
+                                ClassUtil.newInstance(connClass)))
+                .crawlerContext();
         ctx2.init();
         var ledger2 = ctx2.getDocProcessingLedger();
         assertThat(ledger2.getQueueCount()).isEqualTo(2);
         assertThat(ledger2.getProcessedCount()).isEqualTo(3);
 
         ctx2.close();
-        //        ctx2.getGrid().shutdown();
         ctx1.getGrid().nodeStop();
         GridTestUtil.waitForGridShutdown();
     }

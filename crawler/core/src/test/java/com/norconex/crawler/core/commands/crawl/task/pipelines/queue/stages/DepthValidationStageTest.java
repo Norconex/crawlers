@@ -24,7 +24,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 
 class DepthValidationStageTest {
 
@@ -33,7 +33,7 @@ class DepthValidationStageTest {
 
         var docRec = new CrawlDocContext("ref");
         docRec.setDepth(3);
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         var ctx = new QueuePipelineContext(crawlerContext, docRec);
 
         // Unlimited depth

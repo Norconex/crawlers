@@ -33,7 +33,7 @@ import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.FetchUtil;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class OnMatchFiltersResolverTest {
@@ -43,7 +43,7 @@ class OnMatchFiltersResolverTest {
 
     @Test
     void testIsRejectedByMetadataFilters() {
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
 
         // match - include
@@ -134,7 +134,7 @@ class OnMatchFiltersResolverTest {
             FetchDirective currentDirective,
             boolean expected) {
         CrawlDocStubs.crawlDocWithCache("ref", "content");
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         var cfg = crawlerContext.getConfiguration();
         cfg.setMetadataFetchSupport(metaSupport);
         cfg.setDocumentFetchSupport(docSupport);

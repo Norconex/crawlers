@@ -21,7 +21,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.fs.doc.operations.checksum.FsMetadataChecksummer;
+import com.norconex.crawler.fs.commands.crawl.task.operations.checksum.FsMetadataChecksummer;
 import com.norconex.crawler.fs.fetch.impl.cmis.CmisFetcher;
 import com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher;
 import com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher;

@@ -17,7 +17,6 @@ package com.norconex.crawler.fs.fetch.impl.cmis;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,23 +47,20 @@ class CmisAtomFileSystemTest {
     }
 
     @Test
-    void testAtom_1_0() {
+    void testAtom_1_0() throws Exception {
         testCmisFileSystem(CmisTestServer.ATOM_1_0, 21);
     }
 
     @Test
-    void testAtom_1_1() {
+    void testAtom_1_1() throws Exception {
         testCmisFileSystem(CmisTestServer.ATOM_1_1, 21);
     }
 
-    void testCmisFileSystem(String path, int expectedQty) {
-
+    void testCmisFileSystem(String path, int expectedQty) throws Exception {
         var ref = cmisEndpointUrl(path);
-        var mem = FsTestUtil.runWithConfig(
-                tempDir,
-                cfg -> cfg
-                        .setStartReferences(List.of(ref))
-                        .setFetchers(List.of(new CmisFetcher())));
+        var captures = FsTestUtil.crawlWithFetcher(
+                tempDir, new CmisFetcher(), ref);
+        var mem = captures.getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(expectedQty);
     }
 

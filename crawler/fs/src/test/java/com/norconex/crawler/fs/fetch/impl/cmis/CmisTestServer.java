@@ -93,9 +93,8 @@ public class CmisTestServer {
         // CMIS Browser
         servlet = new ServletHolder(new CmisBrowserBindingServlet());
         servlet.setInitParameter("cmisVersion", "1.1");
-        servlet.setInitParameter(
-                "callContextHandler", "org.apache.chemistry."
-                        + "opencmis.server.impl.browser.token.TokenCallContextHandler");
+        servlet.setInitParameter("callContextHandler", "org.apache.chemistry."
+                + "opencmis.server.impl.browser.token.TokenCallContextHandler");
         webappContext.addServlet(servlet, "/browser/*");
 
         // CMIS Endpoints
@@ -141,13 +140,10 @@ public class CmisTestServer {
         System.out.println(
                 "Test CMIS server has successfully started on port "
                         + localPort);
-
-        //        server.join();
     }
 
     public void stop() throws Exception {
         server.stop();
-        //        server.join();
     }
 
     /**
@@ -169,8 +165,6 @@ public class CmisTestServer {
                 }
             }
         });
-
-        //        server.run();
 
         new Thread() {
             @Override

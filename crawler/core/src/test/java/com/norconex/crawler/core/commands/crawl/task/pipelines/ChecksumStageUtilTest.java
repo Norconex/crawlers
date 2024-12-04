@@ -28,7 +28,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.commands.crawl.task.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ChecksumStageUtilTest {
@@ -40,7 +40,7 @@ class ChecksumStageUtilTest {
     void testResolveMetaChecksum() {
         // true is new/modified
 
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new ImporterPipelineContext(crawlerContext, doc);
 
@@ -90,7 +90,7 @@ class ChecksumStageUtilTest {
     void testResolveDocumentChecksum() {
         // true is new/modified
 
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(crawlerContext, doc);
 

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.doc.operations.checksum;
+package com.norconex.crawler.fs.commands.crawl.task.operations.checksum;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -52,10 +52,7 @@ class FsMetadataChecksummerTest {
     @Test
     void testWriteRead() {
         assertThatNoException()
-                .isThrownBy(
-                        () -> BeanMapper.DEFAULT.assertWriteRead(
-                                FsTestUtil
-                                        .randomize(
-                                                FsMetadataChecksummer.class)));
+                .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(
+                        FsTestUtil.randomize(FsMetadataChecksummer.class)));
     }
 }

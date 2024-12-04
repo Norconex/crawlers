@@ -30,7 +30,7 @@ import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 
@@ -55,7 +55,7 @@ class AbstractFetcherTest {
 
     @Test
     void testEvents() {
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         List<String> methodsCalled = new ArrayList<>();
         var f = new MockFetcher() {
             @Override

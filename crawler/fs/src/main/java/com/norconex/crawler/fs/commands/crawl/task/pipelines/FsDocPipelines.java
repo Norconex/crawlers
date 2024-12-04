@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.doc.pipelines;
+package com.norconex.crawler.fs.commands.crawl.task.pipelines;
 
 import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
@@ -36,8 +36,8 @@ import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.stages.Dept
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.stages.QueueReferenceStage;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.stages.ReferenceFiltersStage;
 import com.norconex.crawler.core.fetch.FetchDirective;
-import com.norconex.crawler.fs.doc.pipelines.importer.stages.FileFetchStage;
-import com.norconex.crawler.fs.doc.pipelines.importer.stages.FolderPathsExtractorStage;
+import com.norconex.crawler.fs.commands.crawl.task.pipelines.importer.stages.FileFetchStage;
+import com.norconex.crawler.fs.commands.crawl.task.pipelines.importer.stages.FolderPathsExtractorStage;
 
 public final class FsDocPipelines {
 

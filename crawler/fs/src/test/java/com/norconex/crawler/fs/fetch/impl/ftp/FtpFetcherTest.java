@@ -17,7 +17,6 @@ package com.norconex.crawler.fs.fetch.impl.ftp;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.ftpserver.ftplet.FtpException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.io.TempDir;
@@ -30,14 +29,13 @@ class FtpFetcherTest extends AbstractFileFetcherTest {
     private static MockFtpServer server;
 
     @BeforeAll
-    static void beforeAll(@TempDir File tempDir)
-            throws FtpException, IOException {
+    static void beforeAll(@TempDir File tempDir) throws IOException {
         server = new MockFtpServer(tempDir, false);
         server.start();
     }
 
     @AfterAll
-    static void afterAll() throws FtpException {
+    static void afterAll() {
         MockFtpServer.stop(server);
     }
 

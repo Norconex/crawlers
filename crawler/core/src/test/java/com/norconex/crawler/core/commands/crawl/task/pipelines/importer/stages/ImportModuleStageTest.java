@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.commands.crawl.task.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerContext;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ImportModuleStageTest {
@@ -38,7 +38,7 @@ class ImportModuleStageTest {
     @Test
     void testImportModuleStage() throws IOException {
         var doc = CrawlDocStubs.crawlDoc("ref", "tomato");
-        var crawlerContext = MockCrawlerContext.memoryContext(tempDir);
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         crawlerContext.getConfiguration().getImporterConfig().setHandlers(
                 List.of(hctx -> {
                     try {
