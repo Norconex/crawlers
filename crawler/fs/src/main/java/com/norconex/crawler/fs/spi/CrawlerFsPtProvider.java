@@ -25,6 +25,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.crawler.core.commands.crawl.task.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.fs.commands.crawl.task.operations.checksum.FsMetadataChecksummer;
 import com.norconex.crawler.fs.fetch.impl.cmis.CmisFetcher;
 import com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher;
 import com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher;
@@ -48,6 +49,7 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, MetadataChecksummer.class, "doc.operations");
         map.putAll(
                 Fetcher.class, List.of(
+                        FsMetadataChecksummer.class,
                         CmisFetcher.class,
                         FtpFetcher.class,
                         HdfsFetcher.class,
