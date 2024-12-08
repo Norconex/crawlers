@@ -61,18 +61,12 @@ class HdfsFetcherTest {
         assertThat(f.getConfiguration().getConfigUrls())
                 .containsExactlyElementsOf(urls);
 
-        assertThat(
-                f.acceptRequest(
-                        new FileFetchRequest(
-                                new CrawlDoc(
-                                        new DocContext("hdfs://blah")),
-                                DOCUMENT))).isTrue();
-        assertThat(
-                f.acceptRequest(
-                        new FileFetchRequest(
-                                new CrawlDoc(
-                                        new DocContext("http://blah")),
-                                DOCUMENT))).isFalse();
+        assertThat(f.acceptRequest(new FileFetchRequest(
+                new CrawlDoc(new DocContext("hdfs://blah")),
+                DOCUMENT))).isTrue();
+        assertThat(f.acceptRequest(new FileFetchRequest(
+                new CrawlDoc(new DocContext("http://blah")),
+                DOCUMENT))).isFalse();
 
         var opts = new FileSystemOptions();
         f.applyFileSystemOptions(opts);

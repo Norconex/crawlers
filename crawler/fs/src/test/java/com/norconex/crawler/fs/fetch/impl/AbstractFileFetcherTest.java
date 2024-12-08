@@ -49,12 +49,6 @@ public abstract class AbstractFileFetcherTest {
                 .crawlWithFetcher(tempDir, fetcher, basePath)
                 .getCommitter();
 
-        //        var memASDF = FsTestUtil.runWithConfig(
-        //                tempDir,
-        //                cfg -> cfg
-        //                        .setStartReferences(List.of(basePath))
-        //                        .setFetchers(List.of(fetcher)));
-
         assertThat(mem.getUpsertCount()).isEqualTo(8);
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
