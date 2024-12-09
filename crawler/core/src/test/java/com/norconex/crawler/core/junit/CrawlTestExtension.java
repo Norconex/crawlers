@@ -15,8 +15,10 @@
 package com.norconex.crawler.core.junit;
 
 import java.io.IOException;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -28,6 +30,8 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.util.ExtensibleAnnotationFinder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,19 +42,14 @@ class CrawlTestExtension implements
 
     @Override
     public boolean supportsTestTemplate(ExtensionContext context) {
-        return context.getTestClass()
-                .map(clazz -> clazz.isAnnotationPresent(CrawlTest.class)
-                        || context.getTestMethod()
-                                .map(method -> method.isAnnotationPresent(
-                                        CrawlTest.class))
-                                .orElse(false))
-                .orElse(false);
+        return findAnnotation(context.getTestClass()).isPresent()
+                || findAnnotation(context.getTestMethod()).isPresent();
     }
 
     @Override
     public Stream<TestTemplateInvocationContext>
             provideTestTemplateInvocationContexts(ExtensionContext context) {
-        var annotation = getAnnotation(context);
+        var annotation = findAnnotation(context.getTestMethod()).orElseThrow();
         var connectorClasses = annotation.gridConnectors();
         return Stream.of(connectorClasses)
                 .map(conn -> new CrawlTestInvocationContext(
@@ -67,6 +66,16 @@ class CrawlTestExtension implements
 
         var params = CrawlTestParameters.get(extensionContext);
 
+        // close context if it was the focus (for CRAWL the crawler does it).
+        if (params.getCrawler() == null) {
+            findAnnotation(
+                    extensionContext.getTestMethod()).ifPresent(annot -> {
+                        if (annot.focus() == Focus.CONTEXT) {
+                            params.getCrawlerContext().close();
+                        }
+                    });
+        }
+
         if (params.getCrawlerConfig()
                 .getGridConnector() instanceof IgniteGridConnector) {
             // Ensures ignite has no hold on the temp files before a cleanup
@@ -74,32 +83,27 @@ class CrawlTestExtension implements
             // work around too often, modify the ParameterizedGridConnectorTest
             // to handle this.
             GridTestUtil.waitForGridShutdown();
-
-            // Clean up the temporary directory after each test
-            var tempDir = params.getWorkDir();
-            if (tempDir != null) {
-                Files.walk(tempDir)
-                        // Delete files before directories
-                        .sorted((path1, path2) -> path2.compareTo(path1))
-                        .forEach(path -> {
-                            try {
-                                FileUtil.delete(path.toFile());
-                            } catch (IOException e) {
-                                throw new RuntimeException(
-                                        "Failed to delete file: " + path, e);
-                            }
-                        });
-            }
+        }
+        // Clean up the temporary directory after each test
+        var tempDir = params.getWorkDir();
+        if (tempDir != null) {
+            Files.walk(tempDir)
+                    // Delete files before directories
+                    .sorted((path1, path2) -> path2.compareTo(path1))
+                    .forEach(path -> {
+                        try {
+                            FileUtil.delete(path.toFile());
+                        } catch (IOException e) {
+                            throw new RuntimeException(
+                                    "Failed to delete file: " + path, e);
+                        }
+                    });
         }
     }
 
-    private CrawlTest getAnnotation(ExtensionContext context) {
-        return context.getTestMethod()
-                .map(method -> method.getAnnotation(CrawlTest.class))
-                .or(() -> context.getTestClass()
-                        .map(clazz -> clazz
-                                .getAnnotation(CrawlTest.class)))
-                .orElseThrow(() -> new IllegalStateException(
-                        "Expected @MockCrawler annotation to be present"));
+    private Optional<CrawlTest> findAnnotation(
+            Optional<? extends AnnotatedElement> el) {
+        return ExtensibleAnnotationFinder.find(
+                el.orElse(null), CrawlTest.class);
     }
 }

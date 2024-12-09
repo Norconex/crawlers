@@ -186,6 +186,14 @@
     <!-- Test + provided dependencies: -->
 
     <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-crawler-core</artifactId>
+      <version>${project.parent.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>

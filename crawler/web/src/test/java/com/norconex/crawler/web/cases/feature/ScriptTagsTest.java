@@ -29,7 +29,7 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.HtmlLinkExtractor;
 
 /**
  * Content of &lt;script&gt; tags must be stripped by GenericLinkExtractor

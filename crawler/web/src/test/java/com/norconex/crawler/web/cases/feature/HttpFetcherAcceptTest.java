@@ -36,7 +36,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.HttpMethod;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 
 /**
  * Tests that a page is only fetched by the fetcher we are interested in.
@@ -158,9 +158,9 @@ class HttpFetcherAcceptTest {
                                         MediaType.HTML_UTF_8));
     }
 
-    private GenericHttpFetcher createFetcher(HttpMethod method) {
+    private HttpClientFetcher createFetcher(HttpMethod method) {
         return Configurable.configure(
-                new GenericHttpFetcher(),
+                new HttpClientFetcher(),
                 cfg -> cfg.setHttpMethods(List.of(method)));
     }
 }

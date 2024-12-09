@@ -31,18 +31,18 @@ import com.norconex.crawler.core.commands.crawl.task.operations.filter.DocumentF
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
-import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
-import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
-import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
-import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
-import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
-import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher;
-import com.norconex.crawler.web.robot.RobotsMetaProvider;
-import com.norconex.crawler.web.robot.RobotsTxtProvider;
-import com.norconex.crawler.web.sitemap.SitemapLocator;
-import com.norconex.crawler.web.sitemap.SitemapResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.canon.CanonicalLinkDetector;
+import com.norconex.crawler.web.commands.crawl.task.operations.delay.DelayResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.link.LinkExtractor;
+import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsMetaProvider;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxtProvider;
+import com.norconex.crawler.web.commands.crawl.task.operations.scope.UrlScopeResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.SitemapLocator;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.SitemapResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.url.WebUrlNormalizer;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
+import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcher;
 
 /**
  * <p>
@@ -77,8 +77,8 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         //        map.put(CrawlerConfig.class, WebCrawlerConfig.class);
         map.putAll(
                 Fetcher.class, List.of(
-                        GenericHttpFetcher.class,
-                        WebDriverHttpFetcher.class));
+                        HttpClientFetcher.class,
+                        WebDriverFetcher.class));
 
         // For unit test
         addPolyType(map, EventListener.class, "session.recovery");

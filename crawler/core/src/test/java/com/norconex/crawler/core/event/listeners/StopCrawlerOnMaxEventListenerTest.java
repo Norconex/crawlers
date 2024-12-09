@@ -27,6 +27,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class StopCrawlerOnMaxEventListenerTest {
 
@@ -60,7 +61,7 @@ class StopCrawlerOnMaxEventListenerTest {
       """;
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = CFG_TMPL,
         vars = { "pattern", UPSERTED, "maximum", "2", "onMultiple", "SUM" }
     )
@@ -69,7 +70,7 @@ class StopCrawlerOnMaxEventListenerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = CFG_TMPL,
         vars = {
                 "pattern", "NEVER_ENCOUNTERED_SO_WONT_STOP",
@@ -82,7 +83,7 @@ class StopCrawlerOnMaxEventListenerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = CFG_TMPL,
         vars = {
                 "pattern", UPSERTED + "|" + ACCEPTED,
@@ -95,7 +96,7 @@ class StopCrawlerOnMaxEventListenerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = CFG_TMPL,
         vars = {
                 "pattern", UPSERTED_OR_REJECTED,
@@ -108,7 +109,7 @@ class StopCrawlerOnMaxEventListenerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = CFG_TMPL,
         vars = {
                 "pattern", UPSERTED_OR_REJECTED,
@@ -121,7 +122,7 @@ class StopCrawlerOnMaxEventListenerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = CFG_TMPL,
         vars = {
                 "pattern", UPSERTED_OR_REJECTED,

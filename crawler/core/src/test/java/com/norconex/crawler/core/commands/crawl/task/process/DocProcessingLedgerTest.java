@@ -26,6 +26,7 @@ import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 
@@ -34,7 +35,7 @@ class DocProcessingLedgerTest {
     @TempDir
     private Path tempDir;
 
-    @CrawlTest
+    @CrawlTest(focus = Focus.CONTEXT)
     void testCleanCrawl(CrawlerContext ctx) {
         var ledger = ctx.getDocProcessingLedger();
         // forEach[...] returns true by default when there are no matches

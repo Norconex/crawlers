@@ -27,6 +27,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
@@ -38,7 +39,7 @@ class CrawlerTest {
     private Path tempDir;
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = """
             numThreads: 2
             startReferences: [ref1,ref2,ref3]
@@ -92,7 +93,7 @@ class CrawlerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = """
                 numThreads: 2
                 startReferences: [ref1,ref2,ref3]
@@ -104,7 +105,7 @@ class CrawlerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = """
                 numThreads: 2
                 startReferences: [ref1,ref2,ref3,ref4,ref5,ref6]

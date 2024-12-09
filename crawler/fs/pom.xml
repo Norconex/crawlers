@@ -175,28 +175,10 @@
 
     <!-- Test + provided dependencies: -->
 
-    <!-- NOTE: To get changes in core test files reflected right away, one 
-         needs to install the core project in the local maven repo on every
-         change, or add the core project to your IDE classpath/project 
-         reference.
-         -->
     <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-crawler-core</artifactId>
-      <version>${parent.version}</version>
-<!--
-      <classifier>test</classifier>    
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-        <exclusion>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-        </exclusion>
-      </exclusions>
--->
+      <version>${project.parent.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>

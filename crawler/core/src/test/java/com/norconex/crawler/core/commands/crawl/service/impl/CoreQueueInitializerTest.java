@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class CoreQueueInitializerTest {
 
@@ -55,7 +56,7 @@ class CoreQueueInitializerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = """
                 numThreads: 2
                 """,
@@ -66,7 +67,7 @@ class CoreQueueInitializerTest {
     }
 
     @CrawlTest(
-        run = true,
+        focus = Focus.CRAWL,
         config = """
                 numThreads: 2
                 """,

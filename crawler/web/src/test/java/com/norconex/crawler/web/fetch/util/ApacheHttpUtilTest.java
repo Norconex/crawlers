@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
 
 class ApacheHttpUtilTest {
 

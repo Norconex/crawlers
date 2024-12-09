@@ -18,8 +18,8 @@ import java.util.function.Function;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 
 public class HttpFetcherProvider
         implements Function<CrawlerContext, HttpMultiFetcher> {
@@ -34,7 +34,7 @@ public class HttpFetcherProvider
                 .map(HttpFetcher.class::cast)
                 .toList();
         if (fetchers.isEmpty()) {
-            fetchers.add(new GenericHttpFetcher());
+            fetchers.add(new HttpClientFetcher());
         }
 
         //TODO REFACTOR since MultiFetcher is the one dealing with multiple
@@ -48,7 +48,7 @@ public class HttpFetcherProvider
         return new HttpMultiFetcher(
                 fetchers,
                 HttpMultiFetchResponse::new,
-                (state, msg, ex) -> GenericHttpFetchResponse.builder()
+                (state, msg, ex) -> HttpClientFetchResponse.builder()
                         .resolutionStatus(state)
                         .reasonPhrase(msg)
                         .exception(ex)

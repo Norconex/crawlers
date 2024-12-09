@@ -18,9 +18,14 @@ import org.apache.commons.lang3.function.FailableConsumer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
+import com.norconex.crawler.core.grid.GridTestUtil;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,7 +37,6 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    //    @Setter(value = AccessLevel.PACKAGE)
     public static class CrawlCaptures {
         private CrawlerContext context;
         private MemoryCommitter committer;
@@ -40,11 +44,41 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
     }
 
     private static final CrawlCaptures captures = new CrawlCaptures();
-    //    public static CrawlerContext context;
-    //    public static MemoryCommitter committer;
-    //    public static Throwable crawlerError;
 
-    public static /*synchronized*/ CrawlCaptures capture(
+    public static CrawlCaptures crawlAndCapture(CrawlerConfig config)
+            throws Exception {
+        return crawlAndCapture(config, MockCrawlerSpecProvider.class);
+    }
+
+    public static CrawlCaptures crawlAndCapture(
+            CrawlerConfig config,
+            Class<? extends CrawlerSpecProvider> specProviderClass)
+            throws Exception {
+        if (config.getWorkDir() == null) {
+            throw new IllegalStateException(
+                    "Crawler working directory must not be null.");
+        }
+        try {
+            var crawler = new MockCrawlerBuilder(config.getWorkDir())
+                    .config(config)
+                    .specProviderClass(specProviderClass)
+                    .crawler();
+
+            var capturer = new CrawlTestCapturer();
+            config.addEventListener(capturer);
+            crawler.crawl();
+            config.removeEventListener(capturer);
+            GridTestUtil.waitForGridShutdown();
+            return new CrawlCaptures(
+                    captures.context,
+                    captures.committer,
+                    captures.crawlerError);
+        } finally {
+            reset();
+        }
+    }
+
+    public static CrawlCaptures capture(
             @NonNull Crawler crawler,
             @NonNull FailableConsumer<Crawler, Exception> c) throws Exception {
         try {

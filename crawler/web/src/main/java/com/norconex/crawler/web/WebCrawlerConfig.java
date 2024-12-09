@@ -31,32 +31,32 @@ import com.norconex.crawler.core.commands.crawl.task.operations.checksum.impl.Md
 import com.norconex.crawler.core.commands.crawl.task.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.web.commands.crawl.task.operations.canon.CanonicalLinkDetector;
+import com.norconex.crawler.web.commands.crawl.task.operations.canon.impl.GenericCanonicalLinkDetector;
+import com.norconex.crawler.web.commands.crawl.task.operations.checksum.impl.LastModifiedMetadataChecksummer;
+import com.norconex.crawler.web.commands.crawl.task.operations.delay.DelayResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.GenericDelayResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.link.LinkExtractor;
+import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.HtmlLinkExtractorConfig;
+import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.impl.GenericRecrawlableResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsMetaProvider;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxtProvider;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.impl.StandardRobotsMetaProvider;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.impl.StandardRobotsTxtProvider;
+import com.norconex.crawler.web.commands.crawl.task.operations.scope.UrlScopeResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.scope.impl.GenericUrlScopeResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.SitemapLocator;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.SitemapResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapLocator;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.url.WebUrlNormalizer;
+import com.norconex.crawler.web.commands.crawl.task.operations.url.impl.GenericUrlNormalizer;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
-import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
-import com.norconex.crawler.web.doc.operations.checksum.impl.LastModifiedMetadataChecksummer;
-import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
-import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
-import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractorConfig;
-import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
-import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolver;
-import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
-import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
-import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
-import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
-import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher;
-import com.norconex.crawler.web.robot.RobotsMetaProvider;
-import com.norconex.crawler.web.robot.RobotsTxtProvider;
-import com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider;
-import com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider;
-import com.norconex.crawler.web.sitemap.SitemapLocator;
-import com.norconex.crawler.web.sitemap.SitemapResolver;
-import com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator;
-import com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig;
+import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcher;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.Data;
@@ -185,21 +185,6 @@ import lombok.experimental.FieldNameConstants;
  * You can listen to crawler events using {@link #setEventListeners(List)}.
  * </p>
  *
- * <h3>Data Store (Cache)</h3>
- * <p>
- * During and between crawl sessions, the crawler needs to preserve
- * specific information in order to keep track of
- * things such as a queue of document references to process,
- * those already processed, whether a document has been modified since last
- * crawled, caching of document checksums, etc.
- * For this, the crawler uses a database we refer to as a data store engine.
- * The default implementation uses the local file system to store these
- * (see {@link MvStoreDataStoreEngine}). While very capable and suitable
- * for most sites, if you need a larger storage system, you can change
- * the default implementation or provide your own
- * with {@link #setDataStoreEngine(DataStoreEngine)}.
- * </p>
- *
  * <h3>Document Importing</h3>
  * <p>
  * The process of transforming, enhancing, parsing to extracting plain text
@@ -234,12 +219,12 @@ import lombok.experimental.FieldNameConstants;
  * <h3>HTTP Fetcher</h3>
  * <p>
  * To crawl and parse a document, it first needs to be downloaded. This is the
- * role of one or more HTTP Fetchers.  {@link GenericHttpFetcher} is the
+ * role of one or more HTTP Fetchers.  {@link HttpClientFetcher} is the
  * default implementation and can handle most web sites.
  * There might be cases where a more specialized way of obtaining web resources
  * is needed. For instance, JavaScript-generated web pages are often best
  * handled by web browsers. In such case you can use the
- * {@link WebDriverHttpFetcher}. You can also use
+ * {@link WebDriverFetcher}. You can also use
  * {@link #setFetchers(List)} to supply your own fetcher implementation.
  * </p>
  *
@@ -395,10 +380,10 @@ import lombok.experimental.FieldNameConstants;
  *   <li>
  *     <b>Fetcher-specific:</b> Fetcher implementations may support additional
  *     web site instructions with corresponding configuration options.
- *     For example, the default HTTP Fetcher ({@link GenericHttpFetcher})
+ *     For example, the default HTTP Fetcher ({@link HttpClientFetcher})
  *     supports the <code>If-Modified-Since</code> for web sites supporting it
  *     (only affects incremental crawls). To turn that off, use
- *     {@link GenericHttpFetcherConfig#setIfModifiedSinceDisabled(boolean)}.
+ *     {@link HttpClientFetcherConfig#setIfModifiedSinceDisabled(boolean)}.
  *     See fetcher documentation for additional options.
  *   </li>
  * </ul>
@@ -570,7 +555,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     public WebCrawlerConfig() {
         setMetadataChecksummer(new LastModifiedMetadataChecksummer());
-        setFetchers(List.of(new GenericHttpFetcher()));
+        setFetchers(List.of(new HttpClientFetcher()));
     }
 
     //--- Accessors ------------------------------------------------------------

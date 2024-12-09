@@ -19,13 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class DocumentDedupStageTest {
 
-    @CrawlTest(config = """
+    @CrawlTest(
+        focus = Focus.CONTEXT,
+        config = """
             documentDeduplicate: true
-            """)
+            """
+    )
     void testTest(CrawlerContext ctx) {
 
         ctx.getDocProcessingLedger();

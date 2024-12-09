@@ -32,7 +32,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.importer.doc.DocMetadata;
 
 /**
@@ -95,7 +95,7 @@ class ContentTypeCharsetTest {
 
         var mem2 = WebTestUtil.runWithConfig(tempDir.resolve("2"), cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, urlPath)));
-            var fetcher = new GenericHttpFetcher();
+            var fetcher = new HttpClientFetcher();
             fetcher.getConfiguration().setForceContentTypeDetection(true);
             fetcher.getConfiguration().setForceCharsetDetection(true);
             cfg.setFetchers(List.of(fetcher));

@@ -20,27 +20,35 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
+import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
+import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 /**
  * <p>
- * Initializes a {@link CrawlerContext} before each test execution and destroys
- * it after each execution. To have the crawler run before a test, set
- * <code>run</code> to <code>true</code>.
+ * Tests methods annotated with this annotation will have crawler-related
+ * objects configured and set to a desired state before
+ * making them available as method arguments.
+ * </p>
+ * <p>
+ * Based on the value of annotation {@link #focus()}, either a crawler
+ * instance will be run, the context initialized, or simply the configuration
+ * and context created without initialization. Refer to {@link CrawlTest.Focus}
+ * values for details. Default focus is {@link Focus#CONFIG}.
  * </p>
  */
 @Retention(RUNTIME)
-@Target({ ElementType.METHOD })
+@Target({ ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
 @ExtendWith(CrawlTestExtension.class)
 @TestTemplate
 public @interface CrawlTest {
@@ -50,6 +58,53 @@ public @interface CrawlTest {
     //    2. BeforeTestExecutionCallback#beforeTestExecution()
     //    3. ParameterResolver#resolveParameter()
     //    4. Test template method execution.
+
+    /**
+     * <p>
+     * Focus of the test dictating what will happen before each test execution.
+     * The following types are resolved when passed as method arguments:
+     * </p>
+     * <ul>
+     *   <li>
+     *     Crawler (when focus is {@link Focus#CRAWL}, else <code>null</code>)
+     *   </li>
+     *   <li>
+     *     CrawlerConfig
+     *   </li>
+     *   <li>
+     *     CrawlerContext (<code>null</code> when focus is {@link Focus#CONFIG})
+     *   </li>
+     *   <li>
+     *     Committer (an instance of <code>MemoryCommitter</code>)
+     *   </li>
+     *   <li>
+     *     Path (a temporary working directory)
+     *   </li>
+     * </ul>
+     */
+    public static enum Focus {
+        /**
+         * Before each text execution, create a crawler, invoke the crawl
+         * command, and destroy the crawler after each execution.
+         * All resolvable method arguments are set (non-<code>null</code>).
+         */
+        CRAWL,
+        /**
+         * Initializes the crawler context before each text execution and
+         * closes it after each.
+         * Does not crawl and outcome is unexpected if trying to launch a crawl
+         * while the separate crawler context is active.
+         * The resolvable <code>Crawler</code> method arguments is always
+         * <code>null</code>.
+         */
+        CONTEXT,
+        /**
+         * Makes resolvable method arguments available without initialization.
+         * The resolvable <code>Crawler</code> method arguments is always
+         * <code>null</code>.
+         */
+        CONFIG
+    }
 
     /**
      * Use a the given crawler specs.
@@ -63,11 +118,10 @@ public @interface CrawlTest {
     };
 
     /**
-     * Whether to run the crawler before executing the test. Otherwise
-     * it will just initialize it without running it.
-     * @return <code>true</code> to run the crawler
+     * Whether to run the crawler, initialize the crawler context, or
+     * simply construct the configuration.
      */
-    boolean run() default false;
+    Focus focus() default Focus.CONFIG;
 
     /**
      * Whether the default crawl session configuration used for testing
@@ -76,6 +130,15 @@ public @interface CrawlTest {
      * @return use random configuration values
      */
     boolean randomConfig() default false;
+
+    /**
+     * Whether the default crawl session configuration used for testing
+     * is filled with random values before any custom configuration
+     * is added.
+     * @return use random configuration values
+     */
+    Class<? extends Supplier<
+            EasyRandom>> randomizer() default DefaultRandomizer.class;
 
     /**
      * Text-based crawler configuration, applied on top of generated random
@@ -120,6 +183,14 @@ public @interface CrawlTest {
         @Override
         public void accept(CrawlerConfig t) {
             //NOOP
+        }
+    }
+
+    public static final class DefaultRandomizer
+            implements Supplier<EasyRandom> {
+        @Override
+        public EasyRandom get() {
+            return StubCrawlerConfig.RANDOMIZER;
         }
     }
 }

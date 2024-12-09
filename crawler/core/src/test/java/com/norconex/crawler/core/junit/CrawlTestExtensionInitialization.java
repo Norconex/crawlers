@@ -23,12 +23,14 @@ import org.apache.commons.text.StringSubstitutor;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
@@ -54,9 +56,16 @@ public class CrawlTestExtensionInitialization
         // Create a temporary directory before each test
         var tempDir = Files.createTempDirectory("crawltest");
 
+        var spec = ClassUtil.newInstance(annotation.specProvider()).get();
+
         var crawlerConfig = annotation.randomConfig()
-                ? StubCrawlerConfig.randomMemoryCrawlerConfig(tempDir)
-                : StubCrawlerConfig.memoryCrawlerConfig(tempDir);
+                ? StubCrawlerConfig.randomMemoryCrawlerConfig(
+                        tempDir,
+                        spec.crawlerConfigClass(),
+                        ClassUtil.newInstance(annotation.randomizer()).get())
+                : StubCrawlerConfig.memoryCrawlerConfig(
+                        tempDir,
+                        spec.crawlerConfigClass());
 
         // apply custom config from text
         if (StringUtils.isNotBlank(annotation.config())) {
@@ -82,27 +91,46 @@ public class CrawlTestExtensionInitialization
         crawlerConfig.setGridConnector(
                 ClassUtil.newInstance(gridConnectorClass));
 
-        var crawler = new MockCrawlerBuilder(tempDir)
-                .config(crawlerConfig)
-                .specProviderClass(annotation.specProvider())
-                .crawler();
+        // --- Focus: CRAWL ---
+        if (annotation.focus() == Focus.CRAWL) {
+            var crawler = new MockCrawlerBuilder(tempDir)
+                    .config(crawlerConfig)
+                    .specProviderClass(annotation.specProvider())
+                    .crawler();
+            var captures = CrawlTestCapturer.capture(crawler, crwl -> {
+                crwl.crawl();
+            });
+            return new CrawlTestParameters()
+                    .setCrawler(crawler)
+                    .setCrawlerConfig(crawlerConfig)
+                    .setCrawlerContext(captures.getContext())
+                    .setMemoryCommitter(captures.getCommitter())
+                    .setWorkDir(tempDir);
+        }
 
-        var captures = CrawlTestCapturer.capture(crawler, crwl -> {
-            if (annotation.run()) {
-                crwl.crawl(false);
-            } else {
-                new MockCrawlerBuilder(tempDir)
-                        .config(crawlerConfig)
-                        .crawlerContext()
-                        .init();
-            }
-        });
+        // --- Focus: CONTEXT ---
+        if (annotation.focus() == Focus.CONTEXT) {
+            var ctx = new MockCrawlerBuilder(tempDir)
+                    .config(crawlerConfig)
+                    .specProviderClass(annotation.specProvider())
+                    .crawlerContext();
+            ctx.init();
+            return new CrawlTestParameters()
+                    .setCrawler(null)
+                    .setCrawlerConfig(crawlerConfig)
+                    .setCrawlerContext(ctx)
+                    .setMemoryCommitter((MemoryCommitter) crawlerConfig
+                            .getCommitters().get(0))
+                    .setWorkDir(tempDir);
+        }
 
+        // --- Focus: CONFIG ---
         return new CrawlTestParameters()
-                .setCrawler(crawler)
+                .setCrawler(null)
                 .setCrawlerConfig(crawlerConfig)
-                .setCrawlerContext(captures.getContext())
-                .setMemoryCommitter(captures.getCommitter())
+                .setCrawlerContext(null)
+                .setMemoryCommitter((MemoryCommitter) crawlerConfig
+                        .getCommitters().get(0))
                 .setWorkDir(tempDir);
     }
 }

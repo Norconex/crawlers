@@ -27,11 +27,11 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxt;
+import com.norconex.crawler.web.commands.crawl.task.operations.scope.UrlScope;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.robot.RobotsTxt;
 
 import lombok.NonNull;
 
@@ -66,11 +66,6 @@ public final class Web {
     public static WebCrawlerConfig config(CrawlerContext crawler) {
         return (WebCrawlerConfig) crawler.getConfiguration();
     }
-
-    //    public static WebCrawlerSessionAttributes
-    //            sessionAttributes(CrawlerContext crawler) {
-    //        return (WebCrawlerSessionAttributes) crawler.getAttributes();
-    //    }
 
     public static HttpFetcher fetcher(CrawlerContext crawler) {
         return (HttpFetcher) crawler.getFetcher();

@@ -22,17 +22,19 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 
 class CrawlerEventTest {
 
-    @CrawlTest
+    @CrawlTest(focus = Focus.CONTEXT)
     void testCrawlerEvent(CrawlerContext ctx) {
         var event = event(ctx, b -> {});
 
         //        assertThat(event.isCrawlerShutdown()).isFalse();
         assertThat(event.getSubject()).hasToString("somesubject");
-        assertThat(event.getSource()).hasToString(MockCrawlerBuilder.CRAWLER_ID);
+        assertThat(event.getSource())
+                .hasToString(MockCrawlerBuilder.CRAWLER_ID);
         assertThat(event.getDocContext().getReference()).isEqualTo("someref");
         assertThat(event).hasToString("someref - somemessage");
 
@@ -43,7 +45,8 @@ class CrawlerEventTest {
         assertThat(event).hasToString("someref - somesubject");
 
         event = event(ctx, b -> b.message(null).subject(null));
-        assertThat(event).hasToString("someref - " + MockCrawlerBuilder.CRAWLER_ID);
+        assertThat(event)
+                .hasToString("someref - " + MockCrawlerBuilder.CRAWLER_ID);
     }
 
     private CrawlerEvent event(

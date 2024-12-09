@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+
+<channel>
+  <title>RSS Test Page</title>
+  <link>http://www.example.com/rss</link>
+  <description>RSS test description</description>
+  <item>
+    <title>RSS Page 1</title>
+    <link>http://www.example.com/rss/page1.html</link>
+    <description>RSS Sample page 1</description>
+  </item>
+  <item>
+    <title>RSS Page 2</title>
+    <link><![CDATA[http://www.example.com/rss/page2.html]]></link>
+    <description>RSS Sample page 2</description>
+  </item>
+</channel>
+
+</rss>

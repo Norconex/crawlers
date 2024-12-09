@@ -26,17 +26,18 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class DocProcessorFinalizeTest {
 
-    @CrawlTest
-    void testThreadActionFinalize(CrawlerContext crawler) {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testThreadActionFinalize(CrawlerContext crawlerContext) {
         var strategy = new MutableObject<>(
                 SpoiledReferenceStrategy.IGNORE);
         SpoiledReferenceStrategizer spoiledHandler =
                 (ref, state) -> strategy.getValue();
 
-        crawler.getConfiguration().setSpoiledReferenceStrategizer(
+        crawlerContext.getConfiguration().setSpoiledReferenceStrategizer(
                 spoiledHandler);
         var ctx = new DocProcessorContext();
 
@@ -46,7 +47,7 @@ class DocProcessorFinalizeTest {
 
         // no doc set and no status set: one should be created and bad status
         ctx.finalized(false);
-        ctx.crawlerContext(crawler);
+        ctx.crawlerContext(crawlerContext);
         ctx.docContext(new CrawlDocContext("ref"));
 
         DocProcessorFinalize.execute(ctx);

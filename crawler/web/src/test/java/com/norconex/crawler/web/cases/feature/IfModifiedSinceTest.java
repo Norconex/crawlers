@@ -38,7 +38,7 @@ import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.stubs.CrawlerStubs;
 
 /**
@@ -83,7 +83,7 @@ class IfModifiedSinceTest {
             // tests
             cfg.setDocumentChecksummer(null);
             cfg.setMetadataChecksummer(null);
-            ((GenericHttpFetcher) cfg.getFetchers().get(0))
+            ((HttpClientFetcher) cfg.getFetchers().get(0))
                     .getConfiguration().setETagDisabled(true);
         });
         var mem = WebTestUtil.firstCommitter(crawler);

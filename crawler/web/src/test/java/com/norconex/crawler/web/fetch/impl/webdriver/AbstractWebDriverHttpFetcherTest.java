@@ -296,7 +296,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @Test
     void testUnsupportedHttpMethod() throws FetchException {
-        var response = new WebDriverHttpFetcher().fetch(
+        var response = new WebDriverFetcher().fetch(
                 new HttpFetchRequest(
                         CrawlDocStubs.crawlDocHtml("http://example.com"),
                         HttpMethod.HEAD));
@@ -309,14 +309,14 @@ public abstract class AbstractWebDriverHttpFetcherTest
     void testWriteRead() {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT
-                        .assertWriteRead(new WebDriverHttpFetcher()));
+                        .assertWriteRead(new WebDriverFetcher()));
     }
 
     //--- Private/Protected ----------------------------------------------------
 
-    private WebDriverHttpFetcher createWebDriverHttpFetcher() {
+    private WebDriverFetcher createWebDriverHttpFetcher() {
         return Configurable.configure(
-                new WebDriverHttpFetcher(), cfg -> cfg
+                new WebDriverFetcher(), cfg -> cfg
                         .setBrowser(browserType)
                         .setRemoteURL(browser.getSeleniumAddress()));
     }

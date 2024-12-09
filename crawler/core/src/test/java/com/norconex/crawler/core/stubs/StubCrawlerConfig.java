@@ -38,6 +38,7 @@ import com.norconex.committer.core.Committer;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -59,7 +60,7 @@ public final class StubCrawlerConfig {
 
     public static final String CRAWLER_ID = "test-crawler";
 
-    private static EasyRandom easyRandom = new EasyRandom(
+    public static final EasyRandom RANDOMIZER = new EasyRandom(
             new EasyRandomParameters()
                     .seed(System.currentTimeMillis())
                     .collectionSizeRange(1, 5)
@@ -79,7 +80,8 @@ public final class StubCrawlerConfig {
                             () -> Math
                                     .abs(new LongRandomizer().getRandomValue()))
                     .randomize(Grid.class, MockFailingGrid::new)
-                    .randomize(GridConnector.class, MockFailingGridConnector::new)
+                    .randomize(GridConnector.class,
+                            MockFailingGridConnector::new)
                     .randomize(ImporterConfig.class, ImporterConfig::new)
                     .randomize(
                             UpsertRequest.class,
@@ -110,6 +112,11 @@ public final class StubCrawlerConfig {
         return toMemoryCrawlerConfig(workDir, new CrawlerConfig());
     }
 
+    public static CrawlerConfig memoryCrawlerConfig(
+            Path workDir, Class<? extends CrawlerConfig> cfgClass) {
+        return toMemoryCrawlerConfig(workDir, ClassUtil.newInstance(cfgClass));
+    }
+
     /**
      * Takes an existing config and make it a "memory" config.
      * @param workDir test working directory
@@ -125,7 +132,15 @@ public final class StubCrawlerConfig {
     }
 
     public static CrawlerConfig randomMemoryCrawlerConfig(Path workDir) {
-        return easyRandom.nextObject(CrawlerConfig.class)
+        return randomMemoryCrawlerConfig(
+                workDir, CrawlerConfig.class, RANDOMIZER);
+    }
+
+    public static CrawlerConfig randomMemoryCrawlerConfig(
+            Path workDir,
+            Class<? extends CrawlerConfig> cfgClass,
+            EasyRandom randomizer) {
+        return randomizer.nextObject(cfgClass)
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)

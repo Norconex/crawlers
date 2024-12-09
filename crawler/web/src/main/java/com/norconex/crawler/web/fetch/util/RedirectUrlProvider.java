@@ -19,7 +19,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig;
 
 /**
  * Responsible for providing a target absolute URL each time an HTTP redirect
@@ -41,7 +41,7 @@ public interface RedirectUrlProvider {
      * rarely return <code>null</code>. Returning <code>null</code> effectively
      * prevents a redirect from happening, but it is an efficient way to
      * disable redirects. The recommended approach to disable redirects is to
-     * set zero on {@link GenericHttpFetcherConfig#setMaxRedirects(int)}
+     * set zero on {@link HttpClientFetcherConfig#setMaxRedirects(int)}
      * @param request the HTTP request that led to the redirect
      * @param response original URL HTTP response
      * @param context execution state of an HTTP process

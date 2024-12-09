@@ -20,24 +20,24 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class QueueReferenceStageTest {
 
-    @CrawlTest
-    void testQueueReferenceStage(CrawlerContext crawler) {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testQueueReferenceStage(CrawlerContext ctx) {
         var docRecord = new CrawlDocContext("ref");
         var stage = new QueueReferenceStage();
 
-        var ctx1 = new QueuePipelineContext(crawler, docRecord);
+        var ctx1 = new QueuePipelineContext(ctx, docRecord);
         assertThat(stage.test(ctx1)).isTrue();
 
         // testing a second time with same ref should not fail.
-        var ctx2 = new QueuePipelineContext(crawler, docRecord);
+        var ctx2 = new QueuePipelineContext(ctx, docRecord);
         assertThat(stage.test(ctx2)).isTrue();
 
         // a null reference should not fail
-        var ctx3 = new QueuePipelineContext(
-                crawler, new CrawlDocContext());
+        var ctx3 = new QueuePipelineContext(ctx, new CrawlDocContext());
         assertThat(stage.test(ctx3)).isTrue();
     }
 }

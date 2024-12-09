@@ -15,22 +15,18 @@
 package com.norconex.crawler.web.cases.cluster;
 
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.Duration;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.committer.core.impl.LogCommitter;
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Test that MaxDepth setting is respected.
@@ -38,26 +34,22 @@ import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 @MockServerSettings
 class ClusterTest {
 
-    @TempDir
-    private Path tempDir;
+    @WebCrawlTest(
+        focus = Focus.CONFIG,
+        config = """
+            maxDepth: 10
+            """
+    )
+    void testMaxDepth(ClientAndServer client, WebCrawlerConfig config)
+            throws Exception {
 
-    @Test
-    void testMaxDepth(ClientAndServer client) throws IOException {
         WebsiteMock.whenInfiniteDepth(client);
 
-        WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(
-                    List.of(serverUrl(client, "/clusterTest/0000")));
-            cfg.setDelayResolver(
-                    Configurable.configure(new GenericDelayResolver(),
-                            c -> c.setDefaultDelay(Duration.ofSeconds(3))));
-            //            cfg.setDataStoreEngine(new IgniteDataStoreEngine());
-            cfg.setMaxDepth(10);
-            cfg.setCommitters(
-                    List.of(cfg.getCommitters().get(0), new LogCommitter()));
-        });
+        config.setStartReferences(
+                List.of(serverUrl(client, "/clusterTest/0000")));
+        var captures = WebCrawlTestCapturer.crawlAndCapture(config);
 
         // 0-depth + 10 others == 11 expected files
-        //  assertThat(mem.getRequestCount()).isEqualTo(11);
+        assertThat(captures.getCommitter().getRequestCount()).isEqualTo(11);
     }
 }

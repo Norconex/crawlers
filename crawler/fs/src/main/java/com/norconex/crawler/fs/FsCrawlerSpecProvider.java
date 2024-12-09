@@ -32,7 +32,7 @@ public class FsCrawlerSpecProvider implements CrawlerSpecProvider {
                 .callbacks(CrawlerCallbacks.builder()
                         .beforeCommand(new BeforeFsCommand())
                         .build())
-                .docPipelines(FsDocPipelines.get())
+                .docPipelines(FsDocPipelines.create())
                 .docContextType(FsCrawlDocContext.class);
     }
 }

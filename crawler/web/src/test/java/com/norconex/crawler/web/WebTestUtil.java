@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -65,23 +64,22 @@ import com.norconex.crawler.core.commands.crawl.task.operations.spoil.impl.Gener
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
-import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
-import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolver;
-import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
-import com.norconex.crawler.web.doc.operations.link.impl.DomLinkExtractor;
-import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.delay.DelayResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
+import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.GenericDelayResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImageResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.link.LinkExtractor;
+import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.DomLinkExtractor;
+import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxtProvider;
+import com.norconex.crawler.web.commands.crawl.task.operations.robot.impl.StandardRobotsTxtProvider;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.SitemapResolver;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig.CookieSpec;
-import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
-import com.norconex.crawler.web.fetch.impl.HttpAuthMethod;
-import com.norconex.crawler.web.robot.RobotsTxtProvider;
-import com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider;
-import com.norconex.crawler.web.sitemap.SitemapResolver;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthMethod;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig.CookieSpec;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;
 
@@ -89,24 +87,10 @@ import lombok.NonNull;
 
 public final class WebTestUtil {
 
-    //    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
-    //    private static final BeanMapper beanMapper = BeanMapper.builder()
-    //            .unboundPropertyMapping("", null)
-    //            .build();
-    //            new WebBeanMapperBuilderFactory()
-    //                .apply(WebCrawlerConfig.class)
-    //                .build();
-
-    //
-    //
-    //    public static BeanMapper beanMapper() {
-    //        return beanMapper;
-    //    }
-
     public static final String TEST_CRAWLER_ID = "test-crawler";
     public static final String TEST_CRAWL_SESSION_ID = "test-session";
 
-    private static EasyRandom easyRandom = new EasyRandom(
+    public static final EasyRandom RANDOMIZER = new EasyRandom(
             new EasyRandomParameters()
                     .seed(System.currentTimeMillis())
                     .collectionSizeRange(1, 5)
@@ -169,7 +153,7 @@ public final class WebTestUtil {
                     .randomize(
                             CachedInputStream.class,
                             CachedInputStream::nullInputStream)
-                    .randomize(HttpFetcher.class, GenericHttpFetcher::new)
+                    .randomize(HttpFetcher.class, HttpClientFetcher::new)
                     .randomize(
                             RobotsTxtProvider.class,
                             StandardRobotsTxtProvider::new)
@@ -203,7 +187,7 @@ public final class WebTestUtil {
                             randomizerOneOf(HttpAuthMethod.values())));
 
     public static <T> T randomize(Class<T> cls) {
-        return easyRandom.nextObject(cls);
+        return RANDOMIZER.nextObject(cls);
     }
 
     @SafeVarargs
@@ -234,21 +218,21 @@ public final class WebTestUtil {
                 .get(0);
     }
 
-    public static GenericHttpFetcher firstHttpFetcher(
+    public static HttpClientFetcher firstHttpFetcher(
             @NonNull Crawler crawler) {
-        return (GenericHttpFetcher) crawler
+        return (HttpClientFetcher) crawler
                 .getCrawlerConfig()
                 .getFetchers()
                 .get(0);
     }
 
-    public static GenericHttpFetcherConfig firstHttpFetcherConfig(
+    public static HttpClientFetcherConfig firstHttpFetcherConfig(
             @NonNull CrawlerConfig crawlerConfig) {
-        return ((GenericHttpFetcher) crawlerConfig
+        return ((HttpClientFetcher) crawlerConfig
                 .getFetchers().get(0)).getConfiguration();
     }
 
-    public static GenericHttpFetcherConfig firstHttpFetcherConfig(
+    public static HttpClientFetcherConfig firstHttpFetcherConfig(
             @NonNull Crawler crawler) {
         return firstHttpFetcher(crawler).getConfiguration();
     }
@@ -333,16 +317,4 @@ public final class WebTestUtil {
         return toString(WebTestUtil.class.getResourceAsStream(resourcePath));
     }
 
-    public static MemoryCommitter runWithConfig(
-            @NonNull Path workDir, @NonNull Consumer<WebCrawlerConfig> c) {
-        //    public static MemoryCommitter runWithConfig(
-        //            @NonNull Path workDir, @NonNull Consumer<WebCrawlerConfig> c) {
-        var crawler = CrawlerStubs.memoryCrawler(workDir, c);
-
-        //        var crawlerBuilder = CrawlerStubs.memoryCrawlerBuilder(workDir);
-        //        c.accept((WebCrawlerConfig) crawlerBuilder.configuration());
-        //        var crawler = crawlerBuilder.build();
-        crawler.crawl();
-        return firstCommitter(crawler);
-    }
 }

@@ -35,12 +35,12 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.scope.impl.GenericUrlScopeResolver;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapLocator;
+import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
-import com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator;
-import com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.stubs.CrawlerStubs;
 import com.norconex.crawler.web.util.Web;
 
@@ -89,7 +89,7 @@ class StayOnSitemapTest {
                     .setMaxDepth(3)
                     // custom fetcher that stores exception (last one)
                     // and referrers
-                    .setFetchers(List.of(new GenericHttpFetcher() {
+                    .setFetchers(List.of(new HttpClientFetcher() {
                         @Override
                         public HttpFetchResponse fetch(HttpFetchRequest req)
                                 throws FetchException {

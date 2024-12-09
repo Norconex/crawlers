@@ -32,7 +32,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.stubs.CrawlerStubs;
 
 /**
@@ -52,7 +52,7 @@ class TimeoutTest {
 
         var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
             cfg.setStartReferences(List.of(serverUrl(client, homePath)));
-            var f = new GenericHttpFetcher();
+            var f = new HttpClientFetcher();
             f.getConfiguration().setConnectionTimeout(ofSeconds(1));
             f.getConfiguration().setSocketTimeout(ofSeconds(1));
             f.getConfiguration().setConnectionRequestTimeout(

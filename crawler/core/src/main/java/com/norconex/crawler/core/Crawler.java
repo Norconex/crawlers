@@ -107,9 +107,9 @@ public class Crawler {
     protected void executeCommand(Command command) {
         validateConfig(crawlerConfig);
         LogUtil.logCommandIntro(LOG, crawlerConfig);
+        LOG.info("Executing command: {}", command.getClass().getSimpleName());
 
         var spec = ClassUtil.newInstance(crawlerSpecProviderClass).get();
-        LOG.info("Executing command: {}", command.getClass().getSimpleName());
         try (var grid = crawlerConfig
                 .getGridConnector()
                 .connect(crawlerSpecProviderClass, crawlerConfig)) {
