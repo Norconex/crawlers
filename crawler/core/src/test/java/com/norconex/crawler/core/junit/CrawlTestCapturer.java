@@ -31,6 +31,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 
 public class CrawlTestCapturer extends CrawlerLifeCycleListener {
 
@@ -45,15 +46,13 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
 
     private static final CrawlCaptures captures = new CrawlCaptures();
 
-    public static CrawlCaptures crawlAndCapture(CrawlerConfig config)
-            throws Exception {
+    public static CrawlCaptures crawlAndCapture(CrawlerConfig config) {
         return crawlAndCapture(config, MockCrawlerSpecProvider.class);
     }
 
     public static CrawlCaptures crawlAndCapture(
             CrawlerConfig config,
-            Class<? extends CrawlerSpecProvider> specProviderClass)
-            throws Exception {
+            Class<? extends CrawlerSpecProvider> specProviderClass) {
         if (config.getWorkDir() == null) {
             throw new IllegalStateException(
                     "Crawler working directory must not be null.");
@@ -78,9 +77,10 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
         }
     }
 
+    @SneakyThrows
     public static CrawlCaptures capture(
             @NonNull Crawler crawler,
-            @NonNull FailableConsumer<Crawler, Exception> c) throws Exception {
+            @NonNull FailableConsumer<Crawler, Exception> c) {
         try {
             var capturer = new CrawlTestCapturer();
             crawler.getCrawlerConfig().addEventListener(capturer);

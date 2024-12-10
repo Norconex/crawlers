@@ -19,15 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.mock.action.ExpectationResponseCallback;
@@ -37,9 +34,11 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Tests that the "If-Modified-Since" is supported properly.
@@ -67,52 +66,45 @@ class IfModifiedSinceTest {
 
     private static ZonedDateTime serverDate = fiveDaysAgo;
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testIfModifiedSince(ClientAndServer client) throws CommitterException {
+    @WebCrawlTest
+    void testContentTypeCharset(ClientAndServer client, WebCrawlerConfig cfg)
+            throws CommitterException {
 
         client
                 .when(request().withPath(path))
                 .respond(HttpClassCallback.callback(Callback.class));
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, path)));
-            // disable checksums and E-Tag so they do not influence
-            // tests
-            cfg.setDocumentChecksummer(null);
-            cfg.setMetadataChecksummer(null);
-            ((HttpClientFetcher) cfg.getFetchers().get(0))
-                    .getConfiguration().setETagDisabled(true);
-        });
-        var mem = WebTestUtil.firstCommitter(crawler);
+        cfg.setStartReferences(List.of(serverUrl(client, path)));
+        // disable checksums and E-Tag so they do not influence
+        // tests
+        cfg.setDocumentChecksummer(null);
+        cfg.setMetadataChecksummer(null);
+        ((HttpClientFetcher) cfg.getFetchers().get(0))
+                .getConfiguration().setETagDisabled(true);
 
         // First run is new
-        crawler.crawl();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same date, so not modified
-        crawler.crawl();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different date, so modified
         serverDate = today;
-        crawler.crawl();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Fourth run got same date, but we disable If-Modified-Since support,
         // so modified
-        WebTestUtil.firstHttpFetcher(crawler)
-                .getConfiguration().setIfModifiedSinceDisabled(true);
-        crawler.crawl();
+        WebTestUtil.firstHttpFetcherConfig(cfg)
+                .setIfModifiedSinceDisabled(true);
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
-
-        crawler.clean();
     }
 
     public static class Callback implements ExpectationResponseCallback {

@@ -21,18 +21,16 @@ import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.HttpStatusCode.NOT_FOUND_404;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.matchers.Times;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Test detection of page deletion (404 - File Not Found).
@@ -43,52 +41,44 @@ class FileNotFoundDeletionTest {
     private static final String HOME_PATH = "/notFoundDelete";
     private static final String TOGGLE_PATH = "/notFoundDeleteToggle";
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testFileNotFoundDeletion(ClientAndServer client)
+    @WebCrawlTest
+    void testContentTypeCharset(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
+        // @formatter:off
         client
-                .when(request().withPath(HOME_PATH))
-                .respond(
-                        response()
-                                .withBody(
-                                        """
-                                                <p>This link leads to a page we toggle existence:</p>
-                                                <a href="%s">Link</a>
-                                                """
-                                                .formatted(TOGGLE_PATH),
-                                        HTML_UTF_8));
+            .when(request().withPath(HOME_PATH))
+            .respond(response()
+                .withBody(
+                    """
+                    <p>This link leads to a page we toggle existence:</p>
+                    <a href="%s">Link</a>
+                    """.formatted(TOGGLE_PATH),
+                    HTML_UTF_8));
+        // @formatter:on
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, HOME_PATH)));
-        });
-        var mem = WebTestUtil.firstCommitter(crawler);
+        cfg.setStartReferences(List.of(serverUrl(client, HOME_PATH)));
 
         // First run: 2 new docs
         whenPageFound(client);
-        crawler.crawl();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(2);
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
         // Second run: 0 new doc (unmodified) and 1 delete (not found)
         whenPageNotFound(client);
-        crawler.crawl();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         assertThat(mem.getDeleteCount()).isOne();
         mem.clean();
 
         // Third run: 1 new doc (1 unmodified + 1 resurrected) and zero delete
         whenPageFound(client);
-        crawler.crawl();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
-
-        crawler.clean();
     }
 
     private void whenPageFound(ClientAndServer client) {

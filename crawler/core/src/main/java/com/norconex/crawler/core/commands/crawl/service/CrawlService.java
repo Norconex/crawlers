@@ -72,8 +72,10 @@ public class CrawlService implements GridService {
             ctx.getGrid().storage().getCache(
                     IgniteGridKeys.RUN_ONCE_CACHE, String.class).clear();
             setStage(ctx, CrawlStage.IDLE);
+            firstStage = CrawlStage.IDLE;
         } else {
-            LOG.info("Service (re)starting at crawl stage: {}", firstStage);
+            LOG.info("Service joining (resuming) at crawl stage: {}",
+                    firstStage);
         }
     }
 

@@ -162,7 +162,7 @@ public class DocProcessingLedger { //implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    public /*synchronized*/ Optional<CrawlDocContext> pollQueue() {
+    public Optional<CrawlDocContext> pollQueue() {
         var opt = queue
                 .poll()
                 .map(json -> SerialUtil.fromJson(json, type));
@@ -176,20 +176,6 @@ public class DocProcessingLedger { //implements Closeable {
         // are when a node crashed and they could never be marked as resolved
 
         return (Optional<CrawlDocContext>) opt;
-        //
-        //
-        //        return (Optional<CrawlDocContext>) ConcurrentUtil.block(
-        //                crawlerContext.getGrid().compute().runLocalAtomic(() -> {
-        //                    var opt = queue
-        //                            .poll()
-        //                            .map(json -> SerialUtil.fromJson(json, type));
-        //                    opt.ifPresent(doc -> {
-        //                        doc.setProcessingStage(DocProcessingStage.UNRESOLVED);
-        //                        processed.put(doc.getReference(),
-        //                                SerialUtil.toJsonString(doc));
-        //                    });
-        //                    return opt;
-        //                }));
     }
 
     public boolean forEachQueued(
@@ -220,7 +206,6 @@ public class DocProcessingLedger { //implements Closeable {
     }
 
     public synchronized void cacheProcessed() {
-
         //TODO really clear cache or keep to have longer history of
         // each items?
         cached.clear();
@@ -228,12 +213,10 @@ public class DocProcessingLedger { //implements Closeable {
         // Because we can't rename caches in all impl, we swap references
         var processedCacheName = globalCache.get(KEY_PROCESSED_CACHE);
         var cachedCacheName = globalCache.get(KEY_CACHED_CACHE);
-        //TODO if one is null they should both be null. If a concern, check
-        // for that and throw an error and/or delete the non-null one.
-        if (processedCacheName == null) {
-            return;
-        }
-        if (PROCESSED_OR_CACHED_1.equals(processedCacheName)) {
+        // If one cache name is null they should both be null and we consider
+        // a null name to be the "processed" one.
+        if (processedCacheName == null
+                || PROCESSED_OR_CACHED_1.equals(processedCacheName)) {
             processedCacheName = PROCESSED_OR_CACHED_2;
             cachedCacheName = PROCESSED_OR_CACHED_1;
         } else {

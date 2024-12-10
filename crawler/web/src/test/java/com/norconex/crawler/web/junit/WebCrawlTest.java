@@ -80,7 +80,7 @@ public @interface WebCrawlTest {
         @Override
         public void accept(WebCrawlerConfig cfg) {
             cfg.setDelayResolver(configure(new GenericDelayResolver(),
-                    dr -> dr.setDefaultDelay(Duration.ofMillis(50))));
+                    dr -> dr.setDefaultDelay(Duration.ofMillis(0))));
         }
     }
 

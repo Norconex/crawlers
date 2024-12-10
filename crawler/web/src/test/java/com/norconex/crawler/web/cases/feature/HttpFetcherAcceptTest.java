@@ -34,9 +34,10 @@ import org.mockserver.model.MediaType;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 /**
  * Tests that a page is only fetched by the fetcher we are interested in.
@@ -80,14 +81,14 @@ class HttpFetcherAcceptTest {
         //  Support  | Filt. | Support  | Filt. | Cnt | Meta | Doc
         //  ---------+-------+----------+-------+-----+------+------
         """
-                DISABLED | false | REQUIRED | false | 1   | GET  | GET
-                REQUIRED | false | DISABLED | false | 1   | HEAD | null
-                REQUIRED | false | REQUIRED | false | 1   | HEAD | GET
-                REQUIRED | true  | OPTIONAL | false | 0   | null | null
-                REQUIRED | false | REQUIRED | true  | 0   | null | null
-                OPTIONAL | true  | OPTIONAL | false | 1   | GET  | GET
-                OPTIONAL | false | OPTIONAL | true  | 1   | HEAD | null
-                """
+            DISABLED | false | REQUIRED | false | 1   | GET  | GET
+            REQUIRED | false | DISABLED | false | 1   | HEAD | null
+            REQUIRED | false | REQUIRED | false | 1   | HEAD | GET
+            REQUIRED | true  | OPTIONAL | false | 0   | null | null
+            REQUIRED | false | REQUIRED | true  | 0   | null | null
+            OPTIONAL | true  | OPTIONAL | false | 1   | GET  | GET
+            OPTIONAL | false | OPTIONAL | true  | 1   | HEAD | null
+            """
     )
     void testHttpFetcherAccept(
             FetchDirectiveSupport headSupport, boolean metaRejectedByFilter,
@@ -100,26 +101,27 @@ class HttpFetcherAcceptTest {
         whenHttpMethod(client, HttpMethod.HEAD);
         whenHttpMethod(client, HttpMethod.GET);
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, HOME_PATH)));
-            // Configure 2 fetches, one doing HEAD, the other doing GET
+        var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+        cfg.setStartReferences(List.of(serverUrl(client, HOME_PATH)));
+        // Configure 2 fetches, one doing HEAD, the other doing GET
 
-            cfg.setMetadataFetchSupport(headSupport);
-            var headFetcher = createFetcher(HttpMethod.HEAD);
-            if (metaRejectedByFilter) {
-                headFetcher.getConfiguration()
-                        .setReferenceFilters(List.of(ref -> false));
-            }
+        cfg.setMetadataFetchSupport(headSupport);
+        var headFetcher = createFetcher(HttpMethod.HEAD);
+        if (metaRejectedByFilter) {
+            headFetcher.getConfiguration()
+                    .setReferenceFilters(List.of(ref -> false));
+        }
 
-            cfg.setDocumentFetchSupport(getSupport);
-            var getFetcher = createFetcher(HttpMethod.GET);
-            if (docRejectedByFilter) {
-                getFetcher.getConfiguration()
-                        .setReferenceFilters(List.of(ref -> false));
-            }
+        cfg.setDocumentFetchSupport(getSupport);
+        var getFetcher = createFetcher(HttpMethod.GET);
+        if (docRejectedByFilter) {
+            getFetcher.getConfiguration()
+                    .setReferenceFilters(List.of(ref -> false));
+        }
 
-            cfg.setFetchers(List.of(headFetcher, getFetcher));
-        });
+        cfg.setFetchers(List.of(headFetcher, getFetcher));
+
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isEqualTo(expectedUpsertCount);
         if (expectedUpsertCount > 0) {
@@ -146,16 +148,14 @@ class HttpFetcherAcceptTest {
 
     private void whenHttpMethod(ClientAndServer client, HttpMethod method) {
         client
-                .when(
-                        request()
-                                .withMethod(method.name())
-                                .withPath(HOME_PATH))
-                .respond(
-                        response()
-                                .withHeader("whatAmI", method.name())
-                                .withBody(
-                                        "I am " + method.name(),
-                                        MediaType.HTML_UTF_8));
+                .when(request()
+                        .withMethod(method.name())
+                        .withPath(HOME_PATH))
+                .respond(response()
+                        .withHeader("whatAmI", method.name())
+                        .withBody(
+                                "I am " + method.name(),
+                                MediaType.HTML_UTF_8));
     }
 
     private HttpClientFetcher createFetcher(HttpMethod method) {

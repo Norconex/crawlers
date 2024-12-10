@@ -24,8 +24,7 @@ public final class WebCrawlTestCapturer {
     private WebCrawlTestCapturer() {
     }
 
-    public static CrawlCaptures crawlAndCapture(
-            WebCrawlerConfig config) throws Exception {
+    public static CrawlCaptures crawlAndCapture(WebCrawlerConfig config) {
         return CrawlTestCapturer.crawlAndCapture(
                 config, WebCrawlerSpecProvider.class);
     }
