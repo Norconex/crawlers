@@ -38,7 +38,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 class DeduplicationTest {
 
     @WebCrawlTest
-    void testCanonicalLink(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testDeduplication(ClientAndServer client, WebCrawlerConfig cfg) {
         var homePath = "/dedup";
         var noDuplPath = "/dedup/1-noDupl";
         var metaDuplPath = "/dedup/2-meta";

@@ -20,17 +20,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Test that large files are processed properly (&gt; 2MB).
@@ -38,20 +37,17 @@ import com.norconex.crawler.web.WebTestUtil;
 @MockServerSettings
 class LargeContentTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testLargeContent(ClientAndServer client) throws IOException {
+    @WebCrawlTest
+    void testLargeContent(ClientAndServer client, WebCrawlerConfig cfg)
+            throws IOException {
 
         var minSize = 3 * 1024 * 1024;
         var path = "/largeContent";
 
         whenHtml(client, path, RandomStringUtils.randomAlphanumeric(minSize));
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, path)));
-        });
+        cfg.setStartReferences(List.of(serverUrl(client, path)));
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         var txt = IOUtils.toString(
                 mem.getUpsertRequests().get(0).getContent(), UTF_8);

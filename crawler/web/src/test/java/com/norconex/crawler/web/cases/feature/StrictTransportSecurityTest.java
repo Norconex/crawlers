@@ -34,6 +34,8 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 /**
  * Tests that a page will force fetching https when HSTS support is
@@ -67,55 +69,54 @@ class StrictTransportSecurityTest {
 
         client.reset();
         HstsResolver.clearCache();
+        // @formatter:off
         if (serverSupportsHSTS) {
             client
-                    .when(request().withMethod("HEAD"))
-                    .respond(
-                            response()
-                                    .withHeader(
-                                            "Strict-Transport-Security",
-                                            "max-age=16070400; includeSubDomains"));
+                .when(request().withMethod("HEAD"))
+                .respond(response()
+                    .withHeader(
+                            "Strict-Transport-Security",
+                            "max-age=16070400; includeSubDomains"));
         } else {
             client
-                    .when(request().withMethod("HEAD"))
-                    .respond(response());
+                .when(request().withMethod("HEAD"))
+                .respond(response());
         }
         client
-                .when(request(securePath).withSecure(true))
-                .respond(
-                        response()
-                                .withBody(
-                                        "Will this <a href=\"%s\">link</a> be secure?"
-                                                .formatted(securableUrl),
-                                        MediaType.HTML_UTF_8));
+            .when(request(securePath).withSecure(true))
+            .respond(response()
+                .withBody(
+                        "Will this <a href=\"%s\">link</a> be secure?"
+                                .formatted(securableUrl),
+                        MediaType.HTML_UTF_8));
 
         client
-                .when(request(securablePath).withSecure(true))
-                .respond(
-                        response()
-                                .withBody("I am secure"));
+            .when(request(securablePath).withSecure(true))
+            .respond(response()
+                .withBody("I am secure"));
         client
-                .when(request(securablePath).withSecure(false))
-                .respond(
-                        response()
-                                .withBody("I am NOT secure"));
+            .when(request(securablePath).withSecure(false))
+            .respond(response()
+                .withBody("I am NOT secure"));
+        // @formatter:on
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(secureUrl));
-            cfg.setMaxDocuments(2);
-            var fetcherCfg =
-                    WebTestUtil.firstHttpFetcherConfig(cfg);
-            fetcherCfg.setTrustAllSSLCertificates(true);
-            if (!clientSupportsHSTS) {
-                fetcherCfg.setHstsDisabled(true);
-            }
-            cfg.setPostImportLinks(TextMatcher.basic("secondURL"));
-        });
+        var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+
+        cfg.setStartReferences(List.of(secureUrl));
+        cfg.setMaxDocuments(2);
+        var fetcherCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        fetcherCfg.setTrustAllSSLCertificates(true);
+        if (!clientSupportsHSTS) {
+            fetcherCfg.setHstsDisabled(true);
+        }
+        cfg.setPostImportLinks(TextMatcher.basic("secondURL"));
 
         var expectedUrl = securableUrl;
         if (expectsSecureUrl) {
             expectedUrl = expectedUrl.replace("http://", "https://");
         }
+
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)

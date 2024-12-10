@@ -20,11 +20,8 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpResponse;
@@ -34,9 +31,10 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapResolver;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * The second time the sitemap has 1 less URL and that URL no longer
@@ -77,24 +75,18 @@ class SitemapURLDeletionTest {
             </urlset>
             """;
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testSitemapURLDeletion(ClientAndServer client)
+    @WebCrawlTest
+    void testSitemapURLDeletion(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
-        var crawler = CrawlerStubs.memoryCrawler(
-                tempDir, cfg -> cfg
-                        .setSitemapResolver(new GenericSitemapResolver())
-                        .setStartReferencesSitemaps(
-                                List.of(serverUrl(client, sitemapPath)))
-                        .setOrphansStrategy(OrphansStrategy.PROCESS));
-        var mem = WebTestUtil.firstCommitter(crawler);
+        cfg.setSitemapResolver(new GenericSitemapResolver())
+                .setStartReferencesSitemaps(
+                        List.of(serverUrl(client, sitemapPath)))
+                .setOrphansStrategy(OrphansStrategy.PROCESS);
 
         // First time, 3 upserts and 0 deletes
         whenSitemap(client, true);
-        crawler.crawl();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
@@ -106,7 +98,7 @@ class SitemapURLDeletionTest {
 
         // Second time, 1 add and 1 delete (2 unmodified)
         whenSitemap(client, false);
-        crawler.crawl();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
@@ -116,53 +108,43 @@ class SitemapURLDeletionTest {
                 .containsExactlyInAnyOrder(
                         serverUrl(client, page3Path));
         mem.clean();
-
-        crawler.clean();
     }
 
     private void whenSitemap(ClientAndServer client, boolean firstTime) {
+        // @formatter:off
         client.reset();
         client
-                .when(request(sitemapPath))
-                .respond(
-                        response().withBody(
-                                SITEMAP_XML.formatted(
-                                        serverUrl(client, page1Path),
-                                        serverUrl(client, page2Path),
-                                        serverUrl(
-                                                client,
-                                                firstTime ? page3Path
-                                                        : page33Path)),
-                                MediaType.XML_UTF_8));
+            .when(request(sitemapPath))
+            .respond(response()
+                .withBody(
+                    SITEMAP_XML.formatted(
+                            serverUrl(client, page1Path),
+                            serverUrl(client, page2Path),
+                            serverUrl(
+                                    client,
+                                    firstTime ? page3Path : page33Path)),
+                    MediaType.XML_UTF_8));
         client
-                .when(request(page1Path))
-                .respond(
-                        response().withBody(
-                                "Page 1 always there.",
-                                HTML_UTF_8));
+            .when(request(page1Path))
+            .respond(response()
+                .withBody("Page 1 always there.", HTML_UTF_8));
         client
-                .when(request(page2Path))
-                .respond(
-                        response().withBody(
-                                "Page 2 always there.",
-                                HTML_UTF_8));
+            .when(request(page2Path))
+            .respond(response().withBody("Page 2 always there.", HTML_UTF_8));
         if (firstTime) {
             client
-                    .when(request(page3Path))
-                    .respond(
-                            response().withBody(
-                                    "Page 3 there first time only.",
-                                    HTML_UTF_8));
+                .when(request(page3Path))
+                .respond(response()
+                    .withBody("Page 3 there first time only.", HTML_UTF_8));
         } else {
             client
-                    .when(request(page3Path))
-                    .respond(HttpResponse.notFoundResponse());
+                .when(request(page3Path))
+                .respond(HttpResponse.notFoundResponse());
             client
-                    .when(request(page33Path))
-                    .respond(
-                            response().withBody(
-                                    "Page 33 there second time only.",
-                                    HTML_UTF_8));
+                .when(request(page33Path))
+                .respond(response()
+                    .withBody("Page 33 there second time only.", HTML_UTF_8));
         }
+        // @formatter:on
     }
 }

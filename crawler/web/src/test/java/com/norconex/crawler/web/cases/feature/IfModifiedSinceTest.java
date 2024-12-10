@@ -64,11 +64,12 @@ class IfModifiedSinceTest {
     private static final ZonedDateTime fiveDaysAgo = WebTestUtil.daysAgo(5);
     private static final ZonedDateTime today = WebTestUtil.daysAgo(0);
 
-    private static ZonedDateTime serverDate = fiveDaysAgo;
+    private static ZonedDateTime serverDate = null;
 
     @WebCrawlTest
-    void testContentTypeCharset(ClientAndServer client, WebCrawlerConfig cfg)
+    void testIfModifiedSince(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
+        serverDate = fiveDaysAgo;
 
         client
                 .when(request().withPath(path))

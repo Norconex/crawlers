@@ -20,20 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Test proper handling of page timeouts.
@@ -41,28 +39,26 @@ import com.norconex.crawler.web.stubs.CrawlerStubs;
 // Test for https://github.com/Norconex/collector-http/issues/316
 @MockServerSettings
 class TimeoutTest {
-    @TempDir
-    private Path tempDir;
 
     private final String basePath = "/timeout";
     private final String homePath = basePath + "/index.html";
 
-    @Test
-    void testTimeout(ClientAndServer client) throws CommitterException {
+    @WebCrawlTest
+    void testTimeout(ClientAndServer client, WebCrawlerConfig cfg)
+            throws CommitterException {
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, homePath)));
-            var f = new HttpClientFetcher();
-            f.getConfiguration().setConnectionTimeout(ofSeconds(1));
-            f.getConfiguration().setSocketTimeout(ofSeconds(1));
-            f.getConfiguration().setConnectionRequestTimeout(
-                    ofSeconds(1));
-            cfg.setFetchers(List.of(f));
-        });
-        var mem = WebTestUtil.firstCommitter(crawler);
+        cfg.setStartReferences(List.of(serverUrl(client, homePath)));
+        var f = new HttpClientFetcher();
+        f.getConfiguration().setConnectionTimeout(ofSeconds(1));
+        f.getConfiguration().setSocketTimeout(ofSeconds(1));
+        f.getConfiguration().setConnectionRequestTimeout(
+                ofSeconds(1));
+        cfg.setFetchers(List.of(f));
 
         whenDelayed(client, 0);
-        crawler.crawl();
+
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
@@ -74,45 +70,43 @@ class TimeoutTest {
         // First page should be skipped (timeout) but not children... even
         // if we could not go through parent to get to them
         whenDelayed(client, 2000);
-        crawler.crawl();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
                         serverUrl(client, basePath + "/child1.html"),
                         serverUrl(client, basePath + "/child2.html"));
         mem.clean();
-
-        crawler.clean();
     }
 
     private void whenDelayed(ClientAndServer client, long delay) {
         client.reset();
+
+        // @formatter:off
         client
-                .when(request(homePath))
-                .respond(
-                        response()
-                                .withDelay(TimeUnit.MILLISECONDS, delay)
-                                .withBody(
-                                        """
-                                                <p>This page takes %s milliseconds to return to test
-                                                timeouts, the 2 links below should return right away and
-                                                have a modified content each time accessed:
-                                                <ul>
-                                                  <li><a href="child1.html">Timeout child page 1</a></li>
-                                                  <li><a href="child2.html">Timeout child page 2</a></li>
-                                                </ul>
-                                                """));
+            .when(request(homePath))
+            .respond(response()
+                .withDelay(TimeUnit.MILLISECONDS, delay)
+                .withBody(
+                    """
+                    <p>This page takes %s milliseconds to return to test
+                    timeouts, the 2 links below should return right away and
+                    have a modified content each time accessed:
+                    <ul>
+                      <li><a href="child1.html">Timeout child page 1</a></li>
+                      <li><a href="child2.html">Timeout child page 2</a></li>
+                    </ul>
+                    """));
 
         client
-                .when(request("!" + homePath))
-                .respond(
-                        response()
-                                .withBody(
-                                        """
-                                                <h1>Random test child page</h1>
-                                                <p>This page content is never the same.</p>
-                                                <p>Salt: %s</p>"
-                                                """
-                                                .formatted(delay)));
+            .when(request("!" + homePath))
+            .respond(response()
+                .withBody(
+                    """
+                    <h1>Random test child page</h1>
+                    <p>This page content is never the same.</p>
+                    <p>Salt: %s</p>"
+                    """.formatted(delay)));
+        // @formatter:on
     }
 }

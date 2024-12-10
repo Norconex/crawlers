@@ -17,19 +17,19 @@ package com.norconex.crawler.web.cases.feature;
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Content of &lt;script&gt; tags must be stripped by GenericLinkExtractor
@@ -39,11 +39,9 @@ import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.HtmlLin
 @MockServerSettings
 class ScriptTagsTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testScriptTags(ClientAndServer client) throws CommitterException {
+    @WebCrawlTest
+    void testScriptTags(ClientAndServer client, WebCrawlerConfig cfg)
+            throws CommitterException {
 
         var homePath = "/scriptTags/index.html";
         var scriptPath = "/scriptTags/script.js";
@@ -62,12 +60,11 @@ class ScriptTagsTest {
                 This must be crawled.
                 """);
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, homePath)));
-            var le = new HtmlLinkExtractor();
-            le.getConfiguration().addLinkTag("script", "src");
-            cfg.setLinkExtractors(List.of(le));
-        });
+        cfg.setStartReferences(List.of(serverUrl(client, homePath)));
+        var le = new HtmlLinkExtractor();
+        le.getConfiguration().addLinkTag("script", "src");
+        cfg.setLinkExtractors(List.of(le));
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isEqualTo(2);
 

@@ -20,11 +20,8 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.mock.action.ExpectationResponseCallback;
@@ -38,7 +35,9 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Test the deletion of rejected references with
@@ -48,31 +47,28 @@ import com.norconex.crawler.web.WebTestUtil;
 class RejectedRefsDeletionTest {
     private static final String PATH = "/rejectedRefsDeletion";
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testRejectedRefsDeletionTest(ClientAndServer client) {
+    @WebCrawlTest
+    void testRejectedRefsDeletionTest(
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client
                 .when(request())
                 .respond(HttpClassCallback.callback(Callback.class));
 
         var startRef = serverUrl(client, PATH);
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(startRef));
-            var drel = new DeleteRejectedEventListener();
-            drel.getConfiguration().setEventMatcher(
-                    TextMatcher.csv(
-                            CrawlerEvent.REJECTED_NOTFOUND
-                                    + ", " + CrawlerEvent.REJECTED_BAD_STATUS));
-            cfg.addEventListeners(List.of(drel));
-            cfg.getImporterConfig().setHandlers(List.of(docCtx -> {
-                if (docCtx.reference().endsWith("page=6-REJECTED_IMPORT")) {
-                    docCtx.rejectedBy("Rejected by ME");
-                }
-            }));
-        });
+        cfg.setStartReferences(List.of(startRef));
+        var drel = new DeleteRejectedEventListener();
+        drel.getConfiguration().setEventMatcher(
+                TextMatcher.csv(
+                        CrawlerEvent.REJECTED_NOTFOUND
+                                + ", " + CrawlerEvent.REJECTED_BAD_STATUS));
+        cfg.addEventListeners(List.of(drel));
+        cfg.getImporterConfig().setHandlers(List.of(docCtx -> {
+            if (docCtx.reference().endsWith("page=6-REJECTED_IMPORT")) {
+                docCtx.rejectedBy("Rejected by ME");
+            }
+        }));
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         // Expected:
         //   3 upserts, including main page,
@@ -82,13 +78,13 @@ class RejectedRefsDeletionTest {
 
         assertThat(upserts)
                 .map(UpsertRequest::getReference)
-                .containsExactly(
+                .containsExactlyInAnyOrder(
                         startRef,
                         startRef + "?page=1-OK",
                         startRef + "?page=3-OK");
         assertThat(deletes)
                 .map(DeleteRequest::getReference)
-                .containsExactly(
+                .containsExactlyInAnyOrder(
                         startRef + "?page=2-REJECTED_NOTFOUND",
                         startRef + "?page=4-REJECTED_BAD_STATUS",
                         startRef + "?page=5-REJECTED_NOTFOUND",

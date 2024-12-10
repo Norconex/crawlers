@@ -42,7 +42,8 @@ class FileNotFoundDeletionTest {
     private static final String TOGGLE_PATH = "/notFoundDeleteToggle";
 
     @WebCrawlTest
-    void testContentTypeCharset(ClientAndServer client, WebCrawlerConfig cfg)
+    void testFileNotFoundDeletion(
+            ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         // @formatter:off

@@ -14,22 +14,20 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.http.HttpHeaders;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebsiteMock;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.importer.doc.DocMetadata;
 
 /**
@@ -38,18 +36,16 @@ import com.norconex.importer.doc.DocMetadata;
 @MockServerSettings
 class ValidMetadataTest {
 
-    @TempDir
-    private Path tempDir;
+    @WebCrawlTest
+    void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
 
-    @Test
-    void testValidMetadata(ClientAndServer client) {
         WebsiteMock.whenInfiniteDepth(client);
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(
-                    List.of(serverUrl(client, "/validMetadata/0000")));
-            cfg.setMaxDepth(10);
-        });
+        cfg.setStartReferences(
+                List.of(WebsiteMock.serverUrl(client, "/validMetadata/0000")));
+        cfg.setMaxDepth(10);
+
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         // 0-depth + 10 others == 11 expected files
         assertThat(mem.getRequestCount()).isEqualTo(11);

@@ -18,18 +18,16 @@ import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Test that "javascript:" URLs are not extracted.
@@ -38,11 +36,9 @@ import com.norconex.crawler.web.stubs.CrawlerStubs;
 @MockServerSettings
 class JavaScriptProtocolURLTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testJavaScriptProtocolURL(ClientAndServer client) {
+    @WebCrawlTest
+    void testJavaScriptProtocolURL(
+            ClientAndServer client, WebCrawlerConfig cfg) {
         var firstPath = "/jsUrl";
         var secondPath = "/jsUrl/target";
 
@@ -63,21 +59,15 @@ class JavaScriptProtocolURLTest {
                 Page must be crawled (2 of 2)
                 """);
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, firstPath)));
-        });
-        var mem = WebTestUtil.firstCommitter(crawler);
-
+        cfg.setStartReferences(List.of(serverUrl(client, firstPath)));
         assertThatNoException().isThrownBy(() -> {
-            crawler.crawl();
+            var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+
+            assertThat(mem.getUpsertRequests())
+                    .map(UpsertRequest::getReference)
+                    .containsExactlyInAnyOrder(
+                            serverUrl(client, firstPath),
+                            serverUrl(client, secondPath));
         });
-
-        assertThat(mem.getUpsertRequests())
-                .map(UpsertRequest::getReference)
-                .containsExactlyInAnyOrder(
-                        serverUrl(client, firstPath),
-                        serverUrl(client, secondPath));
-
-        crawler.clean();
     }
 }

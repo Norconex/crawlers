@@ -44,7 +44,8 @@ class DisabledMetaChecksummerTest {
     private final String path = "/disabledMetaChecksummer";
 
     @WebCrawlTest
-    void testContentTypeCharset(ClientAndServer client, WebCrawlerConfig cfg)
+    void testDisabledMetaChecksummer(
+            ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));

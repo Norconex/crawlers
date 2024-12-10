@@ -17,13 +17,9 @@ package com.norconex.crawler.web.cases.feature;
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
@@ -32,8 +28,10 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.ExtensionReferenceFilter;
 import com.norconex.crawler.web.TestResource;
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebsiteMock;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.handler.transformer.impl.UrlExtractorTransformer;
 
@@ -43,11 +41,10 @@ import com.norconex.importer.handler.transformer.impl.UrlExtractorTransformer;
 @MockServerSettings
 class PostImportLinksTest {
 
-    @TempDir
-    private Path tempDir;
+    @WebCrawlTest
+    void testPostImportLinksURL(
+            ClientAndServer client, WebCrawlerConfig cfg) {
 
-    @Test
-    void testPostImportLinksURL(ClientAndServer client) throws IOException {
         var path = "/postImportLinks";
 
         WebsiteMock.whenHtml(client, path, """
@@ -58,28 +55,26 @@ class PostImportLinksTest {
         WebsiteMock.whenPDF(
                 client, "/post-import-links.pdf", TestResource.PDF_WITH_LINKS);
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, path)));
-            cfg.setMaxDepth(1);
-            // Tell it which field will hold post-import URLs.
-            cfg.setPostImportLinks(
-                    TextMatcher.basic("myPostImportURLs"));
-            cfg.setPostImportLinksKeep(true);
-            // Keep only the test PDF.
-            cfg.setDocumentFilters(
-                    List.of(Configurable.configure(
-                            new ExtensionReferenceFilter(),
-                            c -> c
-                                    .setExtensions(Set.of("pdf"))
-                                    .setOnMatch(OnMatch.INCLUDE))));
-            // Create a field with post-import PDF URLs.
-            var tagger = new UrlExtractorTransformer();
-            tagger.getConfiguration().setToField("myPostImportURLs");
-            cfg.getImporterConfig().setHandlers(
-                    List.of(
-                            new DefaultParser(),
-                            tagger));
-        });
+        cfg.setStartReferences(List.of(serverUrl(client, path)));
+        cfg.setMaxDepth(1);
+        // Tell it which field will hold post-import URLs.
+        cfg.setPostImportLinks(
+                TextMatcher.basic("myPostImportURLs"));
+        cfg.setPostImportLinksKeep(true);
+        // Keep only the test PDF.
+        cfg.setDocumentFilters(
+                List.of(Configurable.configure(
+                        new ExtensionReferenceFilter(),
+                        c -> c
+                                .setExtensions(Set.of("pdf"))
+                                .setOnMatch(OnMatch.INCLUDE))));
+        // Create a field with post-import PDF URLs.
+        var tagger = new UrlExtractorTransformer();
+        tagger.getConfiguration().setToField("myPostImportURLs");
+        cfg.getImporterConfig().setHandlers(
+                List.of(new DefaultParser(), tagger));
+
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
 

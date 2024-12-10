@@ -20,20 +20,19 @@ import static org.mockserver.model.Header.optionalHeader;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.http.HttpHeaders;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.matchers.Times;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Tests that the ETag "If-None-Match" is supported properly.
@@ -54,47 +53,39 @@ class IfNoneMatchTest {
 
     private String path = "/ifNoneMatch";
 
-    @TempDir
-    private Path tempDir;
+    @WebCrawlTest
+    void testIfNoneMatch(ClientAndServer client, WebCrawlerConfig cfg)
+            throws CommitterException {
 
-    @Test
-    void testIfNoneMatch(ClientAndServer client) throws CommitterException {
-
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, path)));
-            // disable checksums so they do not influence tests
-            cfg.setDocumentChecksummer(null);
-            cfg.setMetadataChecksummer(null);
-        });
-        var mem = WebTestUtil.firstCommitter(crawler);
+        cfg.setStartReferences(List.of(serverUrl(client, path)));
+        // disable checksums so they do not influence tests
+        cfg.setDocumentChecksummer(null);
+        cfg.setMetadataChecksummer(null);
 
         // First run is new
         whenETag(client, "etag-A");
-        crawler.crawl();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same ETag, so not modified
         whenETag(client, "etag-A");
-        crawler.crawl();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different Etag, so modified
         whenETag(client, "etag-B");
-        crawler.crawl();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Fourth run got same Etag, but we disable E-Tag support, so modified
         whenETag(client, "etag-B");
-        WebTestUtil.firstHttpFetcher(crawler)
-                .getConfiguration().setETagDisabled(true);
-        crawler.crawl();
+        WebTestUtil.firstHttpFetcherConfig(cfg).setETagDisabled(true);
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
-
-        crawler.clean();
     }
 
     private void whenETag(ClientAndServer client, String serverEtag) {
@@ -102,33 +93,29 @@ class IfNoneMatchTest {
 
         // When matching server Etag
         client
-                .when(
-                        request()
-                                .withPath(path)
-                                .withHeader(
-                                        HttpHeaders.IF_NONE_MATCH,
-                                        serverEtag),
+                .when(request()
+                        .withPath(path)
+                        .withHeader(
+                                HttpHeaders.IF_NONE_MATCH,
+                                serverEtag),
                         Times.once())
-                .respond(
-                        response()
-                                .withHeader(HttpHeaders.ETAG, serverEtag)
-                                .withStatusCode(
-                                        HttpStatusCode.NOT_MODIFIED_304
-                                                .code()));
+                .respond(response()
+                        .withHeader(HttpHeaders.ETAG, serverEtag)
+                        .withStatusCode(
+                                HttpStatusCode.NOT_MODIFIED_304
+                                        .code()));
 
         // When NOT matching server Etag
         client
-                .when(
-                        request()
-                                .withPath(path)
-                                .withHeader(
-                                        optionalHeader(
-                                                HttpHeaders.IF_NONE_MATCH,
-                                                "!" + serverEtag)),
+                .when(request()
+                        .withPath(path)
+                        .withHeader(
+                                optionalHeader(
+                                        HttpHeaders.IF_NONE_MATCH,
+                                        "!" + serverEtag)),
                         Times.once())
-                .respond(
-                        response()
-                                .withHeader(HttpHeaders.ETAG, serverEtag)
-                                .withBody("Doc modified."));
+                .respond(response()
+                        .withHeader(HttpHeaders.ETAG, serverEtag)
+                        .withBody("Doc modified."));
     }
 }
