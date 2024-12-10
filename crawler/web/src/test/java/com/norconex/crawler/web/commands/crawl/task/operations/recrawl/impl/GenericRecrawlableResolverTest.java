@@ -30,10 +30,9 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.impl.GenericRecrawlableResolver;
 import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency;
-import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency.ApplyTo;
+import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 
 import lombok.extern.slf4j.Slf4j;

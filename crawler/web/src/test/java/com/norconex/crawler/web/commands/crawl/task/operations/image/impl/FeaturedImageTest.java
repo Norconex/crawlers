@@ -23,7 +23,6 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.web.TestResource;
-import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImage;
 
 class FeaturedImageTest {
 

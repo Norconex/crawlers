@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.web.commands.crawl.task.operations.checksum.impl.LastModifiedMetadataChecksummer;
 
 class LastModifiedMetadataChecksummerTest {
     @Test

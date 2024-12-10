@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.web.commands.crawl.task.operations.url.impl.GenericUrlNormalizer;
 import com.norconex.crawler.web.commands.crawl.task.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.crawler.web.commands.crawl.task.operations.url.impl.GenericUrlNormalizerConfig.NormalizationReplace;
 

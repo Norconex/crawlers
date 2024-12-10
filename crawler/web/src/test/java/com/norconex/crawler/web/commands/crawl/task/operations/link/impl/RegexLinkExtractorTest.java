@@ -39,7 +39,6 @@ import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.commands.crawl.task.operations.link.Link;
-import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.RegexLinkExtractor;
 import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.RegexLinkExtractorConfig.ExtractionPattern;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.importer.doc.DocMetadata;

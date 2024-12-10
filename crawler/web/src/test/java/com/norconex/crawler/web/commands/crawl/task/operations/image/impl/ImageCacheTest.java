@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.web.TestResource;
-import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.ImageCache;
 
 class ImageCacheTest {
 
@@ -66,5 +65,7 @@ class ImageCacheTest {
         assertThat(cache.getImage(ref160)).isNull();
         assertThat(cache.getImage(ref320)).isNotNull();
         assertThat(cache.getImage(ref640)).isNotNull();
+
+        cache.getStore().close();
     }
 }

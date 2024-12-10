@@ -41,12 +41,12 @@ import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImageResolver;
 import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImageResolverConfig.Quality;
 import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
-import com.norconex.crawler.web.junit.WithCrawlerTest;
+import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 @MockServerSettings
@@ -54,9 +54,9 @@ class FeaturedImageResolverTest {
 
     private @TempDir Path tempDir;
 
-    @WithCrawlerTest
+    @WebCrawlTest(focus = Focus.CONTEXT)
     void testProcessFeaturedImage(
-            ClientAndServer client, CrawlerContext crawler)
+            ClientAndServer client, CrawlerContext ctx)
             throws IOException {
         WebsiteMock.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
         WebsiteMock.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);
@@ -65,7 +65,7 @@ class FeaturedImageResolverTest {
         var baseUrl = "http://localhost:" + client.getLocalPort();
         var docUrl = baseUrl + "/page/test.html";
 
-        var fetcher = crawler.getFetcher();
+        var fetcher = ctx.getFetcher();
 
         var fip = new FeaturedImageResolver();
         fip.getConfiguration()
@@ -81,7 +81,7 @@ class FeaturedImageResolverTest {
         fip.onCrawlerCrawlBegin(
                 CrawlerEvent.builder()
                         .name("test")
-                        .source(crawler)
+                        .source(ctx)
                         .build());
 
         // biggest

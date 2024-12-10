@@ -24,10 +24,6 @@ import java.time.Month;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.DelayRange;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.DelaySchedule;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.GenericDelayResolver;
-
 class DelayScheduleTest {
 
     @Test

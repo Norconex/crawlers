@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.SitemapParser;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 

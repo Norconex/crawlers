@@ -30,7 +30,6 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.commands.crawl.task.operations.link.Link;
-import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.XmlFeedLinkExtractor;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.DocMetadata;

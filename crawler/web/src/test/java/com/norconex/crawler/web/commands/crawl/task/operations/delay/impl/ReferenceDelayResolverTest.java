@@ -26,8 +26,6 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.xml.Xml;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.DelayReferencePattern;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.ReferenceDelayResolver;
 import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 
 class ReferenceDelayResolverTest {

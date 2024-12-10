@@ -28,6 +28,7 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
@@ -60,20 +61,23 @@ class CrawlTestExtension implements
     public void interceptTestTemplateMethod(
             Invocation<Void> invocation,
             ReflectiveInvocationContext<Method> invocationContext,
-            ExtensionContext extensionContext) throws Throwable {
+            ExtensionContext context) throws Throwable {
 
         invocation.proceed();
 
-        var params = CrawlTestParameters.get(extensionContext);
+        var params = CrawlTestParameters.get(context);
 
-        // close context if it was the focus (for CRAWL the crawler does it).
+        // close context + grid if it was the focus
+        // (for CRAWL the crawler does it).
         if (params.getCrawler() == null) {
-            findAnnotation(
-                    extensionContext.getTestMethod()).ifPresent(annot -> {
-                        if (annot.focus() == Focus.CONTEXT) {
-                            params.getCrawlerContext().close();
-                        }
-                    });
+            findAnnotation(context.getTestMethod()).ifPresent(annot -> {
+                if (annot.focus() == Focus.CONTEXT) {
+                    var ctx = params.getCrawlerContext();
+                    ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END); // simulate
+                    ctx.close();
+                    ctx.getGrid().close();
+                }
+            });
         }
 
         if (params.getCrawlerConfig()

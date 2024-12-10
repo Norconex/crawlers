@@ -18,8 +18,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.ThreadDelay;
-
 class ThreadDelayTest {
 
     @Test

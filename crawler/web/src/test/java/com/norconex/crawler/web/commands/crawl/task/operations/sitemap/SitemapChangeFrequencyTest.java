@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.SitemapChangeFrequency;
-
 class SitemapChangeFrequencyTest {
 
     @Test

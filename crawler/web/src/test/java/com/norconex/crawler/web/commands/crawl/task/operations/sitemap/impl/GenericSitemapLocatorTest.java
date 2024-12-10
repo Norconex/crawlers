@@ -17,21 +17,18 @@ package com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapLocator;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.util.Web;
 
 class GenericSitemapLocatorTest {
 
-    @Test
-    void testGenericSitemapLocator(@TempDir Path tempDir) {
+    @WebCrawlTest(focus = Focus.CONTEXT)
+    void testGenericSitemapLocator(CrawlerContext ctx) {
 
         var locator = new GenericSitemapLocator();
         assertThat(locator.getConfiguration().getPaths()).contains(
@@ -41,17 +38,15 @@ class GenericSitemapLocatorTest {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(locator));
 
-        var crawler = CrawlerStubs.memoryCrawlerCrawlerContext(tempDir, cfg -> {
-            cfg.setStartReferences(List.of("http://example.com/index.html"));
-        });
+        Web.config(ctx)
+                .setRobotsTxtProvider(null)
+                .setStartReferences(List.of("http://example.com/index.html"));
 
-        Web.config(crawler).setRobotsTxtProvider(null);
-        assertThat(
-                locator.locations(
-                        "http://example.com/index.html", crawler))
-                                .containsExactly(
-                                        "http://example.com/abc.xml",
-                                        "http://example.com/def.xml");
+        assertThat(locator.locations(
+                "http://example.com/index.html", ctx))
+                        .containsExactly(
+                                "http://example.com/abc.xml",
+                                "http://example.com/def.xml");
 
         // try with empty paths
         locator.getConfiguration().setPaths(null);

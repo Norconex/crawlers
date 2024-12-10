@@ -16,13 +16,11 @@ package com.norconex.crawler.web.cases.recovery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
+import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlTest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,11 +29,11 @@ import lombok.extern.slf4j.Slf4j;
  * for example, to have the process hanging and never returning.
  */
 @Slf4j
-class UnhandledExceptiotnJvmCrashTest {
+class UnhandledExceptionJvmCrashTest {
 
-    @Test
-    void testUnhandledExceptiotnJvmCrash(@TempDir Path tempDir) {
-        var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+    //TODO also test with IgniteGrid
+    @WebCrawlTest(gridConnectors = LocalGridConnector.class)
+    void testUnhandledExceptiotnJvmCrash(WebCrawlerConfig cfg) {
         // will throw at queuing:
         cfg.setStartReferences(List.of("\\Iam/Not/a/valid.url"));
 

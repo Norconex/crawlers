@@ -39,9 +39,6 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.commands.crawl.task.operations.link.Link;
 import com.norconex.crawler.web.commands.crawl.task.operations.link.LinkExtractor;
-import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.DomLinkExtractor;
-import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.TikaLinkExtractor;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 /**

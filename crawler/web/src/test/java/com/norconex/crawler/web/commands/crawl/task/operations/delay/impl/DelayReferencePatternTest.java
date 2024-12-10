@@ -21,8 +21,6 @@ import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.DelayReferencePattern;
-
 class DelayReferencePatternTest {
 
     @Test

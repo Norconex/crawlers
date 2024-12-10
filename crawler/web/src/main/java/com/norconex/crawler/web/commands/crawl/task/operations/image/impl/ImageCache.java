@@ -32,6 +32,8 @@ import org.h2.mvstore.MVStore;
 
 import com.norconex.crawler.core.CrawlerException;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -44,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ImageCache {
 
     //TODO use Grid cache instead?
+    @Getter(value = AccessLevel.PACKAGE)
     private final MVStore store;
     private final Map<String, String> lru;
     private final Path cacheDir;

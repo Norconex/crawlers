@@ -26,9 +26,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.DelayRange;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.DelaySchedule;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxt;
 

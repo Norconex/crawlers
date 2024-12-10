@@ -35,16 +35,16 @@ import org.mockserver.model.MediaType;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxtFilter;
-import com.norconex.crawler.web.commands.crawl.task.operations.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.junit.WithCrawlerTest;
+import com.norconex.crawler.web.junit.WebCrawlTest;
 
 @MockServerSettings
 class StandardRobotsTxtProviderTest {
 
-    @WithCrawlerTest
-    void testGetRobotsTxt(ClientAndServer client, CrawlerContext crawler) {
+    @WebCrawlTest(focus = Focus.CONTEXT)
+    void testGetRobotsTxt(ClientAndServer client, CrawlerContext ctx) {
 
         client.when(request().withPath("/robots.txt"))
                 .respond(response()
@@ -61,7 +61,7 @@ class StandardRobotsTxtProviderTest {
 
         var robotProvider = new StandardRobotsTxtProvider();
         var robotsTxt = robotProvider.getRobotsTxt(
-                (HttpFetcher) crawler.getFetcher(),
+                (HttpFetcher) ctx.getFetcher(),
                 serverUrl(client, "/index.html"));
 
         assertThat(robotsTxt.getAllowFilters()).isEmpty();

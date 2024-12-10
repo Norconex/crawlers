@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -53,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExternalCrawlSessionLauncher {
 
-    private static final String committerDir = "external-test";
+    private static final String COMMITER_DIR = "external-test";
 
     public static CrawlOutcome start(CrawlerConfig crawlerConfig) {
         return launch(crawlerConfig, "start");
@@ -71,15 +72,14 @@ public class ExternalCrawlSessionLauncher {
             CrawlerConfig crawlerConfig,
             String action,
             String... extraArgs) {
-        // make sure things are not happening to fast for our tests
-        //Sleeper.sleepMillis(3000);
-        var now = ZonedDateTime.now();
+        ZonedDateTime.now();
+        var executionId = UUID.randomUUID().toString();
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
-                () -> doLaunch(crawlerConfig, action, extraArgs));
+                () -> doLaunch(crawlerConfig, action, executionId, extraArgs));
         var outcome = new CrawlOutcome(captured);
         var c = new TestCommitter(
-                crawlerConfig.getWorkDir().resolve(committerDir));
-        c.fillMemoryCommitters(outcome, now);
+                crawlerConfig.getWorkDir().resolve(COMMITER_DIR));
+        c.fillMemoryCommitters(outcome, executionId);
         try {
             c.close();
         } catch (CommitterException e) {
@@ -91,6 +91,7 @@ public class ExternalCrawlSessionLauncher {
     private static int doLaunch(
             CrawlerConfig crawlerConfig,
             String action,
+            String executionid,
             String... extraArgs) {
 
         if ("start".equalsIgnoreCase(action)) {
@@ -116,11 +117,9 @@ public class ExternalCrawlSessionLauncher {
         logger.setMessageOutputLevel(Project.MSG_INFO);
         project.fireBuildStarted();
 
-        LOG.info(
-                "Launched new web crawl session on new JVM. Action: '{}'. "
-                        + (ArrayUtils.isEmpty(extraArgs) ? ""
-                                : "Extra arguments: '"
-                                        + join(" ", extraArgs) + "'."),
+        LOG.info("Launched new web crawl session on new JVM. Action: '{}'. "
+                + (ArrayUtils.isEmpty(extraArgs) ? ""
+                        : "Extra arguments: '" + join(" ", extraArgs) + "'."),
                 action);
         Throwable caught = null;
         var retValue = 0;
@@ -132,10 +131,8 @@ public class ExternalCrawlSessionLauncher {
             javaTask.setFailonerror(true);
             javaTask.setClassname(WebCrawler.class.getName());
 
-            var envVar = new Environment.Variable();
-            envVar.setKey("CLASSPATH");
-            envVar.setValue(SystemUtils.JAVA_CLASS_PATH);
-            javaTask.addEnv(envVar);
+            javaTask.addEnv(env("CLASSPATH", SystemUtils.JAVA_CLASS_PATH));
+            javaTask.addEnv(env(TestCommitter.EXEC_ID_KEY, executionid));
 
             var args = action + " -config=\"" +
                     configFile.toAbsolutePath().toFile() + "\"";
@@ -165,7 +162,7 @@ public class ExternalCrawlSessionLauncher {
         if (cfg.getCommitters().isEmpty() || cfg.getCommitters()
                 .stream().noneMatch(c -> c instanceof TestCommitter)) {
             var committer = new TestCommitter(
-                    cfg.getWorkDir().resolve(committerDir));
+                    cfg.getWorkDir().resolve(COMMITER_DIR));
             committer.init(null);
             List<Committer> committers = new ArrayList<>(cfg.getCommitters());
             committers.add(committer);
@@ -189,5 +186,12 @@ public class ExternalCrawlSessionLauncher {
             stdOut = captured.getStdOut();
             stdErr = captured.getStdErr();
         }
+    }
+
+    private static Environment.Variable env(String key, String value) {
+        var env = new Environment.Variable();
+        env.setKey(key);
+        env.setValue(value);
+        return env;
     }
 }
