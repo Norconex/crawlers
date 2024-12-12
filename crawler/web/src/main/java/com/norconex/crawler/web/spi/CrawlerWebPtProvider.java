@@ -20,7 +20,6 @@ import java.util.function.Predicate;
 import org.apache.commons.collections4.MultiMapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 
-import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
@@ -51,21 +50,29 @@ import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcher;
  */
 public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
 
+    private static final String WEB_BASE_PKG = "com.norconex.crawler.web";
+    private static final String OPERATIONS_BASE_PKG =
+            WEB_BASE_PKG + ".commands.crawl.task.operations";
+    private static final String FILTER_BASE_PKG =
+            OPERATIONS_BASE_PKG + ".filter";
+
     @Override
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
+
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
         addPolyType(map, CanonicalLinkDetector.class);
-        addPolyType(map, MetadataChecksummer.class, "doc.operations.checksum");
-        addPolyType(map, EventListener.class, "event.listeners");
+        addPolyType(map, MetadataChecksummer.class,
+                OPERATIONS_BASE_PKG + ".checksum");
+        addPolyType(map, EventListener.class,
+                WEB_BASE_PKG + ".event.listeners");
         addPolyType(map, DelayResolver.class);
-        addPolyType(
-                map, DocumentFilter.class,
-                "doc.operations.filter"); //NOSONAR
-        addPolyType(map, MetadataFilter.class, "doc.operations.filter");
-        addPolyType(map, ReferenceFilter.class, "doc.operations.filter");
+        addPolyType(map, DocumentFilter.class, FILTER_BASE_PKG);
+        addPolyType(map, MetadataFilter.class, FILTER_BASE_PKG);
+        addPolyType(map, ReferenceFilter.class, FILTER_BASE_PKG);
         addPolyType(map, LinkExtractor.class);
-        addPolyType(map, DocumentConsumer.class, "doc.operations.image");
+        addPolyType(map, DocumentConsumer.class,
+                OPERATIONS_BASE_PKG + ".image");
         addPolyType(map, RecrawlableResolver.class);
         addPolyType(map, RobotsTxtProvider.class);
         addPolyType(map, RobotsMetaProvider.class);
@@ -75,14 +82,13 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, UrlScopeResolver.class);
 
         //        map.put(CrawlerConfig.class, WebCrawlerConfig.class);
-        map.putAll(
-                Fetcher.class, List.of(
-                        HttpClientFetcher.class,
-                        WebDriverFetcher.class));
+        map.putAll(Fetcher.class, List.of(
+                HttpClientFetcher.class,
+                WebDriverFetcher.class));
 
         // For unit test
-        addPolyType(map, EventListener.class, "session.recovery");
-        addPolyType(map, Committer.class, "session.recovery");
+        //        addPolyType(map, EventListener.class, "session.recovery");
+        //        addPolyType(map, Committer.class, "session.recovery");
 
         return map;
     }
@@ -96,17 +102,15 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
     private void addPolyType(
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
             Class<?> baseClass,
-            String corePkg) {
-        polyTypes.putAll(
-                baseClass, ClassFinder.findSubTypes(
-                        baseClass,
-                        corePkg == null
-                                ? nm -> nm
-                                        .startsWith(baseClass.getPackageName())
-                                : filter(corePkg)));
+            String basePackage) {
+        polyTypes.putAll(baseClass, ClassFinder.findSubTypes(
+                baseClass,
+                basePackage == null
+                        ? nm -> nm.startsWith(baseClass.getPackageName())
+                        : filter(basePackage)));
     }
 
-    private Predicate<String> filter(String corePkg) {
-        return nm -> nm.startsWith("com.norconex.crawler.web." + corePkg);
+    private Predicate<String> filter(String basePackage) {
+        return nm -> nm.startsWith(basePackage);
     }
 }

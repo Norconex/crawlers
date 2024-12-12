@@ -16,75 +16,63 @@ package com.norconex.crawler.web.commands.crawl.task.pipelines.queue.stages;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.commands.crawl.task.operations.robot.impl.StandardRobotsTxtProvider;
-import com.norconex.crawler.web.commands.crawl.task.pipelines.queue.stages.RobotsTxtFiltersStage;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.util.Web;
 
 class RobotsTxtFiltersStageTest {
 
-    @TempDir
-    private Path tempDir;
+    @WebCrawlTest
+    void testAllow(CrawlerContext ctx) {
+        Web.config(ctx).setRobotsTxtProvider(new StandardRobotsTxtProvider() {
+            @Override
+            public synchronized RobotsTxt getRobotsTxt(
+                    HttpFetcher fetcher, String url) {
+                try {
+                    return parseRobotsTxt(
+                            IOUtils.toInputStream("""
+                            User-agent: *
 
-    @Test
-    void testAllow() {
-        var crawler =
-                CrawlerStubs.memoryCrawlerCrawlerContext(tempDir, cfg -> cfg
-                        .setRobotsTxtProvider(new StandardRobotsTxtProvider() {
-                            @Override
-                            public synchronized RobotsTxt getRobotsTxt(
-                                    HttpFetcher fetcher, String url) {
-                                try {
-                                    return parseRobotsTxt(
-                                            IOUtils.toInputStream("""
-                                            User-agent: *
-
-                                            Disallow: /rejectMost/*
-                                            Allow: /rejectMost/butNotThisOne/*
-                                            """,
-                                                    StandardCharsets.UTF_8),
-                                            url,
-                                            "test-crawler");
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        }));
+                            Disallow: /rejectMost/*
+                            Allow: /rejectMost/butNotThisOne/*
+                            """,
+                                    StandardCharsets.UTF_8),
+                            url,
+                            "test-crawler");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
 
         // An allow for a robot rule should now be rejecting all non-allowing.
         // It should allows sub directories that have their parent rejected
-        Assertions.assertFalse(
-                testAllow(
-                        crawler,
-                        "http://rejected.com/rejectMost/blah.html"),
+        Assertions.assertFalse(testAllow(
+                ctx, "http://rejected.com/rejectMost/blah.html"),
                 "Matches Disallow");
-        Assertions.assertTrue(
-                testAllow(
-                        crawler,
-                        "http://accepted.com/rejectMost/butNotThisOne/blah.html"),
+        Assertions.assertTrue(testAllow(
+                ctx,
+                "http://accepted.com/rejectMost/butNotThisOne/blah.html"),
                 "Matches Disallow AND Allow");
-        Assertions.assertTrue(
-                testAllow(
-                        crawler,
-                        "http://accepted.com/notListed/blah.html"),
+        Assertions.assertTrue(testAllow(
+                ctx,
+                "http://accepted.com/notListed/blah.html"),
                 "No match in robot.txt");
     }
 
-    private boolean testAllow(CrawlerContext crawler, final String url) {
-        var ctx = new QueuePipelineContext(
-                crawler, new WebCrawlDocContext(url, 0));
+    private boolean testAllow(CrawlerContext crawlerCtx, final String url) {
+        var queueCtx = new QueuePipelineContext(
+                crawlerCtx, new WebCrawlDocContext(url, 0));
         var filterStage = new RobotsTxtFiltersStage();
-        return filterStage.test(ctx);
+        return filterStage.test(queueCtx);
     }
 }

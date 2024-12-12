@@ -23,21 +23,19 @@ import static org.mockserver.model.Not.not;
 import static org.mockserver.model.Parameter.param;
 import static org.mockserver.model.ParameterBody.params;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.commons.lang.security.Credentials;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
-import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthMethod;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 @MockServerSettings
 class HttpAuthTest {
@@ -46,71 +44,69 @@ class HttpAuthTest {
     private final String loginFormActionPath = "/loginFormAction";
     private final String wrongFormActionPath = "/wrongFormAction";
     private final String protectedPath = "/protected.html";
-    @TempDir
-    private Path tempDir;
 
-    @Test
-    void testBasicAuthentication(ClientAndServer client) {
+    @WebCrawlTest
+    void testBasicAuthentication(
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var protectedUrl = serverUrl(client, protectedPath);
 
+        // @formatter:off
         client
-                .when(
-                        request(protectedPath)
-                                .withHeader(
-                                        "Authorization",
-                                        "Basic Z29vZHVzZXI6Z29vZHBhc3N3b3Jk"))
-                .respond(
-                        response()
-                                .withBody("You got it!"));
+            .when(request(protectedPath)
+                .withHeader(
+                        "Authorization",
+                        "Basic Z29vZHVzZXI6Z29vZHBhc3N3b3Jk"))
+            .respond(response()
+                .withBody("You got it!"));
         client
-                .when(request(protectedPath))
-                .respond(
-                        response()
-                                .withStatusCode(
-                                        HttpStatusCode.UNAUTHORIZED_401.code())
-                                .withHeader(
-                                        "WWW-Authenticate",
-                                        "realm=\"Test Realm\", charset=\"UTF-8\""));
+            .when(request(protectedPath))
+            .respond(response()
+                .withStatusCode(
+                        HttpStatusCode.UNAUTHORIZED_401.code())
+                .withHeader(
+                        "WWW-Authenticate",
+                        "realm=\"Test Realm\", charset=\"UTF-8\""));
+        // @formatter:on
 
         // Good creds
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-            var authCfg = new HttpAuthConfig();
-            authCfg.setMethod(HttpAuthMethod.BASIC);
-            authCfg.setPreemptive(true);
-            authCfg.setCredentials(
-                    new Credentials("gooduser", "goodpassword"));
-            fetchCfg.setAuthentication(authCfg);
-            // Misc. unaffecting params that should not break
-            fetchCfg.setSslProtocols(List.of("TLS 1.3"));
-            fetchCfg.setETagDisabled(true);
-            fetchCfg.setHstsDisabled(true);
-            fetchCfg.setIfModifiedSinceDisabled(true);
-            fetchCfg.setSniDisabled(true);
-            cfg.setStartReferences(List.of(protectedUrl));
-        });
+        var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        var authCfg = new HttpAuthConfig();
+        authCfg.setMethod(HttpAuthMethod.BASIC);
+        authCfg.setPreemptive(true);
+        authCfg.setCredentials(
+                new Credentials("gooduser", "goodpassword"));
+        fetchCfg.setAuthentication(authCfg);
+        // Misc. unaffecting params that should not break
+        fetchCfg.setSslProtocols(List.of("TLS 1.3"));
+        fetchCfg.setETagDisabled(true);
+        fetchCfg.setHstsDisabled(true);
+        fetchCfg.setIfModifiedSinceDisabled(true);
+        fetchCfg.setSniDisabled(true);
+        cfg.setStartReferences(List.of(protectedUrl));
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+
         assertThat(mem.getUpsertCount()).isOne();
         var doc = mem.getUpsertRequests().get(0);
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
 
         // Bad creds
-        mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            var authCfg = new HttpAuthConfig();
-            authCfg.setMethod(HttpAuthMethod.BASIC);
-            authCfg.setPreemptive(true);
-            authCfg.setCredentials(
-                    new Credentials("baduser", "badpassword"));
-            var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-            fetchCfg.setAuthentication(authCfg);
-            cfg.setStartReferences(List.of(protectedUrl));
-        });
+        authCfg = new HttpAuthConfig();
+        authCfg.setMethod(HttpAuthMethod.BASIC);
+        authCfg.setPreemptive(true);
+        authCfg.setCredentials(
+                new Credentials("baduser", "badpassword"));
+        fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        fetchCfg.setAuthentication(authCfg);
+        cfg.setStartReferences(List.of(protectedUrl));
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isZero();
     }
 
-    @Test
-    void testFormAuthentication(ClientAndServer client) {
+    @WebCrawlTest
+    void testFormAuthentication(
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var loginFormUrl = serverUrl(client, loginFormPath);
         var loginFormActionUrl = serverUrl(client, loginFormActionPath);
@@ -119,48 +115,48 @@ class HttpAuthTest {
         whenLoginRequired(client);
 
         // Fill and submit form with good credentials
-        var mem = WebTestUtil.runWithConfig(tempDir.resolve("1"), cfg -> {
-            cfg.setStartReferences(List.of(protectedUrl));
-            var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-            fetchCfg.setAuthentication(
-                    authConfirm(
-                            loginFormUrl, "gooduser", "goodpassword"));
-        });
+        cfg.setWorkDir(cfg.getWorkDir().resolve("1"));
+        cfg.setStartReferences(List.of(protectedUrl));
+        var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        fetchCfg.setAuthentication(authConfirm(
+                loginFormUrl, "gooduser", "goodpassword"));
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         var doc = mem.getUpsertRequests().get(0);
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
 
         // Fill and submit form with bad credentials
-        mem = WebTestUtil.runWithConfig(tempDir.resolve("2"), cfg -> {
-            cfg.setStartReferences(List.of(protectedUrl));
-            var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-            fetchCfg.setAuthentication(
-                    authConfirm(
-                            loginFormUrl, "baduser", "badpassword"));
-        });
+        cfg.setWorkDir(cfg.getWorkDir().resolve("2"));
+        cfg.setStartReferences(List.of(protectedUrl));
+        fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        fetchCfg.setAuthentication(authConfirm(
+                loginFormUrl, "baduser", "badpassword"));
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+
         assertThat(mem.getUpsertCount()).isZero();
 
         // Invoke form action URL directly with good credentials
-        mem = WebTestUtil.runWithConfig(tempDir.resolve("3"), cfg -> {
-            cfg.setStartReferences(List.of(protectedUrl));
-            var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-            var authCfg = authConfirm(
-                    loginFormActionUrl, "gooduser", "goodpassword");
-            authCfg.setFormSelector(null);
-            fetchCfg.setAuthentication(authCfg);
-        });
+        cfg.setWorkDir(cfg.getWorkDir().resolve("3"));
+        cfg.setStartReferences(List.of(protectedUrl));
+        fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        var authCfg = authConfirm(
+                loginFormActionUrl, "gooduser", "goodpassword");
+        authCfg.setFormSelector(null);
+        fetchCfg.setAuthentication(authCfg);
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+
         assertThat(mem.getUpsertRequests()).isNotEmpty();
         doc = mem.getUpsertRequests().get(0);
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
 
         // Invoke form action URL directly with bad credentials
-        mem = WebTestUtil.runWithConfig(tempDir.resolve("4"), cfg -> {
-            cfg.setStartReferences(List.of(protectedUrl));
-            var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-            var authCfg = authConfirm(
-                    loginFormActionUrl, "baduser", "badpassword");
-            authCfg.setFormSelector(null);
-            fetchCfg.setAuthentication(authCfg);
-        });
+        cfg.setWorkDir(cfg.getWorkDir().resolve("4"));
+        cfg.setStartReferences(List.of(protectedUrl));
+        fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        authCfg = authConfirm(loginFormActionUrl, "baduser", "badpassword");
+        authCfg.setFormSelector(null);
+        fetchCfg.setAuthentication(authCfg);
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+
         assertThat(mem.getUpsertCount()).isZero();
     }
 

@@ -18,28 +18,26 @@ import java.io.ByteArrayInputStream;
 import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
-import com.norconex.crawler.web.commands.crawl.task.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.commands.crawl.task.pipelines.importer.stages.CanonicalStage;
 import com.norconex.crawler.web.commands.crawl.task.pipelines.importer.stages.LinkExtractorStage;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.junit.WithCrawlerTest;
+import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.DocMetadata;
 
-@WithCrawlerTest
 class WebImporterPipelineTest {
 
-    @Test
-    void testCanonicalStageSameReferenceContent(CrawlerContext crawler) {
+    @WebCrawlTest(focus = Focus.CONTEXT)
+    void testCanonicalStageSameReferenceContent(CrawlerContext crawlerCtx) {
         var reference = "http://www.example.com/file.pdf";
         var contentValid = "<html><head><title>Test</title>\n"
                 + "<link rel=\"canonical\"\n href=\"\n" + reference + "\" />\n"
@@ -49,27 +47,27 @@ class WebImporterPipelineTest {
                 new CachedStreamFactory(1000, 1000).newInputStream(
                         new ByteArrayInputStream(contentValid.getBytes())),
                 false);
-        var ctx = new WebImporterPipelineContext(crawler, doc);
+        var ctx = new WebImporterPipelineContext(crawlerCtx, doc);
         Assertions.assertTrue(
                 new CanonicalStage(
                         FetchDirective.DOCUMENT).test(ctx));
     }
 
-    @Test
-    void testCanonicalStageSameReferenceHeader(CrawlerContext crawler) {
+    @WebCrawlTest(focus = Focus.CONTEXT)
+    void testCanonicalStageSameReferenceHeader(CrawlerContext crawlerCtx) {
         var reference = "http://www.example.com/file.pdf";
         var doc = new CrawlDoc(
                 new WebCrawlDocContext(reference, 0), null,
                 new CachedStreamFactory(1, 1).newInputStream(), false);
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
-        var ctx = new WebImporterPipelineContext(crawler, doc);
+        var ctx = new WebImporterPipelineContext(crawlerCtx, doc);
         Assertions.assertTrue(
                 new CanonicalStage(
                         FetchDirective.METADATA).test(ctx));
     }
 
-    @Test
-    void testKeepMaxDepthLinks(CrawlerContext crawler) {
+    @WebCrawlTest(focus = Focus.CONTEXT)
+    void testKeepMaxDepthLinks(CrawlerContext crawlerCtx) {
         var reference = "http://www.example.com/file.html";
         var content = "<html><head><title>Test</title>\n"
                 + "</head><body><a href=\"link.html\">A link</a></body></html>";
@@ -84,7 +82,7 @@ class WebImporterPipelineTest {
                 false);
         doc.getMetadata().set(DocMetadata.CONTENT_TYPE, "text/html");
 
-        var ctx = new WebImporterPipelineContext(crawler, doc);
+        var ctx = new WebImporterPipelineContext(crawlerCtx, doc);
         Web.config(ctx.getCrawlerContext()).setMaxDepth(2);
 
         var stage = new LinkExtractorStage();
