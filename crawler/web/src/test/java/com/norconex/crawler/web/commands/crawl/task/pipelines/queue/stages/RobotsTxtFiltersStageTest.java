@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.commands.crawl.task.operations.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
@@ -31,7 +32,7 @@ import com.norconex.crawler.web.util.Web;
 
 class RobotsTxtFiltersStageTest {
 
-    @WebCrawlTest
+    @WebCrawlTest(focus = Focus.CONTEXT)
     void testAllow(CrawlerContext ctx) {
         Web.config(ctx).setRobotsTxtProvider(new StandardRobotsTxtProvider() {
             @Override

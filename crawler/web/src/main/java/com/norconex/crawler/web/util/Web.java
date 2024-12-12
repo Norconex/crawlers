@@ -63,12 +63,12 @@ public final class Web {
         }
     }
 
-    public static WebCrawlerConfig config(CrawlerContext crawler) {
-        return (WebCrawlerConfig) crawler.getConfiguration();
+    public static WebCrawlerConfig config(CrawlerContext crawlerContext) {
+        return (WebCrawlerConfig) crawlerContext.getConfiguration();
     }
 
-    public static HttpFetcher fetcher(CrawlerContext crawler) {
-        return (HttpFetcher) crawler.getFetcher();
+    public static HttpFetcher fetcher(CrawlerContext crawlerContext) {
+        return (HttpFetcher) crawlerContext.getFetcher();
     }
 
     public static WebCrawlDocContext docContext(@NonNull CrawlDoc crawlDoc) {

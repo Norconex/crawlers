@@ -87,7 +87,7 @@ class UrlStatusCrawlerEventListenerTest {
                 "\"\",%serror.html,500,Kaput!".formatted(baseUrl),
                 "\"\",%snotFound.html,404,Not Found".formatted(baseUrl),
                 "\"\",%sok1.html,200,OK".formatted(baseUrl),
-                "\"\",%sok2.html,404,Not Found".formatted(baseUrl));
+                "\"\",%sok2.html,200,OK".formatted(baseUrl));
 
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(urlStatusListener));
