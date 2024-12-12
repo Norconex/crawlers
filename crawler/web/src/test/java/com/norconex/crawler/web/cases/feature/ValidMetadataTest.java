@@ -25,9 +25,9 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.importer.doc.DocMetadata;
 
 /**
@@ -39,10 +39,10 @@ class ValidMetadataTest {
     @WebCrawlTest
     void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
 
-        WebsiteMock.whenInfiniteDepth(client);
+        MockWebsite.whenInfiniteDepth(client);
 
         cfg.setStartReferences(
-                List.of(WebsiteMock.serverUrl(client, "/validMetadata/0000")));
+                List.of(MockWebsite.serverUrl(client, "/validMetadata/0000")));
         cfg.setMaxDepth(10);
 
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();

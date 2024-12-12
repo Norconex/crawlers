@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.event.listeners;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -33,9 +33,9 @@ import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 @MockServerSettings
 class UrlStatusCrawlerEventListenerTest {
@@ -55,8 +55,8 @@ class UrlStatusCrawlerEventListenerTest {
         var notFoundPath = "/notFound.html";
         var errorPath = "/error.html";
 
-        WebsiteMock.whenHtml(client, ok1Path, "This page is OK.");
-        WebsiteMock.whenHtml(client, ok2Path, "This page is OK.");
+        MockWebsite.whenHtml(client, ok1Path, "This page is OK.");
+        MockWebsite.whenHtml(client, ok2Path, "This page is OK.");
 
         client.when(request(notFoundPath))
                 .respond(HttpResponse.notFoundResponse());

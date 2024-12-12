@@ -63,6 +63,7 @@ import com.norconex.crawler.core.commands.crawl.task.operations.spoil.SpoiledRef
 import com.norconex.crawler.core.commands.crawl.task.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.commands.crawl.task.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.grid.Grid;
+import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.web.commands.crawl.task.operations.delay.DelayResolver;
 import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
@@ -90,8 +91,8 @@ public final class WebTestUtil {
     public static final String TEST_CRAWLER_ID = "test-crawler";
     public static final String TEST_CRAWL_SESSION_ID = "test-session";
 
-    public static final EasyRandom RANDOMIZER = new EasyRandom(
-            new EasyRandomParameters()
+    public static final EasyRandom RANDOMIZER =
+            new EasyRandom(new EasyRandomParameters()
                     .seed(System.currentTimeMillis())
                     .collectionSizeRange(1, 5)
                     .randomizationDepth(5)
@@ -134,6 +135,7 @@ public final class WebTestUtil {
                                     new BooleanRandomizer().getRandomValue()))
 
                     .excludeType(Grid.class::equals)
+                    .excludeType(GridCache.class::equals)
                     .excludeType(GridConnector.class::equals)
                     .excludeType(SitemapResolver.class::equals)
                     .excludeType(DocumentConsumer.class::equals)

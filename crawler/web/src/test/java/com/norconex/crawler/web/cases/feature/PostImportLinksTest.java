@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -29,9 +29,9 @@ import com.norconex.crawler.core.commands.crawl.task.operations.filter.OnMatch;
 import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.ExtensionReferenceFilter;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.handler.transformer.impl.UrlExtractorTransformer;
 
@@ -47,12 +47,12 @@ class PostImportLinksTest {
 
         var path = "/postImportLinks";
 
-        WebsiteMock.whenHtml(client, path, """
+        MockWebsite.whenHtml(client, path, """
                 <h1>Post import test page.</h1>
                 URLs in <a href="/post-import-links.pdf">this link</a>
                 should be queued for processing.
                 """);
-        WebsiteMock.whenPDF(
+        MockWebsite.whenPDF(
                 client, "/post-import-links.pdf", TestResource.PDF_WITH_LINKS);
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.cases.recovery;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -28,8 +28,8 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +48,7 @@ class ResumeAfterJvmCrashTest {
             ClientAndServer client, WebCrawlerConfig cfg) {
         var path = "/resumeAfterJvmCrash";
 
-        WebsiteMock.whenInfiniteDepth(client);
+        MockWebsite.whenInfiniteDepth(client);
 
         var crasher = new JVMCrasher();
 
@@ -69,7 +69,7 @@ class ResumeAfterJvmCrashTest {
                 .getUpsertCount()).isEqualTo(6);
         assertThat(WebTestUtil.lastSortedRequestReference(
                 outcome.getCommitterAfterLaunch())).isEqualTo(
-                        WebsiteMock.serverUrl(client, path + "/0005"));
+                        MockWebsite.serverUrl(client, path + "/0005"));
 
         // Second run, it should resume and finish normally, crawling
         // an additional 10 max docs, totaling 16.
@@ -87,8 +87,8 @@ class ResumeAfterJvmCrashTest {
         assertThat(EqualsUtil.equalsAny(
                 WebTestUtil.lastSortedRequestReference(
                         outcome.getCommitterAfterLaunch()),
-                WebsiteMock.serverUrl(client, path + "/0014"),
-                WebsiteMock.serverUrl(client, path + "/0015")))
+                MockWebsite.serverUrl(client, path + "/0014"),
+                MockWebsite.serverUrl(client, path + "/0015")))
                         .isTrue();
 
         // Recrawl fresh without crash. Since we do not check for duplicates,
@@ -106,8 +106,8 @@ class ResumeAfterJvmCrashTest {
         assertThat(EqualsUtil.equalsAny(
                 WebTestUtil.lastSortedRequestReference(
                         outcome.getCommitterAfterLaunch()),
-                WebsiteMock.serverUrl(client, path + "/0024"),
-                WebsiteMock.serverUrl(client, path + "/0025")))
+                MockWebsite.serverUrl(client, path + "/0024"),
+                MockWebsite.serverUrl(client, path + "/0025")))
                         .isTrue();
     }
 }

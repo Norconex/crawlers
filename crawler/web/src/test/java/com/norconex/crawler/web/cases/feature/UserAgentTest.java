@@ -26,9 +26,9 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test that the user agent is sent properly to web servers with the
@@ -47,7 +47,7 @@ class UserAgentTest {
                                 + req.getFirstHeader("User-Agent")));
 
         cfg.setStartReferences(
-                List.of(WebsiteMock.serverUrl(client, path)));
+                List.of(MockWebsite.serverUrl(client, path)));
         WebTestUtil.firstHttpFetcherConfig(cfg).setUserAgent("Smith");
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 

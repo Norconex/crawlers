@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -27,10 +27,10 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test (non)canonical link detection.
@@ -60,7 +60,7 @@ class CanonicalLinkTest {
                 serverUrl(client, httpHeaderPath),
                 serverUrl(client, linkRelPath));
 
-        WebsiteMock.whenHtml(
+        MockWebsite.whenHtml(
                 client, canonicalPath, "<p>Canonical page</p>" + commonBody);
 
         // @formatter:off
@@ -71,7 +71,7 @@ class CanonicalLinkTest {
                 .withHeader("Link", "<%s>; rel=\"canonical\""
                         .formatted(canonicalUrl))
                 .withBody(
-                        WebsiteMock
+                        MockWebsite
                             .htmlPage()
                             .body("<p>Canonical URL in HTTP header.</p>"
                                     + commonBody)
@@ -83,7 +83,7 @@ class CanonicalLinkTest {
                 .withPath(linkRelPath))
             .respond(response()
                 .withBody(
-                        WebsiteMock
+                        MockWebsite
                             .htmlPage()
                             .head("<link rel=\"canonical\" href=\"%s\" />"
                                     .formatted(canonicalUrl))

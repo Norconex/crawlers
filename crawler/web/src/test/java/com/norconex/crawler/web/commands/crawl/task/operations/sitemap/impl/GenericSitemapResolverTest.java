@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockserver.model.HttpRequest.request;

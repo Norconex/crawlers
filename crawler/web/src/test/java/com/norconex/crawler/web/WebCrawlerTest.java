@@ -23,7 +23,7 @@ class WebCrawlerTest {
     @Test
     void testLaunch() {
         assertThat(WebCrawler.launch()).isEqualTo(-1);
-        assertThat(WebCrawler.launch("-version")).isEqualTo(0);
+        assertThat(WebCrawler.launch("-version")).isZero();
     }
 
     @Test

@@ -31,9 +31,9 @@ import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test the stopping of a crawler upon reaching configured maximum number of
@@ -47,10 +47,10 @@ class StopCrawlerOnMaxEventTest {
     void testStopCrawlerOnMaxEvent(
             ClientAndServer client, WebCrawlerConfig cfg) {
 
-        WebsiteMock.whenInfiniteDepth(client);
+        MockWebsite.whenInfiniteDepth(client);
 
         cfg.setStartReferences(List.of(
-                WebsiteMock.serverUrl(client, "/stopCrawlerOnMaxEvent")));
+                MockWebsite.serverUrl(client, "/stopCrawlerOnMaxEvent")));
         var lis = new StopCrawlerOnMaxEventListener();
         lis.getConfiguration().setEventMatcher(
                 TextMatcher.csv(CommitterEvent.COMMITTER_UPSERT_END

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockserver.model.HttpRequest.request;
@@ -55,12 +55,12 @@ import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 import lombok.extern.slf4j.Slf4j;
@@ -124,7 +124,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     @WebCrawlTest
     void testFetchingJsGeneratedContent(
             ClientAndServer client, WebCrawlerConfig cfg) {
-        WebsiteMock.whenJsRenderedWebsite(client);
+        MockWebsite.whenJsRenderedWebsite(client);
 
         cfg.setFetchers(List.of(createWebDriverHttpFetcher()));
         cfg.setMaxDepth(0);
@@ -140,7 +140,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     void testTakeScreenshots(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
 
-        WebsiteMock.whenJsRenderedWebsite(client);
+        MockWebsite.whenJsRenderedWebsite(client);
 
         var h = new ScreenshotHandler();
         h.getConfiguration()
@@ -182,7 +182,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
             .respond(response()
                 .withHeader("multiKey", "multiVal1", "multiVal2")
                 .withHeader("singleKey", "singleValue")
-                .withBody(WebsiteMock
+                .withBody(MockWebsite
                     .htmlPage()
                     .body(RandomStringUtils
                             .randomAlphanumeric(LARGE_CONTENT_MIN_SIZE))
@@ -222,7 +222,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         client
             .when(request(path))
             .respond(response()
-                .withBody(WebsiteMock
+                .withBody(MockWebsite
                     .htmlPage()
                     .body("""
                           <h1>Page Script Test</h1>
@@ -259,7 +259,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         client
             .when(request(path))
             .respond(response()
-                .withBody(WebsiteMock
+                .withBody(MockWebsite
                     .htmlPage()
                     .body("<p>Should grab user agent from browser.</p>")
                     .build(),

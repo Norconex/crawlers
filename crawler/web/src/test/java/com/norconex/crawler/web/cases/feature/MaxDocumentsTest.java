@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -23,9 +23,9 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test that MaxDocuments setting is respected.
@@ -35,7 +35,7 @@ class MaxDocumentsTest {
 
     @WebCrawlTest
     void testMaxDocuments(ClientAndServer client, WebCrawlerConfig cfg) {
-        WebsiteMock.whenInfiniteDepth(client);
+        MockWebsite.whenInfiniteDepth(client);
 
         cfg.setStartReferences(
                 List.of(serverUrl(client, "/maxDocuments/0000")));

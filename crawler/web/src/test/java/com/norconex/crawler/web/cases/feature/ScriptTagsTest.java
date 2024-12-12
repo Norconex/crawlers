@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -26,10 +26,10 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Content of &lt;script&gt; tags must be stripped by GenericLinkExtractor
@@ -46,7 +46,7 @@ class ScriptTagsTest {
         var homePath = "/scriptTags/index.html";
         var scriptPath = "/scriptTags/script.js";
 
-        WebsiteMock.whenHtml(client, homePath, """
+        MockWebsite.whenHtml(client, homePath, """
                 <h1>Page with a script tag</h1>
                 <script src="%s">
                     THIS_MUST_BE_STRIPPED, but src URL must be crawled
@@ -55,7 +55,7 @@ class ScriptTagsTest {
                 View the source to see &lt;script&gt; tags
                 """.formatted(scriptPath));
 
-        WebsiteMock.whenHtml(client, scriptPath, """
+        MockWebsite.whenHtml(client, scriptPath, """
                 <h1>The Script page</h1>
                 This must be crawled.
                 """);

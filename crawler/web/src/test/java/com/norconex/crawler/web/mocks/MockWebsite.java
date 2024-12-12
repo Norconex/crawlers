@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web;
+package com.norconex.crawler.web.mocks;
 
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.leftPad;
@@ -34,20 +34,22 @@ import org.mockserver.model.BinaryBody;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.MediaType;
 
+import com.norconex.crawler.web.TestResource;
+
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-public final class WebsiteMock {
+public final class MockWebsite {
 
-    private WebsiteMock() {
+    private MockWebsite() {
     }
 
     public static void whenInfiniteDepth(ClientAndServer client) {
         client
                 .when(request())
-                .respond(WebsiteMock.responseWithInfiniteDepth());
+                .respond(MockWebsite.responseWithInfiniteDepth());
     }
 
     public static void whenJsRenderedWebsite(ClientAndServer client) {
@@ -80,7 +82,7 @@ public final class WebsiteMock {
 
         public ResourceWebSite whenHtml(String path) {
             var p = prependIfMissing(path, "/");
-            WebsiteMock.whenHtml(
+            MockWebsite.whenHtml(
                     client, p,
                     new TestResource(resourceBasePath + p).asString());
             return this;
@@ -88,7 +90,7 @@ public final class WebsiteMock {
 
         public ResourceWebSite whenPDF(String path) {
             var p = prependIfMissing(path, "/");
-            WebsiteMock.whenPDF(
+            MockWebsite.whenPDF(
                     client, p,
                     new TestResource(resourceBasePath + p));
             return this;
@@ -96,7 +98,7 @@ public final class WebsiteMock {
 
         public ResourceWebSite whenJPG(String path) {
             var p = prependIfMissing(path, "/");
-            WebsiteMock.whenJPG(
+            MockWebsite.whenJPG(
                     client, p,
                     new TestResource(resourceBasePath + p));
             return this;
@@ -130,7 +132,7 @@ public final class WebsiteMock {
             var nextLink = " | <a href=\"%s\">Next</a>"
                     .formatted(basePath + afterNum);
             return response().withBody(
-                    WebsiteMock.htmlPage().body(
+                    MockWebsite.htmlPage().body(
                             """
                                     <h1>%s test page</h1>
                                     %s Current page depth: %s %s
@@ -166,7 +168,7 @@ public final class WebsiteMock {
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
-                                WebsiteMock.htmlPage().body(body).build(),
+                                MockWebsite.htmlPage().body(body).build(),
                                 HTML_UTF_8));
     }
 

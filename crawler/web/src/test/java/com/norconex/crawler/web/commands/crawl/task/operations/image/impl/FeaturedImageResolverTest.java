@@ -42,11 +42,11 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImageResolverConfig.Quality;
 import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
 import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 @MockServerSettings
@@ -58,9 +58,9 @@ class FeaturedImageResolverTest {
     void testProcessFeaturedImage(
             ClientAndServer client, CrawlerContext ctx)
             throws IOException {
-        WebsiteMock.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
-        WebsiteMock.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);
-        WebsiteMock.whenPNG(client, "160x120.png", IMG_160X120_PNG);
+        MockWebsite.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
+        MockWebsite.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);
+        MockWebsite.whenPNG(client, "160x120.png", IMG_160X120_PNG);
 
         var baseUrl = "http://localhost:" + client.getLocalPort();
         var docUrl = baseUrl + "/page/test.html";

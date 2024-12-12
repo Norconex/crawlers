@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
-import static com.norconex.crawler.web.WebsiteMock.whenHtml;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.whenHtml;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -60,16 +60,18 @@
   <metadataFetchSupport>OPTIONAL</metadataFetchSupport>
   <documentFetchSupport>DISABLED</documentFetchSupport>
 
-  <urlNormalizer class="GenericUrlNormalizer">
-    <normalizations>
-      lowerCaseSchemeHost, upperCaseEscapeSequence, 
-      decodeUnreservedCharacters, removeDefaultPort 
-    </normalizations>
-    <replacements>
-      <replace><match>A</match><value>B</value></replace>
-      <replace><match>C</match></replace>
-    </replacements>
-  </urlNormalizer>
+  <urlNormalizers>
+    <urlNormalizer class="GenericUrlNormalizer">
+      <normalizations>
+        lowerCaseSchemeHost, upperCaseEscapeSequence, 
+        decodeUnreservedCharacters, removeDefaultPort 
+      </normalizations>
+      <replacements>
+        <replace><match>A</match><value>B</value></replace>
+        <replace><match>C</match></replace>
+      </replacements>
+    </urlNormalizer>
+  </urlNormalizers>
 
   <delayResolver class="GenericDelayResolver">
     <defaultDelay>1s</defaultDelay>
@@ -97,7 +99,7 @@
     </schedules>
   </delayResolver>    
 
-  <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine">
+  <gridConnector class="LocalGridConnector">
     <pageSplitSize>1000</pageSplitSize>
     <compress>1</compress>
     <cacheConcurrency>0</cacheConcurrency>
@@ -105,12 +107,12 @@
     <autoCompactFillRate>100</autoCompactFillRate>
     <autoCommitBufferSize>100</autoCommitBufferSize>
     <autoCommitDelay>100</autoCommitDelay>    
-  </dataStoreEngine>
+  </gridConnector>
 
   <fetchersMaxRetries>5</fetchersMaxRetries>
   <fetchersRetryDelay>10 seconds</fetchersRetryDelay>
   <fetchers>
-    <fetcher class="com.norconex.crawler.web.fetch.impl.GenericHttpFetcher">
+    <fetcher class="HttpClientFetcher">
       <userAgent>Here we crawl!</userAgent>
       <validStatusCodes>200,201</validStatusCodes>
       <notFoundStatusCodes>404,401</notFoundStatusCodes>

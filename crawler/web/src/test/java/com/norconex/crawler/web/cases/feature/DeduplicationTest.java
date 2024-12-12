@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -27,9 +27,9 @@ import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test detection of duplicate files within crawling session.
@@ -50,7 +50,7 @@ class DeduplicationTest {
         var staticDate = "978310861000L";
 
         // @formatter:off
-        WebsiteMock.whenHtml(
+        MockWebsite.whenHtml(
             client,
             homePath,
             """

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl.httpclient;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -33,9 +33,9 @@ import org.mockserver.model.HttpStatusCode;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 @MockServerSettings
 class HttpAuthTest {
@@ -178,7 +178,7 @@ class HttpAuthTest {
                 .respond(
                         response()
                                 .withBody(
-                                        WebsiteMock.htmlPage()
+                                        MockWebsite.htmlPage()
                                                 .body(
                                                         """
                                                                 <form id="notThisOne" action="%s">Not this one</form>

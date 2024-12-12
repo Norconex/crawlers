@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.cases.recovery;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
@@ -27,7 +27,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
+import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,7 @@ class StartCleanAfterStopTest {
             ClientAndServer client, @TempDir Path tempDir) {
         var path = "/startCleanAfterStop";
 
-        WebsiteMock.whenInfiniteDepth(client);
+        MockWebsite.whenInfiniteDepth(client);
 
         //        var stopper = new CrawlSessionStopper();
 
@@ -71,7 +71,7 @@ class StartCleanAfterStopTest {
         assertThat(
                 WebTestUtil.lastSortedRequestReference(
                         outcome.getCommitterAfterLaunch())).isEqualTo(
-                                WebsiteMock.serverUrl(client, path + "/0006"));
+                                MockWebsite.serverUrl(client, path + "/0006"));
 
         // Second run, we clean and we should get 10 documents, including
         // the same first 7.
@@ -89,6 +89,6 @@ class StartCleanAfterStopTest {
         assertThat(
                 WebTestUtil.lastSortedRequestReference(
                         outcome.getCommitterAfterLaunch())).isEqualTo(
-                                WebsiteMock.serverUrl(client, path + "/0009"));
+                                MockWebsite.serverUrl(client, path + "/0009"));
     }
 }

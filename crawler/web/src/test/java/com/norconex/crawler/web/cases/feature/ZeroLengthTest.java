@@ -24,9 +24,9 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test that blank files are committed.
@@ -43,7 +43,7 @@ class ZeroLengthTest {
                 .when(request(path))
                 .respond(response().withBody(""));
 
-        cfg.setStartReferences(List.of(WebsiteMock.serverUrl(client, path)));
+        cfg.setStartReferences(List.of(MockWebsite.serverUrl(client, path)));
 
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 

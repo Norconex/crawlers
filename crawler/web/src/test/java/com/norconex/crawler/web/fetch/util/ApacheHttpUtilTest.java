@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 class ApacheHttpUtilTest {
 
@@ -55,7 +55,7 @@ class ApacheHttpUtilTest {
 
         // POST, default enctype
         var doc = Jsoup.parse(
-                WebsiteMock
+                MockWebsite
                         .htmlPage()
                         .body(html.formatted("POST", ""))
                         .build(),
@@ -66,7 +66,7 @@ class ApacheHttpUtilTest {
 
         // POST, multipart/form-data
         doc = Jsoup.parse(
-                WebsiteMock
+                MockWebsite
                         .htmlPage()
                         .body(
                                 html.formatted(
@@ -81,7 +81,7 @@ class ApacheHttpUtilTest {
 
         // POST, text/plain
         doc = Jsoup.parse(
-                WebsiteMock
+                MockWebsite
                         .htmlPage()
                         .body(html.formatted("POST", "encType=\"text/plain\""))
                         .build(),
@@ -92,7 +92,7 @@ class ApacheHttpUtilTest {
 
         // GET
         doc = Jsoup.parse(
-                WebsiteMock
+                MockWebsite
                         .htmlPage()
                         .body(html.formatted("GET", ""))
                         .build(),
@@ -106,7 +106,7 @@ class ApacheHttpUtilTest {
 
         // HEAD
         doc = Jsoup.parse(
-                WebsiteMock
+                MockWebsite
                         .htmlPage()
                         .body(html.formatted("HEAD", ""))
                         .build(),

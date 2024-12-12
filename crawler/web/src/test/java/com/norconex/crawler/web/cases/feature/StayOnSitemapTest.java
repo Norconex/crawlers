@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -31,7 +31,6 @@ import org.mockserver.model.MediaType;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.commands.crawl.task.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapResolver;
@@ -40,6 +39,7 @@ import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.util.Web;
 
 /**
@@ -156,7 +156,7 @@ class StayOnSitemapTest {
         // sitemap is present and stayOnSitemap is true.
 
         // PAGE 1: External links only
-        WebsiteMock.whenHtml(
+        MockWebsite.whenHtml(
                 client, page1Path,
                 """
                 <p>These links are external so should not be followed:</p>
@@ -169,7 +169,7 @@ class StayOnSitemapTest {
                         "https://badhost.badhost/externalB"));
 
         // PAGE 2: Internal links only, all in sitemap
-        WebsiteMock.whenHtml(
+        MockWebsite.whenHtml(
                 client,
                 page2Path,
                 """
@@ -186,7 +186,7 @@ class StayOnSitemapTest {
                         serverUrl(client, page4Path)));
 
         // PAGE 3: Internal links only, NOT in sitemap
-        WebsiteMock.whenHtml(
+        MockWebsite.whenHtml(
                 client,
                 page3Path,
                 """
@@ -201,7 +201,7 @@ class StayOnSitemapTest {
                         serverUrl(client, page11Path)));
 
         // PAGE 4: Mix of internal/external not on sitemap and on sitemap
-        WebsiteMock.whenHtml(
+        MockWebsite.whenHtml(
                 client,
                 page4Path,
                 """
@@ -218,7 +218,7 @@ class StayOnSitemapTest {
                         serverUrl(client, page12Path)));
 
         // PAGE 5: This page is sitemap only, not otherwise referenced.
-        WebsiteMock.whenHtml(client, page5Path, """
+        MockWebsite.whenHtml(client, page5Path, """
                 <p>This page can only be found via sitemap.</p>
                 """);
     }

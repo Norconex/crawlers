@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.commands.crawl.task.pipelines.queue.stages;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
@@ -27,12 +27,12 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.commands.crawl.task.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Tests sitemap resolution.
@@ -75,7 +75,7 @@ class SitemapResolutionStageTest {
         client
                 .when(request().withPath("/sitemap.xml"))
                 .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
-        WebsiteMock.whenInfiniteDepth(client);
+        MockWebsite.whenInfiniteDepth(client);
 
         cfg.setSitemapLocator(new GenericSitemapLocator())
                 .setSitemapResolver(new GenericSitemapResolver())
@@ -107,7 +107,7 @@ class SitemapResolutionStageTest {
         client
                 .when(request().withPath("/sitemap.xml"))
                 .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
-        WebsiteMock.whenInfiniteDepth(client);
+        MockWebsite.whenInfiniteDepth(client);
 
         cfg.setSitemapLocator(new GenericSitemapLocator())
                 .setSitemapResolver(new GenericSitemapResolver())
