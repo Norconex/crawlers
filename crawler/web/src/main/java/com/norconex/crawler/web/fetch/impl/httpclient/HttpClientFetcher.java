@@ -92,7 +92,7 @@ import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.web.commands.crawl.task.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
+import com.norconex.crawler.web.cmd.crawl.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;

@@ -26,7 +26,7 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.commands.crawl.task.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.cmd.crawl.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;

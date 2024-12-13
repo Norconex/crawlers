@@ -18,10 +18,10 @@ import java.util.List;
 
 import com.norconex.crawler.core.CrawlerSpec;
 import com.norconex.crawler.core.CrawlerSpecProvider;
-import com.norconex.crawler.core.commands.crawl.service.impl.CoreQueueInitializer;
+import com.norconex.crawler.core.cmd.crawl.service.impl.CoreQueueInitializer;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
-import com.norconex.crawler.web.commands.crawl.task.pipelines.WebDocPipelines;
-import com.norconex.crawler.web.commands.crawl.task.pipelines.queue.SitemapQueueInitializer;
+import com.norconex.crawler.web.cmd.crawl.pipelines.WebDocPipelines;
+import com.norconex.crawler.web.cmd.crawl.pipelines.queue.SitemapQueueInitializer;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
 

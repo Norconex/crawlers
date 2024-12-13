@@ -24,22 +24,22 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.commands.crawl.task.operations.DocumentConsumer;
-import com.norconex.crawler.core.commands.crawl.task.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.commands.crawl.task.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.commands.crawl.task.operations.filter.MetadataFilter;
-import com.norconex.crawler.core.commands.crawl.task.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.cmd.crawl.operations.DocumentConsumer;
+import com.norconex.crawler.core.cmd.crawl.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.cmd.crawl.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.cmd.crawl.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.cmd.crawl.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.web.commands.crawl.task.operations.canon.CanonicalLinkDetector;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.DelayResolver;
-import com.norconex.crawler.web.commands.crawl.task.operations.link.LinkExtractor;
-import com.norconex.crawler.web.commands.crawl.task.operations.recrawl.RecrawlableResolver;
-import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsMetaProvider;
-import com.norconex.crawler.web.commands.crawl.task.operations.robot.RobotsTxtProvider;
-import com.norconex.crawler.web.commands.crawl.task.operations.scope.UrlScopeResolver;
-import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.SitemapLocator;
-import com.norconex.crawler.web.commands.crawl.task.operations.sitemap.SitemapResolver;
-import com.norconex.crawler.web.commands.crawl.task.operations.url.WebUrlNormalizer;
+import com.norconex.crawler.web.cmd.crawl.operations.canon.CanonicalLinkDetector;
+import com.norconex.crawler.web.cmd.crawl.operations.delay.DelayResolver;
+import com.norconex.crawler.web.cmd.crawl.operations.link.LinkExtractor;
+import com.norconex.crawler.web.cmd.crawl.operations.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.cmd.crawl.operations.robot.RobotsMetaProvider;
+import com.norconex.crawler.web.cmd.crawl.operations.robot.RobotsTxtProvider;
+import com.norconex.crawler.web.cmd.crawl.operations.scope.UrlScopeResolver;
+import com.norconex.crawler.web.cmd.crawl.operations.sitemap.SitemapLocator;
+import com.norconex.crawler.web.cmd.crawl.operations.sitemap.SitemapResolver;
+import com.norconex.crawler.web.cmd.crawl.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcher;
 
@@ -52,7 +52,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
 
     private static final String WEB_BASE_PKG = "com.norconex.crawler.web";
     private static final String OPERATIONS_BASE_PKG =
-            WEB_BASE_PKG + ".commands.crawl.task.operations";
+            WEB_BASE_PKG + ".cmd.crawl.operations";
     private static final String FILTER_BASE_PKG =
             OPERATIONS_BASE_PKG + ".filter";
 

@@ -23,9 +23,9 @@ import org.apache.commons.collections4.MultiValuedMap;
 import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
-import com.norconex.crawler.core.commands.crawl.task.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.cmd.crawl.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.fs.commands.crawl.task.operations.checksum.FsMetadataChecksummer;
+import com.norconex.crawler.fs.cmd.crawl.operations.checksum.FsMetadataChecksummer;
 import com.norconex.crawler.fs.fetch.impl.cmis.CmisFetcher;
 import com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher;
 import com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher;
@@ -46,7 +46,7 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
 
-        addPolyType(map, MetadataChecksummer.class, "doc.operations");
+        addPolyType(map, MetadataChecksummer.class, "cmd.crawl.operations");
         map.putAll(
                 Fetcher.class, List.of(
                         FsMetadataChecksummer.class,

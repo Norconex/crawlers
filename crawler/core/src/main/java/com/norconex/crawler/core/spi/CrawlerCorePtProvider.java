@@ -23,12 +23,12 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.commands.crawl.task.operations.checksum.DocumentChecksummer;
-import com.norconex.crawler.core.commands.crawl.task.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.commands.crawl.task.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.commands.crawl.task.operations.filter.MetadataFilter;
-import com.norconex.crawler.core.commands.crawl.task.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core.commands.crawl.task.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.cmd.crawl.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.cmd.crawl.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.cmd.crawl.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.cmd.crawl.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.cmd.crawl.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.cmd.crawl.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.grid.GridConnector;
 
@@ -49,7 +49,6 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        //        addPolyType(map, CrawlerStopper.class); //TODO really want it configurable? maybe default choses between file-based and store-based.
         addPolyType(map, GridConnector.class);
         addPolyType(map, DocumentChecksummer.class);
         addPolyType(map, DocumentFilter.class);
@@ -72,13 +71,11 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
             MultiValuedMap<Class<?>, Class<?>> polyTypes,
             Class<?> baseClass,
             String corePkg) {
-        polyTypes.putAll(
-                baseClass, ClassFinder.findSubTypes(
-                        baseClass,
-                        corePkg == null
-                                ? nm -> nm
-                                        .startsWith(baseClass.getPackageName())
-                                : filter(corePkg)));
+        polyTypes.putAll(baseClass, ClassFinder.findSubTypes(
+                baseClass,
+                corePkg == null
+                        ? nm -> nm.startsWith(baseClass.getPackageName())
+                        : filter(corePkg)));
     }
 
     private Predicate<String> filter(String corePkg) {

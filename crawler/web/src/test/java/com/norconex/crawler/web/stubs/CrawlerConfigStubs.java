@@ -29,7 +29,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.GenericDelayResolver;
+import com.norconex.crawler.web.cmd.crawl.operations.delay.impl.GenericDelayResolver;
 
 import lombok.NonNull;
 

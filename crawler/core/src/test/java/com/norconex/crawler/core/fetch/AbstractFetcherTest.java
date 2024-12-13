@@ -28,7 +28,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.commands.crawl.task.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.cmd.crawl.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;

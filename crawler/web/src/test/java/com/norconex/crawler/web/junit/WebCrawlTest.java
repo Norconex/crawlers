@@ -35,7 +35,7 @@ import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebCrawlerSpecProvider;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.commands.crawl.task.operations.delay.impl.GenericDelayResolver;
+import com.norconex.crawler.web.cmd.crawl.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.junit.WebCrawlTest.WebConfigRandomizer;
 
 @Retention(RetentionPolicy.RUNTIME)

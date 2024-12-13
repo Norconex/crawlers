@@ -27,7 +27,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.web.commands.crawl.task.operations.image.impl.FeaturedImage;
+import com.norconex.crawler.web.cmd.crawl.operations.image.impl.FeaturedImage;
 
 public class TestResource {
 

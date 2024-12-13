@@ -19,7 +19,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.commands.crawl.task.process.DocProcessorUpsertTest;
+import com.norconex.crawler.core.cmd.crawl.task.DocProcessorUpsertTest;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
 import com.norconex.importer.response.ImporterResponseProcessor;

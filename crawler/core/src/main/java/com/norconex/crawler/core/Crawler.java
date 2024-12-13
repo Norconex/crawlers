@@ -19,12 +19,12 @@ import java.nio.file.Path;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.crawler.core.commands.Command;
-import com.norconex.crawler.core.commands.clean.CleanCommand;
-import com.norconex.crawler.core.commands.crawl.CrawlCommand;
-import com.norconex.crawler.core.commands.stop.StopCommand;
-import com.norconex.crawler.core.commands.storeexport.StoreExportCommand;
-import com.norconex.crawler.core.commands.storeimport.StoreImportCommand;
+import com.norconex.crawler.core.cmd.Command;
+import com.norconex.crawler.core.cmd.clean.CleanCommand;
+import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.cmd.stop.StopCommand;
+import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
+import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;

@@ -17,7 +17,7 @@ package com.norconex.crawler.web.callbacks;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.web.commands.crawl.task.operations.scope.impl.GenericUrlScopeResolver;
+import com.norconex.crawler.web.cmd.crawl.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;

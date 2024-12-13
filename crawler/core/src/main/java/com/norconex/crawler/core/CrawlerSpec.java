@@ -18,8 +18,8 @@ import java.util.function.Function;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.EventManager;
-import com.norconex.crawler.core.commands.crawl.service.QueueInitializer;
-import com.norconex.crawler.core.commands.crawl.task.pipelines.DocPipelines;
+import com.norconex.crawler.core.cmd.crawl.pipelines.DocPipelines;
+import com.norconex.crawler.core.cmd.crawl.service.QueueInitializer;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;

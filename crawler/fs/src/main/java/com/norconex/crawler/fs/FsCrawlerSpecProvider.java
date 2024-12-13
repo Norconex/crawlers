@@ -17,9 +17,9 @@ package com.norconex.crawler.fs;
 import com.norconex.crawler.core.CrawlerCallbacks;
 import com.norconex.crawler.core.CrawlerSpec;
 import com.norconex.crawler.core.CrawlerSpecProvider;
-import com.norconex.crawler.core.commands.crawl.service.impl.CoreQueueInitializer;
+import com.norconex.crawler.core.cmd.crawl.service.impl.CoreQueueInitializer;
 import com.norconex.crawler.fs.callbacks.BeforeFsCommand;
-import com.norconex.crawler.fs.commands.crawl.task.pipelines.FsDocPipelines;
+import com.norconex.crawler.fs.cmd.crawl.pipelines.FsDocPipelines;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.fetch.FileFetcherProvider;
 
