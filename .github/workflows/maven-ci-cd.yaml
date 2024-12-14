@@ -107,11 +107,14 @@ jobs:
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
 
+    - name: Build and Install Shaded Libs
+      run: mvn clean install -pl nx-shaded-libs
+        
     - name: Show Maven Dependency Tree
       run: mvn dependency:tree        
         
     - name: Build and test
-      run: mvn -B verify -Dgpg.skip=true
+      run: mvn -B verify -Dgpg.skip=true -pl !nx-shaded-libs
 
     - name: Sonar Analysis
       if: ${{ startsWith(github.actor, 'dependabot') == false }}
