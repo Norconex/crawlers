@@ -108,7 +108,7 @@ jobs:
         restore-keys: ${{ runner.os }}-sonar
 
     - name: Build and Install Shaded Libs
-      run: mvn clean install -pl shaded
+      run: mvn clean install -Dgpg.skip=true -pl shaded
         
     - name: Show Maven Dependency Tree
       run: mvn dependency:tree        
