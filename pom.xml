@@ -965,6 +965,19 @@
               </goals>
             </execution>
           </executions>
+          <configuration>
+            <includes>
+              <include>**/*.java</include>
+              <include>**/*.json</include>
+              <include>**/*.md</include>
+              <include>**/*.xml</include>
+              <include>**/*.yaml</include>
+              <!-- 
+                We don't include .txt on purpose. We rarely use
+                and when we do, it is sometimes to test oddities.
+                -->
+            </includes>
+          </configuration>          
         </plugin>
          
       </plugins>
