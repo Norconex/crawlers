@@ -81,6 +81,7 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
+        maven-version: '3.8.5'
         # Server ID as in the pom.xml (distributionManagement + sonatype plugin)
         server-id: ossrh
         # Env variable name for username in deploy
@@ -106,6 +107,9 @@ jobs:
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
 
+    - name: Show Maven Dependency Tree
+      run: mvn dependency:tree        
+        
     - name: Build and test
       run: mvn -B verify -Dgpg.skip=true
 
