@@ -55,19 +55,6 @@ public class IgniteGridCache<T> implements GridCache<T> {
         // Until we have better... for size()
         cfg.setStatisticsEnabled(true);
 
-        //        // Creating SQL table in order to get accurate row count. See getSize().
-        //
-        //        cfg.setSqlSchema("PUBLIC");
-        //        var queryEntity = new QueryEntity(String.class, Object.class)
-        //                .setTableName(name)// + IgniteGridStorage.Suffix.CACHE)
-        //                .setKeyFieldName("key")
-        //                .addQueryField("key", String.class.getName(), null);
-        //        //                .addQueryField("value", type.getName(), null);
-        //        //        queryEntity.setValueType(BinaryObject.class.getName());
-        //
-        //        queryEntity.setIndexes(List.of(new QueryIndex("key")));
-        //        cfg.setQueryEntities(Collections.singletonList(queryEntity));
-
         cache = ignite.getOrCreateCache(cfg);
     }
 
@@ -133,14 +120,7 @@ public class IgniteGridCache<T> implements GridCache<T> {
 
     @Override
     public long size() {
-        //TODO rely on atomic long instead for counting. :-(
         return cache.metrics().getCacheSize();
-        // Use SQL to get accurate record count. It is apparently the most
-        // efficient way to get it.
-        //        var query = new SqlFieldsQuery(
-        //                "SELECT COUNT(*) FROM %s".formatted(name));
-        //        QueryCursor<List<?>> cursor = cache.query(query);
-        //        return (Long) cursor.getAll().get(0).get(0);
     }
 
     @StandardException

@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -21,7 +22,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ignite.lang.IgniteBiTuple;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.ClassUtil;
@@ -31,7 +31,10 @@ import com.norconex.crawler.core.grid.GridSet;
 import com.norconex.crawler.core.grid.GridStorage;
 import com.norconex.crawler.core.grid.GridStore;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -63,8 +66,7 @@ public class IgniteGridStorage implements GridStorage {
 
     private final IgniteGrid igniteGrid;
 
-    private IgniteGridCache<
-            IgniteBiTuple<Class<?>, Class<?>>> cacheObjectAndStoreTypes;
+    private IgniteGridCache<ObjectAndStoreTypes> cacheObjectAndStoreTypes;
 
     @JsonIgnore
     @Override
@@ -118,9 +120,9 @@ public class IgniteGridStorage implements GridStorage {
             var objAndStoreTypes = objectAndStoreTypes().get(name);
             if (objAndStoreTypes != null) {
                 storeConsumer.accept(concreteStore(
-                        objAndStoreTypes.get2(),
+                        objAndStoreTypes.getStoreType(),
                         name,
-                        objAndStoreTypes.get1()));
+                        objAndStoreTypes.getObjectType()));
             }
         });
     }
@@ -162,19 +164,21 @@ public class IgniteGridStorage implements GridStorage {
                 objectType);
     }
 
-    private void cacheObjectAndStoreTypes(
-            String storeName, Class<?> objectType, Class<?> storeType) {
-        objectAndStoreTypes().put(storeName, new IgniteBiTuple<>(
-                objectType, storeType));
+    private <T> void cacheObjectAndStoreTypes(
+            String storeName,
+            Class<? extends T> objectType,
+            Class<?> storeType) {
+        objectAndStoreTypes().put(
+                storeName, new ObjectAndStoreTypes(objectType, storeType));
     }
 
-    private synchronized IgniteGridCache<IgniteBiTuple<Class<?>, Class<?>>>
+    private synchronized IgniteGridCache<ObjectAndStoreTypes>
             objectAndStoreTypes() {
         if (cacheObjectAndStoreTypes == null) {
             cacheObjectAndStoreTypes = new IgniteGridCache<>(
                     igniteGrid.getIgnite(),
                     STORE_TYPES_KEY,
-                    IgniteBiTuple.class);
+                    ObjectAndStoreTypes.class);
         }
         return cacheObjectAndStoreTypes;
     }
@@ -186,5 +190,14 @@ public class IgniteGridStorage implements GridStorage {
                         IgniteGridUtil.cacheExternalName(nm),
                         nm));
         return names;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class ObjectAndStoreTypes implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private Class<?> objectType;
+        private Class<?> storeType;
     }
 }
