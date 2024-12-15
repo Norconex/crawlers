@@ -40,10 +40,8 @@ public class CrawlCommand implements Command {
 
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
-        ConcurrentUtil.block(
-                ctx.getGrid().services().start(
-                        "conductor_service",
-                        CrawlService.class, null));
+        ConcurrentUtil.block(ctx.getGrid().services().start(
+                "conductor_service", CrawlService.class, null));
 
         while (ctx.getCrawlStage() != CrawlStage.ENDED) {
             Sleeper.sleepSeconds(1);

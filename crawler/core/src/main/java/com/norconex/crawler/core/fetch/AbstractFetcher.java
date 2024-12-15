@@ -99,9 +99,6 @@ public abstract class AbstractFetcher<
         // crawler startup to avoid being invoked multiple
         // times (once for each crawler)
 
-        //TODO, also handle CRAWLER_CRAWL_[BEGIN|END] if we ever need
-        // fetcher on client side.
-
         if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)) {
             fetcherStartup((CrawlerContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)) {
@@ -161,19 +158,16 @@ public abstract class AbstractFetcher<
                 .orElse(null);
         return FilterGroupResolver.<ReferenceFilter>builder()
                 .filterResolver(f -> f.acceptReference(ref))
-                .onAccepted(
-                        f -> LOG.debug(
-                                "Fetcher {} ACCEPTED reference: '{}'. Filter={}",
-                                getClass().getSimpleName(), ref, f))
-                .onRejected(
-                        f -> LOG.debug(
-                                "Fetcher {} REJECTED reference: '{}'. Filter={}",
-                                getClass().getSimpleName(), ref, f))
-                .onRejectedNoInclude(
-                        f -> LOG.debug(
-                                "Fetcher {} REJECTED reference: '{}'. "
-                                        + "No 'include' filters matched.",
-                                getClass().getSimpleName(), ref))
+                .onAccepted(f -> LOG.debug(
+                        "Fetcher {} ACCEPTED reference: '{}'. Filter={}",
+                        getClass().getSimpleName(), ref, f))
+                .onRejected(f -> LOG.debug(
+                        "Fetcher {} REJECTED reference: '{}'. Filter={}",
+                        getClass().getSimpleName(), ref, f))
+                .onRejectedNoInclude(f -> LOG.debug(
+                        "Fetcher {} REJECTED reference: '{}'. "
+                                + "No 'include' filters matched.",
+                        getClass().getSimpleName(), ref))
                 .build()
                 .accepts(getConfiguration().getReferenceFilters());
     }

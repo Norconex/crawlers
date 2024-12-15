@@ -145,7 +145,8 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
         var actualPort = mobProxy.getPort();
         var proxyHost = ofNullable(configuration.getHost()).orElse("localhost");
-        LOG.info("Proxy set on browser as: {}.", proxyHost + ":" + actualPort);
+        LOG.info("HttpSniffer set as a proxy on browser as: {}.",
+                proxyHost + ":" + actualPort);
 
         // Fix bug with firefox where request/response filters are not
         // triggered properly unless dealing with firefox profile

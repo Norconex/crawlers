@@ -23,10 +23,11 @@ import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.crawl.CrawlStage;
 import com.norconex.crawler.core.cmd.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.cmd.crawl.task.CrawlTask;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridService;
 import com.norconex.crawler.core.grid.GridTxOptions;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridKeys;
@@ -95,6 +96,7 @@ public class CrawlService implements GridService {
         }
 
         progressLogger.stopTracking();
+
         LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
         // we don't end in a try/finally because abnormal termination
         // can be resumed where it stopped and marking as ended would
@@ -104,8 +106,17 @@ public class CrawlService implements GridService {
     }
 
     private void prepare(CrawlerContext ctx) {
-        DocLedgerPrepareExecutor.execute(ctx);
-        QueueInitExecutor.execute(ctx);
+        // We launch a new crawl thread here as some crawl related actions
+        // can be/are done within this initialization phase (like fetch
+        // a sitemap.xml, etc.).
+        ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
+        try {
+            DocLedgerPrepareExecutor.execute(ctx);
+            QueueInitExecutor.execute(ctx);
+        } finally {
+            ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_END,
+                    Thread.currentThread());
+        }
     }
 
     private void crawl(CrawlerContext ctx) {

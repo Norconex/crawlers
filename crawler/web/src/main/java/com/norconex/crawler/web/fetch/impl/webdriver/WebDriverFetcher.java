@@ -74,6 +74,16 @@ import lombok.extern.slf4j.Slf4j;
  * format may not always be possible. The use of {@link HttpClientFetcher}
  * should be preferred whenever possible. Use at your own risk.
  * </p>
+ * <p>
+ * If it is important for each requests to be sharing the exact same browser
+ * session, consider reducing the number of threads to <code>1</code> since
+ * each thread has their own browser instance.
+ * </p>
+ * <p>
+ * If you are using a Selenium grid and want to use multiple threads, make
+ * sure you configure Selenium max number of sessions per node to align
+ * with the number of threads you expect the crawler to use.
+ * </p>
  *
  * <h3>Supported HTTP method</h3>
  * <p>
@@ -93,7 +103,6 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 @Slf4j
 @EqualsAndHashCode
 @ToString
@@ -150,6 +159,7 @@ public class WebDriverFetcher
         if (configuration.getHttpSniffer() != null) {
             LOG.info("Starting {} HTTP sniffer...", browser);
             configuration.getHttpSniffer().start(options);
+            LOG.info("{} HTTP sniffer started", browser);
             userAgent = configuration
                     .getHttpSniffer()
                     .getConfiguration()
@@ -167,10 +177,14 @@ public class WebDriverFetcher
         } else if (options instanceof EdgeOptions edgeOptions) {
             edgeOptions.addArguments(configuration.getArguments());
         }
+
+        // We assign a driver here, for any case where the fetcher is used
+        // in the main thread.
+        fetcherThreadBegin(c);
     }
 
     @Override
-    protected void fetcherThreadBegin(CrawlerContext crawler) {
+    protected void fetcherThreadBegin(CrawlerContext context) {
         LOG.info("Creating {} web driver.", browser);
         THREADED_DRIVER.set(createWebDriver());
     }
@@ -265,6 +279,10 @@ public class WebDriverFetcher
 
     @Override
     protected void fetcherShutdown(CrawlerContext c) {
+        // We close a driver here, for any case where the fetcher is used
+        // in the main thread.
+        fetcherThreadEnd(c);
+
         if (configuration.getHttpSniffer() != null) {
             LOG.info("Shutting down {} HTTP sniffer...", browser);
             Sleeper.sleepSeconds(5);

@@ -40,8 +40,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BrowserWebDriverContainer;
@@ -69,7 +67,6 @@ import lombok.extern.slf4j.Slf4j;
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
 @org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
-
 public abstract class AbstractWebDriverHttpFetcherTest
         implements ExecutionCondition {
 
@@ -81,9 +78,9 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     public AbstractWebDriverHttpFetcherTest(Browser browserType) {
         if (browserType == Browser.CHROME) {
-            capabilities = new ChromeOptions();
+            capabilities = WebDriverTestUtil.chromeTestOptions();
         } else if (browserType == Browser.FIREFOX) {
-            capabilities = new FirefoxOptions();
+            capabilities = WebDriverTestUtil.firefoxTestOptions();
         } else {
             throw new IllegalArgumentException(
                     "Only Chrome and Firefox are supported for testing.");
@@ -105,6 +102,9 @@ public abstract class AbstractWebDriverHttpFetcherTest
     @BeforeEach
     void beforeEach(ClientAndServer client) {
         Testcontainers.exposeHostPorts(client.getPort());
+        Testcontainers.exposeHostPorts(4317); // OpenTelemetry port
+        Testcontainers.exposeHostPorts(14250); // Jaeger
+
     }
 
     @Override
@@ -173,7 +173,6 @@ public abstract class AbstractWebDriverHttpFetcherTest
     // https://github.com/Norconex/collector-http/issues/751)
     @WebCrawlTest
     void testHttpSniffer(ClientAndServer client, WebCrawlerConfig cfg) {
-
         var path = "/sniffHeaders.html";
 
         // @formatter:off
@@ -325,10 +324,21 @@ public abstract class AbstractWebDriverHttpFetcherTest
     @SuppressWarnings("resource")
     protected static BrowserWebDriverContainer<?> createWebDriverContainer(
             Capabilities capabilities) {
+
         return new BrowserWebDriverContainer<>()
                 .withCapabilities(capabilities)
                 .withAccessToHost(true)
                 .withRecordingMode(VncRecordingMode.SKIP, null)
-                .withLogConsumer(new Slf4jLogConsumer(LOG));
+                .withLogConsumer(new Slf4jLogConsumer(LOG))
+                .withEnv("SE_OPTS", "--tracing false")
+                .withEnv("SE_NODE_MAX_SESSIONS", "5")
+                // Disable traces
+                .withEnv("OTEL_TRACES_EXPORTER", "none")
+                // Disable metrics
+                .withEnv("OTEL_METRICS_EXPORTER", "none")
+                // Disable context propagation
+                .withEnv("OTEL_PROPAGATORS", "none")
+                // Completely disable OpenTelemetry
+                .withEnv("OTEL_SDK_DISABLED", "true");
     }
 }
