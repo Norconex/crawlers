@@ -66,8 +66,8 @@ import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.web.cmd.crawl.operations.delay.DelayResolver;
-import com.norconex.crawler.web.cmd.crawl.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.cmd.crawl.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
+import com.norconex.crawler.web.cmd.crawl.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.cmd.crawl.operations.image.impl.FeaturedImageResolver;
 import com.norconex.crawler.web.cmd.crawl.operations.link.LinkExtractor;
 import com.norconex.crawler.web.cmd.crawl.operations.link.impl.DomLinkExtractor;
@@ -143,6 +143,7 @@ public final class WebTestUtil {
                     .excludeType(RecrawlableResolver.class::equals)
                     .excludeType(ReferencesProvider.class::equals)
                     .excludeType(BiPredicate.class::equals)
+                    .excludeType(Class.class::equals)
 
                     .randomize(Charset.class, () -> StandardCharsets.UTF_8)
                     .randomize(CircularRange.class, () -> {
