@@ -151,6 +151,7 @@ class ElasticsearchCommitterTest {
                     public String getReference() {
                         return TEST_ID;
                     }
+
                     @Override
                     public Properties getMetadata() {
                         return new Properties();
@@ -166,11 +167,11 @@ class ElasticsearchCommitterTest {
         assertThatNoException().isThrownBy(() -> {
             try (var c = new ElasticsearchCommitter()) {
                 c.getConfiguration()
-                .setIndexName("someIndex")
-                .setCredentials(
-                        new Credentials()
-                        .setUsername("john")
-                        .setPassword("subtle"));
+                        .setIndexName("someIndex")
+                        .setCredentials(
+                                new Credentials()
+                                        .setUsername("john")
+                                        .setPassword("subtle"));
                 c.initBatchCommitter();
             }
         });

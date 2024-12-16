@@ -81,7 +81,7 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-        maven-version: '3.8.5'
+        maven-version: '3.9.0'
         # Server ID as in the pom.xml (distributionManagement + sonatype plugin)
         server-id: ossrh
         # Env variable name for username in deploy
