@@ -74,9 +74,10 @@ public class TikaLinkExtractor
             new TikaLinkExtractorConfig();
 
     @Override
-    public Set<com.norconex.crawler.web.cmd.crawl.operations.link.Link> extractLinks(
-            CrawlDoc doc)
-            throws IOException {
+    public Set<com.norconex.crawler.web.cmd.crawl.operations.link.Link>
+            extractLinks(
+                    CrawlDoc doc)
+                    throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
@@ -166,8 +167,9 @@ public class TikaLinkExtractor
             extractedURL = HttpURL.toAbsolute(referrerUrl, extractedURL);
         }
         if (StringUtils.isNotBlank(extractedURL)) {
-            var nxLink = new com.norconex.crawler.web.cmd.crawl.operations.link.Link(
-                    extractedURL);
+            var nxLink =
+                    new com.norconex.crawler.web.cmd.crawl.operations.link.Link(
+                            extractedURL);
             nxLink.setReferrer(referrerUrl);
 
             if (!configuration.isIgnoreLinkData()) {

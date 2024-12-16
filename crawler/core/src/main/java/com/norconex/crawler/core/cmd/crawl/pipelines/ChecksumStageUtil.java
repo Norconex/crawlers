@@ -65,7 +65,8 @@ public final class ChecksumStageUtil {
         // if there was nothing in cache, or what is in cache is a deleted
         // doc, consider as new.
         if (cachedDocInfo == null
-                || DocResolutionStatus.DELETED.isOneOf(cachedDocInfo.getState())) {
+                || DocResolutionStatus.DELETED
+                        .isOneOf(cachedDocInfo.getState())) {
             LOG.debug(
                     "ACCEPTED {} checkum (new): Reference={}",
                     type, docContext.getReference());

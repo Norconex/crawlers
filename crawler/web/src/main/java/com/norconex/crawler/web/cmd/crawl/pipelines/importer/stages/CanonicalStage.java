@@ -118,7 +118,8 @@ public class CanonicalStage extends AbstractImporterStage {
         // the queue pipeline, since that pipeline performs the
         // normalization after a few other steps.
         var normalizedCanURL = WebUrlNormalizer.normalizeURL(
-                canURL, Web.config(ctx.getCrawlerContext()).getUrlNormalizers());
+                canURL,
+                Web.config(ctx.getCrawlerContext()).getUrlNormalizers());
         if (normalizedCanURL == null) {
             LOG.info("""
                     Canonical URL detected is null after\s\
@@ -159,7 +160,8 @@ public class CanonicalStage extends AbstractImporterStage {
         var urlScope = Web.config(ctx.getCrawlerContext())
                 .getUrlScopeResolver()
                 .resolve(docRec.getReference(), scopedUrlCtx);
-        Web.fireIfUrlOutOfScope(ctx.getCrawlerContext(), scopedUrlCtx, urlScope);
+        Web.fireIfUrlOutOfScope(ctx.getCrawlerContext(), scopedUrlCtx,
+                urlScope);
         if (!urlScope.isInScope()) {
             LOG.debug(
                     "Canonical URL is out of scope and will be ignored: "

@@ -34,7 +34,8 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext context) {
         var ctx = (WebImporterPipelineContext) context;
-        if (Web.config(ctx.getCrawlerContext()).getRobotsMetaProvider() == null) {
+        if (Web.config(ctx.getCrawlerContext())
+                .getRobotsMetaProvider() == null) {
             return true;
         }
 

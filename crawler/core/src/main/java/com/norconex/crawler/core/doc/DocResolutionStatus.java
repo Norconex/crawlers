@@ -48,17 +48,20 @@ public class DocResolutionStatus implements Serializable {
     // no checksum defined... then it is nether new nor modified.
     private static final long serialVersionUID = 6542269270632505768L;
 
-    public static final DocResolutionStatus NEW = new DocResolutionStatus("NEW");
+    public static final DocResolutionStatus NEW =
+            new DocResolutionStatus("NEW");
     public static final DocResolutionStatus MODIFIED =
             new DocResolutionStatus("MODIFIED");
     public static final DocResolutionStatus UNMODIFIED =
             new DocResolutionStatus("UNMODIFIED");
-    public static final DocResolutionStatus ERROR = new DocResolutionStatus("ERROR");
+    public static final DocResolutionStatus ERROR =
+            new DocResolutionStatus("ERROR");
     public static final DocResolutionStatus REJECTED =
             new DocResolutionStatus("REJECTED");
     public static final DocResolutionStatus BAD_STATUS =
             new DocResolutionStatus("BAD_STATUS");
-    public static final DocResolutionStatus DELETED = new DocResolutionStatus("DELETED");
+    public static final DocResolutionStatus DELETED =
+            new DocResolutionStatus("DELETED");
     public static final DocResolutionStatus NOT_FOUND =
             new DocResolutionStatus("NOT_FOUND");
     /**
@@ -78,7 +81,8 @@ public class DocResolutionStatus implements Serializable {
     public static final DocResolutionStatus UNSUPPORTED =
             new DocResolutionStatus("UNSUPPORTED");
 
-    public static final DocResolutionStatus TOO_DEEP = new DocResolutionStatus("TOO_DEEP");
+    public static final DocResolutionStatus TOO_DEEP =
+            new DocResolutionStatus("TOO_DEEP");
 
     @JsonProperty
     @JsonValue

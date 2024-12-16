@@ -43,11 +43,13 @@ public class GenericSpoiledReferenceStrategizerConfig {
 
     public GenericSpoiledReferenceStrategizerConfig() {
         // store default mappings
-        mappings.put(DocResolutionStatus.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
+        mappings.put(DocResolutionStatus.NOT_FOUND,
+                SpoiledReferenceStrategy.DELETE);
         mappings.put(
                 DocResolutionStatus.BAD_STATUS,
                 SpoiledReferenceStrategy.GRACE_ONCE);
-        mappings.put(DocResolutionStatus.ERROR, SpoiledReferenceStrategy.GRACE_ONCE);
+        mappings.put(DocResolutionStatus.ERROR,
+                SpoiledReferenceStrategy.GRACE_ONCE);
     }
 
     @JsonIgnore

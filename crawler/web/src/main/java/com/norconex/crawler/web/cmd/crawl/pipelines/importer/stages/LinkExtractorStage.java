@@ -146,7 +146,8 @@ public class LinkExtractorStage extends AbstractImporterStage {
 
     private Set<Link> extractLinks(WebImporterPipelineContext ctx) {
         String reference = ctx.getDoc().getDocContext().getReference();
-        var extractors = Web.config(ctx.getCrawlerContext()).getLinkExtractors();
+        var extractors =
+                Web.config(ctx.getCrawlerContext()).getLinkExtractors();
         if (extractors.isEmpty()) {
             LOG.debug(
                     "No configured link extractor.  No links will be "
