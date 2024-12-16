@@ -184,7 +184,8 @@ class CliCrawlerLauncherTest {
     @ParameterizedGridConnectorTest
     void testStoreExportImport(Class<? extends GridConnector> gridConnClass) {
         var exportDir = tempDir.resolve("exportdir");
-        var exportFile = exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID + ".zip");
+        var exportFile =
+                exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID + ".zip");
         var configFile = StubCrawlerConfig.writeConfigToDir(
                 tempDir, cfg -> {});
 
@@ -225,6 +226,8 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
+                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
+                CrawlerEvent.CRAWLER_RUN_THREAD_END,
                 CrawlerEvent.TASK_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
@@ -276,6 +279,8 @@ class CliCrawlerLauncherTest {
 
                 // Regular crawl flow
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
+                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
+                CrawlerEvent.CRAWLER_RUN_THREAD_END,
                 CrawlerEvent.TASK_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
