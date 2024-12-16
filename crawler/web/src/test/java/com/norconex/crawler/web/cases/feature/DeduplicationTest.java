@@ -19,6 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.mockserver.integration.ClientAndServer;
@@ -47,7 +50,7 @@ class DeduplicationTest {
         //--- Web site ---
 
         // 2001-01-01T01:01:01 GMT
-        var staticDate = "978310861000L";
+        var staticDate = lastModified(978310861000L);
 
         // @formatter:off
         MockWebsite.whenHtml(
@@ -86,7 +89,7 @@ class DeduplicationTest {
             .respond(response()
                 .withHeader(
                         "Last-Modified",
-                        Long.toString(System.currentTimeMillis()))
+                        lastModified(System.currentTimeMillis()))
                 .withBody(
                         "A page with same content as another one.",
                         MediaType.HTML_UTF_8));
@@ -105,5 +108,11 @@ class DeduplicationTest {
                 .containsExactlyInAnyOrder(
                         serverUrl(client, homePath),
                         serverUrl(client, noDuplPath));
+    }
+
+    private String lastModified(long epoch) {
+        return DateTimeFormatter.RFC_1123_DATE_TIME
+                .withZone(ZoneId.of("GMT"))
+                .format(Instant.ofEpochMilli(epoch));
     }
 }
