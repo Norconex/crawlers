@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
  * them or modify them.
  * </p>
  *
- * <h3>About Return Values</h3>
+ * <h2>About Return Values</h2>
  * <p>
  * In addition to being able to modify bound objects, it is not uncommon to
  * expect a script to return a value. Unfortunately, script engine
@@ -58,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
  * is specific to each engine.
  * </p>
  *
- * <h3>Provided Scripting Languages</h3>
+ * <h2>Provided Scripting Languages</h2>
  * <p>
  * At a minimum the Importer supports the following languages and versions
  * out-of-the-box (as of this writing, see Importer release notes for updates).
@@ -125,7 +125,7 @@ import lombok.extern.slf4j.Slf4j;
  *   </tr>
  * </table>
  *
- * <h3>Escaping</h3>
+ * <h2>Escaping</h2>
  * <p>
  * When using scripting as part of an XML configuration parsed by the crawler
  * (typical command-line usage), you may need to escape certain characters.
@@ -136,7 +136,7 @@ import lombok.extern.slf4j.Slf4j;
  * <code>\${myvar}</code>).
  * </p>
  *
- * <h3>Adding Additional Scripting Languages</h3>
+ * <h2>Adding Additional Scripting Languages</h2>
  * <p>
  * You can add support for your favorite scripting language, as long as
  * there is there is a Java "Script Engine" for it, implementing the

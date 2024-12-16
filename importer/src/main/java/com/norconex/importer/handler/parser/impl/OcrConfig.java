@@ -51,7 +51,7 @@ import lombok.experimental.FieldNameConstants;
  * limit OCR to a subset of document content types, configure the corresponding
  * content-types (e.g. application/pdf, image/tiff, image/png, etc.).</p>
  *
- * <h3>Tesseract Parameters</h3>
+ * <h2>Tesseract Parameters</h2>
  * <p>
  * Unless disabled, Tesseract is detected and used by default.
  * You can

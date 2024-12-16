@@ -34,7 +34,7 @@ import lombok.ToString;
  * are mapped to table columns.
  * </p>
  *
- * <h3>Handling of missing table/fields</h3>
+ * <h2>Handling of missing table/fields</h2>
  * <p>
  * By default, this Committer will throw an exception when trying to insert
  * values into non-existing database table or fields. It is recommended you

@@ -50,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
  * CIFS fetcher (Samba, Windows share) (<code>hdfs://</code>).
  * </p>
  *
- * <h3>Access Control List (ACL)</h3>
+ * <h2>Access Control List (ACL)</h2>
  * <p>
  * This fetcher will try to extract access control information for each
  * SMB file. If you have no need for them, you can disable

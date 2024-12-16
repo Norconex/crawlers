@@ -71,7 +71,7 @@ import lombok.experimental.Accessors;
  * Should be used as a pre-parse handler.
  * </p>
  *
- * <h3>Content-types</h3>
+ * <h2>Content-types</h2>
  * <p>
  * If you are dealing with multiple document types and you are using this
  * condition on the document content, it is important
@@ -91,7 +91,7 @@ import lombok.experimental.Accessors;
  *
  * {@nx.include com.norconex.importer.handler.condition.AbstractCharStreamCondition#charEncoding}
  *
- * <h3>Character encoding</h3>
+ * <h2>Character encoding</h2>
  * <p>When used as a pre-parse handler, this condition uses the detected
  * character encoding unless the character encoding
  * was specified using {@link #setSourceCharset(String)}. Since document
@@ -99,7 +99,7 @@ import lombok.experimental.Accessors;
  * assumed when used as a post-parse handler.
  * </p>
  *
- * <h3>XML vs HTML</h3>
+ * <h2>XML vs HTML</h2>
  * <p>You can specify which DOM parser to use when reading
  * documents. The default is "html" and will try to normalize/fix the content
  * as HTML. This is generally a desired behavior, but this can sometimes

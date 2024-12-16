@@ -47,7 +47,7 @@ import lombok.experimental.Accessors;
  * <p>Unless a target field name is provided, the default field name
  * where the title will be stored is <code>document.generatedTitle</code>.
  *
- * <h3>Storing values in an existing field</h3>
+ * <h2>Storing values in an existing field</h2>
  * <p>
  * If a target field with the same name already exists for a document,
  * values will be added to the end of the existing value list.
@@ -76,7 +76,7 @@ import lombok.experimental.Accessors;
  * accurate titles generated.
  * </p>
  *
- * <h3>Max read size</h3>
+ * <h2>Max read size</h2>
  * <p>This tagger will only analyze up to the first
  * 10,000 characters. You can change this maximum
  * with {@link #setMaxReadSize(int)}. Given this class is not

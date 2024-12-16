@@ -45,7 +45,7 @@ import lombok.ToString;
  * on this <a href="https://support.google.com/webmasters/answer/139066">
  * Google Webmaster Tools help page</a>.</p>
  *
- * <h3>HTTP Headers</h3>
+ * <h2>HTTP Headers</h2>
  * <p>This detector will look for a metadata field (normally obtained
  * from the HTTP Headers) name called "Link" with a
  * value following this pattern:</p>
@@ -54,7 +54,7 @@ import lombok.ToString;
  * </pre>
  * <p>All documents will be verified for a canonical link (not just HTML).</p>
  *
- * <h3>Document content</h3>
+ * <h2>Document content</h2>
  * <p>This detector will look within the HTML &lt;head&gt; tags for a
  * &lt;link&gt; tag following this pattern:</p>
  * <pre>

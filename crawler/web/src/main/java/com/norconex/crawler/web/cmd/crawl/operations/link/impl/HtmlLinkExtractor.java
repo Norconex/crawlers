@@ -69,7 +69,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@link DomLinkExtractor}.
  * </p>
  *
- * <h3>Applicable documents</h3>
+ * <h2>Applicable documents</h2>
  * <p>
  * By default, this extractor will only be applied on documents matching
  * one of the content-types specified by
@@ -85,7 +85,7 @@ import lombok.extern.slf4j.Slf4j;
  * to try to extract URLs from all files (usually a bad idea).
  * </p>
  *
- * <h3>Tags attributes</h3>
+ * <h2>Tags attributes</h2>
  * URLs are assumed to be contained within valid tags or tag attributes.
  * The default tags and attributes used are (tag.attribute):
  * <pre>
@@ -118,7 +118,7 @@ import lombok.extern.slf4j.Slf4j;
  * a URL (without attributes). The tag body value will be used as the URL.
  * </p>
  *
- * <h3>Referrer data</h3>
+ * <h2>Referrer data</h2>
  * <p>
  * Some "referrer" information is derived from the each link and stored as
  * metadata in the document they point to.
@@ -129,7 +129,7 @@ import lombok.extern.slf4j.Slf4j;
  * The referrer data is always stored.
  * </p>
  *
- * <h3>Character encoding</h3>
+ * <h2>Character encoding</h2>
  * <p>This extractor will by default <i>attempt</i> to
  * detect the encoding of the a page when extracting links and
  * referrer information. If no charset could be detected, it falls back to
@@ -137,7 +137,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@link HtmlLinkExtractorConfig#setCharset(java.nio.charset.Charset)}.
  * </p>
  *
- * <h3>"nofollow"</h3>
+ * <h2>"nofollow"</h2>
  * <p>
  * By default, a regular HTML link having the "rel" attribute set to "nofollow"
  * won't be extracted (e.g.
@@ -147,7 +147,7 @@ import lombok.extern.slf4j.Slf4j;
  * <code>true</code>.
  * </p>
  *
- * <h3>URL Fragments</h3>
+ * <h2>URL Fragments</h2>
  * <p>While extractor preserves hashtag characters (#) found
  * in URLs and every characters after it, the default URL normalizer
  * ({@link GenericUrlNormalizer}) will strip it by default.
@@ -165,7 +165,7 @@ import lombok.extern.slf4j.Slf4j;
  * This can be done by making sure the URL normalizer does not strip them.
  * </p>
  *
- * <h3>Ignoring link data</h3>
+ * <h2>Ignoring link data</h2>
  * <p>
  * By default, contextual information is kept about the HTML/XML mark-up
  * tag from which a link is extracted (e.g., tag name and attributes).
@@ -176,7 +176,7 @@ import lombok.extern.slf4j.Slf4j;
  * <code>true</code>.
  * </p>
  *
- * <h3>URL Schemes</h3>
+ * <h2>URL Schemes</h2>
  * <p>Only valid
  * <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax">
  * schemes</a> are extracted for absolute URLs. By default, those are
@@ -185,13 +185,13 @@ import lombok.extern.slf4j.Slf4j;
  * {@link HtmlLinkExtractorConfig#setSchemes(List)}.
  * </p>
  *
- * <h3>HTML/XML Comments</h3>
+ * <h2>HTML/XML Comments</h2>
  * <p>URLs found in &lt;!-- comments --&gt; are not
  * extracted by default. To enable URL extraction from comments, use
  * {@link HtmlLinkExtractorConfig#setCommentsEnabled(boolean)}
  * </p>
  *
- * <h3>Extract links in certain parts only</h3>
+ * <h2>Extract links in certain parts only</h2>
  * <p>You can identify portions of a document where links
  * should be extracted or ignored with
  * {@link HtmlLinkExtractorConfig#setExtractBetweens(List)} and

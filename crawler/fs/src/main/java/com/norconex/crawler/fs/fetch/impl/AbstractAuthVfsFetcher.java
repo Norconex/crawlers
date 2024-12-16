@@ -30,7 +30,7 @@ import lombok.ToString;
  * Extension of {@link AbstractVfsFetcher}, adding authentication support.
  * </p>
  *
- * <h3>Generic authentication settings</h3>
+ * <h2>Generic authentication settings</h2>
  *
  * <p>
  * You can also have password set on the URL, Apache

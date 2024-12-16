@@ -41,7 +41,7 @@ import lombok.experimental.Accessors;
  * create your own implementation.
  * </p>
  *
- * <h3>Storing values in an existing field</h3>
+ * <h2>Storing values in an existing field</h2>
  * <p>
  * If a target field with the same name already exists for a document,
  * values will be added to the end of the existing value list.
@@ -52,7 +52,7 @@ import lombok.experimental.Accessors;
  * If no URLs are found, the target field values (if any) are left intact.
  * </p>
  *
- * <h3>Content source</h3>
+ * <h2>Content source</h2>
  * <p>
  * It is possible to specify a <code>fromField</code>
  * as the source of the text to use instead of using the document content.

@@ -122,14 +122,14 @@ import lombok.extern.slf4j.Slf4j;
  * to both, the valid list takes precedence.
  * </p>
  *
- * <h3>Accepted HTTP methods</h3>
+ * <h2>Accepted HTTP methods</h2>
  * <p>
  * By default this fetcher accepts HTTP GET and HEAD requests.  You can limit
  * it to only process one method with
  * {@link HttpClientFetcherConfig#setHttpMethods(List)}.
  * </p>
  *
- * <h3>Content type and character encoding</h3>
+ * <h2>Content type and character encoding</h2>
  * <p>
  * The default way for the Web Crawler to identify the content type
  * and character encoding of a document is to rely on the
@@ -143,7 +143,7 @@ import lombok.extern.slf4j.Slf4j;
  * and {@link HttpClientFetcherConfig#setForceCharsetDetection(boolean)}.
  * </p>
  *
- * <h3>HSTS Support</h3>
+ * <h2>HSTS Support</h2>
  * <p>
  * Upon first encountering a secure site, this fetcher will check whether the
  * site root domain has the "Strict-Transport-Security" (HSTS) policy support
@@ -159,7 +159,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@link HttpClientFetcherConfig#setHstsDisabled(boolean)}.
  * </p>
  *
- * <h3>Pro-active change detection</h3>
+ * <h2>Pro-active change detection</h2>
  * <p>
  * This fetcher takes advantage of the
  * <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag">

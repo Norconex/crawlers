@@ -63,7 +63,7 @@ import lombok.extern.slf4j.Slf4j;
  * for failed batches.
  * </p>
  *
- * <h3>Handling Failures</h3>
+ * <h2>Handling Failures</h2>
  * <p>
  * Before moving a failed batch to the "error" folder you have the opportunity
  * to have this queue tell the Committer to retry the batch.  This can be

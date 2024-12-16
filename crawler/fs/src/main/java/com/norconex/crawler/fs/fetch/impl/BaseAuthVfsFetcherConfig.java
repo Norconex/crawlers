@@ -25,7 +25,7 @@ import lombok.experimental.Accessors;
  * Extension of {@link AbstractVfsFetcher}, adding authentication support.
  * </p>
  *
- * <h3>Generic authentication settings</h3>
+ * <h2>Generic authentication settings</h2>
  * <p>
  * The following is available to all implementing classes.
  * </p>

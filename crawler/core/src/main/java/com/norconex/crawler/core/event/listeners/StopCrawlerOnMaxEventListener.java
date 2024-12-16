@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
  * Not specifying any maximum or events has no effect.
  * </p>
  *
- * <h3>Difference with "maxDocuments"</h3>
+ * <h2>Difference with "maxDocuments"</h2>
  * <p>
  * The "maxDocuments" option deals with "processed" documents.  Those are
  * documents that were initially queued for crawling and crawling was attempted
@@ -58,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
  * a high enough number or is set <code>-1</code> (unlimited).
  * </p>
  *
- * <h3>Combining events</h3>
+ * <h2>Combining events</h2>
  * <p>
  * If your event matcher matches more than one event, you can decide what
  * should be the expected behavior. Options are:

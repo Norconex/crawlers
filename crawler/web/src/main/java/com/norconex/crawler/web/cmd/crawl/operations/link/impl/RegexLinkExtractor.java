@@ -44,7 +44,7 @@ import lombok.ToString;
  * which addresses many cases specific to HTML.
  * </p>
  *
- * <h3>Applicable documents</h3>
+ * <h2>Applicable documents</h2>
  * <p>
  * By default, this extractor will extract URLs only in documents having
  * their content type matching this regular expression:
@@ -58,7 +58,7 @@ import lombok.ToString;
  * but make sure they represent text files.
  * </p>
  *
- * <h3>Referrer data</h3>
+ * <h2>Referrer data</h2>
  * <p>
  * The following referrer information is stored as metadata in each document
  * represented by the extracted URLs:
@@ -69,7 +69,7 @@ import lombok.ToString;
  *   {@link WebDocMetadata#REFERRER_REFERENCE}.</li>
  * </ul>
  *
- * <h3>Character encoding</h3>
+ * <h2>Character encoding</h2>
  * <p>This extractor will by default <i>attempt</i> to
  * detect the encoding of the a page when extracting links and
  * referrer information. If no charset could be detected, it falls back to

@@ -38,7 +38,7 @@ import lombok.experimental.FieldNameConstants;
  * when read).
  * </p>
  *
- * <h3>Multiple fields and values:</h3>
+ * <h2>Multiple fields and values:</h2>
  * <p>
  * By default, ALL values for all fields matched by your field matcher
  * expression must be blank for this condition to be <code>true</code>.

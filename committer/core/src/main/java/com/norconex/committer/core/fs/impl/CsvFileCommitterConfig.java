@@ -52,7 +52,7 @@ import lombok.experimental.FieldNameConstants;
  * files that will be created (default does not add any).
  * </p>
  *
- * <h3>Content handling</h3>
+ * <h2>Content handling</h2>
  * <p>
  * The document content is represented by creating a column with a blank or
  * <code>null</code> field name. When requested, the "content" column
@@ -60,7 +60,7 @@ import lombok.experimental.FieldNameConstants;
  * have content, for consistency.
  * </p>
  *
- * <h3>Truncate long values</h3>
+ * <h2>Truncate long values</h2>
  * <p>
  * By default, values longer than {@value #DEFAULT_TRUNCATE_AT} are truncated.
  * You can specify a different maximum length globally, or for each column.
@@ -69,7 +69,7 @@ import lombok.experimental.FieldNameConstants;
  * is also zero.
  * </p>
  *
- * <h3>CSV Format</h3>
+ * <h2>CSV Format</h2>
  * <p>
  * Applications consuming CSV files often have different expectations.
  * Subtle format differences that can make opening or parsing a generated

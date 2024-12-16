@@ -68,7 +68,7 @@ import lombok.experimental.FieldNameConstants;
  * Web Crawler configuration, adding more options to the base
  * {@link CrawlerConfig}.
  * </p>
- * <h3>Start URLs</h3>
+ * <h2>Start URLs</h2>
  * <p>
  * Crawling begins with specifying one or more references to either documents
  * or starting points to documents you want to crawl. For a web crawl, those
@@ -95,7 +95,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setUrlScopeResolver(UrlScopeResolver)}.
  * </p>
  *
- * <h3>URL Normalization</h3>
+ * <h2>URL Normalization</h2>
  * <p>
  * Pages on web sites are often referenced using different URL
  * patterns. Such URL variations can fool the crawler into downloading the
@@ -105,7 +105,7 @@ import lombok.experimental.FieldNameConstants;
  * semantically equivalent (see {@link GenericUrlNormalizer}).
  * </p>
  *
- * <h3>Crawl Speed</h3>
+ * <h2>Crawl Speed</h2>
  * <p>
  * <b>Be kind</b> to web sites you crawl. Being too aggressive can be
  * perceived as a cyber-attack by the targeted web site (e.g., DoS attack).
@@ -121,7 +121,7 @@ import lombok.experimental.FieldNameConstants;
  * by supplying a class implementing {@link DelayResolver}.
  * </p>
  *
- * <h3>Crawl Depth</h3>
+ * <h2>Crawl Depth</h2>
  * <p>
  * The crawl depth represents how many level from the start URL the crawler
  * goes. From a browser user perspective, it can be seen as the number of
@@ -134,7 +134,7 @@ import lombok.experimental.FieldNameConstants;
  * reasonable for your site with {@link #setMaxDepth(int)}.
  * </p>
  *
- * <h3>Keeping Referenced Links</h3>
+ * <h2>Keeping Referenced Links</h2>
  * <p>
  * By default the crawler stores, as metadata, URLs extracted from
  * documents that are in scope. Exceptions
@@ -154,7 +154,7 @@ import lombok.experimental.FieldNameConstants;
  *       Must be used with at least one other option to have any effect.</li>
  * </ul>
  *
- * <h3>Orphan documents</h3>
+ * <h2>Orphan documents</h2>
  * <p>
  * Orphans are valid documents, which on subsequent crawls can no longer be
  * reached (e.g. there are no longer referenced). This is
@@ -170,7 +170,7 @@ import lombok.experimental.FieldNameConstants;
  *   <li><b>DELETE:</b> Orphans are sent to your Committer for deletion.</li>
  * </ul>
  *
- * <h3>Error Handling</h3>
+ * <h2>Error Handling</h2>
  * <p>
  * By default the crawler logs exceptions while trying to prevent them
  * from terminating a crawling session. There might be cases where you want
@@ -178,14 +178,14 @@ import lombok.experimental.FieldNameConstants;
  * You can do so with {@link #setStopOnExceptions(List)}.
  * </p>
  *
- * <h3>Crawler Events</h3>
+ * <h2>Crawler Events</h2>
  * <p>
  * The crawler fires all kind of events to notify interested parties of such
  * things as when a document is rejected, imported, committed, etc.).
  * You can listen to crawler events using {@link #setEventListeners(List)}.
  * </p>
  *
- * <h3>Document Importing</h3>
+ * <h2>Document Importing</h2>
  * <p>
  * The process of transforming, enhancing, parsing to extracting plain text
  * and many other document-specific processing activities are handled by the
@@ -193,7 +193,7 @@ import lombok.experimental.FieldNameConstants;
  * additional configuration options.
  * </p>
  *
- * <h3>Bad Documents</h3>
+ * <h2>Bad Documents</h2>
  * <p>
  * On a fresh crawl, documents that are unreachable or not obtained
  * successfully for some reason are simply logged and ignored.
@@ -204,7 +204,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setSpoiledReferenceStrategizer(SpoiledReferenceStrategizer)}.
  * </p>
  *
- * <h3>Committing Documents</h3>
+ * <h2>Committing Documents</h2>
  * <p>
  * The last step of a successful processing of a document is to
  * store it in your preferred target repository (or repositories).
@@ -216,7 +216,7 @@ import lombok.experimental.FieldNameConstants;
  * See {@link #setCommitters(List)}.
  * </p>
  *
- * <h3>HTTP Fetcher</h3>
+ * <h2>HTTP Fetcher</h2>
  * <p>
  * To crawl and parse a document, it first needs to be downloaded. This is the
  * role of one or more HTTP Fetchers.  {@link HttpClientFetcher} is the
@@ -228,7 +228,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setFetchers(List)} to supply your own fetcher implementation.
  * </p>
  *
- * <h3>HTTP Methods</h3>
+ * <h2>HTTP Methods</h2>
  * <p>
  * A fetcher typically issues an HTTP GET request to obtain a document.
  * There might be cases where you first want to issue a separate HEAD request.
@@ -265,7 +265,7 @@ import lombok.experimental.FieldNameConstants;
  * unsure what settings to use, keep the defaults.
  * </p>
  *
- * <h3>Filtering Unwanted Documents</h3>
+ * <h2>Filtering Unwanted Documents</h2>
  * <p>
  * Without filtering, you would typically crawl many documents you are not
  * interested in.
@@ -324,7 +324,7 @@ import lombok.experimental.FieldNameConstants;
  *   </li>
  * </ul>
  *
- * <h3>Robot Directives</h3>
+ * <h2>Robot Directives</h2>
  * <p>
  * By default, the crawler tries to respect instructions a web site has put
  * in place for the benefit of crawlers. The following is a list of some of the
@@ -388,7 +388,7 @@ import lombok.experimental.FieldNameConstants;
  *   </li>
  * </ul>
  *
- * <h3>Re-crawl Frequency</h3>
+ * <h2>Re-crawl Frequency</h2>
  * <p>
  * The crawler will crawl any given URL at most one time per crawling session.
  * It is possible to skip documents that are not yet "ready" to be re-crawled
@@ -400,7 +400,7 @@ import lombok.experimental.FieldNameConstants;
  * site more frequently than let's say, an "archive" section of your site.
  * </p>
  *
- * <h3>Change Detection (Checksums)</h3>
+ * <h2>Change Detection (Checksums)</h2>
  * <p>
  * To find out if a document has changed from one crawling session to another,
  * the crawler creates and keeps a digital signature, or checksum of each
@@ -415,7 +415,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setDocumentChecksummer(DocumentChecksummer)}.
  * </p>
  *
- * <h3>Deduplication</h3>
+ * <h2>Deduplication</h2>
  * <p>
  * The crawler can attempt to detect and reject documents considered as
  * duplicates within a crawler session.  A document will be considered
@@ -434,7 +434,7 @@ import lombok.experimental.FieldNameConstants;
  * a checksum that is acceptably unique to you.
  * </p>
  *
- * <h3>URL Extraction</h3>
+ * <h2>URL Extraction</h2>
  * <p>
  * To be able to crawl a web site, links need to be extracted from
  * web pages.  It is the job of a link extractor.  It is possible to use

@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  * encountered in a previous crawling session or not.
  * </p>
  *
- * <h3>Supported events</h3>
+ * <h2>Supported events</h2>
  * <p>
  * By default this listener will send deletion requests for all references
  * associated with a {@link CrawlerEvent} name starting with
@@ -51,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
  * Keep limiting events to "rejected" ones to avoid unexpected results.
  * </p>
  *
- * <h3>Deletion requests sent once</h3>
+ * <h2>Deletion requests sent once</h2>
  * <p>
  * This class tries to handles each reference for "rejected" events only once.
  * To do so it will queue all such references and wait until normal
@@ -62,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
  * reference.
  * </p>
  *
- * <h3>Only references</h3>
+ * <h2>Only references</h2>
  * <p>
  * Since several rejection events are triggered before document are processed,
  * we can't assume there is any metadata attached with rejected

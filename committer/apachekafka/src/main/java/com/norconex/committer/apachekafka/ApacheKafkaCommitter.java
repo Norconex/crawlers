@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
  * Commits documents to Kafka via it's Producer API
  * </p>
  *
- * <h3>Topic Creation</h3>
+ * <h2>Topic Creation</h2>
  * <p>
  * By default topics are assumed to already exist. You can optionally
  * have them created when not already present with

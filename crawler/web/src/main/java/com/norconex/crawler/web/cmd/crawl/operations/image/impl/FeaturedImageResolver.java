@@ -80,7 +80,7 @@ import lombok.extern.slf4j.Slf4j;
  * image.
  * </p>
  *
- * <h3>Finding the image</h3>
+ * <h2>Finding the image</h2>
  * <p>
  * By default this class will get the first image (&lt;img&gt;) matching
  * the minimum size. You can specify you want the largest of all matching
@@ -91,7 +91,7 @@ import lombok.extern.slf4j.Slf4j;
  * JSoup selector-syntax</a> for how to build the "domSelector".
  * </p>
  *
- * <h3>Storing the image</h3>
+ * <h2>Storing the image</h2>
  * <p>
  * When identified, the featured image can be stored either on local disk,
  * or as a metadata field in Base64 format, or simply as a URL pointing

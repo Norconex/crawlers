@@ -41,7 +41,7 @@ import lombok.ToString;
  * set of commit instructions.
  * </p>
  *
- * <h3>Generated JSON format:</h3>
+ * <h2>Generated JSON format:</h2>
  * <pre>
  * [
  *   {"upsert": {

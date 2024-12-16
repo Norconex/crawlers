@@ -33,7 +33,7 @@ import lombok.experimental.Accessors;
  * and restrictions for filtering unwanted requests.
  * </p>
  *
- * <h3>Restricting committer to specific documents</h3>
+ * <h2>Restricting committer to specific documents</h2>
  * <p>
  * Optionally apply a committer only to certain type of documents.
  * Documents are restricted based on their
@@ -41,7 +41,7 @@ import lombok.experimental.Accessors;
  * perform document routing when you have multiple Committers defined.
  * </p>
  *
- * <h3>Field mappings</h3>
+ * <h2>Field mappings</h2>
  * <p>
  * By default, this abstract class applies field mappings for metadata fields,
  * but leaves the document reference and content (input stream) for concrete

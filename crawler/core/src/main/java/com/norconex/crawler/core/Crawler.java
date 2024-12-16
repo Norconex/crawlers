@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * Crawler. Facade to crawl-related commands.
  * </p>
- * <h3>JMX Support</h3>
+ * <h2>JMX Support</h2>
  * <p>
  * JMX support is disabled by default. To enable it, set the system property
  * "enableJMX" to <code>true</code>. You can do so by adding this to your Java

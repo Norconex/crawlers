@@ -50,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
  * Commits documents to Apache Solr.
  * </p>
  *
- * <h3>Solr Client:</h3>
+ * <h2>Solr Client:</h2>
  * <p>
  * You can specify which type of
  * <a href="https://lucene.apache.org/solr/guide/8_1/using-solrj.html#types-of-solrclients">
@@ -92,7 +92,7 @@ import lombok.extern.slf4j.Slf4j;
  *         Expects a Solr URL.</dd>
  * </dl>
  *
- * <h3>Authentication</h3>
+ * <h2>Authentication</h2>
  * <p>
  * Basic authentication is supported for password-protected
  * Solr installations.

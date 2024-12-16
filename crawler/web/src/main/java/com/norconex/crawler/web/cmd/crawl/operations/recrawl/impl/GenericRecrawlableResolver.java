@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  * establishing the minimum frequency between each document recrawl.
  * </p>
  *
- * <h3>Sitemap support:</h3>
+ * <h2>Sitemap support:</h2>
  * <p>
  * Provided crawler support for sitemaps has not been disabled,
  * this class tries to honor last modified and frequency directives found
@@ -59,7 +59,7 @@ import lombok.extern.slf4j.Slf4j;
  * method.
  * </p>
  *
- * <h3>Custom recrawl frequencies:</h3>
+ * <h2>Custom recrawl frequencies:</h2>
  * <p>
  * You can chose to have some of your crawled documents be re-crawled less
  * frequently than others by specifying custom minimum frequencies with

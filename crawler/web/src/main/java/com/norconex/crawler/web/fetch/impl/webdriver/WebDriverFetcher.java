@@ -67,7 +67,7 @@ import lombok.extern.slf4j.Slf4j;
  * Useful for crawling JavaScript-driven websites.
  * </p>
  *
- * <h3>Considerations</h3>
+ * <h2>Considerations</h2>
  * <p>
  * Relying on an external software to fetch pages can be slower and not as
  * scalable and may be less stable. Downloading of binaries and non-HTML file
@@ -85,12 +85,12 @@ import lombok.extern.slf4j.Slf4j;
  * with the number of threads you expect the crawler to use.
  * </p>
  *
- * <h3>Supported HTTP method</h3>
+ * <h2>Supported HTTP method</h2>
  * <p>
  * This fetcher only supports HTTP GET method.
  * </p>
  *
- * <h3>HTTP Headers</h3>
+ * <h2>HTTP Headers</h2>
  * <p>
  * By default, web drivers do not expose HTTP headers from HTTP GET request.
  * If you want to capture them, configure the "httpSniffer". A proxy service

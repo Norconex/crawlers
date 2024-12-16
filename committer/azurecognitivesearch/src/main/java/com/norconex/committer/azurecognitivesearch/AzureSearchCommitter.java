@@ -76,7 +76,7 @@ import lombok.ToString;
  * {@link AzureSearchCommitterConfig#setIgnoreResponseErrors(boolean)}
  * to <code>true</code>.
  * </p>
- * <h3>Field naming rules</h3>
+ * <h2>Field naming rules</h2>
  * <p>
  * Those are the field naming rules mandated for Azure Search (in force
  * for Azure Search version 2016-09-01):

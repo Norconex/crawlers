@@ -35,7 +35,7 @@ import lombok.experimental.Accessors;
  * matches will be stored as a single value. More often than not,
  * you probably want to set your "countMatcher" to "partial".
  * </p>
- * <h3>Storing values in an existing field</h3>
+ * <h2>Storing values in an existing field</h2>
  * <p>
  * If a target field with the same name already exists for a document,
  * the count value will be added to the end of the existing value list.

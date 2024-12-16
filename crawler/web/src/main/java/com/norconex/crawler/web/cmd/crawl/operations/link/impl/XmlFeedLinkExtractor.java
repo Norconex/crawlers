@@ -51,14 +51,14 @@ import lombok.ToString;
  * {@link LinkExtractor} implementation.
  * </p>
  *
- * <h3>Applicable documents</h3>
+ * <h2>Applicable documents</h2>
  * <p>
  * By default, this extractor only will be applied on documents matching
  * one of the content types defined by
  * {@link CommonMatchers#XML_FEED_CONTENT_TYPES}.
  * </p>
  *
- * <h3>Referrer data</h3>
+ * <h2>Referrer data</h2>
  * <p>
  * The following referrer information is stored as metadata in each document
  * represented by the extracted URLs:

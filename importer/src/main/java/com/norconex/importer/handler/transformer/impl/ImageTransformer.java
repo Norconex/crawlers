@@ -43,7 +43,7 @@ import lombok.Data;
  * {@link ParseConfig}, obtained via the {@link ImporterConfig}.
  * </p>
  *
- * <h3>Content-types</h3>
+ * <h2>Content-types</h2>
  * <p>
  * By default, this filter is restricted to (applies only to) documents matching
  * the restrictions returned by
@@ -52,7 +52,7 @@ import lombok.Data;
  * image.
  * </p>
  *
- * <h3>Image dimension format</h3>
+ * <h2>Image dimension format</h2>
  * <p>
  * For a list of supported image dimension formats, refer to
  * {@link DimensionConverter}.

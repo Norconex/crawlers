@@ -32,7 +32,7 @@ import lombok.experimental.Accessors;
  * Refer to {@link ScriptRunner} for more information on using a scripting
  * language with Norconex Importer.
  * </p>
- * <h3>How to transform documents with scripting:</h3>
+ * <h2>How to transform documents with scripting:</h2>
  * <p>
  * The following are variables made available to your script for each
  * document:

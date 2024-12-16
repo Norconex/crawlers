@@ -86,7 +86,7 @@ import lombok.ToString;
  * with, specifying "xml" should be a good option.
  * </p>
  *
- * <h3>Matching links</h3>
+ * <h2>Matching links</h2>
  * <p>
  * You can define as many JSoup "selectors" as desired. All values matched
  * by a selector will be extracted as a URL.
@@ -115,7 +115,7 @@ import lombok.ToString;
  * spaces.
  * </p>
  *
- * <h3>Ignoring link data</h3>
+ * <h2>Ignoring link data</h2>
  * <p>
  * By default, contextual information is kept about the HTML/XML mark-up
  * tag from which a link is extracted (e.g., tag name and attributes).
@@ -126,7 +126,7 @@ import lombok.ToString;
  * <code>true</code>.
  * </p>
  *
- * <h3>URL Schemes</h3>
+ * <h2>URL Schemes</h2>
  * <p>Only valid
  * <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax">
  * schemes</a> are extracted for absolute URLs. By default, those are
@@ -135,13 +135,13 @@ import lombok.ToString;
  * {@link DomLinkExtractorConfig#setSchemes(java.util.List)}.
  * </p>
  *
- * <h3>Applicable documents</h3>
+ * <h2>Applicable documents</h2>
  * <p>
  * By default, this extractor will only be applied on documents matching
  * one of these content types: {@link CommonMatchers#DOM_CONTENT_TYPES}.
  * </p>
  *
- * <h3>"nofollow"</h3>
+ * <h2>"nofollow"</h2>
  * <p>
  * By default, a regular HTML link having the "rel" attribute set to "nofollow"
  * won't be extracted (e.g.
