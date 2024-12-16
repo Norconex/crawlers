@@ -96,9 +96,13 @@ jobs:
     - name: Cache Maven repository
       uses: actions/cache@v4
       with:
-        path: ~/.m2/repository
+        path: |
+          ~/.m2/repository
+          !~/.m2/repository/com/norconex
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-maven-
+        restore-keys: |
+          ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          ${{ runner.os }}-maven-
 
     - name: Cache SonarCloud analysis
       uses: actions/cache@v4
@@ -114,8 +118,19 @@ jobs:
       run: mvn dependency:tree        
         
     - name: Build and test
-      run: mvn -B verify -DargLine="-Xmx2g" -Dgpg.skip=true -pl !shaded
-
+      run: |
+        mvn -B verify \
+        -T 1C \
+        -Dmaven.compiler.fork=true \
+        -Dmaven.compiler.maxmem=2048m \
+        -DargLine="-Xmx2g" \
+        -Dgpg.skip=true \
+        -pl !shaded \
+        -C
+#      -am \  # Build also dependent modules.. if we bring back 
+#             #  building only changed with PRs 
+      
+      
     - name: Sonar Analysis
       if: ${{ startsWith(github.actor, 'dependabot') == false }}
       # Note: As of this writing, for SonarCloud to work with monorepos, 
