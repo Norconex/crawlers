@@ -102,9 +102,6 @@ public abstract class AbstractWebDriverHttpFetcherTest
     @BeforeEach
     void beforeEach(ClientAndServer client) {
         Testcontainers.exposeHostPorts(client.getPort());
-        Testcontainers.exposeHostPorts(4317); // OpenTelemetry port
-        Testcontainers.exposeHostPorts(14250); // Jaeger
-
     }
 
     @Override
