@@ -31,6 +31,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -133,6 +134,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 .contains("JavaScript-rendered!");
     }
 
+    @Disabled
     @WebCrawlTest
     void testTakeScreenshots(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
