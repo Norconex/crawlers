@@ -331,7 +331,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 .withRecordingMode(VncRecordingMode.SKIP, null)
                 .withLogConsumer(new Slf4jLogConsumer(LOG))
                 .withEnv("SE_OPTS", "--tracing false")
-                .withEnv("SE_NODE_MAX_SESSIONS", "5")
+                .withEnv("SE_NODE_MAX_SESSIONS", "10")
+                .withEnv("SESSION_REQUEST_TIMEOUT", "30000")
                 // Disable traces
                 .withEnv("OTEL_TRACES_EXPORTER", "none")
                 // Disable metrics
