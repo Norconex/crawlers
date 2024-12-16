@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
@@ -89,7 +90,8 @@ class DeduplicationTest {
             .respond(response()
                 .withHeader(
                         "Last-Modified",
-                        lastModified(System.currentTimeMillis()))
+                        lastModified(978310861000L
+                                + (new Random().nextInt(10000, 1000000))))
                 .withBody(
                         "A page with same content as another one.",
                         MediaType.HTML_UTF_8));
