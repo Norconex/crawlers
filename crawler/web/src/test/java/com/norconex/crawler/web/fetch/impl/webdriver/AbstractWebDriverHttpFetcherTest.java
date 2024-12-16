@@ -337,6 +337,11 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 // Disable context propagation
                 .withEnv("OTEL_PROPAGATORS", "none")
                 // Completely disable OpenTelemetry
-                .withEnv("OTEL_SDK_DISABLED", "true");
+                .withEnv("OTEL_SDK_DISABLED", "true")
+
+                .withSharedMemorySize(2L * 1024 * 1024 * 1024) // 2GB
+                .withCreateContainerCmdModifier(cmd -> cmd.getHostConfig()
+                        .withMemory(4096L * 1024 * 1024) // 4GB
+                        .withMemorySwap(8192L * 1024 * 1024)); // 8GB
     }
 }
