@@ -120,13 +120,13 @@ jobs:
     - name: Build and test
       run: |
         mvn -B verify \
-#        -T 1C \
-#        -Dmaven.compiler.fork=true \
         -Dmaven.compiler.maxmem=2048m \
         -DargLine="-Xmx2g" \
         -Dgpg.skip=true \
         -pl !shaded \
         -C
+#        -T 1C \
+#        -Dmaven.compiler.fork=true \
 #      -am \  # Build also dependent modules.. if we bring back 
 #             #  building only changed with PRs 
       
