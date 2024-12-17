@@ -45,8 +45,9 @@
     <!-- <sonar.maven.scanAll>true</sonar.maven.scanAll> -->
     
     <sonar.version>3.11.0.3922</sonar.version>
+<!--    
     <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-    
+-->
     <!-- === Dependencies ================================================== -->
 
     <!-- Norconex dependencies -->
