@@ -115,8 +115,7 @@ public class AbstractFsCommitterTest {
     }
 
     @CommitterTest
-    public void testWriteRead(AbstractFsCommitter<?, ?> c, String name)
-            throws CommitterException {
+    public void testWriteRead(AbstractFsCommitter<?, ?> c, String name) {
 
         c.getConfiguration()
                 .setCompress(true)
@@ -132,7 +131,7 @@ public class AbstractFsCommitterTest {
 
     @CommitterTest
     public void testErrors(AbstractFsCommitter<?, ?> c, String name)
-            throws CommitterException, IOException {
+            throws IOException {
         var fileNotFolder = folder.resolve("file");
         Files.createFile(fileNotFolder);
         c.getConfiguration().setDirectory(fileNotFolder);
