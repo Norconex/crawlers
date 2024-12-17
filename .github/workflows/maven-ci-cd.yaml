@@ -76,6 +76,15 @@ jobs:
         )
       run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
 
+    - name: Install recent Maven
+      run: |
+        MAVEN_VERSION=3.9.9
+        wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+        tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz
+        sudo mv apache-maven-$MAVEN_VERSION /opt/maven
+        sudo rm -f /usr/bin/mvn
+        sudo ln -s /opt/maven/bin/mvn /usr/bin/mvn
+      
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -92,6 +101,8 @@ jobs:
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
         # Env variable name for GPG private key passphrase
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
+        
+    - run: mvn --version
         
     - name: Cache Maven repository
       uses: actions/cache@v4

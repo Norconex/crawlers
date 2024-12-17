@@ -1117,11 +1117,8 @@
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
     <module>shaded</module>
-  <!--
-  -->
     <module>committer/core</module> 
     <module>committer/solr</module>
-  <!--
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
     <module>committer/amazoncloudsearch</module>
@@ -1133,9 +1130,6 @@
     <module>crawler/core</module>
     <module>crawler/web</module>
     <module>crawler/fs</module>
-  -->
-    
-    
 <!--
   TODO: when ready, add these:
     <module>tools/config-converter</module>
