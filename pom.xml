@@ -45,7 +45,8 @@
     <!-- <sonar.maven.scanAll>true</sonar.maven.scanAll> -->
     
     <sonar.version>3.11.0.3922</sonar.version>
-    <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    
     <!-- === Dependencies ================================================== -->
 
     <!-- Norconex dependencies -->
@@ -905,7 +906,7 @@
               <configuration>
                 <rules>
                   <requireMavenVersion>
-                    <version>[3.8,)</version>
+                    <version>[3.9.9]</version>
                   </requireMavenVersion>
                   <requireJavaVersion>
                     <version>[${java.version},)</version>
@@ -927,10 +928,11 @@
               <goals>
                 <goal>prepare-agent</goal>
               </goals>
+              <!--
               <configuration>
-                <!-- handle nested module structure -->
                 <propertyName>surefireArgLine</propertyName>
               </configuration>
+              -->
             </execution>
             <execution>
               <id>report-aggregate</id>
@@ -938,6 +940,11 @@
               <goals>
                 <goal>report-aggregate</goal>
               </goals>
+              <configuration>
+                <formats>
+                  <format>XML</format>
+                </formats>
+              </configuration>
             </execution>
           </executions>
           <inherited>true</inherited>
@@ -1110,8 +1117,11 @@
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
     <module>shaded</module>
+  <!--
+  -->
     <module>committer/core</module> 
     <module>committer/solr</module>
+  <!--
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
     <module>committer/amazoncloudsearch</module>
@@ -1123,6 +1133,9 @@
     <module>crawler/core</module>
     <module>crawler/web</module>
     <module>crawler/fs</module>
+  -->
+    
+    
 <!--
   TODO: when ready, add these:
     <module>tools/config-converter</module>

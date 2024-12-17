@@ -81,7 +81,7 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-        maven-version: '3.9.0'
+        maven-version: '3.9.9'
         # Server ID as in the pom.xml (distributionManagement + sonatype plugin)
         server-id: ossrh
         # Env variable name for username in deploy
@@ -123,6 +123,7 @@ jobs:
         -Dmaven.compiler.maxmem=2048m \
         -DargLine="-Xmx2g" \
         -Dgpg.skip=true \
+        -Dmaven.javadoc.skip=true \
         -pl !shaded \
         -C
 
