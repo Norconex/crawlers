@@ -125,6 +125,8 @@ jobs:
         -Dgpg.skip=true \
         -pl !shaded \
         -C
+
+#        -q
 #        -T 1C \
 #        -Dmaven.compiler.fork=true \
 #      -am \  # Build also dependent modules.. if we bring back 
