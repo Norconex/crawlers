@@ -130,7 +130,7 @@ jobs:
         
     - name: Build and test
       run: |
-        mvn -B verify \
+        mvn clean -B verify \
         -Dmaven.compiler.maxmem=2048m \
         -DargLine="-Xmx2g" \
         -Dgpg.skip=true \
@@ -151,16 +151,12 @@ jobs:
       # each projects must be analyzed separately.
       run: |
         cd committer/core
-        mvn clean verify sonar:sonar \
+        mvn sonar:sonar \
           -Dsonar.projectKey=com.norconex.crawler:nx-committer-core \
           -Dsonar.organization=norconex \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-          -Dsonar.verbose=true \
-          -Dmaven.javadoc.skip=true \
-          -Dmaven.compiler.maxmem=2048m \
-          -DargLine="-Xmx2g" \
-          -Dgpg.skip=true           
+          -Dsonar.verbose=true
       
 #      run: |
 #        dir="${GITHUB_WORKSPACE}/committer/core"
