@@ -154,11 +154,14 @@ jobs:
         for dir in $dirs; do
             echo "Analyzing ${dir}..."
             jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
-            (cd ${dir}; mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+            (mvn sonar:sonar -pl ${dir} -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
             echo "Generated Jacoco report file: ${jacocoFile}"
             cat ${jacocoFile}
         done
 
+#        (cd ${dir}; mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+
+        
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
     - name: Update Maven dependency graph

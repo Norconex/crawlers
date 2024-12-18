@@ -1122,6 +1122,7 @@
     <module>shaded</module>
     <module>committer/core</module> 
     <module>committer/solr</module>
+    <!--
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
     <module>committer/amazoncloudsearch</module>
@@ -1129,10 +1130,13 @@
     <module>committer/neo4j</module>
     <module>committer/azurecognitivesearch</module>
     <module>committer/apachekafka</module>
+    -->
     <module>importer</module>
     <module>crawler/core</module>
+    <!--
     <module>crawler/web</module>
     <module>crawler/fs</module>
+    -->
 <!--
   TODO: when ready, add these:
     <module>tools/config-converter</module>
