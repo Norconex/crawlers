@@ -1131,9 +1131,9 @@
     <module>committer/azurecognitivesearch</module>
     <module>committer/apachekafka</module>
     -->
+    <!--
     <module>importer</module>
     <module>crawler/core</module>
-    <!--
     <module>crawler/web</module>
     <module>crawler/fs</module>
     -->
