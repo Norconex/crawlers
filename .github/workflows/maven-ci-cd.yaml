@@ -150,7 +150,7 @@ jobs:
       # Note: As of this writing, for SonarCloud to work with monorepos, 
       # each projects must be analyzed separately.
       run: |
-        dir="${GITHUB_WORKSPACE}/comitter/core""
+        dir="${GITHUB_WORKSPACE}/comitter/core"
         echo "Analyzing ${dir}..."
         jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
         (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries="${dir}/target/classes" -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
