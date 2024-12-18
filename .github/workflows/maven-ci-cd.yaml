@@ -156,7 +156,8 @@ jobs:
           -Dsonar.organization=norconex \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-          -Dsonar.verbose=true      
+          -Dsonar.verbose=true \
+          -Dmaven.javadoc.skip=true 
       
 #      run: |
 #        dir="${GITHUB_WORKSPACE}/committer/core"
