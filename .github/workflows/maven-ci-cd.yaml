@@ -153,7 +153,10 @@ jobs:
         dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
         for dir in $dirs; do
             echo "Analyzing ${dir}..."
-            (cd ${dir}; mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml)
+            jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml""
+            (cd ${dir}; mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+            echo "Generated Jacoco report file: ${jacocoFile}"
+            cat ${jacocoFile}
         done
 
     # Uploads the full dependency graph to GitHub to improve the quality 
