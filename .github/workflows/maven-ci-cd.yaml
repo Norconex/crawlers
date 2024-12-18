@@ -154,14 +154,11 @@ jobs:
         -pl !shaded \
         -C
 
-            
-
-        
-#        -q
-#        -T 1C \
+#        -q     # to quiet maven-generated logs
+#        -T 1C  # to launch in parallel, one thread per CPU core
 #        -Dmaven.compiler.fork=true \
-#      -am \  # Build also dependent modules.. if we bring back 
-#             #  building only changed with PRs 
+#        -am    # Build also dependent modules.. if we bring back 
+#               # building only what changed on PRs 
       
       
     - name: Sonar Analysis
@@ -174,12 +171,12 @@ jobs:
           -Dsonar.projectKey=com.norconex.crawler:nx-committer-core \
           -Dsonar.organization=norconex \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
           -Dsonar.verbose=true \
           -Dmaven.repo.local=$HOME/.m2/repository \
           -Dmaven.wagon.rss.buffer.size=2048
       
 #    - name: Log Debugging Info
+#-Dsonar.token=${{ secrets.SONAR_TOKEN }} \
 #      if: always()
 #      run: |
 #        echo "Directory: $(pwd)" && ls        

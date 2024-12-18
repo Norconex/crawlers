@@ -871,7 +871,8 @@
               <id>test-delombok</id>
               <phase>generate-test-sources</phase>
               <goals>
-                <goal>testDelombok</goal>
+                <goal>delombok</goal>
+<!--                <goal>testDelombok</goal>-->
               </goals>
               <configuration>
                 <addOutputDirectory>false</addOutputDirectory>
