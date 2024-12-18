@@ -37,6 +37,8 @@
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+    <sonar.java.binaries>target/classes</sonar.java.binaries>
+    <sonar.language>java</sonar.language>
 
     <!-- If we ever want to scan the parent: -->
     <!-- <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey> -->
