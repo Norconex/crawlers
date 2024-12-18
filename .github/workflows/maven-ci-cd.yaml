@@ -158,6 +158,16 @@ jobs:
           -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
           -Dsonar.verbose=true
       
+    - name: Troubleshoot
+      if: always()
+      run: |
+        echo "Was the right stuff generated?"
+        ls -ls committer/core
+        ls -lh committer/core/target
+        ls -lh committer/core/target/site
+        ls -lh committer/core/target/site/jacoco
+        echo "Was it?"
+          
 #      run: |
 #        dir="${GITHUB_WORKSPACE}/committer/core"
 #        echo "Analyzing ${dir}..."
