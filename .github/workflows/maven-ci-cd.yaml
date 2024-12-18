@@ -150,17 +150,30 @@ jobs:
       # Note: As of this writing, for SonarCloud to work with monorepos, 
       # each projects must be analyzed separately.
       run: |
-        dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
-        for dir in $dirs; do
-            echo "Analyzing ${dir}..."
-            jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
-            (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries=target/classes -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
-            echo "Generated Jacoco report file: ${jacocoFile}"
-            cat ${jacocoFile}
-        done
+        dir=comitter/core
+        echo "Analyzing ${dir}..."
+        jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
+        (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries=target/classes -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+        echo "Generated Jacoco report file: ${jacocoFile}"
+        cat ${jacocoFile}
 
-#(mvn sonar:sonar -pl ${dir} -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
-#        (cd ${dir}; mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+#        dir=comitter/solr
+#        echo "Analyzing ${dir}..."
+#        jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
+#        (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries=target/classes -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+#        echo "Generated Jacoco report file: ${jacocoFile}"
+#        cat ${jacocoFile}
+
+        
+#      run: |
+#        dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
+#        for dir in $dirs; do
+#            echo "Analyzing ${dir}..."
+#            jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
+#            (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries=target/classes -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+#            echo "Generated Jacoco report file: ${jacocoFile}"
+#            cat ${jacocoFile}
+#        done
 
         
     # Uploads the full dependency graph to GitHub to improve the quality 
