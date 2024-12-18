@@ -157,7 +157,10 @@ jobs:
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
           -Dsonar.verbose=true \
-          -Dmaven.javadoc.skip=true 
+          -Dmaven.javadoc.skip=true \
+          -Dmaven.compiler.maxmem=2048m \
+          -DargLine="-Xmx2g" \
+          -Dgpg.skip=true           
       
 #      run: |
 #        dir="${GITHUB_WORKSPACE}/committer/core"
