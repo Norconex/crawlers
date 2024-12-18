@@ -716,6 +716,7 @@
           <configuration>
             <!-- Most of the following is currently required by Ignite -->
             <argLine>
+              @{argLine} 
               -Xms512m
               -Xmx512m
               -Djava.net.preferIPv4Stack=true
