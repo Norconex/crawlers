@@ -156,18 +156,21 @@ jobs:
           -Dsonar.organization=norconex \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-          -Dsonar.verbose=true
+          -Dsonar.verbose=true \
+          -Dsonar.scanner.dumpToFile=sonar-dump.json
       
     - name: Troubleshoot
       if: always()
       run: |
         echo "Was the right stuff generated?"
-        ls -ls committer/core
+        ls -lh committer/core
         ls -lh committer/core/target
-        ls -lh committer/core/target/site
-        ls -lh committer/core/target/site/jacoco
+        ls -lh committer/core/target/sonar
+        cat sonar-dump.json
         echo "Was it?"
-          
+
+#        ls -lh committer/core/target/site
+#        ls -lh committer/core/target/site/jacoco
 #      run: |
 #        dir="${GITHUB_WORKSPACE}/committer/core"
 #        echo "Analyzing ${dir}..."
