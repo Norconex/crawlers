@@ -1134,8 +1134,8 @@
   <modules>
     <module>shaded</module>
     <module>committer/core</module> 
-    <module>committer/solr</module>
     <!--
+    <module>committer/solr</module>
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
     <module>committer/amazoncloudsearch</module>

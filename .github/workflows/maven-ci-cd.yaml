@@ -123,8 +123,12 @@ jobs:
         restore-keys: ${{ runner.os }}-sonar
 
     - name: Resolve Maven Dependencies
-      run: mvn dependency:resolve -U
+      run: |
+        mvn dependency:resolve -U \
+        -Dmaven.wagon.rss.buffer.size=2048 \
+        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
         
+
     - name: Show Maven Dependency Tree
       run: mvn dependency:tree -Dverbose
       
@@ -132,8 +136,9 @@ jobs:
       run: |
         mvn clean install \
         -Dgpg.skip=true \
-        -Dmaven.repo.local=$HOME/.m2/repository \
+        -Dmaven.repo.local=~/.m2/repository \
         -Dmaven.wagon.rss.buffer.size=2048 \
+        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
         -pl shaded
         
     - name: Build and test
@@ -143,7 +148,7 @@ jobs:
         -DargLine="-Xmx2g" \
         -Dgpg.skip=true \
         -Dmaven.javadoc.skip=true \
-        -Dmaven.repo.local=$HOME/.m2/repository \
+        -Dmaven.repo.local=~/.m2/repository \
         -Dmaven.wagon.rss.buffer.size=2048 \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
         -pl !shaded \
@@ -171,22 +176,21 @@ jobs:
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
           -Dsonar.verbose=true \
-          -Dsonar.scanner.dumpToFile=sonar-dump.json \
           -Dmaven.repo.local=$HOME/.m2/repository \
           -Dmaven.wagon.rss.buffer.size=2048
       
-    - name: Troubleshoot
-      if: always()
-      run: |
-        echo "Was the right stuff generated?"
-        ls -lh committer/core
-        ls -lh committer/core/target
-        ls -lh committer/core/target/sonar
-        cat sonar-dump.json
-        echo "Was it?"
-
+#    - name: Log Debugging Info
+#      if: always()
+#      run: |
+#        echo "Directory: $(pwd)" && ls        
+#        ls -lh committer/core
+#        ls -lh committer/core/target
+#        ls -lh committer/core/target/sonar
 #        ls -lh committer/core/target/site
 #        ls -lh committer/core/target/site/jacoco
+
+
+#         -Dsonar.scanner.dumpToFile=sonar-dump.json \
 #      run: |
 #        dir="${GITHUB_WORKSPACE}/committer/core"
 #        echo "Analyzing ${dir}..."
