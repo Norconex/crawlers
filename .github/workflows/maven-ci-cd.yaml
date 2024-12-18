@@ -154,11 +154,12 @@ jobs:
         for dir in $dirs; do
             echo "Analyzing ${dir}..."
             jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
-            (mvn sonar:sonar -pl ${dir} -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+            (cd ${dir}; mvn sonar:sonar -X -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
             echo "Generated Jacoco report file: ${jacocoFile}"
             cat ${jacocoFile}
         done
 
+#(mvn sonar:sonar -pl ${dir} -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
 #        (cd ${dir}; mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
 
         
