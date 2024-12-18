@@ -150,12 +150,21 @@ jobs:
       # Note: As of this writing, for SonarCloud to work with monorepos, 
       # each projects must be analyzed separately.
       run: |
-        dir="${GITHUB_WORKSPACE}/committer/core"
-        echo "Analyzing ${dir}..."
-        jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
-        (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries="${dir}/target/classes" -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
-        echo "Generated Jacoco report file: ${jacocoFile}"
-        cat ${jacocoFile}
+        cd committer/core
+        mvn clean verify sonar:sonar \
+          -Dsonar.projectKey=com.norconex.crawler:nx-committer-core \
+          -Dsonar.organization=norconex \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.verbose=true      
+      
+#      run: |
+#        dir="${GITHUB_WORKSPACE}/committer/core"
+#        echo "Analyzing ${dir}..."
+#        jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
+#        (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries="${dir}/target/classes" -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
+#        echo "Generated Jacoco report file: ${jacocoFile}"
+#        cat ${jacocoFile}
 
 #        dir=comitter/solr
 #        echo "Analyzing ${dir}..."

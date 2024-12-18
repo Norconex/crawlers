@@ -37,6 +37,13 @@
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+    
+    <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    <sonar.sources>src/main/java</sonar.sources>
+    <sonar.tests>src/test/java</sonar.tests>
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>    
+    
 <!--    <sonar.language>java</sonar.language>-->
 
     <!-- If we ever want to scan the parent: -->
@@ -932,19 +939,23 @@
               <goals>
                 <goal>prepare-agent</goal>
               </goals>
-              <!--
               <configuration>
+                <propertyName>argLine</propertyName>
+                <destFile>${project.build.directory}/jacoco.exec</destFile>
+              <!--
                 <propertyName>surefireArgLine</propertyName>
-              </configuration>
               -->
+              </configuration>
             </execution>
             <execution>
-              <id>report-aggregate</id>
+              <id>report</id>
               <phase>verify</phase>
               <goals>
-                <goal>report-aggregate</goal>
+                <goal>report</goal>
               </goals>
               <configuration>
+                <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
                 <formats>
                   <format>XML</format>
                 </formats>
