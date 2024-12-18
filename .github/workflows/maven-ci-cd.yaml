@@ -130,7 +130,7 @@ jobs:
       
     - name: Build and Install Shaded Libs
       run: mvn clean install \
-        -Dgpg.skip=true
+        -Dgpg.skip=true \
         -Dmaven.repo.local=$HOME/.m2/repository \
         -Dmaven.wagon.rss.buffer.size=2048 \
         -pl shaded
