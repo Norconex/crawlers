@@ -867,18 +867,22 @@
                 <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
               </configuration>
             </execution>
+            <!--
+              We are not generating javadoc on tests so consider dropping this:
+              -->
+            <!--
             <execution>
               <id>test-delombok</id>
               <phase>generate-test-sources</phase>
               <goals>
-                <goal>delombok</goal>
-<!--                <goal>testDelombok</goal>-->
+                <goal>testDelombok</goal>
               </goals>
               <configuration>
                 <addOutputDirectory>false</addOutputDirectory>
                 <sourceDirectory>${project.basedir}/src/test/java</sourceDirectory>
               </configuration>
             </execution>
+            -->
           </executions>
           <inherited>true</inherited>
         </plugin>
