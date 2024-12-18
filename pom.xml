@@ -942,7 +942,7 @@
               <configuration>
                 <propertyName>argLine</propertyName>
                 <destFile>${project.build.directory}/jacoco.exec</destFile>
-              <!--
+              <!-- 
                 <propertyName>surefireArgLine</propertyName>
               -->
               </configuration>
