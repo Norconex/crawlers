@@ -29,6 +29,9 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.cmd.crawl.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
 import com.norconex.crawler.web.cmd.crawl.operations.robot.RobotsTxt;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 class GenericDelayResolverTest {
 
     @Test
@@ -140,6 +143,8 @@ class GenericDelayResolverTest {
 
     @Test
     void testDelay() {
+        LOG.debug(
+                "Testing delays 3 times with these defaults: 0ms, 50ms, 50ms");
         var r = new GenericDelayResolver();
         r.getConfiguration().setDefaultDelay(Duration.ZERO);
         assertThatNoException().isThrownBy(

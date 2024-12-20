@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractDelay {
 
     protected static final int TINY_SLEEP_MS = 10;
-    private static final float THOUSAND_MILLIS = 1000f;
+    //    private static final float THOUSAND_MILLIS = 1000f;
 
     public abstract void delay(long expectedDelayNanos, String url);
 
@@ -49,10 +49,16 @@ public abstract class AbstractDelay {
             var timeToSleepNanos = expectedDelayNanos - elapsedTimeNanos;
             if (LOG.isDebugEnabled()) {
                 var millis = TimeUnit.NANOSECONDS.toMillis(timeToSleepNanos);
-                LOG.debug(
-                        "Thread {} sleeping for {} seconds.",
-                        Thread.currentThread().getName(),
-                        (millis / THOUSAND_MILLIS));
+                var nanoRemains = (int) (timeToSleepNanos
+                        - TimeUnit.MILLISECONDS.toNanos(millis));
+                LOG.debug("Thread sleeping for {} "
+                        + "milliseconds and {} nanoseconds.",
+                        millis, nanoRemains);
+                // var millis = TimeUnit.NANOSECONDS.toMillis(timeToSleepNanos);
+                // LOG.debug(
+                //         "Thread {} sleeping for {} seconds.",
+                //         Thread.currentThread().getName(),
+                //         (millis / THOUSAND_MILLIS));
             }
             Sleeper.sleepNanos(timeToSleepNanos);
         }
