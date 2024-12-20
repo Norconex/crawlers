@@ -216,18 +216,18 @@ jobs:
         if [ -n "$changed_modules" ]; then
           IFS=',' read -r -a modules_to_process <<< "$changed_modules"
         else
-          modules_to_process=$(grep -oP '<module>\K.*?(?=</module>)' pom.xml | grep -v 'shaded')
+          mapfile -t modules_to_process < <(grep -oP '<module>\K.*?(?=</module>)' pom.xml | grep -v 'shaded')
         fi
-    
+
         # Loop through resolved modules and run Sonar analysis
         for module in "${modules_to_process[@]}"; do
           echo "Running Sonar analysis for module: $module"
-          cd $module
+          cd "$module" || exit
           mvn sonar:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.verbose=true \
             -Dmaven.wagon.rss.buffer.size=2048
-          cd ..
+          cd - || exit
         done
 
     #--- Step ------------------------------------------------------------------
