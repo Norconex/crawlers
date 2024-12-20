@@ -79,7 +79,17 @@ jobs:
         )
       run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
 
+
+    - name: Cache Maven installation
+      uses: actions/cache@v4
+      with:
+        path: /opt/maven
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
     - name: Install recent Maven
+      if: steps.cache-maven.outputs.cache-hit != 'true'
       run: |
         MAVEN_VERSION=3.9.9
         wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
@@ -155,9 +165,11 @@ jobs:
       run: |
         changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
         if [ -n "$changed_modules" ]; then
-          pl_argument="$changed_modules -am"
+          pl_argument="$changed_modules"
+          am_argument="-am"
         else
           pl_argument="!shaded"
+          am_argument=""
         fi
         mvn clean -B verify \
         -Dmaven.compiler.maxmem=2048m \
@@ -167,7 +179,7 @@ jobs:
         -Dmaven.wagon.rss.buffer.size=2048 \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
         -pl "$pl_argument" \
-        -C
+        -C ${am_argument}
 
     # Note: As of this writing, for SonarCloud to work with monorepos, 
     # each projects must be analyzed separately.
