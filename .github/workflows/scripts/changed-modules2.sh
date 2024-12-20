@@ -39,7 +39,6 @@ one_level_dirs=$(echo "$filtered_dirs" | cut -d'/' -f1 | sort -u)
 # Combine output of two-level and one-level directories
 combined_dirs=$(echo -e "$filtered_dirs\n$one_level_dirs" | sort -u)
 
-
 # Identify changed modules
 changed_modules=()
 for module in $modules; do
@@ -52,10 +51,7 @@ done
 
 # Join the modules into a comma-separated string
 changed_modules_string=$(IFS=,; echo "${changed_modules[*]}")
-#all_modules_string=$(echo "$modules" | tr '\n' ',' | sed 's/,$//')
 
 # Output the modules and changed modules for subsequent steps
-#echo "All modules:"
-#echo "::set-output name=modules::$all_modules_string"
 echo "Changed modules:"
 echo "::set-output name=changed_modules::$changed_modules_string"

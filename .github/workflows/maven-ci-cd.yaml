@@ -185,18 +185,14 @@ jobs:
     # each projects must be analyzed separately.
     - name: Sonar Analysis
       run: |
-        # Convert the comma-separated strings into arrays
-        #IFS=',' read -r -a all_modules_array <<< "$all_modules_string"
-        all_modules_array=$(grep -oP '<module>\K.*?(?=</module>)' pom.xml | grep -v 'shaded')
-        IFS=',' read -r -a changed_modules_array <<< "$changed_modules_string"
-    
-        # Determine which array to use
-        if [ ${#changed_modules_array[@]} -gt 0 ]; then
-          modules_to_process=("${changed_modules_array[@]}")
+        # Figure out which modules to process
+        changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
+        if [ -n "$changed_modules" ]; then
+          IFS=',' read -r -a modules_to_process <<< "$changed_modules"
         else
-          modules_to_process=("${all_modules_array[@]}")
+          modules_to_process=$(grep -oP '<module>\K.*?(?=</module>)' pom.xml | grep -v 'shaded')
         fi
-            
+    
         # Loop through resolved modules and run Sonar analysis
         for module in "${modules_to_process[@]}"; do
           echo "Running Sonar analysis for module: $module"
@@ -207,63 +203,6 @@ jobs:
             -Dmaven.wagon.rss.buffer.size=2048
           cd ..
         done
-
-#        
-#        -Dsonar.projectKey=com.norconex.crawler:$module \
-#        -Dsonar.organization=norconex \
-#    
-#        -q     # to quiet maven-generated logs
-#        -T 1C  # to launch in parallel, one thread per CPU core
-#        -Dmaven.compiler.fork=true \
-#        -am    # Build also dependent modules.. if we bring back 
-#               # building only what changed on PRs 
-#
-#    - name: Sonar Analysis
-#      run: |
-#        changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
-#        if [ -z "$changed_modules" ]; then
-#          # If changed_modules is empty, get all modules except "shaded"
-#          modules=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.modules}' --non-recursive exec:exec | tr ',' '\n' | grep -v 'shaded')
-#        else
-#          # If changed_modules is not empty, filter out "shaded"
-#          modules=$(echo "$changed_modules" | tr ',' '\n' | grep -v 'shaded')
-#        fi
-#    
-#        for module in $modules; do
-#          echo "Running Sonar analysis for module: $module"
-#          cd $module
-#          mvn sonar:sonar \
-#            -Dsonar.host.url=https://sonarcloud.io \
-#            -Dsonar.verbose=true \
-#            -Dmaven.wagon.rss.buffer.size=2048
-#          cd ..
-#        done
-#
-#        -Dsonar.projectKey=com.norconex.crawler:$module \
-#        -Dsonar.organization=norconex \
-#    - name: Sonar Analysis
-#      if: ${{ startsWith(github.actor, 'dependabot') == false }}
-#      # Note: As of this writing, for SonarCloud to work with monorepos, 
-#      # each projects must be analyzed separately.
-#      run: |
-#        cd committer/core
-#        mvn sonar:sonar \
-#          -Dsonar.projectKey=com.norconex.crawler:nx-committer-core \
-#          -Dsonar.organization=norconex \
-#          -Dsonar.host.url=https://sonarcloud.io \
-#          -Dsonar.verbose=true \
-#          -Dmaven.wagon.rss.buffer.size=2048
-#      
-#      run: |
-#        dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
-#        for dir in $dirs; do
-#            echo "Analyzing ${dir}..."
-#            jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
-#            (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries=target/classes -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
-#            echo "Generated Jacoco report file: ${jacocoFile}"
-#            cat ${jacocoFile}
-#        done
-
         
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive

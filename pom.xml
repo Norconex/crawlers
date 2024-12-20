@@ -49,15 +49,8 @@
     <!-- If we ever want to scan the parent: -->
     <!-- <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey> -->
     
-    <!-- Optional, to also scan non-JVM files -->
-    <!-- <sonar.maven.scanAll>true</sonar.maven.scanAll> -->
-    
     <sonar.version>5.0.0.4389</sonar.version>
     
-<!--    
-    <sonar.version>3.11.0.3922</sonar.version>
-    <sonar.coverage.jacoco.xmlReportPaths>${maven.multiModuleProjectDirectory}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
--->
     <!-- === Dependencies ================================================== -->
 
     <!-- Norconex dependencies -->
@@ -1139,22 +1132,18 @@
   <modules>
     <module>shaded</module>
     <module>committer/core</module> 
-    <!--
-    <XXmodule>committer/solr</module>
-    <XXmodule>committer/elasticsearch</module>
-    <XXmodule>committer/idol</module>
-    <XXmodule>committer/amazoncloudsearch</module>
-    <XXmodule>committer/sql</module>
-    <XXmodule>committer/neo4j</module>
-    <XXmodule>committer/azurecognitivesearch</module>
-    <XXmodule>committer/apachekafka</module>
-    -->
-    <!--
-    <XXmodule>importer</module>
-    <XXmodule>crawler/core</module>
-    <XXmodule>crawler/web</module>
-    <XXmodule>crawler/fs</module>
-    -->
+    <module>committer/solr</module>
+    <module>committer/elasticsearch</module>
+    <module>committer/idol</module>
+    <module>committer/amazoncloudsearch</module>
+    <module>committer/sql</module>
+    <module>committer/neo4j</module>
+    <module>committer/azurecognitivesearch</module>
+    <module>committer/apachekafka</module>
+    <module>importer</module>
+    <module>crawler/core</module>
+    <module>crawler/web</module>
+    <module>crawler/fs</module>
 <!--
   TODO: when ready, add these:
     <XXmodule>tools/config-converter</module>
