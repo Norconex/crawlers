@@ -53,5 +53,5 @@ done
 changed_modules_string=$(IFS=,; echo "${changed_modules[*]}")
 
 # Output the modules and changed modules for subsequent steps
-echo "Changed modules:"
-echo "::set-output name=changed_modules::$changed_modules_string"
+echo "Changed modules: $changed_modules_string"
+echo "changed_modules=$changed_modules_string" >> $GITHUB_ENV

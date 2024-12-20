@@ -62,7 +62,9 @@ jobs:
 
     steps:
     - run: |
-        echo "Should deploy: $SHOULD_DEPLOY"        
+        echo "Should deploy: ${{ env.SHOULD_DEPLOY }}"        
+
+    #--- Step ------------------------------------------------------------------
         
     - name: Checkout code
       uses: actions/checkout@v4
@@ -70,7 +72,9 @@ jobs:
         # depth 0 means checkout all commits... we need that 
         # in case there are many commits in a push/PR
         fetch-depth: 0      
-      
+
+    #--- Step ------------------------------------------------------------------
+        
     - name: Merge main|release into PR branch
       if: >
         github.event_name == 'pull_request' && (
@@ -79,6 +83,7 @@ jobs:
         )
       run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
 
+    #--- Step ------------------------------------------------------------------
 
     - name: Cache Maven installation
       id: cache-maven   
@@ -89,8 +94,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
 
+    #--- Step ------------------------------------------------------------------
+        
     - name: Install recent Maven
-      if: steps.cache-maven.outputs.cache-hit != 'true'
+      if: ${{ steps.cache-maven.outputs.cache-hit != 'true' }}
       run: |
         MAVEN_VERSION=3.9.9
         wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
@@ -99,6 +106,8 @@ jobs:
         sudo rm -f /usr/bin/mvn
         sudo ln -s /opt/maven/bin/mvn /usr/bin/mvn
       
+    #--- Step ------------------------------------------------------------------
+        
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -118,17 +127,21 @@ jobs:
         
     - run: mvn --version
         
+    #--- Step ------------------------------------------------------------------
+    
     - name: Cache Maven repository
       uses: actions/cache@v4
       with:
         path: |
           ~/.m2/repository
           !~/.m2/repository/com/norconex
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}-${{ hashFiles('**/dependency-management.xml') }}
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           ${{ runner.os }}-maven-
 
+    #--- Step ------------------------------------------------------------------
+            
     - name: Cache SonarCloud analysis
       uses: actions/cache@v4
       with:
@@ -136,15 +149,21 @@ jobs:
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
 
+    #--- Step ------------------------------------------------------------------
+        
     - name: Resolve Maven Dependencies
       run: |
         mvn dependency:resolve -U \
         -Dmaven.wagon.rss.buffer.size=2048 \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-        
+
+    #--- Step ------------------------------------------------------------------
+                
     - name: Show Maven Dependency Tree
       run: mvn dependency:tree -Dverbose
-      
+
+    #--- Step ------------------------------------------------------------------
+            
     - name: Build and Install Shaded Libs
       run: |
         mvn clean install \
@@ -153,15 +172,19 @@ jobs:
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
         -pl shaded
 
+    #--- Step ------------------------------------------------------------------
+        
     - name: Find Changed Modules (only if not deploying)
-      if: env.SHOULD_DEPLOY == 'false'
+      if: ${{ env.SHOULD_DEPLOY == 'false' }}
       id: find-modules
       run: |
         chmod +x .github/workflows/scripts/changed-modules2.sh
         ./.github/workflows/scripts/changed-modules2.sh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
+    #--- Step ------------------------------------------------------------------
+                
     - name: Build and test
       run: |
         changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
@@ -182,6 +205,8 @@ jobs:
         -pl "$pl_argument" \
         -C ${am_argument}
 
+    #--- Step ------------------------------------------------------------------
+        
     # Note: As of this writing, for SonarCloud to work with monorepos, 
     # each projects must be analyzed separately.
     - name: Sonar Analysis
@@ -204,13 +229,17 @@ jobs:
             -Dmaven.wagon.rss.buffer.size=2048
           cd ..
         done
-        
+
+    #--- Step ------------------------------------------------------------------
+                
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
     - name: Update Maven dependency graph
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
       uses: advanced-security/maven-dependency-submission-action@v4
 
+    #--- Step ------------------------------------------------------------------
+      
     - name: Deploy snapshots to Sonatype
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
       run: mvn deploy -DskipTests -Dskip.sonar=true -X
