@@ -61,6 +61,9 @@ jobs:
       contents: write
 
     steps:
+    - run: |
+        echo "Should deploy: $SHOULD_DEPLOY"        
+        
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -128,7 +131,6 @@ jobs:
         -Dmaven.wagon.rss.buffer.size=2048 \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
         
-
     - name: Show Maven Dependency Tree
       run: mvn dependency:tree -Dverbose
       
@@ -136,74 +138,110 @@ jobs:
       run: |
         mvn clean install \
         -Dgpg.skip=true \
-        -Dmaven.repo.local=~/.m2/repository \
         -Dmaven.wagon.rss.buffer.size=2048 \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
         -pl shaded
+
+    - name: Find Changed Modules (only if not deploying)
+      if: env.SHOULD_DEPLOY == 'false'
+      id: find-modules
+      run: |
+        chmod +x scripts/changed-modules2.sh
+        scripts/changed-modules2.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Build and test
       run: |
+        changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
+        if [ -n "$changed_modules" ]; then
+          pl_argument="$changed_modules -am"
+        else
+          pl_argument="!shaded"
+        fi
         mvn clean -B verify \
         -Dmaven.compiler.maxmem=2048m \
         -DargLine="-Xmx2g" \
         -Dgpg.skip=true \
         -Dmaven.javadoc.skip=true \
-        -Dmaven.repo.local=~/.m2/repository \
         -Dmaven.wagon.rss.buffer.size=2048 \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-        -pl !shaded \
+        -pl "$pl_argument" \
         -C
 
+    # Note: As of this writing, for SonarCloud to work with monorepos, 
+    # each projects must be analyzed separately.
+    - name: Sonar Analysis
+      run: |
+        # Convert the comma-separated strings into arrays
+        #IFS=',' read -r -a all_modules_array <<< "$all_modules_string"
+        all_modules_array=$(grep -oP '<module>\K.*?(?=</module>)' pom.xml | grep -v 'shaded')
+        IFS=',' read -r -a changed_modules_array <<< "$changed_modules_string"
+    
+        # Determine which array to use
+        if [ ${#changed_modules_array[@]} -gt 0 ]; then
+          modules_to_process=("${changed_modules_array[@]}")
+        else
+          modules_to_process=("${all_modules_array[@]}")
+        fi
+            
+        # Loop through resolved modules and run Sonar analysis
+        for module in "${modules_to_process[@]}"; do
+          echo "Running Sonar analysis for module: $module"
+          cd $module
+          mvn sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.verbose=true \
+            -Dmaven.wagon.rss.buffer.size=2048
+          cd ..
+        done
+
+#        
+#        -Dsonar.projectKey=com.norconex.crawler:$module \
+#        -Dsonar.organization=norconex \
+#    
 #        -q     # to quiet maven-generated logs
 #        -T 1C  # to launch in parallel, one thread per CPU core
 #        -Dmaven.compiler.fork=true \
 #        -am    # Build also dependent modules.. if we bring back 
 #               # building only what changed on PRs 
-      
-      
-    - name: Sonar Analysis
-      if: ${{ startsWith(github.actor, 'dependabot') == false }}
-      # Note: As of this writing, for SonarCloud to work with monorepos, 
-      # each projects must be analyzed separately.
-      run: |
-        cd committer/core
-        mvn sonar:sonar \
-          -Dsonar.projectKey=com.norconex.crawler:nx-committer-core \
-          -Dsonar.organization=norconex \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.verbose=true \
-          -Dmaven.repo.local=$HOME/.m2/repository \
-          -Dmaven.wagon.rss.buffer.size=2048
-      
-#    - name: Log Debugging Info
-#-Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-#      if: always()
+#
+#    - name: Sonar Analysis
 #      run: |
-#        echo "Directory: $(pwd)" && ls        
-#        ls -lh committer/core
-#        ls -lh committer/core/target
-#        ls -lh committer/core/target/sonar
-#        ls -lh committer/core/target/site
-#        ls -lh committer/core/target/site/jacoco
-
-
-#         -Dsonar.scanner.dumpToFile=sonar-dump.json \
+#        changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
+#        if [ -z "$changed_modules" ]; then
+#          # If changed_modules is empty, get all modules except "shaded"
+#          modules=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.modules}' --non-recursive exec:exec | tr ',' '\n' | grep -v 'shaded')
+#        else
+#          # If changed_modules is not empty, filter out "shaded"
+#          modules=$(echo "$changed_modules" | tr ',' '\n' | grep -v 'shaded')
+#        fi
+#    
+#        for module in $modules; do
+#          echo "Running Sonar analysis for module: $module"
+#          cd $module
+#          mvn sonar:sonar \
+#            -Dsonar.host.url=https://sonarcloud.io \
+#            -Dsonar.verbose=true \
+#            -Dmaven.wagon.rss.buffer.size=2048
+#          cd ..
+#        done
+#
+#        -Dsonar.projectKey=com.norconex.crawler:$module \
+#        -Dsonar.organization=norconex \
+#    - name: Sonar Analysis
+#      if: ${{ startsWith(github.actor, 'dependabot') == false }}
+#      # Note: As of this writing, for SonarCloud to work with monorepos, 
+#      # each projects must be analyzed separately.
 #      run: |
-#        dir="${GITHUB_WORKSPACE}/committer/core"
-#        echo "Analyzing ${dir}..."
-#        jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
-#        (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries="${dir}/target/classes" -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
-#        echo "Generated Jacoco report file: ${jacocoFile}"
-#        cat ${jacocoFile}
-
-#        dir=comitter/solr
-#        echo "Analyzing ${dir}..."
-#        jacocoFile="${dir}/target/site/jacoco-aggregate/jacoco.xml"
-#        (cd ${dir}; mvn sonar:sonar -X -Dsonar.java.binaries=target/classes -Dsonar.coverage.jacoco.xmlReportPaths=${jacocoFile})
-#        echo "Generated Jacoco report file: ${jacocoFile}"
-#        cat ${jacocoFile}
-
-        
+#        cd committer/core
+#        mvn sonar:sonar \
+#          -Dsonar.projectKey=com.norconex.crawler:nx-committer-core \
+#          -Dsonar.organization=norconex \
+#          -Dsonar.host.url=https://sonarcloud.io \
+#          -Dsonar.verbose=true \
+#          -Dmaven.wagon.rss.buffer.size=2048
+#      
 #      run: |
 #        dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
 #        for dir in $dirs; do
