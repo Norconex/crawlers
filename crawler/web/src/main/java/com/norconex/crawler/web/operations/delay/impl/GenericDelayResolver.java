@@ -82,7 +82,6 @@ public class GenericDelayResolver
 
     @Override
     public void accept(CrawlerEvent ev) {
-        //TODO Check if crawl task.
         if (ev.is(CrawlerEvent.TASK_RUN_BEGIN)) {
             schedules.clear();
             configuration.getSchedules().forEach(sch -> {

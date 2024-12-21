@@ -28,25 +28,24 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 public class CrawlerDelay extends AbstractDelay {
 
-    private MutableLong lastHitEpochNanos = new MutableLong(-1);
+    private MutableLong lastHitEpochMillis = new MutableLong(-1);
     private boolean sleeping = false;
 
     @Override
-    public void delay(long expectedDelayNanos, String url) {
-        if (expectedDelayNanos <= 0) {
+    public void delay(long expectedDelayMillis, String url) {
+        if (expectedDelayMillis <= 0) {
             return;
         }
         try {
-            synchronized (lastHitEpochNanos) {
+            synchronized (lastHitEpochMillis) {
                 while (sleeping) {
-                    Sleeper.sleepNanos(
-                            Math.min(
-                                    TINY_SLEEP_MS, expectedDelayNanos));
+                    Sleeper.sleepMillis(Math.min(
+                            TINY_SLEEP_MS, expectedDelayMillis));
                 }
                 sleeping = true;
             }
-            delay(expectedDelayNanos, lastHitEpochNanos.longValue());
-            lastHitEpochNanos.setValue(System.nanoTime());
+            delay(expectedDelayMillis, lastHitEpochMillis.longValue());
+            lastHitEpochMillis.setValue(System.currentTimeMillis());
         } finally {
             sleeping = false;
         }

@@ -29,30 +29,29 @@ import lombok.ToString;
 @ToString
 public class SiteDelay extends AbstractDelay {
 
-    private final Map<String, SleepState> siteLastHitNanos =
+    private final Map<String, SleepState> siteLastHitMillis =
             new ConcurrentHashMap<>();
 
     @Override
-    public void delay(long expectedDelayNanos, String url) {
-        if (expectedDelayNanos <= 0) {
+    public void delay(long expectedDelayMillis, String url) {
+        if (expectedDelayMillis <= 0) {
             return;
         }
 
         var site = StringUtils.lowerCase(HttpURL.getRoot(url));
         SleepState sleepState = null;
         try {
-            synchronized (siteLastHitNanos) {
-                sleepState = siteLastHitNanos.computeIfAbsent(
+            synchronized (siteLastHitMillis) {
+                sleepState = siteLastHitMillis.computeIfAbsent(
                         site, k -> new SleepState());
                 while (sleepState.sleeping) {
-                    Sleeper.sleepNanos(
-                            Math.min(
-                                    TINY_SLEEP_MS, expectedDelayNanos));
+                    Sleeper.sleepMillis(
+                            Math.min(TINY_SLEEP_MS, expectedDelayMillis));
                 }
                 sleepState.sleeping = true;
             }
-            delay(expectedDelayNanos, sleepState.lastHitEpochNanos);
-            sleepState.lastHitEpochNanos = System.nanoTime();
+            delay(expectedDelayMillis, sleepState.lastHitEpochMillis);
+            sleepState.lastHitEpochMillis = System.currentTimeMillis();
         } finally {
             if (sleepState != null) {
                 sleepState.sleeping = false;
@@ -63,7 +62,7 @@ public class SiteDelay extends AbstractDelay {
     @EqualsAndHashCode
     @ToString
     private static class SleepState {
-        private long lastHitEpochNanos = System.nanoTime();
+        private long lastHitEpochMillis = System.currentTimeMillis();
         private boolean sleeping;
     }
 }

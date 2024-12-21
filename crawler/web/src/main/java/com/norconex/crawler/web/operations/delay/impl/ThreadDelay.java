@@ -16,13 +16,13 @@ package com.norconex.crawler.web.operations.delay.impl;
 
 public class ThreadDelay extends AbstractDelay {
 
-    private static final ThreadLocal<Long> THREAD_LAST_HIT_NANOS = //NOSONAR
-            ThreadLocal.withInitial(System::nanoTime);
+    private static final ThreadLocal<Long> THREAD_LAST_HIT_MILLIS = //NOSONAR
+            ThreadLocal.withInitial(System::currentTimeMillis);
 
     @Override
-    public void delay(long expectedDelayNanos, String url) {
-        long lastHitNanos = THREAD_LAST_HIT_NANOS.get();
-        delay(expectedDelayNanos, lastHitNanos);
-        THREAD_LAST_HIT_NANOS.set(System.nanoTime());
+    public void delay(long expectedDelayMillis, String url) {
+        long lastHitMillis = THREAD_LAST_HIT_MILLIS.get();
+        delay(expectedDelayMillis, lastHitMillis);
+        THREAD_LAST_HIT_MILLIS.set(System.currentTimeMillis());
     }
 }

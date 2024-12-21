@@ -30,39 +30,32 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractDelay {
 
-    protected static final int TINY_SLEEP_MS = 10;
-    //    private static final float THOUSAND_MILLIS = 1000f;
+    protected static final int TINY_SLEEP_MS = 5;
 
-    public abstract void delay(long expectedDelayNanos, String url);
+    public abstract void delay(long expectedDelayMillis, String url);
 
-    protected void delay(long expectedDelayNanos, long lastHitNanos) {
+    protected void delay(long expectedDelayMillis, long lastHitMillis) {
         // Targeted delay in nanoseconds
-        if (expectedDelayNanos <= 0) {
+        if (expectedDelayMillis <= 0) {
             return;
         }
 
         // How much time since last hit?
-        var elapsedTimeNanos = System.nanoTime() - lastHitNanos;
+        var elapsedTimeMillis = System.currentTimeMillis() - lastHitMillis;
 
         // Sleep until targeted delay if not already passed.
-        if (elapsedTimeNanos < expectedDelayNanos) {
-            var timeToSleepNanos = expectedDelayNanos - elapsedTimeNanos;
+        if (elapsedTimeMillis < expectedDelayMillis) {
+            var timeToSleepMillis = expectedDelayMillis - elapsedTimeMillis;
             if (LOG.isDebugEnabled()) {
-                var millis = TimeUnit.NANOSECONDS.toMillis(timeToSleepNanos);
-                var nanoRemains = (int) (timeToSleepNanos
-                        - TimeUnit.MILLISECONDS.toNanos(millis));
-                LOG.debug("Thread sleeping for {} "
-                        + "milliseconds and {} nanoseconds.",
-                        millis, nanoRemains);
-                // var millis = TimeUnit.NANOSECONDS.toMillis(timeToSleepNanos);
-                // LOG.debug(
-                //         "Thread {} sleeping for {} seconds.",
-                //         Thread.currentThread().getName(),
-                //         (millis / THOUSAND_MILLIS));
+                var secs = TimeUnit.MILLISECONDS.toSeconds(timeToSleepMillis);
+                var millisRemains = (timeToSleepMillis
+                        - TimeUnit.SECONDS.toMillis(secs));
+                LOG.debug("Thread sleeping for {} sec. and {} millis.",
+                        secs, millisRemains);
             }
-            Sleeper.sleepNanos(timeToSleepNanos);
+            Sleeper.sleepMillis(timeToSleepMillis);
         }
         // Ensure time has changed
-        Sleeper.sleepNanos(1);
+        Sleeper.sleepMillis(1);
     }
 }

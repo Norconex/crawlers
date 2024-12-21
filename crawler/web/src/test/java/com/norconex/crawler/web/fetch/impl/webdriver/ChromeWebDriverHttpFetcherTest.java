@@ -14,10 +14,6 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-import org.junit.jupiter.api.Disabled;
-
-//TODO investigate why it fails during build but not locally.
-@Disabled
 class ChromeWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
 
     // Tests are in super class

@@ -82,8 +82,8 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
 
     @Override
     public void delay(RobotsTxt robotsTxt, String url) {
-        var expectedDelayNanos = getExpectedDelayNanos(robotsTxt, url);
-        if (expectedDelayNanos <= 0) {
+        var expectedDelayMillis = getExpectedDelayMillis(robotsTxt, url);
+        if (expectedDelayMillis <= 0) {
             return;
         }
         var delay = delays.get(getConfiguration().getScope());
@@ -94,25 +94,24 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
                     BaseDelayResolverConfig.DEFAULT_SCOPE);
             delay = delays.get(BaseDelayResolverConfig.DEFAULT_SCOPE);
         }
-        delay.delay(expectedDelayNanos, url);
+        delay.delay(expectedDelayMillis, url);
     }
 
-    private long getExpectedDelayNanos(
-            RobotsTxt robotsTxt, String url) {
-        var delayNanos = Optional
+    private long getExpectedDelayMillis(RobotsTxt robotsTxt, String url) {
+        var delayMillis = Optional
                 .ofNullable(getConfiguration().getDefaultDelay())
                 .orElse(BaseDelayResolverConfig.DEFAULT_DELAY)
-                .toNanos();
+                .toMillis();
         if (isUsingRobotsTxtCrawlDelay(robotsTxt)) {
-            delayNanos = TimeUnit.SECONDS.toNanos(
+            delayMillis = TimeUnit.SECONDS.toMillis(
                     (long) (robotsTxt.getCrawlDelay()));
         } else {
             var explicitDelay = resolveExplicitDelay(url);
             if (explicitDelay != null) {
-                delayNanos = explicitDelay.toNanos();
+                delayMillis = explicitDelay.toMillis();
             }
         }
-        return delayNanos;
+        return delayMillis;
     }
 
     /**
