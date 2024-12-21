@@ -150,7 +150,21 @@ jobs:
         restore-keys: ${{ runner.os }}-sonar
 
     #--- Step ------------------------------------------------------------------
+
+    # The shaded libs are dependencies to some other modules so we have
+    # to install them in local maven repo first. 
+    - name: Build and Install Shaded Libs
+      run: |
+        mvn clean install \
+        -Dgpg.skip=true \
+        -Dmaven.wagon.rss.buffer.size=2048 \
+        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+        -pl shaded
+
+    #--- Step ------------------------------------------------------------------
         
+    # Resolving before most mvn commands will fail early if there is an issue.
+    # Downloaded items won't be downloaded again in this workflow.
     - name: Resolve Maven Dependencies
       run: |
         mvn dependency:resolve -U \
@@ -161,16 +175,6 @@ jobs:
                 
     - name: Show Maven Dependency Tree
       run: mvn dependency:tree -Dverbose
-
-    #--- Step ------------------------------------------------------------------
-            
-    - name: Build and Install Shaded Libs
-      run: |
-        mvn clean install \
-        -Dgpg.skip=true \
-        -Dmaven.wagon.rss.buffer.size=2048 \
-        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-        -pl shaded
 
     #--- Step ------------------------------------------------------------------
         
