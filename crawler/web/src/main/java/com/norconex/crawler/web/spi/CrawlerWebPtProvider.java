@@ -52,7 +52,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
 
     private static final String WEB_BASE_PKG = "com.norconex.crawler.web";
     private static final String OPERATIONS_BASE_PKG =
-            WEB_BASE_PKG + ".cmd.crawl.operations";
+            WEB_BASE_PKG + ".operations";
     private static final String FILTER_BASE_PKG =
             OPERATIONS_BASE_PKG + ".filter";
 

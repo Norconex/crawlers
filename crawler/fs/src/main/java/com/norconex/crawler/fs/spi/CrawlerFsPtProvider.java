@@ -46,7 +46,7 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
 
-        addPolyType(map, MetadataChecksummer.class, "cmd.crawl.operations");
+        addPolyType(map, MetadataChecksummer.class, "operations");
         map.putAll(
                 Fetcher.class, List.of(
                         FsMetadataChecksummer.class,
