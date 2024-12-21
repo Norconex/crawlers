@@ -200,8 +200,8 @@ jobs:
           am_argument=""
         fi
         mvn clean -B verify \
-        -Dmaven.compiler.maxmem=2048m \
-        -DargLine="-Xmx2g" \
+        -Dmaven.compiler.maxmem=3072m \
+        -DargLine="-Xmx3g" \
         -Dgpg.skip=true \
         -Dmaven.javadoc.skip=true \
         -Dmaven.wagon.rss.buffer.size=2048 \

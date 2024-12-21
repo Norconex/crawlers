@@ -108,7 +108,7 @@ public class LocalGridStorage implements GridStorage {
             storeConsumer.accept(concreteStore(
                     entry.getStoreType(),
                     name,
-                    entry.getStoreType()));
+                    entry.getObjectType()));
         });
     }
 

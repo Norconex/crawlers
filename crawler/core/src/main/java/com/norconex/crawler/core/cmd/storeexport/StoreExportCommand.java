@@ -31,6 +31,9 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.GridQueue;
+import com.norconex.crawler.core.grid.GridSet;
 import com.norconex.crawler.core.grid.GridStore;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.SerialUtil;
@@ -111,7 +114,7 @@ public class StoreExportCommand implements Command {
         writer.writeStartObject();
         writer.writeStringField("crawler", crawlerContext.getId());
         writer.writeStringField("store", store.getName());
-        writer.writeStringField("storeType", store.getType().getName());
+        writer.writeStringField("storeType", storeSuperClassName(store));
         writer.writeStringField("objectType", type.getName());
         writer.writeFieldName("records");
         writer.writeStartArray();
@@ -137,5 +140,16 @@ public class StoreExportCommand implements Command {
         writer.writeEndArray();
         writer.writeEndObject();
         writer.flush();
+    }
+
+    private String storeSuperClassName(GridStore<?> store) {
+        var concreteClass = store.getClass();
+        if (GridQueue.class.isAssignableFrom(concreteClass)) {
+            return GridQueue.class.getName();
+        }
+        if (GridSet.class.isAssignableFrom(concreteClass)) {
+            return GridSet.class.getName();
+        }
+        return GridCache.class.getName();
     }
 }
