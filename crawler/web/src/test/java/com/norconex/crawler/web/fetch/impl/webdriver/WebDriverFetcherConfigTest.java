@@ -88,4 +88,11 @@ class WebDriverFetcherConfigTest {
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(f));
     }
+
+    @Test
+    void testWriteReadDefaults() {
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT
+                        .assertWriteRead(new WebDriverFetcher()));
+    }
 }

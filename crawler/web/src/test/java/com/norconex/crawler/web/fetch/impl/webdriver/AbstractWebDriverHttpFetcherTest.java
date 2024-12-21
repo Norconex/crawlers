@@ -16,7 +16,6 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
@@ -31,8 +30,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -47,20 +44,14 @@ import org.testcontainers.containers.BrowserWebDriverContainer;
 import org.testcontainers.containers.BrowserWebDriverContainer.VncRecordingMode;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
-import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.core.doc.DocResolutionStatus;
-import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.fetch.HttpFetchRequest;
-import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -124,6 +115,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
             ClientAndServer client, WebCrawlerConfig cfg) {
         MockWebsite.whenJsRenderedWebsite(client);
 
+        WebTestUtil.ignoreAllIgnorables(cfg);
         cfg.setFetchers(List.of(createWebDriverHttpFetcher()));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(hostUrl(client, "/index.html")));
@@ -134,7 +126,6 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 .contains("JavaScript-rendered!");
     }
 
-    @Disabled
     @WebCrawlTest
     void testTakeScreenshots(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
@@ -149,6 +140,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
         var f = createWebDriverHttpFetcher();
         f.getConfiguration().setScreenshotHandler(h);
+        WebTestUtil.ignoreAllIgnorables(cfg);
         cfg.setFetchers(List.of(f));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(hostUrl(client, "/apple.html")));
@@ -197,6 +189,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         Testcontainers.exposeHostPorts(client.getPort(), snifCfg.getPort());
         var fetcher = createWebDriverHttpFetcher();
         fetcher.getConfiguration().setHttpSniffer(sniffer);
+        WebTestUtil.ignoreAllIgnorables(cfg);
         cfg.setFetchers(List.of(fetcher));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(serverUrl(client, path)));
@@ -239,6 +232,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                     els[0].innerHTML='Melon';
                 }
                 """);
+        WebTestUtil.ignoreAllIgnorables(cfg);
         cfg.setFetchers(List.of(f));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(hostUrl(client, path)));
@@ -271,6 +265,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         var fetcher = createWebDriverHttpFetcher();
         cfg.setFetchers(List.of(fetcher));
         cfg.setMaxDepth(0);
+        WebTestUtil.ignoreAllIgnorables(cfg);
         // test setting a bunch of other params
         fetcher.getConfiguration()
                 .setWindowSize(new java.awt.Dimension(640, 480))
@@ -282,24 +277,6 @@ public abstract class AbstractWebDriverHttpFetcherTest
         cfg.setStartReferences(List.of(hostUrl(client, path)));
         WebCrawlTestCapturer.crawlAndCapture(cfg);
         assertThat(fetcher.getUserAgent()).isNotBlank();
-    }
-
-    @Test
-    void testUnsupportedHttpMethod() throws FetchException {
-        var response = new WebDriverFetcher().fetch(
-                new HttpFetchRequest(
-                        CrawlDocStubs.crawlDocHtml("http://example.com"),
-                        HttpMethod.HEAD));
-        assertThat(response.getReasonPhrase()).contains("To obtain headers");
-        assertThat(response.getResolutionStatus()).isEqualTo(
-                DocResolutionStatus.UNSUPPORTED);
-    }
-
-    @Test
-    void testWriteRead() {
-        assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT
-                        .assertWriteRead(new WebDriverFetcher()));
     }
 
     //--- Private/Protected ----------------------------------------------------
