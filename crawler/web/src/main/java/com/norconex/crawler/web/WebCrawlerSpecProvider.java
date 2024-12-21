@@ -18,27 +18,35 @@ import java.util.List;
 
 import com.norconex.crawler.core.CrawlerSpec;
 import com.norconex.crawler.core.CrawlerSpecProvider;
-import com.norconex.crawler.core.cmd.crawl.service.impl.CoreQueueInitializer;
+import com.norconex.crawler.core.init.CrawlerInitializers;
+import com.norconex.crawler.core.init.ledger.DocLedgerInitializer;
+import com.norconex.crawler.core.init.queue.FileRefEnqueuer;
+import com.norconex.crawler.core.init.queue.ListRefEnqueuer;
+import com.norconex.crawler.core.init.queue.ProviderRefEnqueuer;
+import com.norconex.crawler.core.init.queue.QueueInitializer;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
-import com.norconex.crawler.web.cmd.crawl.pipelines.WebDocPipelines;
-import com.norconex.crawler.web.cmd.crawl.pipelines.queue.SitemapQueueInitializer;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
+import com.norconex.crawler.web.pipelines.WebPipelines;
+import com.norconex.crawler.web.pipelines.queue.SitemapEnqueuer;
 
 public class WebCrawlerSpecProvider implements CrawlerSpecProvider {
 
     @Override
     public CrawlerSpec get() {
         return new CrawlerSpec()
-                .queueInitializer(new CoreQueueInitializer(List.of(
-                        new SitemapQueueInitializer(),
-                        CoreQueueInitializer.fromList,
-                        CoreQueueInitializer.fromFiles,
-                        CoreQueueInitializer.fromProviders)))
+                .initializers(CrawlerInitializers.builder()
+                        .initializer(new DocLedgerInitializer())
+                        .initializer(new QueueInitializer(List.of(
+                                new SitemapEnqueuer(),
+                                new ListRefEnqueuer(),
+                                new FileRefEnqueuer(),
+                                new ProviderRefEnqueuer())))
+                        .build())
                 .crawlerConfigClass(WebCrawlerConfig.class)
                 .fetcherProvider(new HttpFetcherProvider())
                 .callbacks(WebCrawlerCallbacks.get())
-                .docPipelines(WebDocPipelines.create())
+                .pipelines(WebPipelines.create())
                 .docContextType(WebCrawlDocContext.class);
     }
 }

@@ -42,19 +42,20 @@ import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.cmd.crawl.CrawlStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.DedupService;
-import com.norconex.crawler.core.cmd.crawl.pipelines.DocPipelines;
-import com.norconex.crawler.core.cmd.crawl.task.DocProcessingLedger;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.DocProcessingLedger;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.init.CrawlerInitializers;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
+import com.norconex.crawler.core.pipelines.CrawlerPipelines;
+import com.norconex.crawler.core.pipelines.DedupService;
 import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
@@ -120,7 +121,8 @@ public class CrawlerContext implements Closeable {
     private CommitterService<CrawlDoc> committerService;
     private Importer importer;
 
-    private final DocPipelines docPipelines;
+    private final CrawlerInitializers initializers;
+    private final CrawlerPipelines pipelines;
     private final Fetcher<? extends FetchRequest,
             ? extends FetchResponse> fetcher;
 
@@ -163,7 +165,8 @@ public class CrawlerContext implements Closeable {
         importer = new Importer(
                 configuration.getImporterConfig(), eventManager);
         fetcher = spec.fetcherProvider().apply(this);
-        docPipelines = spec.docPipelines();
+        initializers = spec.initializers();
+        pipelines = spec.pipelines();
     }
 
     public void init() {

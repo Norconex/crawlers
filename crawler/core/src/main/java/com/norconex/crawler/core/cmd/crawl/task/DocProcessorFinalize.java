@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cmd.crawl.task;
 
-import static com.norconex.crawler.core.cmd.crawl.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
+import static com.norconex.crawler.core.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
 import static java.io.InputStream.nullInputStream;
 import static java.util.Optional.ofNullable;
 
@@ -25,9 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.crawler.core.cmd.crawl.operations.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategy;
 
 import lombok.extern.slf4j.Slf4j;
 

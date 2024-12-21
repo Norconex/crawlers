@@ -27,11 +27,11 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.cmd.crawl.operations.robot.RobotsTxt;
-import com.norconex.crawler.web.cmd.crawl.operations.scope.UrlScope;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.web.operations.robot.RobotsTxt;
+import com.norconex.crawler.web.operations.scope.UrlScope;
 
 import lombok.NonNull;
 

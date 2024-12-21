@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.cmd.crawl.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcherConfig.WaitElementType;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;

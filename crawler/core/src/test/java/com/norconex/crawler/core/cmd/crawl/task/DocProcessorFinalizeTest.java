@@ -20,13 +20,13 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.cmd.crawl.operations.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.cmd.crawl.operations.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategy;
 
 class DocProcessorFinalizeTest {
 

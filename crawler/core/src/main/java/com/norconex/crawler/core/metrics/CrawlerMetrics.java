@@ -25,7 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.cmd.crawl.task.DocProcessingLedger;
+import com.norconex.crawler.core.doc.DocProcessingLedger;
 import com.norconex.crawler.core.grid.GridCache;
 
 public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {

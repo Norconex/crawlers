@@ -31,15 +31,15 @@ import org.mockserver.model.MediaType;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.cmd.crawl.operations.scope.impl.GenericUrlScopeResolver;
-import com.norconex.crawler.web.cmd.crawl.operations.sitemap.impl.GenericSitemapLocator;
-import com.norconex.crawler.web.cmd.crawl.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import com.norconex.crawler.web.operations.scope.impl.GenericUrlScopeResolver;
+import com.norconex.crawler.web.operations.sitemap.impl.GenericSitemapLocator;
+import com.norconex.crawler.web.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.util.Web;
 
 /**

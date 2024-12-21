@@ -25,12 +25,12 @@ import org.apache.commons.lang3.mutable.MutableLong;
 import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.crawl.CrawlStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.cmd.crawl.task.CrawlTask;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridService;
 import com.norconex.crawler.core.grid.GridTxOptions;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridKeys;
+import com.norconex.crawler.core.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class CrawlService implements GridService {
             BiConsumer<CrawlService, CrawlerContext>> stageRunners =
                     new ListOrderedMap<>();
     static {
-        stageRunners.put(CrawlStage.INITIALIZE, CrawlService::prepare);
+        stageRunners.put(CrawlStage.INITIALIZE, CrawlService::runInitializers);
         stageRunners.put(CrawlStage.CRAWL, CrawlService::crawl);
         stageRunners.put(CrawlStage.HANDLE_ORPHANS,
                 CrawlService::handleOrphans);
@@ -105,14 +105,15 @@ public class CrawlService implements GridService {
         LOG.info("Crawler ended");
     }
 
-    private void prepare(CrawlerContext ctx) {
+    private void runInitializers(CrawlerContext ctx) {
         // We launch a new crawl thread here as some crawl related actions
-        // can be/are done within this initialization phase (like fetch
-        // a sitemap.xml, etc.).
+        // can be/are done within an initializer execution (like fetch
+        // a sitemap.xml, etc.) and they need to receive this notification.
         ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
         try {
-            DocLedgerPrepareExecutor.execute(ctx);
-            QueueInitExecutor.execute(ctx);
+            if (ctx.getInitializers() != null) {
+                ctx.getInitializers().accept(ctx);
+            }
         } finally {
             ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_END,
                     Thread.currentThread());
@@ -169,7 +170,7 @@ public class CrawlService implements GridService {
         LOG.info("Queueing orphan references for processing...");
         var count = new MutableLong();
         ctx.getDocProcessingLedger().forEachCached((ref, docInfo) -> {
-            ctx.getDocPipelines()
+            ctx.getPipelines()
                     .getQueuePipeline()
                     .accept(new QueuePipelineContext(ctx, docInfo));
             count.increment();

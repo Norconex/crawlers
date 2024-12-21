@@ -17,11 +17,11 @@ package com.norconex.crawler.core.cmd.crawl.task;
 import org.apache.commons.io.input.NullInputStream;
 
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.crawler.core.cmd.crawl.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.cmd.crawl.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.pipelines.committer.CommitterPipelineContext;
+import com.norconex.crawler.core.pipelines.importer.ImporterPipelineContext;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +48,7 @@ final class DocProcessorUpsert {
 
         var response = ctx
                 .crawlerContext()
-                .getDocPipelines()
+                .getPipelines()
                 .getImporterPipeline()
                 .apply(new ImporterPipelineContext(ctx.crawlerContext(),
                         ctx.doc()));
@@ -138,7 +138,7 @@ final class DocProcessorUpsert {
                             .subject(response)
                             .message(msg)
                             .build());
-            ctx.crawlerContext().getDocPipelines().getCommitterPipeline()
+            ctx.crawlerContext().getPipelines().getCommitterPipeline()
                     .accept(
                             new CommitterPipelineContext(ctx.crawlerContext(),
                                     ctx.doc()));

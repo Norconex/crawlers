@@ -18,12 +18,15 @@ import java.util.function.Function;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.EventManager;
-import com.norconex.crawler.core.cmd.crawl.pipelines.DocPipelines;
-import com.norconex.crawler.core.cmd.crawl.service.QueueInitializer;
+import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.init.CrawlerInitializers;
+import com.norconex.crawler.core.init.ledger.DocLedgerInitializer;
+import com.norconex.crawler.core.init.queue.QueueInitializer;
+import com.norconex.crawler.core.pipelines.CrawlerPipelines;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -34,17 +37,17 @@ import lombok.experimental.Accessors;
 @Data
 @NonNull
 public class CrawlerSpec {
-    //    private CrawlerConfig configuration = new CrawlerConfig();
     private Class<? extends CrawlerConfig> crawlerConfigClass =
             CrawlerConfig.class;
-    private QueueInitializer queueInitializer;
-    private DocPipelines docPipelines;
+    private CrawlerInitializers initializers = CrawlerInitializers.builder()
+            .initializers(Predicates.allOf(
+                    new DocLedgerInitializer(),
+                    new QueueInitializer()))
+            .build();
+    private CrawlerPipelines pipelines;
     private CrawlerCallbacks callbacks = CrawlerCallbacks.builder().build();
     private BeanMapper beanMapper = BeanMapper.DEFAULT;
     private EventManager eventManager = new EventManager();
-    //TODO delete attributes and use store instead
-    //    private CrawlerSessionAttributes attributes =
-    //            new CrawlerSessionAttributes();
 
     /**
      * The exact type of {@link CrawlDocContext} if your crawler is subclassing
@@ -57,6 +60,6 @@ public class CrawlerSpec {
      * Provides a required fetcher implementation, responsible for obtaining
      * resources being crawled.
      */
-    private Function<CrawlerContext, ? extends Fetcher<? extends FetchRequest,
-            ? extends FetchResponse>> fetcherProvider;
+    private Function<CrawlerContext, ? extends Fetcher<
+            ? extends FetchRequest, ? extends FetchResponse>> fetcherProvider;
 }

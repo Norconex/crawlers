@@ -18,32 +18,32 @@ import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
 
 import com.norconex.commons.lang.function.Predicates;
-import com.norconex.crawler.core.cmd.crawl.pipelines.DocPipelines;
-import com.norconex.crawler.core.cmd.crawl.pipelines.committer.CommitterPipeline;
-import com.norconex.crawler.core.cmd.crawl.pipelines.committer.stages.CommitModuleStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.committer.stages.DocumentChecksumStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.committer.stages.DocumentDedupStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.committer.stages.DocumentPostProcessingStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.importer.ImporterPipeline;
-import com.norconex.crawler.core.cmd.crawl.pipelines.importer.stages.DocumentFiltersStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.importer.stages.DocumentPreProcessingStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.importer.stages.ImportModuleStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.importer.stages.MetadataChecksumStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.importer.stages.MetadataDedupStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.importer.stages.MetadataFiltersStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.queue.QueuePipeline;
-import com.norconex.crawler.core.cmd.crawl.pipelines.queue.stages.DepthValidationStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.queue.stages.QueueReferenceStage;
-import com.norconex.crawler.core.cmd.crawl.pipelines.queue.stages.ReferenceFiltersStage;
 import com.norconex.crawler.core.mocks.fetch.MockFetchStage;
+import com.norconex.crawler.core.pipelines.CrawlerPipelines;
+import com.norconex.crawler.core.pipelines.committer.CommitterPipeline;
+import com.norconex.crawler.core.pipelines.committer.stages.CommitModuleStage;
+import com.norconex.crawler.core.pipelines.committer.stages.DocumentChecksumStage;
+import com.norconex.crawler.core.pipelines.committer.stages.DocumentDedupStage;
+import com.norconex.crawler.core.pipelines.committer.stages.DocumentPostProcessingStage;
+import com.norconex.crawler.core.pipelines.importer.ImporterPipeline;
+import com.norconex.crawler.core.pipelines.importer.stages.DocumentFiltersStage;
+import com.norconex.crawler.core.pipelines.importer.stages.DocumentPreProcessingStage;
+import com.norconex.crawler.core.pipelines.importer.stages.ImportModuleStage;
+import com.norconex.crawler.core.pipelines.importer.stages.MetadataChecksumStage;
+import com.norconex.crawler.core.pipelines.importer.stages.MetadataDedupStage;
+import com.norconex.crawler.core.pipelines.importer.stages.MetadataFiltersStage;
+import com.norconex.crawler.core.pipelines.queue.QueuePipeline;
+import com.norconex.crawler.core.pipelines.queue.stages.DepthValidationStage;
+import com.norconex.crawler.core.pipelines.queue.stages.QueueReferenceStage;
+import com.norconex.crawler.core.pipelines.queue.stages.ReferenceFiltersStage;
 
 public final class PipelineStubs {
 
     private PipelineStubs() {
     }
 
-    public static DocPipelines pipelines() {
-        return DocPipelines
+    public static CrawlerPipelines pipelines() {
+        return CrawlerPipelines
                 .builder()
                 .queuePipeline(QueuePipeline
                         .builder()
