@@ -96,12 +96,13 @@ public class StoreImportCommand implements Command {
         String storeName = null;
         Class<? extends GridStore<?>> storeSuperClass = null;
 
+        parser.nextToken();
         while (parser.nextToken() != JsonToken.END_OBJECT) {
             var key = parser.currentName();
-            if ("store".equals(key)) {
-                storeName = parser.nextTextValue();
-            } else if ("crawler".equals(key)) {
+            if ("crawler".equals(key)) {
                 crawlerId = parser.nextTextValue();
+            } else if ("store".equals(key)) {
+                storeName = parser.nextTextValue();
             } else if ("storeType".equals(key)) {
                 storeSuperClass = (Class<? extends GridStore<?>>) Class.forName(
                         parser.nextTextValue());

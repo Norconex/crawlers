@@ -234,13 +234,17 @@ public abstract class AbstractWebDriverHttpFetcherTest
         f.getConfiguration().setEarlyPageScript(
                 "document.title='Awesome!';");
         f.getConfiguration().setLatePageScript("""
-                    document.getElementsByTagName('h1')[0].innerHTML='Melon';
-                    """);
+                const els = document.getElementsByTagName('h1');
+                if (els.length > 0) {
+                    els[0].innerHTML='Melon';
+                }
+                """);
         cfg.setFetchers(List.of(f));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(hostUrl(client, path)));
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
+        assertThat(mem.getUpsertCount()).isNotZero();
         var doc = mem.getUpsertRequests().get(0);
         assertThat(doc.getMetadata()
                 .getString("dc:title"))
