@@ -51,7 +51,8 @@ public class IgniteGridConnector
     private final IgniteGridConnectorConfig configuration =
             new IgniteGridConnectorConfig();
 
-    private IgniteConfiguration igniteCfg = new IgniteConfiguration();
+    //TODO remove this when we have a better way to configure
+    private Consumer<IgniteConfiguration> tuner;
 
     @Override
     public Grid connect(
@@ -66,11 +67,16 @@ public class IgniteGridConnector
         // - the consistent id is unique for each node on the cluster
 
         //TODO apply config settings from crawler config
+        var igniteCfg = new IgniteConfiguration();
         igniteCfg.setGridLogger(new Slf4jLogger());
 
         configureWorkDirectory(crawlerConfig, igniteCfg);
         configurePersistentStorage(igniteCfg);
         configureDiscovery(igniteCfg, 0, 1);
+
+        if (tuner != null) {
+            tuner.accept(igniteCfg);
+        }
 
         var ignite = Ignition.getOrStart(igniteCfg);
 
@@ -95,10 +101,11 @@ public class IgniteGridConnector
 
     /**
      * Ability to tune the Ignite configuration directly before connecting.
+     * <b>TEMPORARY</b> until we have a better way to configure.
      * @param consumer ignite configuration consumer
      */
     public void tune(Consumer<IgniteConfiguration> consumer) {
-        consumer.accept(igniteCfg);
+        tuner = consumer;
     }
 
     private static void configureWorkDirectory(
