@@ -18,6 +18,7 @@ import org.apache.ignite.Ignition;
 import org.apache.ignite.internal.IgniteKernal;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,6 +57,15 @@ public final class GridTestUtil {
         }
     }
 
+    public static void tuneIgniteForTesting(IgniteGridConnector connector) {
+        connector.tune(connCfg -> {
+            var dataRegionCfg = connCfg.getDataStorageConfiguration()
+                    .getDefaultDataRegionConfiguration();
+            dataRegionCfg.setInitialSize(10 * 1024 * 1024); // 10 MB initial size
+            dataRegionCfg.setMaxSize(50 * 1024 * 1024); // 50 MB max size
+        });
+    }
+
     private static boolean isIgniteRunning() {
         try {
             var ignite = Ignition.ignite();
@@ -64,5 +74,4 @@ public final class GridTestUtil {
             return false;
         }
     }
-
 }

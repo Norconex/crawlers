@@ -28,6 +28,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.importer.doc.Doc;
 
 class Md5DocumentChecksummerTest {
@@ -39,9 +40,12 @@ class Md5DocumentChecksummerTest {
         var is = new CachedStreamFactory(1024, 1024).newInputStream(content);
         var doc = new Doc("N/A", is);
         var cs = new Md5DocumentChecksummer();
+        cs.getConfiguration().setKeep(true);
         var checksum = cs.createDocumentChecksum(doc);
         is.dispose();
         assertThat(checksum).isEqualTo("b53227da4280f0e18270f21dd77c91d0");
+        assertThat(doc.getMetadata().getString(CrawlDocMetadata.CHECKSUM_DOC))
+                .isEqualTo("b53227da4280f0e18270f21dd77c91d0");
     }
 
     @Test

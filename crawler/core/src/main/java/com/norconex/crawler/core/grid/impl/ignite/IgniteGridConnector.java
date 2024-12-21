@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.grid.impl.ignite;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 import org.apache.ignite.Ignition;
 import org.apache.ignite.cluster.ClusterState;
@@ -50,6 +51,8 @@ public class IgniteGridConnector
     private final IgniteGridConnectorConfig configuration =
             new IgniteGridConnectorConfig();
 
+    private IgniteConfiguration igniteCfg = new IgniteConfiguration();
+
     @Override
     public Grid connect(
             Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
@@ -63,7 +66,6 @@ public class IgniteGridConnector
         // - the consistent id is unique for each node on the cluster
 
         //TODO apply config settings from crawler config
-        var igniteCfg = new IgniteConfiguration();
         igniteCfg.setGridLogger(new Slf4jLogger());
 
         configureWorkDirectory(crawlerConfig, igniteCfg);
@@ -89,6 +91,14 @@ public class IgniteGridConnector
         LOG.info("Cluster is now active.");
 
         return new IgniteGrid(ignite);
+    }
+
+    /**
+     * Ability to tune the Ignite configuration directly before connecting.
+     * @param consumer ignite configuration consumer
+     */
+    public void tune(Consumer<IgniteConfiguration> consumer) {
+        consumer.accept(igniteCfg);
     }
 
     private static void configureWorkDirectory(
