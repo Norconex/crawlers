@@ -72,8 +72,8 @@ import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig.CookieSpec;
 import com.norconex.crawler.web.operations.delay.DelayResolver;
-import com.norconex.crawler.web.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
+import com.norconex.crawler.web.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.operations.image.impl.FeaturedImageResolver;
 import com.norconex.crawler.web.operations.link.LinkExtractor;
 import com.norconex.crawler.web.operations.link.impl.DomLinkExtractor;
@@ -144,6 +144,7 @@ public final class WebTestUtil {
                     .excludeType(ReferencesProvider.class::equals)
                     .excludeType(BiPredicate.class::equals)
                     .excludeType(Class.class::equals)
+                    .excludeType(HttpClientFetcherConfig.class::equals)
 
                     .randomize(Charset.class, () -> StandardCharsets.UTF_8)
                     .randomize(CircularRange.class, () -> {
