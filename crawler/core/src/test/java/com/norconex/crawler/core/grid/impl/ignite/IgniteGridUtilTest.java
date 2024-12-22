@@ -15,7 +15,11 @@
 package com.norconex.crawler.core.grid.impl.ignite;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import org.apache.ignite.IgniteException;
+import org.apache.ignite.lang.IgniteFuture;
 import org.junit.jupiter.api.Test;
 
 class IgniteGridUtilTest {
@@ -26,5 +30,16 @@ class IgniteGridUtilTest {
                 "internalName" + IgniteGridStorage.SUFFIX_SEPARATOR + "suffix";
         var result = IgniteGridUtil.cacheExternalName(internalName);
         assertThat(result).isEqualTo("internalName");
+    }
+
+    @Test
+    void testBlock() {
+        var igniteFuture = mock(IgniteFuture.class);
+        when(igniteFuture.get()).thenReturn("future");
+
+        assertThat(IgniteGridUtil.block(igniteFuture)).isEqualTo("future");
+
+        when(igniteFuture.get()).thenThrow(IgniteException.class);
+        assertThat(IgniteGridUtil.block(igniteFuture)).isNull();
     }
 }
