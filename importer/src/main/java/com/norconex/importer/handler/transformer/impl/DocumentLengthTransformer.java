@@ -17,7 +17,7 @@ package com.norconex.importer.handler.transformer.impl;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,12 +83,12 @@ public class DocumentLengthTransformer
             throw new IllegalArgumentException("\"toField\" cannot be empty.");
         }
 
-        var length = -1;
+        var length = -1L;
         var docIs = docCtx.input().asInputStream();
         if (docIs instanceof CachedInputStream cis) {
             length = cis.length();
         } else {
-            var is = new CountingInputStream(docIs);
+            var is = BoundedInputStream.builder().setInputStream(docIs).get();
             IOUtils.copy(is, NullOutputStream.INSTANCE);
             length = is.getCount();
         }

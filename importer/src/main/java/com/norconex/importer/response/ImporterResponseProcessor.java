@@ -24,9 +24,6 @@ public interface ImporterResponseProcessor {
     /**
      * Processes the importer response.
      * @param response the importer response
-     * @return new response
      */
-    //TODO make this a consumer instead?
     void processImporterResponse(ImporterResponse response);
-    //    ImporterResponse processImporterResponse(ImporterResponse response);
 }

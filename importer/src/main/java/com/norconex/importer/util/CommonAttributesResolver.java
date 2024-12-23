@@ -23,14 +23,14 @@ import java.io.IOException;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.doc.DocMetadata;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * Detects common document attributes and set them as both {@link HandlerContext}
+ * Detects common document attributes and set them as both {@link DocContext}
  * properties and document metadata fields. The attributes are only
  * detected and set if it is not already present, unless overwrite is
  * <code>true</code>.
