@@ -43,7 +43,7 @@ import lombok.ToString;
  * set of commit instructions.
  * </p>
  *
- * <h3>Generated XML format:</h3>
+ * <h2>Generated XML format:</h2>
  * <pre>
  * &lt;docs&gt;
  *   &lt;!-- Document additions: --&gt;

@@ -14,24 +14,22 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
-import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.importer.doc.DocMetadata;
 
 /**
@@ -41,11 +39,9 @@ import com.norconex.importer.doc.DocMetadata;
 @MockServerSettings
 class RedirectRelativeLinksTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testRedirectRelativeLinks(ClientAndServer client) throws IOException {
+    @WebCrawlTest
+    void testRedirectRelativeLinks(
+            ClientAndServer client, WebCrawlerConfig cfg) {
         var basePath = "/redirectRelativeLinks";
         var homePath = basePath + "/home.html";
         var finalPath = basePath + "/final/target.html";
@@ -53,35 +49,33 @@ class RedirectRelativeLinksTest {
         var page1Url = serverUrl(client, basePath + "/final/page1.html");
         var page2Url = serverUrl(client, basePath + "/final/page2.html");
 
+        // @formatter:off
         client
-                .when(request(homePath))
-                .respond(
-                        response()
-                                .withStatusCode(302)
-                                .withHeader("Location", finalUrl));
+            .when(request(homePath))
+            .respond(response()
+                .withStatusCode(302)
+                .withHeader("Location", finalUrl));
         client
-                .when(request(finalPath))
-                .respond(
-                        response().withBody(
-                                """
-                                        <h1>Redirected test page</h1>
-                                        The URL was redirected.
-                                        The URLs on this page should be relative to
-                                        %s and not %s.  The crawler should redirect and figure that
-                                        out.
-                                        <a href="page1.html">Page 1 (broken)</a>
-                                        <a href="page2.html">Page 2 (broken)</a>
-                                        """
-                                        .formatted(finalPath, homePath)));
+            .when(request(finalPath))
+            .respond(response()
+                .withBody(
+                    """
+                    <h1>Redirected test page</h1>
+                    The URL was redirected.
+                    The URLs on this page should be relative to
+                    %s and not %s.  The crawler should redirect and figure that
+                    out.
+                    <a href="page1.html">Page 1 (broken)</a>
+                    <a href="page2.html">Page 2 (broken)</a>
+                    """
+                    .formatted(finalPath, homePath)));
+        // @formatter:on
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setKeepReferencedLinks(
-                    Set.of(
-                            ReferencedLinkType.INSCOPE,
-                            ReferencedLinkType.MAXDEPTH));
-            cfg.setStartReferences(List.of(serverUrl(client, homePath)));
-            cfg.setMaxDepth(0);
-        });
+        cfg.setKeepReferencedLinks(Set.of(
+                ReferencedLinkType.INSCOPE, ReferencedLinkType.MAXDEPTH));
+        cfg.setStartReferences(List.of(serverUrl(client, homePath)));
+        cfg.setMaxDepth(0);
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
 

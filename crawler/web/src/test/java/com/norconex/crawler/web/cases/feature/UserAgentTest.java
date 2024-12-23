@@ -14,21 +14,21 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test that the user agent is sent properly to web servers with the
@@ -36,26 +36,20 @@ import com.norconex.crawler.web.WebTestUtil;
  */
 @MockServerSettings
 class UserAgentTest {
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testUserAgent(ClientAndServer client) {
+    @WebCrawlTest
+    void testUserAgent(ClientAndServer client, WebCrawlerConfig cfg) {
 
         var path = "/userAgent";
         client
                 .when(request(path))
-                .respond(
-                        req -> response()
-                                .withBody(
-                                        "The user agent is: "
-                                                + req.getFirstHeader(
-                                                        "User-Agent")));
+                .respond(req -> response()
+                        .withBody("The user agent is: "
+                                + req.getFirstHeader("User-Agent")));
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, path)));
-            WebTestUtil.firstHttpFetcherConfig(cfg).setUserAgent("Smith");
-        });
+        cfg.setStartReferences(
+                List.of(MockWebsite.serverUrl(client, path)));
+        WebTestUtil.firstHttpFetcherConfig(cfg).setUserAgent("Smith");
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertRequests())
                 .map(WebTestUtil::docText)

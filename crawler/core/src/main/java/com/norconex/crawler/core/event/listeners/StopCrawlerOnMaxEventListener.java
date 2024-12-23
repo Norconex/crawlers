@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
 
@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
  * Not specifying any maximum or events has no effect.
  * </p>
  *
- * <h3>Difference with "maxDocuments"</h3>
+ * <h2>Difference with "maxDocuments"</h2>
  * <p>
  * The "maxDocuments" option deals with "processed" documents.  Those are
  * documents that were initially queued for crawling and crawling was attempted
@@ -58,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
  * a high enough number or is set <code>-1</code> (unlimited).
  * </p>
  *
- * <h3>Combining events</h3>
+ * <h2>Combining events</h2>
  * <p>
  * If your event matcher matches more than one event, you can decide what
  * should be the expected behavior. Options are:
@@ -94,13 +94,13 @@ public class StopCrawlerOnMaxEventListener implements
     private Map<String, AtomicLong> eventCounts = new ConcurrentHashMap<>();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Crawler crawler;
+    private CrawlerContext crawlerContext;
 
     @Override
     public void accept(Event event) {
-        if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             eventCounts.clear();
-            crawler = ((CrawlerEvent) event).getSource();
+            crawlerContext = ((CrawlerEvent) event).getSource();
         }
 
         if (!configuration.getEventMatcher().matches(event.getName())) {
@@ -111,10 +111,9 @@ public class StopCrawlerOnMaxEventListener implements
                 event.getName(), k -> new AtomicLong()).incrementAndGet();
 
         if (isMaxReached()) {
-            LOG.info(
-                    "Maximum number of events reached for crawler: {}",
-                    crawler.getId());
-            crawler.stop();
+            LOG.info("Maximum number of events reached for crawler: {}",
+                    crawlerContext.getId());
+            crawlerContext.stop();
         }
     }
 

@@ -19,7 +19,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 
 import lombok.AccessLevel;
@@ -37,27 +37,29 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class CrawlerEvent extends Event {
 
+    //MAYBE rename some to be "CRAWLTASK_..."?
+
     private static final long serialVersionUID = 1L;
 
-    /**
-     * The crawler began its initialization.
-     */
-    public static final String CRAWLER_INIT_BEGIN = "CRAWLER_INIT_BEGIN";
-    /**
-     * The crawler has been initialized.
-     */
-    public static final String CRAWLER_INIT_END = "CRAWLER_INIT_END";
+    public static final String CRAWLER_CONTEXT_INIT_BEGIN =
+            "CRAWLER_CONTEXT_INIT_BEGIN";
+    public static final String CRAWLER_CONTEXT_INIT_END =
+            "CRAWLER_CONTEXT_INIT_END";
+    public static final String CRAWLER_CONTEXT_SHUTDOWN_BEGIN =
+            "CRAWLER_CONTEXT_SHUTDOWN_BEGIN";
+    public static final String CRAWLER_CONTEXT_SHUTDOWN_END =
+            "CRAWLER_CONTEXT_SHUTDOWN_END";
 
     /**
      * The crawler is about to begin crawling.
      */
-    public static final String CRAWLER_RUN_BEGIN = "CRAWLER_RUN_BEGIN";
+    public static final String CRAWLER_CRAWL_BEGIN = "CRAWLER_CRAWL_BEGIN";
     /**
      * The crawler completed crawling execution normally
      * (without being stopped). This event is triggered before the crawler
      * resources are released.
      */
-    public static final String CRAWLER_RUN_END = "CRAWLER_RUN_END";
+    public static final String CRAWLER_CRAWL_END = "CRAWLER_CRAWL_END";
 
     /**
      * The crawler just started a new crawling thread.
@@ -73,22 +75,14 @@ public class CrawlerEvent extends Event {
     /**
      * Issued when a request to stop the crawler has been received.
      */
-    public static final String CRAWLER_STOP_BEGIN = "CRAWLER_STOP_BEGIN";
+    public static final String CRAWLER_STOP_REQUEST_BEGIN =
+            "CRAWLER_STOP_REQUEST_BEGIN";
     /**
      * Issued when a request to stop the crawler has been fully executed
      * (crawler stopped).
      */
-    public static final String CRAWLER_STOP_END = "CRAWLER_STOP_END";
-
-    /**
-     * Issued when the crawler is done processing and is about to shut down.
-     */
-    public static final String CRAWLER_SHUTDOWN_BEGIN =
-            "CRAWLER_SHUTDOWN_BEGIN";
-    /**
-     * Issued when the crawler is done processing and has shut down.
-     */
-    public static final String CRAWLER_SHUTDOWN_END = "CRAWLER_SHUTDOWN_END";
+    public static final String CRAWLER_STOP_REQUEST_END =
+            "CRAWLER_STOP_REQUEST_END";
 
     public static final String CRAWLER_CLEAN_BEGIN = "CRAWLER_CLEAN_BEGIN";
     public static final String CRAWLER_CLEAN_END = "CRAWLER_CLEAN_END";
@@ -101,6 +95,9 @@ public class CrawlerEvent extends Event {
             "CRAWLER_STORE_IMPORT_BEGIN";
     public static final String CRAWLER_STORE_IMPORT_END =
             "CRAWLER_STORE_IMPORT_END";
+
+    public static final String TASK_RUN_BEGIN = "TASK_RUN_BEGIN";
+    public static final String TASK_RUN_END = "TASK_RUN_END";
 
     public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
 
@@ -158,16 +155,7 @@ public class CrawlerEvent extends Event {
      * A document post-import processor was executed properly.
      */
     public static final String DOCUMENT_POSTIMPORTED = "DOCUMENT_POSTIMPORTED";
-    //    /**
-    //     * A document was submitted to a committer for upsert.
-    //     */
-    //    public static final String DOCUMENT_COMMITTED_UPSERT =
-    //            "DOCUMENT_COMMITTED_UPSERT";
-    //    /**
-    //     * A document was submitted to a committer for removal.
-    //     */
-    //    public static final String DOCUMENT_COMMITTED_DELETE =
-    //            "DOCUMENT_COMMITTED_DELETE";
+
     /**
      * A document metadata fields were successfully retrieved.
      */
@@ -212,14 +200,14 @@ public class CrawlerEvent extends Event {
     }
 
     @Override
-    public Crawler getSource() {
-        return (Crawler) super.getSource();
+    public CrawlerContext getSource() {
+        return (CrawlerContext) super.getSource();
     }
 
-    public boolean isCrawlerShutdown() {
-        return is(CRAWLER_RUN_END, CRAWLER_STOP_END);
-    }
-
+    //    public boolean isCrawlerShutdown() {
+    //        return is(CRAWLER_CRAWL_END);
+    //    }
+    //
     @Override
     public String toString() {
         var b = new StringBuilder();

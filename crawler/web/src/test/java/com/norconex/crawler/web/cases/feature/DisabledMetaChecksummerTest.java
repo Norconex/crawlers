@@ -14,24 +14,23 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.CommitterException;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Tests that the page does not produce any Committer addition on subsequent
@@ -44,58 +43,44 @@ class DisabledMetaChecksummerTest {
 
     private final String path = "/disabledMetaChecksummer";
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testDisabledMetaChecksummer(ClientAndServer client)
+    @WebCrawlTest
+    void testDisabledMetaChecksummer(
+            ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, path)));
-            cfg.setMetadataChecksummer(null);
-        });
-        var mem = WebTestUtil.firstCommitter(crawler);
+        cfg.setStartReferences(List.of(serverUrl(client, path)));
+        cfg.setMetadataChecksummer(null);
 
         // first time, 1 new doc
         whenMetaChanges(client, 10, "abc");
-        crawler.start();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // second time, meta changes but not body
         whenMetaChanges(client, 8, "def");
-        crawler.start();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // third time, meta changes but not body
         whenMetaChanges(client, 4, "ghi");
-        crawler.start();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
-
-        crawler.clean();
     }
 
     private void whenMetaChanges(
             ClientAndServer client, int daysAgo, String salt) {
         client.reset();
-        client
-                .when(request(path))
-                .respond(
-                        response()
-                                .withHeader(
-                                        "Last-Modified",
-                                        WebTestUtil.daysAgoRFC(daysAgo))
-                                .withBody(
-                                        WebsiteMock
-                                                .htmlPage()
-                                                .head(
-                                                        "<meta name=\"salt\" content=\""
-                                                                + salt + "\">")
-                                                .body("Content never changes.")
-                                                .build(),
-                                        MediaType.HTML_UTF_8));
+        client.when(request(path)).respond(response()
+                .withHeader("Last-Modified",
+                        WebTestUtil.daysAgoRFC(daysAgo))
+                .withBody(MockWebsite
+                        .htmlPage()
+                        .head("<meta name=\"salt\" content=\"" + salt + "\">")
+                        .body("Content never changes.")
+                        .build(),
+                        MediaType.HTML_UTF_8));
     }
 }

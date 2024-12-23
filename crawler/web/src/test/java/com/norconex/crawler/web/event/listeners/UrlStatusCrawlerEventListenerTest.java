@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.event.listeners;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -23,43 +23,40 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 @MockServerSettings
 class UrlStatusCrawlerEventListenerTest {
-
-    @Test
+    @WebCrawlTest
     void testURLStatusCrawlerEventListener(
-            ClientAndServer client, @TempDir Path tempDir) throws IOException {
+            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
 
         var urlStatusListener = new UrlStatusCrawlerEventListener();
         urlStatusListener.getConfiguration()
                 .setTimestamped(true)
                 .setStatusCodes("200-299, 400-499, 500")
                 .setFileNamePrefix("super-")
-                .setOutputDir(tempDir.resolve("statuses"));
+                .setOutputDir(cfg.getWorkDir().resolve("statuses"));
 
         var ok1Path = "/ok1.html";
         var ok2Path = "/ok2.html";
         var notFoundPath = "/notFound.html";
         var errorPath = "/error.html";
 
-        WebsiteMock.whenHtml(client, ok1Path, "This page is OK.");
-        WebsiteMock.whenHtml(client, ok1Path, "This page is OK.");
+        MockWebsite.whenHtml(client, ok1Path, "This page is OK.");
+        MockWebsite.whenHtml(client, ok2Path, "This page is OK.");
 
         client.when(request(notFoundPath))
                 .respond(HttpResponse.notFoundResponse());
@@ -69,17 +66,16 @@ class UrlStatusCrawlerEventListenerTest {
                         HttpStatusCode.INTERNAL_SERVER_ERROR_500.code())
                         .withReasonPhrase("Kaput!"));
 
-        WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(
-                    serverUrl(client, ok1Path),
-                    serverUrl(client, notFoundPath),
-                    serverUrl(client, ok2Path),
-                    serverUrl(client, errorPath)))
-                    .addEventListener(urlStatusListener);
-        });
+        cfg.setStartReferences(List.of(
+                serverUrl(client, ok1Path),
+                serverUrl(client, notFoundPath),
+                serverUrl(client, ok2Path),
+                serverUrl(client, errorPath)))
+                .addEventListener(urlStatusListener);
+        WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         var file = FileUtils.listFiles(
-                tempDir.resolve("statuses").toFile(), null, false)
+                cfg.getWorkDir().resolve("statuses").toFile(), null, false)
                 .stream()
                 .findFirst()
                 .orElseThrow();
@@ -91,7 +87,7 @@ class UrlStatusCrawlerEventListenerTest {
                 "\"\",%serror.html,500,Kaput!".formatted(baseUrl),
                 "\"\",%snotFound.html,404,Not Found".formatted(baseUrl),
                 "\"\",%sok1.html,200,OK".formatted(baseUrl),
-                "\"\",%sok2.html,404,Not Found".formatted(baseUrl));
+                "\"\",%sok2.html,200,OK".formatted(baseUrl));
 
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(urlStatusListener));
@@ -99,47 +95,46 @@ class UrlStatusCrawlerEventListenerTest {
         // run again without any status codes, which should equate "any" and
         // return all again.
         urlStatusListener.getConfiguration().setStatusCodes("");
-        WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(
-                    serverUrl(client, ok1Path),
-                    serverUrl(client, notFoundPath),
-                    serverUrl(client, ok2Path),
-                    serverUrl(client, errorPath)))
-                    .addEventListener(urlStatusListener);
-        });
+        cfg.setStartReferences(List.of(
+                serverUrl(client, ok1Path),
+                serverUrl(client, notFoundPath),
+                serverUrl(client, ok2Path),
+                serverUrl(client, errorPath)))
+                .addEventListener(urlStatusListener);
+        WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(csvLines).size().isEqualTo(5);
 
         // test with inverted range
         urlStatusListener.getConfiguration().setStatusCodes("299-200");
-        assertThatExceptionOfType(CrawlerException.class).isThrownBy(
-                () -> {
-                    WebTestUtil.runWithConfig(tempDir, cfg -> {
-                        cfg.setStartReferences(List.of("http://blah.com"))
-                                .addEventListener(urlStatusListener);
-                    });
-
-                });
+        assertThatExceptionOfType(
+                IllegalArgumentException.class).isThrownBy(//NOSONAR
+                        () -> {
+                            cfg.setStartReferences(List.of("http://blah.com"))
+                                    .addEventListener(urlStatusListener);
+                            WebCrawlTestCapturer.crawlAndCapture(cfg)
+                                    .getCommitter();
+                        });
 
         // test with range of too many segments
         urlStatusListener.getConfiguration().setStatusCodes("200-300-400");
-        assertThatExceptionOfType(CrawlerException.class).isThrownBy(
-                () -> {
-                    WebTestUtil.runWithConfig(tempDir, cfg -> {
-                        cfg.setStartReferences(List.of("http://blah.com"))
-                                .addEventListener(urlStatusListener);
-                    });
-
-                });
+        assertThatExceptionOfType(
+                IllegalArgumentException.class).isThrownBy(//NOSONAR
+                        () -> {
+                            cfg.setStartReferences(List.of("http://blah.com"))
+                                    .addEventListener(urlStatusListener);
+                            WebCrawlTestCapturer.crawlAndCapture(cfg)
+                                    .getCommitter();
+                        });
 
         // test with invalid range number
         urlStatusListener.getConfiguration().setStatusCodes("123XYZ");
-        assertThatExceptionOfType(CrawlerException.class).isThrownBy(
-                () -> {
-                    WebTestUtil.runWithConfig(tempDir, cfg -> {
-                        cfg.setStartReferences(List.of("http://blah.com"))
-                                .addEventListener(urlStatusListener);
-                    });
-
-                });
+        assertThatExceptionOfType(
+                IllegalArgumentException.class).isThrownBy(//NOSONAR
+                        () -> {
+                            cfg.setStartReferences(List.of("http://blah.com"))
+                                    .addEventListener(urlStatusListener);
+                            WebCrawlTestCapturer.crawlAndCapture(cfg)
+                                    .getCommitter();
+                        });
     }
 }

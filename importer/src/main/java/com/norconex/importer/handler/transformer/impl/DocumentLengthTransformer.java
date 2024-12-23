@@ -39,7 +39,7 @@ import lombok.Data;
  * was made to it, use this tagger as one of the first
  * handler in your pre-parse handlers.</p>
  *
- * <h3>Storing values in an existing field</h3>
+ * <h2>Storing values in an existing field</h2>
  * <p>
  * If a target field with the same name already exists for a document,
  * values will be added to the end of the existing value list.

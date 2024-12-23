@@ -22,16 +22,16 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlerContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.robot.RobotsTxt;
+import com.norconex.crawler.web.operations.robot.RobotsTxt;
+import com.norconex.crawler.web.operations.scope.UrlScope;
 
 import lombok.NonNull;
 
@@ -40,8 +40,15 @@ public final class Web {
     private Web() {
     }
 
+    public static <T> GridCache<T> gridCache(
+            @NonNull CrawlerContext crawlerContext,
+            @NonNull String name,
+            @NonNull Class<? extends T> type) {
+        return crawlerContext.getGrid().storage().getCache(name, type);
+    }
+
     public static void fireIfUrlOutOfScope(
-            Crawler crawler,
+            CrawlerContext crawler,
             WebCrawlDocContext docContext,
             UrlScope urlScope) {
         if (!urlScope.isInScope()) {
@@ -56,16 +63,12 @@ public final class Web {
         }
     }
 
-    public static WebCrawlerConfig config(Crawler crawler) {
-        return (WebCrawlerConfig) crawler.getConfiguration();
+    public static WebCrawlerConfig config(CrawlerContext crawlerContext) {
+        return (WebCrawlerConfig) crawlerContext.getConfiguration();
     }
 
-    public static WebCrawlerContext crawlerContext(Crawler crawler) {
-        return (WebCrawlerContext) crawler.getContext();
-    }
-
-    public static HttpFetcher fetcher(Crawler crawler) {
-        return (HttpFetcher) crawler.getFetcher();
+    public static HttpFetcher fetcher(CrawlerContext crawlerContext) {
+        return (HttpFetcher) crawlerContext.getFetcher();
     }
 
     public static WebCrawlDocContext docContext(@NonNull CrawlDoc crawlDoc) {
@@ -77,7 +80,8 @@ public final class Web {
         return (WebCrawlDocContext) crawlDoc.getCachedDocContext();
     }
 
-    public static RobotsTxt robotsTxt(Crawler crawler, String reference) {
+    public static RobotsTxt robotsTxt(CrawlerContext crawler,
+            String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())
                 .map(rb -> rb.getRobotsTxt(

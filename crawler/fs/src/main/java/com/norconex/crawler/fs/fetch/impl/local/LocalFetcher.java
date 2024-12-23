@@ -58,14 +58,14 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>{@code C:/some/directory}</li>
  * </ul>
  *
- * <h3>Access Control List (ACL)</h3>
+ * <h2>Access Control List (ACL)</h2>
  * <p>
  * This fetcher will try to extract access control information for each file
  * of a local file system. If you have no need for them, you can disable
  * acquiring them with {@link LocalFetcherConfig#setAclDisabled(boolean)}.
  * </p>
  *
- * <h3>Archive files as file systems</h3>
+ * <h2>Archive files as file systems</h2>
  * <p>
  * This fetcher can also treat local archive files as local file
  * systems. Supported local archives file systems (and their schemes):

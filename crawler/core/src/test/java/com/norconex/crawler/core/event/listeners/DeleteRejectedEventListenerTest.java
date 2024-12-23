@@ -23,54 +23,38 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.junit.WithCrawlerTest;
+import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class DeleteRejectedEventListenerTest {
 
-    @WithCrawlerTest(
-        run = true,
+    @CrawlTest(
+        focus = Focus.CRAWL,
         config = """
-                startReferences:
-                  - "mock:delete1"
-                  - "mock:keep2"
-                  - "mock:delete3"
-                  - "mock:delete4"
-                eventListeners:
-                  - class: DeleteRejectedEventListener
-                importer:
-                  handlers:
-                    - if:
-                        condition:
-                          class: ReferenceCondition
-                          valueMatcher:
-                            method: WILDCARD
-                            pattern: "mock:delete*"
-                        then:
-                          -handler:
-                             class: Reject
-                """
+            startReferences:
+              - "mock:delete1"
+              - "mock:keep2"
+              - "mock:delete3"
+              - "mock:delete4"
+            eventListeners:
+              - class: DeleteRejectedEventListener
+            importer:
+              handlers:
+                - if:
+                    condition:
+                      class: ReferenceCondition
+                      valueMatcher:
+                        method: WILDCARD
+                        pattern: "mock:delete*"
+                    then:
+                      -handler:
+                         class: Reject
+            """
     )
-    //    referenceFilters:
-    //        - class: GenericReferenceFilter
-    //          onMatch: EXCLUDE
-    //          valueMatcher:
-    //            method: WILDCARD
-    //            pattern: "mock:delete*"
 
-    void testDeleteRejectedEventListener(Crawler crawler, MemoryCommitter mem) {
-
-        //        var crawlerCfg = TestUtil.getFirstCrawlerConfig(crawlSession);
-        //        crawlerCfg.addEventListener(new DeleteRejectedEventListener());
-        //        var f = Configurable.configure(new GenericReferenceFilter(), cfg -> cfg
-        //                .setValueMatcher(TextMatcher.wildcard("mock:delete*"))
-        //                .setOnMatch(OnMatch.EXCLUDE));
-        //        crawlerCfg.getImporterConfig().setPreParseConsumer(
-        //                HandlerConsumerAdapter.fromHandlers(f));
-        //        crawlerCfg.setReferenceFilters(List.of(f));
-        //        crawlSession.start();
-        //
-        //        var mem = TestUtil.getFirstMemoryCommitter(crawlSession);
+    void testDeleteRejectedEventListener(
+            CrawlerContext crawlerContext, MemoryCommitter mem) {
 
         assertThat(mem.getRequestCount()).isEqualTo(4);
 
@@ -78,8 +62,9 @@ class DeleteRejectedEventListenerTest {
         assertThat(mem.getDeleteCount()).isEqualTo(3);
         assertThat(mem.getDeleteRequests())
                 .map(DeleteRequest::getReference)
-                .containsExactly(
-                        "mock:delete1", "mock:delete3",
+                .containsExactlyInAnyOrder(
+                        "mock:delete1",
+                        "mock:delete3",
                         "mock:delete4");
     }
 

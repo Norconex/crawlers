@@ -29,7 +29,7 @@ import lombok.ToString;
  * Commit documents/fields to a Neo4j graph database.
  * </p>
  *
- * <h3>Authentication</h3>
+ * <h2>Authentication</h2>
  * <p>
  * Basic authentication is supported for password-protected
  * Solr installations.

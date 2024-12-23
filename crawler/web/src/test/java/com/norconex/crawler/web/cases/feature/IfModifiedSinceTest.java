@@ -14,20 +14,17 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.mock.action.ExpectationResponseCallback;
@@ -37,9 +34,11 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Tests that the "If-Modified-Since" is supported properly.
@@ -65,54 +64,48 @@ class IfModifiedSinceTest {
     private static final ZonedDateTime fiveDaysAgo = WebTestUtil.daysAgo(5);
     private static final ZonedDateTime today = WebTestUtil.daysAgo(0);
 
-    private static ZonedDateTime serverDate = fiveDaysAgo;
+    private static ZonedDateTime serverDate = null;
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testIfModifiedSince(ClientAndServer client) throws CommitterException {
+    @WebCrawlTest
+    void testIfModifiedSince(ClientAndServer client, WebCrawlerConfig cfg)
+            throws CommitterException {
+        serverDate = fiveDaysAgo;
 
         client
                 .when(request().withPath(path))
                 .respond(HttpClassCallback.callback(Callback.class));
 
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, path)));
-            // disable checksums and E-Tag so they do not influence
-            // tests
-            cfg.setDocumentChecksummer(null);
-            cfg.setMetadataChecksummer(null);
-            ((GenericHttpFetcher) cfg.getFetchers().get(0))
-                    .getConfiguration().setETagDisabled(true);
-        });
-        var mem = WebTestUtil.firstCommitter(crawler);
+        cfg.setStartReferences(List.of(serverUrl(client, path)));
+        // disable checksums and E-Tag so they do not influence
+        // tests
+        cfg.setDocumentChecksummer(null);
+        cfg.setMetadataChecksummer(null);
+        ((HttpClientFetcher) cfg.getFetchers().get(0))
+                .getConfiguration().setETagDisabled(true);
 
         // First run is new
-        crawler.start();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same date, so not modified
-        crawler.start();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different date, so modified
         serverDate = today;
-        crawler.start();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Fourth run got same date, but we disable If-Modified-Since support,
         // so modified
-        WebTestUtil.firstHttpFetcher(crawler)
-                .getConfiguration().setIfModifiedSinceDisabled(true);
-        crawler.start();
+        WebTestUtil.firstHttpFetcherConfig(cfg)
+                .setIfModifiedSinceDisabled(true);
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
-
-        crawler.clean();
     }
 
     public static class Callback implements ExpectationResponseCallback {

@@ -90,8 +90,8 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
     private String jsonFieldsPattern;
 
     /**
-     * Elasticsearch connection timeout. Defaults to
-     * {@value ElasticsearchCommitterConfig#DEFAULT_CONNECTION_TIMEOUT}
+     * Elasticsearch connection timeout. Defaults to value of
+     * {@link ElasticsearchCommitterConfig#DEFAULT_CONNECTION_TIMEOUT}
      */
     @NonNull
     private Duration connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;

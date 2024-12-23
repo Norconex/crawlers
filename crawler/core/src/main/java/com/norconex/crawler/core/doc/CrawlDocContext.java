@@ -22,6 +22,9 @@ import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.importer.doc.DocContext;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * Holds minimal meta information and state necessary to the proper
@@ -31,23 +34,19 @@ import lombok.EqualsAndHashCode;
 public class CrawlDocContext extends DocContext {
     private static final long serialVersionUID = 1L;
 
-    public enum Stage {
-        QUEUED, ACTIVE, PROCESSED /*, CACHED*/;
-
-        public boolean is(Stage stage) {
-            return stage != null && stage == this;
-        }
-
-    } //TODO add NONE?
-
     // for crawlers that support this notion
     private int depth;
+
+    @Setter
+    @Getter
+    @NonNull
+    private DocProcessingStage processingStage = DocProcessingStage.NONE;
 
     private String originalReference; //TODO keep the trail if it changes often?
 
     @ToStringExclude
     private String parentRootReference;
-    private CrawlDocState state;
+    private DocResolutionStatus resolutionStatus;
     @ToStringExclude
     private String metaChecksum;
     @ToStringExclude
@@ -111,12 +110,12 @@ public class CrawlDocContext extends DocContext {
         this.parentRootReference = parentRootReference;
     }
 
-    public CrawlDocState getState() {
-        return state;
+    public DocResolutionStatus getState() {
+        return resolutionStatus;
     }
 
-    public void setState(CrawlDocState state) {
-        this.state = state;
+    public void setState(DocResolutionStatus state) {
+        this.resolutionStatus = state;
     }
 
     public String getMetaChecksum() {

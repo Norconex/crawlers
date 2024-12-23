@@ -18,15 +18,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.CrawlDocContext.Stage;
-
 class CrawlDocContextTest {
 
     @Test
     void testStages() {
-        assertThat(Stage.ACTIVE.is(null)).isFalse();
-        assertThat(Stage.ACTIVE.is(Stage.ACTIVE)).isTrue();
-        assertThat(Stage.ACTIVE.is(Stage.PROCESSED)).isFalse();
-        assertThat(Stage.ACTIVE.is(Stage.QUEUED)).isFalse();
+        assertThat(DocProcessingStage.RESOLVED.is(null)).isFalse();
+        assertThat(DocProcessingStage.UNRESOLVED.is(
+                DocProcessingStage.UNRESOLVED)).isTrue();
+        assertThat(DocProcessingStage.QUEUED.is(
+                DocProcessingStage.NONE)).isFalse();
+        assertThat(DocProcessingStage.RESOLVED.is(
+                DocProcessingStage.QUEUED)).isFalse();
     }
 }

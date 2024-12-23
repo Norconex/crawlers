@@ -1,4 +1,4 @@
-/* Copyright 2021-2023 Norconex Inc.
+/* Copyright 2021-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import lombok.experimental.Accessors;
  * when read).
  * </p>
  *
- * <h3>Multiple fields and values:</h3>
+ * <h2>Multiple fields and values:</h2>
  * <p>
  * By default, ALL values for all fields matched by your field matcher
  * expression must be blank for this condition to be <code>true</code>.

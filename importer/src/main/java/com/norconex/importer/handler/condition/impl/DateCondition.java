@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  * The default operator is "eq" (equals).
  * </p>
  *
- * <h3>Single date vs range of dates:</h3>
+ * <h2>Single date vs range of dates:</h2>
  * <p>
  * This condition accepts zero, one, or two value matchers:
  * </p>
@@ -64,13 +64,13 @@ import lombok.extern.slf4j.Slf4j;
  *   </li>
  * </ul>
  *
- * <h3>Metadata date field format:</h3>
+ * <h2>Metadata date field format:</h2>
  * <p>To successfully parse a date, you can specify a date format,
  * as per the formatting options found on {@link DateTimeFormatter}.
  * The default format when not specified is EPOCH (the difference, measured in
  * milliseconds, between the date and midnight, January 1, 1970).</p>
  *
- * <h3>Absolute date conditions:</h3>
+ * <h2>Absolute date conditions:</h2>
  * <p>When defining a date value matcher, you can specify an absolute
  * date (i.e. a constant date value) to be used for comparison.
  * Supported formats for configuring an absolute date are:
@@ -81,7 +81,7 @@ import lombok.extern.slf4j.Slf4j;
  *                                milliseconds (e.g. 2015-05-31T22:44:15)
  * </pre>
  *
- * <h3>Relative date conditions:</h3>
+ * <h2>Relative date conditions:</h2>
  * <P>Date value matchers can also specify a moment in time relative to the
  * current date using the <code>TODAY</code> or <code>NOW</code> keyword,
  * optionally followed by a number of time units to add/remove.
@@ -93,7 +93,7 @@ import lombok.extern.slf4j.Slf4j;
  * it should be refreshed on every invocation to reflect the passing of time.
  * </p>
  *
- * <h3>Time zones:</h3>
+ * <h2>Time zones:</h2>
  * <p>
  * When comparing dates at a more granular level (e.g., hours, minutes,
  * seconds), it may be important to take time zones into account.

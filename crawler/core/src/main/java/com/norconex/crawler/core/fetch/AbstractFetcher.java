@@ -19,10 +19,10 @@ import java.util.Optional;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
-import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.operations.filter.FilterGroupResolver;
+import com.norconex.crawler.core.operations.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -98,18 +98,19 @@ public abstract class AbstractFetcher<
         // Here we rely on session startup instead of
         // crawler startup to avoid being invoked multiple
         // times (once for each crawler)
-        if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
-            fetcherStartup((Crawler) event.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
-            fetcherShutdown((Crawler) event.getSource());
+
+        if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)) {
+            fetcherStartup((CrawlerContext) event.getSource());
+        } else if (event.is(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)) {
+            fetcherShutdown((CrawlerContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadBegin((Crawler) event.getSource());
+            fetcherThreadBegin((CrawlerContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)
                 && Thread.currentThread().equals(
                         ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadEnd((Crawler) event.getSource());
+            fetcherThreadEnd((CrawlerContext) event.getSource());
         }
     }
 
@@ -118,7 +119,7 @@ public abstract class AbstractFetcher<
      * Default implementation does nothing.
      * @param crawler crawler
      */
-    protected void fetcherStartup(Crawler crawler) {
+    protected void fetcherStartup(CrawlerContext crawler) {
         //NOOP
     }
 
@@ -127,7 +128,7 @@ public abstract class AbstractFetcher<
      * Default implementation does nothing.
      * @param crawler crawler
      */
-    protected void fetcherShutdown(Crawler crawler) {
+    protected void fetcherShutdown(CrawlerContext crawler) {
         //NOOP
     }
 
@@ -137,7 +138,7 @@ public abstract class AbstractFetcher<
      * Default implementation does nothing.
      * @param crawler crawler
      */
-    protected void fetcherThreadBegin(Crawler crawler) {
+    protected void fetcherThreadBegin(CrawlerContext crawler) {
         //NOOP
     }
 
@@ -147,7 +148,7 @@ public abstract class AbstractFetcher<
      * Default implementation does nothing.
      * @param crawler crawler
      */
-    protected void fetcherThreadEnd(Crawler crawler) {
+    protected void fetcherThreadEnd(CrawlerContext crawler) {
         //NOOP
     }
 
@@ -157,19 +158,16 @@ public abstract class AbstractFetcher<
                 .orElse(null);
         return FilterGroupResolver.<ReferenceFilter>builder()
                 .filterResolver(f -> f.acceptReference(ref))
-                .onAccepted(
-                        f -> LOG.debug(
-                                "Fetcher {} ACCEPTED reference: '{}'. Filter={}",
-                                getClass().getSimpleName(), ref, f))
-                .onRejected(
-                        f -> LOG.debug(
-                                "Fetcher {} REJECTED reference: '{}'. Filter={}",
-                                getClass().getSimpleName(), ref, f))
-                .onRejectedNoInclude(
-                        f -> LOG.debug(
-                                "Fetcher {} REJECTED reference: '{}'. "
-                                        + "No 'include' filters matched.",
-                                getClass().getSimpleName(), ref))
+                .onAccepted(f -> LOG.debug(
+                        "Fetcher {} ACCEPTED reference: '{}'. Filter={}",
+                        getClass().getSimpleName(), ref, f))
+                .onRejected(f -> LOG.debug(
+                        "Fetcher {} REJECTED reference: '{}'. Filter={}",
+                        getClass().getSimpleName(), ref, f))
+                .onRejectedNoInclude(f -> LOG.debug(
+                        "Fetcher {} REJECTED reference: '{}'. "
+                                + "No 'include' filters matched.",
+                        getClass().getSimpleName(), ref))
                 .build()
                 .accepts(getConfiguration().getReferenceFilters());
     }

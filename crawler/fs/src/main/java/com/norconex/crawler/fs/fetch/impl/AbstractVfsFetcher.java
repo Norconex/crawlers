@@ -27,10 +27,10 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
@@ -72,7 +72,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     private FileSystemOptions fsOptions;
 
     @Override
-    protected void fetcherStartup(Crawler crawler) {
+    protected void fetcherStartup(CrawlerContext crawler) {
         try {
             fsManager = new StandardFileSystemManager();
             fsManager.setClassLoader(getClass().getClassLoader());
@@ -87,7 +87,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     }
 
     @Override
-    protected void fetcherShutdown(Crawler crawler) {
+    protected void fetcherShutdown(CrawlerContext crawler) {
         if (fsManager != null) {
             fsManager.close();
         }
@@ -118,7 +118,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
 
             if (fileObject == null || !fileObject.exists()) {
                 return GenericFileFetchResponse.builder()
-                        .crawlDocState(CrawlDocState.NOT_FOUND)
+                        .resolutionStatus(DocResolutionStatus.NOT_FOUND)
                         .build();
             }
 
@@ -134,7 +134,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             //TODO set status if not found or whatever bad state
 
             return GenericFileFetchResponse.builder()
-                    .crawlDocState(CrawlDocState.NEW)
+                    .resolutionStatus(DocResolutionStatus.NEW)
                     .file(fileObject.isFile())
                     .folder(fileObject.isFolder())
                     .build();

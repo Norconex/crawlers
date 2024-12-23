@@ -112,7 +112,6 @@ class MockFtpServer {
                 .getCredentials()
                 .setUsername("testuser")
                 .setPassword("testpassword");
-        //fetcher.setPassiveMode(true);
         return fetcher;
     }
 }

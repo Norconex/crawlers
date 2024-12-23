@@ -33,28 +33,32 @@ public abstract class CrawlerLifeCycleListener
             return;
         }
         onCrawlerEvent(event);
-        if (event.is(CrawlerEvent.CRAWLER_INIT_BEGIN)) {
-            onCrawlerInitBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_INIT_END)) {
-            onCrawlerInitEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
-            onCrawlerRunBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
-            onCrawlerRunEnd(event);
-            onCrawlerShutdown(event);
+        if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN)) {
+            onCrawlerContextInitBegin(event);
+        } else if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)) {
+            onCrawlerContextInitEnd(event);
+        } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            onCrawlerCrawlBegin(event);
+        } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
+            onCrawlerCrawlEnd(event);
+        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
+            onTaskRunBegin(event);
+        } else if (event.is(CrawlerEvent.TASK_RUN_END)) {
+            onTaskRunEnd(event);
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)) {
             onCrawlerRunThreadBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)) {
             onCrawlerRunThreadEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_STOP_BEGIN)) {
+        } else if (event.is(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)) {
             onCrawlerStopBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_STOP_END)) {
+        } else if (event.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
             onCrawlerStopEnd(event);
-            onCrawlerShutdown(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CLEAN_BEGIN)) {
             onCrawlerCleanBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CLEAN_END)) {
             onCrawlerCleanEnd(event);
+        } else if (event.is(CrawlerEvent.CRAWLER_ERROR)) {
+            onCrawlerError(event);
         }
     }
 
@@ -62,29 +66,31 @@ public abstract class CrawlerLifeCycleListener
         //NOOP
     }
 
-    /**
-     * Triggered when a crawler is ending its execution on either
-     * a {@link CrawlerEvent#CRAWLER_RUN_END} or
-     * {@link CrawlerEvent#CRAWLER_STOP_END} event.
-     * @param event crawler event
-     */
-    protected void onCrawlerShutdown(CrawlerEvent event) {
+    protected void onCrawlerContextInitBegin(CrawlerEvent event) {
         //NOOP
     }
 
-    protected void onCrawlerInitBegin(CrawlerEvent event) {
+    protected void onCrawlerContextInitEnd(CrawlerEvent event) {
         //NOOP
     }
 
-    protected void onCrawlerInitEnd(CrawlerEvent event) {
+    protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         //NOOP
     }
 
-    protected void onCrawlerRunBegin(CrawlerEvent event) {
+    protected void onCrawlerCrawlEnd(CrawlerEvent event) {
         //NOOP
     }
 
-    protected void onCrawlerRunEnd(CrawlerEvent event) {
+    protected void onCrawlerError(CrawlerEvent event) {
+        //NOOP
+    }
+
+    protected void onTaskRunEnd(CrawlerEvent event) {
+        //NOOP
+    }
+
+    protected void onTaskRunBegin(CrawlerEvent event) {
         //NOOP
     }
 

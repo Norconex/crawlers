@@ -53,7 +53,7 @@ import lombok.experimental.Accessors;
  * expression without a "toSeparator", the text matching the expression is
  * kept as is and thus can be different for each segment.
  * </p>
- * <h3>Storing values in an existing field</h3>
+ * <h2>Storing values in an existing field</h2>
  * <p>
  * If a target field with the same name already exists for a document,
  * values will be added to the end of the existing value list.

@@ -33,7 +33,7 @@ import lombok.experimental.Accessors;
  * to extract data from and/or manipulate a document.
  * </p>
  *
- * <h3>Command-line arguments:</h3>
+ * <h2>Command-line arguments:</h2>
  * <p>
  * When constructing the command to launch the external application, it
  * will look for specific tokens to be replaced by file paths
@@ -81,7 +81,7 @@ import lombok.experimental.Accessors;
  *
  * </dl>
  *
- * <h3>Metadata file format:</h3>
+ * <h2>Metadata file format:</h2>
  *
  * <p>
  * If <code>${INPUT_META}</code> is part of the command, metadata can be
@@ -132,7 +132,7 @@ import lombok.experimental.Accessors;
  *   field3 = value3a\u241Evalue3b
  * </code></pre>
  *
- * <h3>Metadata extraction patterns:</h3>
+ * <h2>Metadata extraction patterns:</h2>
  * <p>
  * It is possible to specify metadata extraction patterns that will be
  * applied either on the returned metadata file or from the standard output and
@@ -167,7 +167,7 @@ import lombok.experimental.Accessors;
  * is expected.
  * </p>
  *
- * <h3>Storing values in an existing field</h3>
+ * <h2>Storing values in an existing field</h2>
  * <p>
  * If a target field with the same name already exists for a document,
  * values will be added to the end of the existing value list.
@@ -175,7 +175,7 @@ import lombok.experimental.Accessors;
  * {@link PropertySetter}.
  * </p>
  *
- * <h3>Environment variables:</h3>
+ * <h2>Environment variables:</h2>
  *
  * <p>
  * Execution environment variables can be set to replace environment variables

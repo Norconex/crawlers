@@ -36,7 +36,7 @@ import lombok.experimental.FieldNameConstants;
  * The decimal character is expected to be a dot (".").
  * The default operator is "eq" (equals).
  * </p>
- * <h3>Single number vs range of numbers:</h3>
+ * <h2>Single number vs range of numbers:</h2>
  * <p>
  * This condition accepts zero, one, or two value matchers:
  * </p>

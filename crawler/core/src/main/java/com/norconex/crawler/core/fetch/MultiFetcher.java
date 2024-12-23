@@ -25,7 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -52,7 +52,7 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
 
     @FunctionalInterface
     public interface UnsuccessfulResponseFactory<R> {
-        R create(CrawlDocState crawlState, String message, Exception e);
+        R create(DocResolutionStatus crawlState, String message, Exception e);
     }
 
     // this gives a chance to wrap the MultiFetchResponse into
@@ -119,22 +119,22 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
                 doc.getMetadata().add(
                         CrawlDocMetadata.FETCHER, fetcher.getClass().getName());
 
-                if (fetchResponse.getCrawlDocState() != null
-                        && fetchResponse.getCrawlDocState().isGoodState()) {
+                if (fetchResponse.getResolutionStatus() != null
+                        && fetchResponse.getResolutionStatus().isGoodState()) {
                     return responseListAdapter.adapt(allResponses);
                 }
                 LOG.debug(
                         "Fetcher {} response returned a bad crawl "
                                 + "state: {}",
                         fetcher.getClass().getSimpleName(),
-                        fetchResponse.getCrawlDocState());
+                        fetchResponse.getResolutionStatus());
             }
         }
         if (!accepted) {
             //            allResponses.put(unsuccessfulResponseAdaptor.create(
             allResponses.add(
                     unsuccessfulResponseFactory.create(
-                            CrawlDocState.UNSUPPORTED,
+                            DocResolutionStatus.UNSUPPORTED,
                             "No fetcher defined accepting reference '"
                                     + doc.getReference()
                                     + "' for fetch request: "
@@ -172,11 +172,11 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
                     "Fetcher {} failed to execute request.",
                     fetcher.getClass().getSimpleName(), e);
             fetchResponse = unsuccessfulResponseFactory.create(
-                    CrawlDocState.ERROR, "Fetcher execution failure.", e);
+                    DocResolutionStatus.ERROR, "Fetcher execution failure.", e);
         }
         if (fetchResponse == null) {
             fetchResponse = unsuccessfulResponseFactory.create(
-                    CrawlDocState.UNSUPPORTED,
+                    DocResolutionStatus.UNSUPPORTED,
                     "Fetch operation unsupported by fetcher.",
                     null);
         }

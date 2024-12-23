@@ -261,14 +261,16 @@ public enum Browser {
                 return SystemUtil.callWithProperty(
                         driverSystemProperty, driverPath, () -> {
                             if (location.getRemoteURL() != null) {
-                                LOG.info(
-                                        "Creating remote \"{}\" web driver.",
+                                LOG.info("Creating remote \"{}\" web driver.",
                                         driverClass.getSimpleName());
-                                return new RemoteWebDriver(
-                                        location.getRemoteURL(), options);
+                                var rwd = new RemoteWebDriver(
+                                        location.getRemoteURL(),
+                                        options, false);
+                                LOG.info("Remote \"{}\" web driver created.",
+                                        driverClass.getSimpleName());
+                                return rwd;
                             }
-                            LOG.info(
-                                    "Creating local \"{}\" web driver.",
+                            LOG.info("Creating local \"{}\" web driver.",
                                     driverClass.getSimpleName());
                             return ConstructorUtils.invokeExactConstructor(
                                     driverClass, options);

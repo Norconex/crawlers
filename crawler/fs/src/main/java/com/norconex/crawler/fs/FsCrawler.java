@@ -14,33 +14,14 @@
  */
 package com.norconex.crawler.fs;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerBuilder;
-import com.norconex.crawler.core.CrawlerCallbacks;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.fs.callbacks.BeforeFsCrawlerExecution;
-import com.norconex.crawler.fs.doc.FsCrawlDocContext;
-import com.norconex.crawler.fs.doc.pipelines.FsDocPipelines;
-import com.norconex.crawler.fs.fetch.FileFetcherProvider;
 
-public class FsCrawler {
+public final class FsCrawler {
 
-    protected static final Supplier<CrawlerBuilder> crawlerBuilderSupplier =
-            () -> Crawler
-                    .builder()
-                    .fetcherProvider(new FileFetcherProvider())
-                    .callbacks(
-                            CrawlerCallbacks
-                                    .builder()
-                                    .beforeCrawlerExecution(
-                                            new BeforeFsCrawlerExecution())
-                                    .build())
-                    .docPipelines(FsDocPipelines.get())
-                    .docContextType(FsCrawlDocContext.class);
+    private FsCrawler() {
+    }
 
     /**
      * Invokes the File System Crawler from the command line.
@@ -58,15 +39,10 @@ public class FsCrawler {
     }
 
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(crawlerBuilderSupplier.get(), args);
+        return CliCrawlerLauncher.launch(FsCrawlerSpecProvider.class, args);
     }
 
     public static Crawler create(CrawlerConfig crawlerConfig) {
-        return crawlerBuilderSupplier
-                .get()
-                .configuration(
-                        Optional.ofNullable(crawlerConfig)
-                                .orElseGet(CrawlerConfig::new))
-                .build();
+        return new Crawler(FsCrawlerSpecProvider.class, crawlerConfig);
     }
 }

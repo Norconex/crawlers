@@ -15,6 +15,8 @@
 package com.norconex.crawler.fs.fetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -22,10 +24,13 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.fs.FsCrawler;
+import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher;
 import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
 import com.norconex.crawler.fs.fetch.impl.smb.SmbFetcher;
+import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
+import com.norconex.crawler.fs.stubs.CrawlDocStubs;
 import com.norconex.crawler.fs.stubs.CrawlerConfigStubs;
 
 class FileFetcherProviderTest {
@@ -34,19 +39,44 @@ class FileFetcherProviderTest {
     private Path tempDir;
 
     @Test
-    void test() {
-        var crawlerCfg = CrawlerConfigStubs
-                .memoryCrawlerConfig(tempDir);
+    void testApply() {
+        var crawlerCfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
         var p = new FileFetcherProvider();
 
-        var crawler = FsCrawler.create(crawlerCfg);
+        var ctx = new MockFsCrawlerBuilder(tempDir)
+                .config(crawlerCfg)
+                .crawlerContext();
 
-        assertThat(p.apply(crawler).getFetchers())
+        assertThat(p.apply(ctx).getFetchers())
                 .containsExactly(new LocalFetcher()); // default fetcher
-
         crawlerCfg.setFetchers(List.of(new HdfsFetcher(), new SmbFetcher()));
-        crawler = FsCrawler.create(crawlerCfg);
-        assertThat(p.apply(crawler).getFetchers())
+        assertThat(p.apply(ctx).getFetchers())
                 .containsExactly(new HdfsFetcher(), new SmbFetcher());
     }
+
+    @Test
+    void testError() throws FetchException {
+        var request = new FileFetchRequest(
+                CrawlDocStubs.crawlDoc(tempDir.resolve("na").toString()),
+                FetchDirective.DOCUMENT);
+
+        var fetcher = mock(LocalFetcher.class);
+        when(fetcher.accept(request)).thenReturn(true);
+        when(fetcher.fetch(request)).thenThrow(
+                new RuntimeException("simulated error"));
+
+        var crawlerCfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+        crawlerCfg.setFetchers(List.of(fetcher));
+
+        var p = new FileFetcherProvider();
+        var ctx = new MockFsCrawlerBuilder(tempDir)
+                .config(crawlerCfg)
+                .crawlerContext();
+        var multiFetcher = p.apply(ctx);
+        ctx.init();
+
+        var response = multiFetcher.fetch(request);
+        assertThat(response.getException()).isNotNull();
+    }
+
 }

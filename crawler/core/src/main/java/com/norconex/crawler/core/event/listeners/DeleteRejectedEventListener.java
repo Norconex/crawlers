@@ -21,11 +21,12 @@ import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.store.DataStore;
+import com.norconex.crawler.core.grid.GridSet;
+import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -39,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  * encountered in a previous crawling session or not.
  * </p>
  *
- * <h3>Supported events</h3>
+ * <h2>Supported events</h2>
  * <p>
  * By default this listener will send deletion requests for all references
  * associated with a {@link CrawlerEvent} name starting with
@@ -50,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
  * Keep limiting events to "rejected" ones to avoid unexpected results.
  * </p>
  *
- * <h3>Deletion requests sent once</h3>
+ * <h2>Deletion requests sent once</h2>
  * <p>
  * This class tries to handles each reference for "rejected" events only once.
  * To do so it will queue all such references and wait until normal
@@ -61,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
  * reference.
  * </p>
  *
- * <h3>Only references</h3>
+ * <h2>Only references</h2>
  * <p>
  * Since several rejection events are triggered before document are processed,
  * we can't assume there is any metadata attached with rejected
@@ -75,6 +76,8 @@ import lombok.extern.slf4j.Slf4j;
 public class DeleteRejectedEventListener implements
         EventListener<Event>, Configurable<DeleteRejectedEventListenerConfig> {
 
+    public static final String DELETED_REFS_CACHE_NAME = "rejected-refs";
+
     @Getter
     private final DeleteRejectedEventListenerConfig configuration =
             new DeleteRejectedEventListenerConfig();
@@ -82,7 +85,7 @@ public class DeleteRejectedEventListener implements
     // key=reference; value=whether deletion request was already sent
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private DataStore<Boolean> refStore;
+    private GridSet<String> refStore;
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private boolean doneCrawling;
@@ -93,31 +96,28 @@ public class DeleteRejectedEventListener implements
             return;
         }
 
-        if (CrawlerEvent.CRAWLER_SHUTDOWN_BEGIN.equals(event.getName())) {
+        if (CrawlerEvent.CRAWLER_CRAWL_END.equals(event.getName())) {
             doneCrawling = true;
             commitDeletions(crawlerEvent.getSource());
-            close();
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
+        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
             init(crawlerEvent.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_STOP_END)) {
-            close();
         } else {
             storeRejection(crawlerEvent);
         }
     }
 
-    private void init(Crawler crawler) {
+    private void init(CrawlerContext crawlerContext) {
         // Delete any previously created store. We do it here instead
-        // of on completion in case users want to keep a record.
-        crawler.getDataStoreEngine().dropStore("rejected-refs");
-        refStore = crawler.getDataStoreEngine().openStore(
-                "rejected-refs", Boolean.class);
-    }
-
-    private void close() {
-        if (refStore != null) {
-            refStore.close();
-        }
+        // of on completion in case users want to keep a record between
+        // two crawl executions.
+        refStore = crawlerContext.getGrid().storage()
+                .getSet(DELETED_REFS_CACHE_NAME, String.class);
+        ConcurrentUtil.block(crawlerContext.getGrid().compute()
+                .runLocalOnce("delete-rejected-listener-init", () -> {
+                    LOG.info("Clearing any previous deleted references cache.");
+                    refStore.clear();
+                    return null;
+                }));
     }
 
     private void storeRejection(CrawlerEvent event) {
@@ -130,42 +130,31 @@ public class DeleteRejectedEventListener implements
         // does it have a document reference?
         var docInfo = event.getDocContext();
         if (docInfo == null) {
-            LOG.warn(
-                    "Listening for reference rejections on a crawler event "
-                            + "that has no reference: {}",
+            LOG.warn("Listening for reference rejections on a crawler event "
+                    + "that has no reference: {}",
                     event.getName());
             return;
         }
-
-        storeRejection(docInfo.getReference());
+        refStore.add(docInfo.getReference());
     }
 
-    private void storeRejection(String ref) {
-        // If deletionSent flag is false, check first if already there so we do
-        // not risk overwriting a previously saved "true" flag.
-        // If deletionSent is true, we want it to overwrite.
-        //MAYBE: should we synchronize?
-        if (!refStore.find(ref).isPresent()) {
-            refStore.save(ref, false); // false is a dummy value
-        }
-    }
-
-    private void commitDeletions(Crawler crawler) {
-        if (LOG.isInfoEnabled()) {
-            LOG.info(
-                    "Committing {} rejected references for deletion...",
-                    refStore.count());
-        }
-        refStore.forEach((ref, sent) -> {
-            if (Boolean.FALSE.equals(sent)) {
-                crawler.getServices().getCommitterService().delete(
-                        new CrawlDoc(
-                                new CrawlDocContext(ref),
-                                CachedInputStream
-                                        .cache(new NullInputStream())));
-            }
-            return true;
-        });
-        LOG.info("Done committing rejected references.");
+    private void commitDeletions(CrawlerContext crawlerContext) {
+        ConcurrentUtil.block(crawlerContext.getGrid().compute().runLocalOnce(
+                "delete-rejected-listener-commit", () -> {
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("Committing {} rejected references for "
+                                + "deletion...", refStore.size());
+                    }
+                    refStore.forEach(ref -> {
+                        crawlerContext.getCommitterService()
+                                .delete(new CrawlDoc(
+                                        new CrawlDocContext(ref),
+                                        CachedInputStream
+                                                .cache(new NullInputStream())));
+                        return true;
+                    });
+                    LOG.info("Done committing rejected references.");
+                    return null;
+                }));
     }
 }

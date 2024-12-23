@@ -21,32 +21,29 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.mocks.MockFetchRequest;
-import com.norconex.crawler.core.mocks.MockFetchResponse;
-import com.norconex.crawler.core.mocks.MockFetchResponseImpl;
-import com.norconex.crawler.core.mocks.MockFetcher;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
+import com.norconex.crawler.core.mocks.fetch.MockFetchResponse;
+import com.norconex.crawler.core.mocks.fetch.MockFetchResponseImpl;
+import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 
 class MultiFetcherTest {
 
     @Test
     void testAcceptedAndOKResponse() {
-        var mf = multiFetcher(
-                new MockFetcher()
-                        .setDenyRequest(false)
-                        .setReturnBadStatus(false));
+        var mf = multiFetcher(new MockFetcher()
+                .setDenyRequest(false)
+                .setReturnBadStatus(false));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
-        assertThat(
-                ((MultiFetchResponse<?>) resp)
-                        .getFetchResponses()).hasSize(1);
+        assertThat(((MultiFetchResponse<?>) resp)
+                .getFetchResponses()).hasSize(1);
     }
 
     @Test
     void testAcceptedAndBadResponse() {
-        var mf = multiFetcher(
-                new MockFetcher()
-                        .setDenyRequest(false)
-                        .setReturnBadStatus(true));
+        var mf = multiFetcher(new MockFetcher()
+                .setDenyRequest(false)
+                .setReturnBadStatus(true));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
         assertThat(
                 ((MultiFetchResponse<?>) resp)
@@ -55,10 +52,9 @@ class MultiFetcherTest {
 
     @Test
     void testDenied() {
-        var mf = multiFetcher(
-                new MockFetcher()
-                        .setDenyRequest(true)
-                        .setReturnBadStatus(false)); // <-- irrelevant
+        var mf = multiFetcher(new MockFetcher()
+                .setDenyRequest(true)
+                .setReturnBadStatus(false)); // <-- irrelevant
         var resp = mf.fetch(new MockFetchRequest("someRef"));
         // Even though there are no matching fetchers, there is always
         // at least once response returned. In this case, it will be
@@ -66,7 +62,8 @@ class MultiFetcherTest {
         assertThat(
                 ((MultiFetchResponse<?>) resp)
                         .getFetchResponses()).hasSize(1);
-        assertThat(resp.getCrawlDocState()).isSameAs(CrawlDocState.UNSUPPORTED);
+        assertThat(resp.getResolutionStatus())
+                .isSameAs(DocResolutionStatus.UNSUPPORTED);
     }
 
     private MultiFetcher<MockFetchRequest, MockFetchResponse> multiFetcher(
@@ -77,7 +74,7 @@ class MultiFetcherTest {
                 .responseListAdapter(MockMultiFetcherResponse::new)
                 .unsuccessfulResponseAdaptor(
                         (state, msg, ex) -> new MockFetchResponseImpl()
-                                .setCrawlDocState(state)
+                                .setResolutionStatus(state)
                                 .setReasonPhrase(msg)
                                 .setException(ex))
                 .maxRetries(1)

@@ -14,20 +14,18 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test that MaxDocuments setting is respected.
@@ -35,18 +33,14 @@ import com.norconex.crawler.web.WebsiteMock;
 @MockServerSettings
 class MaxDocumentsTest {
 
-    @TempDir
-    private Path tempDir;
+    @WebCrawlTest
+    void testMaxDocuments(ClientAndServer client, WebCrawlerConfig cfg) {
+        MockWebsite.whenInfiniteDepth(client);
 
-    @Test
-    void testMaxDocuments(ClientAndServer client) throws IOException {
-        WebsiteMock.whenInfiniteDepth(client);
-
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(
-                    List.of(serverUrl(client, "/maxDocuments/0000")));
-            cfg.setMaxDocuments(15);
-        });
+        cfg.setStartReferences(
+                List.of(serverUrl(client, "/maxDocuments/0000")));
+        cfg.setMaxDocuments(15);
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getRequestCount()).isEqualTo(15);
     }

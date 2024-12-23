@@ -35,13 +35,13 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
+import com.norconex.crawler.web.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.operations.link.impl.TikaLinkExtractor;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -56,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
  * <a href="http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">here</a>.
  * </p>
  *
- * <h3>Filter by status codes</h3>
+ * <h2>Filter by status codes</h2>
  * <p>
  * By default, the status of all fetched URLs are stored by this listener,
  * regardless what were those statuses.  This can generate very lengthy reports
@@ -71,7 +71,7 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * <pre>100-199,201-599</pre>
  *
- * <h3>Output location</h3>
+ * <h2>Output location</h2>
  * <p>
  * By default the generated report is created under the collector working
  * directory.
@@ -79,7 +79,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@link UrlStatusCrawlerEventListenerConfig#setOutputDir(Path)}.
  * </p>
  *
- * <h3>File naming</h3>
+ * <h2>File naming</h2>
  * <p>
  * By default, the file generated will use this naming pattern:
  * </p>
@@ -91,7 +91,7 @@ import lombok.extern.slf4j.Slf4j;
  * using {@link UrlStatusCrawlerEventListenerConfig#setFileNamePrefix(String)}.
  * </p>
  *
- * <h3>Referring/parent URLs and custom link extractor</h3>
+ * <h2>Referring/parent URLs and custom link extractor</h2>
  * <p>
  * To capture the referring pages you have to use a link extractor that
  * extracts referrer information.  The default link extractor
@@ -125,11 +125,11 @@ public class UrlStatusCrawlerEventListener implements
 
     @Override
     public void accept(Event event) {
-        if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
-            init((Crawler) event.getSource());
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            init((CrawlerContext) event.getSource());
             return;
         }
-        if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
             try {
                 csvPrinter.close();
             } catch (IOException e) {
@@ -166,7 +166,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private void init(Crawler crawler) {
+    private void init(CrawlerContext crawler) {
 
         var baseDir = getBaseDir(crawler);
         var timestamp = "";
@@ -213,7 +213,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private Path getBaseDir(Crawler crawler) {
+    private Path getBaseDir(CrawlerContext crawler) {
         if (configuration.getOutputDir() == null) {
             return crawler.getWorkDir();
         }

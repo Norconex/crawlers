@@ -64,7 +64,7 @@ import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpMethod;
-import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
 import com.norconex.importer.doc.DocContext;
 
 import lombok.extern.slf4j.Slf4j;

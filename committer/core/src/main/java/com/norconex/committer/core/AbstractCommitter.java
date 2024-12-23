@@ -37,7 +37,7 @@ import lombok.ToString;
  * and adding support for filtering unwanted requests.
  * </p>
  *
- * <h3>Restricting committer to specific documents</h3>
+ * <h2>Restricting committer to specific documents</h2>
  * <p>
  * Optionally apply a committer only to certain type of documents.
  * Documents are restricted based on their
@@ -45,7 +45,7 @@ import lombok.ToString;
  * perform document routing when you have multiple committers defined.
  * </p>
  *
- * <h3>Field mappings</h3>
+ * <h2>Field mappings</h2>
  * <p>
  * By default, this abstract class applies field mappings for metadata fields,
  * but leaves the document reference and content (input stream) for concrete
@@ -202,12 +202,11 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
     }
 
     protected final void fireDebug(String name, CommitterRequest req) {
-        fire(
-                CommitterEvent.builder()
-                        .name(name)
-                        .source(this)
-                        .request(req)
-                        .build(),
+        fire(CommitterEvent.builder()
+                .name(name)
+                .source(this)
+                .request(req)
+                .build(),
                 Level.DEBUG);
     }
 
@@ -216,12 +215,11 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
     }
 
     protected final void fireInfo(String name, CommitterRequest req) {
-        fire(
-                CommitterEvent.builder()
-                        .name(name)
-                        .source(this)
-                        .request(req)
-                        .build(),
+        fire(CommitterEvent.builder()
+                .name(name)
+                .source(this)
+                .request(req)
+                .build(),
                 Level.INFO);
     }
 
@@ -231,13 +229,12 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
 
     protected final void fireError(
             String name, CommitterRequest req, Exception e) {
-        fire(
-                CommitterEvent.builder()
-                        .name(name)
-                        .source(this)
-                        .request(req)
-                        .exception(e)
-                        .build(),
+        fire(CommitterEvent.builder()
+                .name(name)
+                .source(this)
+                .request(req)
+                .exception(e)
+                .build(),
                 Level.ERROR);
     }
 

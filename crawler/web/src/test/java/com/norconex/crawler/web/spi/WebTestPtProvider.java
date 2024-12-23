@@ -20,8 +20,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
-import com.norconex.crawler.web.cases.recovery.CrawlSessionStopper;
+import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.web.cases.recovery.JVMCrasher;
 import com.norconex.crawler.web.cases.recovery.TestCommitter;
 import com.norconex.crawler.web.mocks.MockStartURLsProvider;
@@ -33,7 +32,7 @@ public class WebTestPtProvider implements PolymorphicTypeProvider {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
         map.put(EventListener.class, JVMCrasher.class);
-        map.put(EventListener.class, CrawlSessionStopper.class);
+        //        map.put(EventListener.class, CrawlSessionStopper.class);
         map.put(ReferencesProvider.class, MockStartURLsProvider.class);
         map.put(Committer.class, TestCommitter.class);
         return map;

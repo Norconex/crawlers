@@ -17,22 +17,27 @@ package com.norconex.crawler.core.fetch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.Xml;
-import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.junit.WithCrawlerTest;
-import com.norconex.crawler.core.mocks.MockFetchRequest;
-import com.norconex.crawler.core.mocks.MockFetcher;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
+import com.norconex.crawler.core.mocks.fetch.MockFetcher;
+import com.norconex.crawler.core.operations.filter.impl.GenericReferenceFilter;
 
 class AbstractFetcherTest {
+
+    @TempDir
+    private Path tempDir;
 
     @Test
     void testAbstractFetcher() {
@@ -48,52 +53,49 @@ class AbstractFetcherTest {
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();
     }
 
-    @WithCrawlerTest
-    void testEvents(Crawler crawler) {
+    @Test
+    void testEvents() {
+        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         List<String> methodsCalled = new ArrayList<>();
         var f = new MockFetcher() {
             @Override
-            protected void fetcherStartup(Crawler crawler) {
+            protected void fetcherStartup(CrawlerContext crawler) {
                 methodsCalled.add("fetcherStartup");
             }
 
             @Override
-            protected void fetcherShutdown(Crawler crawler) {
+            protected void fetcherShutdown(CrawlerContext crawler) {
                 methodsCalled.add("fetcherShutdown");
             }
 
             @Override
-            protected void fetcherThreadBegin(Crawler crawler) {
+            protected void fetcherThreadBegin(CrawlerContext crawler) {
                 methodsCalled.add("fetcherThreadBegin");
             }
 
             @Override
-            protected void fetcherThreadEnd(Crawler crawler) {
+            protected void fetcherThreadEnd(CrawlerContext crawler) {
                 methodsCalled.add("fetcherThreadEnd");
             }
         };
-        f.accept(
-                CrawlerEvent.builder()
-                        .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
-                        .source(crawler)
-                        .build());
-        f.accept(
-                CrawlerEvent.builder()
-                        .name(CrawlerEvent.CRAWLER_RUN_END)
-                        .source(crawler)
-                        .build());
-        f.accept(
-                CrawlerEvent.builder()
-                        .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
-                        .source(crawler)
-                        .subject(Thread.currentThread())
-                        .build());
-        f.accept(
-                CrawlerEvent.builder()
-                        .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
-                        .source(crawler)
-                        .subject(Thread.currentThread())
-                        .build());
+        f.accept(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)
+                .source(crawlerContext)
+                .build());
+        f.accept(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)
+                .source(crawlerContext)
+                .build());
+        f.accept(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
+                .source(crawlerContext)
+                .subject(Thread.currentThread())
+                .build());
+        f.accept(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
+                .source(crawlerContext)
+                .subject(Thread.currentThread())
+                .build());
         assertThat(methodsCalled).containsExactly(
                 "fetcherStartup",
                 "fetcherShutdown",

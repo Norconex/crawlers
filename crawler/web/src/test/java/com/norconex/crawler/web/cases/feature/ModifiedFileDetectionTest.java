@@ -14,26 +14,24 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.apache.http.HttpHeaders.LAST_MODIFIED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.stubs.CrawlerStubs;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
 /**
  * Test detection of modified files.
@@ -49,22 +47,17 @@ class ModifiedFileDetectionTest {
     private final String dynaContentPath = homePath + "/dynaContent";
     private final String dynaDateContentPath = homePath + "/dynaDateContent";
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testModifiedFileDetection(ClientAndServer client)
-            throws IOException, CommitterException {
+    @WebCrawlTest
+    void testModifiedFileDetection(
+            ClientAndServer client, WebCrawlerConfig cfg)
+            throws CommitterException {
 
         // relies on default checksummers
-        var crawler = CrawlerStubs.memoryCrawler(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, homePath)));
-        });
-        var mem = WebTestUtil.firstCommitter(crawler);
+        cfg.setStartReferences(List.of(serverUrl(client, homePath)));
 
         // First run is all new, so 4 docs
         whenLastModified(client, 0);
-        crawler.start();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(4);
         mem.clean();
 
@@ -84,86 +77,82 @@ class ModifiedFileDetectionTest {
         //     content, and since content has also changed, we flag it
         //     as modified.
         whenLastModified(client, 1);
-        crawler.start();
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(1);
         mem.clean();
-
-        crawler.clean();
     }
 
     private void whenLastModified(
             ClientAndServer client, int dynaDaysOffset) {
+        // @formatter:off
         client.reset();
         client
-                .when(request().withPath(homePath))
-                .respond(
-                        response()
-                                .withHeader(
-                                        LAST_MODIFIED,
-                                        WebTestUtil.rfcFormat(twentyDaysAgo))
-                                .withBody(
-                                        """
-                                                <h1>Home page.</h1>
-                                                <p>This page is never modified but the pages for these
-                                                3 links are:</p>
-                                                <a href="%s">Ever changing Last-Modified in HTTP header</a>
-                                                <a href="%s">Ever changing body content</a>
-                                                <a href="%s">Both header and body are ever changing</a>
-                                                """
-                                                .formatted(
-                                                        dynaDatePath,
-                                                        dynaContentPath,
-                                                        dynaDateContentPath),
-                                        HTML_UTF_8));
+            .when(request().withPath(homePath))
+            .respond(response()
+                .withHeader(
+                        LAST_MODIFIED,
+                        WebTestUtil.rfcFormat(twentyDaysAgo))
+                .withBody(
+                        """
+                        <h1>Home page.</h1>
+                        <p>This page is never modified but the pages for these
+                        3 links are:</p>
+                        <a href="%s">Ever changing Last-Modified in HTTP
+                        header</a>
+                        <a href="%s">Ever changing body content</a>
+                        <a href="%s">Both header and body are ever changing</a>
+                        """
+                        .formatted(
+                                dynaDatePath,
+                                dynaContentPath,
+                                dynaDateContentPath),
+                        HTML_UTF_8));
         client
-                .when(request().withPath(dynaDatePath))
-                .respond(
-                        response()
-                                .withHeader(
-                                        LAST_MODIFIED,
-                                        WebTestUtil
-                                                .daysAgoRFC(
-                                                        15 - dynaDaysOffset))
-                                .withBody(
-                                        """
-                                                This page content is the same, but header should
-                                                be different each time (according to offset).
-                                                """,
-                                        HTML_UTF_8));
+            .when(request().withPath(dynaDatePath))
+            .respond(response()
+                .withHeader(
+                        LAST_MODIFIED,
+                        WebTestUtil.daysAgoRFC(15 - dynaDaysOffset))
+                .withBody(
+                        """
+                        This page content is the same, but header should
+                        be different each time (according to offset).
+                        """,
+                        HTML_UTF_8));
         client
-                .when(request().withPath(dynaContentPath))
-                .respond(
-                        response()
-                                .withHeader(
-                                        LAST_MODIFIED,
-                                        WebTestUtil.rfcFormat(twentyDaysAgo))
-                                .withBody(
-                                        """
-                                                This page content should be different (according to offset)
-                                                while the header should be the same.
-                                                Salt: %s.
-                                                """
-                                                .formatted(
-                                                        WebTestUtil.daysAgoRFC(
-                                                                10 - dynaDaysOffset)),
-                                        HTML_UTF_8));
+            .when(request().withPath(dynaContentPath))
+            .respond(response()
+                .withHeader(
+                        LAST_MODIFIED,
+                        WebTestUtil.rfcFormat(twentyDaysAgo))
+                .withBody(
+                        """
+                        This page content should be different (according to
+                        offset) while the header should be the same.
+                        Salt: %s.
+                        """
+                        .formatted(
+                                WebTestUtil.daysAgoRFC(
+                                        10 - dynaDaysOffset)),
+                        HTML_UTF_8));
         client
-                .when(request().withPath(dynaDateContentPath))
-                .respond(
-                        response()
-                                .withHeader(
-                                        LAST_MODIFIED,
-                                        WebTestUtil
-                                                .daysAgoRFC(5 - dynaDaysOffset))
-                                .withBody(
-                                        """
-                                                Both content and header should be different
-                                                (according to offset).
-                                                Salt: %s.
-                                                """
-                                                .formatted(
-                                                        WebTestUtil.daysAgoRFC(
-                                                                5 - dynaDaysOffset)),
-                                        HTML_UTF_8));
+            .when(request().withPath(dynaDateContentPath))
+            .respond(
+                response()
+                    .withHeader(
+                            LAST_MODIFIED,
+                            WebTestUtil
+                                    .daysAgoRFC(5 - dynaDaysOffset))
+                    .withBody(
+                        """
+                        Both content and header should be different
+                        (according to offset).
+                        Salt: %s.
+                        """
+                        .formatted(
+                                WebTestUtil.daysAgoRFC(
+                                        5 - dynaDaysOffset)),
+                        HTML_UTF_8));
+        // @formatter:on
     }
 }

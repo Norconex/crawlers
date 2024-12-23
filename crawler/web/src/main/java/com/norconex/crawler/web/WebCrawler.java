@@ -14,32 +14,14 @@
  */
 package com.norconex.crawler.web;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerBuilder;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
-import com.norconex.crawler.web.fetch.HttpFetcherProvider;
 
 /**
  * Facade for launching or obtaining a Web Crawler.
  */
 public final class WebCrawler {
-
-    private static final Supplier<CrawlerBuilder> crawlerBuilderSupplier =
-            () -> Crawler
-                    .builder()
-                    .configuration(new WebCrawlerConfig())
-                    .fetcherProvider(new HttpFetcherProvider())
-                    .callbacks(WebCrawlerCallbacks.get())
-                    .docPipelines(WebDocPipelines.get())
-                    .docContextType(WebCrawlDocContext.class)
-                    .context(new WebCrawlerContext());
 
     private WebCrawler() {
     }
@@ -51,6 +33,7 @@ public final class WebCrawler {
      * @param args command-line options
      */
     public static void main(String[] args) {
+        //System.setProperty("IGNITE_QUIET", "false");
         try {
             System.exit(launch(args));
         } catch (Exception e) {
@@ -68,7 +51,7 @@ public final class WebCrawler {
      * @return execution status code
      */
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(builder(), args);
+        return CliCrawlerLauncher.launch(WebCrawlerSpecProvider.class, args);
     }
 
     /**
@@ -77,20 +60,11 @@ public final class WebCrawler {
      * @return crawler
      */
     public static Crawler create(WebCrawlerConfig crawlerConfig) {
-        return builder()
-                .configuration(Optional.ofNullable(crawlerConfig)
-                        .orElseGet(WebCrawlerConfig::new))
-                .build();
-    }
-
-    /**
-     * Gets the builder used to create a Web Crawler. To get a web crawler
-     * instance, it is best to call {@link #create(WebCrawlerConfig)}.
-     * This method is typically for internal use, unless you know what you are
-     * doing and want to create your own crawler, based on this one.
-     * @return crawler builder
-     */
-    public static CrawlerBuilder builder() {
-        return crawlerBuilderSupplier.get();
+        return new Crawler(WebCrawlerSpecProvider.class, crawlerConfig);
+        //        var ctx = new CrawlerContext(WebCrawlerSpecProvider.class, crawlerConfig);
+        //        return new Crawler(ctx);
+        //        return Crawler.create(WebCrawlerSpecProvider.class, b ->
+        //            b.configuration(Optional.ofNullable(crawlerConfig)
+        //                    .orElseGet(WebCrawlerConfig::new)));
     }
 }

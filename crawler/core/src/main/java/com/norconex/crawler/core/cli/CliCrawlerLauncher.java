@@ -14,21 +14,27 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.CrawlerBuilder;
+import com.norconex.crawler.core.CrawlerSpecProvider;
 
 import lombok.NonNull;
 import picocli.CommandLine;
 import picocli.CommandLine.PicocliException;
 
+/**
+ * Launches a crawler command with given crawler specifications and
+ * command-line arguments. Typically not invoked directly, and used by
+ * crawler implementations (e.g., FS, Web).
+ */
 public final class CliCrawlerLauncher {
 
     private CliCrawlerLauncher() {
     }
 
     public static int launch(
-            @NonNull CrawlerBuilder crawlerBuilder, String... args) {
+            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
+            String... args) {
 
-        var cmdLine = new CommandLine(new CliCommandRunner(crawlerBuilder));
+        var cmdLine = new CommandLine(new CliRunner(specProviderClass));
 
         cmdLine.setExecutionExceptionHandler(
                 (var ex, var cli, var parseResult) -> {

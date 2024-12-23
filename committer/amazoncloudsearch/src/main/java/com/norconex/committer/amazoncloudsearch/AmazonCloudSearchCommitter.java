@@ -60,7 +60,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * Commits documents to Amazon CloudSearch.
  * </p>
- * <h3>Authentication:</h3>
+ * <h2>Authentication:</h2>
  * <p>
  * An access key and security key are required to connect to and interact with
  * CloudSearch. For enhanced security, it is best to use one of the methods
@@ -69,7 +69,7 @@ import lombok.extern.slf4j.Slf4j;
  * Do not explicitly set "accessKey" and "secretKey" on this class if you
  * want to rely on safer methods.
  * </p>
- * <h3>CloudSearch ID limitations:</h3>
+ * <h2>CloudSearch ID limitations:</h2>
  * <p>
  * As of this writing, CloudSearch has a 128 characters length limitation
  * on its "id" field. In addition, certain characters are not allowed.

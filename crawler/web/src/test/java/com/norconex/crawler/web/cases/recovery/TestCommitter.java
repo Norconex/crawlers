@@ -16,9 +16,9 @@ package com.norconex.crawler.web.cases.recovery;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.time.ZonedDateTime;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.committer.core.Committer;
 import com.norconex.committer.core.CommitterContext;
@@ -28,15 +28,16 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.impl.FSQueueUtil;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.commons.lang.xml.Xml;
-import com.norconex.commons.lang.xml.XmlConfigurable;
 import com.norconex.crawler.web.cases.recovery.ExternalCrawlSessionLauncher.CrawlOutcome;
 
 import lombok.Data;
 import lombok.SneakyThrows;
 
 @Data
-public class TestCommitter implements Committer, XmlConfigurable {
+public class TestCommitter implements Committer {
+
+    public static final String EXEC_ID_KEY = "EXEC_ID";
+
     private Path dir;
 
     public TestCommitter() {
@@ -69,6 +70,8 @@ public class TestCommitter implements Committer, XmlConfigurable {
     @SneakyThrows
     public void upsert(UpsertRequest upsertRequest)
             throws CommitterException {
+        upsertRequest.getMetadata().set(
+                EXEC_ID_KEY, System.getenv(EXEC_ID_KEY));
         FSQueueUtil.toZipFile(
                 upsertRequest, dir.resolve(
                         "upsert-" + UUID.randomUUID() + ".zip"));
@@ -78,6 +81,8 @@ public class TestCommitter implements Committer, XmlConfigurable {
     @SneakyThrows
     public void delete(DeleteRequest deleteRequest)
             throws CommitterException {
+        deleteRequest.getMetadata().set(
+                EXEC_ID_KEY, System.getenv(EXEC_ID_KEY));
         FSQueueUtil.toZipFile(
                 deleteRequest, dir.resolve(
                         "delete-" + UUID.randomUUID() + ".zip"));
@@ -88,24 +93,16 @@ public class TestCommitter implements Committer, XmlConfigurable {
         //NOOP
     }
 
-    @Override
-    public void loadFromXML(Xml xml) {
-        setDir(xml.getPath("dir", dir));
-    }
-
-    @Override
-    public void saveToXML(Xml xml) {
-        xml.addElement("dir", dir);
-    }
-
     @SneakyThrows
     public void fillMemoryCommitters(
-            CrawlOutcome outcome, ZonedDateTime launchTime) {
+            CrawlOutcome outcome, String executionId) {
         FSQueueUtil.findZipFiles(dir).forEach(zip -> {
             try {
                 CommitterRequest req = FSQueueUtil.fromZipFile(zip);
-                if (Files.getLastModifiedTime(zip).compareTo(
-                        FileTime.from(launchTime.toInstant())) > 0) {
+                if (StringUtils.equalsIgnoreCase(
+                        executionId,
+                        req.getMetadata().getString(EXEC_ID_KEY))) {
+
                     if (req instanceof UpsertRequest upsert) {
                         outcome.committerAfterLaunch.upsert(upsert);
                     } else {

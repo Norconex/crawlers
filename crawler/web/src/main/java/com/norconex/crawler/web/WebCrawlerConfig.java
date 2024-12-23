@@ -25,40 +25,38 @@ import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
-import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
+import com.norconex.crawler.core.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.operations.checksum.impl.Md5DocumentChecksummer;
+import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
-import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
-import com.norconex.crawler.web.doc.operations.checksum.impl.LastModifiedMetadataChecksummer;
-import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
-import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
-import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractorConfig;
-import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
-import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolver;
-import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
-import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
-import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
-import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
-import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher;
-import com.norconex.crawler.web.robot.RobotsMetaProvider;
-import com.norconex.crawler.web.robot.RobotsTxtProvider;
-import com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider;
-import com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider;
-import com.norconex.crawler.web.sitemap.SitemapLocator;
-import com.norconex.crawler.web.sitemap.SitemapResolver;
-import com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator;
-import com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig;
+import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcher;
+import com.norconex.crawler.web.operations.canon.CanonicalLinkDetector;
+import com.norconex.crawler.web.operations.canon.impl.GenericCanonicalLinkDetector;
+import com.norconex.crawler.web.operations.checksum.impl.LastModifiedMetadataChecksummer;
+import com.norconex.crawler.web.operations.delay.DelayResolver;
+import com.norconex.crawler.web.operations.delay.impl.GenericDelayResolver;
+import com.norconex.crawler.web.operations.link.LinkExtractor;
+import com.norconex.crawler.web.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.operations.link.impl.HtmlLinkExtractorConfig;
+import com.norconex.crawler.web.operations.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.operations.recrawl.impl.GenericRecrawlableResolver;
+import com.norconex.crawler.web.operations.robot.RobotsMetaProvider;
+import com.norconex.crawler.web.operations.robot.RobotsTxtProvider;
+import com.norconex.crawler.web.operations.robot.impl.StandardRobotsMetaProvider;
+import com.norconex.crawler.web.operations.robot.impl.StandardRobotsTxtProvider;
+import com.norconex.crawler.web.operations.scope.UrlScopeResolver;
+import com.norconex.crawler.web.operations.scope.impl.GenericUrlScopeResolver;
+import com.norconex.crawler.web.operations.sitemap.SitemapLocator;
+import com.norconex.crawler.web.operations.sitemap.SitemapResolver;
+import com.norconex.crawler.web.operations.sitemap.impl.GenericSitemapLocator;
+import com.norconex.crawler.web.operations.sitemap.impl.GenericSitemapResolver;
+import com.norconex.crawler.web.operations.url.WebUrlNormalizer;
+import com.norconex.crawler.web.operations.url.impl.GenericUrlNormalizer;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.Data;
@@ -70,7 +68,7 @@ import lombok.experimental.FieldNameConstants;
  * Web Crawler configuration, adding more options to the base
  * {@link CrawlerConfig}.
  * </p>
- * <h3>Start URLs</h3>
+ * <h2>Start URLs</h2>
  * <p>
  * Crawling begins with specifying one or more references to either documents
  * or starting points to documents you want to crawl. For a web crawl, those
@@ -97,7 +95,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setUrlScopeResolver(UrlScopeResolver)}.
  * </p>
  *
- * <h3>URL Normalization</h3>
+ * <h2>URL Normalization</h2>
  * <p>
  * Pages on web sites are often referenced using different URL
  * patterns. Such URL variations can fool the crawler into downloading the
@@ -107,7 +105,7 @@ import lombok.experimental.FieldNameConstants;
  * semantically equivalent (see {@link GenericUrlNormalizer}).
  * </p>
  *
- * <h3>Crawl Speed</h3>
+ * <h2>Crawl Speed</h2>
  * <p>
  * <b>Be kind</b> to web sites you crawl. Being too aggressive can be
  * perceived as a cyber-attack by the targeted web site (e.g., DoS attack).
@@ -123,7 +121,7 @@ import lombok.experimental.FieldNameConstants;
  * by supplying a class implementing {@link DelayResolver}.
  * </p>
  *
- * <h3>Crawl Depth</h3>
+ * <h2>Crawl Depth</h2>
  * <p>
  * The crawl depth represents how many level from the start URL the crawler
  * goes. From a browser user perspective, it can be seen as the number of
@@ -136,7 +134,7 @@ import lombok.experimental.FieldNameConstants;
  * reasonable for your site with {@link #setMaxDepth(int)}.
  * </p>
  *
- * <h3>Keeping Referenced Links</h3>
+ * <h2>Keeping Referenced Links</h2>
  * <p>
  * By default the crawler stores, as metadata, URLs extracted from
  * documents that are in scope. Exceptions
@@ -156,7 +154,7 @@ import lombok.experimental.FieldNameConstants;
  *       Must be used with at least one other option to have any effect.</li>
  * </ul>
  *
- * <h3>Orphan documents</h3>
+ * <h2>Orphan documents</h2>
  * <p>
  * Orphans are valid documents, which on subsequent crawls can no longer be
  * reached (e.g. there are no longer referenced). This is
@@ -172,7 +170,7 @@ import lombok.experimental.FieldNameConstants;
  *   <li><b>DELETE:</b> Orphans are sent to your Committer for deletion.</li>
  * </ul>
  *
- * <h3>Error Handling</h3>
+ * <h2>Error Handling</h2>
  * <p>
  * By default the crawler logs exceptions while trying to prevent them
  * from terminating a crawling session. There might be cases where you want
@@ -180,29 +178,14 @@ import lombok.experimental.FieldNameConstants;
  * You can do so with {@link #setStopOnExceptions(List)}.
  * </p>
  *
- * <h3>Crawler Events</h3>
+ * <h2>Crawler Events</h2>
  * <p>
  * The crawler fires all kind of events to notify interested parties of such
  * things as when a document is rejected, imported, committed, etc.).
  * You can listen to crawler events using {@link #setEventListeners(List)}.
  * </p>
  *
- * <h3>Data Store (Cache)</h3>
- * <p>
- * During and between crawl sessions, the crawler needs to preserve
- * specific information in order to keep track of
- * things such as a queue of document references to process,
- * those already processed, whether a document has been modified since last
- * crawled, caching of document checksums, etc.
- * For this, the crawler uses a database we refer to as a data store engine.
- * The default implementation uses the local file system to store these
- * (see {@link MvStoreDataStoreEngine}). While very capable and suitable
- * for most sites, if you need a larger storage system, you can change
- * the default implementation or provide your own
- * with {@link #setDataStoreEngine(DataStoreEngine)}.
- * </p>
- *
- * <h3>Document Importing</h3>
+ * <h2>Document Importing</h2>
  * <p>
  * The process of transforming, enhancing, parsing to extracting plain text
  * and many other document-specific processing activities are handled by the
@@ -210,7 +193,7 @@ import lombok.experimental.FieldNameConstants;
  * additional configuration options.
  * </p>
  *
- * <h3>Bad Documents</h3>
+ * <h2>Bad Documents</h2>
  * <p>
  * On a fresh crawl, documents that are unreachable or not obtained
  * successfully for some reason are simply logged and ignored.
@@ -221,7 +204,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setSpoiledReferenceStrategizer(SpoiledReferenceStrategizer)}.
  * </p>
  *
- * <h3>Committing Documents</h3>
+ * <h2>Committing Documents</h2>
  * <p>
  * The last step of a successful processing of a document is to
  * store it in your preferred target repository (or repositories).
@@ -233,19 +216,19 @@ import lombok.experimental.FieldNameConstants;
  * See {@link #setCommitters(List)}.
  * </p>
  *
- * <h3>HTTP Fetcher</h3>
+ * <h2>HTTP Fetcher</h2>
  * <p>
  * To crawl and parse a document, it first needs to be downloaded. This is the
- * role of one or more HTTP Fetchers.  {@link GenericHttpFetcher} is the
+ * role of one or more HTTP Fetchers.  {@link HttpClientFetcher} is the
  * default implementation and can handle most web sites.
  * There might be cases where a more specialized way of obtaining web resources
  * is needed. For instance, JavaScript-generated web pages are often best
  * handled by web browsers. In such case you can use the
- * {@link WebDriverHttpFetcher}. You can also use
+ * {@link WebDriverFetcher}. You can also use
  * {@link #setFetchers(List)} to supply your own fetcher implementation.
  * </p>
  *
- * <h3>HTTP Methods</h3>
+ * <h2>HTTP Methods</h2>
  * <p>
  * A fetcher typically issues an HTTP GET request to obtain a document.
  * There might be cases where you first want to issue a separate HEAD request.
@@ -282,7 +265,7 @@ import lombok.experimental.FieldNameConstants;
  * unsure what settings to use, keep the defaults.
  * </p>
  *
- * <h3>Filtering Unwanted Documents</h3>
+ * <h2>Filtering Unwanted Documents</h2>
  * <p>
  * Without filtering, you would typically crawl many documents you are not
  * interested in.
@@ -341,7 +324,7 @@ import lombok.experimental.FieldNameConstants;
  *   </li>
  * </ul>
  *
- * <h3>Robot Directives</h3>
+ * <h2>Robot Directives</h2>
  * <p>
  * By default, the crawler tries to respect instructions a web site has put
  * in place for the benefit of crawlers. The following is a list of some of the
@@ -397,15 +380,15 @@ import lombok.experimental.FieldNameConstants;
  *   <li>
  *     <b>Fetcher-specific:</b> Fetcher implementations may support additional
  *     web site instructions with corresponding configuration options.
- *     For example, the default HTTP Fetcher ({@link GenericHttpFetcher})
+ *     For example, the default HTTP Fetcher ({@link HttpClientFetcher})
  *     supports the <code>If-Modified-Since</code> for web sites supporting it
  *     (only affects incremental crawls). To turn that off, use
- *     {@link GenericHttpFetcherConfig#setIfModifiedSinceDisabled(boolean)}.
+ *     {@link HttpClientFetcherConfig#setIfModifiedSinceDisabled(boolean)}.
  *     See fetcher documentation for additional options.
  *   </li>
  * </ul>
  *
- * <h3>Re-crawl Frequency</h3>
+ * <h2>Re-crawl Frequency</h2>
  * <p>
  * The crawler will crawl any given URL at most one time per crawling session.
  * It is possible to skip documents that are not yet "ready" to be re-crawled
@@ -417,7 +400,7 @@ import lombok.experimental.FieldNameConstants;
  * site more frequently than let's say, an "archive" section of your site.
  * </p>
  *
- * <h3>Change Detection (Checksums)</h3>
+ * <h2>Change Detection (Checksums)</h2>
  * <p>
  * To find out if a document has changed from one crawling session to another,
  * the crawler creates and keeps a digital signature, or checksum of each
@@ -432,7 +415,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setDocumentChecksummer(DocumentChecksummer)}.
  * </p>
  *
- * <h3>Deduplication</h3>
+ * <h2>Deduplication</h2>
  * <p>
  * The crawler can attempt to detect and reject documents considered as
  * duplicates within a crawler session.  A document will be considered
@@ -451,7 +434,7 @@ import lombok.experimental.FieldNameConstants;
  * a checksum that is acceptably unique to you.
  * </p>
  *
- * <h3>URL Extraction</h3>
+ * <h2>URL Extraction</h2>
  * <p>
  * To be able to crawl a web site, links need to be extracted from
  * web pages.  It is the job of a link extractor.  It is possible to use
@@ -472,6 +455,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
+//@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME)
 public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
@@ -494,10 +478,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
      */
     private UrlScopeResolver urlScopeResolver = new GenericUrlScopeResolver();
 
-    /**
-     * The URL normalizer. Defaults to {@link GenericUrlNormalizer}.
-     */
-    private WebUrlNormalizer urlNormalizer = new GenericUrlNormalizer();
+    private final List<WebUrlNormalizer> urlNormalizers =
+            new ArrayList<>(Arrays.asList(new GenericUrlNormalizer()));
 
     /**
      * The delay resolver dictating the minimum amount of time to wait
@@ -573,7 +555,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     public WebCrawlerConfig() {
         setMetadataChecksummer(new LastModifiedMetadataChecksummer());
-        setFetchers(List.of(new GenericHttpFetcher()));
+        setFetchers(List.of(new HttpClientFetcher()));
     }
 
     //--- Accessors ------------------------------------------------------------
@@ -667,4 +649,28 @@ public class WebCrawlerConfig extends CrawlerConfig {
         postImportLinks.copyFrom(fieldMatcher);
         return this;
     }
+
+    /**
+     * Gets URL normalizers. Executed in the order provided.
+     * Defaults to a single {@link GenericUrlNormalizer} with its default
+     * settings.
+     * @return URL normalizers
+     */
+    public List<WebUrlNormalizer> getUrlNormalizers() {
+        return Collections.unmodifiableList(urlNormalizers);
+    }
+
+    /**
+     * Sets URL normalizers. Executed in the order provided.
+     * Defaults to a single {@link GenericUrlNormalizer} with its default
+     * settings.
+     * @param urlNormalizers URL normalizers
+     * @return this
+     */
+    public WebCrawlerConfig setUrlNormalizers(
+            List<WebUrlNormalizer> urlNormalizers) {
+        CollectionUtil.setAll(this.urlNormalizers, urlNormalizers);
+        return this;
+    }
+
 }

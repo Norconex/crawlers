@@ -61,13 +61,20 @@ jobs:
       contents: write
 
     steps:
+    - run: |
+        echo "Should deploy: ${{ env.SHOULD_DEPLOY }}"        
+
+    #--- Step ------------------------------------------------------------------
+        
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         # depth 0 means checkout all commits... we need that 
         # in case there are many commits in a push/PR
         fetch-depth: 0      
-      
+
+    #--- Step ------------------------------------------------------------------
+        
     - name: Merge main|release into PR branch
       if: >
         github.event_name == 'pull_request' && (
@@ -76,11 +83,37 @@ jobs:
         )
       run: git merge --ff-only "origin/${{ github.event.pull_request.base.ref }}"
 
+    #--- Step ------------------------------------------------------------------
+
+    - name: Cache Maven installation
+      id: cache-maven   
+      uses: actions/cache@v4
+      with:
+        path: /opt/maven
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+    #--- Step ------------------------------------------------------------------
+        
+    - name: Install recent Maven
+      if: ${{ steps.cache-maven.outputs.cache-hit != 'true' }}
+      run: |
+        MAVEN_VERSION=3.9.9
+        wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+        tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz
+        sudo mv apache-maven-$MAVEN_VERSION /opt/maven
+        sudo rm -f /usr/bin/mvn
+        sudo ln -s /opt/maven/bin/mvn /usr/bin/mvn
+      
+    #--- Step ------------------------------------------------------------------
+        
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
+        maven-version: '3.9.9'
         # Server ID as in the pom.xml (distributionManagement + sonatype plugin)
         server-id: ossrh
         # Env variable name for username in deploy
@@ -92,13 +125,23 @@ jobs:
         # Env variable name for GPG private key passphrase
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
         
+    - run: mvn --version
+        
+    #--- Step ------------------------------------------------------------------
+    
     - name: Cache Maven repository
       uses: actions/cache@v4
       with:
-        path: ~/.m2/repository
+        path: |
+          ~/.m2/repository
+          !~/.m2/repository/com/norconex
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-maven-
+        restore-keys: |
+          ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          ${{ runner.os }}-maven-
 
+    #--- Step ------------------------------------------------------------------
+            
     - name: Cache SonarCloud analysis
       uses: actions/cache@v4
       with:
@@ -106,26 +149,102 @@ jobs:
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
 
-    - name: Build and test
-      run: mvn -B verify -Dgpg.skip=true
+    #--- Step ------------------------------------------------------------------
 
-    - name: Sonar Analysis
-      if: ${{ startsWith(github.actor, 'dependabot') == false }}
-      # Note: As of this writing, for SonarCloud to work with monorepos, 
-      # each projects must be analyzed separately.
+    # The shaded libs are dependencies to some other modules so we have
+    # to install them in local maven repo first. 
+    - name: Build and Install Shaded Libs
       run: |
-        dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
-        for dir in $dirs; do
-            echo "Analyzing ${dir}..."
-            (cd ${dir}; mvn sonar:sonar)
+        mvn clean install \
+        -Dgpg.skip=true \
+        -Dmaven.wagon.rss.buffer.size=2048 \
+        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+        -pl shaded
+
+    #--- Step ------------------------------------------------------------------
+        
+    # Resolving before most mvn commands will fail early if there is an issue.
+    # Downloaded items won't be downloaded again in this workflow.
+    - name: Resolve Maven Dependencies
+      run: |
+        mvn dependency:resolve -U \
+        -Dmaven.wagon.rss.buffer.size=2048 \
+        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+
+    #--- Step ------------------------------------------------------------------
+                
+    - name: Show Maven Dependency Tree
+      run: mvn dependency:tree -Dverbose
+
+    #--- Step ------------------------------------------------------------------
+        
+    - name: Find Changed Modules (only if not deploying)
+      if: ${{ env.SHOULD_DEPLOY == 'false' }}
+      id: find-modules
+      run: |
+        chmod +x .github/workflows/scripts/changed-modules2.sh
+        ./.github/workflows/scripts/changed-modules2.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    #--- Step ------------------------------------------------------------------
+                
+    - name: Build and test
+      run: |
+        changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
+        if [ -n "$changed_modules" ]; then
+          pl_argument="$changed_modules"
+          am_argument="-am"
+        else
+          pl_argument="!shaded"
+          am_argument=""
+        fi
+        mvn clean -B verify \
+        -Dmaven.compiler.maxmem=3072m \
+        -DargLine="-Xmx3g" \
+        -Dgpg.skip=true \
+        -Dmaven.javadoc.skip=true \
+        -Dmaven.wagon.rss.buffer.size=2048 \
+        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+        -Pjacoco \
+        -pl "$pl_argument" \
+        -C ${am_argument}
+
+    #--- Step ------------------------------------------------------------------
+        
+    # Note: As of this writing, for SonarCloud to work with monorepos, 
+    # each projects must be analyzed separately.
+    - name: Sonar Analysis
+      run: |
+        # Figure out which modules to process
+        changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
+        if [ -n "$changed_modules" ]; then
+          IFS=',' read -r -a modules_to_process <<< "$changed_modules"
+        else
+          mapfile -t modules_to_process < <(grep -oP '<module>\K.*?(?=</module>)' pom.xml | grep -v 'shaded')
+        fi
+
+        # Loop through resolved modules and run Sonar analysis
+        for module in "${modules_to_process[@]}"; do
+          echo "Running Sonar analysis for module: $module"
+          cd "$module" || exit
+          mvn sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.verbose=true \
+            -Dmaven.wagon.rss.buffer.size=2048
+          cd - || exit
         done
 
+    #--- Step ------------------------------------------------------------------
+                
     # Uploads the full dependency graph to GitHub to improve the quality 
     # of Dependabot alerts this repository can receive
     - name: Update Maven dependency graph
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
       uses: advanced-security/maven-dependency-submission-action@v4
 
+    #--- Step ------------------------------------------------------------------
+      
     - name: Deploy snapshots to Sonatype
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
       run: mvn deploy -DskipTests -Dskip.sonar=true -X

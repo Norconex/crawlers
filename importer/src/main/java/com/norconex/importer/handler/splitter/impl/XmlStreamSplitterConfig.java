@@ -33,7 +33,7 @@ import lombok.experimental.Accessors;
  * documents.
  * </p>
  *
- * <h3>Element matching</h3>
+ * <h2>Element matching</h2>
  * <p>
  * To identify the element to split on, you give the full path to it from
  * the document root, where each element is separated by a forward slash.
@@ -64,7 +64,7 @@ import lombok.experimental.Accessors;
  *
  * <p>Should be used as a pre-parse handler.</p>
  *
- * <h3>Content-types</h3>
+ * <h2>Content-types</h2>
  * <p>
  * By default, this filter is restricted to (applies only to) documents matching
  * the restrictions returned by

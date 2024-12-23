@@ -20,22 +20,14 @@ import static com.norconex.crawler.core.event.CrawlerEvent.REJECTED_FILTER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
+import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CrawlerTestUtil;
-import com.norconex.crawler.core.doc.operations.filter.OnMatch;
-import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core.stubs.CrawlerConfigStubs;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class StopCrawlerOnMaxEventListenerTest {
 
@@ -44,63 +36,102 @@ class StopCrawlerOnMaxEventListenerTest {
     private static final String UPSERTED_OR_REJECTED =
             COMMITTER_SERVICE_UPSERT_END + "|" + REJECTED_FILTER;
 
-    @TempDir
-    private Path tempDir;
+    private static final String CFG_TMPL = """
+          startReferences:
+            - "1-mock:reject-1"
+            - "2-mock:upsert-1"
+            - "3-mock:reject-2"
+            - "4-mock:upsert-2"
+            - "5-mock:upsert-3"
+            - "6-mock:reject-3"
+            - "7-mock:upsert-4"
+          documentFilters:
+            - class: GenericReferenceFilter
+              onMatch: EXCLUDE
+              valueMatcher:
+                method: WILDCARD
+                pattern: "*mock:reject*"
+          eventListeners:
+            - class: StopCrawlerOnMaxEventListener
+              eventMatcher:
+                method: REGEX
+                pattern: ${pattern}
+              maximum: ${maximum}
+              onMultiple: ${onMultiple}
+      """;
 
-    @ParameterizedTest
-    @CsvSource(
-        {
-                "SUM, " + UPSERTED + ", 2, 2", // 1
-                "SUM, NEVER_ENCOUNTERED_SO_WONT_STOP, 2, 4", // 2
-                "SUM, " + UPSERTED + "|" + ACCEPTED + ", 2, 1", // 3
-                "ANY, " + UPSERTED_OR_REJECTED + ", 2, 1", // 4
-                "SUM, " + UPSERTED_OR_REJECTED + ", 5, 3", // 5
-                "ALL, " + UPSERTED_OR_REJECTED + ", 3, 3", // 6
+    @CrawlTest(
+        focus = Focus.CRAWL,
+        config = CFG_TMPL,
+        vars = { "pattern", UPSERTED, "maximum", "2", "onMultiple", "SUM" }
+    )
+    void testStopOnEventListener1(MemoryCommitter mem) {
+        assertThat(mem.getUpsertCount()).isEqualTo(2);
+    }
+
+    @CrawlTest(
+        focus = Focus.CRAWL,
+        config = CFG_TMPL,
+        vars = {
+                "pattern", "NEVER_ENCOUNTERED_SO_WONT_STOP",
+                "maximum", "2",
+                "onMultiple", "SUM"
         }
     )
-    void testStopCrawlerOnMaxEventListener(
-            OnMultiple onMultiple,
-            String eventMatch,
-            int maximum,
-            int expectedUpserts) {
-        // prefixing with number to ensure they are retrieved in same order
-        //MAYBE: ensure crawl store behave like a FIFO queue?
+    void testStopOnEventListener2(MemoryCommitter mem) {
+        assertThat(mem.getUpsertCount()).isEqualTo(4);
+    }
 
-        var crawlerConfig = CrawlerConfigStubs
-                .memoryCrawlerConfig(tempDir)
-                .setStartReferences(
-                        List.of(
-                                "1-mock:reject-1",
-                                "2-mock:upsert-1",
-                                "3-mock:reject-2",
-                                "4-mock:upsert-2",
-                                "5-mock:upsert-3",
-                                "6-mock:reject-3",
-                                "7-mock:upsert-4"));
+    @CrawlTest(
+        focus = Focus.CRAWL,
+        config = CFG_TMPL,
+        vars = {
+                "pattern", UPSERTED + "|" + ACCEPTED,
+                "maximum", "2",
+                "onMultiple", "SUM"
+        }
+    )
+    void testStopOnEventListener3(MemoryCommitter mem) {
+        assertThat(mem.getUpsertCount()).isEqualTo(1);
+    }
 
-        var listener = new StopCrawlerOnMaxEventListener();
-        listener.getConfiguration()
-                .setEventMatcher(TextMatcher.regex(eventMatch))
-                .setMaximum(maximum)
-                .setOnMultiple(onMultiple);
-        crawlerConfig.addEventListener(listener);
+    @CrawlTest(
+        focus = Focus.CRAWL,
+        config = CFG_TMPL,
+        vars = {
+                "pattern", UPSERTED_OR_REJECTED,
+                "maximum", "2",
+                "onMultiple", "ANY"
+        }
+    )
+    void testStopOnEventListener4(MemoryCommitter mem) {
+        assertThat(mem.getUpsertCount()).isEqualTo(1);
+    }
 
-        var filter = new GenericReferenceFilter();
-        filter.getConfiguration()
-                .setValueMatcher(TextMatcher.wildcard("*mock:reject*"))
-                .setOnMatch(OnMatch.EXCLUDE);
-        crawlerConfig.setDocumentFilters(List.of(filter));
+    @CrawlTest(
+        focus = Focus.CRAWL,
+        config = CFG_TMPL,
+        vars = {
+                "pattern", UPSERTED_OR_REJECTED,
+                "maximum", "5",
+                "onMultiple", "SUM"
+        }
+    )
+    void testStopOnEventListener5(MemoryCommitter mem) {
+        assertThat(mem.getUpsertCount()).isEqualTo(3);
+    }
 
-        var crawler = CrawlerStubs
-                .memoryCrawlerBuilder(tempDir)
-                .configuration(crawlerConfig)
-                .build();
-
-        crawler.start();
-
-        var mem = CrawlerTestUtil.firstCommitter(crawler);
-
-        assertThat(mem.getUpsertCount()).isEqualTo(expectedUpserts);
+    @CrawlTest(
+        focus = Focus.CRAWL,
+        config = CFG_TMPL,
+        vars = {
+                "pattern", UPSERTED_OR_REJECTED,
+                "maximum", "3",
+                "onMultiple", "ALL"
+        }
+    )
+    void testStopOnEventListener6(MemoryCommitter mem) {
+        assertThat(mem.getUpsertCount()).isEqualTo(3);
     }
 
     @Test

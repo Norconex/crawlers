@@ -83,13 +83,13 @@ class GenericRedirectUrlProviderTest {
         var provider = new GenericRedirectUrlProvider();
         var req = SimpleHttpRequest.create("GET", "http://xyz.com/original");
         var resp = SimpleHttpResponse.create(200, "content");
-        resp.setHeader(HttpHeaders.LOCATION, "/redirigé");
+        resp.setHeader(HttpHeaders.LOCATION, "/redirig\u00E9");
         resp.setHeader(
                 HttpHeaders.CONTENT_TYPE, "text/html;charset=BAD_CHARSET");
         var ctx = new BasicHttpContext();
         ctx.setAttribute(HttpCoreContext.HTTP_REQUEST, req);
 
         assertThat(provider.provideRedirectURL(req, resp, ctx)).isEqualTo(
-                "http://xyz.com/redirigé");
+                "http://xyz.com/redirig\u00E9");
     }
 }

@@ -14,24 +14,23 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
  * Test (non)canonical link detection.
@@ -41,8 +40,8 @@ class CanonicalLinkTest {
 
     final MutableInt canCount = new MutableInt();
 
-    @Test
-    void testCanonicalLink(ClientAndServer client, @TempDir Path tempDir) {
+    @WebCrawlTest
+    void testCanonicalLink(ClientAndServer client, WebCrawlerConfig config) {
         var canonicalPath = "/canonical";
         var canonicalUrl = serverUrl(client, canonicalPath);
         var httpHeaderPath = "/httpHeader";
@@ -61,73 +60,50 @@ class CanonicalLinkTest {
                 serverUrl(client, httpHeaderPath),
                 serverUrl(client, linkRelPath));
 
-        WebsiteMock.whenHtml(
+        MockWebsite.whenHtml(
                 client, canonicalPath, "<p>Canonical page</p>" + commonBody);
 
+        // @formatter:off
         client
-                .when(
-                        request()
-                                .withPath(httpHeaderPath))
-                .respond(
-                        response()
-                                .withHeader(
-                                        "Link", "<%s>; rel=\"canonical\""
-                                                .formatted(canonicalUrl))
-                                .withBody(
-                                        WebsiteMock
-                                                .htmlPage()
-                                                .body(
-                                                        "<p>Canonical URL in HTTP header.</p>"
-                                                                + commonBody)
-                                                .build(),
-                                        MediaType.HTML_UTF_8));
+            .when(request()
+                .withPath(httpHeaderPath))
+            .respond(response()
+                .withHeader("Link", "<%s>; rel=\"canonical\""
+                        .formatted(canonicalUrl))
+                .withBody(
+                        MockWebsite
+                            .htmlPage()
+                            .body("<p>Canonical URL in HTTP header.</p>"
+                                    + commonBody)
+                            .build(),
+                        MediaType.HTML_UTF_8));
 
         client
-                .when(
-                        request()
-                                .withPath(linkRelPath))
-                .respond(
-                        response()
-                                .withBody(
-                                        WebsiteMock
-                                                .htmlPage()
-                                                .head(
-                                                        "<link rel=\"canonical\" href=\"%s\" />"
-                                                                .formatted(
-                                                                        canonicalUrl))
-                                                .body(
-                                                        "<p>Canonical URL in HTML &lt;head&gt;.</p>"
-                                                                + commonBody)
-                                                .build(),
-                                        MediaType.HTML_UTF_8));
+            .when(request()
+                .withPath(linkRelPath))
+            .respond(response()
+                .withBody(
+                        MockWebsite
+                            .htmlPage()
+                            .head("<link rel=\"canonical\" href=\"%s\" />"
+                                    .formatted(canonicalUrl))
+                            .body("<p>Canonical URL in HTML &lt;head&gt;.</p>"
+                                    + commonBody)
+                            .build(),
+                        MediaType.HTML_UTF_8));
+        // @formatter:on
 
         canCount.setValue(0);
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(canonicalUrl));
-            cfg.addEventListener(e -> {
-                if (e.is(WebCrawlerEvent.REJECTED_NONCANONICAL)) {
-                    canCount.increment();
-                    System.err.println("!!!REJECTED");
-                }
-            });
+
+        config.setStartReferences(List.of(canonicalUrl));
+        config.addEventListener(e -> {
+            if (e.is(WebCrawlerEvent.REJECTED_NONCANONICAL)) {
+                canCount.increment();
+            }
         });
-        assertThat(mem.getUpsertRequests()).hasSize(1);
+
+        var captures = WebCrawlTestCapturer.crawlAndCapture(config);
+        assertThat(captures.getCommitter().getUpsertRequests()).hasSize(1);
         assertThat(canCount.intValue()).isEqualTo(2);
-
-        //        var cfg = WebTestUtil.getFirstCrawlerConfig(crawlSession);
-        //        canCount.setValue(0);
-        //        cfg.addEventListener(e -> {
-        //            if (e.is(WebCrawlerEvent.REJECTED_NONCANONICAL)) {
-        //                canCount.increment();
-        //            }
-        //        });
-        //        crawler.start();
-        //
-        //        var mem = WebTestUtil.firstCommitter(crawlSession);
-        //        assertThat(mem.getUpsertRequests()).hasSize(1);
-        //        assertThat(canCount.intValue()).isEqualTo(2);
-        //
-        //        crawler.clean();
-
     }
 }

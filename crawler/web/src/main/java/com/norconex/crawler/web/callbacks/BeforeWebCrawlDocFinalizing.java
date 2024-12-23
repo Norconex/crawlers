@@ -16,10 +16,10 @@ package com.norconex.crawler.web.callbacks;
 
 import java.util.function.BiConsumer;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +29,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 class BeforeWebCrawlDocFinalizing
-        implements BiConsumer<Crawler, CrawlDoc> {
+        implements BiConsumer<CrawlerContext, CrawlDoc> {
 
     @Override
-    public void accept(Crawler crawler, CrawlDoc doc) {
+    public void accept(CrawlerContext crawler, CrawlDoc doc) {
         // If URLs were not yet extracted, it means no links will be followed.
         // In case the referring document was skipped or has a bad status
         // (which can always be temporary), we should queue for processing any
@@ -58,7 +58,7 @@ class BeforeWebCrawlDocFinalizing
         // accessing child links normally.
         var state = httpData.getState();
         if (!state.isSkipped() && !state.isOneOf(
-                CrawlDocState.BAD_STATUS, CrawlDocState.ERROR)) {
+                DocResolutionStatus.BAD_STATUS, DocResolutionStatus.ERROR)) {
             return;
         }
 
@@ -78,7 +78,7 @@ class BeforeWebCrawlDocFinalizing
                 LOG.debug("Queueing skipped document's child: {}",
                         childData.getReference());
             }
-            crawler.getDocPipelines().getQueuePipeline().accept(
+            crawler.getPipelines().getQueuePipeline().accept(
                     new QueuePipelineContext(crawler, childData));
         }
     }

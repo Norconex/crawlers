@@ -52,7 +52,7 @@ import lombok.Data;
  * </p>
  * <p>Should be used as a pre-parse handler.</p>
  *
- * <h3>Content-types</h3>
+ * <h2>Content-types</h2>
  * <p>
  * By default, this filter is restricted to (applies only to) documents matching
  * the restrictions returned by

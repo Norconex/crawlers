@@ -23,8 +23,8 @@ import org.apache.commons.collections4.MultiValuedMap;
 import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
-import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.fs.fetch.impl.cmis.CmisFetcher;
 import com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher;
 import com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher;
@@ -32,6 +32,7 @@ import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
 import com.norconex.crawler.fs.fetch.impl.sftp.SftpFetcher;
 import com.norconex.crawler.fs.fetch.impl.smb.SmbFetcher;
 import com.norconex.crawler.fs.fetch.impl.webdav.WebDavFetcher;
+import com.norconex.crawler.fs.operations.checksum.FsMetadataChecksummer;
 
 /**
  * <p>
@@ -45,9 +46,10 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
 
-        addPolyType(map, MetadataChecksummer.class, "doc.operations");
+        addPolyType(map, MetadataChecksummer.class, "operations");
         map.putAll(
                 Fetcher.class, List.of(
+                        FsMetadataChecksummer.class,
                         CmisFetcher.class,
                         FtpFetcher.class,
                         HdfsFetcher.class,

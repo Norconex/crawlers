@@ -16,55 +16,48 @@ package com.norconex.crawler.core.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import java.util.function.Consumer;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.stubs.CrawlerStubs;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 
 class CrawlerEventTest {
 
-    private static Crawler crawler;
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testCrawlerEvent(CrawlerContext ctx) {
+        var event = event(ctx, b -> {});
 
-    @BeforeAll
-    static void beforeAll(@TempDir Path tempDir) {
-        crawler = CrawlerStubs.memoryCrawler(tempDir);
-    }
-
-    @Test
-    void testCrawlerEvent() {
-        var event = event(b -> {});
-
-        assertThat(event.isCrawlerShutdown()).isFalse();
+        //        assertThat(event.isCrawlerShutdown()).isFalse();
         assertThat(event.getSubject()).hasToString("somesubject");
-        assertThat(event.getSource()).hasToString(CrawlerStubs.CRAWLER_ID);
+        assertThat(event.getSource())
+                .hasToString(MockCrawlerBuilder.CRAWLER_ID);
         assertThat(event.getDocContext().getReference()).isEqualTo("someref");
         assertThat(event).hasToString("someref - somemessage");
 
-        event = event(b -> b.docContext(null));
+        event = event(ctx, b -> b.docContext(null));
         assertThat(event).hasToString("somemessage");
 
-        event = event(b -> b.message(null));
+        event = event(ctx, b -> b.message(null));
         assertThat(event).hasToString("someref - somesubject");
 
-        event = event(b -> b.message(null).subject(null));
-        assertThat(event).hasToString("someref - " + CrawlerStubs.CRAWLER_ID);
+        event = event(ctx, b -> b.message(null).subject(null));
+        assertThat(event)
+                .hasToString("someref - " + MockCrawlerBuilder.CRAWLER_ID);
     }
 
     private CrawlerEvent event(
+            CrawlerContext crawlerContext,
             Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>> c) {
         CrawlerEvent.CrawlerEventBuilder<?, ?> b = CrawlerEvent.builder()
                 .docContext(new CrawlDocContext("someref"))
                 .exception(new CliException("someexception"))
                 .message("somemessage")
-                .name(CrawlerEvent.CRAWLER_RUN_BEGIN)
-                .source(crawler)
+                .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
+                .source(crawlerContext)
                 .subject("somesubject");
         c.accept(b);
         return b.build();

@@ -24,12 +24,10 @@ class HttpMethodTest {
     void testHttpMethod() {
         assertThat(HttpMethod.POST.is(HttpMethod.POST)).isTrue();
         assertThat(HttpMethod.GET.is(HttpMethod.HEAD)).isFalse();
-        assertThat(
-                HttpMethod.POST.isAny(
-                        HttpMethod.POST, HttpMethod.HEAD)).isTrue();
-        assertThat(
-                HttpMethod.POST.isAny(
-                        HttpMethod.GET, HttpMethod.HEAD)).isFalse();
+        assertThat(HttpMethod.POST.isAny(
+                HttpMethod.POST, HttpMethod.HEAD)).isTrue();
+        assertThat(HttpMethod.POST.isAny(
+                HttpMethod.GET, HttpMethod.HEAD)).isFalse();
         assertThat(HttpMethod.POST.isAny()).isFalse();
     }
 }

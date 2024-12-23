@@ -121,8 +121,8 @@ class CfsIngestAddsAction implements IdolIndexAction {
             if (StringUtils.isBlank(ref)) {
                 throw new CommitterException(
                         ("Source reference field '%s' has no value for "
-                        + "document: %s").formatted(
-                                refField, req.getReference()));
+                                + "document: %s").formatted(
+                                        refField, req.getReference()));
             }
         }
         xml.writeStartElement("reference");

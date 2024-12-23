@@ -61,7 +61,7 @@ import lombok.extern.slf4j.Slf4j;
  * relies on Elasticsearch REST API.
  * </p>
  *
- * <h3>"_id" field</h3>
+ * <h2>"_id" field</h2>
  * <p>
  * Elasticsearch expects a field named "_id" that uniquely identifies
  * each documents.  You can provide that field yourself in documents
@@ -70,7 +70,7 @@ import lombok.extern.slf4j.Slf4j;
  * value.
  * </p>
  *
- * <h3>"content" field</h3>
+ * <h2>"content" field</h2>
  * <p>
  * By default the "body" of a document is read as an input stream
  * and stored in a "content" field.  You can change that target field name
@@ -79,7 +79,7 @@ import lombok.extern.slf4j.Slf4j;
  * effectively skip storing the content stream.
  * </p>
  *
- * <h3>Dots (.) in field names</h3>
+ * <h2>Dots (.) in field names</h2>
  * <p>
  * Your Elasticsearch installation may consider dots in field names
  * to be representing "objects", which may not always be what you want.
@@ -90,7 +90,7 @@ import lombok.extern.slf4j.Slf4j;
  * If your dot represents a nested object, keep reading.
  * </p>
  *
- * <h3>JSON Objects</h3>
+ * <h2>JSON Objects</h2>
  * <p>
  * It is possible to provide a regular expression
  * that will identify one or more fields containing a JSON object rather
@@ -103,7 +103,7 @@ import lombok.extern.slf4j.Slf4j;
  * field mappings on your index beforehand.
  * </p>
  *
- * <h3>Elasticsearch ID limitations:</h3>
+ * <h2>Elasticsearch ID limitations:</h2>
  * <p>
  * As of this writing, Elasticsearch 5 or higher have a 512 bytes
  * limitation on its "_id" field.
@@ -117,7 +117,7 @@ import lombok.extern.slf4j.Slf4j;
  * majority of cases.
  * </p>
  *
- * <h3>Type Name</h3>
+ * <h2>Type Name</h2>
  * <p>
  * As of Elasticsearch 7.0, the index type has been deprecated.
  * If you are using Elasticsearch 7.0 or higher, do not configure the
@@ -126,12 +126,12 @@ import lombok.extern.slf4j.Slf4j;
  * for those using this Committer with older versions of Elasticsearch.
  * </p>
  *
- * <h3>Authentication</h3>
+ * <h2>Authentication</h2>
  * <p>
  * Basic authentication is supported for password-protected clusters.
  * </p>
  *
- * <h3>Timeouts</h3>
+ * <h2>Timeouts</h2>
  * <p>
  * You can specify timeout values for when this committer sends documents
  * to Elasticsearch.

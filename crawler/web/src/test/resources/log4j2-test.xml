@@ -34,6 +34,9 @@
     <Logger name="com.norconex" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.norconex.crawler.web" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

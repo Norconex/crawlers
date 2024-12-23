@@ -1,6 +1,46 @@
 TODO:
 ==============
 
+- Whenever we return a future, check for errors/exceptions or they're swallowed
+
+- Add concept of doc processing timeout
+
+- Test concurrency. E.g., polling a queue within runLocalAtomic should not result
+  in the same entry being pulled... and the size should not be adjusted until
+  committed.  A rollback must put an entry back in the queue. (up to a max
+  number of times to prevent infinite loops?) 
+
+- replace check for "processedCount" vs "maxDocuments"
+  with event counts vs max committed, max processed, max etc...
+  or the event listeners that does it with more flexibility
+  is enough?
+
+- Maybe group classes under actions, like ./crawl/ for most classes
+  and ./clean/ for clean classes, etc.?
+  - Maybe further move those actions/tasks under ./server?
+  
+- Command -> ClientCommand
+  Task    -> ServerTask
+
+- Mabye: have a cache for the types and names in use (similar to previous store 
+  engines impls) with alt names added.
+
+- Maybe: Supply "hints" to data stores at creation time, which would be
+  optional, for engines supporting them (for optimization).
+
+- Maybe for a future release: make configurable number of
+  cached instances of a document to keep (only useful for gracing spoiled ones?)
+
+   
+
+ignite.bat -Dignite.configuration=path\to\your\ignite-config.xml
+
+
+- Use ignite internally for running tasks, regardless if single node or cluster.
+  No need for abstraction. 
+  Within the task, the data store can be anything... including ignite, we keep
+  abstraction here.
+
 - Whall we merge import and commit pipelines? likely not if we want
   to split them one day (e.g. micro-services).
 

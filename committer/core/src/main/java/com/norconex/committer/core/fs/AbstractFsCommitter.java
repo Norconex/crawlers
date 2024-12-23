@@ -32,6 +32,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -43,6 +44,7 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
+@Slf4j
 public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
         extends AbstractCommitter<C> {
 
@@ -69,7 +71,14 @@ public abstract class AbstractFsCommitter<T, C extends BaseFsCommitterConfig>
         }
 
         try {
-            Files.createDirectories(resolvedDirectory);
+            if (Files.exists(resolvedDirectory)
+                    && Files.isDirectory(resolvedDirectory)
+                    && Files.isWritable(resolvedDirectory)) {
+                LOG.info("Committer directory already exists: {}",
+                        resolvedDirectory);
+            } else {
+                Files.createDirectories(resolvedDirectory);
+            }
         } catch (IOException e) {
             throw new CommitterException(
                     "Could not create resolvedDirectory: "

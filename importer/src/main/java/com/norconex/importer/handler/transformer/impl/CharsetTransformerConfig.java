@@ -34,7 +34,7 @@ import lombok.experimental.Accessors;
  * unchanged. When no target character encoding is specified, UTF-8 is assumed.
  * </p>
  *
- * <h3>Should I use this transformer?</h3>
+ * <h2>Should I use this transformer?</h2>
  * <p>
  * Before using this transformer, you need to know the parsing of documents
  * by the importer using default document parser factory will try to convert
@@ -47,7 +47,7 @@ import lombok.experimental.Accessors;
  * handler to do so.
  * </p>
  *
- * <h3>Conversion is not flawless</h3>
+ * <h2>Conversion is not flawless</h2>
  * <p>
  * Because character encoding detection is not always accurate and because
  * documents sometime mix different encoding, there is no guarantee this

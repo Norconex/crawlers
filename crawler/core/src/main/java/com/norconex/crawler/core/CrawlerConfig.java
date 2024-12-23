@@ -29,21 +29,21 @@ import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.doc.operations.DocumentConsumer;
-import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
-import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
-import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
-import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.core.store.impl.mvstore.MvStoreDataStoreEngine;
+import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
+import com.norconex.crawler.core.operations.DocumentConsumer;
+import com.norconex.crawler.core.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.operations.checksum.impl.Md5DocumentChecksummer;
+import com.norconex.crawler.core.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
+import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
 import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;
@@ -88,8 +88,8 @@ public class CrawlerConfig {
         IGNORE
     }
 
-    public static final Duration DEFAULT_IDLE_PROCESSING_TIMEOUT =
-            Duration.ofMinutes(10);
+    public static final Duration DEFAULT_IDLE_TIMEOUT =
+            Duration.ofSeconds(0);
     public static final Duration DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL =
             Duration.ofSeconds(30);
 
@@ -148,9 +148,9 @@ public class CrawlerConfig {
     private Duration deferredShutdownDuration = Duration.ZERO;
 
     /**
-     * The data store engine.
+     * The Grid Connector.
      */
-    private DataStoreEngine dataStoreEngine = new MvStoreDataStoreEngine();
+    private GridConnector gridConnector = new LocalGridConnector();
 
     /**
      * Whether the start references should be loaded asynchronously. When
@@ -213,24 +213,28 @@ public class CrawlerConfig {
     private int maxDepth = -1;
 
     /**
-     * The maximum amount of time to wait before shutting down an inactive
-     * crawler thread.
-     * A document taking longer to process than the specified timeout
-     * when no other thread are available to process remaining documents
-     * is also considered "inactive". Default is
+     * The maximum amount of time to wait before shutting down an idle crawler.
+     * A crawler is considered idle when its queue is empty and there are
+     * no reference being actively processed.
+     * Differs from {@link #deferredShutdownDuration} in that additions to
+     * the crawler queue will restart the processing.
+     * A non-zero value can be useful if the crawler queue can be populated
+     * by an external process. Default is zero (does not wait).
      * {@value #DEFAULT_IDLE_PROCESSING_TIMEOUT}. A <code>null</code>
-     * value means no timeouts.
+     * value is equivalent to zero.
+     * The smallest considered unit is seconds (milliseconds are rounded up).
      */
-    private Duration idleTimeout;
+    private Duration idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     /**
      * Minimum amount of time to wait between each logging of crawling
-     * progress.
+     * progress. Minimum value is 1 second.
      * Default value is {@value #DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL}.
-     * A <code>null</code> value disables progress logging. Minimum value
-     * is 1 second.
+     * A <code>null</code> value or a value below 1 second disables progress
+     * logging.
      */
-    private Duration minProgressLoggingInterval;
+    private Duration minProgressLoggingInterval =
+            DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL;
 
     /**
      * <p>The strategy to adopt when there are orphans.  Orphans are

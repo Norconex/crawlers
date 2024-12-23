@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerBuilder;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.web.WebCrawler;
 import com.norconex.crawler.web.WebCrawlerConfig;
 
@@ -29,27 +29,88 @@ public final class CrawlerStubs {
     private CrawlerStubs() {
     }
 
+    //    public static Crawler memoryCrawler(Path workDir) {
+    //        return memoryCrawlerBuilder(workDir).build();
+    //    }
+
+    //    public static Crawler memoryCrawler(
+    //            Path workDir, Consumer<WebCrawlerConfig> c) {
+    //        return memoryCrawlerBuilder(workDir, c).build();
+    //    }
+    //
+    //    public static CrawlerSpec memoryCrawlerBuilder(Path workDir) {
+    //        return memoryCrawlerBuilder(workDir, null);
+    //    }
+
     public static Crawler memoryCrawler(Path workDir) {
-        return memoryCrawlerBuilder(workDir).build();
+        return memoryCrawler(workDir, null);
     }
 
     public static Crawler memoryCrawler(
             Path workDir, Consumer<WebCrawlerConfig> c) {
-        return memoryCrawlerBuilder(workDir, c).build();
-    }
-
-    public static CrawlerBuilder memoryCrawlerBuilder(Path workDir) {
-        return memoryCrawlerBuilder(workDir, null);
-    }
-
-    public static CrawlerBuilder memoryCrawlerBuilder(
-            Path workDir, Consumer<WebCrawlerConfig> c) {
-        var b = WebCrawler
-                .builder()
-                .configuration(CrawlerConfigStubs.memoryCrawlerConfig(workDir));
+        var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
-            c.accept((WebCrawlerConfig) b.configuration());
+            c.accept(webCrawlerConfig);
         }
-        return b;
+        //TODO wrap the memory committer to provide static access to
+        // docs?
+        // with threadlocal?
+        return WebCrawler.create(webCrawlerConfig);
     }
+
+    //    public static CrawlerContext memoryCrawlerContext(
+    //            Path workDir, WebCrawlerConfig config) {
+    //        var memConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
+    //        if (config != null) {
+    //            BeanUtil.copyProperties(memConfig, config);
+    //        }
+    //        var context = new CrawlerContext(WebCrawlerSpecProvider.class, config);
+    //        BeanUtil.copyProperties(context.getConfiguration(), memConfig);
+    //        context.getConfiguration().setWorkDir(workDir);
+    //        return context;
+    //    }
+
+    public static CrawlerContext memoryCrawlerCrawlerContext(Path workDir) {
+        return memoryCrawlerCrawlerContext(workDir, null);
+    }
+
+    public static CrawlerContext memoryCrawlerCrawlerContext(
+            Path workDir, Consumer<WebCrawlerConfig> c) {
+        var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
+        if (c != null) {
+            c.accept(webCrawlerConfig);
+        }
+
+        return null;
+        //        return memoryCrawlerContext(workDir, webCrawlerConfig);
+        //        return CrawlerContext.create(WebCrawlerSpecProvider.class, b -> {
+        //            b.configuration(webCrawlerConfig);
+        //        });
+    }
+
+    //    public static Crawler memorycrawler(Path workDir) {
+    //        return memorycrawler(workDir, null);
+    //    }
+    //
+    //    public static Crawler memorycrawler(
+    //            Path workDir, Consumer<WebCrawlerConfig> c) {
+    //        var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
+    //        if (c != null) {
+    //            c.accept(webCrawlerConfig);
+    //        }
+    //        return WebCrawler.create(webCrawlerConfig);
+    //    }
+
+    //    public static CrawlerSpec memoryCrawlerBuilder(
+    //            Path workDir, Consumer<WebCrawlerConfig> c) {
+    //
+    //
+    //        var b = WebCrawler
+    //                .builder()
+    //                .configuration(CrawlerConfigStubs.memoryCrawlerConfig(workDir));
+    //        if (c != null) {
+    //            c.accept((WebCrawlerConfig) b.configuration());
+    //        }
+    //        return b;
+    //    }
 }

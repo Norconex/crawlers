@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.MDC;
 
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerConfig;
 
 import lombok.NonNull;
 
@@ -52,9 +52,9 @@ public final class LogUtil {
     }
 
     public static void logCommandIntro(
-            @NonNull Logger logger, @NonNull Crawler crawler) {
+            @NonNull Logger logger, @NonNull CrawlerConfig crawlerConfig) {
         if (logger.isInfoEnabled()) {
-            logger.info("\n\n{}", About.about(crawler.getConfiguration()));
+            logger.info("\n\n{}", About.about(crawlerConfig));
         }
     }
 }

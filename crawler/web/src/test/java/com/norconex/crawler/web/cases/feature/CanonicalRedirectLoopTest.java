@@ -14,26 +14,25 @@
  */
 package com.norconex.crawler.web.cases.feature;
 
-import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
+import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.operations.canon.impl.GenericCanonicalLinkDetector;
 
 /**
  * The tail of redirects should be kept as metadata so implementors
@@ -46,58 +45,59 @@ class CanonicalRedirectLoopTest {
     private static final String CANONICAL_PATH = "/canonical";
     private static final String REDIRECT_PATH = "/redirect";
 
-    @ParameterizedTest
-    @ValueSource(strings = { CANONICAL_PATH, REDIRECT_PATH })
-    void testCanonicalLink(
+    @WebCrawlTest
+    void testStartWithCanonical(
+            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
+        testLoop(CANONICAL_PATH, client, cfg);
+    }
+
+    @WebCrawlTest
+    void testStartWithRedirect(
+            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
+        testLoop(REDIRECT_PATH, client, cfg);
+    }
+
+    void testLoop(
             String startUrlPath,
             ClientAndServer client,
-            @TempDir Path tempDir) throws IOException {
+            WebCrawlerConfig config) throws IOException {
 
         //--- Web site ---
 
+        // @formatter:off
         client
-                .when(
-                        request()
-                                .withPath(CANONICAL_PATH))
-                .respond(
-                        response()
-                                .withHeader(
-                                        "Link", "<%s>; rel=\"canonical\""
-                                                .formatted(
-                                                        serverUrl(
-                                                                client,
-                                                                REDIRECT_PATH)))
-                                .withBody(
-                                        """
-                                                <h1>Canonical-redirect circular reference.</h1>
-                                                <p>This page has a canonical URL in the HTTP header
-                                                that points to a page that redirects back to this
-                                                one (loop). The crawler should be smart enough
-                                                to pick one and not enter in an infinite loop.</p>"""));
+            .when(request()
+                .withPath(CANONICAL_PATH))
+            .respond(response()
+                .withHeader("Link", "<%s>; rel=\"canonical\""
+                        .formatted(serverUrl(client, REDIRECT_PATH)))
+                .withBody("""
+                    <h1>Canonical-redirect circular reference.</h1>
+                    <p>This page has a canonical URL in the HTTP header
+                    that points to a page that redirects back to this
+                    one (loop). The crawler should be smart enough
+                    to pick one and not enter in an infinite loop.</p>"""));
 
         client
-                .when(
-                        request()
-                                .withPath(REDIRECT_PATH))
-                .respond(
-                        response()
-                                .withStatusCode(302)
-                                .withHeader(
-                                        "Location",
-                                        serverUrl(client, CANONICAL_PATH)));
+            .when(request()
+                .withPath(REDIRECT_PATH))
+            .respond(response()
+                .withStatusCode(302)
+                .withHeader("Location", serverUrl(client, CANONICAL_PATH)));
+        // @formatter:on
 
         //--- Crawler Setup/Run ---
 
-        var mem = WebTestUtil.runWithConfig(tempDir, cfg -> {
-            cfg.setStartReferences(List.of(serverUrl(client, startUrlPath)));
-            WebTestUtil.ignoreAllIgnorables(cfg);
-            cfg.setCanonicalLinkDetector(new GenericCanonicalLinkDetector());
-        });
+        config.setStartReferences(List.of(serverUrl(client, startUrlPath)));
+        WebTestUtil.ignoreAllIgnorables(config);
+        config.setCanonicalLinkDetector(new GenericCanonicalLinkDetector());
+
+        var captures = WebCrawlTestCapturer.crawlAndCapture(config);
 
         //--- Assertions ---
-        assertThat(mem.getUpsertRequests()).hasSize(1);
+        assertThat(captures.getCommitter().getUpsertRequests()).hasSize(1);
 
-        var doc = mem.getUpsertRequests().get(0);
+        var doc = captures.getCommitter().getUpsertRequests().get(0);
         var content = IOUtils.toString(doc.getContent(), UTF_8);
 
         assertThat(content).contains("Canonical-redirect circular reference");

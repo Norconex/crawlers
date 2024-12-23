@@ -43,7 +43,7 @@ import lombok.ToString;
  * The default format when not specified is EPOCH (the difference, measured in
  * milliseconds, between the date and midnight, January 1, 1970).</p>
  *
- * <h3>Static dates:</h3>
+ * <h2>Static dates:</h2>
  * <p>You can specify a static date (i.e. a constant date value).
  * Supported formats for configuring an absolute date are:
  * </p>
@@ -53,7 +53,7 @@ import lombok.ToString;
  *                                milliseconds (e.g. 2015-05-31T22:44:15)
  * </pre>
  *
- * <h3>Dynamic dates:</h3>
+ * <h2>Dynamic dates:</h2>
  * <P>The date string can also represent a moment in time relative to the
  * current date using the <code>TODAY</code> or <code>NOW</code> keyword,
  * optionally followed by a number of time units to add/remove.
@@ -66,14 +66,14 @@ import lombok.ToString;
  * passing of time.
  * </p>
  *
- * <h3>Time zones:</h3>
+ * <h2>Time zones:</h2>
  * <p>
  * If the time zone (id or offset) is part of the formatted date string,
  * it will be honored.  If not specified, it will use the provided time zone
  * argument, or fall back to UTC if the time zone argument is <code>null</code>.
  * </p>
  *
- * <h3>Date format:</h3>
+ * <h2>Date format:</h2>
  * <p>
  * Date value format are either one of:
  * </p>

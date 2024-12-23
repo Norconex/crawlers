@@ -16,16 +16,16 @@ package com.norconex.crawler.web.fetch;
 
 import java.util.function.Function;
 
-import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
-import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 
 public class HttpFetcherProvider
-        implements Function<Crawler, HttpMultiFetcher> {
+        implements Function<CrawlerContext, HttpMultiFetcher> {
 
     @Override
-    public HttpMultiFetcher apply(Crawler crawler) {
+    public HttpMultiFetcher apply(CrawlerContext crawler) {
 
         var cfg = (WebCrawlerConfig) crawler.getConfiguration();
 
@@ -34,7 +34,7 @@ public class HttpFetcherProvider
                 .map(HttpFetcher.class::cast)
                 .toList();
         if (fetchers.isEmpty()) {
-            fetchers.add(new GenericHttpFetcher());
+            fetchers.add(new HttpClientFetcher());
         }
 
         //TODO REFACTOR since MultiFetcher is the one dealing with multiple
@@ -48,8 +48,8 @@ public class HttpFetcherProvider
         return new HttpMultiFetcher(
                 fetchers,
                 HttpMultiFetchResponse::new,
-                (state, msg, ex) -> GenericHttpFetchResponse.builder()
-                        .crawlDocState(state)
+                (state, msg, ex) -> HttpClientFetchResponse.builder()
+                        .resolutionStatus(state)
                         .reasonPhrase(msg)
                         .exception(ex)
                         .build(),
