@@ -32,6 +32,7 @@ import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
+import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.handler.HandlerContext;
 
 import lombok.Data;
@@ -90,7 +91,7 @@ public class CharsetDetector {
      *   </li>
      *   <li>
      *     If the charset has already been detected for the document, returns
-     *     that charset ({@link HandlerContext#getCharset()}).
+     *     that charset ({@link DocContext#getCharset()}).
      *   </li>
      *   <li>
      *     Try to detect the character set, using any declared charset

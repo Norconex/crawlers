@@ -79,7 +79,7 @@
     <jetty.version>11.0.15</jetty.version>
     <json.version>1.8</json.version>
     <jsoup.version>1.15.4</jsoup.version>
-    <log4j.version>2.23.0</log4j.version>
+    <log4j.version>2.24.3</log4j.version>
     <picocli.version>4.7.6</picocli.version>
     <slf4j.version>2.0.13</slf4j.version>
     <velocity-engine.version>2.3</velocity-engine.version>
@@ -103,7 +103,7 @@
     <editorconfig-maven-plugin.version>0.1.3</editorconfig-maven-plugin.version>
     <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-    <license-maven-plugin.version>2.4.0</license-maven-plugin.version>
+    <license-maven-plugin.version>2.5.0</license-maven-plugin.version>
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>

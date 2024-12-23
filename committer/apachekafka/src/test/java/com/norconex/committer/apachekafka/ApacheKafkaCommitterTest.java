@@ -27,15 +27,14 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import com.norconex.committer.core.CommitterContext;
@@ -58,16 +57,12 @@ class ApacheKafkaCommitterTest {
     static File tempDir;
 
     @Container
-    static KafkaContainer kafka = new KafkaContainer(
+    static ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
             DockerImageName.parse("confluentinc/cp-kafka:7.4.0"));
 
     @BeforeAll
     static void setUpBeforeClass() throws Exception {
         testHelper = new TestHelper(kafka.getBootstrapServers());
-    }
-
-    @AfterAll
-    static void tearDownAfterClass() throws Exception {
     }
 
     @BeforeEach
@@ -89,8 +84,9 @@ class ApacheKafkaCommitterTest {
         ConsumerRecord<String, String> expectedRecord = null;
         var expectedRecordValue =
                 """
-                        {"id":"http:\\/\\/www.simpsons.com","category":"TV Show","sub-category":"Cartoon","content":"Homer says DOH!"}
-                        """;
+                {"id":"http:\\/\\/www.simpsons.com","category":"TV Show",\
+                "sub-category":"Cartoon","content":"Homer says DOH!"}
+                """;
         var metadata = new Properties();
         metadata.add("category", "TV Show");
         metadata.add("sub-category", "Cartoon");

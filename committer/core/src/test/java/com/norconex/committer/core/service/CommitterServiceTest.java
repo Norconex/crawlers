@@ -355,6 +355,7 @@ class CommitterServiceTest {
         overwrittenPath.getConfiguration().setDirectory(
                 tempDir.resolve("customOne"));
 
+        @SuppressWarnings("resource")
         var service = CommitterService.builder()
                 .committers(
                         List.of(
