@@ -123,7 +123,25 @@
     <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
     <wagon-ssh.version>3.5.3</wagon-ssh.version>
     
+    <!-- Empty by default, see "jacoco" profile-->
+    <jacocoArgLine></jacocoArgLine>
+    
   </properties>
+  
+  <profiles>
+    <!-- IDEs do not always know what to do with the Jacoco @{argLine}
+     placeholder typically required for Jacoco codecoverage to integrate
+     with Surefire. So by default we don't have it. When we want to include
+     code coverage as part of the Maven tests, we activate this profile with
+     passing `-Pjacoco` to Maven arguments (like in our CI/CD builds). 
+     -->
+    <profile>
+      <id>jacoco</id>
+      <properties>
+        <jacocoArgLine>@{argLine}</jacocoArgLine>
+      </properties>
+    </profile>
+  </profiles>
 
   <inceptionYear>2022</inceptionYear>
 
@@ -709,7 +727,7 @@
           <configuration>
             <!-- Most of the following is currently required by Ignite -->
             <argLine>
-              @{argLine} 
+              ${jacocoArgLine} 
               -Xms512m
               -Xmx512m
               -Djava.net.preferIPv4Stack=true

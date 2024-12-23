@@ -43,17 +43,6 @@ public final class FsCrawler {
     }
 
     public static Crawler create(CrawlerConfig crawlerConfig) {
-        //        var grid = crawlerConfig.getGridConnector()
-        //                .connect(FsCrawlerSpecProvider.class, crawlerConfig);
-        //        var ctx = new CrawlerContext(
-        //                new FsCrawlerSpecProvider().get(),
-        //                crawlerConfig,
-        //                grid);
         return new Crawler(FsCrawlerSpecProvider.class, crawlerConfig);
-
-        //        return Crawler.create(FsCrawlerSpecProvider.class, b -> {
-        //            b.configuration(Optional.ofNullable(crawlerConfig)
-        //                    .orElseGet(CrawlerConfig::new));
-        //        });
     }
 }

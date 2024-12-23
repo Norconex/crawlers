@@ -30,6 +30,7 @@ public class BeforeFsCommand implements Consumer<CrawlerContext> {
     public void accept(CrawlerContext crawlerContext) {
         var cfg = crawlerContext.getConfiguration();
         LOG.info("""
+
                 Resuming:         %s
 
                 Enabled features:

@@ -206,6 +206,7 @@ jobs:
         -Dmaven.javadoc.skip=true \
         -Dmaven.wagon.rss.buffer.size=2048 \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+        -Pjacoco \
         -pl "$pl_argument" \
         -C ${am_argument}
 

@@ -32,6 +32,15 @@
   </Appenders>
   <Loggers>
 
+    <!-- Disable logging for specific tests for reduced verbosity 
+      (e.g., testing failures)
+      -->
+
+    <Logger name="com.norconex.crawler.core.fetch.MultiFetcher" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+
     <!-- Events Types -->
     <Logger name="CollectorEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
