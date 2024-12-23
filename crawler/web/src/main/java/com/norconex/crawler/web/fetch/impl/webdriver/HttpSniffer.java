@@ -143,8 +143,6 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                             }
                         }, configuration.getMaxBufferSize()));
 
-//        mobProxy.start(configuration.getPort());
-
         Optional.ofNullable(configuration.getHost())
                 .map(host -> new InetSocketAddress(host, configuration.getPort()).getAddress())
                 .ifPresentOrElse(

@@ -97,7 +97,7 @@ jobs:
     #--- Step ------------------------------------------------------------------
         
     - name: Install recent Maven
-      if: ${{ steps.cache-maven.outputs.cache-hit != 'true' }}
+#      if: ${{ steps.cache-maven.outputs.cache-hit != 'true' }}
       run: |
         MAVEN_VERSION=3.9.9
         wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
