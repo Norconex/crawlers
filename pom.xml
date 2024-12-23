@@ -103,7 +103,7 @@
     <editorconfig-maven-plugin.version>0.1.3</editorconfig-maven-plugin.version>
     <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-    <license-maven-plugin.version>2.4.0</license-maven-plugin.version>
+    <license-maven-plugin.version>2.5.0</license-maven-plugin.version>
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
