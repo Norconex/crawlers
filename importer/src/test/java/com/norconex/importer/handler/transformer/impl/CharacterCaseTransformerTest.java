@@ -14,18 +14,22 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_BOTH;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_FIELD;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_VALUE;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_LOWER;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SENTENCES;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SENTENCES_FULLY;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_STRING;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_STRING_FULLY;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SWAP;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_UPPER;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS_FULLY;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_BOTH;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_FIELD;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_VALUE;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_LOWER;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SENTENCES;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SENTENCES_FULLY;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_STRING;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_STRING_FULLY;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SWAP;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_UPPER;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS_FULLY;
+
+import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.ApplyType.*;
+import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CaseType.*;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,14 +61,14 @@ class CharacterCaseTransformerTest {
 
         InputStream is;
         cfg.setFieldMatcher(TextMatcher.basic("field1"));
-        cfg.setCaseType(CASE_UPPER);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(UPPER);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("field2"));
-        cfg.setCaseType(CASE_LOWER);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(LOWER);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -88,20 +92,20 @@ class CharacterCaseTransformerTest {
         InputStream is;
 
         cfg.setFieldMatcher(TextMatcher.basic("fieldMustBeUpper"));
-        cfg.setCaseType(CASE_UPPER);
-        cfg.setApplyTo(APPLY_FIELD);
+        cfg.setCaseType(UPPER);
+        cfg.setApplyTo(FIELD);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("fieldMustBeLower"));
-        cfg.setCaseType(CASE_LOWER);
-        cfg.setApplyTo(APPLY_BOTH);
+        cfg.setCaseType(LOWER);
+        cfg.setApplyTo(BOTH);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("fieldMustBeCapitalized"));
-        cfg.setCaseType(CASE_WORDS);
-        cfg.setApplyTo(APPLY_FIELD);
+        cfg.setCaseType(WORDS);
+        cfg.setApplyTo(FIELD);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -125,8 +129,8 @@ class CharacterCaseTransformerTest {
         InputStream is;
 
         cfg.setFieldMatcher(TextMatcher.basic("fieldMustBeSwapped"));
-        cfg.setCaseType(CASE_SWAP);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(SWAP);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -148,20 +152,20 @@ class CharacterCaseTransformerTest {
         InputStream is;
 
         cfg.setFieldMatcher(TextMatcher.basic("string1"));
-        cfg.setCaseType(CASE_STRING);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(STRING);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
-        cfg.setCaseType(CASE_STRING);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(STRING);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
-        cfg.setCaseType(CASE_STRING);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(STRING);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -190,20 +194,20 @@ class CharacterCaseTransformerTest {
         InputStream is;
 
         cfg.setFieldMatcher(TextMatcher.basic("string1"));
-        cfg.setCaseType(CASE_STRING_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(STRINGFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
-        cfg.setCaseType(CASE_STRING_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(STRINGFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
-        cfg.setCaseType(CASE_STRING_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(STRINGFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -232,20 +236,20 @@ class CharacterCaseTransformerTest {
         InputStream is;
 
         cfg.setFieldMatcher(TextMatcher.basic("string1"));
-        cfg.setCaseType(CASE_WORDS);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(WORDS);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
-        cfg.setCaseType(CASE_WORDS);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(WORDS);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
-        cfg.setCaseType(CASE_WORDS);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(WORDS);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -274,20 +278,20 @@ class CharacterCaseTransformerTest {
         InputStream is;
 
         cfg.setFieldMatcher(TextMatcher.basic("string1"));
-        cfg.setCaseType(CASE_WORDS_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(WORDSFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
-        cfg.setCaseType(CASE_WORDS_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(WORDSFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
-        cfg.setCaseType(CASE_WORDS_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(WORDSFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -317,26 +321,26 @@ class CharacterCaseTransformerTest {
         InputStream is;
 
         cfg.setFieldMatcher(TextMatcher.basic("string1"));
-        cfg.setCaseType(CASE_SENTENCES);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(SENTENCES);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
-        cfg.setCaseType(CASE_SENTENCES);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(SENTENCES);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
-        cfg.setCaseType(CASE_SENTENCES);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(SENTENCES);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string4"));
-        cfg.setCaseType(CASE_SENTENCES);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(SENTENCES);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -366,20 +370,20 @@ class CharacterCaseTransformerTest {
         InputStream is;
 
         cfg.setFieldMatcher(TextMatcher.basic("string1"));
-        cfg.setCaseType(CASE_SENTENCES_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(SENTENCESFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
-        cfg.setCaseType(CASE_SENTENCES_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(SENTENCESFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
-        cfg.setCaseType(CASE_SENTENCES_FULLY);
-        cfg.setApplyTo(APPLY_VALUE);
+        cfg.setCaseType(SENTENCESFULLY);
+        cfg.setApplyTo(VALUE);
         is = new NullInputStream(0);
         t.accept(TestUtil.newHandlerContext("blah", is, meta));
 
@@ -399,7 +403,7 @@ class CharacterCaseTransformerTest {
 
         var t = new CharacterCaseTransformer();
         var cfg = t.getConfiguration();
-        cfg.setCaseType(CASE_SENTENCES);
+        cfg.setCaseType(SENTENCES);
         var doc = TestUtil.newHandlerContext("""
                 normal String. another One.
                  string starTing with a Space.
@@ -418,8 +422,8 @@ class CharacterCaseTransformerTest {
     void testWriteRead() {
         var t = new CharacterCaseTransformer();
         var cfg = t.getConfiguration();
-        cfg.setCaseType(CASE_UPPER);
-        cfg.setApplyTo(APPLY_BOTH);
+        cfg.setCaseType(UPPER);
+        cfg.setApplyTo(BOTH);
         cfg.setFieldMatcher(TextMatcher.regex(".*"));
         BeanMapper.DEFAULT.assertWriteRead(t);
     }

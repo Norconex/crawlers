@@ -82,19 +82,102 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class CharacterCaseTransformerConfig {
 
-    public static final String CASE_WORDS = "words";
-    public static final String CASE_WORDS_FULLY = "wordsFully";
-    public static final String CASE_UPPER = "upper";
-    public static final String CASE_LOWER = "lower";
-    public static final String CASE_SWAP = "swap";
-    public static final String CASE_SENTENCES = "sentences";
-    public static final String CASE_SENTENCES_FULLY = "sentencesFully";
-    public static final String CASE_STRING = "string";
-    public static final String CASE_STRING_FULLY = "stringFully";
+    //        public static final String CASE_WORDS = "words";
+    //        public static final String CASE_WORDS_FULLY = "wordsFully";
+    //        public static final String CASE_UPPER = "upper";
+    //        public static final String CASE_LOWER = "lower";
+    //        public static final String CASE_SWAP = "swap";
+    //        public static final String CASE_SENTENCES = "sentences";
+    //        public static final String CASE_SENTENCES_FULLY = "sentencesFully";
+    //        public static final String CASE_STRING = "string";
+    //        public static final String CASE_STRING_FULLY = "stringFully";
 
-    public static final String APPLY_VALUE = "value";
-    public static final String APPLY_FIELD = "field";
-    public static final String APPLY_BOTH = "both";
+    //        public enum CaseType{
+    //            WORDS,
+    //            WORDSFULLY,
+    //            UPPER,
+    //            LOWER,
+    //            SWAP,
+    //            SENTENCES,
+    //            SENTENCESFULLY,
+    //            STRING,
+    //            STRINGFULLY
+    //        }
+
+    public enum CaseType {
+        UPPER,
+        LOWER,
+        WORDS,
+        WORDSFULLY,
+        SENTENCES,
+        SENTENCESFULLY,
+        STRING,
+        STRINGFULLY,
+        SWAP
+        //
+        //        WORDS("words"),
+        //        WORDSFULLY("wordsFully"),
+        //        UPPER("upper"),
+        //        LOWER("lower"),
+        //        SWAP("swap"),
+        //        SENTENCES("sentences"),
+        //        SENTENCESFULLY("sentencesFully"),
+        //        STRING("string"),
+        //        STRINGFULLY("stringFully");
+        //
+        //
+        //        private final String value;
+        //
+        //        CaseType(String value) {
+        //            this.value = value;
+        //        }
+        //
+        //        public String getValue() {
+        //            return value;
+        //        }
+        //
+        //        public static CaseType fromValue(String value) {
+        //            for (CaseType type : CaseType.values()) {
+        //                if (type.value.equalsIgnoreCase(value)) {
+        //                    return type;
+        //                }
+        //            }
+        //            throw new IllegalArgumentException("Unknown case type: " + value);
+        //        }
+    }
+
+    //        public static final String APPLY_VALUE = "value";
+    //        public static final String APPLY_FIELD = "field";
+    //        public static final String APPLY_BOTH = "both";
+
+    public enum ApplyType {
+        VALUE,
+        FIELD,
+        BOTH
+
+        //        APPLY_VALUE("value"),
+        //        APPLY_FIELD("field"),
+        //        APPLY_BOTH("both");
+
+        //        private final String value;
+        //
+        //        ApplyType(String value) {
+        //            this.value = value;
+        //        }
+        //
+        //        public String getValue() {
+        //            return value;
+        //        }
+        //
+        //        public static ApplyType fromValue(String value) {
+        //            for (ApplyType type : ApplyType.values()) {
+        //                if (type.value.equalsIgnoreCase(value)) {
+        //                    return type;
+        //                }
+        //            }
+        //            throw new IllegalArgumentException("Unknown apply type: " + value);
+        //        }
+    }
 
     private final TextMatcher fieldMatcher = new TextMatcher();
 
@@ -103,7 +186,7 @@ public class CharacterCaseTransformerConfig {
      * @param caseType type of case transformation
      * @return type of case transformation
      */
-    private String caseType;
+    private CaseType caseType;
 
     /**
      * Whether to apply the case transformation to fields, values,
@@ -111,7 +194,7 @@ public class CharacterCaseTransformerConfig {
      * @param applyTo one of "field", "value", or "both"
      * @return one of "field", "value", or "both"
      */
-    private String applyTo;
+    private ApplyType applyTo;
 
     /**
      * Optional matcher of fields to apply transformation to.

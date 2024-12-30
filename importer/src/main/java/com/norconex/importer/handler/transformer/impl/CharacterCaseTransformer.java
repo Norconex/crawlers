@@ -14,18 +14,21 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_BOTH;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_FIELD;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_VALUE;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_LOWER;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SENTENCES;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SENTENCES_FULLY;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_STRING;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_STRING_FULLY;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SWAP;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_UPPER;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS;
-import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS_FULLY;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_BOTH;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_FIELD;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.APPLY_VALUE;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_LOWER;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SENTENCES;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SENTENCES_FULLY;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_STRING;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_STRING_FULLY;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_SWAP;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_UPPER;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS;
+//import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CASE_WORDS_FULLY;
+//
+import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.CaseType.*;
+import static com.norconex.importer.handler.transformer.impl.CharacterCaseTransformerConfig.ApplyType.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -124,9 +127,11 @@ public class CharacterCaseTransformer
 
     private void doFields(HandlerContext docCtx) {
         var applyTo = configuration.getApplyTo();
-        if (StringUtils.isNotBlank(applyTo)
+        if (StringUtils.isNotBlank(applyTo.toString())
                 && !StringUtils.equalsAnyIgnoreCase(
-                        applyTo, APPLY_FIELD, APPLY_VALUE, APPLY_BOTH)) {
+                applyTo.toString(), FIELD.toString(),
+                VALUE.toString(),
+                BOTH.toString())) {
             LOG.warn("Unsupported \"applyTo\": {}", applyTo);
             return;
         }
@@ -138,13 +143,13 @@ public class CharacterCaseTransformer
             var newField = field;
 
             // Do field
-            if (EqualsUtil.equalsAny(applyTo, APPLY_FIELD, APPLY_BOTH)) {
+            if (EqualsUtil.equalsAny(applyTo, FIELD, BOTH)) {
                 newField = changeFieldCase(field, docCtx.metadata());
             }
 
             // Do values
-            if (StringUtils.isBlank(applyTo) || EqualsUtil.equalsAny(
-                    applyTo, APPLY_VALUE, APPLY_BOTH)) {
+            if (StringUtils.isBlank(applyTo.toString()) || EqualsUtil.equalsAny(
+                    applyTo, VALUE, BOTH)) {
                 changeValuesCase(newField, docCtx.metadata());
             }
         }
@@ -183,31 +188,31 @@ public class CharacterCaseTransformer
     private String changeCase(String value) {
         var type = configuration.getCaseType();
 
-        if (CASE_UPPER.equals(type)) {
+        if (UPPER.equals(type)) {
             return StringUtils.upperCase(value);
         }
-        if (CASE_LOWER.equals(type)) {
+        if (LOWER.equals(type)) {
             return StringUtils.lowerCase(value);
         }
-        if (CASE_WORDS.equals(type)) {
+        if (WORDS.equals(type)) {
             return WordUtils.capitalize(value);
         }
-        if (CASE_WORDS_FULLY.equals(type)) {
+        if (WORDSFULLY.equals(type)) {
             return WordUtils.capitalizeFully(value);
         }
-        if (CASE_SWAP.equals(type)) {
+        if (SWAP.equals(type)) {
             return WordUtils.swapCase(value);
         }
-        if (CASE_STRING.equals(type)) {
+        if (STRING.equals(type)) {
             return capitalizeString(value);
         }
-        if (CASE_STRING_FULLY.equals(type)) {
+        if (STRINGFULLY.equals(type)) {
             return capitalizeStringFully(value);
         }
-        if (CASE_SENTENCES.equals(type)) {
+        if (SENTENCES.equals(type)) {
             return capitalizeSentences(value);
         }
-        if (CASE_SENTENCES_FULLY.equals(type)) {
+        if (SENTENCESFULLY.equals(type)) {
             return capitalizeSentencesFully(value);
         }
         LOG.warn("Unsupported character case type: {}", type);
