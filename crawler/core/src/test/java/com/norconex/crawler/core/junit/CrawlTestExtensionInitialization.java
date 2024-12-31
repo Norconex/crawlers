@@ -25,14 +25,11 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.GridTestUtil;
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
@@ -76,7 +73,7 @@ public class CrawlTestExtensionInitialization
                     annotation.config(),
                     MapUtil.<String, String>toMap(
                             (Object[]) annotation.vars()));
-            BeanMapper.DEFAULT.read(
+            spec.beanMapper().read(
                     crawlerConfig,
                     new StringReader(cfgStr),
                     Format.fromContent(cfgStr, Format.XML));
@@ -92,9 +89,6 @@ public class CrawlTestExtensionInitialization
 
         // set grid connector
         GridConnector gridConnector = ClassUtil.newInstance(gridConnectorClass);
-        if (gridConnector instanceof IgniteGridConnector ignConnector) {
-            GridTestUtil.tuneIgniteForTesting(ignConnector);
-        }
         crawlerConfig.setGridConnector(gridConnector);
 
         // --- Focus: CRAWL ---

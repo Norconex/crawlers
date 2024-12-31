@@ -39,6 +39,8 @@ import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
  */
 public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
+    protected static final String IGNITE_BASE_PKG = "org.apache.ignite";
+
     @Override
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         //NOTE:
