@@ -118,7 +118,6 @@ public class Crawler {
                 ctx.init();
                 command.execute(ctx);
             }
-            grid.nodeStop();
         }
     }
 }

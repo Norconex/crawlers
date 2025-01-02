@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.grid.impl.ignite;
 
 import org.apache.ignite.Ignite;
-import org.apache.ignite.Ignition;
 
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
@@ -64,14 +63,7 @@ public class IgniteGrid implements Grid {
     }
 
     @Override
-    public void nodeStop() {
-        //TODO need to do any cleanup before stop?
-        // this will stop the current node only.
-        Ignition.stop(false);
-    }
-
-    @Override
     public void close() {
-        //NOOP: No resources to explicitly release
+        ignite.close();
     }
 }

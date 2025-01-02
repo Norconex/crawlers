@@ -78,8 +78,11 @@ public class IgniteGridConnector
         if (StringUtils.isBlank(igniteCfg.getWorkDirectory())) {
             igniteCfg.setWorkDirectory(ConfigUtil.resolveWorkDir(crawlerConfig)
                     .resolve("ignite").toAbsolutePath().toString());
-            LOG.info("Ignite %s work directory: %s"
-                    .formatted(igniteCfg.getIgniteInstanceName(),
+            LOG.info("Ignite instance \"%s\" work directory: %s"
+                    .formatted(
+                            StringUtils.defaultIfBlank(
+                                    igniteCfg.getIgniteInstanceName(),
+                                    "<default>"),
                             igniteCfg.getWorkDirectory()));
         }
 

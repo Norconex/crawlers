@@ -37,12 +37,6 @@ public interface Grid extends Closeable {
     String nodeId();
 
     /**
-     * Tell the local node to stop its execution. A clean stop may or may not
-     * be attempted, depending on the executing job.
-     */
-    void nodeStop();
-
-    /**
      * Closes the local connection, releasing any local resources associated
      * to it.
      */

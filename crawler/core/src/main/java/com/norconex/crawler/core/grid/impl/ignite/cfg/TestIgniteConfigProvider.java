@@ -14,12 +14,17 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite.cfg;
 
+import java.util.Collections;
+
 import org.apache.ignite.configuration.DataRegionConfiguration;
 import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.logger.slf4j.Slf4jLogger;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
-import org.apache.ignite.spi.discovery.isolated.IsolatedDiscoverySpi;
+import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
+
+import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,8 +32,12 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * Single-node grid configuration with low memory usage for development
  * or testing. Default configuration used when no configuration is supplied
- * of unit testing.
- * <b>Not for production use.</b>
+ * or for unit testing.
+ * </p>
+ * <p>
+ * <b>Not for production use.</b> It is recommended to use the
+ * {@link LocalGridConnector} instead for a single node stand-alone production
+ * instance.
  * </p>
  */
 @Slf4j
@@ -46,11 +55,15 @@ public final class TestIgniteConfigProvider {
         //   otherwise the default "" is fine.
         // - the consistent id is unique for each node on the cluster
 
-        var igniteCfg = new IgniteConfiguration();
-        igniteCfg.setGridLogger(new Slf4jLogger());
+        var igniteCfg = new IgniteConfiguration()
+                .setGridLogger(new Slf4jLogger())
+                .setIgniteInstanceName("test-instance")
+                .setPeerClassLoadingEnabled(false)
+                .setConsistentId("test-node-0")
+                .setLocalHost("127.0.0.1");
 
         configurePersistentStorage(igniteCfg);
-        configureDiscovery(igniteCfg, 0, 1);
+        configureDiscovery(igniteCfg);
 
         return igniteCfg;
     }
@@ -66,14 +79,15 @@ public final class TestIgniteConfigProvider {
                                 .setMaxSize(50 * 1024 * 1024L)));
     }
 
-    private static void configureDiscovery(
-            IgniteConfiguration cfg, int nodeIndex, int totalNodeCount) {
+    private static void configureDiscovery(IgniteConfiguration cfg) {
 
-        cfg.setGridLogger(new Slf4jLogger());
-        cfg.setPeerClassLoadingEnabled(false);
-        cfg.setConsistentId("node-" + nodeIndex);
-        cfg.setLocalHost("127.0.0.1");
-        var discoverySpi = new IsolatedDiscoverySpi();
+        // Set discovery SPI with TcpDiscoverySpi
+        var discoverySpi = new TcpDiscoverySpi();
+        var ipFinder = new TcpDiscoveryVmIpFinder();
+        ipFinder.setAddresses(Collections.singletonList(
+                "127.0.0.1:47500..47509")); // localhost testing
+        discoverySpi.setIpFinder(ipFinder);
+        cfg.setDiscoverySpi(discoverySpi);
 
         var communicationSpi = new TcpCommunicationSpi();
         // no need for unlimited in a test environment

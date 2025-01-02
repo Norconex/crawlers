@@ -44,11 +44,6 @@ public class MockFailingGrid implements Grid {
     }
 
     @Override
-    public void nodeStop() {
-        throw new UnsupportedOperationException("IN_TEST");
-    }
-
-    @Override
     public String nodeId() {
         return nodeId;
     }
