@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.ObjectUtils;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridServices;
@@ -79,13 +78,6 @@ public class LocalGrid implements Grid {
     private void ensureInit() {
         if (ObjectUtils.anyNull(gridCompute, gridStorage, gridServices)) {
             throw new IllegalStateException("LocalGrid not initialized.");
-        }
-    }
-
-    @Override
-    public void nodeStop() {
-        if (CrawlerContext.isInitialized(nodeId)) {
-            CrawlerContext.get(nodeId).stop();
         }
     }
 

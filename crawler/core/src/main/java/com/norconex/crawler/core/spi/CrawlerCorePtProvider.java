@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.LightIgniteIpFinder;
 import com.norconex.crawler.core.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.operations.filter.DocumentFilter;
@@ -39,6 +40,8 @@ import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
  */
 public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
+    protected static final String IGNITE_BASE_PKG = "org.apache.ignite";
+
     @Override
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         //NOTE:
@@ -49,15 +52,16 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
 
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
-        addPolyType(map, GridConnector.class);
         addPolyType(map, DocumentChecksummer.class);
         addPolyType(map, DocumentFilter.class);
         addPolyType(map, EventListener.class, "event.listeners");
+        addPolyType(map, GridConnector.class);
         addPolyType(map, MetadataChecksummer.class);
         addPolyType(map, MetadataFilter.class);
         addPolyType(map, ReferenceFilter.class);
         addPolyType(map, SpoiledReferenceStrategizer.class);
         map.put(EventListener.class, StopCrawlerOnMaxEventListener.class);
+        addPolyType(map, LightIgniteIpFinder.class);
         return map;
     }
 

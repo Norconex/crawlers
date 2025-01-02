@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,6 @@ public class MockFailingGrid implements Grid {
 
     @Override
     public GridServices services() {
-        throw new UnsupportedOperationException("IN_TEST");
-    }
-
-    @Override
-    public void nodeStop() {
         throw new UnsupportedOperationException("IN_TEST");
     }
 

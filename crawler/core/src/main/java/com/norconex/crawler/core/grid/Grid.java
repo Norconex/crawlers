@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,6 @@ public interface Grid extends Closeable {
      * @return unique instance id
      */
     String nodeId();
-
-    /**
-     * Tell the local node to stop its execution. A clean stop may or may not
-     * be attempted, depending on the executing job.
-     */
-    void nodeStop();
 
     /**
      * Closes the local connection, releasing any local resources associated

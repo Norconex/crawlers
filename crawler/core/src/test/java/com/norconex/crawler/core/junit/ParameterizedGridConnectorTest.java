@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
+import com.norconex.crawler.core.grid.impl.ignite.LocalIgniteGridConnector;
 import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest.GridConnectorProvider;
 
@@ -47,7 +47,7 @@ public @interface ParameterizedGridConnectorTest {
                     arguments(named("📂On Local Grid",
                             LocalGridConnector.class)),
                     arguments(named("🔥On Ignite Grid",
-                            IgniteGridConnector.class)));
+                            LocalIgniteGridConnector.class)));
         }
     }
 }
