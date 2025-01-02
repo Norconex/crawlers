@@ -17,6 +17,7 @@ package com.norconex.crawler.core.grid.impl.ignite.cfg.ip;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
@@ -34,11 +35,11 @@ import lombok.experimental.Accessors;
 @JsonTypeName("VmIpFinder")
 public class LightIgniteVmIpFinder implements LightIgniteIpFinder {
 
-    private final Collection<String> addresses = new ArrayList<>();
+    private final List<String> addresses = new ArrayList<>();
     private boolean shared;
 
     public Collection<String> getAddresses() {
-        return Collections.unmodifiableCollection(addresses);
+        return Collections.unmodifiableList(addresses);
     }
 
     public void setAddresses(Collection<String> addresses) {

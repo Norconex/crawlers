@@ -48,7 +48,8 @@ public class LightIgniteDiscoveryConfig {
     private long connectionRecoveryTimeout =
             TcpDiscoverySpi.DFLT_CONNECTION_RECOVERY_TIMEOUT;
     @NonNull
-    private LightIgniteIpFinder ipFinder = new LightIgniteMulticastIpFinder();
+    private LightIgniteIpFinder tcpIpFinder =
+            new LightIgniteMulticastIpFinder();
     private long joinTimeout = TcpDiscoverySpi.DFLT_JOIN_TIMEOUT;
     private String localAddress;
     private int localPort = TcpDiscoverySpi.DFLT_PORT;
@@ -57,9 +58,10 @@ public class LightIgniteDiscoveryConfig {
     private long networkTimeout = TcpDiscoverySpi.DFLT_NETWORK_TIMEOUT;
     private int reconnectCount = TcpDiscoverySpi.DFLT_RECONNECT_CNT;
     private int reconnectDelaly = (int) TcpDiscoverySpi.DFLT_RECONNECT_DELAY;
-    private long socketTimeout = (int) TcpDiscoverySpi.DFLT_SOCK_TIMEOUT;
+    private long socketTimeout = TcpDiscoverySpi.DFLT_SOCK_TIMEOUT;
     private int soLinger = TcpDiscoverySpi.DFLT_SO_LINGER;
-    private long statsPrintFreq = TcpDiscoverySpi.DFLT_STATS_PRINT_FREQ;
-    private long topHistorySize = TcpDiscoverySpi.DFLT_TOP_HISTORY_SIZE;
+    private long statisticsPrintFrequency =
+            TcpDiscoverySpi.DFLT_STATS_PRINT_FREQ;
+    private int topHistorySize = TcpDiscoverySpi.DFLT_TOP_HISTORY_SIZE;
 
 }

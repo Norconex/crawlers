@@ -67,7 +67,8 @@ public class LightIgniteCacheConfig {
             CacheConfiguration.DFLT_REBALANCE_MODE;
     private int rebalanceOrder;
     private boolean statisticsEnabled;
-    private boolean storeByValue;
+    /** Whether to disable store by value. */
+    private boolean storeByValueDisabled;
     private int storeConcurrentLoadAllThreshold =
             CacheConfiguration.DFLT_CONCURRENT_LOAD_ALL_THRESHOLD;
     private boolean storeKeepBinary;

@@ -35,12 +35,16 @@ import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.LightIgniteMulticastIpFinder;
 import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.LightIgniteVmIpFinder;
 
+import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
+import lombok.ToString;
 
 /**
  * Default converter of crawler {@link LightIgniteConfig} to Ignite native
  * {@link IgniteConfiguration}.
  */
+@EqualsAndHashCode
+@ToString
 public class DefaultIgniteConfigAdapter
         implements Function<LightIgniteConfig, IgniteConfiguration> {
 
@@ -55,8 +59,10 @@ public class DefaultIgniteConfigAdapter
         //--- Main config ---
         var igniteCfg = new IgniteConfiguration();
         BeanUtil.copyProperties(igniteCfg, lightCfg);
-        igniteCfg.setAddressResolver(
-                new BasicAddressResolver(lightCfg.getAddressMappings()));
+        if (!lightCfg.getAddressMappings().isEmpty()) {
+            igniteCfg.setAddressResolver(
+                    new BasicAddressResolver(lightCfg.getAddressMappings()));
+        }
         igniteCfg.setGridLogger(new Slf4jLogger());
         igniteCfg.setPeerClassLoadingEnabled(false);
 
@@ -93,15 +99,19 @@ public class DefaultIgniteConfigAdapter
             LightIgniteDiscoveryConfig lightDiscoveryCfg) {
         var igniteDiscoverySpi = new TcpDiscoverySpi();
         BeanUtil.copyProperties(igniteDiscoverySpi, lightDiscoveryCfg);
-        igniteDiscoverySpi.setAddressResolver(new BasicAddressResolver(
-                lightDiscoveryCfg.getAddressMappings()));
+        if (!lightDiscoveryCfg.getAddressMappings().isEmpty()) {
+            igniteDiscoverySpi.setAddressResolver(new BasicAddressResolver(
+                    lightDiscoveryCfg.getAddressMappings()));
+        }
+        igniteDiscoverySpi.setReconnectDelay(
+                lightDiscoveryCfg.getReconnectDelaly());
 
-        var lightIpFinder = lightDiscoveryCfg.getIpFinder();
+        var lightIpFinder = lightDiscoveryCfg.getTcpIpFinder();
         TcpDiscoveryIpFinder igniteIpFinder = null;
         if (lightIpFinder instanceof LightIgniteMulticastIpFinder) {
-            igniteIpFinder = new TcpDiscoveryVmIpFinder();
-        } else if (lightIpFinder instanceof LightIgniteVmIpFinder) {
             igniteIpFinder = new TcpDiscoveryMulticastIpFinder();
+        } else if (lightIpFinder instanceof LightIgniteVmIpFinder) {
+            igniteIpFinder = new TcpDiscoveryVmIpFinder();
         } else {
             igniteIpFinder = new TcpDiscoverySharedFsIpFinder();
         }
@@ -130,6 +140,7 @@ public class DefaultIgniteConfigAdapter
                     cc.setReadFromBackup(!lcc.isReadFromBackupDisabled());
                     cc.setWriteBehindCoalescing(
                             !lcc.isWriteBehindCoalescingDisabled());
+                    cc.setStoreByValue(!lcc.isStoreByValueDisabled());
                     return cc;
                 })
                 .toList()

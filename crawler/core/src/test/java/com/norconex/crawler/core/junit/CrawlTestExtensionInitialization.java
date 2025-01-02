@@ -35,9 +35,11 @@ import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 // Usage defined by CrawlTestInvocationContext, before resolving
 // test method parameters.
+@Slf4j
 @RequiredArgsConstructor
 public class CrawlTestExtensionInitialization
         implements BeforeTestExecutionCallback {
@@ -67,6 +69,12 @@ public class CrawlTestExtensionInitialization
                         tempDir,
                         spec.crawlerConfigClass());
 
+        // set grid connector
+        LOG.info("Setting grid connector: {}", gridConnectorClass);
+        GridConnector gridConnector =
+                gridConnectorClass.getDeclaredConstructor().newInstance();
+        crawlerConfig.setGridConnector(gridConnector);
+
         // apply custom config from text
         if (StringUtils.isNotBlank(annotation.config())) {
             var cfgStr = StringSubstitutor.replace(
@@ -86,10 +94,6 @@ public class CrawlTestExtensionInitialization
                     .newInstance(annotation.configModifier());
             c.accept(crawlerConfig);
         }
-
-        // set grid connector
-        GridConnector gridConnector = ClassUtil.newInstance(gridConnectorClass);
-        crawlerConfig.setGridConnector(gridConnector);
 
         // --- Focus: CRAWL ---
         if (annotation.focus() == Focus.CRAWL) {

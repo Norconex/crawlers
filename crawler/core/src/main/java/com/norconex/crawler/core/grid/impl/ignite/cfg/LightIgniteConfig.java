@@ -22,6 +22,7 @@ import java.util.Map;
 import org.apache.ignite.configuration.BasicAddressResolver;
 import org.apache.ignite.configuration.IgniteConfiguration;
 
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnectorConfig;
@@ -60,11 +61,11 @@ public class LightIgniteConfig {
 
     private String igniteInstanceName;
     private String consistentId;
-    private String localhost;
+    private String localHost;
     private long metricsLogFrequency =
             IgniteConfiguration.DFLT_METRICS_LOG_FREQ;
     private long networkTimeout = IgniteConfiguration.DFLT_NETWORK_TIMEOUT;
-    private Long systemWorkerBlockedTimeout;
+    private long systemWorkerBlockedTimeout;
 
     /**
      * Mappings of socket addresses (host and port pairs) to each other
@@ -93,197 +94,19 @@ public class LightIgniteConfig {
 
     private final List<LightIgniteCacheConfig> caches = new ArrayList<>();
 
-    //    cacheConfiguration:
-    //      - name: defaultCache
-    //        cacheMode: PARTITIONED
-    //        atomicityMode: TRANSACTIONAL
-    //        backups: 1
-    //        readThrough: true
-    //        writeThrough: true
-    //        cacheStoreFactory:
-    //          className: org.apache.ignite.cache.store.jdbc.CacheJdbcPojoStoreFactory
-    //        sqlSchema: PUBLIC
-    //        queryEntities:
-    //          - keyType: java.lang.String
-    //            valueType: com.example.MyValueObject
-    //            tableName: MY_TABLE
-    //            fields:
-    //              id: java.lang.String
-    //              name: java.lang.String
-    //            indexes:
-    //              - name: IDX_MY_TABLE_NAME
-    //                indexType: SORTED
-    //                fields:
-    //                  name: ASC
-    //    eventStorageSpi:
-    //      type: MemoryEventStorageSpi
-    //    failureHandler:
-    //      type: StopNodeOrHaltFailureHandler
-    //    metricsLogFrequency: 60000
-    //    clientMode: false
-    //    rebalanceThreadPoolSize: 4
-    //    networkTimeout: 5000
-    //    systemWorkerBlockedTimeout: 10000
+    public LightIgniteConfig setAddressMappings(
+            Map<String, String> addressMappings) {
+        CollectionUtil.setAll(this.addressMappings, addressMappings);
+        return this;
+    }
 
-    //
-    //    //--- Direct mapping to IgniteConfiguration --------------------------------
-    //
-    //    private boolean allSegmentationResolversPassRequired;
-    //    private int asyncCallbackPoolSize;
-    //    private boolean authenticationEnabled;
-    //    private int buildIndexThreadPoolSize;
-    //
-    //    private List<CacheConfiguration<?, ?>> cacheConfiguration;
-    //    private List<CacheKeyConfiguration> cacheKeyConfiguration;
-    //    private boolean cacheSanityCheckEnabled;
-    //    private List<Factory<
-    //            CacheStoreSessionListener>> cacheStoreSessionListenerFactories;
-    //    private List<CheckpointSpi> checkpointSpi;
-    //    private ClassLoader classLoader;
-    //    private ClientConnectorConfiguration clientConnectorConfiguration;
-    //    private long clientFailureDetectionTimeout;
-    //    private boolean clientMode;
-    //    private ClusterState clusterStateOnStart;
-    //    private CollisionSpi collisionSpi;
-    //    private CommunicationFailureResolver communicationFailureResolver;
-    //    private CommunicationSpi<?> communicationSpi;
-    //    private ConnectorConfiguration connectorConfiguration;
-    //    private Serializable consistentId;
-    //    private DataStorageConfiguration storage;
-    //    private int dataStreamerThreadPoolSize;
-    //    private DeploymentMode deploymentMode;
-    //    private DeploymentSpi deploymentSpi;
-    //    private DiscoverySpi discoverySpi;
-    //    private EncryptionSpi encryptionSpi;
-    //    private EventStorageSpi eventStorageSpi;
-    //    private List<ExecutorConfiguration> executorConfiguration;
-    //    private List<FailoverSpi> failoverSpi;
-    //    private long failureDetectionTimeout;
-    //    private FailureHandler failureHandler;
-    //    private IgniteLogger gridLogger;
-    //    private String igniteHome;
-    //    private String igniteInstanceName;
-    //    private List<Integer> includeEventTypes;
-    //    private List<String> includeProperties;
-    //    private IndexingSpi indexingSpi;
-    //    private List<LifecycleBean> lifecycleBeans;
-    //    private List<LoadBalancingSpi> loadBalancingSpi;
-    //    private Map<IgnitePredicate<? extends Event>, int[]> localEventListeners;
-    //    private String localHost;
-    //    private int managementThreadPoolSize;
-    //    private boolean marshalLocalJobs;
-    //    private MBeanServer mBeanServer;
-    //    private List<MetricExporterSpi> metricExporterSpi;
-    //    private long metricsExpireTime;
-    //    private int metricsHistorySize;
-    //    private long metricsLogFrequency;
-    //    private long metricsUpdateFrequency;
-    //    private long mvccVacuumFrequency;
-    //    private int mvccVacuumThreadCount;
-    //    private int networkCompressionLevel;
-    //    private int networkSendRetryCount;
-    //    private long networkSendRetryDelay;
-    //    private long networkTimeout;
-    //    private boolean peerClassLoadingEnabled;
-    //    private List<String> peerClassLoadingLocalClassPathExclude;
-    //    private int peerClassLoadingMissedResourcesCacheSize;
-    //    private int peerClassLoadingThreadPoolSize;
-    //    private PlatformConfiguration platformConfiguration;
-    //    private List<PluginProvider<?>> pluginProviders;
-    //    private int publicThreadPoolSize;
-    //    private int queryThreadPoolSize;
-    //    private long rebalanceBatchesPrefetchCount;
-    //    private int rebalanceBatchSize;
-    //    private int rebalanceThreadPoolSize;
-    //    private long rebalanceThrottle;
-    //    private long rebalanceTimeout;
-    //    private SegmentationPolicy segmentationPolicy;
-    //    private int segmentationResolveAttempts;
-    //    private List<SegmentationResolver> segmentationResolvers;
-    //    private long segmentCheckFrequency;
-    //    private List<ServiceConfiguration> serviceConfiguration;
-    //    private int serviceThreadPoolSize;
-    //    private ShutdownPolicy shutdownPolicy;
-    //    private String snapshotPath;
-    //    private int snapshotThreadPoolSize;
-    //    private SqlConfiguration sqlConfiguration;
-    //    private Factory<SSLContext> sslContextFactory;
-    //    private int stripedPoolSize;
-    //    private int systemThreadPoolSize;
-    //    private List<SystemViewExporterSpi> systemViewExporterSpi;
-    //    private long systemWorkerBlockedTimeout;
-    //    private int timeServerPortBase;
-    //    private int timeServerPortRange;
-    //    private TracingSpi<?> tracingSpi;
-    //    private TransactionConfiguration transactionConfiguration;
-    //    private Map<String, ?> userAttributes;
-    //    private long utilityCacheKeepAliveTime;
-    //    private int utilityCachePoolSize;
-    //    private boolean waitForSegmentOnStart;
-    //    private IgniteInClosure<IgniteConfiguration> warmupClosure;
-    //    private String workDirectory;
+    public LightIgniteConfig setAddressMapping(
+            String address1, String address2) {
+        addressMappings.put(address1, address2);
+        return this;
+    }
 
-    //MAYBE make those configurable as well?
-    /*
-    private Executor asyncContinuationExecutor;
-    private AtomicConfiguration atomicConfiguration;
-    private BinaryConfiguration binaryConfiguration;
-    
-    */
-
+    public String getAddressMapping(String address1) {
+        return addressMappings.get(address1);
+    }
 }
-
-/*
-
-igniteInstanceName: myIgniteInstance
-workDirectory: /path/to/work
-storage:
-  defaultDataRegionConfiguration:
-    name: Default_Region
-    initialSize: 100MB
-    maxSize: 1GB
-    persistenceEnabled: false
-  persistenceEnabled: false
-discoverySpi:
-  type: TcpDiscoverySpi
-  ipFinder:
-    type: TcpDiscoveryMulticastIpFinder
-    addresses:
-      - 127.0.0.1:47500..47509
-communicationSpi:
-  type: TcpCommunicationSpi
-  localPort: 47100
-  localPortRange: 20
-cacheConfiguration:
-  - name: defaultCache
-    cacheMode: PARTITIONED
-    atomicityMode: TRANSACTIONAL
-    backups: 1
-    readThrough: true
-    writeThrough: true
-    cacheStoreFactory:
-      className: org.apache.ignite.cache.store.jdbc.CacheJdbcPojoStoreFactory
-    sqlSchema: PUBLIC
-    queryEntities:
-      - keyType: java.lang.String
-        valueType: com.example.MyValueObject
-        tableName: MY_TABLE
-        fields:
-          id: java.lang.String
-          name: java.lang.String
-        indexes:
-          - name: IDX_MY_TABLE_NAME
-            indexType: SORTED
-            fields:
-              name: ASC
-eventStorageSpi:
-  type: MemoryEventStorageSpi
-failureHandler:
-  type: StopNodeOrHaltFailureHandler
-metricsLogFrequency: 60000
-clientMode: false
-rebalanceThreadPoolSize: 4
-networkTimeout: 5000
-systemWorkerBlockedTimeout: 10000
-
-*/

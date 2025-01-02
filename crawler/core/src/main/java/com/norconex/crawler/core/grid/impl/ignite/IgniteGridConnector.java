@@ -27,6 +27,7 @@ import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteConfigAdapter;
 import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteGridActivator;
+import com.norconex.crawler.core.grid.impl.ignite.cfg.TestIgniteConfigProvider;
 import com.norconex.crawler.core.util.ConfigUtil;
 
 import lombok.EqualsAndHashCode;
@@ -45,18 +46,29 @@ public class IgniteGridConnector
     private final IgniteGridConnectorConfig configuration =
             new IgniteGridConnectorConfig();
 
+    private final boolean testInstance;
+
+    public IgniteGridConnector() {
+        testInstance = false;
+    }
+
+    protected IgniteGridConnector(boolean testInstance) {
+        this.testInstance = testInstance;
+    }
+
     @Override
     public Grid connect(
             Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
             CrawlerConfig crawlerConfig) {
 
         IgniteConfiguration igniteCfg;
-        if (new IgniteGridConnectorConfig().equals(configuration)) {
+        if (testInstance
+                || new IgniteGridConnectorConfig().equals(configuration)) {
             LOG.warn("""
-                Using Ignite without configuration. Using default \
+                Using Ignite without configuration. Using pre-defined \
                 single-node configuration for development/testing \
                 purposes. Do not use in production.""");
-            igniteCfg = IgniteGridDefaultConfig.get(crawlerConfig);
+            igniteCfg = TestIgniteConfigProvider.get();
         } else {
             igniteCfg = ofNullable(configuration.getIgniteConfigAdapter())
                     .orElseGet(DefaultIgniteConfigAdapter::new)

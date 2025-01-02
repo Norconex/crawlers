@@ -21,11 +21,15 @@ import org.apache.ignite.cluster.ClusterState;
 
 import com.norconex.commons.lang.Sleeper;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default activator of an Ignite grid.
  */
+@EqualsAndHashCode
+@ToString
 @Slf4j
 public class DefaultIgniteGridActivator implements Consumer<Ignite> {
 

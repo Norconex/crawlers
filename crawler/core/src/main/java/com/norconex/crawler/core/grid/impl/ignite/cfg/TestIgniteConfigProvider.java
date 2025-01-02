@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.grid.impl.ignite;
+package com.norconex.crawler.core.grid.impl.ignite.cfg;
 
 import org.apache.ignite.configuration.DataRegionConfiguration;
 import org.apache.ignite.configuration.DataStorageConfiguration;
@@ -21,24 +21,23 @@ import org.apache.ignite.logger.slf4j.Slf4jLogger;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
 import org.apache.ignite.spi.discovery.isolated.IsolatedDiscoverySpi;
 
-import com.norconex.crawler.core.CrawlerConfig;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
  * Single-node grid configuration with low memory usage for development
- * or testing. Default used when no configuration is supplied.
+ * or testing. Default configuration used when no configuration is supplied
+ * of unit testing.
  * <b>Not for production use.</b>
  * </p>
  */
 @Slf4j
-final class IgniteGridDefaultConfig {
+public final class TestIgniteConfigProvider {
 
-    private IgniteGridDefaultConfig() {
+    private TestIgniteConfigProvider() {
     }
 
-    static IgniteConfiguration get(CrawlerConfig crawlerConfig) {
+    public static IgniteConfiguration get() {
 
         //NOTE:
         // - grid name is node name and must be unique for each node
