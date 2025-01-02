@@ -995,11 +995,21 @@
           <version>${editorconfig-maven-plugin.version}</version>
           <executions>
             <execution>
-              <id>check</id>
-              <phase>verify</phase>
+              <id>fix-editorconfig</id>
+              <goals>
+                <goal>format</goal>
+              </goals>
+              <phase>validate</phase>
+            </execution>
+            <execution>
+              <id>check-editorconfig</id>
               <goals>
                 <goal>check</goal>
               </goals>
+              <phase>verify</phase>
+              <configuration>
+                <failOnFormatViolation>true</failOnFormatViolation>
+              </configuration>
             </execution>
           </executions>
           <configuration>

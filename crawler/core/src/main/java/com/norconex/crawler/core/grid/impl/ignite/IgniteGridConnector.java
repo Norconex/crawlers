@@ -86,6 +86,7 @@ public class IgniteGridConnector
                             igniteCfg.getWorkDirectory()));
         }
 
+        System.setProperty("IGNITE_NO_ASCII", "true");
         var ignite = Ignition.getOrStart(igniteCfg);
 
         ofNullable(configuration.getIgniteGridActivator())
