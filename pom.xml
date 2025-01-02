@@ -1025,6 +1025,7 @@
                 -->
             </includes>
           </configuration>          
+          <inherited>true</inherited>
         </plugin>
          
       </plugins>
