@@ -99,14 +99,4 @@ public class LightIgniteConfig {
         CollectionUtil.setAll(this.addressMappings, addressMappings);
         return this;
     }
-
-    public LightIgniteConfig setAddressMapping(
-            String address1, String address2) {
-        addressMappings.put(address1, address2);
-        return this;
-    }
-
-    public String getAddressMapping(String address1) {
-        return addressMappings.get(address1);
-    }
 }
