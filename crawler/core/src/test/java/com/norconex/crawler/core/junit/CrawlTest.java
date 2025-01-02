@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
+import com.norconex.crawler.core.grid.impl.ignite.LocalIgniteGridConnector;
 import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
@@ -114,7 +114,7 @@ public @interface CrawlTest {
 
     Class<? extends GridConnector>[] gridConnectors() default {
             LocalGridConnector.class,
-            IgniteGridConnector.class
+            LocalIgniteGridConnector.class
     };
 
     /**

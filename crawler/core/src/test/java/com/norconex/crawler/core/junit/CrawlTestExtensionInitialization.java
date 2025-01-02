@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,22 +25,21 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.GridTestUtil;
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 // Usage defined by CrawlTestInvocationContext, before resolving
 // test method parameters.
+@Slf4j
 @RequiredArgsConstructor
 public class CrawlTestExtensionInitialization
         implements BeforeTestExecutionCallback {
@@ -70,13 +69,19 @@ public class CrawlTestExtensionInitialization
                         tempDir,
                         spec.crawlerConfigClass());
 
+        // set grid connector
+        LOG.info("Setting grid connector: {}", gridConnectorClass);
+        GridConnector gridConnector =
+                gridConnectorClass.getDeclaredConstructor().newInstance();
+        crawlerConfig.setGridConnector(gridConnector);
+
         // apply custom config from text
         if (StringUtils.isNotBlank(annotation.config())) {
             var cfgStr = StringSubstitutor.replace(
                     annotation.config(),
                     MapUtil.<String, String>toMap(
                             (Object[]) annotation.vars()));
-            BeanMapper.DEFAULT.read(
+            spec.beanMapper().read(
                     crawlerConfig,
                     new StringReader(cfgStr),
                     Format.fromContent(cfgStr, Format.XML));
@@ -89,13 +94,6 @@ public class CrawlTestExtensionInitialization
                     .newInstance(annotation.configModifier());
             c.accept(crawlerConfig);
         }
-
-        // set grid connector
-        GridConnector gridConnector = ClassUtil.newInstance(gridConnectorClass);
-        if (gridConnector instanceof IgniteGridConnector ignConnector) {
-            GridTestUtil.tuneIgniteForTesting(ignConnector);
-        }
-        crawlerConfig.setGridConnector(gridConnector);
 
         // --- Focus: CRAWL ---
         if (annotation.focus() == Focus.CRAWL) {

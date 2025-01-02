@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,9 +59,9 @@ class DocProcessingLedgerTest {
         ledger1.processed(new CrawlDocContext("ref:processed2"));
         ledger1.processed(new CrawlDocContext("ref:processed3"));
         ctx1.close();
-        ctx1.getGrid().nodeStop();
-        GridTestUtil.waitForGridShutdown();
         ctx1.getGrid().close();
+
+        GridTestUtil.waitForGridShutdown();
 
         // simulate resume
 
@@ -76,7 +76,7 @@ class DocProcessingLedgerTest {
         assertThat(ledger2.getProcessedCount()).isEqualTo(3);
 
         ctx2.close();
-        ctx1.getGrid().nodeStop();
+        ctx1.getGrid().close();
         GridTestUtil.waitForGridShutdown();
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,52 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.apache.ignite.Ignite;
+import org.apache.ignite.configuration.IgniteConfiguration;
+
+import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteConfigAdapter;
+import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteGridActivator;
+import com.norconex.crawler.core.grid.impl.ignite.cfg.LightIgniteConfig;
+
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 
+/**
+ * <p>
+ * Ignite grid connector configuration.
+ * </p>
+ */
 @Data
 @Accessors(chain = true)
 public class IgniteGridConnectorConfig {
-    // client only (points to remote Ignite cluster)
-    // server only (does not run the crawler, only act as an Ignite database endpoint
-    // embedded local (run app and uses ignite locally, not available to other nodes)
-    // embedded serve
 
-    //    Client mode:          [My app instance] --> [Ignite instance in Client Mode] --> [Ignite instance in Server Mode]
-    //    Embedded client mode: [My app + Ignite Client Mode on same instance] -> [Ignite instance in Server Mode]
+    /**
+     * Ignite node configuration. When the {@link IgniteGridConnector} is used
+     * without configuration, the crawler will default to a single-node local
+     * cluster with minimal configuration ideal for testing but not much else.
+     */
+    private LightIgniteConfig igniteConfig = new LightIgniteConfig();
+
+    /**
+     * Adapter that converts the IgniteGridConfiguration into Ignite native
+     * {@link IgniteConfiguration}. This is the ideal place to programmatically
+     * configure Ignite and add more advanced Ignite configuration options.
+     * Default is {@link DefaultIgniteConfigAdapter}.
+     */
+    @NonNull
+    private Function<LightIgniteConfig,
+            IgniteConfiguration> igniteConfigAdapter =
+                    new DefaultIgniteConfigAdapter();
+
+    /**
+     * Defines the grid activation logic. Default is
+     * {@link DefaultIgniteGridActivator}.
+     */
+    private Consumer<Ignite> igniteGridActivator =
+            new DefaultIgniteGridActivator();
+
 }

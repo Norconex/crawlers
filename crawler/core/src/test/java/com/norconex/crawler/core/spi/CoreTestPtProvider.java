@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import org.apache.commons.collections4.MultiValuedMap;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.cmd.crawl.task.DocProcessorUpsertTest;
+import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
 import com.norconex.importer.response.ImporterResponseProcessor;
@@ -34,6 +36,7 @@ public class CoreTestPtProvider implements PolymorphicTypeProvider {
         map.put(EventListener.class, CrawlTestCapturer.class);
         map.put(ImporterResponseProcessor.class,
                 DocProcessorUpsertTest.TestResponseProcessor.class);
+        map.put(GridConnector.class, IgniteGridConnector.class);
         return map;
     }
 }
