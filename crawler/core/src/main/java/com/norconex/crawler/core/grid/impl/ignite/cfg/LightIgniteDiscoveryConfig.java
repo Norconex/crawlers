@@ -22,7 +22,7 @@ import org.apache.ignite.spi.discovery.DiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 
 import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.LightIgniteIpFinder;
-import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.LightIgniteMulticastIpFinder;
+import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.MulticastIpFinder;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -49,7 +49,7 @@ public class LightIgniteDiscoveryConfig {
             TcpDiscoverySpi.DFLT_CONNECTION_RECOVERY_TIMEOUT;
     @NonNull
     private LightIgniteIpFinder tcpIpFinder =
-            new LightIgniteMulticastIpFinder();
+            new MulticastIpFinder();
     private long joinTimeout = TcpDiscoverySpi.DFLT_JOIN_TIMEOUT;
     private String localAddress;
     private int localPort = TcpDiscoverySpi.DFLT_PORT;

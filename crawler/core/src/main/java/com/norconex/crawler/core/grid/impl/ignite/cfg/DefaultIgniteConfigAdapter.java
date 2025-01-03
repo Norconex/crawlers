@@ -32,8 +32,8 @@ import org.apache.ignite.spi.discovery.tcp.ipfinder.sharedfs.TcpDiscoverySharedF
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.norconex.commons.lang.bean.BeanUtil;
-import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.LightIgniteMulticastIpFinder;
-import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.LightIgniteVmIpFinder;
+import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.MulticastIpFinder;
+import com.norconex.crawler.core.grid.impl.ignite.cfg.ip.VmIpFinder;
 
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
@@ -108,9 +108,9 @@ public class DefaultIgniteConfigAdapter
 
         var lightIpFinder = lightDiscoveryCfg.getTcpIpFinder();
         TcpDiscoveryIpFinder igniteIpFinder = null;
-        if (lightIpFinder instanceof LightIgniteMulticastIpFinder) {
+        if (lightIpFinder instanceof MulticastIpFinder) {
             igniteIpFinder = new TcpDiscoveryMulticastIpFinder();
-        } else if (lightIpFinder instanceof LightIgniteVmIpFinder) {
+        } else if (lightIpFinder instanceof VmIpFinder) {
             igniteIpFinder = new TcpDiscoveryVmIpFinder();
         } else {
             igniteIpFinder = new TcpDiscoverySharedFsIpFinder();

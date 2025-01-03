@@ -16,8 +16,6 @@ package com.norconex.crawler.core.grid.impl.ignite.cfg.ip;
 
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -26,8 +24,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-@JsonTypeName("MulticastIpFinder")
-public class LightIgniteMulticastIpFinder extends LightIgniteVmIpFinder {
+public class MulticastIpFinder extends VmIpFinder {
 
     private int addressRequestAttempts =
             TcpDiscoveryMulticastIpFinder.DFLT_ADDR_REQ_ATTEMPTS;

@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.norconex.commons.lang.collection.CollectionUtil;
 
 import lombok.Data;
@@ -32,8 +31,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-@JsonTypeName("VmIpFinder")
-public class LightIgniteVmIpFinder implements LightIgniteIpFinder {
+public class VmIpFinder implements LightIgniteIpFinder {
 
     private final List<String> addresses = new ArrayList<>();
     private boolean shared;
