@@ -16,8 +16,6 @@ package com.norconex.crawler.core.grid.impl.ignite.cfg.ip;
 
 import org.apache.ignite.spi.discovery.tcp.ipfinder.sharedfs.TcpDiscoverySharedFsIpFinder;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -26,8 +24,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-@JsonTypeName("SharedFsIpFinder")
-public class LightIgniteSharedFsIpFinder implements LightIgniteIpFinder {
+public class SharedFsIpFinder implements LightIgniteIpFinder {
 
     private boolean shared;
     private String path = TcpDiscoverySharedFsIpFinder.DFLT_PATH;
