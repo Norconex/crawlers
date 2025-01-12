@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.fetch;
 
+import java.util.ArrayList;
 import java.util.function.Function;
 
 import com.norconex.crawler.core.CrawlerContext;
@@ -30,9 +31,9 @@ public class HttpFetcherProvider
         var cfg = (WebCrawlerConfig) crawler.getConfiguration();
 
         //TODO really convert here?  and this way?
-        var fetchers = cfg.getFetchers().stream()
+        var fetchers = new ArrayList<>(cfg.getFetchers().stream()
                 .map(HttpFetcher.class::cast)
-                .toList();
+                .toList());
         if (fetchers.isEmpty()) {
             fetchers.add(new HttpClientFetcher());
         }

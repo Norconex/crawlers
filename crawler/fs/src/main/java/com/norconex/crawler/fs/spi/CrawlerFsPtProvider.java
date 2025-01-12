@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
 import com.norconex.crawler.fs.fetch.impl.sftp.SftpFetcher;
 import com.norconex.crawler.fs.fetch.impl.smb.SmbFetcher;
 import com.norconex.crawler.fs.fetch.impl.webdav.WebDavFetcher;
-import com.norconex.crawler.fs.operations.checksum.FsMetadataChecksummer;
 
 /**
  * <p>
@@ -49,7 +48,6 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, MetadataChecksummer.class, "operations");
         map.putAll(
                 Fetcher.class, List.of(
-                        FsMetadataChecksummer.class,
                         CmisFetcher.class,
                         FtpFetcher.class,
                         HdfsFetcher.class,
@@ -57,6 +55,7 @@ public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
                         SftpFetcher.class,
                         SmbFetcher.class,
                         WebDavFetcher.class));
+
         return map;
     }
 
