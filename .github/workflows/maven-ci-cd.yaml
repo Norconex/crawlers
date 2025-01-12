@@ -182,6 +182,7 @@ jobs:
       if: ${{ env.SHOULD_DEPLOY == 'false' }}
       id: find-modules
       run: |
+        dos2unix .github/workflows/scripts/changed-modules2.sh
         chmod +x .github/workflows/scripts/changed-modules2.sh
         ./.github/workflows/scripts/changed-modules2.sh
       env:

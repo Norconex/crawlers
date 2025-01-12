@@ -15,6 +15,10 @@
 # limitations under the License.
 #-------------------------------------------------------------------------------
 set -e
+set -x
+
+# Capture unexpected failures
+trap 'echo "Error occurred at $BASH_COMMAND"' ERR
 
 # The Maven modules are in one or two level deep directories.
 # We extract those from changed files and we compare them
