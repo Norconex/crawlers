@@ -31,9 +31,8 @@ jobs:
         uses: tj-actions/changed-files@v45.0.5
         with:
           files_ignore: |     
-            # ignore the yml files and header files in the github folder       
-            .github/workflows/copyright-headers/*.txt
-            .github/workflows/*.yml
+            # ignore the yml files and worflow files in the github folder       
+            .github/workflows/*.*
             .github/*.yml
             **/assembly/**
 
