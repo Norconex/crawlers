@@ -24,6 +24,8 @@ jobs:
         if: steps.check_dependabot.outputs.check == '0'
         with:
           fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_SECRET }}
+
       
       - name: Get modified files 
         if: steps.check_dependabot.outputs.check == '0'
