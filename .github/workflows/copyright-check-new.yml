@@ -24,6 +24,8 @@ jobs:
         if: steps.check_dependabot.outputs.check == '0'
         with:
           fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_SECRET }}
+
       
       - name: Get modified files 
         if: steps.check_dependabot.outputs.check == '0'
@@ -31,8 +33,7 @@ jobs:
         uses: tj-actions/changed-files@v45.0.5
         with:
           files_ignore: |     
-            # ignore the yml files and header files in the github folder       
-            .github/workflows/copyright-headers/*.txt
+            # ignore the yml files and worflow yml files in the github folder       
             .github/workflows/*.yml
             .github/*.yml
             **/assembly/**
