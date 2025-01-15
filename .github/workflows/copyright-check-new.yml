@@ -33,10 +33,18 @@ jobs:
         uses: tj-actions/changed-files@v45.0.5
         with:
           files_ignore: |     
-            # ignore the yml files and worflow yml files in the github folder       
-            .github/workflows/*.yml
+            # ignore the yml files and worflow files in the github folder       
+            **/workflows/**
             .github/*.yml
             **/assembly/**
+
+      - name: Echo result
+        if: steps.check_dependabot.outputs.check == '0'
+        run: |
+          echo "Modified files:"
+          echo "${{ steps.modified-files.outputs.all }}"
+          echo ""
+          echo "Files in the .github/workflows directory are skipped, please edit it manaully!"
 
       - name: Find all changed files don't contain Copyright Info and add the info to it
         if: ${{ steps.check_dependabot.outputs.check == '0' && steps.modified-files.outputs.all_changed_files != '' }}
