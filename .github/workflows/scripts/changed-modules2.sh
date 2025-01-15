@@ -34,8 +34,11 @@ changed_dirs=$(git diff origin/main...HEAD --name-only)
 # Eliminate the last segment of each path
 top_level_and_files=$(echo "$changed_dirs" | xargs -n1 dirname | sort -u)
 
+# Extract only the top-level and second-level directories
+filtered_dirs=$(echo "$top_level_and_files" | awk -F'/' '{print $1 "/" $2}' | sort -u)
+
 # Eliminate directories with more than 2 slashes
-filtered_dirs=$(echo "$top_level_and_files" | grep -v '.*/.*/.*')
+# filtered_dirs=$(echo "$top_level_and_files" | grep -v '.*/.*/.*')
 
 # Get one-level directories
 one_level_dirs=$(echo "$filtered_dirs" | cut -d'/' -f1 | sort -u)
