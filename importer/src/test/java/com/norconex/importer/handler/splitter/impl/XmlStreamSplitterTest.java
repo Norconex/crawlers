@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -52,7 +51,7 @@ class XmlStreamSplitterTest {
             </animals>""";
 
     @Test
-    void testStreamSplit() throws IOException, IOException {
+    void testStreamSplit() throws IOException {
 
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
@@ -66,17 +65,17 @@ class XmlStreamSplitterTest {
     }
 
     @Test
-    void testErrorsAndEmpty() throws IOException, IOException {
+    void testErrorsAndEmpty() throws IOException {
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
                 .setPath("/a/b/c")
                 .setContentTypeMatcher(TextMatcher.regex(".*"));
 
         // test failing stream
-        assertThatExceptionOfType(UncheckedIOException.class)
+        assertThatExceptionOfType(IOException.class)
                 .isThrownBy(
                         //NOSONAR
-                        () -> splitter.accept(TestUtil.newHandlerContext()));
+                        () -> splitter.handle(TestUtil.newHandlerContext()));
 
         // Test non applicable
         splitter.getConfiguration().setContentTypeMatcher(
@@ -84,7 +83,7 @@ class XmlStreamSplitterTest {
         var docCtx = TestUtil.newHandlerContext(
                 "N/A",
                 TestUtil.toCachedInputStream(sampleXML));
-        splitter.accept(docCtx);
+        splitter.handle(docCtx);
         assertThat(docCtx.childDocs()).isEmpty();
     }
 
@@ -94,7 +93,7 @@ class XmlStreamSplitterTest {
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
 
         var docCtx = TestUtil.newHandlerContext("N/A", is, metadata);
-        splitter.accept(docCtx);
+        splitter.handle(docCtx);
         return docCtx.childDocs();
     }
 

@@ -26,8 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.time.ZonedDateTimeParser;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.condition.BaseCondition;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.condition.Condition;
 
 import lombok.Data;
 import lombok.Getter;
@@ -182,8 +182,7 @@ import lombok.extern.slf4j.Slf4j;
 @FieldNameConstants
 @Slf4j
 public class DateCondition
-        extends BaseCondition
-        implements Configurable<DateConditionConfig> {
+        implements Condition, Configurable<DateConditionConfig> {
 
     public enum TimeUnit {
         YEAR(ChronoUnit.YEARS, "Y"),
@@ -228,7 +227,7 @@ public class DateCondition
             new DateConditionConfig();
 
     @Override
-    public boolean evaluate(HandlerContext docCtx) throws IOException {
+    public boolean test(DocHandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().getPattern() == null) {
             throw new IllegalArgumentException(
                     "\"fieldMatcher\" pattern cannot be empty.");

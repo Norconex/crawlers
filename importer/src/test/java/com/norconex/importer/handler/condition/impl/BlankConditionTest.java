@@ -28,13 +28,13 @@ import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 
 class BlankConditionTest {
 
     private CachedInputStream emptyInput = toCachedInputStream("");
-    private HandlerContext docCtx;
+    private DocHandlerContext docCtx;
     private BlankCondition c;
 
     @BeforeEach
@@ -47,60 +47,60 @@ class BlankConditionTest {
     void testBlankContentCondition() throws IOException {
         // Test content
 
-        assertThat(c.evaluate(newDocContext("blah"))).isFalse();
+        assertThat(c.test(newDocContext("blah"))).isFalse();
 
-        assertThat(c.evaluate(docCtx)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
     }
 
     @Test
     void testAllBlankFieldsCondition() throws IOException {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
-        assertThat(c.evaluate(docCtx)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
 
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field3"));
-        assertThat(c.evaluate(docCtx)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
-        assertThat(c.evaluate(docCtx)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(
                 TextMatcher.regex("field4\\.[123]"));
-        assertThat(c.evaluate(docCtx)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
-        assertThat(c.evaluate(docCtx)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
     }
 
     @Test
     void testAnyBlankFieldsCondition() throws IOException {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         c.getConfiguration().setMatchAnyBlank(true);
-        assertThat(c.evaluate(docCtx)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
 
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field3"));
-        assertThat(c.evaluate(docCtx)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
-        assertThat(c.evaluate(docCtx)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(
                 TextMatcher.regex("field4\\.[123]"));
-        assertThat(c.evaluate(docCtx)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
-        assertThat(c.evaluate(docCtx)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
     }
 
     @Test
     void testMisc() throws IOException {
         // Test non-existant
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("doNotExist"));
-        assertThat(c.evaluate(docCtx)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
 
         // Test write read
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
-    private HandlerContext newDocContext() {
+    private DocHandlerContext newDocContext() {
         return newDocContext(null);
     }
 
-    private HandlerContext newDocContext(String body) {
+    private DocHandlerContext newDocContext(String body) {
         var props = TestUtil.newMetadata();
         props.add("field4.1", "");
         props.add("field4.2", "    ");
@@ -110,7 +110,7 @@ class BlankConditionTest {
         props.add("field4.4", "value4.4");
         props.add("field4.4", "");
 
-        return HandlerContext.builder()
+        return DocHandlerContext.builder()
                 .doc(
                         TestUtil.newDoc(
                                 "ref",

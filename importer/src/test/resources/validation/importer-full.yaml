@@ -47,6 +47,11 @@ handlers:
             class: Reject
 ...
 
+#      else:
+#        - handler:
+#            class: Reject
+
+
 #
 #  <preParseHandlers>
 #    <handler class="com.norconex.importer.handler.filter.impl.DateMetadataFilter"

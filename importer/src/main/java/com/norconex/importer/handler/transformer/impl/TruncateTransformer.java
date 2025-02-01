@@ -30,8 +30,8 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -99,8 +99,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class TruncateTransformer
-        extends BaseDocumentHandler
-        implements Configurable<TruncateTransformerConfig> {
+        implements DocHandler, Configurable<TruncateTransformerConfig> {
 
     private static final int BODY_CHUNK_SIZE =
             DataUnit.KB.toBytes(1).intValue();
@@ -109,15 +108,16 @@ public class TruncateTransformer
             new TruncateTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             doFields(docCtx);
         } else {
             doBody(docCtx);
         }
+        return true;
     }
 
-    public void doBody(HandlerContext docCtx) throws IOException {
+    public void doBody(DocHandlerContext docCtx) throws IOException {
         var maxToRead = configuration.getMaxLength() + BODY_CHUNK_SIZE;
         var leftToWrite = configuration.getMaxLength();
         String lastChunk = null;
@@ -171,7 +171,7 @@ public class TruncateTransformer
         return result;
     }
 
-    public void doFields(HandlerContext docCtx) {
+    public void doFields(DocHandlerContext docCtx) {
         List<String> allTargetValues = new ArrayList<>();
         for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).entrySet()) {

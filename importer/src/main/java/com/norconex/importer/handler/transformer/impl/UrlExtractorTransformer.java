@@ -27,8 +27,8 @@ import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.Regex;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -102,8 +102,7 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class UrlExtractorTransformer
-        extends BaseDocumentHandler
-        implements Configurable<UrlExtractorTransformerConfig> {
+        implements DocHandler, Configurable<UrlExtractorTransformerConfig> {
 
     private static final Pattern URL_PATTERN =
             Regex.compileDotAll("\\b(https?:|www\\.)[^\\s]+", true);
@@ -112,7 +111,7 @@ public class UrlExtractorTransformer
             new UrlExtractorTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         if (StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException("\"toField\" cannot be blank.");
@@ -132,6 +131,7 @@ public class UrlExtractorTransformer
             PropertySetter.orAppend(configuration.getOnSet()).apply(
                     docCtx.metadata(), configuration.getToField(), urls);
         }
+        return true;
     }
 
     private void extractMetadataURLs(Set<String> urls, Properties meta) {

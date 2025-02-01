@@ -33,8 +33,8 @@ import org.xml.sax.SAXException;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.EqualsAndHashCode;
@@ -48,8 +48,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class TikaParser
-        extends BaseDocumentHandler
-        implements Configurable<TikaParserConfig> {
+        implements DocHandler, Configurable<TikaParserConfig> {
 
     @Getter
     private final TikaParserConfig configuration = new TikaParserConfig();
@@ -67,7 +66,7 @@ public class TikaParser
     }
 
     @Override
-    public void handle(HandlerContext ctx) throws IOException {
+    public boolean handle(DocHandlerContext ctx) throws IOException {
         try (var input = ctx.input().asInputStream();
                 var output = ctx.output().asWriter(UTF_8)) {
             var tikaMetadata = new Metadata();
@@ -89,6 +88,7 @@ public class TikaParser
             addTikaToImporterMetadata(tikaMetadata, ctx.metadata());
         }
         ctx.parseState(ParseState.POST);
+        return true;
     }
 
     private void addTikaToImporterMetadata(

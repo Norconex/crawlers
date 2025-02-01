@@ -20,7 +20,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
-import com.norconex.importer.handler.DocumentHandler;
+import com.norconex.importer.handler.DocHandler;
 import com.norconex.importer.handler.condition.Condition;
 
 /**
@@ -35,10 +35,11 @@ public class ImporterPtProvider implements PolymorphicTypeProvider {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
         map.putAll(
-                DocumentHandler.class,
+                DocHandler.class,
                 ClassFinder.findSubTypes(
-                        DocumentHandler.class,
+                        DocHandler.class,
                         nm -> nm.startsWith("com.norconex.importer.handler")));
+
         map.putAll(
                 Condition.class,
                 ClassFinder.findSubTypes(

@@ -31,8 +31,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.AccessLevel;
@@ -129,8 +129,7 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @Data
 public class TitleGeneratorTransformer
-        extends BaseDocumentHandler
-        implements Configurable<TitleGeneratorTransformerConfig> {
+        implements DocHandler, Configurable<TitleGeneratorTransformerConfig> {
 
     // Min. length a term should have to be considered valuable
     private static final int MIN_TERM_LENGTH = 4;
@@ -151,7 +150,7 @@ public class TitleGeneratorTransformer
             "^([^\\n\\r]+)[\\n\\r]", Pattern.DOTALL);
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
             // The first chunk already did the title generation.
@@ -191,6 +190,7 @@ public class TitleGeneratorTransformer
             }
             return true;
         });
+        return true;
     }
 
     private String getTargetField() {

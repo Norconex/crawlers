@@ -31,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -48,8 +47,9 @@ import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.condition.BaseCondition;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.handler.parser.ParseState;
 
 public final class TestUtil {
@@ -75,7 +75,7 @@ public final class TestUtil {
         return IOUtils.toString(doc.getInputStream(), StandardCharsets.UTF_8);
     }
 
-    public static String getContentAsString(HandlerContext docCtx)
+    public static String getContentAsString(DocHandlerContext docCtx)
             throws IOException {
         return IOUtils.toString(docCtx.input().asReader(UTF_8));
     }
@@ -130,13 +130,13 @@ public final class TestUtil {
     }
 
     public static boolean condition(
-            BaseCondition cond, String ref,
+            Condition cond, String ref,
             Properties metadata, ParseState parseState) throws IOException {
         return condition(cond, ref, null, metadata, parseState);
     }
 
     public static boolean condition(
-            BaseCondition cond, String ref,
+            Condition cond, String ref,
             InputStream is, Properties metadata, ParseState parseState)
             throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
@@ -144,18 +144,18 @@ public final class TestUtil {
     }
 
     public static void transform(
-            Consumer<HandlerContext> t, String ref,
+            DocHandler t, String ref,
             Properties metadata, ParseState parseState)
             throws IOException {
         transform(t, ref, null, metadata, parseState);
     }
 
     public static void transform(
-            Consumer<HandlerContext> t, String ref,
+            DocHandler t, String ref,
             InputStream is, Properties metadata, ParseState parseState)
             throws IOException {
         var input = is == null ? new NullInputStream(0) : is;
-        t.accept(newHandlerContext(ref, input, metadata, parseState));
+        t.handle(newHandlerContext(ref, input, metadata, parseState));
     }
 
     public static Doc newDoc(File file) {
@@ -207,36 +207,36 @@ public final class TestUtil {
         return doc;
     }
 
-    public static HandlerContext newHandlerContext() {
+    public static DocHandlerContext newHandlerContext() {
         return newHandlerContext("dummy-ref", null, new Properties());
     }
 
-    public static HandlerContext newHandlerContext(
+    public static DocHandlerContext newHandlerContext(
             String ref, InputStream in) {
         return newHandlerContext(ref, in, null, ParseState.PRE);
     }
 
-    public static HandlerContext newHandlerContext(
+    public static DocHandlerContext newHandlerContext(
             String ref, InputStream in, Properties meta) {
         return newHandlerContext(ref, in, meta, ParseState.PRE);
     }
 
-    public static HandlerContext newHandlerContext(
+    public static DocHandlerContext newHandlerContext(
             String ref, InputStream in,
             Properties meta, ParseState state) {
-        return HandlerContext.builder()
+        return DocHandlerContext.builder()
                 .doc(newDoc(ref, in, meta))
                 .parseState(state)
                 .eventManager(new EventManager())
                 .build();
     }
 
-    public static HandlerContext newHandlerContext(String ref, String body) {
+    public static DocHandlerContext newHandlerContext(String ref, String body) {
         return newHandlerContext(ref,
                 new ByteArrayInputStream(body.getBytes()));
     }
 
-    public static HandlerContext newHandlerContext(String body) {
+    public static DocHandlerContext newHandlerContext(String body) {
         return newHandlerContext(
                 "dummy-ref", new ByteArrayInputStream(body.getBytes()));
     }

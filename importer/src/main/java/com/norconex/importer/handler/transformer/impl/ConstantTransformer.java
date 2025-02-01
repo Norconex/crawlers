@@ -18,8 +18,8 @@ import static java.util.Optional.ofNullable;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -62,14 +62,14 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class ConstantTransformer extends BaseDocumentHandler
-        implements Configurable<ConstantTransformerConfig> {
+public class ConstantTransformer
+        implements DocHandler, Configurable<ConstantTransformerConfig> {
 
     private final ConstantTransformerConfig configuration =
             new ConstantTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) {
+    public boolean handle(DocHandlerContext docCtx) {
         configuration.getConstants().forEach(c -> {
             if (c != null) {
                 var setter = ofNullable(
@@ -78,5 +78,6 @@ public class ConstantTransformer extends BaseDocumentHandler
                         docCtx.metadata(), c.getName(), c.getValues());
             }
         });
+        return true;
     }
 }

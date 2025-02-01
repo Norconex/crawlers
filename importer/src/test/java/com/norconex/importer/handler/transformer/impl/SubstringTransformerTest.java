@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -40,7 +39,7 @@ class SubstringTransformerTest {
         Assertions.assertEquals("890", substring(7, 42, content));
         Assertions.assertEquals("1234", substring(-1, 4, content));
         Assertions.assertEquals("7890", substring(6, -1, content));
-        assertThatExceptionOfType(UncheckedIOException.class)
+        assertThatExceptionOfType(IOException.class)
                 .isThrownBy(() -> substring(4, 1, content));
     }
 
@@ -51,7 +50,7 @@ class SubstringTransformerTest {
                 .setBegin(begin)
                 .setEnd(end);
         var doc = TestUtil.newHandlerContext(content);
-        t.accept(doc);
+        t.handle(doc);
         return doc.input().asString();
     }
 

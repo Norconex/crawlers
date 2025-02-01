@@ -21,8 +21,8 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.condition.BaseCondition;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.Data;
@@ -61,8 +61,7 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class TextCondition
-        extends BaseCondition
-        implements Configurable<TextConditionConfig> {
+        implements Condition, Configurable<TextConditionConfig> {
 
     private final TextConditionConfig configuration =
             new TextConditionConfig();
@@ -81,7 +80,7 @@ public class TextCondition
     }
 
     @Override
-    public boolean evaluate(HandlerContext docCtx) throws IOException {
+    public boolean test(DocHandlerContext docCtx) throws IOException {
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()
                 .charset(configuration.getSourceCharset())
@@ -98,7 +97,7 @@ public class TextCondition
         return matches.booleanValue();
     }
 
-    private boolean textMatches(HandlerContext docCtx, String input) {
+    private boolean textMatches(DocHandlerContext docCtx, String input) {
 
         // content
         if (configuration.getFieldMatcher().getPattern() == null) {

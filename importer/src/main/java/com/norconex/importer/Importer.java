@@ -30,7 +30,6 @@ import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentFamily;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.charset.CharsetDetector;
@@ -38,9 +37,9 @@ import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.DocumentHandler;
-import com.norconex.importer.handler.DocumentHandlerException;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterResponse.Status;
 import com.norconex.importer.response.ImporterResponseProcessor;
@@ -59,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ToString
 @EqualsAndHashCode
-public class Importer {
+public class Importer implements AutoCloseable {
 
     @Getter
     private final ImporterConfig configuration;
@@ -78,6 +77,15 @@ public class Importer {
 
     private static final InheritableThreadLocal<Importer> INSTANCE =
             new InheritableThreadLocal<>();
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
+    private boolean initialized;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
+    private boolean closed;
 
     /**
      * Creates a new importer with default configuration.
@@ -147,11 +155,10 @@ public class Importer {
             return new ImporterResponse(
                     req.getReference(),
                     ImporterResponse.Status.ERROR)
-                            .setException(
-                                    new ImporterException(
-                                            "Failed to import document for request: "
-                                                    + req,
-                                            e))
+                            .setException(new ImporterException(
+                                    "Failed to import document for request: "
+                                            + req,
+                                    e))
                             .setDescription(e.getLocalizedMessage());
         }
     }
@@ -163,29 +170,21 @@ public class Importer {
      */
     public ImporterResponse importDocument(Doc document) {
 
-        //TODO ensure inited/destroyed only once when reusing importer
+        if (!initialized) {
+            LOG.info("Performing implicit Importer initialization.");
+            init();
+        }
 
-        initializeHandlersOnce();
         // Note: Doc reference, InputStream and metadata are all null-safe.
 
         //--- Document Handling ---
         try {
-            //            parseHandler.init(
-            //                    configuration.getParseConfig().getParseOptions());
 
             prepareDocumentForImporting(document);
 
             List<Doc> nestedDocs = new ArrayList<>();
 
             var response = executeHandlers(document, nestedDocs);
-            //            var filterStatus = doImportDocument(document, nestedDocs);
-            //            ImporterResponse response = null;
-            //            if (response.isRejected()) {
-            //                response = new ImporterResponse(
-            //                        document.getReference(), response);
-            //            } else {
-            //                response = new ImporterResponse(document);
-            //            }
 
             List<ImporterResponse> nestedResponses = new ArrayList<>();
             for (Doc childDoc : nestedDocs) {
@@ -207,41 +206,9 @@ public class Importer {
             LOG.warn("Could not import document: {}", document, e);
             return new ImporterResponse(document.getReference(), Status.ERROR)
                     .setDoc(document)
-                    .setException(
-                            new ImporterException(
-                                    "Could not import document: " + document,
-                                    e));
-        } finally {
-            destroyHandlersOnce();
+                    .setException(new ImporterException(
+                            "Could not import document: " + document, e));
         }
-    }
-
-    private synchronized void initializeHandlersOnce() {
-        BeanUtil.visitAll(
-                configuration.getHandlers(),
-                t -> {
-                    try {
-                        t.init();
-                    } catch (IOException e) {
-                        throw new ImporterRuntimeException(
-                                "Coult not initialize handler: " + t, e);
-                    }
-                },
-                DocumentHandler.class);
-    }
-
-    private synchronized void destroyHandlersOnce() {
-        BeanUtil.visitAll(
-                configuration.getHandlers(),
-                t -> {
-                    try {
-                        t.destroy();
-                    } catch (IOException e) {
-                        throw new ImporterRuntimeException(
-                                "Coult not initialize handler: " + t, e);
-                    }
-                },
-                DocumentHandler.class);
     }
 
     private void prepareDocumentForImporting(Doc document) {
@@ -375,20 +342,23 @@ public class Importer {
         if (configuration.getHandlers() == null) {
             return resp.setStatus(Status.SUCCESS);
         }
-        var ctx = HandlerContext.builder()
+        var ctx = DocHandlerContext.builder()
                 .doc(doc)
                 .eventManager(eventManager)
                 .build();
         try {
-            new Consumers<>(configuration.getHandlers()).accept(ctx);
+            for (DocHandler handler : configuration.getHandlers()) {
+                if (!ctx.executeDocHandler(handler)) {
+                    break;
+                }
+            }
         } catch (Exception e) {
-            throw new DocumentHandlerException(e.getCause());
+            throw new DocHandlerException(e.getCause());
         } finally {
             try {
                 ctx.flush();
             } catch (IOException e) {
-                LOG.error(
-                        "Could not flush document stream for {}",
+                LOG.error("Could not flush document stream for {}",
                         ctx.reference(), e);
             }
         }
@@ -400,12 +370,60 @@ public class Importer {
                     .setRejectCause(ctx.rejectedBy())
                     .setDescription(Objects.toString(ctx.rejectedBy(), null));
         }
-        //        if (!ctx.getIncludeResolver().passes()) {
-        //            return new ImporterStatus(Status.REJECTED,
-        //                    "None of the filters with onMatch being INCLUDE got "
-        //                  + "matched.");
-        //        }
-        //        return PASSING_FILTER_STATUS;
         return resp.setStatus(Status.SUCCESS);
+    }
+
+    /**
+     * Initializes the importer. Invokes <code>init</code> on all handlers.
+     * If not explicitly called first, it is called implicitly by one of the
+     * import method, only once per importer instance.
+     */
+    public synchronized void init() {
+        if (closed) {
+            throw new IllegalStateException(
+                    "Cannot initialize a closed Importer.");
+        }
+        if (initialized) {
+            LOG.debug("Importer already initialized.");
+            return;
+        }
+        initialized = true;
+        //TODO check if visitAll is the best for this
+        BeanUtil.visitAll(
+                configuration.getHandlers(),
+                t -> {
+                    try {
+                        t.init();
+                    } catch (IOException e) {
+                        throw new ImporterRuntimeException(
+                                "Coult not initialize handler: " + t, e);
+                    }
+                },
+                DocHandler.class);
+    }
+
+    /**
+     * Closes the importer and its resources. Has to be invoked explicitly
+     * when the importer is no longer in use.
+     */
+    @Override
+    public synchronized void close() {
+        if (closed) {
+            LOG.warn("Importer already closed.");
+            return;
+        }
+        closed = true;
+        //TODO check if visitAll is the best for this
+        BeanUtil.visitAll(
+                configuration.getHandlers(),
+                t -> {
+                    try {
+                        t.close();
+                    } catch (IOException e) {
+                        throw new ImporterRuntimeException(
+                                "Coult not initialize handler: " + t, e);
+                    }
+                },
+                DocHandler.class);
     }
 }

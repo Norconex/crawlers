@@ -19,8 +19,8 @@ import java.io.IOException;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.condition.BaseCondition;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.condition.Condition;
 
 import lombok.Data;
 import lombok.Getter;
@@ -87,15 +87,14 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 @Data
 public class NumericCondition
-        extends BaseCondition
-        implements Configurable<NumericConditionConfig> {
+        implements Condition, Configurable<NumericConditionConfig> {
 
     @Getter
     private final NumericConditionConfig configuration =
             new NumericConditionConfig();
 
     @Override
-    public boolean evaluate(HandlerContext docCtx) throws IOException {
+    public boolean test(DocHandlerContext docCtx) throws IOException {
         for (String valueStr : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).valueList()) {
             if (!NumberUtils.isCreatable(valueStr)) {

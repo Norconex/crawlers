@@ -52,7 +52,7 @@ class TikaParserTest {
 
         var ctx = TestUtil.newHandlerContext("index.html",
                 "<html><body>content</body></html>");
-        parser.accept(ctx);
+        parser.handle(ctx);
 
         assertThat(ctx.input().asString()).isEqualTo("content");
     }

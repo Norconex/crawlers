@@ -28,8 +28,8 @@ import org.slf4j.event.Level;
 
 import com.norconex.commons.lang.Slf4jUtil;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -75,14 +75,13 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class DebugTransformer
-        extends BaseDocumentHandler
-        implements Configurable<DebugTransformerConfig> {
+        implements DocHandler, Configurable<DebugTransformerConfig> {
 
     private final DebugTransformerConfig configuration =
             new DebugTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         var level = Level.valueOf(
                 ObjectUtils.defaultIfNull(
@@ -106,6 +105,8 @@ public class DebugTransformer
                             + "CONTENT={}",
                     IOUtils.toString(docCtx.input().asInputStream(), UTF_8));
         }
+        return true;
+
     }
 
     private void logField(Level level, String fieldName, List<String> values) {

@@ -35,8 +35,8 @@ import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.DocumentHandlerException;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReaderBuilder;
@@ -94,7 +94,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     private final CsvSplitterConfig configuration = new CsvSplitterConfig();
 
     @Override
-    public void split(HandlerContext docCtx) throws IOException {
+    public void split(DocHandlerContext docCtx) throws IOException {
         try {
             var count = new MutableInt();
             // Body
@@ -106,25 +106,23 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
             }
             // Fields
             var docs = docCtx.childDocs();
-            docCtx.metadata().matchKeys(
-                    configuration.getFieldMatcher())
-                    .forEach(
-                            (k, vals) -> vals
-                                    .forEach(
-                                            row -> docs.addAll(
-                                                    doSplitDocument(
-                                                            docCtx,
-                                                            new ByteArrayInputStream(
-                                                                    row.getBytes()),
-                                                            count))));
+            docCtx.metadata()
+                    .matchKeys(configuration.getFieldMatcher())
+                    .forEach((k, vals) -> vals
+                            .forEach(row -> docs.addAll(
+                                    doSplitDocument(
+                                            docCtx,
+                                            new ByteArrayInputStream(
+                                                    row.getBytes()),
+                                            count))));
         } catch (Exception e) {
-            throw new DocumentHandlerException(
+            throw new DocHandlerException(
                     "Could not split document: " + docCtx.reference(), e);
         }
     }
 
     private List<Doc> doSplitDocument(
-            HandlerContext doc, InputStream input, MutableInt count) {
+            DocHandlerContext doc, InputStream input, MutableInt count) {
 
         List<Doc> rows = new ArrayList<>();
 
@@ -164,7 +162,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     }
 
     private Doc parseRow(
-            HandlerContext docCtx, String[] rowColumns,
+            DocHandlerContext docCtx, String[] rowColumns,
             String[] colNames,
             String childEmbedRef) {
         var contentStr = new StringBuilder();

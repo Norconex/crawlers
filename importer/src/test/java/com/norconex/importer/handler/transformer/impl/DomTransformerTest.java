@@ -86,7 +86,7 @@ class DomTransformerTest {
 
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         InputStream content = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("n/a", content, metadata));
+        t.handle(TestUtil.newHandlerContext("n/a", content, metadata));
 
         var fromXml = metadata.getString("fromField1");
         var toXml = metadata.getString("toField1");
@@ -123,7 +123,7 @@ class DomTransformerTest {
 
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         InputStream content = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("n/a", content, metadata));
+        t.handle(TestUtil.newHandlerContext("n/a", content, metadata));
 
         var fromXml = metadata.getString("fromField1");
 
@@ -402,7 +402,7 @@ class DomTransformerTest {
                 new BufferedInputStream(new FileInputStream(htmlFile))) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            t.accept(
+            t.handle(
                     TestUtil.newHandlerContext(
                             htmlFile.getAbsolutePath(), is, metadata));
             var headings = metadata.getStrings("headings");
@@ -447,7 +447,7 @@ class DomTransformerTest {
                 new BufferedInputStream(new FileInputStream(htmlFile))) {
             var metadata = new Properties();
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            t.accept(
+            t.handle(
                     TestUtil.newHandlerContext(
                             htmlFile.getAbsolutePath(), is, metadata));
 
@@ -509,7 +509,7 @@ class DomTransformerTest {
         try (InputStream is = new ByteArrayInputStream(content.getBytes())) {
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
 
-            t.accept(TestUtil.newHandlerContext("n/a", is, metadata));
+            t.handle(TestUtil.newHandlerContext("n/a", is, metadata));
 
             var text = metadata.getString("text");
             var html = metadata.getString("html");
@@ -692,7 +692,7 @@ class DomTransformerTest {
 
         var content = IOUtils.toInputStream(full, UTF_8);
         var doc = TestUtil.newHandlerContext("n/a", content, metadata);
-        t.accept(doc);
+        t.handle(doc);
 
         var output = doc.input().asString();
         content.close();
@@ -726,7 +726,7 @@ class DomTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         var content = IOUtils.toInputStream(full, UTF_8);
         var doc = TestUtil.newHandlerContext("n/a", content, metadata);
-        t.accept(doc);
+        t.handle(doc);
         var output = doc.input().asString();
         content.close();
         Assertions.assertEquals("", cleanHTML(output));
@@ -757,7 +757,7 @@ class DomTransformerTest {
             metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
 
             var doc = TestUtil.newHandlerContext("n/a", content, metadata);
-            t.accept(doc);
+            t.handle(doc);
             return doc.input().asString();
         }
     }
@@ -785,7 +785,7 @@ class DomTransformerTest {
             throws IOException, IOException {
         try (InputStream is = new ByteArrayInputStream(html.getBytes())) {
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-            t.accept(TestUtil.newHandlerContext("n/a", is, metadata));
+            t.handle(TestUtil.newHandlerContext("n/a", is, metadata));
         }
     }
 

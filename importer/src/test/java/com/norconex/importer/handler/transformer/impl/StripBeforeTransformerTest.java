@@ -50,7 +50,7 @@ class StripBeforeTransformerTest {
         var doc = TestUtil.newHandlerContext(
                 htmlFile.getAbsolutePath(),
                 is, metadata, ParseState.PRE);
-        t.accept(doc);
+        t.handle(doc);
 
         Assertions.assertEquals(
                 360,

@@ -49,7 +49,7 @@ class StripAfterTransformerTest {
         var doc = TestUtil.newHandlerContext(
                 htmlFile.getAbsolutePath(),
                 is, metadata, ParseState.PRE);
-        t.accept(doc);
+        t.handle(doc);
         Assertions.assertEquals(
                 539, doc.input().asString().replace("\r", "").length(),
                 "Length of doc content after transformation is incorrect.");

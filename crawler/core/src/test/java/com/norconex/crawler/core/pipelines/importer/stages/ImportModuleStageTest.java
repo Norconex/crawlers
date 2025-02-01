@@ -46,6 +46,7 @@ class ImportModuleStageTest {
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
+                    return true;
                 }));
         //TODO do we need to execute?  crawlerContext.crawl();
         var ctx = new ImporterPipelineContext(crawlerContext, doc);

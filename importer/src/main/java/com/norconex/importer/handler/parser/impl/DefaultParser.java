@@ -39,8 +39,8 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.EqualsAndHashCode;
@@ -53,14 +53,13 @@ import lombok.extern.slf4j.Slf4j;
  * The importer uses Apache Tika parser in its own way with default
  * settings common for most senarios.
  * If you want to use and configure Tika yourself, use
- * TikaParser.
+ * {@link TikaParser}.
  */
 @Slf4j
 @EqualsAndHashCode
 @ToString
 public class DefaultParser
-        extends BaseDocumentHandler
-        implements Configurable<DefaultParserConfig> {
+        implements DocHandler, Configurable<DefaultParserConfig> {
 
     @Getter
     private final DefaultParserConfig configuration = new DefaultParserConfig();
@@ -73,13 +72,8 @@ public class DefaultParser
                 DefTikaConfigurer.configure(configuration));
     }
 
-    //TODO document this one is based on tika parser, and only support
-    // pre-defined config option.
-    // THEN, create a TikaParser which is a wrapper around, tika one,
-    // which takes a raw tika configuration file.
-
     @Override
-    public void handle(HandlerContext ctx) throws IOException {
+    public boolean handle(DocHandlerContext ctx) throws IOException {
 
         var tikaMetadata = new Metadata();
         var contentType = ctx.docContext().getContentType();
@@ -131,10 +125,11 @@ public class DefaultParser
         }
         ctx.parseState(ParseState.POST);
         ctx.childDocs().addAll(embeddedDocs);
+        return true;
     }
 
     protected Parser createRecursiveParser(
-            HandlerContext docCtx, Writer output, List<Doc> embeddedDocs) {
+            DocHandlerContext docCtx, Writer output, List<Doc> embeddedDocs) {
         // if the current file (container) matches, we extract (split)
         // its embedded documents (else, we merge).
         if (TextMatcher.anyMatches(

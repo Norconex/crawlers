@@ -108,7 +108,7 @@ class CsvSplitterTest {
             throws IOException {
         var metadata = new Properties();
         var ctx = TestUtil.newHandlerContext("n/a", input, metadata);
-        splitter.accept(ctx);
+        splitter.handle(ctx);
         return ctx.childDocs();
     }
 

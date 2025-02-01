@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
 import lombok.Data;
@@ -75,14 +75,14 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class CollapseRepeatingTransformer
-        extends BaseDocumentHandler
-        implements Configurable<CollapseRepeatingTransformerConfig> {
+        implements DocHandler,
+        Configurable<CollapseRepeatingTransformerConfig> {
 
     private final CollapseRepeatingTransformerConfig configuration =
             new CollapseRepeatingTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
             var text = chunk.getText();
             Pattern pattern;
@@ -97,6 +97,7 @@ public class CollapseRepeatingTransformer
             }
             return text;
         });
+        return true;
     }
 
     private String resolveControlChars(String text) {

@@ -72,7 +72,7 @@ class PdfPageSplitterTest {
             throws IOException {
         var metadata = new Properties();
         var docCtx = TestUtil.newHandlerContext("n/a", input, metadata);
-        splitter.accept(docCtx);
+        splitter.handle(docCtx);
         return docCtx.childDocs();
     }
 }

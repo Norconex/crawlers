@@ -27,7 +27,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 
 class TruncateTransformerTest {
@@ -114,7 +114,7 @@ class TruncateTransformerTest {
 
     @Test
     void testBodyWithSuffixAndHash() throws IOException {
-        HandlerContext docCtx;
+        DocHandlerContext docCtx;
         var t = new TruncateTransformer();
 
         // hash + suffix
@@ -126,7 +126,7 @@ class TruncateTransformerTest {
                 .setOnSet(PropertySetter.REPLACE)
                 .setAppendHash(true)
                 .setSuffix("!");
-        t.accept(docCtx);
+        t.handle(docCtx);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
                 docCtx.metadata().getString("to"));
@@ -137,7 +137,7 @@ class TruncateTransformerTest {
         t.getConfiguration()
                 .setAppendHash(false)
                 .setSuffix("...");
-        t.accept(docCtx);
+        t.handle(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar with suffix...",
                 docCtx.metadata().getString("to"));
@@ -148,7 +148,7 @@ class TruncateTransformerTest {
         t.getConfiguration()
                 .setAppendHash(true)
                 .setSuffix(null);
-        t.accept(docCtx);
+        t.handle(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar with0939281732",
                 docCtx.metadata().getString("to"));
@@ -159,7 +159,7 @@ class TruncateTransformerTest {
         t.getConfiguration()
                 .setAppendHash(false)
                 .setSuffix(null);
-        t.accept(docCtx);
+        t.handle(docCtx);
         Assertions.assertEquals(
                 "Another long string to test similar without suffix",
                 docCtx.metadata().getString("to"));
@@ -169,7 +169,7 @@ class TruncateTransformerTest {
         t.getConfiguration()
                 .setAppendHash(false)
                 .setSuffix(null);
-        t.accept(docCtx);
+        t.handle(docCtx);
         Assertions.assertEquals(
                 "A small one", docCtx.metadata().getString("to"));
 
@@ -183,7 +183,7 @@ class TruncateTransformerTest {
                 .setOnSet(PropertySetter.REPLACE)
                 .setAppendHash(true)
                 .setSuffix("!");
-        t.accept(docCtx);
+        t.handle(docCtx);
         Assertions.assertEquals(
                 "Please truncate me before you start thi!0996700004",
                 docCtx.input().asString());

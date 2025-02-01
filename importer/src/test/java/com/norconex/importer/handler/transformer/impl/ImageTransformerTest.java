@@ -55,7 +55,7 @@ class ImageTransformerTest {
         t.getConfiguration().setRotation(90d);
         var doc = TestUtil.newHandlerContext("img.png",
                 getClass().getResourceAsStream("/parser/image/importer.png"));
-        assertThatNoException().isThrownBy(() -> t.accept(doc));
+        assertThatNoException().isThrownBy(() -> t.handle(doc));
         assertThat(((CachedInputStream) doc.input().asInputStream()).length())
                 .isPositive();
     }
@@ -78,7 +78,7 @@ class ImageTransformerTest {
 
         var doc = TestUtil.newHandlerContext("img.png",
                 getClass().getResourceAsStream("/parser/image/importer.png"));
-        assertThatNoException().isThrownBy(() -> t.accept(doc));
+        assertThatNoException().isThrownBy(() -> t.handle(doc));
         assertThat(((CachedInputStream) doc.input().asInputStream()).length())
                 .isPositive();
     }

@@ -17,8 +17,8 @@ package com.norconex.importer.handler.transformer.impl;
 import java.io.IOException;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
 import lombok.Data;
@@ -69,14 +69,13 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class StripBetweenTransformer
-        extends BaseDocumentHandler
-        implements Configurable<StripBetweenTransformerConfig> {
+        implements DocHandler, Configurable<StripBetweenTransformerConfig> {
 
     private final StripBetweenTransformerConfig configuration =
             new StripBetweenTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
             var b = new StringBuilder(chunk.getText());
             for (StripBetweenOperation op : configuration.getOperations()) {
@@ -96,5 +95,6 @@ public class StripBetweenTransformer
             }
             return b.toString();
         });
+        return true;
     }
 }

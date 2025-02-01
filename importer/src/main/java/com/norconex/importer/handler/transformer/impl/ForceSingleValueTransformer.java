@@ -21,8 +21,8 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -69,14 +69,13 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class ForceSingleValueTransformer
-        extends BaseDocumentHandler
-        implements Configurable<ForceSingleValueTransformerConfig> {
+        implements DocHandler, Configurable<ForceSingleValueTransformerConfig> {
 
     private final ForceSingleValueTransformerConfig configuration =
             new ForceSingleValueTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         var action = configuration.getAction();
         for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).entrySet()) {
@@ -99,5 +98,6 @@ public class ForceSingleValueTransformer
                 docCtx.metadata().set(field, singleValue);
             }
         }
+        return true;
     }
 }

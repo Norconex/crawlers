@@ -33,7 +33,7 @@ import org.apache.tika.utils.CharsetUtils;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -107,7 +107,7 @@ public class CharsetDetector {
      * </ul>
      *
      * <p>
-     * This method will NOT set the detected encoding on the {@link HandlerContext}.
+     * This method will NOT set the detected encoding on the {@link DocHandlerContext}.
      * </p>
      * @param doc document to detect encoding on when applicable
      * @return the detected charset (never <code>null</code>).

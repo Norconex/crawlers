@@ -60,13 +60,13 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_UPPER);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("field2"));
         cfg.setCaseType(CASE_LOWER);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
                 "DOIT ÊTRE UPPER", meta.getStrings("field1").get(0));
@@ -91,19 +91,19 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_UPPER);
         cfg.setApplyTo(APPLY_FIELD);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("fieldMustBeLower"));
         cfg.setCaseType(CASE_LOWER);
         cfg.setApplyTo(APPLY_BOTH);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("fieldMustBeCapitalized"));
         cfg.setCaseType(CASE_WORDS);
         cfg.setApplyTo(APPLY_FIELD);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         var fields = meta.keySet().toArray(ArrayUtils.EMPTY_STRING_ARRAY);
         for (String field : fields) {
@@ -128,7 +128,7 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_SWAP);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
                 "vALuE sWAP. \n  ok.",
@@ -151,19 +151,19 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_STRING);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
         cfg.setCaseType(CASE_STRING);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
         cfg.setCaseType(CASE_STRING);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
                 "Normal String. another One.",
@@ -193,19 +193,19 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_STRING_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
         cfg.setCaseType(CASE_STRING_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
         cfg.setCaseType(CASE_STRING_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
                 "Normal string. another one.",
@@ -235,19 +235,19 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_WORDS);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
         cfg.setCaseType(CASE_WORDS);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
         cfg.setCaseType(CASE_WORDS);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
                 "Normal String. Another One.",
@@ -277,19 +277,19 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_WORDS_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
         cfg.setCaseType(CASE_WORDS_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
         cfg.setCaseType(CASE_WORDS_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
                 "Normal String. Another One.",
@@ -320,25 +320,25 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_SENTENCES);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
         cfg.setCaseType(CASE_SENTENCES);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
         cfg.setCaseType(CASE_SENTENCES);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string4"));
         cfg.setCaseType(CASE_SENTENCES);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
                 "Normal String. Another One.",
@@ -369,19 +369,19 @@ class CharacterCaseTransformerTest {
         cfg.setCaseType(CASE_SENTENCES_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string2"));
         cfg.setCaseType(CASE_SENTENCES_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         cfg.setFieldMatcher(TextMatcher.basic("string3"));
         cfg.setCaseType(CASE_SENTENCES_FULLY);
         cfg.setApplyTo(APPLY_VALUE);
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("blah", is, meta));
+        t.handle(TestUtil.newHandlerContext("blah", is, meta));
 
         Assertions.assertEquals(
                 "Normal string. Another one.",
@@ -405,7 +405,7 @@ class CharacterCaseTransformerTest {
                  string starTing with a Space.
                 1 string starTing with a Number. pLUS this
                 """);
-        t.accept(doc);
+        t.handle(doc);
         assertThat(doc.input().asInputStream())
                 .asString(UTF_8).isEqualToIgnoringNewLines("""
                         Normal String. Another One.

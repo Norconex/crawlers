@@ -25,9 +25,9 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.convert.DimensionConverter;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.importer.ImporterConfig;
-import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.MatchUtil;
 
 import lombok.Data;
@@ -94,19 +94,18 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class ImageTransformer
-        extends BaseDocumentHandler
-        implements Configurable<ImageTransformerConfig> {
+        implements DocHandler, Configurable<ImageTransformerConfig> {
 
     private final ImageTransformerConfig configuration =
             new ImageTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docContext())) {
-            return;
+            return true;
         }
 
         try (var input = docCtx.input().asInputStream();
@@ -115,6 +114,7 @@ public class ImageTransformer
             transformImage(img);
             img.write(output, configuration.getTargetFormat());
         }
+        return true;
     }
 
     public void transformImage(MutableImage image) {

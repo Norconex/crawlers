@@ -24,8 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -99,17 +99,16 @@ import lombok.EqualsAndHashCode;
 @SuppressWarnings("javadoc")
 @Data
 public class HierarchyTransformer
-        extends BaseDocumentHandler
-        implements Configurable<HierarchyTransformerConfig> {
+        implements DocHandler, Configurable<HierarchyTransformerConfig> {
 
     private final HierarchyTransformerConfig configuration =
             new HierarchyTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
-
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         configuration.getOperations().forEach(
                 op -> breakSegments(docCtx.metadata(), op));
+        return true;
     }
 
     private void breakSegments(Properties metadata, HierarchyOperation op) {

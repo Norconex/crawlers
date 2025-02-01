@@ -45,7 +45,7 @@ class UuidTransformerTest {
         t.getConfiguration()
                 .setToField("result");
         var props = new Properties();
-        t.accept(
+        t.handle(
                 TestUtil.newHandlerContext(
                         "ref", nullInputStream(), props, ParseState.POST));
         assertThat(props.getStrings("result")).isNotEmpty();
