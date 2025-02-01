@@ -24,6 +24,8 @@ import org.apache.commons.lang3.function.FailablePredicate;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.handler.DocHandlerContext;
@@ -46,6 +48,8 @@ public interface Condition
     )
     @Data
     abstract static class ConditionGroup implements Condition {
+        @JsonSerialize(contentUsing = ConditionSerializer.class)
+        @JsonDeserialize(contentUsing = ConditionDeserializer.class)
         final List<Condition> conditions = new ArrayList<>();
 
         ConditionGroup(@NonNull List<Condition> conditions) {

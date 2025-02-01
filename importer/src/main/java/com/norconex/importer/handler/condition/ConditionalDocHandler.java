@@ -58,7 +58,6 @@ public abstract class ConditionalDocHandler implements DocHandler {
     @JsonProperty("then")
     @JsonSerialize(
         contentUsing = DocHandlerSerializer.class
-        //        ,
         //        using = DocHandlersSerializer.class
     )
     @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
@@ -68,7 +67,6 @@ public abstract class ConditionalDocHandler implements DocHandler {
     @JsonProperty("else")
     @JsonSerialize(
         contentUsing = DocHandlerSerializer.class
-        //        ,
         //        using = DocHandlersSerializer.class
     )
     @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)

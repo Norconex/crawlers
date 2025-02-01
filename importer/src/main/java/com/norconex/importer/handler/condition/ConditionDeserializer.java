@@ -44,6 +44,10 @@ public class ConditionDeserializer
             TypeDeserializer typeDeserializer) throws IOException {
 
         var currentToken = p.currentToken();
+        if (p.currentToken() == JsonToken.END_OBJECT) {
+            // Gracefully handle end of object, possibly log a warning
+            return null;
+        }
 
         // Check if it's a `ConditionGroup` (wrapped serialization with type ID and array)
         if (currentToken == JsonToken.START_OBJECT) {
@@ -65,6 +69,8 @@ public class ConditionDeserializer
                                 conditions.add(condition);
                             }
                         }
+                        p.nextToken(); // move to object end
+
                         // Return a new `ConditionGroup`
                         if ("anyOf".equals(name)) {
                             return new AnyOf(conditions);

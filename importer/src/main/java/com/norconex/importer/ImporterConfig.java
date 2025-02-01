@@ -87,13 +87,10 @@ public class ImporterConfig {
 
     @JsonSerialize(
         contentUsing = DocHandlerSerializer.class
-        //        ,
         //        using = DocHandlersSerializer.class
-
     )
     @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
     @JsonXmlCollection(entryName = "handler")
-
     private final List<DocHandler> handlers =
             new ArrayList<>(List.of(new DefaultParser()));
 
