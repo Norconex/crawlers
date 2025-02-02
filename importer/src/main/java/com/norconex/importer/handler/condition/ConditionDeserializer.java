@@ -23,9 +23,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
-import com.norconex.importer.handler.condition.Condition.AllOf;
-import com.norconex.importer.handler.condition.Condition.AnyOf;
-import com.norconex.importer.handler.condition.Condition.NoneOf;
 
 public class ConditionDeserializer
         extends JsonDeserializer<Condition> {
@@ -45,16 +42,15 @@ public class ConditionDeserializer
 
         var currentToken = p.currentToken();
         if (p.currentToken() == JsonToken.END_OBJECT) {
-            // Gracefully handle end of object, possibly log a warning
+            // Gracefully handle end of object
             return null;
         }
 
-        // Check if it's a `ConditionGroup` (wrapped serialization with type ID and array)
         if (currentToken == JsonToken.START_OBJECT) {
             p.nextToken(); // Move to the first field or END_OBJECT
 
             if (p.currentToken() == JsonToken.FIELD_NAME) {
-                var name = p.currentName(); // The type ID from the serializer
+                var name = p.currentName();
 
                 if (!"class".equals(name)) {
                     p.nextToken(); // Move to the START_ARRAY or other token
@@ -72,13 +68,13 @@ public class ConditionDeserializer
                         p.nextToken(); // move to object end
 
                         // Return a new `ConditionGroup`
-                        if ("anyOf".equals(name)) {
+                        if (AnyOf.NAME.equals(name)) {
                             return new AnyOf(conditions);
                         }
-                        if ("noneOf".equals(name)) {
+                        if (NoneOf.NAME.equals(name)) {
                             return new NoneOf(conditions);
                         }
-                        if ("allOf".equals(name)) {
+                        if (AllOf.NAME.equals(name)) {
                             return new AllOf(conditions);
                         }
 

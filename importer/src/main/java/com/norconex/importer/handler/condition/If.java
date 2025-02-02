@@ -1,4 +1,4 @@
-/* Copyright 2021-2025 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  */
 package com.norconex.importer.handler.condition;
 
-import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
-import org.apache.commons.lang3.function.FailablePredicate;
+@JsonTypeName(If.NAME)
+public class If extends ConditionalDocHandler {
 
-import com.norconex.importer.handler.DocHandlerContext;
+    /** Serialization ID name. */
+    public static final String NAME = "if";
 
-/**
- * A condition usually used in flow creation when configuring
- * importer handlers.
- */
-@FunctionalInterface
-public interface Condition
-        extends FailablePredicate<DocHandlerContext, IOException> {
+    public If() {
+        this(null);
+    }
+
+    public If(Condition condition) {
+        super(condition, false);
+    }
 }

@@ -23,6 +23,10 @@ import java.io.IOException;
  */
 @FunctionalInterface
 public interface DocHandler {
+
+    /** Default serialization id name. */
+    String NAME = "handler";
+
     /**
      * Initialize any required resources.
      * Invoked once per Importer instance, by the Importer.

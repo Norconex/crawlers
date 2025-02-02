@@ -22,7 +22,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -43,7 +42,6 @@ import lombok.Data;
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.WRAPPER_OBJECT
-
 )
 public abstract class ConditionalDocHandler implements DocHandler {
 
@@ -55,27 +53,13 @@ public abstract class ConditionalDocHandler implements DocHandler {
     private Condition condition;
 
     @JsonProperty("then")
-    @JsonSerialize(
-        //            contentUsing = DocHandlerSerializer.class
-        using = DocHandlerListSerializer.class
-    )
-    @JsonDeserialize(
-        using = DocHandlerListDeserializer.class
-    )
-    //    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
-    //    @JsonXmlCollection(entryName = "handler")
+    @JsonSerialize(using = DocHandlerListSerializer.class)
+    @JsonDeserialize(using = DocHandlerListDeserializer.class)
     private final List<DocHandler> thenHandlers = new ArrayList<>();
 
     @JsonProperty("else")
-    @JsonSerialize(
-        //            contentUsing = DocHandlerSerializer.class
-        using = DocHandlerListSerializer.class
-    )
-    @JsonDeserialize(
-        using = DocHandlerListDeserializer.class
-    )
-    //    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
-    //    @JsonXmlCollection(entryName = "handler")
+    @JsonSerialize(using = DocHandlerListSerializer.class)
+    @JsonDeserialize(using = DocHandlerListDeserializer.class)
     private final List<DocHandler> elseHandlers = new ArrayList<>();
 
     protected ConditionalDocHandler(boolean negated) {
@@ -133,36 +117,4 @@ public abstract class ConditionalDocHandler implements DocHandler {
         }
         return true;
     }
-
-    //    @JsonTypeInfo(
-    //        use = JsonTypeInfo.Id.NAME,
-    //        defaultImpl = If.class
-    //    )
-    @JsonTypeName("if")
-    public static class If extends ConditionalDocHandler {
-        public If() {
-            this(null);
-        }
-
-        public If(Condition condition) {
-            super(condition, false);
-        }
-
-    }
-
-    //    @JsonTypeInfo(
-    //        use = JsonTypeInfo.Id.NAME,
-    //        defaultImpl = IfNot.class
-    //    )
-    @JsonTypeName("ifNot")
-    public static class IfNot extends ConditionalDocHandler {
-        public IfNot() {
-            this(null);
-        }
-
-        public IfNot(Condition condition) {
-            super(condition, true);
-        }
-    }
-
 }

@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -27,14 +25,14 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.norconex.commons.lang.ClassUtil;
+import com.norconex.importer.handler.condition.AllOf;
+import com.norconex.importer.handler.condition.AnyOf;
 import com.norconex.importer.handler.condition.Condition;
-import com.norconex.importer.handler.condition.Condition.AllOf;
-import com.norconex.importer.handler.condition.Condition.AnyOf;
-import com.norconex.importer.handler.condition.Condition.ConditionGroup;
-import com.norconex.importer.handler.condition.Condition.NoneOf;
+import com.norconex.importer.handler.condition.ConditionGroup;
 import com.norconex.importer.handler.condition.ConditionalDocHandler;
-import com.norconex.importer.handler.condition.ConditionalDocHandler.If;
-import com.norconex.importer.handler.condition.ConditionalDocHandler.IfNot;
+import com.norconex.importer.handler.condition.If;
+import com.norconex.importer.handler.condition.IfNot;
+import com.norconex.importer.handler.condition.NoneOf;
 
 public class DocHandlerListDeserializer
         extends JsonDeserializer<List<DocHandler>> {
@@ -70,10 +68,10 @@ public class DocHandlerListDeserializer
                     p.nextToken(); // Move to the first field or END_OBJECT
                     if (p.currentToken() == JsonToken.FIELD_NAME) {
                         var name = p.currentName();
-                        if ("if".equals(name)) {
+                        if (If.NAME.equals(name)) {
                             var ifHandler = ctxt.readValue(p, If.class);
                             handlers.add(ifHandler);
-                        } else if ("ifNot".equals(name)) {
+                        } else if (IfNot.NAME.equals(name)) {
                             var ifnotHandler = ctxt.readValue(p, IfNot.class);
                             handlers.add(ifnotHandler);
                         } else {
@@ -94,18 +92,6 @@ public class DocHandlerListDeserializer
         return null;
     }
 
-    private static int indent = 0;
-
-    private void logOpen(String tag) {
-        System.err.println(StringUtils.repeat(' ', indent) + "<" + tag + ">");
-        indent++;
-    }
-
-    private void logClose(String tag) {
-        indent--;
-        System.err.println(StringUtils.repeat(' ', indent) + "</" + tag + ">");
-    }
-
     private List<DocHandler> readXmlDocHandlerList(
             JsonParser p,
             DeserializationContext ctxt) throws IOException {
@@ -113,32 +99,20 @@ public class DocHandlerListDeserializer
         List<DocHandler> handlers = new ArrayList<>();
         while (p.nextToken() != JsonToken.END_OBJECT) {
             var name = p.currentName();
-            if ("if".equals(name)) {
-                logOpen("if");
+            if (If.NAME.equals(name)) {
                 handlers.add(readXmlConditionalHandler(If.class, p, ctxt));
-                logClose("if");
-            } else if ("ifNot".equals(name)) {
-                logOpen("ifNot");
+            } else if (IfNot.NAME.equals(name)) {
                 handlers.add(readXmlConditionalHandler(IfNot.class, p, ctxt));
-                logClose("ifNot");
-            } else if ("handler".equals(name)) {
-                logOpen("handler");
+            } else if (DocHandler.NAME.equals(name)) {
                 // dealing with handler, move to object start
                 p.nextToken();
                 var handler = ctxt.readValue(p, DocHandler.class);
                 if (handler != null) {
                     handlers.add(handler);
                 }
-                logClose("handler");
             }
         }
-
-        //
-        //        System.err.println("XXX next token: " + p.nextToken());
-        //        System.err.println("XXX next name: " + p.currentName());
-        //
         return handlers;
-
     }
 
     private ConditionalDocHandler readXmlConditionalHandler(
@@ -155,20 +129,13 @@ public class DocHandlerListDeserializer
             if ("condition".equals(name)) {
                 condHandler.setCondition(readXmlCondition(p, ctxt));
             } else if ("then".equals(name)) {
-                logOpen("then");
                 p.nextToken(); // move to start object for list
                 condHandler.setThenHandlers(readXmlDocHandlerList(p, ctxt));
-                // p.nextToken(); // move to end object for list
-                logClose("then");
             } else if ("else".equals(name)) {
-                logOpen("else");
                 p.nextToken(); // move to start object for list
                 condHandler.setElseHandlers(readXmlDocHandlerList(p, ctxt));
-                //  p.nextToken(); // move to end object for list
-                logClose("else");
             }
         }
-        //        System.err.println("XXX cond handler: " + condHandler);
         return condHandler;
     }
 
@@ -183,30 +150,17 @@ public class DocHandlerListDeserializer
         p.nextToken();
 
         var name = p.currentName();
-        if ("anyOf".equals(name)) {
-            logOpen("anyOf");
-            var grp = readXmlConditionGroup(AnyOf.class, p, ctxt);
-            logClose("anyOf");
-            return grp;
+        if (AnyOf.NAME.equals(name)) {
+            return readXmlConditionGroup(AnyOf.class, p, ctxt);
         }
-        if ("allOf".equals(name)) {
-            logOpen("allOf");
-            var grp = readXmlConditionGroup(AllOf.class, p, ctxt);
-            logClose("allOf");
-            return grp;
+        if (AllOf.NAME.equals(name)) {
+            return readXmlConditionGroup(AllOf.class, p, ctxt);
         }
-        if ("noneOf".equals(name)) {
-            logOpen("noneOf");
-            var grp = readXmlConditionGroup(NoneOf.class, p, ctxt);
-            logClose("noneOf");
-            return grp;
+        if (NoneOf.NAME.equals(name)) {
+            return readXmlConditionGroup(NoneOf.class, p, ctxt);
         }
 
-        //        System.err.println("  XXX COND REGULAR");
-        logOpen("condition");
-        var cnd = ctxt.readValue(p, Condition.class);
-        logClose("condition");
-        return cnd;
+        return ctxt.readValue(p, Condition.class);
     }
 
     private Condition readXmlConditionGroup(
@@ -215,18 +169,11 @@ public class DocHandlerListDeserializer
             DeserializationContext ctxt) throws IOException {
 
         List<Condition> conditions = new ArrayList<>();
-
         p.nextToken(); // move to first child condition
-
         while (p.nextToken() != JsonToken.END_OBJECT) {
-            //            var name = p.currentName();
             conditions.add(readXmlCondition(p, ctxt));
         }
         p.nextToken(); // move to object end (of "array")
-
-        //        System.err.println("XXX current token: " + p.currentToken());
-        //        System.err.println("XXX current name: " + p.currentName());
-
         return ClassUtil.newInstance(cls, conditions);
     }
 }

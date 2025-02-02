@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.norconex.importer.handler.condition.Condition.ConditionGroup;
 
 public class ConditionSerializer extends JsonSerializer<Condition> {
 

@@ -84,15 +84,8 @@ public class ImporterConfig {
     public static final long DEFAULT_MAX_STREAM_CACHE_SIZE =
             DataUnit.GB.toBytes(1).intValue();
 
-    @JsonSerialize(
-        //        contentUsing = DocHandlerSerializer.class,
-        using = DocHandlerListSerializer.class
-    )
-    @JsonDeserialize(
-        using = DocHandlerListDeserializer.class
-    )
-    //    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
-    //    @JsonXmlCollection(entryName = "handler")
+    @JsonSerialize(using = DocHandlerListSerializer.class)
+    @JsonDeserialize(using = DocHandlerListDeserializer.class)
     private final List<DocHandler> handlers =
             new ArrayList<>(List.of(new DefaultParser()));
 
@@ -105,49 +98,6 @@ public class ImporterConfig {
         CollectionUtil.removeNulls(this.handlers);
         return this;
     }
-
-    //    static class MyConverter implements Converter<Object, Object> {
-    //        @Override
-    //        public Object convert(Object value) {
-    //            // TODO Auto-generated method stub
-    //            return null;
-    //        }
-    //
-    //        @Override
-    //        public JavaType getInputType(TypeFactory typeFactory) {
-    //            // TODO Auto-generated method stub
-    //            return typeFactory.constructType(Object.class);
-    //        }
-    //
-    //        @Override
-    //        public JavaType getOutputType(TypeFactory typeFactory) {
-    //            // TODO Auto-generated method stub
-    //            return typeFactory.constructType(Object.class);
-    //        }
-    //    }
-
-    //    //NOTE: Using Customer here and private methods instead of List so
-    //    // JsonFlow can pick it up.
-    //    @JsonFlow(builder = ImporterFlowConfigBuilder.class)
-    //    @JsonProperty("handlers")
-    //    @Getter(value = AccessLevel.NONE)
-    //    @Setter(value = AccessLevel.NONE)
-    //    private Consumer<DocHandlerContext> handler =
-    //            Consumers.of(new DefaultParser());
-    //
-    //    @JsonIgnore
-    //    public ImporterConfig
-    //            setHandlers(List<Consumer<DocHandlerContext>> handlers) {
-    //        CollectionUtil.setAll((Consumers<DocHandlerContext>) handler, handlers);
-    //        CollectionUtil.removeNulls((Consumers<DocHandlerContext>) handler);
-    //        return this;
-    //    }
-    //
-    //    @JsonIgnore
-    //    public List<Consumer<DocHandlerContext>> getHandlers() {
-    //        return Collections.unmodifiableList(
-    //                (Consumers<DocHandlerContext>) handler);
-    //    }
 
     /**
      * Processors of importer response. Invoked when a document has

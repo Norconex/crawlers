@@ -26,10 +26,10 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import com.norconex.importer.handler.condition.Condition;
-import com.norconex.importer.handler.condition.Condition.ConditionGroup;
+import com.norconex.importer.handler.condition.ConditionGroup;
 import com.norconex.importer.handler.condition.ConditionalDocHandler;
-import com.norconex.importer.handler.condition.ConditionalDocHandler.If;
-import com.norconex.importer.handler.condition.ConditionalDocHandler.IfNot;
+import com.norconex.importer.handler.condition.If;
+import com.norconex.importer.handler.condition.IfNot;
 
 public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
 
@@ -50,7 +50,7 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
                 gen.writeObject(handler);
             } else {
                 gen.writeStartObject();
-                gen.writeFieldName("handler");
+                gen.writeFieldName(DocHandler.NAME);
                 gen.writeObject(handler);
                 gen.writeEndObject();
             }
@@ -66,15 +66,15 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
         var first = true;
         for (var handler : handlers) {
             if ((handler instanceof If ifHandler)) {
-                writeXmlConditionalHandler("if", ifHandler, gen);
+                writeXmlConditionalHandler(If.NAME, ifHandler, gen);
             } else if (handler instanceof IfNot ifNotHandler) {
-                writeXmlConditionalHandler("ifNot", ifNotHandler, gen);
+                writeXmlConditionalHandler(IfNot.NAME, ifNotHandler, gen);
             } else {
                 // no idea why, but first field name can't be written.
                 if (!isRoot || !first) {
-                    gen.writeFieldName("handler");
+                    gen.writeFieldName(DocHandler.NAME);
                 } else {
-                    gen.setNextName(QName.valueOf("handler"));
+                    gen.setNextName(QName.valueOf(DocHandler.NAME));
                 }
                 gen.writeObject(handler);
             }
