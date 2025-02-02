@@ -17,12 +17,17 @@ package com.norconex.importer.handler;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang3.reflect.FieldUtils;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.text.WordUtils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.handler.condition.Condition.ConditionGroup;
+import com.norconex.importer.handler.condition.ConditionalDocHandler;
 import com.norconex.importer.handler.condition.ConditionalDocHandler.If;
 import com.norconex.importer.handler.condition.ConditionalDocHandler.IfNot;
 
@@ -34,12 +39,15 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
             JsonGenerator gen,
             SerializerProvider sp) throws IOException {
 
+        if (gen instanceof ToXmlGenerator xmlGen) {
+            writeXmlDocHandlerList(handlers, xmlGen);
+            return;
+        }
+
         gen.writeStartArray();
         for (var handler : handlers) {
             if ((handler instanceof If) || (handler instanceof IfNot)) {
                 gen.writeObject(handler);
-                //                sp.findTypeSerializer(If.class);
-
             } else {
                 gen.writeStartObject();
                 gen.writeFieldName("handler");
@@ -50,14 +58,79 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
         gen.writeEndArray();
     }
 
-    static void print(ToXmlGenerator gen) {
-        try {
-            var xmlWriter = gen.getStaxWriter();
-            var mWriter = FieldUtils.readField(xmlWriter, "mWriter", true);
-            var mOut = FieldUtils.readField(mWriter, "mOut", true);
-            System.err.println("XXX XML: " + mOut.toString());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    private void writeXmlDocHandlerList(
+            List<DocHandler> handlers,
+            ToXmlGenerator gen)
+            throws IOException {
+        for (var handler : handlers) {
+            if ((handler instanceof If ifHandler)) {
+                writeXmlConditionalHandler("if", ifHandler, gen);
+            } else if (handler instanceof IfNot ifNotHandler) {
+                writeXmlConditionalHandler("ifNot", ifNotHandler, gen);
+            } else {
+                gen.writeFieldName("handler");
+                gen.writeObject(handler);
+            }
         }
     }
+
+    private void writeXmlConditionalHandler(
+            String tagName, ConditionalDocHandler condHandler,
+            ToXmlGenerator gen)
+            throws IOException {
+        gen.writeRaw("<%s>".formatted(tagName));
+        gen.flush();
+
+        writeXmlCondition(condHandler.getCondition(), gen);
+
+        gen.writeRaw("<then>");
+        gen.flush();
+        writeXmlDocHandlerList(condHandler.getThenHandlers(), gen);
+        gen.writeRaw("</then>");
+        gen.flush();
+
+        if (!condHandler.getElseHandlers().isEmpty()) {
+            gen.writeRaw("<else>");
+            gen.flush();
+            writeXmlDocHandlerList(condHandler.getElseHandlers(), gen);
+            gen.writeRaw("</else>");
+            gen.flush();
+        }
+        //
+        gen.writeRaw("</%s>".formatted(tagName));
+        gen.flush();
+    }
+
+    private void writeXmlCondition(
+            Condition condition, ToXmlGenerator gen)
+            throws IOException {
+        if (condition instanceof ConditionGroup condGroup) {
+            var tag = WordUtils
+                    .uncapitalize(condGroup.getClass().getSimpleName());
+            gen.writeRaw("<condition>");
+            gen.writeRaw("<%s>".formatted(tag));
+            gen.flush();
+            for (var cond : condGroup.getConditions()) {
+                gen.writeFieldName("condition");
+                writeXmlCondition(cond, gen);
+            }
+            gen.writeRaw("</%s>".formatted(tag));
+            gen.writeRaw("</condition>");
+            gen.flush();
+        } else {
+            gen.setNextName(QName.valueOf("condition"));
+            gen.writeObject(condition);
+        }
+    }
+
+    //    static void print(ToXmlGenerator gen) {
+    //        try {
+    //            var xmlWriter = gen.getStaxWriter();
+    //            var mWriter = FieldUtils.readField(xmlWriter, "mWriter", true);
+    //            var mOut = FieldUtils.readField(mWriter, "mOut", true);
+    //            System.err.println("XXX XML: " + mOut.toString());
+    //        } catch (Exception e) {
+    //            throw new RuntimeException(e);
+    //        }
+    //    }
 }

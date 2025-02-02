@@ -41,7 +41,7 @@ public class HandlerTest { //NOSONAR
                     new MockDocHandler().setMessage("yo!"),
                     new MockDocHandler().setMessage("yeah!")))
                 .setElseHandlers(List.of(
-                    new MockDocHandler().setMessage("else!"),
+                    new MockDocHandler().setMessage("carrot"),
                     new IfNot(new AllOf(List.of(
                             new DomCondition(),
                             new NumericCondition())))
@@ -53,9 +53,9 @@ public class HandlerTest { //NOSONAR
         // @formatter:on
 
         var cfg = new ImporterConfig();
-        cfg.setHandlers(
-                List.of((DocHandler) handler,
-                        new MockDocHandler().setMessage("yep")));
+        cfg.setHandlers(List.of(
+                (DocHandler) handler,
+                new MockDocHandler().setMessage("yep")));
 
         System.out.println("CFG: " + cfg);
         BeanMapper.DEFAULT.assertWriteRead(cfg, Format.YAML);

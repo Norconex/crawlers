@@ -30,7 +30,6 @@ import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.handler.transformer.impl.Constant;
 import com.norconex.importer.handler.transformer.impl.ConstantTransformer;
 import com.norconex.importer.response.DummyResponseProcessor;
-import com.norconex.importer.response.ImporterResponseProcessor;
 
 class ImporterConfigTest {
 
@@ -73,13 +72,14 @@ class ImporterConfigTest {
                                         Constant.of("test2", "def"))))))
                 .setResponseProcessors(List.of(new DummyResponseProcessor()))
                 .setTempDir(tempDir.resolve("temp"));
+        assertDoesNotThrow(() -> BeanMapper.DEFAULT.assertWriteRead(config));
 
-        assertDoesNotThrow(
-                () -> BeanMapper.builder()
-                        .polymorphicType(
-                                ImporterResponseProcessor.class,
-                                n -> n.endsWith("DummyResponseProcessor"))
-                        .build()
-                        .assertWriteRead(config));
+        //        assertDoesNotThrow(
+        //                () -> BeanMapper.builder()
+        //                        .polymorphicType(
+        //                                ImporterResponseProcessor.class,
+        //                                n -> n.endsWith("DummyResponseProcessor"))
+        //                        .build()
+        //                        .assertWriteRead(config));
     }
 }

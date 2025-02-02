@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.importer.handler.DocHandler;
 import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerListDeserializer;
 import com.norconex.importer.handler.DocHandlerListSerializer;
 
 import lombok.Data;
@@ -58,6 +59,9 @@ public abstract class ConditionalDocHandler implements DocHandler {
         //            contentUsing = DocHandlerSerializer.class
         using = DocHandlerListSerializer.class
     )
+    @JsonDeserialize(
+        using = DocHandlerListDeserializer.class
+    )
     //    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
     //    @JsonXmlCollection(entryName = "handler")
     private final List<DocHandler> thenHandlers = new ArrayList<>();
@@ -66,6 +70,9 @@ public abstract class ConditionalDocHandler implements DocHandler {
     @JsonSerialize(
         //            contentUsing = DocHandlerSerializer.class
         using = DocHandlerListSerializer.class
+    )
+    @JsonDeserialize(
+        using = DocHandlerListDeserializer.class
     )
     //    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
     //    @JsonXmlCollection(entryName = "handler")

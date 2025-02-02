@@ -21,6 +21,8 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.importer.handler.DocHandler;
 import com.norconex.importer.mock.MockDocHandler;
+import com.norconex.importer.response.DummyResponseProcessor;
+import com.norconex.importer.response.ImporterResponseProcessor;
 
 /**
  * <p>
@@ -34,6 +36,7 @@ public class ImporterPtTestProvider implements PolymorphicTypeProvider {
         MultiValuedMap<Class<?>, Class<?>> map =
                 MultiMapUtils.newListValuedHashMap();
         map.put(DocHandler.class, MockDocHandler.class);
+        map.put(ImporterResponseProcessor.class, DummyResponseProcessor.class);
         return map;
     }
 }

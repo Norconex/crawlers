@@ -47,7 +47,7 @@ public interface Condition
         include = JsonTypeInfo.As.WRAPPER_OBJECT
     )
     @Data
-    abstract static class ConditionGroup implements Condition {
+    public abstract static class ConditionGroup implements Condition {
         @JsonSerialize(contentUsing = ConditionSerializer.class)
         @JsonDeserialize(contentUsing = ConditionDeserializer.class)
         //        @JsonUnwrapped
