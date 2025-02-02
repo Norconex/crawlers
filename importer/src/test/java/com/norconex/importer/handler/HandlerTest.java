@@ -19,7 +19,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.handler.condition.Condition.AllOf;
@@ -57,9 +56,7 @@ public class HandlerTest { //NOSONAR
                 (DocHandler) handler,
                 new MockDocHandler().setMessage("yep")));
 
-        System.out.println("CFG: " + cfg);
-        BeanMapper.DEFAULT.assertWriteRead(cfg, Format.YAML);
-        BeanMapper.DEFAULT.assertWriteRead(cfg, Format.JSON);
-        BeanMapper.DEFAULT.assertWriteRead(cfg, Format.XML);
+        //        System.out.println("CFG: " + cfg);
+        BeanMapper.DEFAULT.assertWriteRead(cfg);
     }
 }

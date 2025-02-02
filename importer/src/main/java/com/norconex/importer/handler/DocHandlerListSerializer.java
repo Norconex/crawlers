@@ -40,7 +40,7 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
             SerializerProvider sp) throws IOException {
 
         if (gen instanceof ToXmlGenerator xmlGen) {
-            writeXmlDocHandlerList(handlers, xmlGen);
+            writeXmlDocHandlerList(handlers, xmlGen, true);
             return;
         }
 
@@ -60,17 +60,25 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
 
     private void writeXmlDocHandlerList(
             List<DocHandler> handlers,
-            ToXmlGenerator gen)
+            ToXmlGenerator gen,
+            boolean isRoot)
             throws IOException {
+        var first = true;
         for (var handler : handlers) {
             if ((handler instanceof If ifHandler)) {
                 writeXmlConditionalHandler("if", ifHandler, gen);
             } else if (handler instanceof IfNot ifNotHandler) {
                 writeXmlConditionalHandler("ifNot", ifNotHandler, gen);
             } else {
-                gen.writeFieldName("handler");
+                // no idea why, but first field name can't be written.
+                if (!isRoot || !first) {
+                    gen.writeFieldName("handler");
+                } else {
+                    gen.setNextName(QName.valueOf("handler"));
+                }
                 gen.writeObject(handler);
             }
+            first = false;
         }
     }
 
@@ -85,14 +93,14 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
 
         gen.writeRaw("<then>");
         gen.flush();
-        writeXmlDocHandlerList(condHandler.getThenHandlers(), gen);
+        writeXmlDocHandlerList(condHandler.getThenHandlers(), gen, false);
         gen.writeRaw("</then>");
         gen.flush();
 
         if (!condHandler.getElseHandlers().isEmpty()) {
             gen.writeRaw("<else>");
             gen.flush();
-            writeXmlDocHandlerList(condHandler.getElseHandlers(), gen);
+            writeXmlDocHandlerList(condHandler.getElseHandlers(), gen, false);
             gen.writeRaw("</else>");
             gen.flush();
         }
