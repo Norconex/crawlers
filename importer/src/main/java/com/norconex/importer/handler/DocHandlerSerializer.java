@@ -26,6 +26,7 @@ public class DocHandlerSerializer extends JsonSerializer<DocHandler> {
     @Override
     public void serialize(DocHandler value, JsonGenerator gen,
             SerializerProvider serializers) throws IOException {
+        System.err.println("XXX HERE");
         //NOOP
     }
 
@@ -34,7 +35,12 @@ public class DocHandlerSerializer extends JsonSerializer<DocHandler> {
             SerializerProvider serializers, TypeSerializer typeSer)
             throws IOException {
 
-        if (value instanceof ConditionalDocHandler) { // || value instanceof Reject) {
+        //        if (gen instanceof ToXmlGenerator) {
+        //            var w = new StringWriter();
+        //            BeanMapper.DEFAULT.write(value, w, Format.JSON);
+        //            System.err.println("XXX XML As JSON: " + w);
+        //        } else 
+        if (value instanceof ConditionalDocHandler) {
             // Direct serialization without wrapping or "class" property
             gen.writeObject(value);
         } else {

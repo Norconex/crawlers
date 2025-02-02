@@ -25,12 +25,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.importer.handler.DocHandler;
 import com.norconex.importer.handler.DocHandlerContext;
-import com.norconex.importer.handler.DocHandlerDeserializer;
-import com.norconex.importer.handler.DocHandlerSerializer;
+import com.norconex.importer.handler.DocHandlerListSerializer;
 
 import lombok.Data;
 
@@ -57,20 +55,20 @@ public abstract class ConditionalDocHandler implements DocHandler {
 
     @JsonProperty("then")
     @JsonSerialize(
-        contentUsing = DocHandlerSerializer.class
-        //        using = DocHandlersSerializer.class
+        //            contentUsing = DocHandlerSerializer.class
+        using = DocHandlerListSerializer.class
     )
-    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
-    @JsonXmlCollection(entryName = "handler")
+    //    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
+    //    @JsonXmlCollection(entryName = "handler")
     private final List<DocHandler> thenHandlers = new ArrayList<>();
 
     @JsonProperty("else")
     @JsonSerialize(
-        contentUsing = DocHandlerSerializer.class
-        //        using = DocHandlersSerializer.class
+        //            contentUsing = DocHandlerSerializer.class
+        using = DocHandlerListSerializer.class
     )
-    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
-    @JsonXmlCollection(entryName = "handler")
+    //    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
+    //    @JsonXmlCollection(entryName = "handler")
     private final List<DocHandler> elseHandlers = new ArrayList<>();
 
     protected ConditionalDocHandler(boolean negated) {

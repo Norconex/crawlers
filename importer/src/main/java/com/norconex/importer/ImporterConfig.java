@@ -22,14 +22,11 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.importer.handler.DocHandler;
-import com.norconex.importer.handler.DocHandlerDeserializer;
-import com.norconex.importer.handler.DocHandlerSerializer;
+import com.norconex.importer.handler.DocHandlerListSerializer;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
@@ -86,11 +83,11 @@ public class ImporterConfig {
             DataUnit.GB.toBytes(1).intValue();
 
     @JsonSerialize(
-        contentUsing = DocHandlerSerializer.class
-        //        using = DocHandlersSerializer.class
+        //        contentUsing = DocHandlerSerializer.class,
+        using = DocHandlerListSerializer.class
     )
-    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
-    @JsonXmlCollection(entryName = "handler")
+    //    @JsonDeserialize(contentUsing = DocHandlerDeserializer.class)
+    //    @JsonXmlCollection(entryName = "handler")
     private final List<DocHandler> handlers =
             new ArrayList<>(List.of(new DefaultParser()));
 

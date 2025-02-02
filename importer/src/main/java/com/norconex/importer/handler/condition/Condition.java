@@ -50,6 +50,7 @@ public interface Condition
     abstract static class ConditionGroup implements Condition {
         @JsonSerialize(contentUsing = ConditionSerializer.class)
         @JsonDeserialize(contentUsing = ConditionDeserializer.class)
+        //        @JsonUnwrapped
         final List<Condition> conditions = new ArrayList<>();
 
         ConditionGroup(@NonNull List<Condition> conditions) {
