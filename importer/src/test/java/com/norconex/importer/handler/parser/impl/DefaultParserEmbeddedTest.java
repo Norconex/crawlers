@@ -486,10 +486,11 @@ class DefaultParserEmbeddedTest {
         var parser = new DefaultParser();
         config.setHandlers(List.of(parser));
         c.accept(parser.getConfiguration().getEmbeddedConfig());
-        var importer = new Importer(config);
-        return importer.importDocument(
-                new ImporterRequest(
-                        TestUtil.resourceAsFile(
-                                folder, "/parser/embedded/embedded.zip")));
+        try (var importer = new Importer(config)) {
+            return importer.importDocument(
+                    new ImporterRequest(
+                            TestUtil.resourceAsFile(
+                                    folder, "/parser/embedded/embedded.zip")));
+        }
     }
 }

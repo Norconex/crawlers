@@ -26,8 +26,8 @@ import org.apache.tika.language.detect.LanguageResult;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.AccessLevel;
@@ -189,8 +189,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class LanguageTransformer
-        extends BaseDocumentHandler
-        implements Configurable<LanguageTransformerConfig> {
+        implements DocHandler, Configurable<LanguageTransformerConfig> {
 
     private final LanguageTransformerConfig configuration =
             new LanguageTransformerConfig();
@@ -216,7 +215,7 @@ public class LanguageTransformer
             Comparator.comparing(LanguageResult::getRawScore).reversed();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         ensureDetectorInitialization();
 
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
@@ -251,6 +250,7 @@ public class LanguageTransformer
             // we only do it on first chunk, so leave now.
             return false;
         });
+        return true;
     }
 
     private synchronized void ensureDetectorInitialization()

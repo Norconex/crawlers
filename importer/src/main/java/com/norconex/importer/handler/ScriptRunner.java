@@ -205,7 +205,7 @@ public class ScriptRunner<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public T eval(Consumer<Bindings> binder) throws DocumentHandlerException {
+    public T eval(Consumer<Bindings> binder) throws DocHandlerException {
         var bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         if (binder != null) {
             binder.accept(bindings);
@@ -230,7 +230,7 @@ public class ScriptRunner<T> {
 
             return (T) returnValue;
         } catch (ScriptException e) {
-            throw new DocumentHandlerException("Script execution error.", e);
+            throw new DocHandlerException("Script execution error.", e);
         }
     }
 

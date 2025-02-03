@@ -18,8 +18,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -39,7 +37,7 @@ class CharsetTransformerTest {
 
     @Test
     void testCharsetBodyTransformer()
-            throws IOException, IOException {
+            throws IOException {
 
         testCharsetBodyTransformer("ISO-8859-1", "ISO-8859-1", true);
         testCharsetBodyTransformer("ISO-8859-2", "ISO-8859-1", false);
@@ -69,7 +67,7 @@ class CharsetTransformerTest {
 
     @Test
     void testCharsetWithGoodSourceBodyTransformer()
-            throws IOException, IOException {
+            throws IOException {
         var startWith = "En télécommunications".getBytes("UTF-8");
 
         var t = new CharsetTransformer();
@@ -79,7 +77,7 @@ class CharsetTransformerTest {
 
         var is = getFileStream("/charset/ISO-8859-1.txt");
         var doc = TestUtil.newHandlerContext("ISO-8859-1.txt", is);
-        t.accept(doc);
+        t.handle(doc);
         is.close();
 
         var targetStartWith = Arrays.copyOf(
@@ -91,7 +89,7 @@ class CharsetTransformerTest {
 
     @Test
     void testCharsetWithBadSourceBodyTransformer()
-            throws IOException, IOException {
+            throws IOException {
         var startWith = "En télécommunications".getBytes("UTF-8");
 
         var t = new CharsetTransformer();
@@ -101,7 +99,7 @@ class CharsetTransformerTest {
 
         var is = getFileStream("/charset/ISO-8859-1.txt");
         var doc = TestUtil.newHandlerContext("ISO-8859-1.txt", is);
-        t.accept(doc);
+        t.handle(doc);
         var output = IOUtils.toByteArray(doc.input().asInputStream());
         is.close();
 
@@ -114,24 +112,22 @@ class CharsetTransformerTest {
     }
 
     @Test
-    void testBodyError() throws IOException, IOException {
+    void testBodyError() throws IOException {
         var t = new CharsetTransformer();
         t.getConfiguration()
                 .setSourceCharset(null)
                 .setTargetCharset(null);
-        assertThatExceptionOfType(
-                UncheckedIOException.class).isThrownBy(
-                        //NOSONAR
-                        () -> t.accept(
-                                TestUtil.newHandlerContext(
-                                        "N/A",
-                                        TestUtil.failingCachedInputStream(),
-                                        new Properties())));
+        assertThatExceptionOfType(IOException.class).isThrownBy(
+                () -> t.handle(
+                        TestUtil.newHandlerContext(
+                                "N/A",
+                                TestUtil.failingCachedInputStream(),
+                                new Properties())));
     }
 
     @Test
     void testCharsetFieldTransformer()
-            throws IOException, IOException {
+            throws IOException {
 
         testCharsetFieldTransformer("ISO-8859-1", "ISO-8859-1");
         testCharsetFieldTransformer("ISO-8859-2", "ISO-8859-1");
@@ -161,7 +157,7 @@ class CharsetTransformerTest {
 
     private void testCharsetFieldTransformer(
             String inCharset, String outCharset)
-            throws IOException, UnsupportedEncodingException {
+            throws IOException {
 
         var fromCharset = Charset.forName(inCharset);
         var toCharset = Charset.forName(outCharset);
@@ -179,7 +175,7 @@ class CharsetTransformerTest {
         metadata.set(DocMetadata.CONTENT_ENCODING, fromCharset);
 
         InputStream is = new NullInputStream(0);
-        t.accept(
+        t.handle(
                 TestUtil.newHandlerContext(
                         "ref-" + fromCharset + "-" + toCharset, is, metadata));
 
@@ -203,7 +199,7 @@ class CharsetTransformerTest {
 
     private void testCharsetBodyTransformer(
             String inCharset, String outCharset, boolean detect)
-            throws IOException, IOException {
+            throws IOException {
 
         var fromCharset = Charset.forName(inCharset);
         var toCharset = Charset.forName(outCharset);
@@ -218,7 +214,7 @@ class CharsetTransformerTest {
 
         var is = getFileStream("/charset/" + fromCharset + ".txt");
         var doc = TestUtil.newHandlerContext(fromCharset + ".txt", is);
-        t.accept(doc);
+        t.handle(doc);
 
         var output = IOUtils.toByteArray(doc.input().asInputStream());
 

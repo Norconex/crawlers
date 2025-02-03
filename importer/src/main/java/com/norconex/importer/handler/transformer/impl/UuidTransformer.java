@@ -21,8 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -65,14 +65,13 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class UuidTransformer
-        extends BaseDocumentHandler
-        implements Configurable<UuidTransformerConfig> {
+        implements DocHandler, Configurable<UuidTransformerConfig> {
 
     private final UuidTransformerConfig configuration =
             new UuidTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         var uuid = UUID.randomUUID().toString();
         var finalField = configuration.getToField();
@@ -81,5 +80,6 @@ public class UuidTransformer
         }
         PropertySetter.orAppend(configuration.getOnSet()).apply(
                 docCtx.metadata(), finalField, uuid);
+        return true;
     }
 }

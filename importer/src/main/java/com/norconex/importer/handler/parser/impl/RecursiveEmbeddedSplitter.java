@@ -39,7 +39,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 class RecursiveEmbeddedSplitter extends ParserDecorator {
     private static final long serialVersionUID = 1L;
 
-    private final transient HandlerContext docCtx;
+    private final transient DocHandlerContext docCtx;
     private boolean isMasterDoc = true;
     private int embedCount;
     private final transient List<Doc> embeddedDocs;
@@ -55,7 +55,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
 
     public RecursiveEmbeddedSplitter(
             Parser parser,
-            HandlerContext docCtx,
+            DocHandlerContext docCtx,
             List<Doc> embeddedDocs,
             EmbeddedConfig embeddedConfig) {
         super(parser);

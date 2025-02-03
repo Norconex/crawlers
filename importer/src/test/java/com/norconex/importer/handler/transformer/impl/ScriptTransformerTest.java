@@ -60,7 +60,7 @@ class ScriptTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         var doc = TestUtil.newHandlerContext(
                 htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
-        t.accept(doc);
+        t.handle(doc);
         is.close();
 
         var successField = metadata.getString("test");
@@ -134,7 +134,7 @@ class ScriptTransformerTest {
                 "World!", StandardCharsets.UTF_8);
         var doc = TestUtil.newHandlerContext(
                 "N/A", is, metadata, ParseState.POST);
-        t.accept(doc);
+        t.handle(doc);
         var content = doc.input().asString();
         Assertions.assertEquals("Hello World!", content);
     }

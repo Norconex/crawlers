@@ -56,58 +56,53 @@ class ImporterTest {
     void setUp() throws Exception {
         var config = new ImporterConfig();
 
-        config.setHandlers(
-                List.of(
-                        Configurable.configure(new DefaultParser(), cfg -> {
-                            cfg.getEmbeddedConfig()
-                                    .setSplitContentTypes(
-                                            List.of(
-                                                    TextMatcher
-                                                            .wildcard("*zip")))
-                                    .setSkipEmbeddedContentTypes(
-                                            List.of(
-                                                    TextMatcher
-                                                            .wildcard("*jpeg"),
-                                                    TextMatcher
-                                                            .wildcard("*wmf")));
+        config.setHandlers(List.of(
+                Configurable.configure(new DefaultParser(), cfg -> {
+                    cfg.getEmbeddedConfig()
+                            .setSplitContentTypes(List.of(
+                                    TextMatcher.wildcard("*zip")))
+                            .setSkipEmbeddedContentTypes(List.of(
+                                    TextMatcher.wildcard("*jpeg"),
+                                    TextMatcher.wildcard("*wmf")));
 
-                        }),
-                        ctx -> {
-                            try {
-                                // Clean up what we know is extra noise for a given format
-                                var pattern = Pattern.compile("[^a-zA-Z ]");
-                                var txt = ctx.input().asString();
-                                txt = pattern.matcher(txt).replaceAll("");
-                                txt = txt.replaceAll("DowntheRabbitHole", "");
-                                txt = StringUtils.replace(txt, " ", "");
-                                txt = StringUtils.replace(
-                                        txt, "httppdfreebooksorg",
-                                        "");
-                                txt = StringUtils.replace(txt, "filejpg", "");
-                                txt = StringUtils.replace(txt, "filewmf", "");
-                                ctx.output().asWriter().write(txt);
-                            } catch (IOException e) {
-                                throw new UncheckedIOException(e);
-                            }
-
-                        }));
+                }),
+                ctx -> {
+                    try {
+                        // Clean up what we know is extra noise for a given format
+                        var pattern = Pattern.compile("[^a-zA-Z ]");
+                        var txt = ctx.input().asString();
+                        txt = pattern.matcher(txt).replaceAll("");
+                        txt = txt.replaceAll("DowntheRabbitHole", "");
+                        txt = StringUtils.replace(txt, " ", "");
+                        txt = StringUtils.replace(
+                                txt, "httppdfreebooksorg",
+                                "");
+                        txt = StringUtils.replace(txt, "filejpg", "");
+                        txt = StringUtils.replace(txt, "filewmf", "");
+                        ctx.output().asWriter().write(txt);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                    return true;
+                }));
         importer = new Importer(config);
     }
 
     @AfterEach
-    void tearDown() throws Exception {
+    void tearDown() {
         importer = null;
     }
 
     @Test
     void testImporter() throws IOException {
         // test that it works with empty contructor
-        try (var is = getClass().getResourceAsStream(
-                "/parser/msoffice/word.docx")) {
+        try (var imp = new Importer();
+                var is = getClass().getResourceAsStream(
+                        "/parser/msoffice/word.docx")) {
             Assertions.assertEquals(
                     "Hey Norconex, this is a test.",
                     TestUtil.toString(
-                            new Importer().importDocument(
+                            imp.importDocument(
                                     new ImporterRequest(is)).getDoc()
                                     .getInputStream())
                             .trim());

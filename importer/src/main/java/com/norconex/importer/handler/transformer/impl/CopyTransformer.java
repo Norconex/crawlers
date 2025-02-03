@@ -23,8 +23,8 @@ import org.apache.commons.io.IOUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -71,14 +71,13 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class CopyTransformer
-        extends BaseDocumentHandler
-        implements Configurable<CopyTransformerConfig> {
+        implements DocHandler, Configurable<CopyTransformerConfig> {
 
     private final CopyTransformerConfig configuration =
             new CopyTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         for (CopyOperation op : configuration.getOperations()) {
             List<String> sourceValues;
             if (op.getFieldMatcher().isSet()) {
@@ -98,5 +97,6 @@ public class CopyTransformer
                     op.getToField(),
                     sourceValues);
         }
+        return true;
     }
 }

@@ -31,8 +31,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -127,8 +127,7 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class TextStatisticsTransformer
-        extends BaseDocumentHandler
-        implements Configurable<TextStatisticsTransformerConfig> {
+        implements DocHandler, Configurable<TextStatisticsTransformerConfig> {
 
     private final TextStatisticsTransformerConfig configuration =
             new TextStatisticsTransformerConfig();
@@ -137,7 +136,7 @@ public class TextStatisticsTransformer
             "\\w+\\-?\\w*", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         if (configuration.getFieldMatcher().isSet()) {
             for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
                     configuration.getFieldMatcher()).entrySet()) {
@@ -152,6 +151,7 @@ public class TextStatisticsTransformer
                 analyze(input, docCtx.metadata(), null);
             }
         }
+        return true;
     }
 
     protected void analyze(Reader input, Properties metadata, String field) {

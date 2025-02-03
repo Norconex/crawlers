@@ -26,8 +26,8 @@ import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.DocumentHandlerException;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.DomUtil;
 import com.norconex.importer.util.MatchUtil;
@@ -106,7 +106,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
     private final DomSplitterConfig configuration = new DomSplitterConfig();
 
     @Override
-    public void split(HandlerContext docCtx) throws DocumentHandlerException {
+    public void split(DocHandlerContext docCtx) throws DocHandlerException {
 
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docContext())) {
@@ -141,13 +141,13 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
                         DomUtil.toJSoupParser(configuration.getParser()));
                 parse(docCtx, soupDoc);
             } catch (IOException e) {
-                throw new DocumentHandlerException(
+                throw new DocHandlerException(
                         "Cannot parse document into a DOM-tree.", e);
             }
         }
     }
 
-    private void parse(HandlerContext docCtx, Document soupDoc) {
+    private void parse(DocHandlerContext docCtx, Document soupDoc) {
         var elms = soupDoc.select(configuration.getSelector());
 
         // if there only 1 element matched, make sure it is not the same as

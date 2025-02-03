@@ -18,8 +18,8 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformer;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig;
@@ -103,8 +103,7 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @Data
 public class ExternalParser
-        extends BaseDocumentHandler
-        implements Configurable<ExternalTransformerConfig> {
+        implements DocHandler, Configurable<ExternalTransformerConfig> {
 
     //TODO what about conditionally disabling some parsers? already covered?
 
@@ -116,9 +115,10 @@ public class ExternalParser
             t.getConfiguration();
 
     @Override
-    public void handle(HandlerContext ctx) throws IOException {
-        t.accept(ctx);
+    public boolean handle(DocHandlerContext ctx) throws IOException {
+        t.handle(ctx);
         ctx.parseState(ParseState.POST);
+        return true;
     }
 
 }

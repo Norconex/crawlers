@@ -67,7 +67,7 @@ class ConstantTransformerTest {
                 .setConstants(List.of(Constant.of("test1", List.of("3", "4"))));
 
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("n/a", is, m));
+        t.handle(TestUtil.newHandlerContext("n/a", is, m));
         Assertions.assertArrayEquals(
                 new String[] {
                         "1", "2", "3", "4" },
@@ -77,7 +77,7 @@ class ConstantTransformerTest {
                 .setOnSet(PropertySetter.REPLACE)
                 .setConstants(List.of(Constant.of("test2", List.of("3", "4"))));
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("n/a", is, m));
+        t.handle(TestUtil.newHandlerContext("n/a", is, m));
         Assertions.assertArrayEquals(
                 new String[] {
                         "3", "4" },
@@ -87,7 +87,7 @@ class ConstantTransformerTest {
                 .setOnSet(PropertySetter.OPTIONAL)
                 .setConstants(List.of(Constant.of("test3", List.of("3", "4"))));
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("n/a", is, m));
+        t.handle(TestUtil.newHandlerContext("n/a", is, m));
         Assertions.assertArrayEquals(
                 new String[] {
                         "1", "2" },
@@ -97,7 +97,7 @@ class ConstantTransformerTest {
                 .setOnSet(PropertySetter.PREPEND)
                 .setConstants(List.of(Constant.of("test4", List.of("3", "4"))));
         is = new NullInputStream(0);
-        t.accept(TestUtil.newHandlerContext("n/a", is, m));
+        t.handle(TestUtil.newHandlerContext("n/a", is, m));
         Assertions.assertArrayEquals(
                 new String[] {
                         "3", "4", "1", "2" },

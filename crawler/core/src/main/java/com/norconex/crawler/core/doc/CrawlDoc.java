@@ -17,13 +17,13 @@ package com.norconex.crawler.core.doc;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * A crawl document, which holds an additional {@link HandlerContext} from cache
+ * A crawl document, which holds an additional {@link DocHandlerContext} from cache
  * (if any).
  */
 @EqualsAndHashCode

@@ -98,7 +98,7 @@ class ReplaceTransformerTest {
             metadata.set("document.reference", reference);
             var doc = TestUtil.newHandlerContext(
                     reference, is, metadata, ParseState.POST);
-            t.accept(doc);
+            t.handle(doc);
             return doc.input().asString();
         }
     }

@@ -58,13 +58,13 @@ class LanguageTransformerTest {
     }
 
     @Test
-    void testNonMatchingDocLanguage() {
+    void testNonMatchingDocLanguage() throws IOException {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration().setLanguages(Arrays.asList("fr", "it"));
         var meta = new Properties();
 
-        t.accept(
+        t.handle(
                 TestUtil.newHandlerContext(
                         "n/a",
                         factory.newInputStream(sampleTexts.get("en")),
@@ -74,12 +74,12 @@ class LanguageTransformerTest {
     }
 
     @Test
-    void testNoLanguageSet() {
+    void testNoLanguageSet() throws IOException {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration().setLanguages(List.of());
         var meta = new Properties();
-        t.accept(TestUtil.newHandlerContext(
+        t.handle(TestUtil.newHandlerContext(
                 "n/a",
                 factory.newInputStream(sampleTexts.get("en")),
                 meta,
@@ -89,14 +89,14 @@ class LanguageTransformerTest {
     }
 
     @Test
-    void testNoLanguageDetected() {
+    void testNoLanguageDetected() throws IOException {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration()
                 .setLanguages(List.of())
                 .setFallbackLanguage("it");
         var meta = new Properties();
-        t.accept(TestUtil.newHandlerContext(
+        t.handle(TestUtil.newHandlerContext(
                 "n/a",
                 factory.newInputStream("#$%^"),
                 meta,
@@ -106,7 +106,7 @@ class LanguageTransformerTest {
     }
 
     @Test
-    void testDefaultLanguageDetection() {
+    void testDefaultLanguageDetection() throws IOException {
         var factory = new CachedStreamFactory(10 * 1024, 10 * 1024);
         var t = new LanguageTransformer();
         t.getConfiguration().setLanguages(
@@ -114,7 +114,7 @@ class LanguageTransformerTest {
         var meta = new Properties();
 
         for (String lang : sampleTexts.keySet()) {
-            t.accept(
+            t.handle(
                     TestUtil.newHandlerContext(
                             "n/a",
                             factory.newInputStream(sampleTexts.get(lang)),
@@ -215,7 +215,7 @@ class LanguageTransformerTest {
                 vorbeirannte.
 
                 This last line is purposely in English.""";
-        t.accept(
+        t.handle(
                 TestUtil.newHandlerContext(
                         "n/a",
                         factory.newInputStream(content),

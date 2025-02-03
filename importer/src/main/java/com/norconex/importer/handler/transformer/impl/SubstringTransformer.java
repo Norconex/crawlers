@@ -26,8 +26,8 @@ import java.util.Map.Entry;
 import org.apache.commons.io.IOUtils;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -68,14 +68,13 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class SubstringTransformer
-        extends BaseDocumentHandler
-        implements Configurable<SubstringTransformerConfig> {
+        implements DocHandler, Configurable<SubstringTransformerConfig> {
 
     private final SubstringTransformerConfig configuration =
             new SubstringTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         if (configuration.getFieldMatcher().isSet()) {
             // Fields
@@ -102,6 +101,7 @@ public class SubstringTransformer
                 doSubstring(input, output);
             }
         }
+        return true;
     }
 
     private void doSubstring(Reader input, Writer output)

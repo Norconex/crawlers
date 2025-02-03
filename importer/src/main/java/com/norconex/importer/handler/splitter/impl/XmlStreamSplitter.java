@@ -38,8 +38,8 @@ import com.norconex.commons.lang.xml.XmlUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.DocumentHandlerException;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
 
@@ -125,7 +125,7 @@ public class XmlStreamSplitter
             new XmlStreamSplitterConfig();
 
     @Override
-    public void split(HandlerContext docCtx) throws IOException {
+    public void split(DocHandlerContext docCtx) throws IOException {
 
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docContext())) {
@@ -145,7 +145,7 @@ public class XmlStreamSplitter
         }
     }
 
-    private void doSplit(HandlerContext docCtx, InputStream is)
+    private void doSplit(DocHandlerContext docCtx, InputStream is)
             throws IOException {
         try (is) {
             var h = new XmlHandler(
@@ -155,7 +155,7 @@ public class XmlStreamSplitter
                     docCtx.childDocs());
             XmlUtil.createSaxParserFactory().newSAXParser().parse(is, h);
         } catch (SAXException | IOException | ParserConfigurationException e) {
-            throw new DocumentHandlerException(
+            throw new DocHandlerException(
                     "Could not split XML document: " + docCtx.reference(), e);
         }
     }
@@ -164,13 +164,13 @@ public class XmlStreamSplitter
 
         private final List<String> splitPath;
         private final List<Doc> splitDocs;
-        private final HandlerContext xmlDoc;
+        private final DocHandlerContext xmlDoc;
         private final List<String> currentPath = new ArrayList<>();
         private PrintWriter w;
         private CachedOutputStream out;
 
         public XmlHandler(
-                HandlerContext xmlDoc,
+                DocHandlerContext xmlDoc,
                 List<String> splitPath,
                 List<Doc> splitDocs) {
             this.xmlDoc = xmlDoc;

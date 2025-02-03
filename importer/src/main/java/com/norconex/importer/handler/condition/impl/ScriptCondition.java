@@ -22,10 +22,10 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.handler.HandlerContext;
-import com.norconex.importer.handler.DocumentHandlerException;
+import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.handler.condition.BaseCondition;
+import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 import com.norconex.importer.util.chunk.TextChunk;
 
@@ -120,8 +120,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @Slf4j
 public class ScriptCondition
-        extends BaseCondition
-        implements Configurable<ScriptConditionConfig> {
+        implements Condition, Configurable<ScriptConditionConfig> {
 
     //TODO consider using composition so most of the logic
     // can be shared with other ScriptXXX classes.
@@ -138,7 +137,7 @@ public class ScriptCondition
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    public boolean evaluate(HandlerContext docCtx) throws IOException {
+    public boolean test(DocHandlerContext docCtx) throws IOException {
 
         var matches = new MutableBoolean();
         ChunkedTextReader.builder()
@@ -152,7 +151,7 @@ public class ScriptCondition
                         if (matches.isFalse() && executeScript(docCtx, chunk)) {
                             matches.setTrue();
                         }
-                    } catch (DocumentHandlerException e) {
+                    } catch (DocHandlerException e) {
                         throw new IOException(e);
                     }
                     return true;
@@ -160,8 +159,8 @@ public class ScriptCondition
         return matches.booleanValue();
     }
 
-    private boolean executeScript(HandlerContext docCtx, TextChunk chunk)
-            throws DocumentHandlerException {
+    private boolean executeScript(DocHandlerContext docCtx, TextChunk chunk)
+            throws DocHandlerException {
         var returnValue = scriptRunner().eval(b -> {
             b.put("reference", docCtx.reference());
             b.put("content", chunk.getText());
@@ -180,11 +179,11 @@ public class ScriptCondition
     }
 
     private synchronized ScriptRunner<Object> scriptRunner()
-            throws DocumentHandlerException {
+            throws DocHandlerException {
         if (scriptRunner == null) {
             var engineName = configuration.getEngineName();
             if (StringUtils.isBlank(configuration.getScript())) {
-                throw new DocumentHandlerException("No script provided.");
+                throw new DocHandlerException("No script provided.");
             }
             if (StringUtils.isBlank(engineName)) {
                 LOG.info(

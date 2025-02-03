@@ -67,6 +67,7 @@ class RejectedRefsDeletionTest {
             if (docCtx.reference().endsWith("page=6-REJECTED_IMPORT")) {
                 docCtx.rejectedBy("Rejected by ME");
             }
+            return true;
         }));
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 

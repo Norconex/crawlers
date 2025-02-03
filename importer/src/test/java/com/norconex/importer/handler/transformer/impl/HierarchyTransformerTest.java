@@ -16,6 +16,7 @@ package com.norconex.importer.handler.transformer.impl;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -60,7 +61,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testDiffToAndFromSeparators() {
+    void testDiffToAndFromSeparators() throws IOException {
         tagAndAssert(
                 "/", "~~~",
                 "~~~vegetable",
@@ -69,7 +70,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testSameOrNoToSeparators() {
+    void testSameOrNoToSeparators() throws IOException {
         tagAndAssert(
                 "/", "/",
                 "/vegetable", "/vegetable/potato", "/vegetable/potato/sweet");
@@ -79,7 +80,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testMultiCharSeparator() {
+    void testMultiCharSeparator() throws IOException {
         var meta = createDefaultTestMetadata(
                 "//vegetable//potato//sweet");
         var t = createDefaultTagger("//", "!");
@@ -92,7 +93,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testEmptySegments() {
+    void testEmptySegments() throws IOException {
         var meta = createDefaultTestMetadata(
                 "//vegetable/potato//sweet/fries//");
         var t = createDefaultTagger("/", "!");
@@ -122,7 +123,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testMultipleWithMiscSeparatorPlacement() {
+    void testMultipleWithMiscSeparatorPlacement() throws IOException {
         var meta = createDefaultTestMetadata(
                 "/vegetable/potato/sweet",
                 "vegetable/potato/sweet",
@@ -150,7 +151,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testRegexSeparatorWithToSep() {
+    void testRegexSeparatorWithToSep() throws IOException {
         var meta = createDefaultTestMetadata(
                 "/1/vegetable/2/potato/3//4/sweet");
         var t = createDefaultTagger("/\\d/", "!");
@@ -164,7 +165,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testRegexSeparatorWithToSepKeepEmpty() {
+    void testRegexSeparatorWithToSepKeepEmpty() throws IOException {
         var meta = createDefaultTestMetadata(
                 "/1/vegetable/2/potato/3//4/sweet");
         var t = createDefaultTagger("/\\d/", "!");
@@ -181,7 +182,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testRegexSeparatorWithoutToSep() {
+    void testRegexSeparatorWithoutToSep() throws IOException {
         var meta = createDefaultTestMetadata(
                 "/1/vegetable/2/potato/3//4/sweet");
         var t = createDefaultTagger("/\\d/", null);
@@ -195,7 +196,7 @@ class HierarchyTransformerTest {
     }
 
     @Test
-    void testRegexSeparatorWithoutToSepKeepEmpty() {
+    void testRegexSeparatorWithoutToSepKeepEmpty() throws IOException {
         var meta = createDefaultTestMetadata(
                 "/1/vegetable/2/potato/3//4/sweet");
         var t = createDefaultTagger("/\\d/", null);
@@ -212,15 +213,17 @@ class HierarchyTransformerTest {
     }
 
     private void tagAndAssert(
-            String fromSep, String toSep, String... expected) {
+            String fromSep, String toSep, String... expected)
+            throws IOException {
         var meta = createDefaultTestMetadata();
         var t = createDefaultTagger(fromSep, toSep);
         Assertions.assertArrayEquals(expected, tag(t, meta));
     }
 
-    private String[] tag(HierarchyTransformer t, Properties meta) {
+    private String[] tag(HierarchyTransformer t, Properties meta)
+            throws IOException {
         InputStream is = new NullInputStream(0);
-        t.accept(
+        t.handle(
                 TestUtil.newHandlerContext(
                         "blah", is, meta, ParseState.PRE));
         return meta.getStrings("targetField").toArray(new String[] {});

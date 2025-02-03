@@ -22,8 +22,8 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -101,14 +101,13 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class MergeTransformer
-        extends BaseDocumentHandler
-        implements Configurable<MergeTransformerConfig> {
+        implements DocHandler, Configurable<MergeTransformerConfig> {
 
     private final MergeTransformerConfig configuration =
             new MergeTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         for (MergeOperation op : configuration.getOperations()) {
 
@@ -139,5 +138,6 @@ public class MergeTransformer
                 docCtx.metadata().put(op.getToField(), mergedValues);
             }
         }
+        return true;
     }
 }

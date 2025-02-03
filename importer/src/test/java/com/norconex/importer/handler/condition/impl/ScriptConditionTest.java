@@ -53,7 +53,7 @@ class ScriptConditionTest {
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        var returnValue = cond.evaluate(
+        var returnValue = cond.test(
                 TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata));
         is.close();
@@ -102,7 +102,7 @@ class ScriptConditionTest {
                 "returnValue = content == 'potato';");
 
         var ctx = TestUtil.newHandlerContext("ref", "potato");
-        var returnValue = cond.evaluate(ctx);
+        var returnValue = cond.test(ctx);
 
         assertThat(returnValue).isTrue();
     }
@@ -114,6 +114,6 @@ class ScriptConditionTest {
 
         var ctx = TestUtil.newHandlerContext("ref", "potato");
         assertThatExceptionOfType(IOException.class)
-                .isThrownBy(() -> cond.evaluate(ctx));
+                .isThrownBy(() -> cond.test(ctx));
     }
 }

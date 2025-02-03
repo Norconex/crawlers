@@ -89,8 +89,11 @@ public class ParseAssertions {
 
         // File-based parse
         metadata = new Properties();
-        var responseForFile = new Importer(config).importDocument(
-                new ImporterRequest(file).setMetadata(metadata));
+        ImporterResponse responseForFile;
+        try (var importer = new Importer(config)) {
+            responseForFile = importer.importDocument(
+                    new ImporterRequest(file).setMetadata(metadata));
+        }
         //        doc = response.getDoc();
         //        assertDefaults(doc, "FILE",
         //                resourcePath, contentType, contentRegex, extension, family);
@@ -98,9 +101,10 @@ public class ParseAssertions {
 
         // Input stream parse
         ImporterResponse responseForStream = null;
-        try (var is = Files.newInputStream(file)) {
+        try (var is = Files.newInputStream(file);
+                var importer = new Importer(config)) {
             metadata = new Properties();
-            responseForStream = new Importer(config).importDocument(
+            responseForStream = importer.importDocument(
                     new ImporterRequest(is)
                             .setMetadata(metadata)
                             .setReference("guess"));

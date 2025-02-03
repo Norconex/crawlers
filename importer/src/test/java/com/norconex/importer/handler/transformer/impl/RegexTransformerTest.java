@@ -50,7 +50,7 @@ class RegexTransformerTest {
 
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(
+        t.handle(
                 TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata,
                         ParseState.PRE));
@@ -85,7 +85,7 @@ class RegexTransformerTest {
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        t.accept(
+        t.handle(
                 TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata,
                         ParseState.PRE));

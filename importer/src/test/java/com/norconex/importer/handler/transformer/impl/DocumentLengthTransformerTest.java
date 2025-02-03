@@ -41,7 +41,7 @@ class DocumentLengthTransformerTest {
 
         var props = new Properties();
         assertThatNoException().isThrownBy(() -> {
-            t.accept(
+            t.handle(
                     TestUtil.newHandlerContext(
                             "ref",
                             TestUtil.toCachedInputStream("four"),
@@ -51,7 +51,7 @@ class DocumentLengthTransformerTest {
         assertThat(props.getLong("theLength")).isEqualTo(4);
 
         assertThatNoException().isThrownBy(() -> {
-            t.accept(
+            t.handle(
                     TestUtil.newHandlerContext(
                             "ref",
                             TestUtil.toInputStream("fives"),

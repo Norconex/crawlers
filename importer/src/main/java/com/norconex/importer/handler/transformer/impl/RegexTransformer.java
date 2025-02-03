@@ -19,8 +19,8 @@ import java.io.IOException;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 
 import lombok.Data;
@@ -96,14 +96,13 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class RegexTransformer
-        extends BaseDocumentHandler
-        implements Configurable<RegexTransformerConfig> {
+        implements DocHandler, Configurable<RegexTransformerConfig> {
 
     private final RegexTransformerConfig configuration =
             new RegexTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         ChunkedTextReader.from(configuration).read(docCtx, chunk -> {
             RegexFieldValueExtractor.extractFieldValues(
                     docCtx.metadata(),
@@ -111,5 +110,6 @@ public class RegexTransformer
                     configuration.getPatterns());
             return true;
         });
+        return true;
     }
 }

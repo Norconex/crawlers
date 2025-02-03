@@ -70,7 +70,7 @@ class DomSplitterTest {
 
         var is = IOUtils.toInputStream("blah", StandardCharsets.UTF_8);
         var docCtx = TestUtil.newHandlerContext("n/a", is, metadata);
-        splitter.accept(docCtx);
+        splitter.handle(docCtx);
 
         var docs = docCtx.childDocs();
 
@@ -80,11 +80,12 @@ class DomSplitterTest {
         Assertions.assertTrue(content.contains("Dalton"));
     }
 
-    private List<Doc> split(String text, DomSplitter splitter) {
+    private List<Doc> split(String text, DomSplitter splitter)
+            throws IOException {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
         var docCtx = TestUtil.newHandlerContext("n/a", is, metadata);
-        splitter.accept(docCtx);
+        splitter.handle(docCtx);
         return docCtx.childDocs();
     }
 

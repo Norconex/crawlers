@@ -24,8 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 
@@ -70,14 +70,13 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class DocumentLengthTransformer
-        extends BaseDocumentHandler
-        implements Configurable<DocumentLengthTransformerConfig> {
+        implements DocHandler, Configurable<DocumentLengthTransformerConfig> {
 
     private final DocumentLengthTransformerConfig configuration =
             new DocumentLengthTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         if (StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException("\"toField\" cannot be empty.");
@@ -95,5 +94,6 @@ public class DocumentLengthTransformer
 
         PropertySetter.orAppend(configuration.getOnSet()).apply(
                 docCtx.metadata(), configuration.getToField(), length);
+        return true;
     }
 }

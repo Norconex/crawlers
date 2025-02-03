@@ -141,7 +141,7 @@ public abstract class AbstractExternalTest {
         var doc = TestUtil.newHandlerContext(
                 "c:\\ref with spaces\\doc.txt", input,
                 metadata, ParseState.PRE);
-        ((BaseDocumentHandler) t).accept(doc);
+        ((DocHandler) t).handle(doc);
 
         var content = doc.input().asString();
         // remove any stdout content that could be mixed with output to

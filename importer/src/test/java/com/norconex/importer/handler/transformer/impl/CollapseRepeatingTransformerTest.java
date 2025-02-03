@@ -61,7 +61,7 @@ class CollapseRepeatingTransformerTest {
                 text, StandardCharsets.UTF_8)) {
             var doc = TestUtil.newHandlerContext(
                     "dummyRef", is, new Properties(), ParseState.POST);
-            t.accept(doc);
+            t.handle(doc);
             var response = IOUtils.toString(doc.input().asReader());
             Assertions.assertEquals(
                     "\tthis is the text i want to modify.\n\r too much space.",

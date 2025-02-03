@@ -27,7 +27,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandlerContext;
 
 class SaveDocumentTransformerTest {
 
@@ -148,15 +148,15 @@ class SaveDocumentTransformerTest {
                 .toList();
     }
 
-    private Path savedFile(HandlerContext doc) {
+    private Path savedFile(DocHandlerContext doc) {
         return Path.of(doc.metadata().getString(FLD_PATH));
     }
 
-    private HandlerContext transform(SaveDocumentTransformer t, String ref)
+    private DocHandlerContext transform(SaveDocumentTransformer t, String ref)
             throws IOException {
         var is = TestUtil.toInputStream("blah");
         var docCtx = TestUtil.newHandlerContext(ref, is);
-        t.accept(docCtx);
+        t.handle(docCtx);
         return docCtx;
     }
 

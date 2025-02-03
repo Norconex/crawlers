@@ -40,8 +40,8 @@ import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.DocumentHandlerException;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 
 import lombok.AccessLevel;
@@ -174,11 +174,11 @@ public class TranslatorSplitter
 
                     @Override
                     public void validateProperties()
-                            throws DocumentHandlerException {
+                            throws DocHandlerException {
                         if (StringUtils.isAnyBlank(
                                 configuration.getClientId(),
                                 configuration.getClientSecret())) {
-                            throw new DocumentHandlerException(
+                            throw new DocHandlerException(
                                     "Both clientId and clientSecret must be specified.");
                         }
                     }
@@ -195,9 +195,9 @@ public class TranslatorSplitter
 
                     @Override
                     public void validateProperties()
-                            throws DocumentHandlerException {
+                            throws DocHandlerException {
                         if (StringUtils.isAnyBlank(configuration.getApiKey())) {
-                            throw new DocumentHandlerException(
+                            throw new DocHandlerException(
                                     "apiKey must be specified.");
                         }
                     }
@@ -214,10 +214,10 @@ public class TranslatorSplitter
 
                     @Override
                     public void validateProperties()
-                            throws DocumentHandlerException {
+                            throws DocHandlerException {
                         if (StringUtils
                                 .isAnyBlank(configuration.getUserKey())) {
-                            throw new DocumentHandlerException(
+                            throw new DocHandlerException(
                                     "userKey must be specified.");
                         }
                     }
@@ -234,11 +234,11 @@ public class TranslatorSplitter
 
                     @Override
                     public void validateProperties()
-                            throws DocumentHandlerException {
+                            throws DocHandlerException {
                         if (StringUtils.isAnyBlank(
                                 configuration.getSmtPath(),
                                 configuration.getScriptPath())) {
-                            throw new DocumentHandlerException(
+                            throw new DocHandlerException(
                                     "Both smtPath and scriptPath must be specified.");
                         }
                     }
@@ -255,9 +255,9 @@ public class TranslatorSplitter
 
                     @Override
                     public void validateProperties()
-                            throws DocumentHandlerException {
+                            throws DocHandlerException {
                         if (StringUtils.isAnyBlank(configuration.getApiKey())) {
-                            throw new DocumentHandlerException(
+                            throw new DocHandlerException(
                                     "apiKey must be specified.");
                         }
                     }
@@ -265,7 +265,7 @@ public class TranslatorSplitter
     }
 
     @Override
-    public void split(HandlerContext docCtx) throws DocumentHandlerException {
+    public void split(DocHandlerContext docCtx) throws DocHandlerException {
 
         // Do not re-translate a document already translated
         if (docCtx.metadata().containsKey(DocMetadata.TRANSLATED_FROM)) {
@@ -280,10 +280,10 @@ public class TranslatorSplitter
                 for (String lang : configuration.getTargetLanguages()) {
                     translateFields(docCtx, lang);
                 }
-            } catch (DocumentHandlerException e) {
+            } catch (DocHandlerException e) {
                 throw e;
             } catch (Exception e) {
-                throw new DocumentHandlerException(
+                throw new DocHandlerException(
                         "Could not translate document: "
                                 + docCtx.reference(),
                         e);
@@ -302,10 +302,10 @@ public class TranslatorSplitter
                         translatedDocs.add(translatedDoc);
                     }
                 }
-            } catch (DocumentHandlerException e) {
+            } catch (DocHandlerException e) {
                 throw e;
             } catch (Exception e) {
-                throw new DocumentHandlerException(
+                throw new DocHandlerException(
                         "Could not translate document: "
                                 + docCtx.reference(),
                         e);
@@ -314,10 +314,10 @@ public class TranslatorSplitter
     }
 
     private Doc translateDocumentFromStream(
-            HandlerContext docCtx,
+            DocHandlerContext docCtx,
             CachedInputStream cachedInput,
             String targetLang)
-            throws DocumentHandlerException {
+            throws DocHandlerException {
         if (Objects.equals(configuration.getSourceLanguage(), targetLang)) {
             return null;
         }
@@ -333,7 +333,7 @@ public class TranslatorSplitter
                     && e instanceof IndexOutOfBoundsException) {
                 extra = " \"apiKey\" is likely invalid.";
             }
-            throw new DocumentHandlerException(
+            throw new DocHandlerException(
                     "Translation failed form \"%s\" to \"%s\" for: \"%s\". %s"
                             .formatted(
                                     configuration.getSourceLanguage(),
@@ -345,7 +345,7 @@ public class TranslatorSplitter
     }
 
     private Doc translateDocumentFromReader(
-            HandlerContext docCtx, String targetLang, TextReader reader)
+            DocHandlerContext docCtx, String targetLang, TextReader reader)
             throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
@@ -387,7 +387,7 @@ public class TranslatorSplitter
     }
 
     private Properties translateFields(
-            HandlerContext docCtx, String targetLang) throws Exception {
+            DocHandlerContext docCtx, String targetLang) throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
         var sourceLang = getResolvedSourceLanguage(docCtx);
@@ -443,32 +443,32 @@ public class TranslatorSplitter
         return strategy;
     }
 
-    private void validateProperties(HandlerContext doc)
-            throws DocumentHandlerException {
+    private void validateProperties(DocHandlerContext doc)
+            throws DocHandlerException {
         if (StringUtils.isBlank(configuration.getApi())) {
-            throw new DocumentHandlerException(
+            throw new DocHandlerException(
                     "Must specify a translation api.");
         }
         if (configuration.getTargetLanguages().isEmpty()) {
-            throw new DocumentHandlerException(
+            throw new DocHandlerException(
                     "No translation target language(s) specified.");
         }
 
         var sourceLang = getResolvedSourceLanguage(doc);
         if (sourceLang == null || Language.fromString(sourceLang) == null) {
-            throw new DocumentHandlerException(
+            throw new DocHandlerException(
                     "Unsupported source language: \"" + sourceLang + "\"");
         }
         for (String targetLang : configuration.getTargetLanguages()) {
             if (Language.fromString(targetLang) == null) {
-                throw new DocumentHandlerException(
+                throw new DocHandlerException(
                         "Unsupported target language: \"" + targetLang + "\"");
             }
         }
         getTranslatorStrategy().validateProperties();
     }
 
-    private String getResolvedSourceLanguage(HandlerContext docCtx) {
+    private String getResolvedSourceLanguage(DocHandlerContext docCtx) {
         var lang = docCtx.metadata().getString(
                 configuration.getSourceLanguageField());
         if (StringUtils.isBlank(lang)) {
@@ -496,6 +496,6 @@ public class TranslatorSplitter
         protected abstract Translator createTranslator();
 
         public abstract void validateProperties()
-                throws DocumentHandlerException;
+                throws DocHandlerException;
     }
 }

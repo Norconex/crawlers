@@ -27,9 +27,9 @@ import org.jsoup.nodes.Element;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.handler.BaseDocumentHandler;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.DomUtil;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
@@ -196,19 +196,18 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class DomTransformer
-        extends BaseDocumentHandler
-        implements Configurable<DomTransformerConfig> {
+        implements DocHandler, Configurable<DomTransformerConfig> {
 
     private final DomTransformerConfig configuration =
             new DomTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
                 docCtx.docContext().getContentType().toString())) {
-            return;
+            return true;
         }
 
         ChunkedTextReader.builder()
@@ -220,11 +219,12 @@ public class DomTransformer
                     applyOperations(docCtx, chunk);
                     return true;
                 });
+        return true;
     }
 
     //NOTE: each operation are ran in isolation, the result being passed
     // to the next operation (updated Document or Metadata).
-    private void applyOperations(HandlerContext docCtx, TextChunk chunk)
+    private void applyOperations(DocHandlerContext docCtx, TextChunk chunk)
             throws IOException {
 
         if (StringUtils.isBlank(chunk.getText())) {

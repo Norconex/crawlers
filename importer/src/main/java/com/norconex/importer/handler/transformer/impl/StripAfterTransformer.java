@@ -17,8 +17,8 @@ package com.norconex.importer.handler.transformer.impl;
 import java.io.IOException;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextUtil;
 
 import lombok.Data;
@@ -60,17 +60,16 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class StripAfterTransformer
-        extends BaseDocumentHandler
-        implements Configurable<StripAfterTransformerConfig> {
+        implements DocHandler, Configurable<StripAfterTransformerConfig> {
 
     private final StripAfterTransformerConfig configuration =
             new StripAfterTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         if (!configuration.getStripAfterMatcher().isSet()) {
             LOG.error("No matcher pattern provided.");
-            return;
+            return true;
         }
 
         ChunkedTextUtil.transform(configuration, docCtx, chunk -> {
@@ -85,5 +84,6 @@ public class StripAfterTransformer
             }
             return b.toString();
         });
+        return true;
     }
 }

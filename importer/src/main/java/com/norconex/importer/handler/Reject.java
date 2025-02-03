@@ -26,17 +26,13 @@ import lombok.Data;
  * optional custom message for event logging. If wrapped in a
  * {@link Condition}, information about the condition will also be logged.
  */
-
-//TODO make it built-into Flow as a way to opt-out of the flow at any time
-// MAYBE as an optional value in a then/else block?
-
 @Data
-public class Reject implements DocumentHandler, Configurable<RejectConfig> {
+public class Reject implements DocHandler, Configurable<RejectConfig> {
 
     private final RejectConfig configuration = new RejectConfig();
 
     @Override
-    public void accept(HandlerContext ctx) {
+    public boolean handle(DocHandlerContext ctx) {
         Object by = null;
         if (StringUtils.isNotBlank(configuration.getMessage())) {
             by = configuration.getMessage();
@@ -48,5 +44,6 @@ public class Reject implements DocumentHandler, Configurable<RejectConfig> {
             by = this;
         }
         ctx.rejectedBy(by);
+        return false;
     }
 }

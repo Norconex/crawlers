@@ -74,7 +74,7 @@ class StripBetweenTransformerTest {
             metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
             var doc = TestUtil.newHandlerContext(
                     htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
-            t.accept(doc);
+            t.handle(doc);
 
             Assertions.assertEquals(
                     443, doc.input().asString().replace("\r", "").length(),
@@ -128,7 +128,7 @@ class StripBetweenTransformerTest {
             var doc = TestUtil.newHandlerContext(
                     "fake.html",
                     is, metadata, ParseState.PRE);
-            t.accept(doc);
+            t.handle(doc);
             assertThat(doc.input().asString().replace("\r", ""))
                     .isEqualToIgnoringWhitespace(
                             "<html>extract me 1extract me 2</html>");

@@ -112,8 +112,8 @@ public final class ImporterLauncher {
         var config = loadCommandLineConfig(configFile, varFile);
 
         var inputFile = Paths.get(cmd.getOptionValue(ARG_INPUTFILE));
-        try {
-            var response = new Importer(config).importDocument(
+        try (var importer = new Importer(config)) {
+            var response = importer.importDocument(
                     new ImporterRequest(inputFile)
                             .setContentType(contentType)
                             .setCharset(

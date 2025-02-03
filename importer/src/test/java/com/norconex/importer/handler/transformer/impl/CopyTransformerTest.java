@@ -71,7 +71,7 @@ class CopyTransformerTest {
 
         var docCtx = TestUtil.newHandlerContext(
                 "ref", nullInputStream(), props, ParseState.POST);
-        t.accept(docCtx);
+        t.handle(docCtx);
 
         assertThat(props.getStrings("trgt1"))
                 .containsExactly("trgtVal1", "srcVal1");
@@ -90,7 +90,7 @@ class CopyTransformerTest {
 
         var body = "Copy this.".getBytes();
         var props = new Properties();
-        t.accept(TestUtil.newHandlerContext(
+        t.handle(TestUtil.newHandlerContext(
                 "blah", new ByteArrayInputStream(body), props));
 
         assertThat(props.getString("toField")).isEqualTo("Copy this.");

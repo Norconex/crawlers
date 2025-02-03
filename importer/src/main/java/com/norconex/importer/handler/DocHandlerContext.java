@@ -24,6 +24,7 @@ import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.ImporterEvent;
 import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
@@ -47,7 +48,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(fluent = true)
 @Getter
-public class HandlerContext {
+public class DocHandlerContext {
 
     private final List<Doc> childDocs = new ArrayList<>();
 
@@ -160,5 +161,49 @@ public class HandlerContext {
     public synchronized WriteAdapter output() {
         out = streamFactory().newOuputStream();
         return new WriteAdapter(out);
+    }
+
+    /**
+     * Executes a document handler taking care of firing proper events and
+     * passing it this context as well as assigning the handler to
+     * "rejectedBy" in case of rejection.
+     * @param docHandler document handler to invoke
+     * @return <code>true</code> to move to the next handler
+     * @throws IOException
+     */
+    public boolean executeDocHandler(DocHandler docHandler)
+            throws IOException {
+        var keepGoing = true;
+        fireEvent(this, ImporterEvent.IMPORTER_HANDLER_BEGIN);
+        try {
+            keepGoing = docHandler.handle(this);
+            // be safe, and flush any written content
+            flush();
+
+            if (!keepGoing && rejectedBy == null) {
+                rejectedBy(docHandler);
+            }
+        } catch (IOException e) {
+            fireEvent(this, ImporterEvent.IMPORTER_HANDLER_ERROR, e);
+            throw e;
+        }
+        fireEvent(this, ImporterEvent.IMPORTER_HANDLER_END);
+        return keepGoing;
+    }
+
+    private void fireEvent(DocHandlerContext ctx, String eventName) {
+        fireEvent(ctx, eventName, null);
+    }
+
+    private void fireEvent(
+            DocHandlerContext ctx, String eventName, Exception e) {
+        ctx.eventManager().fire(
+                ImporterEvent.builder()
+                        .name(eventName)
+                        .source(this)
+                        .document(ctx.doc())
+                        .parseState(ctx.parseState())
+                        .exception(e)
+                        .build());
     }
 }

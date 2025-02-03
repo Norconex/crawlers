@@ -1,4 +1,4 @@
-/* Copyright 2014-2023 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,17 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.handler;
+package com.norconex.importer.mock;
 
-import com.norconex.importer.ImporterException;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
-import lombok.experimental.StandardException;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-/**
- * Exception thrown by several handler classes upon encountering
- * issues.
- */
-@StandardException
-public class DocumentHandlerException extends ImporterException {
-    private static final long serialVersionUID = 6845549545987836093L;
+@Data
+@Accessors(chain = true)
+public class MockDocHandler implements DocHandler {
+    private String message;
+
+    @Override
+    public boolean handle(DocHandlerContext docHandlerContext) {
+        return true;
+    }
 }

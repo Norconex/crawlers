@@ -19,24 +19,20 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.flow.JsonFlow;
-import com.norconex.commons.lang.function.Consumers;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerListDeserializer;
+import com.norconex.importer.handler.DocHandlerListSerializer;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 
 /**
@@ -88,26 +84,19 @@ public class ImporterConfig {
     public static final long DEFAULT_MAX_STREAM_CACHE_SIZE =
             DataUnit.GB.toBytes(1).intValue();
 
-    //NOTE: Using Customer here and private methods instead of List so
-    // JsonFlow can pick it up.
-    @JsonFlow(builder = ImporterFlowConfigBuilder.class)
-    @JsonProperty("handlers")
-    @Getter(value = AccessLevel.NONE)
-    @Setter(value = AccessLevel.NONE)
-    private Consumer<HandlerContext> handler =
-            Consumers.of(new DefaultParser());
+    @JsonSerialize(using = DocHandlerListSerializer.class)
+    @JsonDeserialize(using = DocHandlerListDeserializer.class)
+    private final List<DocHandler> handlers =
+            new ArrayList<>(List.of(new DefaultParser()));
 
-    @JsonIgnore
-    public ImporterConfig setHandlers(List<Consumer<HandlerContext>> handlers) {
-        CollectionUtil.setAll((Consumers<HandlerContext>) handler, handlers);
-        CollectionUtil.removeNulls((Consumers<HandlerContext>) handler);
-        return this;
+    public List<DocHandler> getHandlers() {
+        return Collections.unmodifiableList(handlers);
     }
 
-    @JsonIgnore
-    public List<Consumer<HandlerContext>> getHandlers() {
-        return Collections.unmodifiableList(
-                (Consumers<HandlerContext>) handler);
+    public ImporterConfig setHandlers(List<DocHandler> handlers) {
+        CollectionUtil.setAll(this.handlers, handlers);
+        CollectionUtil.removeNulls(this.handlers);
+        return this;
     }
 
     /**

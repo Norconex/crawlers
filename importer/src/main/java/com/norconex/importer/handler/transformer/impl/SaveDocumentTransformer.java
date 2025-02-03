@@ -26,8 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.text.StringUtil;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -84,8 +84,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class SaveDocumentTransformer
-        extends BaseDocumentHandler
-        implements Configurable<SaveDocumentTransformerConfig> {
+        implements DocHandler, Configurable<SaveDocumentTransformerConfig> {
 
     private final SaveDocumentTransformerConfig configuration =
             new SaveDocumentTransformerConfig();
@@ -95,7 +94,7 @@ public class SaveDocumentTransformer
     private static boolean warned = false;
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
 
         // create relative path by splitting into directories and maybe escaping
         var rawRelativePath = StringUtils.strip(
@@ -123,13 +122,14 @@ public class SaveDocumentTransformer
                     configuration.getPathToField(),
                     file.toAbsolutePath().toString());
         }
+        return true;
     }
 
     // Done synchronously to reduce the risk of collisions when
     // dealing with default file names vs directory.  A file could be
     // renamed/written while saving occurs in another thread.
     private synchronized void saveFile(
-            HandlerContext docCtx, Path file) throws IOException {
+            DocHandlerContext docCtx, Path file) throws IOException {
         // if file already exists as a directory, give it a default file name,
         // within that directory
         if (Files.isDirectory(file)) {

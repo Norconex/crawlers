@@ -19,8 +19,8 @@ import java.util.HashSet;
 import java.util.regex.Pattern;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.BaseDocumentHandler;
-import com.norconex.importer.handler.HandlerContext;
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -66,19 +66,19 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class KeepOnlyTransformer
-        extends BaseDocumentHandler
-        implements Configurable<KeepOnlyTransformerConfig> {
+        implements DocHandler, Configurable<KeepOnlyTransformerConfig> {
 
     private final KeepOnlyTransformerConfig configuration =
             new KeepOnlyTransformerConfig();
 
     @Override
-    public void handle(HandlerContext docCtx) throws IOException {
+    public boolean handle(DocHandlerContext docCtx) throws IOException {
         for (String field : new HashSet<>(docCtx.metadata().keySet())) {
             if (!configuration.getFieldMatcher().matches(field)) {
                 docCtx.metadata().remove(field);
                 LOG.debug("Not kept: {}", field);
             }
         }
+        return true;
     }
 }

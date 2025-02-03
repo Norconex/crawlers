@@ -56,7 +56,7 @@ class UrlExtractorTransformerTest {
                 """;
 
         var props = new Properties();
-        t.accept(
+        t.handle(
                 TestUtil.newHandlerContext(
                         "ref", TestUtil.toInputStream(text), props,
                         ParseState.POST));
