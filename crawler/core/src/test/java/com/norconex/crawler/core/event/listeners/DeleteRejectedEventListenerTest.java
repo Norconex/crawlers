@@ -48,8 +48,8 @@ class DeleteRejectedEventListenerTest {
                         method: WILDCARD
                         pattern: "mock:delete*"
                     then:
-                      -handler:
-                         class: Reject
+                      - handler:
+                          class: Reject
             """
     )
 
