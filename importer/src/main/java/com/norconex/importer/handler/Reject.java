@@ -26,11 +26,6 @@ import lombok.Data;
  * optional custom message for event logging. If wrapped in a
  * {@link Condition}, information about the condition will also be logged.
  */
-//@JsonTypeInfo(
-//    use = JsonTypeInfo.Id.NAME,
-//    include = JsonTypeInfo.As.WRAPPER_OBJECT
-//)
-//@JsonTypeName("reject")
 @Data
 public class Reject implements DocHandler, Configurable<RejectConfig> {
 

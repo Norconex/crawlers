@@ -31,6 +31,7 @@ import com.norconex.importer.handler.DocHandlerListDeserializer;
 import com.norconex.importer.handler.DocHandlerListSerializer;
 
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * Conditionally execute one or more doc handlers (possibly including other
@@ -94,7 +95,7 @@ public abstract class ConditionalDocHandler implements DocHandler {
     }
 
     @Override
-    public boolean handle(DocHandlerContext docHandlerContext)
+    public boolean handle(@NonNull DocHandlerContext docHandlerContext)
             throws IOException {
         var conditionMet =
                 condition != null && condition.test(docHandlerContext);
