@@ -51,5 +51,5 @@ java -Dlog4j2.configurationFile="file:///%ROOT_DIR%log4j2.xml" ^
 --add-opens=java.base/java.time=ALL-UNNAMED ^
 --add-opens=java.base/java.text=ALL-UNNAMED ^
 --add-opens=java.management/sun.management=ALL-UNNAMED ^
---add-opens java.desktop/java.awt.font=ALL-UNNAMED ^
+--add-opens=java.desktop/java.awt.font=ALL-UNNAMED ^
 -cp "./lib/*;./classes" com.norconex.crawler.fs.FsCrawler %*
