@@ -141,6 +141,7 @@ public class DefaultIgniteConfigAdapter
                     cc.setWriteBehindCoalescing(
                             !lcc.isWriteBehindCoalescingDisabled());
                     cc.setStoreByValue(!lcc.isStoreByValueDisabled());
+                    cc.setBackups(1);
                     return cc;
                 })
                 .toList()

@@ -21,6 +21,7 @@ import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.CacheEntryProcessor;
+import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.CacheWriteSynchronizationMode;
 import org.apache.ignite.configuration.CacheConfiguration;
 
@@ -51,6 +52,8 @@ public class IgniteGridCache<T> implements GridCache<T> {
         cfg.setWriteSynchronizationMode(
                 CacheWriteSynchronizationMode.FULL_SYNC);
         cfg.setReadFromBackup(false);
+
+        cfg.setBackups(1);
 
         // Until we have better... for size()
         cfg.setStatisticsEnabled(true);

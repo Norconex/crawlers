@@ -42,7 +42,7 @@ public class IgniteGridSet<T> implements GridSet<T> {
         this.name = name;
         set = ignite.set(
                 name + IgniteGridStorage.Suffix.SET,
-                new CollectionConfiguration());
+                new CollectionConfiguration().setBackups(1));
     }
 
     @Override

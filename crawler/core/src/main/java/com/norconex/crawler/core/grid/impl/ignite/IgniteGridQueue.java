@@ -50,10 +50,10 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
         this.name = name;
         queue = ignite.queue(name + IgniteGridStorage.Suffix.QUEUE,
                 0, // Unbounded queue capacity.
-                new CollectionConfiguration());
+                new CollectionConfiguration().setBackups(1));
         idSet = ignite.set(
                 name + IgniteGridStorage.Suffix.SET,
-                new CollectionConfiguration());
+                new CollectionConfiguration().setBackups(1));
     }
 
     @Override

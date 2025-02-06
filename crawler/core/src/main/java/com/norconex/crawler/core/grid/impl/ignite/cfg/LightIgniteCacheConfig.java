@@ -33,7 +33,7 @@ import lombok.experimental.Accessors;
 public class LightIgniteCacheConfig {
     private CacheAtomicityMode atomicityMode =
             CacheConfiguration.DFLT_CACHE_ATOMICITY_MODE;
-    private int backups = CacheConfiguration.DFLT_BACKUPS;
+    private int backups = 1;
     private CacheMode cacheMode = CacheConfiguration.DFLT_CACHE_MODE;
     /** Whether to disable copy on read. */
     private boolean copyOnReadDisabled = !CacheConfiguration.DFLT_COPY_ON_READ;
