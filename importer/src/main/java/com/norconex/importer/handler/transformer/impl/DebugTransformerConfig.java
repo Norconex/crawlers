@@ -22,6 +22,7 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.slf4j.event.Level;
 
 /**
  * <p>A utility tagger to help with troubleshooting of document importing.
@@ -66,7 +67,16 @@ public class DebugTransformerConfig {
 
     private final List<String> logFields = new ArrayList<>();
     private boolean logContent;
-    private String logLevel;
+
+    //    private String logLevel;
+    private Level logLevel;
+    //    public enum LogLevel {
+    //        ERROR,
+    //        WARN,
+    //        INFO,
+    //        DEBUG,
+    //        TRACE
+    //    }
 
     /**
      * The prefix to print before the actual log message.
@@ -82,5 +92,9 @@ public class DebugTransformerConfig {
     public DebugTransformerConfig setLogFields(List<String> logFields) {
         CollectionUtil.setAll(this.logFields, logFields);
         return this;
+    }
+
+    public void setLogLevel(String str) {
+        logLevel = Level.valueOf(str.toUpperCase());
     }
 }

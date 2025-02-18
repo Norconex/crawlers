@@ -86,7 +86,10 @@ public class DebugTransformer
 
         var level = Level.valueOf(
                 ObjectUtils.defaultIfNull(
-                        configuration.getLogLevel(), "debug").toUpperCase());
+                        configuration.getLogLevel(), "debug").toString());
+        //        var level = Level.valueOf(
+        //                ObjectUtils.defaultIfNull(
+        //                        configuration.getLogLevel(), "debug").toUpperCase());
 
         if (configuration.getLogFields().isEmpty()) {
             for (Entry<String, List<String>> entry : docCtx.metadata()
