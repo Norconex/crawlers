@@ -144,11 +144,12 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                         }, configuration.getMaxBufferSize()));
 
         Optional.ofNullable(configuration.getHost())
-                .map(host -> new InetSocketAddress(host, configuration.getPort()).getAddress())
+                .map(host -> new InetSocketAddress(host,
+                        configuration.getPort()).getAddress())
                 .ifPresentOrElse(
-                        address -> mobProxy.start(configuration.getPort(), address),
-                        () -> mobProxy.start(configuration.getPort())
-                );
+                        address -> mobProxy.start(configuration.getPort(),
+                                address),
+                        () -> mobProxy.start(configuration.getPort()));
 
         var actualPort = mobProxy.getPort();
         var proxyHost = ofNullable(configuration.getHost()).orElse("localhost");

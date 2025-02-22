@@ -96,6 +96,7 @@ public class CrawlerContext implements Closeable {
     private static final String KEY_RESUMING = "resuming";
     private static final String KEY_STOPPING = "stopping";
     private static final String KEY_QUEUE_INITIALIZED = "queueInitialized";
+    private static final String KEY_MAX_PROCESSED_DOCS = "maxProcessedDocs";
 
     // -- NOTE on server nodes ---
     // Some of the following fields are only used on server nodes when on a
@@ -333,6 +334,20 @@ public class CrawlerContext implements Closeable {
 
     public void queueInitialized() {
         setState(KEY_QUEUE_INITIALIZED, true);
+    }
+
+    //MAYBE: Consider caching this value once set by DocLedgerInitializer
+    public long maxProcessedDocs() {
+        var maxDocs = grid.storage()
+                .getGlobalCache().get(KEY_MAX_PROCESSED_DOCS);
+        return maxDocs == null ? configuration.getMaxDocuments()
+                : Long.parseLong(maxDocs);
+    }
+
+    public void maxProcessedDocs(long maxDocs) {
+        grid.storage()
+                .getGlobalCache()
+                .put(KEY_MAX_PROCESSED_DOCS, Long.toString(maxDocs));
     }
 
     public static boolean isInitialized(String nodeId) {

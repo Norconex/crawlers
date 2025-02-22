@@ -43,24 +43,28 @@ public class IgniteGridCompute implements GridCompute {
     public <T> Future<T> runLocalOnce(String jobName, Callable<T> callable)
             throws GridException {
 
+        var sessionJobName =
+                jobName + "-" + IgniteGridConnector.CRAWL_SESSION_ID;
+
         var lock = igniteGrid.getIgnite().reentrantLock(
-                jobName, true, true, true);
+                sessionJobName, true, true, true);
         var runOnceCache = igniteGrid.storage().getCache(
                 IgniteGridKeys.RUN_ONCE_CACHE, String.class);
 
         var chosenOne = false;
         try {
             lock.lock();
-            var existingStatus = runOnceCache.get(jobName);
+            var existingStatus = runOnceCache.get(sessionJobName);
             if (existingStatus != null) {
                 chosenOne = false;
                 if (hasJobRan(existingStatus)) {
-                    LOG.info("Job \"{}\" already ran with status: \"{}\".",
+                    LOG.info("Job \"{}\" already ran in this crawl session "
+                            + "with status: \"{}\".",
                             jobName, existingStatus);
                     return CompletableFuture.completedFuture(null);
                 }
             } else {
-                chosenOne = runOnceCache.put(jobName, "running");
+                chosenOne = runOnceCache.put(sessionJobName, "running");
             }
         } finally {
             lock.unlock();
@@ -73,10 +77,10 @@ public class IgniteGridCompute implements GridCompute {
                 return executor.submit(() -> {
                     try {
                         var value = callable.call();
-                        runOnceCache.put(jobName, "done");
+                        runOnceCache.put(sessionJobName, "done");
                         return value;
                     } catch (Exception e) {
-                        runOnceCache.put(jobName, "failed");
+                        runOnceCache.put(sessionJobName, "failed");
                         return null;
                     }
                 });
@@ -89,7 +93,7 @@ public class IgniteGridCompute implements GridCompute {
                     // The clean command can make it that there is no status
                     // for a while, but the "runOnceCache" is the last one
                     // cleared so the exiting from here is not premature.
-                    var status = runOnceCache.get(jobName);
+                    var status = runOnceCache.get(sessionJobName);
                     if (StringUtils.isBlank(status)
                             || hasJobRan(status)) {
                         done = true;

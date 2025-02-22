@@ -119,7 +119,7 @@ public class CrawlerProgressLogger {
                 .append("\n  Event counts (incl. resumed):");
         monitor.getEventCounts().entrySet().stream().forEach(
                 en -> b.append("\n    ")
-                        .append(StringUtils.rightPad(en.getKey() + ": ", 27))
+                        .append(StringUtils.rightPad(en.getKey() + ": ", 32))
                         .append(intFormatter.format(en.getValue())));
         return b.toString();
     }

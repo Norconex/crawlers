@@ -23,7 +23,6 @@ import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.grid.GridQueue;
 import com.norconex.crawler.core.util.SerialUtil;
 
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,11 +49,11 @@ public class DocProcessingLedger { //implements Closeable {
     private Class<? extends CrawlDocContext> type;
     private GridCache<String> globalCache;
     private CrawlerContext crawlerContext;
-    @Getter
-    private int maxDocsProcessed;
 
-    // return true if resuming (holds records that have not been processed),
-    // false otherwise
+    //NOTE: This init performs the necessary steps to "create" the ledger.
+    // Actual preparation before crawling start is typically done elsewhere,
+    // on the created ledger. Example, the CrawlerSpect with its
+    // DocLegerInitializer.
     public void init(CrawlerContext crawlerContext) {
         this.crawlerContext = crawlerContext;
         type = crawlerContext.getDocContextType();
@@ -74,16 +73,6 @@ public class DocProcessingLedger { //implements Closeable {
         queue = storage.getQueue("queue", String.class);
         processed = storage.getCache(processedCacheName, String.class);
         cached = storage.getCache(cachedCacheName, String.class);
-
-        var cfgMaxDocs = crawlerContext.getConfiguration().getMaxDocuments();
-        maxDocsProcessed = cfgMaxDocs;
-        if (cfgMaxDocs > -1 && crawlerContext.isResuming()) {
-            maxDocsProcessed += getProcessedCount();
-            LOG.info("""
-                    An additional maximum of {} processed documents is added to
-                    this resumed session, for a maximum total of {}.
-                    """, cfgMaxDocs, maxDocsProcessed);
-        }
     }
 
     /**
@@ -234,11 +223,13 @@ public class DocProcessingLedger { //implements Closeable {
         // Check if we merge with StopCrawlerOnMaxEventListener
         // or if we remove maxDocument in favor of the listener.
         // what about clustering?
-        var isMax = maxDocsProcessed > -1
-                && getProcessedCount() >= maxDocsProcessed;
+        var maxProcessedDocs = crawlerContext.maxProcessedDocs();
+        var isMax = maxProcessedDocs > -1
+                && getProcessedCount() >= maxProcessedDocs;
         if (isMax) {
-            LOG.info("Maximum documents reached for this crawling session: {}",
-                    maxDocsProcessed);
+            LOG.info("Maximum documents reached for this crawling "
+                    + "session: {}",
+                    maxProcessedDocs);
         }
         return isMax;
     }

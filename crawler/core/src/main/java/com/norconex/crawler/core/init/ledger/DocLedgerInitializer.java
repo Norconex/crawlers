@@ -37,6 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
 
+    //NOTE: Runs after the DocProcessingLedger#init() method has been invoked.
+
     public static final String KEY_INITIALIZING = "ledger.initializing";
 
     @Override
@@ -61,6 +63,8 @@ public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
         var ledger = crawlerContext.getDocProcessingLedger();
 
         var isResuming = !ledger.isQueueEmpty();
+        long maxProcessedDocs =
+                crawlerContext.getConfiguration().getMaxDocuments();
         if (isResuming) {
             crawlerContext.resuming();
             if (LOG.isInfoEnabled()) {
@@ -74,6 +78,19 @@ public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
                         PercentFormatter.format(
                                 processedCount, totalCount, 2, Locale.ENGLISH),
                         processedCount, totalCount);
+                LOG.debug("Resuming from:"
+                        + "\n    Queued: " + ledger.getQueueCount()
+                        + "\n Processed: " + processedCount
+                        + "\n    Cached: " + ledger.getCachedCount());
+            }
+
+            if (maxProcessedDocs > -1) {
+                maxProcessedDocs += ledger.getProcessedCount();
+                LOG.info("""
+                    An additional maximum of {} processed documents is
+                    added to this resumed session, for a maximum total of {}.
+                    """, crawlerContext.getConfiguration().getMaxDocuments(),
+                        maxProcessedDocs);
             }
         } else {
             ledger.clearQueue();
@@ -93,5 +110,6 @@ public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
                 }
             }
         }
+        crawlerContext.maxProcessedDocs(maxProcessedDocs);
     }
 }
