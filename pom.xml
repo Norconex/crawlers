@@ -32,8 +32,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding
-    >
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
@@ -93,7 +92,7 @@
     <!-- Test/Provided dependencies -->
     <assertj.version>3.24.2</assertj.version>
     <easy-random.version>5.0.0</easy-random.version>
-    <junit-jupiter.version>5.10.2</junit-jupiter.version>
+    <junit-jupiter.version>5.12.0</junit-jupiter.version>
     <mockito.version>5.12.0</mockito.version>
     <mockserver.version>5.15.0</mockserver.version>
     <testcontainers.version>1.20.4</testcontainers.version>
@@ -197,11 +196,6 @@
       <dependency>
         <groupId>com.norconex.crawler</groupId>
         <artifactId>nx-committer-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.norconex.crawler</groupId>
-        <artifactId>nx-shaded-libs</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -1159,7 +1153,6 @@
 
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
-    <module>shaded</module>
     <module>committer/core</module> 
     <module>committer/solr</module>
     <module>committer/elasticsearch</module>

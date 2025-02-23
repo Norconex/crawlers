@@ -22,6 +22,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.h2.mvstore.MVStore;
+import org.h2.mvstore.tx.TransactionStore;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.CrawlerContext;
@@ -30,8 +32,6 @@ import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridTask;
 import com.norconex.crawler.core.grid.GridTxOptions;
-import com.norconex.shaded.h2.mvstore.MVStore;
-import com.norconex.shaded.h2.mvstore.tx.TransactionStore;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

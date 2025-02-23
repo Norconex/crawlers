@@ -50,6 +50,7 @@ public class HdfsFetcherConfig extends BaseAuthVfsFetcherConfig {
     public List<String> getConfigNames() {
         return Collections.unmodifiableList(configNames);
     }
+
     /**
      * Sets the names of configuration resources to be loaded after defaults.
      * @param configNames list of names

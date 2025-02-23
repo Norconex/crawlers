@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.ClassUtil;
@@ -32,8 +34,6 @@ import com.norconex.crawler.core.grid.GridSet;
 import com.norconex.crawler.core.grid.GridStorage;
 import com.norconex.crawler.core.grid.GridStore;
 import com.norconex.crawler.core.util.SerialUtil;
-import com.norconex.shaded.h2.mvstore.MVMap;
-import com.norconex.shaded.h2.mvstore.MVStore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -17,12 +17,12 @@ package com.norconex.crawler.core.grid.impl.local;
 import java.util.UUID;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.h2.mvstore.MVStore;
 
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridServices;
 import com.norconex.crawler.core.grid.GridStorage;
-import com.norconex.shaded.h2.mvstore.MVStore;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

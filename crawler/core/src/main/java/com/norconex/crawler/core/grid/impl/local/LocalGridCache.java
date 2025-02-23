@@ -20,12 +20,12 @@ import java.util.function.BiPredicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 
 import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.util.SerialUtil;
 import com.norconex.crawler.core.util.SerializableUnaryOperator;
-import com.norconex.shaded.h2.mvstore.MVMap;
-import com.norconex.shaded.h2.mvstore.MVStore;
 
 import lombok.Getter;
 import lombok.NonNull;

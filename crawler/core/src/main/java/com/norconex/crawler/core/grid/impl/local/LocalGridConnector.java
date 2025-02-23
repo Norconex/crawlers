@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.apache.commons.io.FileUtils;
+import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.config.Configurable;
@@ -28,8 +30,6 @@ import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.util.ConfigUtil;
-import com.norconex.shaded.h2.mvstore.MVStore;
-import com.norconex.shaded.h2.mvstore.MVStoreException;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
