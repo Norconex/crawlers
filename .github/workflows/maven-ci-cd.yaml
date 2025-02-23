@@ -182,7 +182,7 @@ jobs:
       run: |
         changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
         if [ -n "$changed_modules" ]; then
-          pl_argument="-pl \"$changed_modules\"
+          pl_argument="-pl \"$changed_modules\""
           am_argument="-am"
         else
           pl_argument=""
