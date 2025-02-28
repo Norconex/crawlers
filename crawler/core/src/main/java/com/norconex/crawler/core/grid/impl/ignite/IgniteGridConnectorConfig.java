@@ -14,52 +14,34 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import org.apache.ignite.Ignite;
-import org.apache.ignite.configuration.IgniteConfiguration;
-
-import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteConfigAdapter;
-import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteGridActivator;
-import com.norconex.crawler.core.grid.impl.ignite.cfg.LightIgniteConfig;
+import com.norconex.crawler.core.grid.impl.ignite.activator.DefaultIgniteGridActivator;
+import com.norconex.crawler.core.grid.impl.ignite.activator.IgniteGridActivator;
+import com.norconex.crawler.core.grid.impl.ignite.configurer.IgniteConfigurer;
 
 import lombok.Data;
-import lombok.NonNull;
 import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Ignite grid connector configuration.
+ * Ignite grid connector configuration. Native IgniteConfiguration can be
+ * configured with an {@link #setConfigurer(IgniteConfigurer)} and/or with
+ * {@link #setConfigurerScript(String)}. If both are be provided,
+ * the "configurer" runs before the "configurerScript".
  * </p>
  */
 @Data
 @Accessors(chain = true)
 public class IgniteGridConnectorConfig {
 
-    /**
-     * Ignite node configuration. When the {@link IgniteGridConnector} is used
-     * without configuration, the crawler will default to a single-node local
-     * cluster with minimal configuration ideal for testing but not much else.
-     */
-    private LightIgniteConfig igniteConfig = new LightIgniteConfig();
+    private IgniteConfigurer configurer;
 
-    /**
-     * Adapter that converts the IgniteGridConfiguration into Ignite native
-     * {@link IgniteConfiguration}. This is the ideal place to programmatically
-     * configure Ignite and add more advanced Ignite configuration options.
-     * Default is {@link DefaultIgniteConfigAdapter}.
-     */
-    @NonNull
-    private Function<LightIgniteConfig,
-            IgniteConfiguration> igniteConfigAdapter =
-                    new DefaultIgniteConfigAdapter();
+    private String configurerScriptEngine;
+    private String configurerScript;
 
     /**
      * Defines the grid activation logic. Default is
      * {@link DefaultIgniteGridActivator}.
      */
-    private Consumer<Ignite> igniteGridActivator =
+    private IgniteGridActivator igniteGridActivator =
             new DefaultIgniteGridActivator();
-
 }

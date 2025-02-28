@@ -12,9 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.grid.impl.ignite.cfg;
-
-import java.util.function.Consumer;
+package com.norconex.crawler.core.grid.impl.ignite.activator;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.cluster.ClusterState;
@@ -31,10 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @Slf4j
-public class DefaultIgniteGridActivator implements Consumer<Ignite> {
+public class DefaultIgniteGridActivator implements IgniteGridActivator {
 
     @Override
-    public void accept(Ignite ignite) {
+    public void activate(Ignite ignite) {
         // Perform initial activation if needed
         //TODO manage activation externally? Allow to activate auto-activation
         // via config? Else?

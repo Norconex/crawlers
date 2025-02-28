@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,35 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.grid.impl.ignite.cfg.ip;
+package com.norconex.crawler.core.grid.impl.ignite.configurer;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-/**
- * Lightweight version of Ignite {@link TcpDiscoveryVmIpFinder}.
- */
 @Data
 @Accessors(chain = true)
-public class VmIpFinder implements LightIgniteIpFinder {
-
+public class TcpAddressConfigurerConfig {
     private final List<String> addresses = new ArrayList<>();
-    private boolean shared;
 
-    public Collection<String> getAddresses() {
+    public List<String> getAddresses() {
         return Collections.unmodifiableList(addresses);
     }
 
-    public void setAddresses(Collection<String> addresses) {
+    public TcpAddressConfigurerConfig setAddresses(
+            List<String> addresses) {
         CollectionUtil.setAll(this.addresses, addresses);
+        CollectionUtil.removeNulls(this.addresses);
+        return this;
     }
 }

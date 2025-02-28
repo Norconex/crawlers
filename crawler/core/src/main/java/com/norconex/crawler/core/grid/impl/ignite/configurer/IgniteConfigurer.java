@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,20 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.grid.impl.ignite.cfg.ip;
+package com.norconex.crawler.core.grid.impl.ignite.configurer;
 
-import org.apache.ignite.spi.discovery.tcp.ipfinder.sharedfs.TcpDiscoverySharedFsIpFinder;
+import org.apache.ignite.configuration.IgniteConfiguration;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
+@FunctionalInterface
+public interface IgniteConfigurer {
 
-/**
- * Lightweight version of Ignite {@link TcpDiscoverySharedFsIpFinder}.
- */
-@Data
-@Accessors(chain = true)
-public class SharedFsIpFinder implements LightIgniteIpFinder {
-
-    private boolean shared;
-    private String path = TcpDiscoverySharedFsIpFinder.DFLT_PATH;
+    void configure(IgniteConfiguration cfg);
 }

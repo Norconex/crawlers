@@ -119,6 +119,12 @@
       <groupId>org.apache.ignite</groupId>
       <artifactId>ignite-core</artifactId>
       <version>${ignite.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     
     <!--
@@ -133,7 +139,12 @@
       <groupId>org.apache.ignite</groupId>
       <artifactId>ignite-kubernetes</artifactId>
       <version>${ignite.version}</version>
-    </dependency>    
+    </dependency>
+<!--    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-calcite</artifactId>
+      <version>${ignite.version}</version>
+    </dependency>-->
 
 <!--
     <dependency>

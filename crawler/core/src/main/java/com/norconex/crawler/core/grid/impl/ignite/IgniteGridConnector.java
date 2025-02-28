@@ -16,18 +16,11 @@ package com.norconex.crawler.core.grid.impl.ignite;
 
 import static java.util.Optional.ofNullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.configuration.DataRegionConfiguration;
 import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.kubernetes.configuration.KubernetesConnectionConfiguration;
-import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.kubernetes.TcpDiscoveryKubernetesIpFinder;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.config.Configurable;
@@ -36,14 +29,46 @@ import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.GridException;
-import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteConfigAdapter;
-import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteGridActivator;
-import com.norconex.crawler.core.util.ConfigUtil;
+import com.norconex.importer.handler.DocHandlerException;
+import com.norconex.importer.handler.ScriptRunner;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+
+/*
+ALL Caches:
+
+TODO: figure out which one to make configurable and mark some or all as being
+  experimental?
+
+  Some name will be given as generic names but will be mapped to actual
+  more complex name.
+
+  Use Jackson pojo mapping.
+
+Core:
+  CrawlerContext -> state management
+  GLOBAL_CACHE = "global-cache";
+  RUN_ONCE_CACHE = "runonce-cache";
+
+  queue
+  process
+  cached
+
+  CrawlerMetrics.eventCounts
+  dedupMetadata
+  dedupDocument
+
+
+
+Web:
+
+  SitemapRecord.class.getSimpleName();
+  UrlScopeResolver.class.getSimpleName() + ".resolvedSites";
+
+*/
 
 @EqualsAndHashCode
 @ToString
@@ -52,10 +77,15 @@ public class IgniteGridConnector
         implements GridConnector,
         Configurable<IgniteGridConnectorConfig> {
 
+    private static final String KEY_CRAWL_NODE_INDEX = "CRAWL_NODE_INDEX";
+    private static final String KEY_CRAWL_SESSION_ID = "CRAWL_SESSION_ID";
+
+    //TODO evaluate if we want those mandatory or only if not provided
+    // by configurer and/or script
     public static final String CRAWL_NODE_INDEX =
-            SystemUtil.getEnvironmentOrProperty("CRAWL_NODE_INDEX");
+            SystemUtil.getEnvironmentOrProperty(KEY_CRAWL_NODE_INDEX);
     public static final String CRAWL_SESSION_ID =
-            SystemUtil.getEnvironmentOrProperty("CRAWL_SESSION_ID");
+            SystemUtil.getEnvironmentOrProperty(KEY_CRAWL_SESSION_ID);
 
     private static final String IGNITE_BASE_DIR =
             "/ignite/data/node-%s".formatted(CRAWL_NODE_INDEX);
@@ -69,29 +99,72 @@ public class IgniteGridConnector
             Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
             CrawlerConfig crawlerConfig) {
 
-        if (StringUtils.isBlank(CRAWL_NODE_INDEX)) {
-            throw new GridException(
-                    "Missing environment variable (or system property): "
-                            + "CRAWL_NODE_INDEX");
-        }
-        if (StringUtils.isBlank(CRAWL_SESSION_ID)) {
-            throw new GridException(
-                    "Missing environment variable (or system property): "
-                            + "CRAWL_SESSION_ID");
-        }
+        ensureEnvVars();
+        System.setProperty("IGNITE_NO_ASCII", "true");
 
         var cfg = new IgniteConfiguration();
 
-        // --- Generic configuration: ---
+        applyDefaultSettings(cfg);
+        applyClassConfigurer(cfg);
+        applyScriptConfigurer(cfg);
+        logIgniteSpecifics(cfg);
+
+        // Start
+        var ignite = Ignition.start(cfg);
+        if (configuration.getIgniteGridActivator() != null) {
+            configuration.getIgniteGridActivator().activate(ignite);
+        } else {
+            LOG.warn("No Ignite grid activator defined.");
+        }
+
+        return new IgniteGrid(ignite);
+    }
+
+    private void applyDefaultSettings(IgniteConfiguration cfg) {
+        // Generic configuration
         cfg.setWorkDirectory(IGNITE_BASE_DIR + "/work");
 
-        // --- Persistent storage: ---
-
+        // Persistent storage
         var storageCfg = new DataStorageConfiguration();
         storageCfg.setStoragePath(IGNITE_BASE_DIR + "/storage");
         storageCfg.setWalPath(IGNITE_BASE_DIR + "/wal");
         storageCfg.setWalArchivePath(IGNITE_BASE_DIR + "/wal/archive");
 
+        // Data reagion
+        var dataRegionCfg = new DataRegionConfiguration();
+        dataRegionCfg.setName("Default_Region");
+        dataRegionCfg.setPersistenceEnabled(true);
+        storageCfg.setDefaultDataRegionConfiguration(dataRegionCfg);
+
+        cfg.setDataStorageConfiguration(storageCfg);
+    }
+
+    private void applyClassConfigurer(IgniteConfiguration cfg) {
+        if (configuration.getConfigurer() != null) {
+            configuration.getConfigurer().configure(cfg);
+        }
+    }
+
+    private void applyScriptConfigurer(IgniteConfiguration cfg) {
+        if (StringUtils.isNotBlank(configuration.getConfigurerScript())) {
+            try {
+                new ScriptRunner<>(StringUtils.defaultIfBlank(
+                        configuration.getConfigurerScriptEngine(),
+                        ScriptRunner.JAVASCRIPT_ENGINE),
+                        configuration.getConfigurerScript()).eval(b -> {
+                            b.put("cfg", cfg);
+                            b.put("nodeIndex", CRAWL_NODE_INDEX);
+                            b.put("sessionId", CRAWL_SESSION_ID);
+                        });
+            } catch (DocHandlerException e) {
+                throw new GridException(
+                        "Could not configure Ignite via scripting.", e);
+            }
+        }
+    }
+
+    private void logIgniteSpecifics(IgniteConfiguration cfg) {
+        var storageCfg = cfg.getDataStorageConfiguration();
         LOG.info("Crawl session id: {}", CRAWL_SESSION_ID);
         LOG.info("""
         Ignite specifics:
@@ -103,100 +176,26 @@ public class IgniteGridConnector
         """.formatted(
                 CRAWL_NODE_INDEX,
                 cfg.getWorkDirectory(),
-                storageCfg.getStoragePath(),
-                storageCfg.getWalPath(),
-                storageCfg.getWalArchivePath()));
-
-        var dataRegionCfg = new DataRegionConfiguration();
-        dataRegionCfg.setName("Default_Region");
-        dataRegionCfg.setPersistenceEnabled(true);
-        storageCfg.setDefaultDataRegionConfiguration(dataRegionCfg);
-
-        cfg.setDataStorageConfiguration(storageCfg);
-
-        // --- Node discovery: ---
-
-        // Create the Kubernetes IP finder and set the namespace and service name.
-        var kubeCfg = new KubernetesConnectionConfiguration();
-        kubeCfg.setNamespace("default");
-        kubeCfg.setServiceName("ignite-crawler");
-        var ipFinder = new TcpDiscoveryKubernetesIpFinder(kubeCfg);
-
-        // Set up the discovery SPI
-        var discoverySpi = new TcpDiscoverySpi();
-        discoverySpi.setIpFinder(ipFinder);
-
-        cfg.setDiscoverySpi(discoverySpi);
-
-        // Start
-        var ignite = Ignition.start(cfg);
-        new DefaultIgniteGridActivator().accept(ignite); // ignite.active(true);
-
-        return new IgniteGrid(ignite);
+                ofNullable(storageCfg.getStoragePath()).orElse("N/A"),
+                ofNullable(storageCfg.getWalPath()).orElse("N/A"),
+                ofNullable(storageCfg.getWalArchivePath()).orElse("N/A")));
     }
 
-    // @Override
-    public Grid connectORIG(
-            Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
-            CrawlerConfig crawlerConfig) {
-
-        var igniteCfg =
-                ofNullable(configuration.getIgniteConfigAdapter())
-                        .orElseGet(DefaultIgniteConfigAdapter::new)
-                        .apply(configuration.getIgniteConfig());
-
-        if (StringUtils.isBlank(igniteCfg.getWorkDirectory())) {
-            igniteCfg.setWorkDirectory(ConfigUtil.resolveWorkDir(crawlerConfig)
-                    .resolve("ignite").toAbsolutePath().toString());
-            LOG.info("Ignite instance \"%s\" work directory: %s"
-                    .formatted(
-                            StringUtils.defaultIfBlank(
-                                    igniteCfg.getIgniteInstanceName(),
-                                    "<default>"),
-                            igniteCfg.getWorkDirectory()));
+    private void ensureEnvVars() {
+        if (StringUtils.isBlank(CRAWL_NODE_INDEX)) {
+            throw new GridException("""
+                    Missing environment variable (or system property): "%s".
+                    Needs to be a value unique to each node and the same on
+                    each crawl session.
+                    """.formatted(KEY_CRAWL_NODE_INDEX));
         }
-
-        System.setProperty("IGNITE_NO_ASCII", "true");
-        //        var ignite = Ignition.getOrStart(igniteCfg);
-        //
-        //        ofNullable(configuration.getIgniteGridActivator())
-        //                .orElseGet(DefaultIgniteGridActivator::new).accept(ignite);
-
-        // Discovery overwrite: -----------------------------------------
-        var containerName = System.getenv("HOSTNAME"); // Gets the container name (e.g., ignite-node-1)
-        var baseName = containerName.replaceFirst("^(.*)-.*$", "$1"); // Get the base name of the container (e.g., ignite)
-
-        var ipFinder = new TcpDiscoveryVmIpFinder();
-
-        // Dynamically build the list of addresses
-        List<String> addresses = new ArrayList<>();
-        for (var i = 1; i <= 3; i++) { // Assuming 3 nodes
-            addresses.add(baseName + "-" + i + ":47500..47509");
+        if (StringUtils.isBlank(CRAWL_SESSION_ID)) {
+            throw new GridException("""
+                    Missing environment variable (or system property): "%s".
+                    Needs to be a value unique to each crawl session but the
+                    same across all nodes during the session.
+                    """.formatted(KEY_CRAWL_SESSION_ID));
         }
-
-        ipFinder.setAddresses(addresses);
-
-        var discoverySpi = new TcpDiscoverySpi();
-        discoverySpi.setIpFinder(ipFinder);
-
-        igniteCfg.setDiscoverySpi(discoverySpi);
-
-        var ignite = Ignition.getOrStart(igniteCfg);
-
-        ofNullable(configuration.getIgniteGridActivator())
-                .orElseGet(DefaultIgniteGridActivator::new).accept(ignite);
-
-        return new IgniteGrid(ignite);
     }
+
 }
-
-//TcpDiscoveryVmIpFinder ipFinder = new TcpDiscoveryVmIpFinder();
-//ipFinder.setAddresses(Arrays.asList("ignite-node-1:47500..47509",
-//                                   "ignite-node-2:47500..47509",
-//                                   "ignite-node-3:47500..47509"));  // Add all your node names here
-//
-//TcpDiscoverySpi discoverySpi = new TcpDiscoverySpi();
-//discoverySpi.setIpFinder(ipFinder);
-//
-//IgniteConfiguration cfg = new IgniteConfiguration();
-//cfg.setDiscoverySpi(discoverySpi);

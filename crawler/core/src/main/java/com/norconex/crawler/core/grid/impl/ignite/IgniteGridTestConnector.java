@@ -33,7 +33,7 @@ import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.ignite.cfg.DefaultIgniteGridActivator;
+import com.norconex.crawler.core.grid.impl.ignite.activator.DefaultIgniteGridActivator;
 import com.norconex.crawler.core.util.ConfigUtil;
 
 import lombok.EqualsAndHashCode;
@@ -104,7 +104,7 @@ public class IgniteGridTestConnector
         var ignite = Ignition.getOrStart(igniteCfg);
 
         ofNullable(configuration.getIgniteGridActivator())
-                .orElseGet(DefaultIgniteGridActivator::new).accept(ignite);
+                .orElseGet(DefaultIgniteGridActivator::new).activate(ignite);
 
         return new IgniteGrid(ignite);
     }

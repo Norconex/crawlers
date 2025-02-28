@@ -1,6 +1,8 @@
 TODO:
 ==============
 
+- For Ignite Grid, consider using CheckpointSpi for crawler stages.
+
 - Whenever we return a future, check for errors/exceptions or they're swallowed
 
 - Add concept of doc processing timeout
