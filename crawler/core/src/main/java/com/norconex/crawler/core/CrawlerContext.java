@@ -199,7 +199,7 @@ public class CrawlerContext implements Closeable {
 
         stateCache = grid.storage().getCache(
                 CrawlerContext.class.getSimpleName(), Boolean.class);
-        grid.compute().runLocalOnce(CrawlerContext.class.getSimpleName(),
+        grid.compute().runOnOneOnce(CrawlerContext.class.getSimpleName(),
                 () -> {
                     stateCache.clear();
                     return null;

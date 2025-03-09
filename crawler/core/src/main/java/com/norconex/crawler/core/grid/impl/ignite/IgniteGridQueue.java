@@ -14,46 +14,49 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import static java.util.Optional.ofNullable;
-
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
 import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteException;
-import org.apache.ignite.IgniteQueue;
-import org.apache.ignite.IgniteSet;
-import org.apache.ignite.configuration.CollectionConfiguration;
+import org.apache.ignite.table.RecordView;
+import org.apache.ignite.table.Table;
+import org.apache.ignite.table.Tuple;
 
-import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridQueue;
+import com.norconex.crawler.core.util.SerialUtil;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.StandardException;
 
 public class IgniteGridQueue<T> implements GridQueue<T> {
 
-    private String name;
+    private final String name;
     // we use a set to ensure uniqueness on key.
-    private final IgniteSet<String> idSet;
-    private final IgniteQueue<QueueEntry<T>> queue;
+    //    private final IgniteSet<String> idSet;
+    //    private final IgniteQueue<QueueEntry<T>> queue;
 
     @Getter
     private final Class<? extends T> type;
+
+    private final Table table;
+    private final Ignite ignite;
+    private final RecordView<Tuple> view;
 
     @NonNull
     public IgniteGridQueue(Ignite ignite, String name,
             Class<? extends T> type) {
         this.type = type;
         this.name = name;
-        queue = ignite.queue(name + IgniteGridStorage.Suffix.QUEUE,
-                0, // Unbounded queue capacity.
-                new CollectionConfiguration());
-        idSet = ignite.set(
-                name + IgniteGridStorage.Suffix.SET,
-                new CollectionConfiguration());
+        this.ignite = ignite;
+
+        ignite.sql().execute(null, """
+            CREATE TABLE IF NOT EXISTS %s (
+                id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                key STRING NOT NULL UNIQUE,
+                value STRING NOT NULL
+            );""".formatted(name));
+        table = ignite.tables().table(name);
+        view = table.recordView();
     }
 
     @Override
@@ -63,78 +66,82 @@ public class IgniteGridQueue<T> implements GridQueue<T> {
 
     @Override
     public void clear() {
-        idSet.clear();
-        queue.clear();
+        //TODO shall we delete all with SQL instead?
+        ignite.catalog().dropTable(name);
+        //        idSet.clear();
+        //        queue.clear();
     }
 
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
-        try {
-            queue.forEach(en -> {
-                if (!predicate.test(en.getKey(), en.getObject())) {
-                    throw new BreakException();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT key, value FROM %s ORDER BY id"
+                        .formatted(name))) {
+            while (resultSet.hasNext()) {
+                var row = resultSet.next();
+                if (!predicate.test(row.stringValue(0),
+                        SerialUtil.fromJson(row.stringValue(1), type))) {
+                    return false;
                 }
-            });
-        } catch (BreakException e) {
-            return false;
+            }
         }
         return true;
     }
 
     @Override
     public boolean isEmpty() {
-        return queue.isEmpty();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT 1 FROM %s LIMIT 1".formatted(name))) {
+            return !resultSet.hasNext();
+        }
     }
 
     @Override
     public boolean contains(Object key) {
-        return idSet.contains((String) key);
+        try (var resultSet = ignite.sql().execute(
+                null,
+                "SELECT 1 FROM %s WHERE key = ? LIMIT 1"
+                        .formatted(name),
+                key)) {
+            return resultSet.hasNext();
+        }
     }
 
     @Override
     public long size() {
-        return queue.size();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT count(*) FROM %s".formatted(name))) {
+            return resultSet.next().longValue(0);
+        }
     }
 
     @Override
     public boolean put(String key, T object) {
-        var added = idSet.add(key);
-        if (added) {
-            var entry = new QueueEntry<T>();
-            entry.setKey(key);
-            entry.setObject(object);
-            try {
-                if (!queue.offer(entry)) {
-                    // should not happen unless Ignire queue configuration was
-                    // explicitly set with a capacity
-                    throw new GridException(
-                            "Queue '%s' has reached maximum capacity."
-                                    .formatted(name));
-                }
-            } catch (IgniteException e) {
-                idSet.remove(key);
-            }
-        }
-        return added;
+        var row = Tuple.create()
+                .set("key", key)
+                .set("value", SerialUtil.toJsonString(object));
+        // add if non-existent only
+        return view.insert(null, row);
     }
 
     @Override
     public Optional<T> poll() {
-        var queueEntry = queue.poll();
-        if (queueEntry != null) {
-            idSet.remove(queueEntry.key);
-        }
-        return ofNullable(queueEntry).map(QueueEntry::getObject);
-    }
-
-    @Data
-    static class QueueEntry<T> {
-        private String key;
-        private T object;
-    }
-
-    @StandardException
-    static class BreakException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
+        return ignite.transactions().runInTransaction(tx -> {
+            var resultSet = ignite.sql().execute(
+                    tx,
+                    "SELECT id, value FROM %s ORDER BY id LIMIT 1"
+                            .formatted(name));
+            T value = null;
+            if (resultSet.hasNext()) {
+                var row = resultSet.next();
+                var id = row.longValue(0);
+                value = SerialUtil.fromJson(row.stringValue(1), type);
+                ignite.sql().execute(tx,
+                        "DELETE FROM %s WHERE id = ?".formatted(name),
+                        id);
+                tx.commit();
+            }
+            return Optional.ofNullable(value);
+        });
     }
 }

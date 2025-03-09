@@ -22,26 +22,27 @@ public interface GridCompute {
 
     /**
      * Runs the supplied {@link Callable} only <b>once</b> for the entire crawl
-     * session for the given job name. The execution takes place on the node
-     * invoking this method. If
+     * session for the given job name on exactly one node. If
      * multiple nodes are invoking this method, only one of them will actually
      * execute the {@link Callable} while other nodes will block until
-     * completion. Invoking this method more than once per crawl session
-     * has no effect.
-     * Because it is always executed by the calling node, this means no
-     * serialization is required.
-     * If you seek job execution fail-over, do not rely on this method.
-     * The return value is a future with the return value of the callable
-     * when on the node that executed it. Else, the future value is
-     * <code>null</code>.
-     * return {@link NullPointerException}
+     * completion or return right away without execution if the task has
+     * already been completed. Invoking this method more than once per crawl
+     * session has no effect.
+     * Because it is always executed locally by the "chosen" node, this means no
+     * serialization is required and a {@link Callable} instance is
+     * passed as argument.
+     * If you seek job execution fail-over (another node resuming the task
+     * upon the chosen node failing), do not rely on this method.
+     * The return value is a future that will contain the return value of the
+     * {@link Callable} when on the node that executed it. Else, the future
+     * value is <code>null</code>.
      * @param <T> Type of callable return value
      * @param jobName unique job name
      * @param callable code to execute
      * @return future with the callable return value (can be <code>null</code>)
      * @throws GridException problem with runnable execution
      */
-    <T> Future<T> runLocalOnce(String jobName, Callable<T> callable)
+    <T> Future<T> runOnOneOnce(String jobName, Callable<T> callable)
             throws GridException;
 
     /**
@@ -50,36 +51,28 @@ public interface GridCompute {
      * @param <T> type of return value(s)
      * @param taskClass the task class to be instantiated and executed
      * @param arg argument to supply to the task instance
-     * @param opts transaction options
      * @return a future holding  a collection of the executed code return
      *     (s), which can be empty if there is nothing to return by all
      *     instances ran.
      * @throws GridException
      */
     <T> Future<Collection<? extends T>> runOnAll(
-            Class<? extends GridTask<T>> taskClass,
-            String arg,
-            GridTxOptions opts)
+            Class<? extends GridTask<T>> taskClass, String arg)
             throws GridException;
 
     /**
      * Runs the supplied grid task on one node and have the result
      * stored in a {@link Future}. Unlike
-     * {@link #runLocalOnce(String, Callable)}, there is no guarantee on
-     * which node the code will be executed. In addition, the same task can be
-     * executed any number of times by callers.
+     * {@link #runOnOneOnce(String, Callable)}, the same task can be run
+     * multiple times within a crawl session (but always on a single node).
      * @param taskClass the task class to be instantiated and executed
      * @param arg argument to supply to the task instance
-     * @param opts transaction options
      * @return a future holding  a collection of the executed code return
      *     (s), which can be empty if there is nothing to return by all
      *     instances ran.
      * @throws GridException
      */
     <T> Future<T> runOnOne(
-            Class<? extends GridTask<T>> taskClass,
-            String arg,
-            GridTxOptions opts)
+            Class<? extends GridTask<T>> taskClass, String arg)
             throws GridException;
-
 }

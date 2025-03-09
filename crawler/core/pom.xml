@@ -31,10 +31,12 @@
     <cxf.version>3.4.5</cxf.version>
     <hikaricp.version>5.1.0</hikaricp.version>
     <h2.version>2.2.224</h2.version>
-    <ignite.version>2.16.0</ignite.version>
+    <ignite.version>3.0.0</ignite.version>
+<!--    <ignite.version>2.16.0</ignite.version>-->
     <jdom2.version>2.0.6.1</jdom2.version>
     <mongodb.version>5.1.1</mongodb.version>
     <swagger.version>2.2.15</swagger.version>
+    <typesafe.version>1.4.3</typesafe.version>
   </properties>
 
   <inceptionYear>2014</inceptionYear>
@@ -75,6 +77,34 @@
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-committer-core</artifactId>
     </dependency>
+
+    <!-- Ignite 3 -->
+<!--    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-core</artifactId>
+      <version>${ignite.version}</version>
+    </dependency>-->
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-api</artifactId>    
+      <version>${ignite.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-runner</artifactId>
+      <version>${ignite.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-core</artifactId>
+      <version>${ignite.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.typesafe</groupId>
+      <artifactId>config</artifactId>
+      <version>${typesafe.version}</version>
+    </dependency>
+    
     
     <!--
     <dependency>
@@ -101,7 +131,36 @@
       <artifactId>h2-mvstore</artifactId>
       <version>${h2.version}</version>
     </dependency>    
-    
+
+    <!-- IGNITE 2 START -->
+    <!--
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-core</artifactId>
+      <version>${ignite.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-kubernetes</artifactId>
+      <version>${ignite.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ignite</groupId>
+      <artifactId>ignite-slf4j</artifactId>
+      <version>${ignite.version}</version>
+    </dependency>
+        
+    -->
+    <!-- IGNITE 2 END -->
+
+
+
     
     <!-- REMOVE THIS: conflicts with Ignite H2 version: 
     <dependency>
@@ -115,17 +174,6 @@
       <version>${h2.version}</version>
     </dependency>
     -->
-    <dependency>
-      <groupId>org.apache.ignite</groupId>
-      <artifactId>ignite-core</artifactId>
-      <version>${ignite.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.h2database</groupId>
-          <artifactId>h2</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
     
     <!--
         
@@ -135,11 +183,6 @@
       <version>${ignite.version}</version>
     </dependency>
     -->
-    <dependency>
-      <groupId>org.apache.ignite</groupId>
-      <artifactId>ignite-kubernetes</artifactId>
-      <version>${ignite.version}</version>
-    </dependency>
 <!--    <dependency>
       <groupId>org.apache.ignite</groupId>
       <artifactId>ignite-calcite</artifactId>
@@ -168,11 +211,6 @@
         </exclusion>
       </exclusions>
     </dependency>-->
-    <dependency>
-      <groupId>org.apache.ignite</groupId>
-      <artifactId>ignite-slf4j</artifactId>
-      <version>${ignite.version}</version>
-    </dependency>
     
 <!--    <dependency>
         <groupId>org.apache.ignite</groupId>

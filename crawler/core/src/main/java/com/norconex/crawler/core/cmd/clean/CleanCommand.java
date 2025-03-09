@@ -28,7 +28,7 @@ public class CleanCommand implements Command {
     public void execute(CrawlerContext ctx) {
         Thread.currentThread().setName(ctx.getId() + "/CLEAN");
         ctx.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN);
-        ConcurrentUtil.block(ctx.getGrid().compute().runLocalOnce(
+        ConcurrentUtil.block(ctx.getGrid().compute().runOnOneOnce(
                 CleanCommand.class.getSimpleName(), () -> {
                     ctx.getCommitterService().clean();
                     // Close metrics prematurely, before cleaning, or

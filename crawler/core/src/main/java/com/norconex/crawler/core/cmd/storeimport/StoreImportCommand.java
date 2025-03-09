@@ -53,7 +53,7 @@ public class StoreImportCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN);
         try {
-            ConcurrentUtil.block(ctx.getGrid().compute().runLocalOnce(
+            ConcurrentUtil.block(ctx.getGrid().compute().runOnOneOnce(
                     StoreImportCommand.class.getSimpleName(), () -> {
                         importAllStores(ctx);
                         return null;

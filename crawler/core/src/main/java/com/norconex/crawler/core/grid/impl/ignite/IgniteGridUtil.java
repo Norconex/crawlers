@@ -14,14 +14,6 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.ignite.IgniteException;
-import org.apache.ignite.Ignition;
-import org.apache.ignite.internal.IgniteKernal;
-import org.apache.ignite.lang.IgniteFuture;
-
-import com.norconex.crawler.core.grid.GridException;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -30,31 +22,31 @@ public final class IgniteGridUtil {
     private IgniteGridUtil() {
     }
 
-    public static String cacheExternalName(String internalName) {
-        return StringUtils.substringBeforeLast(
-                internalName, IgniteGridStorage.SUFFIX_SEPARATOR);
-    }
+    //    public static String cacheExternalName(String internalName) {
+    //        return StringUtils.substringBeforeLast(
+    //                internalName, IgniteGridStorage.SUFFIX_SEPARATOR);
+    //    }
 
-    public static Object block(IgniteFuture<?> igniteFuture) {
-        try {
-            return igniteFuture.get();
-        } catch (IgniteException e) {
-            if (!isIgniteRunning()) {
-                LOG.warn("Could not wait for Ignite future to return due to "
-                        + "Ignite grid no longer running.");
-                return null;
-            }
-            LOG.error("Clould not block Ignite future.", e);
-            throw new GridException("Clould not block Ignite future.", e);
-        }
-    }
-
-    private static boolean isIgniteRunning() {
-        try {
-            var ignite = Ignition.ignite();
-            return !((IgniteKernal) ignite).isStopping();
-        } catch (IllegalStateException e) {
-            return false;
-        }
-    }
+    //    public static Object block(IgniteFuture<?> igniteFuture) {
+    //        try {
+    //            return igniteFuture.get();
+    //        } catch (IgniteException e) {
+    //            if (!isIgniteRunning()) {
+    //                LOG.warn("Could not wait for Ignite future to return due to "
+    //                        + "Ignite grid no longer running.");
+    //                return null;
+    //            }
+    //            LOG.error("Clould not block Ignite future.", e);
+    //            throw new GridException("Clould not block Ignite future.", e);
+    //        }
+    //    }
+    //
+    //    private static boolean isIgniteRunning() {
+    //        try {
+    //            var ignite = Ignition.ignite();
+    //            return !((IgniteKernal) ignite).isStopping();
+    //        } catch (IllegalStateException e) {
+    //            return false;
+    //        }
+    //    }
 }

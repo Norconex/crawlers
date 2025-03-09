@@ -19,9 +19,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.ListValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.ignite.table.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.ClassUtil;
@@ -44,44 +42,27 @@ import lombok.ToString;
 @RequiredArgsConstructor
 public class IgniteGridStorage implements GridStorage {
 
-    static final String SUFFIX_SEPARATOR = "__";
     private static final String STORE_TYPES_KEY =
             "ignite.object.and.store.types";
 
-    // caches always have one or more suffixes when stored.
-    @RequiredArgsConstructor
-    enum Suffix {
-        CACHE(SUFFIX_SEPARATOR + "cache"),
-        SET(SUFFIX_SEPARATOR + "set"),
-        QUEUE(SUFFIX_SEPARATOR + "queue"),
-        DICT(SUFFIX_SEPARATOR + "dict");
-
-        private final String value;
-
-        @Override
-        public String toString() {
-            return value;
-        }
-    }
-
     private final IgniteGrid igniteGrid;
 
-    private IgniteGridCache<ObjectAndStoreTypes> cacheObjectAndStoreTypes;
+    private IgniteGridCache<StoreSpecs> cacheObjectAndStoreTypes;
 
     @JsonIgnore
     @Override
     public <T> GridCache<T> getCache(
             @NonNull String storeName, @NonNull Class<? extends T> objectType) {
-        cacheObjectAndStoreTypes(storeName, objectType, GridCache.class);
+        cacheStoreSpecs(storeName, objectType, GridCache.class);
         return new IgniteGridCache<>(
-                igniteGrid.getIgnite(), storeName, objectType);
+                igniteGrid.getIgniteApi(), storeName, objectType);
     }
 
     @JsonIgnore
     @Override
     public GridCache<String> getGlobalCache() {
         return new IgniteGridCache<>(
-                igniteGrid.getIgnite(),
+                igniteGrid.getIgniteApi(),
                 IgniteGridKeys.GLOBAL_CACHE,
                 String.class);
     }
@@ -90,34 +71,36 @@ public class IgniteGridStorage implements GridStorage {
     @Override
     public <T> GridQueue<T> getQueue(
             String storeName, Class<? extends T> objectType) {
-        cacheObjectAndStoreTypes(storeName, objectType, GridQueue.class);
+        cacheStoreSpecs(storeName, objectType, GridQueue.class);
         return new IgniteGridQueue<>(
-                igniteGrid.getIgnite(), storeName, objectType);
+                igniteGrid.getIgniteApi(), storeName, objectType);
     }
 
     @JsonIgnore
     @Override
     public <T> GridSet<T> getSet(
             String storeName, Class<? extends T> objectType) {
-        cacheObjectAndStoreTypes(storeName, objectType, GridSet.class);
+        cacheStoreSpecs(storeName, objectType, GridSet.class);
         return new IgniteGridSet<>(
-                igniteGrid.getIgnite(), storeName, objectType);
+                igniteGrid.getIgniteApi(), storeName, objectType);
     }
 
     @JsonIgnore
     @Override
     public Set<String> getStoreNames() {
-        return getActualStoreNames()
-                .keySet()
+        return igniteGrid
+                .getIgniteApi()
+                .tables()
+                .tables()
                 .stream()
-                .filter(nm -> !STORE_TYPES_KEY.equals(nm))
+                .map(Table::name)
                 .collect(Collectors.toSet());
     }
 
     @Override
     public void forEachStore(Consumer<GridStore<?>> storeConsumer) {
         getStoreNames().forEach(name -> {
-            var objAndStoreTypes = objectAndStoreTypes().get(name);
+            var objAndStoreTypes = storeSpecs().get(name);
             if (objAndStoreTypes != null) {
                 storeConsumer.accept(concreteStore(
                         objAndStoreTypes.getStoreType(),
@@ -130,19 +113,36 @@ public class IgniteGridStorage implements GridStorage {
     @Override
     public void clean() {
         // We clear the "run-once" and "global-cache" and destroy others
-        igniteGrid.getIgnite().destroyCaches(
-                igniteGrid
-                        .getIgnite()
-                        .cacheNames()
-                        .stream()
-                        .filter(nm -> StringUtils.equalsAny(
-                                IgniteGridUtil.cacheExternalName(nm),
-                                IgniteGridKeys.RUN_ONCE_CACHE,
-                                IgniteGridKeys.GLOBAL_CACHE))
-                        .toList());
-        igniteGrid.storage().getCache(
-                IgniteGridKeys.RUN_ONCE_CACHE, String.class).clear();
-        igniteGrid.storage().getGlobalCache().clear();
+        //TODO clear vs destroy
+        var catalog = igniteGrid.getIgniteApi().catalog();
+        igniteGrid
+                .getIgniteApi()
+                .tables()
+                .tables()
+                .stream()
+                .map(Table::name)
+                .forEach(catalog::dropTable);
+        //                        .filter(nm -> StringUtils.equalsAny(
+        //                                IgniteGridUtil.cacheExternalName(nm),
+        //                                IgniteGridKeys.RUN_ONCE_CACHE,
+        //                                IgniteGridKeys.GLOBAL_CACHE))
+        //                        .toList());
+
+        //        igniteGrid.getIgnite().destroyCaches(
+        //                igniteGrid
+        //                        .getIgniteApi()
+        //                        .tables()
+        //                        .tables()
+        //                        .stream()
+        //                        .map(tbl -> tbl.name())
+        //                        .filter(nm -> StringUtils.equalsAny(
+        //                                IgniteGridUtil.cacheExternalName(nm),
+        //                                IgniteGridKeys.RUN_ONCE_CACHE,
+        //                                IgniteGridKeys.GLOBAL_CACHE))
+        //                        .toList());
+        //        igniteGrid.storage().getCache(
+        //                IgniteGridKeys.RUN_ONCE_CACHE, String.class).clear();
+        //        igniteGrid.storage().getGlobalCache().clear();
     }
 
     GridStore<?> concreteStore(
@@ -159,43 +159,32 @@ public class IgniteGridStorage implements GridStorage {
         }
         return ClassUtil.newInstance(
                 concreteType,
-                igniteGrid.getIgnite(),
+                igniteGrid.getIgniteApi(),
                 storeName,
                 objectType);
     }
 
-    private <T> void cacheObjectAndStoreTypes(
+    private void cacheStoreSpecs(
             String storeName,
-            Class<? extends T> objectType,
+            Class<?> objectType,
             Class<?> storeType) {
-        objectAndStoreTypes().put(
-                storeName, new ObjectAndStoreTypes(objectType, storeType));
+        storeSpecs().put(storeName, new StoreSpecs(objectType, storeType));
     }
 
-    private synchronized IgniteGridCache<ObjectAndStoreTypes>
-            objectAndStoreTypes() {
+    private synchronized IgniteGridCache<StoreSpecs> storeSpecs() {
         if (cacheObjectAndStoreTypes == null) {
             cacheObjectAndStoreTypes = new IgniteGridCache<>(
-                    igniteGrid.getIgnite(),
+                    igniteGrid.getIgniteApi(),
                     STORE_TYPES_KEY,
-                    ObjectAndStoreTypes.class);
+                    StoreSpecs.class);
         }
         return cacheObjectAndStoreTypes;
-    }
-
-    private ListValuedMap<String, String> getActualStoreNames() {
-        var names = new ArrayListValuedHashMap<String, String>();
-        igniteGrid.getIgnite().cacheNames().forEach(
-                nm -> names.put(
-                        IgniteGridUtil.cacheExternalName(nm),
-                        nm));
-        return names;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    static class ObjectAndStoreTypes implements Serializable {
+    static class StoreSpecs implements Serializable {
         private static final long serialVersionUID = 1L;
         private Class<?> objectType;
         private Class<?> storeType;

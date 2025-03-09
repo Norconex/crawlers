@@ -17,7 +17,7 @@ package com.norconex.crawler.core.grid.impl.ignite;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-import org.apache.ignite.IgniteException;
+import org.apache.ignite.lang.IgniteException;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.grid.GridService;
@@ -42,7 +42,7 @@ public class IgniteGridServices implements GridServices {
 
             //NOTE: returns after service init()... start still running.
             // so we wait for start to be done below
-            igniteGrid.getIgnite().services()
+            igniteGrid.getIgniteApi().services()
                     .deployClusterSingleton(
                             serviceName,
                             new IgniteGridServiceAdapter(serviceName,

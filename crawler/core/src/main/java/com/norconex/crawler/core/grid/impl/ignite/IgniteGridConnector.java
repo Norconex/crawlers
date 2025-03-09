@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import static java.util.Optional.ofNullable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ignite.Ignition;
-import org.apache.ignite.configuration.DataRegionConfiguration;
-import org.apache.ignite.configuration.DataStorageConfiguration;
-import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.IgniteServer;
+import org.apache.ignite.InitParameters;
 
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.config.Configurable;
@@ -29,8 +29,7 @@ import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridConnector;
 import com.norconex.crawler.core.grid.GridException;
-import com.norconex.importer.handler.DocHandlerException;
-import com.norconex.importer.handler.ScriptRunner;
+import com.typesafe.config.ConfigFactory;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -102,24 +101,68 @@ public class IgniteGridConnector
         ensureEnvVars();
         System.setProperty("IGNITE_NO_ASCII", "true");
 
-        var cfg = new IgniteConfiguration();
+        var configFile = resolveIgniteConfig();
 
-        applyDefaultSettings(cfg);
-        applyClassConfigurer(cfg);
-        applyScriptConfigurer(cfg);
-        logIgniteSpecifics(cfg);
+        var node = IgniteServer.start(
+                "crawler-node-" + CRAWL_NODE_INDEX,
+                configFile,
+                Path.of(IGNITE_BASE_DIR + "/work"));
 
+        //https://ignite.apache.org/docs/ignite3/latest/administrators-guide/config/node-config#snapshots-configuration
+        var initParameters = InitParameters.builder()
+                //TODO accept more than 1 node?
+                .metaStorageNodeNames("crawler-node-1")
+                .clusterName("crawler-cluster")
+                .clusterConfiguration("{}")
+                .build();
+
+        node.initCluster(initParameters);
+        //TODO init grid. See: https://ignite.apache.org/docs/ignite3/latest/quick-start/embedded-mode
+
+        return new IgniteGrid(node);
+
+        ///////////////////////////
+        //
+        //        var cfg = new IgniteConfiguration();
+        //
+        //        applyDefaultSettings(cfg);
+        //        applyClassConfigurer(cfg);
+        //        applyScriptConfigurer(cfg);
+        //        logIgniteSpecifics(cfg);
+        //
         // Start
-        var ignite = Ignition.start(cfg);
-        if (configuration.getIgniteGridActivator() != null) {
-            configuration.getIgniteGridActivator().activate(ignite);
-        } else {
-            LOG.warn("No Ignite grid activator defined.");
-        }
-
-        return new IgniteGrid(ignite);
+        //                var ignite = Ignition.start(cfg);
+        //                if (configuration.getIgniteGridActivator() != null) {
+        //                    configuration.getIgniteGridActivator().activate(ignite);
+        //                } else {
+        //                    LOG.warn("No Ignite grid activator defined.");
+        //                }
+        //
+        //                return new IgniteGrid(ignite);
     }
 
+    private Path resolveIgniteConfig() {
+        //NOTE: as of this writing, Ignite 3 does not offer an API to configure.
+        // It wants a file-based config. So we load a default one and apply
+        // any user supplied one on top.
+        var defaultConfig = ConfigFactory.load("ignite-default.conf");
+        var userConfig =
+                ConfigFactory.parseString(configuration.getConfig());
+        var mergedConfig = userConfig.withFallback(defaultConfig).resolve();
+        var hoconString = mergedConfig.root().render();
+
+        //TODO use ignite home dir instead of temp dir
+        try {
+            var cfgFile = Files.createTempFile("ignite-", ".conf");
+            Files.newBufferedWriter(cfgFile).write(hoconString);
+            return cfgFile;
+        } catch (IOException e) {
+            throw new GridException("Could not resolve Ignite configuration.",
+                    e);
+        }
+    }
+
+    /*
     private void applyDefaultSettings(IgniteConfiguration cfg) {
         // Generic configuration
         cfg.setWorkDirectory(IGNITE_BASE_DIR + "/work");
@@ -180,7 +223,7 @@ public class IgniteGridConnector
                 ofNullable(storageCfg.getWalPath()).orElse("N/A"),
                 ofNullable(storageCfg.getWalArchivePath()).orElse("N/A")));
     }
-
+    */
     private void ensureEnvVars() {
         if (StringUtils.isBlank(CRAWL_NODE_INDEX)) {
             throw new GridException("""

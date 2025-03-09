@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.grid.impl.ignite;
 
 import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteServer;
 
 import com.norconex.crawler.core.grid.Grid;
 import com.norconex.crawler.core.grid.GridCompute;
@@ -40,7 +41,11 @@ public class IgniteGrid implements Grid {
 
     @NonNull
     @Getter(value = AccessLevel.PACKAGE)
-    private final Ignite ignite;
+    private final IgniteServer igniteServer;
+
+    public Ignite getIgniteApi() {
+        return igniteServer.api();
+    }
 
     @Override
     public GridStorage storage() {
@@ -59,11 +64,11 @@ public class IgniteGrid implements Grid {
 
     @Override
     public String nodeId() {
-        return ignite.cluster().localNode().id().toString();
+        return igniteServer.name();
     }
 
     @Override
     public void close() {
-        ignite.close();
+        igniteServer.shutdown();
     }
 }

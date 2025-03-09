@@ -75,14 +75,13 @@ public class CrawlTask implements GridTask<Void> {
             for (var i = 0; i < numThreads; i++) {
                 final var threadIndex = i + 1;
                 LOG.debug("Crawler thread #{} starting...", threadIndex);
-                execService.execute(
-                        DocProcessor.builder()
-                                .crawlerContext(ctx)
-                                .latch(latch)
-                                .threadIndex(threadIndex)
-                                .deleting(flags.delete())
-                                .orphan(flags.orphan())
-                                .build());
+                execService.execute(DocProcessor.builder()
+                        .crawlerContext(ctx)
+                        .latch(latch)
+                        .threadIndex(threadIndex)
+                        .deleting(flags.delete())
+                        .orphan(flags.orphan())
+                        .build());
             }
             latch.await();
         } catch (InterruptedException e) {

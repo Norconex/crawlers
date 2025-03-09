@@ -18,44 +18,66 @@ import java.util.Objects;
 import java.util.function.BiPredicate;
 
 import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteCache;
-import org.apache.ignite.cache.CacheAtomicityMode;
-import org.apache.ignite.cache.CacheEntryProcessor;
-import org.apache.ignite.cache.CacheWriteSynchronizationMode;
-import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.table.KeyValueView;
+import org.apache.ignite.table.Table;
 
 import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.util.SerialUtil;
 import com.norconex.crawler.core.util.SerializableUnaryOperator;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.experimental.StandardException;
 
+//TODO rename GridCache to GridMap (or GridKeyValue)
 public class IgniteGridCache<T> implements GridCache<T> {
 
-    private String name;
-    @Getter(value = AccessLevel.PACKAGE)
-    private final IgniteCache<String, T> cache;
+    private final String name;
     @Getter
     private final Class<? extends T> type;
+    private final Ignite ignite;
+
+    //    @Getter(value = AccessLevel.PACKAGE)
+    private final Table table;
+    private final KeyValueView<String, String> view;
 
     @NonNull
-    public IgniteGridCache(Ignite ignite, String name,
-            Class<? extends T> type) {
+    public IgniteGridCache(
+            Ignite ignite, String name, Class<? extends T> type) {
         this.type = type;
         this.name = name;
-        var cfg = new CacheConfiguration<String, T>();
-        cfg.setName(name + IgniteGridStorage.Suffix.CACHE);
-        cfg.setAtomicityMode(CacheAtomicityMode.ATOMIC);
-        cfg.setWriteSynchronizationMode(
-                CacheWriteSynchronizationMode.FULL_SYNC);
-        cfg.setReadFromBackup(false);
+        this.ignite = ignite;
+
+        ignite.sql().execute(null, """
+            CREATE TABLE IF NOT EXISTS %s (
+                key STRING PRIMARY KEY,
+                value STRING NOT NULL
+            );""".formatted(name));
+
+        table = ignite.tables().table(name);
+        view = table.keyValueView(String.class, String.class);
+
+        //        table = ignite.catalog().createTable(TableDefinition
+        //                .builder(internalName)
+        //                .ifNotExists()
+        //                .record(KeyValueRecord.class)
+        //                .build());
+
+        //        cache = ignite
+        //                .tables()
+        //                .table(internalName)
+        //                .keyValueView(String.class, type);
+
+        //        var cfg = new CacheConfiguration<String, T>();
+        //        cfg.setName(name + IgniteGridStorage.Suffix.CACHE);
+        //        cfg.setAtomicityMode(CacheAtomicityMode.ATOMIC);
+        //        cfg.setWriteSynchronizationMode(
+        //                CacheWriteSynchronizationMode.FULL_SYNC);
+        //        cfg.setReadFromBackup(false);
 
         // Until we have better... for size()
-        cfg.setStatisticsEnabled(true);
+        //        cfg.setStatisticsEnabled(true);
 
-        cache = ignite.getOrCreateCache(cfg);
+        //        cache = ignite.getOrCreateCache(cfg);
     }
 
     @Override
@@ -65,66 +87,70 @@ public class IgniteGridCache<T> implements GridCache<T> {
 
     @Override
     public boolean put(String key, T object) {
-        return !Objects.equals(cache.getAndPut(key, object), object);
+        return !Objects.equals(
+                object,
+                view.getAndPut(null, key, SerialUtil.toJsonString(object)));
     }
 
     @Override
     public boolean update(String key, SerializableUnaryOperator<T> updater) {
-        return cache.invoke(key, (CacheEntryProcessor<String, T,
-                Boolean>) (entry, arguments) -> {
-                    var existingValue = entry.getValue();
-                    var newValue = updater.apply(existingValue);
-                    entry.setValue(newValue);
-                    return !Objects.equals(existingValue, newValue);
-                });
+        return ignite.transactions().runInTransaction(tx -> {
+            var existingValue = SerialUtil.fromJson(view.get(tx, key), type);
+            var newValue = updater.apply(existingValue);
+            view.put(tx, key, SerialUtil.toJsonString(newValue));
+            return !Objects.equals(existingValue, newValue);
+        });
     }
 
     @Override
     public T get(String key) {
-        return cache.get(key);
+        return SerialUtil.fromJson(view.get(null, key), type);
     }
 
     @Override
     public boolean delete(String key) {
-        return cache.remove(key);
+        return view.remove(null, key);
     }
 
     @Override
     public void clear() {
-        cache.clear();
+        //TODO shall we delete all with SQL instead?
+        ignite.catalog().dropTable(name);
     }
 
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
-        try {
-            cache.forEach(en -> {
-                if (!predicate.test(en.getKey(), en.getValue())) {
-                    throw new BreakException();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT * FROM %s".formatted(name))) {
+            while (resultSet.hasNext()) {
+                var row = resultSet.next();
+                if (!predicate.test(row.stringValue(0),
+                        SerialUtil.fromJson(row.stringValue(1), type))) {
+                    return false;
                 }
-            });
-        } catch (BreakException e) {
-            return false;
+            }
         }
         return true;
     }
 
     @Override
     public boolean isEmpty() {
-        return cache.metrics().isEmpty();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT 1 FROM %s LIMIT 1".formatted(name))) {
+            return !resultSet.hasNext();
+        }
     }
 
     @Override
     public boolean contains(Object key) {
-        return cache.containsKey((String) key);
+        return view.contains(null, (String) key);
     }
 
     @Override
     public long size() {
-        return cache.metrics().getCacheSize();
-    }
-
-    @StandardException
-    static class BreakException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT count(*) FROM %s".formatted(name))) {
+            return resultSet.next().longValue(0);
+        }
     }
 }

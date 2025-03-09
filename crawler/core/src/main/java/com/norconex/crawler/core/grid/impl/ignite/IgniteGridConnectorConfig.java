@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import com.norconex.crawler.core.grid.impl.ignite.activator.DefaultIgniteGridActivator;
-import com.norconex.crawler.core.grid.impl.ignite.activator.IgniteGridActivator;
 import com.norconex.crawler.core.grid.impl.ignite.configurer.IgniteConfigurer;
 
 import lombok.Data;
@@ -33,15 +31,17 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class IgniteGridConnectorConfig {
 
-    private IgniteConfigurer configurer;
+    private String config;
 
-    private String configurerScriptEngine;
-    private String configurerScript;
-
-    /**
-     * Defines the grid activation logic. Default is
-     * {@link DefaultIgniteGridActivator}.
-     */
-    private IgniteGridActivator igniteGridActivator =
-            new DefaultIgniteGridActivator();
+    //    private IgniteConfigurer configurer;
+    //
+    //    private String configurerScriptEngine;
+    //    private String configurerScript;
+    //
+    //    /**
+    //     * Defines the grid activation logic. Default is
+    //     * {@link DefaultIgniteGridActivator}.
+    //     */
+    //    private IgniteGridActivator igniteGridActivator =
+    //            new DefaultIgniteGridActivator();
 }

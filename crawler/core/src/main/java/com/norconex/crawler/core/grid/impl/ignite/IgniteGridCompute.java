@@ -16,20 +16,19 @@ package com.norconex.crawler.core.grid.impl.ignite;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableObject;
+import org.apache.ignite.compute.BroadcastJobTarget;
+import org.apache.ignite.compute.JobDescriptor;
+import org.apache.ignite.compute.JobTarget;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.grid.GridCompute;
 import com.norconex.crawler.core.grid.GridException;
 import com.norconex.crawler.core.grid.GridTask;
-import com.norconex.crawler.core.grid.GridTxOptions;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,35 +39,27 @@ public class IgniteGridCompute implements GridCompute {
     private final IgniteGrid igniteGrid;
 
     @Override
-    public <T> Future<T> runLocalOnce(String jobName, Callable<T> callable)
+    public <T> Future<T> runOnOneOnce(String jobName, Callable<T> callable)
             throws GridException {
 
         var sessionJobName =
                 jobName + "-" + IgniteGridConnector.CRAWL_SESSION_ID;
-
-        var lock = igniteGrid.getIgnite().reentrantLock(
-                sessionJobName, true, true, true);
         var runOnceCache = igniteGrid.storage().getCache(
                 IgniteGridKeys.RUN_ONCE_CACHE, String.class);
 
-        var chosenOne = false;
-        try {
-            lock.lock();
-            var existingStatus = runOnceCache.get(sessionJobName);
-            if (existingStatus != null) {
-                chosenOne = false;
-                if (hasJobRan(existingStatus)) {
-                    LOG.info("Job \"{}\" already ran in this crawl session "
-                            + "with status: \"{}\".",
-                            jobName, existingStatus);
-                    return CompletableFuture.completedFuture(null);
-                }
-            } else {
-                chosenOne = runOnceCache.put(sessionJobName, "running");
-            }
-        } finally {
-            lock.unlock();
-        }
+        boolean chosenOne = igniteGrid.getIgniteApi().transactions()
+                .runInTransaction(tx -> {
+                    var existingStatus = runOnceCache.get(sessionJobName);
+                    if (existingStatus == null) {
+                        return runOnceCache.put(sessionJobName, "running");
+                    }
+                    if (hasJobRan(existingStatus)) {
+                        LOG.info("Job \"{}\" already ran in this crawl session "
+                                + "with status: \"{}\".",
+                                jobName, existingStatus);
+                    }
+                    return false;
+                });
 
         var executor = Executors.newFixedThreadPool(1);
         try {
@@ -108,79 +99,42 @@ public class IgniteGridCompute implements GridCompute {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Future<Collection<? extends T>> runOnAll(
-            Class<? extends GridTask<T>> taskClass,
-            String arg,
-            GridTxOptions opts) throws GridException {
+            Class<? extends GridTask<T>> taskClass, String arg)
+            throws GridException {
 
-        return doRunTask(
-                taskClass.getName(),
-                opts,
-                () -> igniteGrid.getIgnite().compute().broadcast(
-                        () -> new IgniteGridTaskAdapter<>(taskClass, arg)
-                                .call()));
+        var api = igniteGrid.getIgniteApi();
+        return api.transactions()
+                .runInTransactionAsync(tx -> api.compute().executeAsync(
+                        BroadcastJobTarget.nodes(api.clusterNodes()),
+                        JobDescriptor
+                                .builder(IgniteGridTaskAdapter.class)
+                                .build(),
+                        IgniteGridTaskAdapter.toComputeArg(taskClass, arg)))
+                .thenApply(collection -> collection.stream()
+                        .map(obj -> (T) obj)
+                        .toList());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Future<T> runOnOne(
-            Class<? extends GridTask<T>> taskClass,
-            String arg,
-            GridTxOptions opts) throws GridException {
+            Class<? extends GridTask<T>> taskClass, String arg)
+            throws GridException {
 
-        return doRunTask(
-                taskClass.getName(), opts,
-                () -> igniteGrid.getIgnite().compute().call(
-                        () -> new IgniteGridTaskAdapter<>(taskClass, arg)
-                                .call()));
+        var api = igniteGrid.getIgniteApi();
+        return (Future<T>) api.transactions()
+                .runInTransactionAsync(tx -> api.compute().executeAsync(
+                        JobTarget.anyNode(api.clusterNodes()),
+                        JobDescriptor
+                                .builder(IgniteGridTaskAdapter.class)
+                                .build(),
+                        IgniteGridTaskAdapter.toComputeArg(taskClass, arg)));
     }
 
     private boolean hasJobRan(String status) {
         return StringUtils.equalsAny(status, "done", "failed");
-    }
-
-    private <T> Future<T> doRunTask(
-            String taskName,
-            GridTxOptions opts,
-            Callable<T> task) throws GridException {
-        return CompletableFuture.supplyAsync(() -> {
-            var taskRef = new MutableObject<Callable<T>>(task);
-            if (opts.isAtomic()) {
-                taskRef.setValue(() -> executeWithAtomic(taskRef.getValue()));
-            }
-            if (opts.isLock()) {
-                taskRef.setValue(() -> executeWithLock(
-                        opts.getName(), taskRef.getValue()));
-            }
-            try {
-                return task.call();
-            } catch (Exception e) {
-                throw new GridException("Coult not run task: " + taskName, e);
-            }
-        });
-    }
-
-    private <T> T executeWithAtomic(Callable<T> task) {
-        try (var tx = igniteGrid.getIgnite().transactions().txStart()) {
-            var result = task.call();
-            tx.commit();
-            return result;
-        } catch (Exception e) {
-            throw new GridException("Transaction failed and rolled back", e);
-        }
-    }
-
-    private <T> T executeWithLock(@NonNull String lockName, Callable<T> task) {
-        var lock = igniteGrid.getIgnite().reentrantLock(
-                lockName, true, false, true);
-        lock.lock();
-
-        try {
-            return task.call();
-        } catch (Exception e) {
-            throw new GridException("Error during locked execution", e);
-        } finally {
-            lock.unlock();
-        }
     }
 }

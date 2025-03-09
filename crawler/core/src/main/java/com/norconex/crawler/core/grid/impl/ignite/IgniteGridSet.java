@@ -18,11 +18,13 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteSet;
-import org.apache.ignite.configuration.CollectionConfiguration;
+import org.apache.ignite.table.RecordView;
+import org.apache.ignite.table.Table;
+import org.apache.ignite.table.Tuple;
 
 import com.norconex.crawler.core.grid.GridSet;
 import com.norconex.crawler.core.grid.GridStore;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -30,19 +32,26 @@ import lombok.experimental.StandardException;
 
 public class IgniteGridSet<T> implements GridSet<T> {
 
-    private String name;
-    private final IgniteSet<T> set;
-
+    private final String name;
     @Getter
     private final Class<? extends T> type;
+    private final Ignite ignite;
+    private final Table table;
+    private final RecordView<Tuple> view;
 
     @NonNull
     public IgniteGridSet(Ignite ignite, String name, Class<? extends T> type) {
         this.type = type;
         this.name = name;
-        set = ignite.set(
-                name + IgniteGridStorage.Suffix.SET,
-                new CollectionConfiguration());
+        this.ignite = ignite;
+
+        ignite.sql().execute(null, """
+                CREATE TABLE IF NOT EXISTS %s (
+                    value STRING PRIMARY KEY
+                );""".formatted(name));
+
+        table = ignite.tables().table(name);
+        view = table.recordView();
     }
 
     @Override
@@ -52,7 +61,8 @@ public class IgniteGridSet<T> implements GridSet<T> {
 
     @Override
     public void clear() {
-        set.clear();
+        //TODO shall we delete all with SQL instead?
+        ignite.catalog().dropTable(name);
     }
 
     /**
@@ -64,14 +74,15 @@ public class IgniteGridSet<T> implements GridSet<T> {
      */
     @Override
     public boolean forEach(Predicate<T> predicate) {
-        try {
-            set.forEach(obj -> {
-                if (!predicate.test(obj)) {
-                    throw new BreakException();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT value FROM %s".formatted(name))) {
+            while (resultSet.hasNext()) {
+                var row = resultSet.next();
+                if (!predicate.test(
+                        SerialUtil.fromJson(row.stringValue(0), type))) {
+                    return false;
                 }
-            });
-        } catch (BreakException e) {
-            return false;
+            }
         }
         return true;
     }
@@ -83,36 +94,54 @@ public class IgniteGridSet<T> implements GridSet<T> {
      */
     @Override
     public boolean forEach(BiPredicate<String, T> predicate) {
-        try {
-            set.forEach(obj -> {
-                if (!predicate.test(null, obj)) {
-                    throw new BreakException();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT value FROM %s".formatted(name))) {
+            while (resultSet.hasNext()) {
+                var row = resultSet.next();
+                if (!predicate.test(null,
+                        SerialUtil.fromJson(row.stringValue(0), type))) {
+                    return false;
                 }
-            });
-        } catch (BreakException e) {
-            return false;
+            }
         }
         return true;
     }
 
     @Override
     public boolean isEmpty() {
-        return set.isEmpty();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT 1 FROM %s LIMIT 1".formatted(name))) {
+            return !resultSet.hasNext();
+        }
     }
 
     @Override
-    public boolean contains(Object key) {
-        return set.contains(key);
+    public boolean contains(Object value) {
+        return view.get(null,
+                Tuple.create().set("value",
+                        SerialUtil.toJsonString(value))) != null;
+
+        //        try (var resultSet = ignite.sql().execute(
+        //                null,
+        //                "SELECT value FROM %s WHERE key = ? LIMIT 1"
+        //                        .formatted(internalName),
+        //                SerialUtil.toJsonString(value))) {
+        //            return resultSet.hasNext();
+        //        }
     }
 
     @Override
     public long size() {
-        return set.size();
+        try (var resultSet = ignite.sql().execute(
+                null, "SELECT count(*) FROM %s".formatted(name))) {
+            return resultSet.next().longValue(0);
+        }
     }
 
     @Override
-    public boolean add(T object) {
-        return set.add(object);
+    public boolean add(T value) {
+        return view.insert(null,
+                Tuple.create().set("value", SerialUtil.toJsonString(value)));
     }
 
     @StandardException

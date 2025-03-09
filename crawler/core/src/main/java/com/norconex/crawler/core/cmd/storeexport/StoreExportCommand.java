@@ -53,7 +53,7 @@ public class StoreExportCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN);
         try {
-            ConcurrentUtil.block(ctx.getGrid().compute().runLocalOnce(
+            ConcurrentUtil.block(ctx.getGrid().compute().runOnOneOnce(
                     StoreExportCommand.class.getSimpleName(), () -> {
                         exportAllStores(ctx);
                         return null;
