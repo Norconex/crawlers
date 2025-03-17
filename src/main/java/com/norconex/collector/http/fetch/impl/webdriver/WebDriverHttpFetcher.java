@@ -284,17 +284,6 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    protected void fetcherThreadBegin(HttpCrawler crawler) {
-        LOG.info("Creating {} web driver.", browser);
-        var driver = browser.createDriver(location, options);
-        if (StringUtils.isBlank(userAgent)) {
-            userAgent = (String) ((JavascriptExecutor) driver).executeScript(
-                    "return navigator.userAgent;");
-        }
-        THREADED_DRIVER.set(driver);
-    }
-
-    @Override
     public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
             throws HttpFetchException {
         var method = ofNullable(httpMethod).orElse(GET);
@@ -325,7 +314,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         }
 
         if (screenshotHandler != null) {
-            screenshotHandler.takeScreenshot(THREADED_DRIVER.get(), doc);
+            screenshotHandler.takeScreenshot(getWebDriver(), doc);
         }
 
         if (fetchResponse != null) {
@@ -342,16 +331,12 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     protected void fetcherThreadEnd(HttpCrawler crawler) {
-        LOG.info("Shutting down {} web driver.", browser);
-        var driver = THREADED_DRIVER.get();
-        if (driver != null) {
-            driver.quit();
-        }
-        THREADED_DRIVER.remove();
+        shutdownWebDriver();
     }
 
     @Override
     protected void fetcherShutdown(HttpCollector c) {
+        shutdownWebDriver();
         if (httpSniffer != null) {
             LOG.info("Shutting down {} HTTP sniffer...", browser);
             Sleeper.sleepSeconds(5);
@@ -359,18 +344,39 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         }
     }
 
+    protected void shutdownWebDriver() {
+        var driver = THREADED_DRIVER.get();
+        if (driver != null) {
+            LOG.info("Shutting down {} web driver.", browser);
+            driver.quit();
+        }
+        THREADED_DRIVER.remove();
+    }
+
     /**
-     * Gets the web driver associated with the current thread (if any).
-     * @return web driver or <code>null</code>
+     * Gets the web driver associated with the current thread or create one
+     * if none is found. Prior to 3.1.0, this method could return
+     * <code>null</code>.
+     * @return web driver (never null)
      */
     protected WebDriver getWebDriver() {
-        return THREADED_DRIVER.get();
+        var driver = THREADED_DRIVER.get();
+        if (driver == null) {
+            LOG.info("Creating {} web driver.", browser);
+            driver = browser.createDriver(location, options);
+            if (StringUtils.isBlank(userAgent)) {
+                userAgent = (String) ((JavascriptExecutor) driver).executeScript(
+                        "return navigator.userAgent;");
+            }
+            THREADED_DRIVER.set(driver);
+        }
+        return driver;
     }
 
     // Overwrite to perform more advanced configuration/manipulation.
     // thread-safe
     protected InputStream fetchDocumentContent(String url) {
-        var driver = THREADED_DRIVER.get();
+        var driver = getWebDriver();
         driver.get(url);
 
         if (StringUtils.isNotBlank(cfg.getEarlyPageScript())) {
