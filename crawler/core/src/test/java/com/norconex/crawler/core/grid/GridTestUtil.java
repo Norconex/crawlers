@@ -14,11 +14,6 @@
  */
 package com.norconex.crawler.core.grid;
 
-import org.apache.ignite.Ignition;
-import org.apache.ignite.internal.IgniteKernal;
-
-import com.norconex.commons.lang.Sleeper;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -30,38 +25,41 @@ public final class GridTestUtil {
      * For an already shutdown grid, wait until it becomes effective.
      */
     public static void waitForGridShutdown() {
-        try {
-            if (!isIgniteRunning()) {
-                LOG.info("Grid not running.");
-                return;
-            }
-
-            LOG.info("Ignite still running, waiting a bit...");
-            Sleeper.sleepSeconds(1);
-            if (isIgniteRunning()) {
-                // force it
-                Ignition.stop(true);
-            }
-            var cnt = 0;
-            do {
-                Sleeper.sleepMillis(500);
-                if (cnt >= 10) {
-                    LOG.error("Ignite did not appear to shutdown.");
-                    break;
-                }
-                cnt++;
-            } while (isIgniteRunning());
-        } catch (Exception e) {
-            LOG.error("Trouble while waiting for grid shutdown.", e);
-        }
+        throw new UnsupportedOperationException("STILL NEEDED?");
+        //
+        //        try {
+        //            if (!isIgniteRunning()) {
+        //                LOG.info("Grid not running.");
+        //                return;
+        //            }
+        //
+        //            LOG.info("Ignite still running, waiting a bit...");
+        //            Sleeper.sleepSeconds(1);
+        //            if (isIgniteRunning()) {
+        //                // force it
+        //                Ignition.stop(true);
+        //            }
+        //            var cnt = 0;
+        //            do {
+        //                Sleeper.sleepMillis(500);
+        //                if (cnt >= 10) {
+        //                    LOG.error("Ignite did not appear to shutdown.");
+        //                    break;
+        //                }
+        //                cnt++;
+        //            } while (isIgniteRunning());
+        //        } catch (Exception e) {
+        //            LOG.error("Trouble while waiting for grid shutdown.", e);
+        //        }
     }
 
     private static boolean isIgniteRunning() {
-        try {
-            var ignite = Ignition.ignite();
-            return !((IgniteKernal) ignite).isStopping();
-        } catch (IllegalStateException e) {
-            return false;
-        }
+        throw new UnsupportedOperationException("STILL NEEDED?");
+        //        try {
+        //            var ignite = Ignition.ignite();
+        //            return !((IgniteKernal) ignite).isStopping();
+        //        } catch (IllegalStateException e) {
+        //            return false;
+        //        }
     }
 }

@@ -17,9 +17,10 @@ package com.norconex.crawler.core.mocks.grid;
 import java.util.UUID;
 
 import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridCompute;
-import com.norconex.crawler.core.grid.GridServices;
-import com.norconex.crawler.core.grid.GridStorage;
+import com.norconex.crawler.core.grid.GridTransactions;
+import com.norconex.crawler.core.grid.compute.GridCompute;
+import com.norconex.crawler.core.grid.pipeline.GridPipeline;
+import com.norconex.crawler.core.grid.storage.GridStorage;
 
 import lombok.Data;
 
@@ -39,7 +40,12 @@ public class MockFailingGrid implements Grid {
     }
 
     @Override
-    public GridServices services() {
+    public GridTransactions transactions() {
+        throw new UnsupportedOperationException("IN_TEST");
+    }
+
+    @Override
+    public GridPipeline pipeline() {
         throw new UnsupportedOperationException("IN_TEST");
     }
 

@@ -59,8 +59,8 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridCache;
 import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.grid.storage.GridMap;
 import com.norconex.crawler.core.operations.DocumentConsumer;
 import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
@@ -135,7 +135,7 @@ public final class WebTestUtil {
                                     new BooleanRandomizer().getRandomValue()))
 
                     .excludeType(Grid.class::equals)
-                    .excludeType(GridCache.class::equals)
+                    .excludeType(GridMap.class::equals)
                     .excludeType(GridConnector.class::equals)
                     .excludeType(SitemapResolver.class::equals)
                     .excludeType(DocumentConsumer.class::equals)

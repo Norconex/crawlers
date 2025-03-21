@@ -16,17 +16,42 @@ package com.norconex.crawler.core.grid;
 
 import java.io.Closeable;
 
+import com.norconex.commons.lang.SystemUtil;
+import com.norconex.crawler.core.grid.compute.DefaultGridCompute;
+import com.norconex.crawler.core.grid.compute.GridCompute;
+import com.norconex.crawler.core.grid.pipeline.DefaultGridPipeline;
+import com.norconex.crawler.core.grid.pipeline.GridPipeline;
+import com.norconex.crawler.core.grid.storage.GridStorage;
+
 /**
  * Underlying system used to compute tasks and store crawl session data.
  */
 //High-level interface for abstracting different grid technologies
 public interface Grid extends Closeable {
 
-    GridCompute compute();
+    String KEY_NODE_ID = "NODE_ID";
+    String KEY_SESSION_ID = "SESSION_ID";
+
+    //TODO evaluate if we want those mandatory or only if not provided
+    // by configurer and/or script
+    String NODE_ID =
+            SystemUtil.getEnvironmentOrProperty(KEY_NODE_ID);
+    String SESSION_ID =
+            SystemUtil.getEnvironmentOrProperty(KEY_SESSION_ID);
+
+    default GridCompute compute() {
+        return new DefaultGridCompute(this);
+    }
+
+    default GridPipeline pipeline() {
+        return new DefaultGridPipeline(this);
+    }
 
     GridStorage storage();
 
-    GridServices services();
+    //    GridServices services();
+
+    GridTransactions transactions();
 
     /**
      * Generated ID unique to each node instances in a cluster.
@@ -34,6 +59,7 @@ public interface Grid extends Closeable {
      * is created
      * @return unique instance id
      */
+    //TODO used?  How does it related to NODE_INDEX?
     String nodeId();
 
     /**

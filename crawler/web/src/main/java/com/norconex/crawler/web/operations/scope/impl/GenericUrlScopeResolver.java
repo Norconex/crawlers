@@ -21,7 +21,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.storage.GridMap;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.operations.scope.UrlScope;
 import com.norconex.crawler.web.operations.scope.UrlScopeResolver;
@@ -59,7 +59,7 @@ public class GenericUrlScopeResolver
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private GridCache<SitemapPresence> resolvedSites;
+    private GridMap<SitemapPresence> resolvedSites;
 
     @Getter
     private GenericUrlScopeResolverConfig configuration =

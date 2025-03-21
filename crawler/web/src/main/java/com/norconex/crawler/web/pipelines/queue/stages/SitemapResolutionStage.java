@@ -29,7 +29,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.storage.GridMap;
 import com.norconex.crawler.core.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
@@ -47,7 +47,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
     private static final Map<String, Object> lockTable =
             new ConcurrentHashMap<>();
 
-    private GridCache<SitemapPresence> resolvedSites;
+    private GridMap<SitemapPresence> resolvedSites;
 
     private synchronized void ensureCache(QueuePipelineContext ctx) {
         if (resolvedSites == null) {

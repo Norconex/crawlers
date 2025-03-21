@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.DocProcessingLedger;
-import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.storage.GridMap;
 
 public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
 
@@ -39,13 +39,13 @@ public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
     private DocProcessingLedger ledger;
     private final ConcurrentHashMap<String, Long> eventCountsBatch =
             new ConcurrentHashMap<>();
-    private GridCache<Long> eventCountsCache;
+    private GridMap<Long> eventCountsCache;
     private ScheduledExecutorService scheduler;
     private boolean closed;
 
     public void init(CrawlerContext crawlerContext) {
         ledger = crawlerContext.getDocProcessingLedger();
-        eventCountsCache = crawlerContext.getGrid().storage().getCache(
+        eventCountsCache = crawlerContext.getGrid().storage().getMap(
                 "CrawlerMetrics.eventCounts", Long.class);
         crawlerContext.getEventManager().addListener(
                 event -> batchIncrementCounter(event.getName(), 1L));

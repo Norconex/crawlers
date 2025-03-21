@@ -23,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StopCommand implements Command {
 
+    //TODO have stop command be the clean way to stop any command, not just crawl.
+
     @Override
     public void execute(CrawlerContext ctx) {
         Thread.currentThread().setName(ctx.getId() + "/STOP_REQUEST");

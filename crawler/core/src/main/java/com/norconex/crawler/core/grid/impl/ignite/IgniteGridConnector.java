@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.IgniteServer;
 import org.apache.ignite.InitParameters;
 
-import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerSpecProvider;
@@ -76,18 +75,18 @@ public class IgniteGridConnector
         implements GridConnector,
         Configurable<IgniteGridConnectorConfig> {
 
-    private static final String KEY_CRAWL_NODE_INDEX = "CRAWL_NODE_INDEX";
-    private static final String KEY_CRAWL_SESSION_ID = "CRAWL_SESSION_ID";
+    //    private static final String KEY_CRAWL_NODE_INDEX = "CRAWL_NODE_INDEX";
+    //    private static final String KEY_CRAWL_SESSION_ID = "CRAWL_SESSION_ID";
 
-    //TODO evaluate if we want those mandatory or only if not provided
-    // by configurer and/or script
-    public static final String CRAWL_NODE_INDEX =
-            SystemUtil.getEnvironmentOrProperty(KEY_CRAWL_NODE_INDEX);
-    public static final String CRAWL_SESSION_ID =
-            SystemUtil.getEnvironmentOrProperty(KEY_CRAWL_SESSION_ID);
+    //    //TODO evaluate if we want those mandatory or only if not provided
+    //    // by configurer and/or script
+    //    public static final String CRAWL_NODE_INDEX =
+    //            SystemUtil.getEnvironmentOrProperty(KEY_CRAWL_NODE_INDEX);
+    //    public static final String CRAWL_SESSION_ID =
+    //            SystemUtil.getEnvironmentOrProperty(KEY_CRAWL_SESSION_ID);
 
     private static final String IGNITE_BASE_DIR =
-            "/ignite/data/node-%s".formatted(CRAWL_NODE_INDEX);
+            "/ignite/data/node-%s".formatted(Grid.NODE_ID);
 
     @Getter
     private final IgniteGridConnectorConfig configuration =
@@ -104,7 +103,7 @@ public class IgniteGridConnector
         var configFile = resolveIgniteConfig();
 
         var node = IgniteServer.start(
-                "crawler-node-" + CRAWL_NODE_INDEX,
+                "crawler-node-" + Grid.NODE_ID,
                 configFile,
                 Path.of(IGNITE_BASE_DIR + "/work"));
 
@@ -166,28 +165,28 @@ public class IgniteGridConnector
     private void applyDefaultSettings(IgniteConfiguration cfg) {
         // Generic configuration
         cfg.setWorkDirectory(IGNITE_BASE_DIR + "/work");
-
+    
         // Persistent storage
         var storageCfg = new DataStorageConfiguration();
         storageCfg.setStoragePath(IGNITE_BASE_DIR + "/storage");
         storageCfg.setWalPath(IGNITE_BASE_DIR + "/wal");
         storageCfg.setWalArchivePath(IGNITE_BASE_DIR + "/wal/archive");
-
+    
         // Data reagion
         var dataRegionCfg = new DataRegionConfiguration();
         dataRegionCfg.setName("Default_Region");
         dataRegionCfg.setPersistenceEnabled(true);
         storageCfg.setDefaultDataRegionConfiguration(dataRegionCfg);
-
+    
         cfg.setDataStorageConfiguration(storageCfg);
     }
-
+    
     private void applyClassConfigurer(IgniteConfiguration cfg) {
         if (configuration.getConfigurer() != null) {
             configuration.getConfigurer().configure(cfg);
         }
     }
-
+    
     private void applyScriptConfigurer(IgniteConfiguration cfg) {
         if (StringUtils.isNotBlank(configuration.getConfigurerScript())) {
             try {
@@ -205,7 +204,7 @@ public class IgniteGridConnector
             }
         }
     }
-
+    
     private void logIgniteSpecifics(IgniteConfiguration cfg) {
         var storageCfg = cfg.getDataStorageConfiguration();
         LOG.info("Crawl session id: {}", CRAWL_SESSION_ID);
@@ -225,19 +224,19 @@ public class IgniteGridConnector
     }
     */
     private void ensureEnvVars() {
-        if (StringUtils.isBlank(CRAWL_NODE_INDEX)) {
+        if (StringUtils.isBlank(Grid.NODE_ID)) {
             throw new GridException("""
                     Missing environment variable (or system property): "%s".
                     Needs to be a value unique to each node and the same on
                     each crawl session.
-                    """.formatted(KEY_CRAWL_NODE_INDEX));
+                    """.formatted(Grid.KEY_NODE_ID));
         }
-        if (StringUtils.isBlank(CRAWL_SESSION_ID)) {
+        if (StringUtils.isBlank(Grid.SESSION_ID)) {
             throw new GridException("""
                     Missing environment variable (or system property): "%s".
                     Needs to be a value unique to each crawl session but the
                     same across all nodes during the session.
-                    """.formatted(KEY_CRAWL_SESSION_ID));
+                    """.formatted(Grid.KEY_SESSION_ID));
         }
     }
 

@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.storage.GridMap;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,8 +50,8 @@ public class DedupService implements Closeable {
     //TODO merge with DocTrackerService if we can query by checksum
     // at no extra cost?
 
-    private GridCache<String> dedupMetadataStore; // checksum -> ref
-    private GridCache<String> dedupDocumentStore; // checksum -> ref
+    private GridMap<String> dedupMetadataStore; // checksum -> ref
+    private GridMap<String> dedupDocumentStore; // checksum -> ref
 
     private boolean initialized;
 
@@ -66,13 +66,13 @@ public class DedupService implements Closeable {
         if (config.isMetadataDeduplicate()
                 && config.getMetadataChecksummer() != null) {
             dedupMetadataStore =
-                    storeEngine.getCache("dedupMetadata", String.class);
+                    storeEngine.getMap("dedupMetadata", String.class);
             LOG.info("Initialized deduplication based on document metadata.");
         }
         if (config.isDocumentDeduplicate()
                 && config.getDocumentChecksummer() != null) {
             dedupDocumentStore =
-                    storeEngine.getCache("dedupDocument", String.class);
+                    storeEngine.getMap("dedupDocument", String.class);
             LOG.info("Initialized deduplication based on document content.");
         }
     }
@@ -106,7 +106,7 @@ public class DedupService implements Closeable {
     }
 
     private Optional<String> doFindOrTrack(
-            GridCache<String> store, String checksum, String reference) {
+            GridMap<String> store, String checksum, String reference) {
         if (store == null || checksum == null) {
             return Optional.empty();
         }

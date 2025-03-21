@@ -28,7 +28,7 @@ import org.jeasy.random.EasyRandom;
 
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridTestConnector;
+import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
 import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
@@ -55,7 +55,8 @@ public @interface WebCrawlTest {
 
     Class<? extends GridConnector>[] gridConnectors() default {
             LocalGridConnector.class,
-            IgniteGridTestConnector.class
+            //            IgniteGridTestConnector.class
+            IgniteGridConnector.class
     };
 
     boolean randomConfig() default false;

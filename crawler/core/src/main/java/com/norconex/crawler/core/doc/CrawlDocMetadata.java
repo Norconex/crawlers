@@ -50,8 +50,9 @@ public final class CrawlDocMetadata {
      * or its URL cache has been deleted, this flag will always be
      * <code>true</code>.
      */
-    public static final String IS_CRAWL_NEW =
-            PREFIX + "is-crawl-new";
+    //TODO make it a counter of the number of time it was processed
+    public static final String IS_DOC_NEW =
+            PREFIX + "is-doc-new";
 
     /**
      * Qualified name of fetcher used to fetch a document.

@@ -14,17 +14,12 @@
  */
 package com.norconex.crawler.core.grid.impl.ignite;
 
-import com.norconex.crawler.core.grid.impl.ignite.configurer.IgniteConfigurer;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Ignite grid connector configuration. Native IgniteConfiguration can be
- * configured with an {@link #setConfigurer(IgniteConfigurer)} and/or with
- * {@link #setConfigurerScript(String)}. If both are be provided,
- * the "configurer" runs before the "configurerScript".
+ * Ignite grid connector configuration.
  * </p>
  */
 @Data

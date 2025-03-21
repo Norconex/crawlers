@@ -18,9 +18,9 @@ import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteServer;
 
 import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridCompute;
-import com.norconex.crawler.core.grid.GridServices;
-import com.norconex.crawler.core.grid.GridStorage;
+import com.norconex.crawler.core.grid.GridTransactions;
+import com.norconex.crawler.core.grid.impl.ignite.storage.IgniteGridStorage;
+import com.norconex.crawler.core.grid.storage.GridStorage;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -43,7 +43,7 @@ public class IgniteGrid implements Grid {
     @Getter(value = AccessLevel.PACKAGE)
     private final IgniteServer igniteServer;
 
-    public Ignite getIgniteApi() {
+    public Ignite api() {
         return igniteServer.api();
     }
 
@@ -52,15 +52,15 @@ public class IgniteGrid implements Grid {
         return new IgniteGridStorage(this);
     }
 
-    @Override
-    public GridCompute compute() {
-        return new IgniteGridCompute(this);
-    }
+    //    @Override
+    //    public GridCompute compute() {
+    //        return new DefaultGridCompute(this);
+    //    }
 
-    @Override
-    public GridServices services() {
-        return new IgniteGridServices(this);
-    }
+    //    @Override
+    //    public GridServices services() {
+    //        return new IgniteGridServices(this);
+    //    }
 
     @Override
     public String nodeId() {
@@ -70,5 +70,10 @@ public class IgniteGrid implements Grid {
     @Override
     public void close() {
         igniteServer.shutdown();
+    }
+
+    @Override
+    public GridTransactions transactions() {
+        return new IgniteGridTransactions(this);
     }
 }

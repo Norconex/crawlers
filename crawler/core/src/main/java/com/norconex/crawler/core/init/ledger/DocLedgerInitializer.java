@@ -43,7 +43,7 @@ public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
 
     @Override
     public boolean test(CrawlerContext crawlerContext) {
-        var globalCache = crawlerContext.getGrid().storage().getGlobalCache();
+        var globalCache = crawlerContext.getGrid().storage().getGlobalMap();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
             throw new IllegalStateException("Already initializing.");
@@ -59,14 +59,12 @@ public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
 
     private static void prepareForCrawl(CrawlerContext crawlerContext) {
         var storage = crawlerContext.getGrid().storage();
-        storage.getGlobalCache();
+        storage.getGlobalMap();
         var ledger = crawlerContext.getDocProcessingLedger();
 
-        var isResuming = !ledger.isQueueEmpty();
         long maxProcessedDocs =
                 crawlerContext.getConfiguration().getMaxDocuments();
-        if (isResuming) {
-            crawlerContext.resuming();
+        if (crawlerContext.isResuming()) {
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();
@@ -93,7 +91,7 @@ public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
                         maxProcessedDocs);
             }
         } else {
-            ledger.clearQueue();
+            ledger.clearQueue(); //TODO <-- why? it gets here only if queue is empty to begin with
 
             // Valid Processed -> Cached
             LOG.info("Caching any valid references from previous run.");

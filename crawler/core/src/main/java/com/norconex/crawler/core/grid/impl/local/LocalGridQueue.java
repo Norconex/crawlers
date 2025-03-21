@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
-import com.norconex.crawler.core.grid.GridQueue;
+import com.norconex.crawler.core.grid.storage.GridQueue;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Getter;

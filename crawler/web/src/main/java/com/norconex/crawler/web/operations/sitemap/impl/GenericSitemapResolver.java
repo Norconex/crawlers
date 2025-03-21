@@ -31,7 +31,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.storage.GridMap;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
@@ -56,7 +56,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     static final String SITEMAP_STORE_NAME =
             SitemapRecord.class.getSimpleName();
     @JsonIgnore
-    private GridCache<SitemapRecord> sitemapStore;
+    private GridMap<SitemapRecord> sitemapStore;
     @JsonIgnore
     private final MutableBoolean stopping = new MutableBoolean();
 
@@ -198,13 +198,13 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
 
     @Override
     protected void onCrawlerCleanBegin(CrawlerEvent event) {
-        Optional.ofNullable(sitemapStore).ifPresent(GridCache::clear);
+        Optional.ofNullable(sitemapStore).ifPresent(GridMap::clear);
     }
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         sitemapStore = event.getSource()
-                .getGrid().storage().getCache(
+                .getGrid().storage().getMap(
                         SITEMAP_STORE_NAME, SitemapRecord.class);
     }
 

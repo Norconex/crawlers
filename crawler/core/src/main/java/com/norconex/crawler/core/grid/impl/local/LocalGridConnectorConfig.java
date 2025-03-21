@@ -14,6 +14,10 @@
  */
 package com.norconex.crawler.core.grid.impl.local;
 
+import java.time.Duration;
+
+import com.norconex.commons.lang.unit.DataUnit;
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -69,23 +73,23 @@ public class LocalGridConnectorConfig {
     /**
      * The read cache size in bytes. Default is 16MB.
      */
-    private Long cacheSize;
+    private Long cacheSize = DataUnit.MB.toBytes(16).longValue();
 
     /**
      * The auto-compact target fill rate, in percentage. Default is 90%.
      */
-    private Integer autoCompactFillRate;
+    private Integer autoCompactFillRate = 90;
 
     /**
      * The size of the write buffer. Defaults to 1024KB.
      */
-    private Long autoCommitBufferSize;
+    private Long autoCommitBufferSize = DataUnit.KB.toBytes(1024).longValue();
 
     /**
      * The maximum delay in milliseconds to auto-commit changes. Defaults
      * to 1000ms (1 second).
      */
-    private Long autoCommitDelay;
+    private Long autoCommitDelay = Duration.ofSeconds(1).toMillis();
 
     /**
      * Stores data in memory and does not persist any information

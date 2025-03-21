@@ -19,8 +19,8 @@ import java.util.function.BiPredicate;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridCache;
-import com.norconex.crawler.core.grid.GridQueue;
+import com.norconex.crawler.core.grid.storage.GridMap;
+import com.norconex.crawler.core.grid.storage.GridQueue;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.NonNull;
@@ -37,17 +37,17 @@ public class DocProcessingLedger { //implements Closeable {
     //TODO rename DocLedger
     //TODO remove all synchronized keywords?
 
-    public static final String KEY_PROCESSED_CACHE = "ledger.process.cache";
-    public static final String KEY_CACHED_CACHE = "ledger.cached.cache";
+    public static final String KEY_PROCESSED_MAP = "ledger.process.map";
+    public static final String KEY_CACHED_MAP = "ledger.cached.map";
 
     private static final String PROCESSED_OR_CACHED_1 = "processedOrCached";
     private static final String PROCESSED_OR_CACHED_2 = "cachedOrProcessed";
 
     private GridQueue<String> queue;
-    private GridCache<String> processed;
-    private GridCache<String> cached;
+    private GridMap<String> processed;
+    private GridMap<String> cached;
     private Class<? extends CrawlDocContext> type;
-    private GridCache<String> globalCache;
+    private GridMap<String> globalCache;
     private CrawlerContext crawlerContext;
 
     //NOTE: This init performs the necessary steps to "create" the ledger.
@@ -60,19 +60,19 @@ public class DocProcessingLedger { //implements Closeable {
         var storage = crawlerContext.getGrid().storage();
 
         // Because we can't rename caches in all impl, we use references.
-        globalCache = storage.getGlobalCache();
-        var processedCacheName = globalCache.get(KEY_PROCESSED_CACHE);
-        var cachedCacheName = globalCache.get(KEY_CACHED_CACHE);
+        globalCache = storage.getGlobalMap();
+        var processedMapName = globalCache.get(KEY_PROCESSED_MAP);
+        var cachedMapName = globalCache.get(KEY_CACHED_MAP);
         //TODO if one is null they should both be null. If a concern, check
         // for that and throw an error and/or delete the non-null one.
-        if (processedCacheName == null) {
-            processedCacheName = PROCESSED_OR_CACHED_1;
-            cachedCacheName = PROCESSED_OR_CACHED_2;
+        if (processedMapName == null) {
+            processedMapName = PROCESSED_OR_CACHED_1;
+            cachedMapName = PROCESSED_OR_CACHED_2;
         }
 
         queue = storage.getQueue("queue", String.class);
-        processed = storage.getCache(processedCacheName, String.class);
-        cached = storage.getCache(cachedCacheName, String.class);
+        processed = storage.getMap(processedMapName, String.class);
+        cached = storage.getMap(cachedMapName, String.class);
     }
 
     /**
@@ -198,8 +198,8 @@ public class DocProcessingLedger { //implements Closeable {
         cached.clear();
 
         // Because we can't rename caches in all impl, we swap references
-        var processedCacheName = globalCache.get(KEY_PROCESSED_CACHE);
-        var cachedCacheName = globalCache.get(KEY_CACHED_CACHE);
+        var processedCacheName = globalCache.get(KEY_PROCESSED_MAP);
+        var cachedCacheName = globalCache.get(KEY_CACHED_MAP);
         // If one cache name is null they should both be null and we consider
         // a null name to be the "processed" one.
         if (processedCacheName == null
@@ -210,8 +210,8 @@ public class DocProcessingLedger { //implements Closeable {
             processedCacheName = PROCESSED_OR_CACHED_1;
             cachedCacheName = PROCESSED_OR_CACHED_2;
         }
-        globalCache.put(KEY_PROCESSED_CACHE, processedCacheName);
-        globalCache.put(KEY_CACHED_CACHE, cachedCacheName);
+        globalCache.put(KEY_PROCESSED_MAP, processedCacheName);
+        globalCache.put(KEY_CACHED_MAP, cachedCacheName);
         var processedBefore = processed;
         processed = cached;
         cached = processedBefore;

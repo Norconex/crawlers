@@ -25,7 +25,7 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridSet;
+import com.norconex.crawler.core.grid.storage.GridSet;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.EqualsAndHashCode;
@@ -96,11 +96,12 @@ public class DeleteRejectedEventListener implements
             return;
         }
 
-        if (CrawlerEvent.CRAWLER_CRAWL_END.equals(event.getName())) {
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            //        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
+            init(crawlerEvent.getSource());
+        } else if (CrawlerEvent.CRAWLER_CRAWL_END.equals(event.getName())) {
             doneCrawling = true;
             commitDeletions(crawlerEvent.getSource());
-        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
-            init(crawlerEvent.getSource());
         } else {
             storeRejection(crawlerEvent);
         }
@@ -112,7 +113,7 @@ public class DeleteRejectedEventListener implements
         // two crawl executions.
         refStore = crawlerContext.getGrid().storage()
                 .getSet(DELETED_REFS_CACHE_NAME, String.class);
-        ConcurrentUtil.block(crawlerContext.getGrid().compute()
+        ConcurrentUtil.get(crawlerContext.getGrid().compute()
                 .runOnOneOnce("delete-rejected-listener-init", () -> {
                     LOG.info("Clearing any previous deleted references cache.");
                     refStore.clear();
@@ -139,7 +140,7 @@ public class DeleteRejectedEventListener implements
     }
 
     private void commitDeletions(CrawlerContext crawlerContext) {
-        ConcurrentUtil.block(crawlerContext.getGrid().compute().runOnOneOnce(
+        ConcurrentUtil.get(crawlerContext.getGrid().compute().runOnOneOnce(
                 "delete-rejected-listener-commit", () -> {
                     if (LOG.isInfoEnabled()) {
                         LOG.info("Committing {} rejected references for "

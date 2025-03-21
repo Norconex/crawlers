@@ -61,6 +61,8 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+//TODO lazy load driver like V3
+
 /**
  * <p>
  * Uses Selenium WebDriver support for using native browsers to crawl documents.
@@ -172,8 +174,6 @@ public class WebDriverFetcher
         // add arguments to drivers supporting it
         if (options instanceof FirefoxOptions fireFoxOptions) {
             fireFoxOptions.addArguments(configuration.getArguments());
-        } else if (options instanceof ChromeOptions chromeOptions) {
-            chromeOptions.addArguments(configuration.getArguments());
         } else if (options instanceof EdgeOptions edgeOptions) {
             edgeOptions.addArguments(configuration.getArguments());
         }

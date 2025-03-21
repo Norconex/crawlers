@@ -31,10 +31,10 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridCache;
-import com.norconex.crawler.core.grid.GridQueue;
-import com.norconex.crawler.core.grid.GridSet;
-import com.norconex.crawler.core.grid.GridStore;
+import com.norconex.crawler.core.grid.storage.GridMap;
+import com.norconex.crawler.core.grid.storage.GridQueue;
+import com.norconex.crawler.core.grid.storage.GridSet;
+import com.norconex.crawler.core.grid.storage.GridStore;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.SerialUtil;
 
@@ -53,7 +53,7 @@ public class StoreExportCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN);
         try {
-            ConcurrentUtil.block(ctx.getGrid().compute().runOnOneOnce(
+            ConcurrentUtil.get(ctx.getGrid().compute().runOnOneOnce(
                     StoreExportCommand.class.getSimpleName(), () -> {
                         exportAllStores(ctx);
                         return null;
@@ -150,6 +150,6 @@ public class StoreExportCommand implements Command {
         if (GridSet.class.isAssignableFrom(concreteClass)) {
             return GridSet.class.getName();
         }
-        return GridCache.class.getName();
+        return GridMap.class.getName();
     }
 }

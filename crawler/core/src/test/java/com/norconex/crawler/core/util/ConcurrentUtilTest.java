@@ -27,18 +27,18 @@ import org.junit.jupiter.api.Test;
 class ConcurrentUtilTest {
 
     @SuppressWarnings("unchecked")
-    @Test
-    void testBlock() throws InterruptedException, ExecutionException {
-        var future = mock(Future.class);
-        when(future.get()).thenReturn("future");
-
-        assertThat(ConcurrentUtil.<String>block(null)).isNull();
-        assertThat(ConcurrentUtil.block(future)).isEqualTo("future");
-
-        when(future.get()).thenThrow(InterruptedException.class);
-        assertThatExceptionOfType(ConcurrentException.class)
-                .isThrownBy(() -> ConcurrentUtil.block(future))
-                .withMessage("Thread was interrupted.");
-
-    }
+        @Test
+        void testGet() throws InterruptedException, ExecutionException {
+            var future = mock(Future.class);
+            when(future.get()).thenReturn("future");
+    
+            assertThat(ConcurrentUtil.<String>get(null)).isNull();
+            assertThat(ConcurrentUtil.get(future)).isEqualTo("future");
+    
+            when(future.get()).thenThrow(InterruptedException.class);
+            assertThatExceptionOfType(ConcurrentException.class)
+                    .isThrownBy(() -> ConcurrentUtil.get(future))
+                    .withMessage("Thread was interrupted.");
+    
+        }
 }

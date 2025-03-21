@@ -31,11 +31,11 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridCache;
-import com.norconex.crawler.core.grid.GridQueue;
-import com.norconex.crawler.core.grid.GridSet;
-import com.norconex.crawler.core.grid.GridStorage;
-import com.norconex.crawler.core.grid.GridStore;
+import com.norconex.crawler.core.grid.storage.GridMap;
+import com.norconex.crawler.core.grid.storage.GridQueue;
+import com.norconex.crawler.core.grid.storage.GridSet;
+import com.norconex.crawler.core.grid.storage.GridStorage;
+import com.norconex.crawler.core.grid.storage.GridStore;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.SerialUtil;
 
@@ -53,7 +53,7 @@ public class StoreImportCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN);
         try {
-            ConcurrentUtil.block(ctx.getGrid().compute().runOnOneOnce(
+            ConcurrentUtil.get(ctx.getGrid().compute().runOnOneOnce(
                     StoreImportCommand.class.getSimpleName(), () -> {
                         importAllStores(ctx);
                         return null;
@@ -149,7 +149,7 @@ public class StoreImportCommand implements Command {
         var value = SerialUtil.fromJson(parser, objectClass);
         parser.nextToken(); // object:
         parser.nextToken(); // { //NOSONAR
-        if (store instanceof GridCache cache) { //NOSONAR
+        if (store instanceof GridMap cache) { //NOSONAR
             cache.put(id, value);
         } else if (store instanceof GridSet set) { //NOSONAR
             set.add(objectClass);
@@ -170,7 +170,7 @@ public class StoreImportCommand implements Command {
         if (storeSuperType.equals(GridSet.class)) {
             return storage.getSet(storeName, objectType);
         }
-        return storage.getCache(storeName, objectType);
+        return storage.getMap(storeName, objectType);
     }
 
     private static void logProgress(long cnt, boolean done) {

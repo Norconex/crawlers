@@ -54,6 +54,12 @@ public class CrawlDocContext extends DocContext {
     @ToStringExclude
     private ZonedDateTime crawlDate;
     private ZonedDateTime lastModified;
+    @Setter
+    @Getter
+    private boolean orphan;
+    @Setter
+    @Getter
+    private boolean deleted;
 
     public CrawlDocContext() {
     }
@@ -115,7 +121,7 @@ public class CrawlDocContext extends DocContext {
     }
 
     public void setState(DocResolutionStatus state) {
-        this.resolutionStatus = state;
+        resolutionStatus = state;
     }
 
     public String getMetaChecksum() {

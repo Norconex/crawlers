@@ -16,13 +16,11 @@ package com.norconex.crawler.core.grid.impl.local;
 
 import java.util.UUID;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.h2.mvstore.MVStore;
 
 import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridCompute;
-import com.norconex.crawler.core.grid.GridServices;
-import com.norconex.crawler.core.grid.GridStorage;
+import com.norconex.crawler.core.grid.GridTransactions;
+import com.norconex.crawler.core.grid.storage.GridStorage;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -39,34 +37,35 @@ import lombok.ToString;
 public class LocalGrid implements Grid {
 
     private final MVStore mvstore;
-    private final LocalGridCompute gridCompute;
+    //    private final LocalGridCompute gridCompute;
     private final LocalGridStorage gridStorage;
-    private final LocalGridServices gridServices;
+    //    private final LocalGridServices gridServices;
+    // Not sure about nodeId vs Grid.NODE_ID here...
     private final String nodeId = UUID.randomUUID().toString();
 
     public LocalGrid(MVStore mvstore) {
 
         this.mvstore = mvstore;
-        gridCompute = new LocalGridCompute(mvstore, nodeId);
+        //        gridCompute = new LocalGridCompute(mvstore, nodeId);
         gridStorage = new LocalGridStorage(mvstore);
-        gridServices = new LocalGridServices(nodeId);
+        //        gridServices = new LocalGridServices(nodeId);
     }
 
-    @Override
-    public GridServices services() {
-        ensureInit();
-        return gridServices;
-    }
+    //    @Override
+    //    public GridServices services() {
+    //        ensureInit();
+    //        return gridServices;
+    //    }
 
-    @Override
-    public GridCompute compute() {
-        ensureInit();
-        return gridCompute;
-    }
+    //    @Override
+    //    public GridCompute compute() {
+    //        ensureInit();
+    //        return gridCompute;
+    //    }
 
     @Override
     public GridStorage storage() {
-        ensureInit();
+        //        ensureInit();
         return gridStorage;
     }
 
@@ -75,16 +74,21 @@ public class LocalGrid implements Grid {
         return nodeId;
     }
 
-    private void ensureInit() {
-        if (ObjectUtils.anyNull(gridCompute, gridStorage, gridServices)) {
-            throw new IllegalStateException("LocalGrid not initialized.");
-        }
-    }
+    //    private void ensureInit() {
+    //        if (ObjectUtils.anyNull(gridCompute, gridStorage, gridServices)) {
+    //            throw new IllegalStateException("LocalGrid not initialized.");
+    //        }
+    //    }
 
     @Override
     public void close() {
         if (!mvstore.isClosed()) {
             mvstore.close();
         }
+    }
+
+    @Override
+    public GridTransactions transactions() {
+        return new LocalGridTransactions(mvstore);
     }
 }

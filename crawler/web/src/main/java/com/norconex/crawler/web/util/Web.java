@@ -25,7 +25,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.crawler.core.grid.storage.GridMap;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
@@ -40,11 +40,11 @@ public final class Web {
     private Web() {
     }
 
-    public static <T> GridCache<T> gridCache(
+    public static <T> GridMap<T> gridCache(
             @NonNull CrawlerContext crawlerContext,
             @NonNull String name,
             @NonNull Class<? extends T> type) {
-        return crawlerContext.getGrid().storage().getCache(name, type);
+        return crawlerContext.getGrid().storage().getMap(name, type);
     }
 
     public static void fireIfUrlOutOfScope(

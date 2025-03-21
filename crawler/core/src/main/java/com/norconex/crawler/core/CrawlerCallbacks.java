@@ -17,7 +17,6 @@ package com.norconex.crawler.core;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.cmd.crawl.task.CrawlTask;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 
@@ -40,14 +39,14 @@ public class CrawlerCallbacks {
 
     /**
      * Gives crawler implementations a chance to prepare before execution
-     * of {@link CrawlTask} starts. Invoked right after the
+     * of {@link CrawlTask_TO_MIGRATE} starts. Invoked right after the
      * {@link CrawlerEvent#TASK_RUN_BEGIN} event is fired.
      */
     Consumer<CrawlerContext> beforeCrawlTask;
 
     /**
      * Gives crawler implementations a chance to do something right after
-     * the {@link CrawlTask} is done processing its last reference, before all
+     * the {@link CrawlTask_TO_MIGRATE} is done processing its last reference, before all
      * task resources are shut down.
      * Invoked right after
      * {@link CrawlerEvent#TASK_RUN_END} (depending which of the two is

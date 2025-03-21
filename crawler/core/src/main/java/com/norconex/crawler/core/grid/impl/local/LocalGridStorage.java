@@ -28,11 +28,11 @@ import org.h2.mvstore.MVStore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.crawler.core.grid.GridCache;
-import com.norconex.crawler.core.grid.GridQueue;
-import com.norconex.crawler.core.grid.GridSet;
-import com.norconex.crawler.core.grid.GridStorage;
-import com.norconex.crawler.core.grid.GridStore;
+import com.norconex.crawler.core.grid.storage.GridMap;
+import com.norconex.crawler.core.grid.storage.GridQueue;
+import com.norconex.crawler.core.grid.storage.GridSet;
+import com.norconex.crawler.core.grid.storage.GridStorage;
+import com.norconex.crawler.core.grid.storage.GridStore;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.AllArgsConstructor;
@@ -65,15 +65,15 @@ public class LocalGridStorage implements GridStorage {
     @SuppressWarnings("unchecked")
     @JsonIgnore
     @Override
-    public <T> GridCache<T> getCache(String name, Class<? extends T> type) {
-        return (GridCache<T>) getOrCreateStore(name, type, GridCache.class);
+    public <T> GridMap<T> getMap(String name, Class<? extends T> type) {
+        return (GridMap<T>) getOrCreateStore(name, type, GridMap.class);
     }
 
     @JsonIgnore
     @Override
-    public GridCache<String> getGlobalCache() {
-        return (GridCache<String>) getOrCreateStore(
-                GLOBAL_CACHE_KEY, String.class, GridCache.class);
+    public GridMap<String> getGlobalMap() {
+        return (GridMap<String>) getOrCreateStore(
+                GLOBAL_CACHE_KEY, String.class, GridMap.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -132,7 +132,7 @@ public class LocalGridStorage implements GridStorage {
             Class<?> objectType) {
 
         @SuppressWarnings("rawtypes")
-        Class<? extends GridStore> concreteType = LocalGridCache.class;
+        Class<? extends GridStore> concreteType = LocalGridMap.class;
         if (storeSuperType.equals(GridQueue.class)) {
             concreteType = LocalGridQueue.class;
         } else if (storeSuperType.equals(GridSet.class)) {

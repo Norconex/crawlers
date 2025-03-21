@@ -14,12 +14,18 @@
  */
 package com.norconex.crawler.core.cmd.crawl;
 
-import com.norconex.commons.lang.Sleeper;
+import java.util.List;
+
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.clean.CleanCommand;
-import com.norconex.crawler.core.cmd.crawl.service.CrawlService;
+import com.norconex.crawler.core.cmd.crawl.init.CrawlInitTask;
+import com.norconex.crawler.core.cmd.crawl.orphans.CrawlHandleOrphansTask;
+import com.norconex.crawler.core.cmd.crawl.queueread.CrawlProcessQueueTask;
+import com.norconex.crawler.core.cmd.crawl.queueread.CrawlProcessQueueTask.ProcessQueueAction;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.grid.compute.GridCompute.RunOn;
+import com.norconex.crawler.core.grid.pipeline.GridPipelineStage;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -40,12 +46,65 @@ public class CrawlCommand implements Command {
 
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
-        ConcurrentUtil.block(ctx.getGrid().services().start(
-                "conductor_service", CrawlService.class, null));
 
-        while (ctx.getCrawlStage() != CrawlStage.ENDED) {
-            Sleeper.sleepSeconds(1);
+        var progressLogger = trackProgress(ctx);
+
+        var completed = Boolean.TRUE.equals(ConcurrentUtil.get(ctx.getGrid()
+                .pipeline().run(CrawlerContext.KEY_CRAWL_PIPELINE, List.of(
+                        // Init
+                        GridPipelineStage.<CrawlerContext>builder()
+                                .name("crawlInitStage")
+                                .runOn(RunOn.ONE_ONCE)
+                                .task(new CrawlInitTask())
+                                .build(),
+                        // Main crawl
+                        GridPipelineStage.<CrawlerContext>builder()
+                                .name("crawlCoreStage")
+                                .runOn(RunOn.ALL)
+                                .task(new CrawlProcessQueueTask(
+                                        ProcessQueueAction.CRAWL_ALL))
+                                .build(),
+                        // Handle orphans
+                        GridPipelineStage.<CrawlerContext>builder()
+                                .name("crawlOrphansStage")
+                                .runOn(RunOn.ALL)
+                                .task(new CrawlHandleOrphansTask())
+                                .build()
+
+                //                        // Requeue (or ignore) orphans
+                //                        GridPipelineStage.<CrawlerContext>builder()
+                //                                .name("crawlOrphansStage")
+                //                                .runOn(RunOn.ALL)
+                //                                .task(new CrawlHandleOrphansTask())
+                //                                .build(),
+                //                        // Recrawl orphans (if not ignored)
+                //                        GridPipelineStage.<CrawlerContext>builder()
+                //                                .name("crawlOrphansStage")
+                //                                .runOn(RunOn.ALL)
+                //                                .task(new CrawlHandleOrphansTask())
+                //                                .build()
+                //                // Shutdown
+                //                GridPipelineStage.<CrawlerContext>builder()
+                //                        .name("crawlShutdownStage")
+                //                        .runOn(RunOn.ALL)
+                //                        .task(new CrawlShutdownTask())
+                //                        .build(),
+                ),
+                        ctx)));
+
+        //        while (ctx.getCrawlStage() != CrawlStage.ENDED) {
+        //            Sleeper.sleepSeconds(1);
+        //        }
+
+        if (completed) {
+            LOG.info("Crawler completed execution.");
+        } else {
+            LOG.info("Crawler execution ended before completion.");
         }
+
+        progressLogger.stopTracking();
+        LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
+
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling.");
     }
@@ -56,5 +115,19 @@ public class CrawlCommand implements Command {
         // for crawling
         ctx.close();
         ctx.init();
+    }
+
+    private CrawlProgressLogger trackProgress(CrawlerContext ctx) {
+        var progressLogger = new CrawlProgressLogger(
+                ctx.getMetrics(),
+                ctx.getConfiguration().getMinProgressLoggingInterval());
+        // TODO: make sure this (or all) runOnOneOnce can be recovered
+        // upon node failure
+        return ConcurrentUtil.get(ctx.getGrid().compute()
+                // only 1 node reports progress
+                .runOnOneOnce("progressLogger", () -> {
+                    progressLogger.startTracking();
+                    return progressLogger;
+                }));
     }
 }
