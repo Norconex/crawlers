@@ -20,6 +20,7 @@ import java.util.concurrent.Future;
 
 import lombok.NonNull;
 
+// to get a computed value, rely on storage
 public interface GridPipeline {
     /**
      * Runs a pipeline in multiple stages. Each stage holds a task to be

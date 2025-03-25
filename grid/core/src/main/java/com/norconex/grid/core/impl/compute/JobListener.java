@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl;
+package com.norconex.grid.core.impl.compute;
 
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -22,7 +22,8 @@ import java.util.function.Consumer;
 
 import org.jgroups.Address;
 
-import com.norconex.grid.core.compute.JobState;
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.impl.CoreGrid;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +36,13 @@ public class JobListener implements MessageListener {
     private final String jobName;
     private long lastSignal;
     private final CoreGrid grid;
-    private final Consumer<JobState> consumer;
+    private final Consumer<GridJobState> consumer;
     private ScheduledExecutorService scheduler;
     @Getter
-    private JobState currentJobState = JobState.IDLE;
+    private GridJobState currentJobState = GridJobState.IDLE;
 
     public JobListener(
-            CoreGrid grid, String jobName, Consumer<JobState> consumer) {
+            CoreGrid grid, String jobName, Consumer<GridJobState> consumer) {
         this.grid = grid;
         this.jobName = jobName;
         this.consumer = consumer;
@@ -76,10 +77,10 @@ public class JobListener implements MessageListener {
     }
 
     // will automatically invoke stopListening when completed.
-    public synchronized JobState waitForCompletion()
+    public synchronized GridJobState waitForCompletion()
             throws InterruptedException {
-        while (currentJobState != JobState.COMPLETED
-                && currentJobState != JobState.FAILED) {
+        while (currentJobState != GridJobState.COMPLETED
+                && currentJobState != GridJobState.FAILED) {
             wait(); // Wait for either polling or the message
         }
         stopListening();

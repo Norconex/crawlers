@@ -18,8 +18,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
+import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridQueue;
 import com.norconex.grid.core.storage.GridSet;
@@ -76,4 +80,26 @@ public class MockStorage implements GridStorage {
         GRID_STORES.clear();
     }
 
+    @Override
+    public synchronized <T> T withTransaction(Callable<T> callable) {
+        try {
+            return callable.call();
+        } catch (Exception e) {
+            throw new GridException(e);
+        }
+    }
+
+    @Override
+    public <T> Future<T> withTransactionAsync(Callable<T> callable) {
+        var future = new CompletableFuture<T>();
+        CompletableFuture.runAsync(() -> {
+            try {
+                future.complete(callable.call());
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+                throw new GridException(e);
+            }
+        });
+        return future;
+    }
 }

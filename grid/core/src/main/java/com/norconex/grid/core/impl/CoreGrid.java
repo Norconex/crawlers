@@ -23,10 +23,13 @@ import org.jgroups.Message;
 import org.jgroups.ObjectMessage;
 import org.jgroups.Receiver;
 import org.jgroups.View;
+import org.jgroups.protocols.FD_ALL3;
 
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridTransactions;
 import com.norconex.grid.core.compute.GridCompute;
+import com.norconex.grid.core.impl.compute.CoreGridCompute;
+import com.norconex.grid.core.impl.compute.MessageListener;
+import com.norconex.grid.core.impl.pipeline.CoreGridPipeline;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
 
@@ -55,7 +58,7 @@ public class CoreGrid implements Grid {
         this.clusterName = clusterName;
         this.nodeName = nodeName;
         this.storage = storage;
-        channel = new JChannel(); // could be passed in or configured
+        channel = new JChannel(); //TODO could be passed in or configured
         channel.setName(nodeName);
         channel.setReceiver(new Receiver() {
             @Override
@@ -72,8 +75,10 @@ public class CoreGrid implements Grid {
                 LOG.info("Grid now has {} nodes.", view.size());
             }
         });
-        //TODO make configurable
-        channel.getProtocolStack().getTransport().setBindPort(0);
+        //TODO make configurable, like this for unit tests right now
+        channel.getProtocolStack().findProtocol(FD_ALL3.class);
+        //                .setValue("sock_bind_port", 0);
+        //        channel.getProtocolStack().getTransport().setBindPort(0);
         channel.connect(clusterName);
         localAddress = channel.getAddress();
         storageHelper = new CoreStorageHelper(this);
@@ -133,12 +138,6 @@ public class CoreGrid implements Grid {
     @Override
     public GridStorage storage() {
         return storage;
-    }
-
-    @Override
-    public GridTransactions transactions() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override

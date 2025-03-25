@@ -15,16 +15,18 @@
 package com.norconex.grid.core.storage;
 
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 public interface GridStorage {
     <T> GridMap<T> getMap(String name, Class<? extends T> type);
 
     /**
-     * Whereas caches typically serve a unique purpose, the global cache is
-     * a catch-all cache for arbitrary one-off values (e.g., global state
+     * Whereas stores typically serve a unique purpose, the "globals" store is
+     * a catch-all for arbitrary key-value pairs (e.g., global state
      * information).
-     * @return global cache
+     * @return globals store
      */
     GridMap<String> getGlobals();
 
@@ -37,4 +39,9 @@ public interface GridStorage {
     void forEachStore(Consumer<GridStore<?>> storeConsumer);
 
     void clean();
+
+    <T> T withTransaction(Callable<T> callable);
+
+    <T> Future<T> withTransactionAsync(Callable<T> callable);
+
 }

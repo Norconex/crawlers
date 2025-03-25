@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl;
+package com.norconex.grid.core.impl.compute;
 
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.compute.JobState;
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.impl.CoreGrid;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +31,7 @@ abstract class BaseRunner {
         this.runOnce = runOnce;
     }
 
-    public final JobState execute(String jobName, Runnable runnable)
+    public final GridJobState execute(String jobName, Runnable runnable)
             throws GridException {
 
         //TODO in grid transaction so nothing happens between checking
@@ -39,7 +40,7 @@ abstract class BaseRunner {
 
         var jobState = grid.storageHelper()
                 .getJobState(jobName)
-                .orElse(JobState.IDLE);
+                .orElse(GridJobState.IDLE);
 
         if (runOnce && jobState.hasRan()) {
             LOG.warn("Ignoring request to run job \"{}\" ONCE as it already "
@@ -55,15 +56,15 @@ abstract class BaseRunner {
             jobState = runAsWorker(jobName, runnable);
         }
 
-        if (jobState == JobState.FAILED) {
+        if (jobState == GridJobState.FAILED) {
             LOG.error("Job failed: {}", jobName);
         }
 
         return jobState;
     }
 
-    protected abstract JobState runAsCoordinator(
+    protected abstract GridJobState runAsCoordinator(
             String jobName, Runnable runnable);
 
-    protected abstract JobState runAsWorker(String jobName, Runnable runnable);
+    protected abstract GridJobState runAsWorker(String jobName, Runnable runnable);
 }

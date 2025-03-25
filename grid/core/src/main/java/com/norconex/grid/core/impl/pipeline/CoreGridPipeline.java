@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl;
+package com.norconex.grid.core.impl.pipeline;
 
 import static java.util.Optional.ofNullable;
 
@@ -22,11 +22,16 @@ import java.util.concurrent.Future;
 
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.pipeline.GridPipeline;
+import com.norconex.grid.core.pipeline.GridPipelineStage;
+import com.norconex.grid.core.pipeline.GridPipelineState;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Runs a series of jobs on a grid, one after the other.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class CoreGridPipeline implements GridPipeline {

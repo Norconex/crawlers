@@ -12,15 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.pipeline;
+package com.norconex.grid.core.impl.pipeline;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Future;
 
-import org.apache.commons.collections4.map.ListOrderedMap;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.impl.CoreGridPipeline;
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.pipeline.GridPipelineStage;
+import com.norconex.grid.core.pipeline.GridPipelineState;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.NonNull;
@@ -29,8 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class GridPipelineRunner<T> {
 
-    private final ListOrderedMap<String, GridPipelineStage<T>> stages =
-            new ListOrderedMap<>();
+    private final List<GridPipelineStage<T>> stages =
+            new ArrayList<>();
     private final String pipelineName;
     private final CoreGridPipeline pipeline;
 
@@ -50,77 +54,77 @@ class GridPipelineRunner<T> {
             throw new IllegalArgumentException(
                     "Two or more grid pipeline stage share the same name.");
         }
-        stages.stream()
-                .forEach(stage -> this.stages.put(stage.getName(), stage));
+        this.stages.addAll(stages);
     }
 
     public Future<Boolean> run(T context) {
         // handle stopping here?  listen for stop event or force it on context?
         // else, let stages do it (or not).
         return ConcurrentUtil.call(() -> {
-            //            var pipeCtx = new PipelineContext<>(this);
-            var firstStage = getFirstStage();
-
-            var abort = false;
-            var caughtUp = false;
-            for (var stage : stages.valueList()) {
-                // In case we are just joining, start at grid current stage.
-                if (!caughtUp && firstStage != stage) { // != is OK here.
-                    continue;
-                }
-                if (!caughtUp) {
-                    caughtUp = true;
-                    pipeline.setState(pipelineName, GridPipelineState.ACTIVE);
-                }
-
-                if ((!abort || stage.isAlways())
+            var keepGoing = true;
+            // In case we are just joining, get "remaining" stages
+            for (var stage : getRemainingStages()) {
+                pipeline.setState(pipelineName, GridPipelineState.ACTIVE);
+                if ((keepGoing || stage.isAlways())
                         && (stage.getOnlyIf() == null
                                 || stage.getOnlyIf().test(context))) {
-                    LOG.info("Pipeline now at stage \"{}\"", stage.getName());
-                    //TODO set in runOnOne?
-                    pipeline.setActiveStageName(pipelineName, stage.getName());
-
-                    var keepGoingFuture =
-                            pipeline.getGrid().compute().runOn(
-                                    stage.getRunOn(),
-                                    stage.getName(),
-                                    () -> stage.getTask().execute(context));
-
-                    if (Boolean.FALSE.equals(keepGoingFuture.get())) {
-                        LOG.info("Pipeline ended by stage \"{}\".",
-                                stage.getName());
-                        abort = true;
-                    }
-
-                    //            if (!ctx.isStopping()) {
-                    //                setStage(ctx, entry.getKey());
-                    //                entry.getValue().accept(this, ctx);
-                    //            }
-
+                    keepGoing = runStage(stage, context);
                 }
             }
-            //TODO set in runOnOne?
             pipeline.setState(pipelineName, GridPipelineState.ENDED);
-            return !abort;
+            return keepGoing;
         });
     }
 
-    private GridPipelineStage<? extends T> getFirstStage() {
+    private boolean runStage(GridPipelineStage<T> stage, T context) {
+        LOG.info("Pipeline now at stage \"{}\"", stage.getName());
+        pipeline.setActiveStageName(pipelineName, stage.getName());
+
+        var keepGoing = new MutableBoolean();
+        var jobState = pipeline.getGrid().compute().runOn(
+                stage.getRunOn(),
+                stage.getName(),
+                () -> keepGoing.setValue(
+                        stage.getTask().execute(context))
+
+        );
+
+        if (keepGoing.isFalse()) {
+            LOG.info("Pipeline ended by stage \"{}\".",
+                    stage.getName());
+            return false;
+        }
+        if (jobState == GridJobState.FAILED) {
+            LOG.info("Pipeline stage failed \"{}\". Aborting.",
+                    stage.getName());
+            return false;
+        }
+
+        //            if (!ctx.isStopping()) {
+        //                setStage(ctx, entry.getKey());
+        //                entry.getValue().accept(this, ctx);
+        //            }
+        return true;
+    }
+
+    private List<GridPipelineStage<T>> getRemainingStages() {
         var pipeState = pipeline.getState(pipelineName);
         if (pipeState == GridPipelineState.IDLE) {
             LOG.info("Starting \"{}\" pipeline from begining.", pipelineName);
-            return stages.getValue(0);
+            return stages;
         }
         if (pipeState == GridPipelineState.ENDED) {
             LOG.info("Pipeline \"{}\" already ran, running it again.",
                     pipeline);
-            return stages.getValue(0);
+            return stages;
         }
+
         var stageName = pipeline.getActiveStageName(pipelineName)
-                .orElseGet(stages::firstKey);
+                .orElse(stages.get(0).getName());
         LOG.info("Starting pipeline \"{}\" at stage \"{}\".",
                 pipelineName, stageName);
-        return stages.get(stageName);
+        return stages.stream()
+                .dropWhile(stage -> !Objects.equals(stageName, stage.getName()))
+                .toList();
     }
-
 }

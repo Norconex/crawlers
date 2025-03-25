@@ -38,8 +38,6 @@ public interface Grid extends Closeable {
 
     GridStorage storage();
 
-    GridTransactions transactions();
-
     /**
      * Generated ID unique to each node instances in a cluster.
      * Does not persist: a new one is created each time a new grid instance

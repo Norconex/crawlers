@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl;
+package com.norconex.grid.core.impl.compute;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.norconex.grid.core.compute.JobState;
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.impl.CoreGrid;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +34,7 @@ public class JobExecutor {
     private final String jobName;
     private final boolean persistState;
     private ScheduledExecutorService scheduler;
-    private JobState jobState = JobState.IDLE;
+    private GridJobState jobState = GridJobState.IDLE;
 
     public JobExecutor(CoreGrid grid, String jobName, boolean persistState) {
         this.grid = grid;
@@ -41,17 +42,17 @@ public class JobExecutor {
         this.persistState = persistState;
     }
 
-    public JobState execute(Runnable runnable) {
+    public GridJobState execute(Runnable runnable) {
         LOG.info("Starting job: {}.", jobName);
-        jobState = JobState.RUNNING;
+        jobState = GridJobState.RUNNING;
 
         try {
             startBroadcasting();
             runnable.run();
-            jobState = JobState.COMPLETED;
+            jobState = GridJobState.COMPLETED;
             LOG.info("Job completed: {}.", jobName);
         } catch (Exception e) {
-            jobState = JobState.FAILED;
+            jobState = GridJobState.FAILED;
             LOG.error("Job {} failed.", jobName, e);
         } finally {
             stopBroadcasting();
@@ -66,7 +67,7 @@ public class JobExecutor {
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 doBroadcast(jobState);
-                LOG.trace("Heartbeat sent for node->job->state: {}->{}->{}",
+                LOG.trace("Heartbeat sent: {} -> {} -> {}",
                         grid.getNodeName(), jobName, jobState);
             } catch (Exception e) {
                 LOG.error("Could not send job status update.", e);
@@ -81,7 +82,7 @@ public class JobExecutor {
         }
     }
 
-    private void doBroadcast(JobState jobState) {
+    private void doBroadcast(GridJobState jobState) {
         var time = System.currentTimeMillis();
         if (persistState) {
             grid.storageHelper().setJobStateAtTime(jobName, jobState, time);

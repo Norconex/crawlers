@@ -12,16 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core;
+package com.norconex.grid.core.impl.compute;
 
-import com.norconex.grid.core.impl.CoreGridConnector;
-import com.norconex.grid.core.mocks.MockStorage;
+import org.jgroups.Address;
 
-class GridCoreTestSuite extends GridTestSuite {
-
-    @Override
-    protected GridConnector getGridConnector() {
-        return new CoreGridConnector(new MockStorage());
-    }
-
+@FunctionalInterface
+public interface MessageListener {
+    void onMessage(Object payload, Address from);
 }

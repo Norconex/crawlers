@@ -16,7 +16,8 @@ package com.norconex.grid.core.impl;
 
 import java.util.Optional;
 
-import com.norconex.grid.core.compute.JobState;
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.impl.compute.JobStateAtTime;
 import com.norconex.grid.core.storage.GridMap;
 
 /**
@@ -34,7 +35,7 @@ public class CoreStorageHelper {
         jobStates = grid.storage().getMap(JOB_STATES_KEY, JobStateAtTime.class);
     }
 
-    public Optional<JobState> getJobState(String jobName) {
+    public Optional<GridJobState> getJobState(String jobName) {
         return Optional.ofNullable(jobStates.get(jobName))
                 .map(JobStateAtTime::getState);
     }
@@ -43,7 +44,7 @@ public class CoreStorageHelper {
         return Optional.ofNullable(jobStates.get(jobName));
     }
 
-    public void setJobStateAtTime(String jobName, JobState state, long time) {
+    public void setJobStateAtTime(String jobName, GridJobState state, long time) {
         jobStates.put(jobName,
                 new JobStateAtTime(state, time, grid.getNodeName()));
     }

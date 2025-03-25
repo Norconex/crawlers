@@ -12,11 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl;
+package com.norconex.grid.core.impl.compute;
 
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.compute.JobState;
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.impl.CoreGrid;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,33 +29,26 @@ public class CoreGridCompute implements GridCompute {
     private final CoreGrid grid;
 
     @Override
-    public JobState runOnOne(String jobName, Runnable runnable)
+    public GridJobState runOnOne(String jobName, Runnable runnable)
             throws GridException {
         return new RunOnOne(grid, false).execute(jobName, runnable);
     }
 
     @Override
-    public JobState runOnOneOnce(String jobName, Runnable runnable)
+    public GridJobState runOnOneOnce(String jobName, Runnable runnable)
             throws GridException {
         return new RunOnOne(grid, true).execute(jobName, runnable);
     }
 
     @Override
-    public JobState runOnAll(String jobName, Runnable runnable)
+    public GridJobState runOnAll(String jobName, Runnable runnable)
             throws GridException {
         return new RunOnAll(grid, false).execute(jobName, runnable);
     }
 
     @Override
-    public JobState runOnAllOnce(String jobName, Runnable runnable)
+    public GridJobState runOnAllOnce(String jobName, Runnable runnable)
             throws GridException {
         return new RunOnAll(grid, true).execute(jobName, runnable);
-    }
-
-    @Override
-    public JobState runOnAllSynchronized(
-            String jobName, Runnable runnable) throws GridException {
-        return null;
-        //        return new RunSynchronized(grid).execute(jobName, runnable);
     }
 }

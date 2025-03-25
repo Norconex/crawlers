@@ -12,41 +12,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl;
+package com.norconex.grid.core.impl.compute;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jgroups.Address;
 
-import com.norconex.grid.core.compute.JobState;
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-final class RunInSequence extends BaseRunner {
+final class RunOnAll extends BaseRunner {
+
+    //TODO consider adding session it back into the mix so we know
+    // it already ran "within a session"
 
     //TODO make configurable
     private static final long NODE_JOB_TIMEOUT_MS = 30_000;
 
-    public RunInSequence(CoreGrid grid, boolean runOnce) {
+    public RunOnAll(CoreGrid grid, boolean runOnce) {
         super(grid, runOnce);
     }
 
     @Override
-    protected JobState runAsCoordinator(String jobName, Runnable runnable) {
+    protected GridJobState runAsCoordinator(String jobName, Runnable runnable) {
         var nodeJobName = asNodeJobName(jobName);
         //TODO handle if this one fails
-        Map<Address, JobStateAtTime> nodeStates = new HashMap<>();
-        var jobState = new MutableObject<JobState>();
+        Map<Address, JobStateAtTime> nodeStates = new ConcurrentHashMap<>();
+        var jobState = new MutableObject<GridJobState>();
         MessageListener nodeStatesListener = (payload, from) -> {
             if (payload instanceof JobStateMessage msg
                     && Objects.equals(nodeJobName, msg.getJobName())) {
+                LOG.trace("Heartbeat received: {} -> {} -> {}",
+                        from,
+                        msg.getJobName(),
+                        msg.getStateAtTime().getState());
                 nodeStates.put(from, msg.getStateAtTime());
-                synchronized (RunInSequence.this) {
+                synchronized (RunOnAll.this) {
                     notifyAll();
                 }
             }
@@ -58,8 +66,11 @@ final class RunInSequence extends BaseRunner {
                 // The job on this node
                 new JobExecutor(grid, nodeJobName, false).execute(runnable);
 
+                LOG.trace("Coordinator finished its worker job. Now waiting "
+                        + "for all notes to complete.");
+
                 // coordinate that all are done before returning
-                JobState stateOfAll = null;
+                GridJobState stateOfAll = null;
                 while ((stateOfAll = stateOfAll(nodeStates)).isRunning()) {
                     try {
                         synchronized (this) {
@@ -69,7 +80,7 @@ final class RunInSequence extends BaseRunner {
                         LOG.warn("Job {} interrupted.",
                                 jobName,
                                 ConcurrentUtil.wrapAsCompletionException(e));
-                        jobState.setValue(JobState.FAILED);
+                        jobState.setValue(GridJobState.FAILED);
                         Thread.currentThread().interrupt();
                     }
                 }
@@ -83,12 +94,12 @@ final class RunInSequence extends BaseRunner {
     }
 
     @Override
-    protected JobState runAsWorker(String jobName, Runnable runnable) {
+    protected GridJobState runAsWorker(String jobName, Runnable runnable) {
         var nodeJobName = asNodeJobName(jobName);
         // Non-coordinator run and send events but do not persist state.
         // When done, they wait for the coordinator to be done.
         // The coordinator will only be done if all are done.
-        var jobState = JobState.IDLE;
+        var jobState = GridJobState.IDLE;
         new JobExecutor(grid, nodeJobName, false).execute(runnable);
         try {
             jobState = new JobListener(grid, jobName, null)
@@ -98,7 +109,7 @@ final class RunInSequence extends BaseRunner {
             LOG.warn("Job {} interrupted.",
                     jobName, ConcurrentUtil.wrapAsCompletionException(e));
             //TODO make it STOPPED?
-            jobState = JobState.FAILED;
+            jobState = GridJobState.FAILED;
             Thread.currentThread().interrupt();
         }
         return jobState;
@@ -110,7 +121,7 @@ final class RunInSequence extends BaseRunner {
 
     //TODO make configurable to throw/stop on any node failure
     // or make sure to recover
-    private JobState stateOfAll(Map<Address, JobStateAtTime> nodeStates) {
+    private GridJobState stateOfAll(Map<Address, JobStateAtTime> nodeStates) {
         try {
             var numOfNodes = grid.getClusterMembers().size();
             if (nodeStates.size() < numOfNodes
@@ -121,13 +132,13 @@ final class RunInSequence extends BaseRunner {
                         LOG.trace(addr + " -> " + atTime);
                     });
                 }
-                return JobState.RUNNING;
+                return GridJobState.RUNNING;
             }
 
             // at this point we have all nodes reporting... check global state
             // considering complete if all ran and at least one succeeded.
             // (for now... maybe make configurable or implement fail-over).
-            var stateOfAll = JobState.IDLE;
+            var stateOfAll = GridJobState.IDLE;
             for (var atTime : nodeStates.values()) {
                 var state = atTime.getState();
                 if (state.hasRan() && state.ordinal() > stateOfAll.ordinal()) {
@@ -136,7 +147,7 @@ final class RunInSequence extends BaseRunner {
                 // if still running and not expired, return right away
                 if (!state.hasRan()
                         && atTime.since().toMillis() < NODE_JOB_TIMEOUT_MS) {
-                    return JobState.RUNNING;
+                    return GridJobState.RUNNING;
                 }
             }
             return stateOfAll;

@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 
 //TODO rename ComputeState and use in different context? (job, pipeline stage, etc),
 
-public enum JobState {
+public enum GridJobState {
     IDLE, RUNNING, /*EXPIRED,*/ FAILED, COMPLETED;
 
     public boolean isRunning() {
@@ -26,11 +26,11 @@ public enum JobState {
     }
 
     public boolean hasRan() {
-        return this == JobState.COMPLETED
-                || this == JobState.FAILED;
+        return this == GridJobState.COMPLETED
+                || this == GridJobState.FAILED;
     }
 
-    public boolean isAny(JobState... states) {
+    public boolean isAny(GridJobState... states) {
         if (states == null) {
             return false;
         }
@@ -42,10 +42,10 @@ public enum JobState {
      * @param state state as a string
      * @return state
      */
-    public static JobState of(String state) {
+    public static GridJobState of(String state) {
         return Stream.of(values())
                 .filter(val -> val.name().equalsIgnoreCase(state))
                 .findAny()
-                .orElse(JobState.IDLE);
+                .orElse(GridJobState.IDLE);
     }
 }

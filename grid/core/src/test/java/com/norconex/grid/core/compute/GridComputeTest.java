@@ -23,11 +23,15 @@ import org.junit.jupiter.api.Test;
 import com.norconex.grid.core.AbstractGridTest;
 import com.norconex.grid.core.storage.GridSet;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public abstract class GridComputeTest extends AbstractGridTest {
 
     @Test
-    void runOnOneTest() throws Exception {
+    void runOnOneTest() {
         withNewGrid(3, mocker -> {
+            LOG.trace("Running 'runOnOneTest' part 1 of 2");
             GridSet<String> set = mocker
                     .getGridInstance()
                     .storage()
@@ -40,6 +44,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             assertThat(set.size()).isEqualTo(5);
 
             // we are allowed to run it again so the numbers should add up.
+            LOG.trace("Running 'runOnOneTest' part 2 of 2");
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnOne("test", () -> {
                     fill(set, 5);
@@ -54,6 +59,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
     @Test
     void runOnOneOnceTest() throws Exception {
         withNewGrid(3, mocker -> {
+            LOG.trace("Running 'runOnOneOnceTest' part 1 of 2");
             GridSet<String> set = mocker
                     .getGridInstance()
                     .storage()
@@ -66,6 +72,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             assertThat(set.size()).isEqualTo(5);
 
             // we can't run the same job twice. number shall be unchanged
+            LOG.trace("Running 'runOnOneOnceTest' part 2 of 2");
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnOneOnce("test", () -> {
                     fill(set, 5);
@@ -80,6 +87,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
     @Test
     void runOnAllTest() throws Exception {
         withNewGrid(3, mocker -> {
+            LOG.trace("Running 'runOnAllTest' part 1 of 2");
             GridSet<String> set = mocker
                     .getGridInstance()
                     .storage()
@@ -92,6 +100,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             assertThat(set.size()).isEqualTo(15);
 
             // we are allowed to run it again so the numbers should add up.
+            LOG.trace("Running 'runOnAllTest' part 2 of 2");
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnAll("test", () -> {
                     fill(set, 5);
@@ -106,6 +115,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
     @Test
     void runOnAllOnceTest() throws Exception {
         withNewGrid(3, mocker -> {
+            LOG.trace("Running 'runOnAllOnceTest' part 1 of 2");
             GridSet<String> set = mocker
                     .getGridInstance()
                     .storage()
@@ -118,6 +128,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             assertThat(set.size()).isEqualTo(15);
 
             // we can't run the same job twice. number shall be unchanged
+            LOG.trace("Running 'runOnAllOnceTest' part 2 of 2");
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnAllOnce("test", () -> {
                     fill(set, 5);

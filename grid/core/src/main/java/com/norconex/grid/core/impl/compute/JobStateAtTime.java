@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl;
+package com.norconex.grid.core.impl.compute;
 
 import java.io.Serializable;
 import java.time.Duration;
 
-import com.norconex.grid.core.compute.JobState;
+import com.norconex.grid.core.compute.GridJobState;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class JobStateAtTime implements Serializable {
     private static final long serialVersionUID = 1L;
-    private JobState state;
+    private GridJobState state;
     private long time;
     //TODO remove node name from grid interface? Or make it
     // localAddress.toString() for those who need a name but by default
