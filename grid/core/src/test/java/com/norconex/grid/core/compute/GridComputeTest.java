@@ -30,6 +30,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
 
     @Test
     void runOnOneTest() {
+
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnOneTest' part 1 of 2");
             GridSet<String> set = mocker
@@ -57,7 +58,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
     }
 
     @Test
-    void runOnOneOnceTest() throws Exception {
+    void runOnOneOnceTest() {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnOneOnceTest' part 1 of 2");
             GridSet<String> set = mocker

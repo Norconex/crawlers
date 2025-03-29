@@ -14,11 +14,10 @@
  */
 package com.norconex.grid.core.mocks;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,8 +32,7 @@ import lombok.NonNull;
 
 public class MockGridMap<T> implements GridMap<T> {
 
-    private final Map<String, String> map =
-            Collections.synchronizedMap(new HashMap<String, String>());
+    private final Map<String, String> map = new ConcurrentHashMap<>();
     @Getter
     private final Class<? extends T> type;
     @Getter

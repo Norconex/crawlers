@@ -12,19 +12,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl.compute;
+package com.norconex.grid.core.impl.compute.messages;
 
 import java.io.Serializable;
+import java.util.Objects;
+import java.util.function.Consumer;
 
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.impl.compute.JobStateAtTime;
+
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class JobStateMessage implements Serializable {
     private static final long serialVersionUID = 1L;
+
     private String jobName;
     private JobStateAtTime stateAtTime;
+    private boolean ackRequired;
+
+    public static JobStateMessage of(
+            String jobName, GridJobState state, boolean ackRequired) {
+        return new JobStateMessage(
+                jobName, new JobStateAtTime(state), ackRequired);
+    }
+
+    public static void onReceive(
+            Object payload,
+            String jobName,
+            Consumer<JobStateMessage> consumer) {
+        if (payload instanceof JobStateMessage msg
+                && Objects.equals(jobName, msg.getJobName())) {
+            consumer.accept(msg);
+        }
+    }
 }

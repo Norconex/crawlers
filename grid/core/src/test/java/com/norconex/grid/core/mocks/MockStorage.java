@@ -14,12 +14,11 @@
  */
 package com.norconex.grid.core.mocks;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
@@ -39,7 +38,7 @@ public class MockStorage implements GridStorage {
     // Static to mock a shared DB when testing multiple nodes via threads
     // on same VM
     private static final Map<String, GridStore<?>> GRID_STORES =
-            Collections.synchronizedMap(new HashMap<>());
+            new ConcurrentHashMap<>();
 
     @Override
     public Set<String> getStoreNames() {

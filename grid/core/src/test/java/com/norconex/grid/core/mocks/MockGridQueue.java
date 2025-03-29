@@ -14,11 +14,10 @@
  */
 package com.norconex.grid.core.mocks;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
@@ -33,8 +32,7 @@ import lombok.NonNull;
 public class MockGridQueue<T> implements GridQueue<T> {
 
     private final ListOrderedMap<String, String> map =
-            ListOrderedMap.listOrderedMap(
-                    Collections.synchronizedMap(new HashMap<String, String>()));
+            ListOrderedMap.listOrderedMap(new ConcurrentHashMap<>());
 
     @Getter
     private final Class<? extends T> type;

@@ -14,10 +14,15 @@
  */
 package com.norconex.grid.core.impl.compute;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.compute.GridJobState;
 import com.norconex.grid.core.impl.CoreGrid;
+import com.norconex.grid.core.impl.compute.messages.StopMessage;
+import com.norconex.grid.core.impl.compute.worker.NodeJobWorker;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,24 +36,44 @@ public class CoreGridCompute implements GridCompute {
     @Override
     public GridJobState runOnOne(String jobName, Runnable runnable)
             throws GridException {
-        return new RunOnOne(grid, false).execute(jobName, runnable);
+        return new NodeJobWorker(grid, jobName, false).run(() -> {
+            if (grid.isCoordinator()) {
+                runnable.run();
+            }
+        });
     }
 
     @Override
     public GridJobState runOnOneOnce(String jobName, Runnable runnable)
             throws GridException {
-        return new RunOnOne(grid, true).execute(jobName, runnable);
+        return new NodeJobWorker(grid, jobName, true).run(() -> {
+            if (grid.isCoordinator()) {
+                runnable.run();
+            }
+        });
     }
 
     @Override
     public GridJobState runOnAll(String jobName, Runnable runnable)
             throws GridException {
-        return new RunOnAll(grid, false).execute(jobName, runnable);
+        return new NodeJobWorker(grid, jobName, false).run(runnable);
     }
 
     @Override
     public GridJobState runOnAllOnce(String jobName, Runnable runnable)
             throws GridException {
-        return new RunOnAll(grid, true).execute(jobName, runnable);
+        return new NodeJobWorker(grid, jobName, true).run(runnable);
     }
+
+    @Override
+    public Future<Void> stop(String jobName) {
+        var future = new CompletableFuture<Void>();
+        CompletableFuture.runAsync(() -> {
+            grid.send(new StopMessage(jobName));
+            //TODO wait for acknowledgement with timeout
+            future.complete(null);
+        });
+        return future;
+    }
+
 }

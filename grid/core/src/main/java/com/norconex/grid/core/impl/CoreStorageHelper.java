@@ -27,11 +27,9 @@ public class CoreStorageHelper {
 
     private static final String JOB_STATES_KEY = "__jobStates";
 
-    private final CoreGrid grid;
     private final GridMap<JobStateAtTime> jobStates;
 
     public CoreStorageHelper(CoreGrid grid) {
-        this.grid = grid;
         jobStates = grid.storage().getMap(JOB_STATES_KEY, JobStateAtTime.class);
     }
 
@@ -44,8 +42,9 @@ public class CoreStorageHelper {
         return Optional.ofNullable(jobStates.get(jobName));
     }
 
-    public void setJobStateAtTime(String jobName, GridJobState state, long time) {
-        jobStates.put(jobName,
-                new JobStateAtTime(state, time, grid.getNodeName()));
+    public void setJobStateAtTime(String jobName, GridJobState state) {
+        jobStates.put(
+                jobName,
+                new JobStateAtTime(state, System.currentTimeMillis()));
     }
 }

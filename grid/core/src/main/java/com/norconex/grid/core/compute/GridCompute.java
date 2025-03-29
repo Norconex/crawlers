@@ -14,6 +14,8 @@
  */
 package com.norconex.grid.core.compute;
 
+import java.util.concurrent.Future;
+
 import com.norconex.grid.core.GridException;
 
 import lombok.NonNull;
@@ -25,6 +27,8 @@ import lombok.NonNull;
  * thread and return right away.
  */
 public interface GridCompute {
+
+    //TODO add stop here or on grid
 
     public enum RunOn {
         ONE, ONE_ONCE, ALL, ALL_ONCE
@@ -104,4 +108,15 @@ public interface GridCompute {
      */
     GridJobState runOnAllOnce(String jobName, Runnable runnable)
             throws GridException;
+
+    /**
+     * Stops the execution of a running job, or all running jobs if the
+     * supplied job name is <code>null</code>. If no job matching jobs
+     * are currently running, invoking this method has no effect.
+     *
+     * @param jobName the job to stop, or <code>null</code>
+     * @return a future that returns after the job (or jobs) has stopped or
+     *     right away if there is nothing to stop.
+     */
+    Future<Void> stop(String jobName);
 }

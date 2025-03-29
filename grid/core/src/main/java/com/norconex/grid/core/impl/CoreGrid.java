@@ -14,7 +14,10 @@
  */
 package com.norconex.grid.core.impl;
 
+import static java.util.Optional.ofNullable;
+
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.jgroups.Address;
@@ -23,7 +26,7 @@ import org.jgroups.Message;
 import org.jgroups.ObjectMessage;
 import org.jgroups.Receiver;
 import org.jgroups.View;
-import org.jgroups.protocols.FD_ALL3;
+import org.jgroups.protocols.FD_ALL;
 
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridCompute;
@@ -33,11 +36,15 @@ import com.norconex.grid.core.impl.pipeline.CoreGridPipeline;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CoreGrid implements Grid {
+
+    //TODO remove node name from grid interface? Or make it
+    // localAddress.toString() for those who need a name but by default
 
     @Getter
     private final String clusterName;
@@ -50,7 +57,9 @@ public class CoreGrid implements Grid {
     private final GridStorage storage;
     @Getter
     private final Address localAddress;
-    private View currentView;
+    @Getter
+    private Address coordinator;
+    private View view;
     private CoreStorageHelper storageHelper;
 
     public CoreGrid(String nodeName, String clusterName, GridStorage storage)
@@ -60,35 +69,18 @@ public class CoreGrid implements Grid {
         this.storage = storage;
         channel = new JChannel(); //TODO could be passed in or configured
         channel.setName(nodeName);
-        channel.setReceiver(new Receiver() {
-            @Override
-            public void receive(Message msg) {
-                var payload = msg.getObject();
-                for (MessageListener listener : listeners) {
-                    listener.onMessage(payload, msg.getSrc());
-                }
-            }
-
-            @Override
-            public void viewAccepted(View view) {
-                currentView = view;
-                LOG.info("Grid now has {} nodes.", view.size());
-            }
-        });
+        channel.setReceiver(createMessagesReceiver());
         //TODO make configurable, like this for unit tests right now
-        channel.getProtocolStack().findProtocol(FD_ALL3.class);
-        //                .setValue("sock_bind_port", 0);
-        //        channel.getProtocolStack().getTransport().setBindPort(0);
+        channel.getProtocolStack().findProtocol(FD_ALL.class);
         channel.connect(clusterName);
         localAddress = channel.getAddress();
+        view = channel.getView();
+        coordinator = view.getCoord();
         storageHelper = new CoreStorageHelper(this);
     }
 
     public boolean isCoordinator() {
-        if (currentView == null) {
-            return false;
-        }
-        return currentView.getMembers().get(0).equals(localAddress);
+        return Objects.equals(localAddress, coordinator);
     }
 
     public void send(Object payload) {
@@ -109,8 +101,14 @@ public class CoreGrid implements Grid {
         }
     }
 
-    public void addListener(MessageListener listener) {
+    /**
+     * Adds a grid message listener.
+     * @param listener the listener
+     * @return the supplied listener, for convenience
+     */
+    public MessageListener addListener(@NotNull MessageListener listener) {
         listeners.add(listener);
+        return listener;
     }
 
     public void removeListener(MessageListener listener) {
@@ -118,7 +116,9 @@ public class CoreGrid implements Grid {
     }
 
     public List<Address> getClusterMembers() {
-        return channel.getView().getMembers();
+        return ofNullable(channel.getView())
+                .map(View::getMembers)
+                .orElse(List.of());
     }
 
     public CoreStorageHelper storageHelper() {
@@ -145,4 +145,37 @@ public class CoreGrid implements Grid {
         channel.close();
     }
 
+    //--- Private methods ------------------------------------------------------
+
+    private Receiver createMessagesReceiver() {
+        return new Receiver() {
+            @Override
+            public void receive(Message msg) {
+                var payload = msg.getObject();
+                for (MessageListener listener : listeners) {
+                    listener.onMessage(payload, msg.getSrc());
+                }
+            }
+
+            @Override
+            public void viewAccepted(View newView) {
+                view = newView;
+                LOG.info("Grid now has {} nodes.", view.size());
+                var prevCoord = coordinator;
+                var nextCoord = view.getCoord();
+                coordinator = nextCoord;
+                if (!Objects.equals(prevCoord, nextCoord)) {
+                    // if it changed (as opposed to first set), notify all
+                    if (prevCoord == null) {
+                        LOG.info("Elected coordinator: {}", nextCoord);
+                    } else {
+                        LOG.info("New coordinator elected: {} -> {}",
+                                prevCoord, nextCoord);
+                        //TODO handle handling of new coordinator
+                        //send(new NewCoordMessage());
+                    }
+                }
+            }
+        };
+    }
 }
