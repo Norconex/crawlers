@@ -36,9 +36,15 @@ public class CoreGridCompute implements GridCompute {
     @Override
     public GridJobState runOnOne(String jobName, Runnable runnable)
             throws GridException {
+        LOG.info("Running job \"{}\" on node \"{}\".",
+                jobName, grid.getCoordinator());
         return new NodeJobWorker(grid, jobName, false).run(() -> {
             if (grid.isCoordinator()) {
                 runnable.run();
+            } else {
+                LOG.info("Node \"{}\" wasn't selected to run job \"{}\". "
+                        + "Marking as done.",
+                        grid.getLocalAddress(), jobName);
             }
         });
     }
@@ -46,9 +52,14 @@ public class CoreGridCompute implements GridCompute {
     @Override
     public GridJobState runOnOneOnce(String jobName, Runnable runnable)
             throws GridException {
+        LOG.info("Running job \"{}\" on node \"{}\", maximum once",
+                jobName, grid.getCoordinator());
         return new NodeJobWorker(grid, jobName, true).run(() -> {
             if (grid.isCoordinator()) {
                 runnable.run();
+            } else {
+                LOG.info("Node \"{}\" as nothing to do for job \"{}\".",
+                        grid.getLocalAddress(), jobName);
             }
         });
     }
@@ -56,12 +67,14 @@ public class CoreGridCompute implements GridCompute {
     @Override
     public GridJobState runOnAll(String jobName, Runnable runnable)
             throws GridException {
+        LOG.info("Running job \"{}\" on all nodes.", jobName);
         return new NodeJobWorker(grid, jobName, false).run(runnable);
     }
 
     @Override
     public GridJobState runOnAllOnce(String jobName, Runnable runnable)
             throws GridException {
+        LOG.info("Running job \"{}\" on all nodes, maximum once.", jobName);
         return new NodeJobWorker(grid, jobName, true).run(runnable);
     }
 

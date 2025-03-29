@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
-
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridJobState;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
@@ -68,7 +66,7 @@ class GridPipelineRunner<T> {
                 if ((keepGoing || stage.isAlways())
                         && (stage.getOnlyIf() == null
                                 || stage.getOnlyIf().test(context))) {
-                    keepGoing = runStage(stage, context);
+                    keepGoing = keepGoing && runStage(stage, context);
                 }
             }
             pipeline.setState(pipelineName, GridPipelineState.ENDED);
@@ -80,22 +78,20 @@ class GridPipelineRunner<T> {
         LOG.info("Pipeline now at stage \"{}\"", stage.getName());
         pipeline.setActiveStageName(pipelineName, stage.getName());
 
-        var keepGoing = new MutableBoolean();
+        //TODO fix this cannot be set by a node??
+        //        var keepGoing = new AtomicBoolean();
         var jobState = pipeline.getGrid().compute().runOn(
                 stage.getRunOn(),
                 stage.getName(),
-                () -> keepGoing.setValue(
-                        stage.getTask().execute(context))
+                () -> {
+                    stage.getTask().execute(context);
+                    //                    keepGoing.set(resp);
+                }
 
         );
 
-        if (keepGoing.isFalse()) {
-            LOG.info("Pipeline ended by stage \"{}\".",
-                    stage.getName());
-            return false;
-        }
         if (jobState == GridJobState.FAILED) {
-            LOG.info("Pipeline stage failed \"{}\". Aborting.",
+            LOG.info("Pipeline stage \"{}\" failed. Aborting.",
                     stage.getName());
             return false;
         }

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Future;
 
-import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 import com.norconex.grid.core.pipeline.GridPipelineState;
@@ -39,7 +39,7 @@ public class CoreGridPipeline implements GridPipeline {
     private static final String STAGE_KEY_PREFIX = "PipelineStage-";
     private static final String STATE_KEY_PREFIX = "PipelineState-";
 
-    private final Grid grid;
+    private final CoreGrid grid;
 
     @Override
     public <T> Future<Boolean> run(@NonNull String pipelineName,
@@ -65,7 +65,7 @@ public class CoreGridPipeline implements GridPipeline {
                 .get(STATE_KEY_PREFIX + pipelineName));
     }
 
-    Grid getGrid() {
+    CoreGrid getGrid() {
         return grid;
     }
 

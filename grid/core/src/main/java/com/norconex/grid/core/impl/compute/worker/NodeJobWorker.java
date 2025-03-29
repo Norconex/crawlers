@@ -59,8 +59,8 @@ public class NodeJobWorker {
             return NodeJobLock.runExclusively(grid, jobName, () -> {
                 new NodeJobLifeCycle(this).run(job);
                 // wait for coordinator to signal all nodes are done.
-                LOG.info("Node {} is done with job {}. Awaiting coordinator "
-                        + "signal to proceed.",
+                LOG.info("Node \"{}\" is done with job \"{}\". "
+                        + "Awaiting coordinator signal to proceed.",
                         grid.getLocalAddress(), jobName);
                 return getMessageReceiver().waitForCoordDoneMsg();
 

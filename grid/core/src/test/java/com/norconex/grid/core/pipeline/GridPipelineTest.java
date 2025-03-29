@@ -15,7 +15,6 @@
 package com.norconex.grid.core.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -32,30 +31,28 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class GridPipelineTest extends AbstractGridTest {
 
+    private static final int NUM_NODES = 3;
+
     @Test
     void testRun() {
-        withNewGrid(3, mocker -> {
+        withNewGrid(NUM_NODES, mocker -> {
             mocker.onEachNodes((grid, index) -> {
                 var context = new Context(grid);
 
                 var sc = new StageCreator();
                 List<GridPipelineStage<Context>> stages = List.of(
                         sc.onOne(ctx -> {
-                            System.err.println("STAGE 1 RUNNING");
                             ctx.addOne("stage-1");
-                            return true;
                         }),
                         sc.onAll(ctx -> {
-                            System.err.println("STAGE 2 RUNNING");
                             ctx.addOne("stage-2");
-                            return true;
                         }));
 
                 boolean success = ConcurrentUtil.get(
                         grid.pipeline().run("test-pipeline", stages, context));
                 assertThat(success).isTrue();
                 assertThat(context.bag.get("stage-1")).isEqualTo(1);
-                assertThat(context.bag.get("stage-2")).isEqualTo(3);
+                assertThat(context.bag.get("stage-2")).isEqualTo(NUM_NODES);
             });
         });
     }
@@ -80,15 +77,15 @@ public abstract class GridPipelineTest extends AbstractGridTest {
         }
     }
 
-    @Test
-    void testGetActiveStageName() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    void testGetState() {
-        fail("Not yet implemented");
-    }
+    //    @Test
+    //    void testGetActiveStageName() {
+    //        fail("Not yet implemented");
+    //    }
+    //
+    //    @Test
+    //    void testGetState() {
+    //        fail("Not yet implemented");
+    //    }
 
     class Context {
         private final GridMap<Integer> bag;

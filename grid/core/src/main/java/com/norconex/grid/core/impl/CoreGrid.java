@@ -67,6 +67,24 @@ public class CoreGrid implements Grid {
         this.clusterName = clusterName;
         this.nodeName = nodeName;
         this.storage = storage;
+
+        //        // start for local testing
+        //        var tcp = new TCP();
+        //        var fd_sock2 = new FD_SOCK2();
+        //        fd_sock2.setValue("start_port", 0);
+        //        fd_sock2.setValue("end_port", 0);
+        //
+        //        // Create protocol list
+        //        List<Protocol> protocols = new ArrayList<>();
+        //        protocols.add(tcp);
+        //        // ... add other protocols
+        //        protocols.add(fd_sock2);
+        //
+        //        // Create channel with protocol array
+        //        var protocolArray = protocols.toArray(new Protocol[0]);
+        //        channel = new JChannel(protocolArray);
+        //        // end for local testing
+
         channel = new JChannel(); //TODO could be passed in or configured
         channel.setName(nodeName);
         channel.setReceiver(createMessagesReceiver());
