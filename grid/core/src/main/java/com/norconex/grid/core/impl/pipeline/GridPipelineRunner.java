@@ -66,7 +66,9 @@ class GridPipelineRunner<T> {
                 if ((keepGoing || stage.isAlways())
                         && (stage.getOnlyIf() == null
                                 || stage.getOnlyIf().test(context))) {
-                    keepGoing = keepGoing && runStage(stage, context);
+                    keepGoing = runStage(stage, context) && keepGoing;
+                } else {
+                    LOG.info("Skipping stage \"{}\".", stage.getName());
                 }
             }
             pipeline.setState(pipelineName, GridPipelineState.ENDED);
@@ -78,17 +80,10 @@ class GridPipelineRunner<T> {
         LOG.info("Pipeline now at stage \"{}\"", stage.getName());
         pipeline.setActiveStageName(pipelineName, stage.getName());
 
-        //TODO fix this cannot be set by a node??
-        //        var keepGoing = new AtomicBoolean();
         var jobState = pipeline.getGrid().compute().runOn(
                 stage.getRunOn(),
                 stage.getName(),
-                () -> {
-                    stage.getTask().execute(context);
-                    //                    keepGoing.set(resp);
-                }
-
-        );
+                () -> stage.getTask().execute(context));
 
         if (jobState == GridJobState.FAILED) {
             LOG.info("Pipeline stage \"{}\" failed. Aborting.",
