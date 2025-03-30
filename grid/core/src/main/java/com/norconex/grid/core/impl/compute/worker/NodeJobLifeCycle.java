@@ -20,9 +20,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.norconex.grid.core.compute.GridJobState;
-import com.norconex.grid.core.impl.compute.messages.JobStateMessage;
+import org.jgroups.Address;
 
+import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.compute.StoppableRunnable;
+import com.norconex.grid.core.impl.compute.MessageListener;
+import com.norconex.grid.core.impl.compute.messages.JobStateMessage;
+import com.norconex.grid.core.impl.compute.messages.StopJobMessage;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -38,7 +44,8 @@ public class NodeJobLifeCycle {
     }
 
     public void run(Runnable runnable) {
-
+        var stopListener = new JobStopListener(runnable);
+        worker.getGrid().addListener(stopListener);
         try {
             // set running
             var mutableState = new AtomicReference<>(GridJobState.RUNNING);
@@ -88,7 +95,28 @@ public class NodeJobLifeCycle {
             }
             schedulerTask.cancel(false);
         } finally {
+            worker.getGrid().removeListener(stopListener);
             scheduler.shutdown();
+        }
+    }
+
+    @RequiredArgsConstructor
+    private class JobStopListener implements MessageListener {
+        private final Runnable job;
+
+        @Override
+        public void onMessage(Object payload, Address from) {
+            StopJobMessage.onReceive(payload, worker.getJobName(), msg -> {
+                if (job instanceof StoppableRunnable stoppable) {
+                    LOG.info("Job \"{}\" received a stop request.",
+                            worker.getJobName());
+                    stoppable.onStopRequested();
+                } else {
+                    LOG.info("Job \"{}\" does not support being stopped. "
+                            + "Waiting until it finishes.",
+                            worker.getJobName());
+                }
+            });
         }
     }
 }

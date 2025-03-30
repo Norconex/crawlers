@@ -31,4 +31,6 @@ public interface GridPipelineTask<T> {
     //     *     task.
     //     */
     void execute(T ctx);
+
+    //    void onStopRequested(); //TODO
 }

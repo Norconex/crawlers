@@ -111,7 +111,7 @@ public interface GridCompute {
 
     /**
      * Stops the execution of a running job, or all running jobs if the
-     * supplied job name is <code>null</code>. If no job matching jobs
+     * supplied job name is <code>null</code>. If no matching jobs
      * are currently running, invoking this method has no effect.
      *
      * @param jobName the job to stop, or <code>null</code>

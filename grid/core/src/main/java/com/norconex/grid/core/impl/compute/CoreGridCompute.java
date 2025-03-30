@@ -21,7 +21,7 @@ import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.compute.GridJobState;
 import com.norconex.grid.core.impl.CoreGrid;
-import com.norconex.grid.core.impl.compute.messages.StopMessage;
+import com.norconex.grid.core.impl.compute.messages.StopJobMessage;
 import com.norconex.grid.core.impl.compute.worker.NodeJobWorker;
 
 import lombok.RequiredArgsConstructor;
@@ -80,13 +80,10 @@ public class CoreGridCompute implements GridCompute {
 
     @Override
     public Future<Void> stop(String jobName) {
-        var future = new CompletableFuture<Void>();
-        CompletableFuture.runAsync(() -> {
-            grid.send(new StopMessage(jobName));
-            //TODO wait for acknowledgement with timeout
-            future.complete(null);
+        //TODO wait for acknowledgement with timeout
+        return CompletableFuture.runAsync(() -> {
+            grid.send(new StopJobMessage(jobName));
         });
-        return future;
     }
 
 }

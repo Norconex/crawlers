@@ -18,14 +18,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.jgroups.Address;
 
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.impl.compute.MessageListener;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 import com.norconex.grid.core.pipeline.GridPipelineState;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,6 +40,7 @@ class GridPipelineRunner<T> {
             new ArrayList<>();
     private final String pipelineName;
     private final CoreGridPipeline pipeline;
+    private final AtomicBoolean stopRequested = new AtomicBoolean();
 
     public GridPipelineRunner(
             CoreGridPipeline pipeline,
@@ -56,24 +62,35 @@ class GridPipelineRunner<T> {
     }
 
     public Future<Boolean> run(T context) {
-        // handle stopping here?  listen for stop event or force it on context?
-        // else, let stages do it (or not).
+        var pipeStopListener = new PipelineStopListener();
+
         return ConcurrentUtil.call(() -> {
-            var keepGoing = true;
-            // In case we are just joining, get "remaining" stages
-            for (var stage : getRemainingStages()) {
-                pipeline.setState(pipelineName, GridPipelineState.ACTIVE);
-                if ((keepGoing || stage.isAlways())
-                        && (stage.getOnlyIf() == null
-                                || stage.getOnlyIf().test(context))) {
-                    keepGoing = runStage(stage, context) && keepGoing;
-                } else {
-                    LOG.info("Skipping stage \"{}\".", stage.getName());
+            try {
+                pipeline.getGrid().addListener(pipeStopListener);
+                var keepGoing = true;
+                // In case we are just joining, get "remaining" stages
+                for (var stage : getRemainingStages()) {
+                    pipeline.setState(pipelineName, GridPipelineState.ACTIVE);
+                    if (canProceed(context, keepGoing, stage)) {
+                        keepGoing = runStage(stage, context) && keepGoing;
+                    } else {
+                        LOG.info("Skipping stage \"{}\".", stage.getName());
+                    }
                 }
+                pipeline.setState(pipelineName, GridPipelineState.ENDED);
+                return keepGoing;
+            } finally {
+                pipeline.getGrid().removeListener(pipeStopListener);
             }
-            pipeline.setState(pipelineName, GridPipelineState.ENDED);
-            return keepGoing;
         });
+
+    }
+
+    private boolean canProceed(
+            T context, boolean keepGoing, GridPipelineStage<T> stage) {
+        return ((keepGoing && !stopRequested.get()) || stage.isAlways())
+                && (stage.getOnlyIf() == null
+                        || stage.getOnlyIf().test(context));
     }
 
     private boolean runStage(GridPipelineStage<T> stage, T context) {
@@ -90,11 +107,6 @@ class GridPipelineRunner<T> {
                     stage.getName());
             return false;
         }
-
-        //            if (!ctx.isStopping()) {
-        //                setStage(ctx, entry.getKey());
-        //                entry.getValue().accept(this, ctx);
-        //            }
         return true;
     }
 
@@ -117,5 +129,20 @@ class GridPipelineRunner<T> {
         return stages.stream()
                 .dropWhile(stage -> !Objects.equals(stageName, stage.getName()))
                 .toList();
+    }
+
+    @RequiredArgsConstructor
+    private class PipelineStopListener implements MessageListener {
+
+        @Override
+        public void onMessage(Object payload, Address from) {
+            StopPipelineMessage.onReceive(payload, pipelineName, msg -> {
+                LOG.info("Pipeline \"{}\" received a stop request "
+                        + "during stage \"{}\".",
+                        pipelineName,
+                        pipeline.getActiveStageName(pipelineName));
+                stopRequested.set(true);
+            });
+        }
     }
 }

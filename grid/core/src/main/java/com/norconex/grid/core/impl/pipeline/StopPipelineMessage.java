@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl.compute.messages;
+package com.norconex.grid.core.impl.pipeline;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -25,15 +25,17 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StopMessage implements Serializable {
+public class StopPipelineMessage implements Serializable {
     private static final long serialVersionUID = 1L;
-    private String jobName;
+    private String pipelineName;
 
     public static void onReceive(
-            Object payload, String jobName, Consumer<StopMessage> consumer) {
-        if (payload instanceof StopMessage msg
-                && (msg.jobName == null ||
-                        Objects.equals(jobName, msg.getJobName()))) {
+            Object payload,
+            String pipelineName,
+            Consumer<StopPipelineMessage> consumer) {
+        if (payload instanceof StopPipelineMessage msg
+                && (msg.pipelineName == null ||
+                        Objects.equals(pipelineName, msg.getPipelineName()))) {
             consumer.accept(msg);
         }
     }

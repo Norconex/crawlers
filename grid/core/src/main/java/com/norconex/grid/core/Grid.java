@@ -51,17 +51,10 @@ public interface Grid extends Closeable {
 
     /**
      * Closes the local connection, releasing any local resources associated
-     * to it.
+     * to it. If there are still pipelines or jobs running, a stop request
+     * will be made in an attempt to end cleanly.
      */
     @Override
     void close();
 
-    //TEMPORARY:  --------------------------------
-    //    void send(Object payload) throws Exception;
-    //
-    //    void sendTo(Address dest, Object payload) throws Exception;
-    //
-    //    void addListener(MessageListener listener);
-    //
-    //    List<Address> getClusterMembers();
 }

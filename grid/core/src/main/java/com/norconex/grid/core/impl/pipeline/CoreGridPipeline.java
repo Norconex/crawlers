@@ -18,6 +18,7 @@ import static java.util.Optional.ofNullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import com.norconex.grid.core.impl.CoreGrid;
@@ -77,6 +78,12 @@ public class CoreGridPipeline implements GridPipeline {
     void setState(@NonNull String pipelineName, GridPipelineState state) {
         grid.storage().getGlobals().put(
                 STATE_KEY_PREFIX + pipelineName, state.name());
+    }
+
+    @Override
+    public Future<Void> stop(String pipelineName) {
+        return CompletableFuture.runAsync(
+                () -> grid.send(new StopPipelineMessage(pipelineName)));
     }
 
 }
