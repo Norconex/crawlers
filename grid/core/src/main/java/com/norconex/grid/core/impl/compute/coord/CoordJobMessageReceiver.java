@@ -78,7 +78,7 @@ class CoordJobMessageReceiver implements MessageListener {
 
     //TODO make configurable to throw/stop on any node failure
     // or make sure to recover
-    public GridJobState stateOfAll() {
+    GridJobState stateOfAll() {
         //TODO have a timeout that throws if we keep missing workers
         // For a little bit while the nodes are warming up that may be
         // fine but more than that we should throw.

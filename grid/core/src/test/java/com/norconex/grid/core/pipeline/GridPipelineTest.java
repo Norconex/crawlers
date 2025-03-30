@@ -17,10 +17,14 @@ package com.norconex.grid.core.pipeline;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.AbstractGridTest;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
@@ -46,6 +50,9 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                     ctx.addOne("itemB");
                 }),
                 sc.onOneOnce(ctx -> {
+                    // put in store instead.
+                    ctx.set("whatStage", ctx.grid.pipeline()
+                            .getActiveStageName("test-pipelineA").orElse(null));
                     ctx.addOne("itemC");
                 }),
                 sc.onAllOnce(ctx -> {
@@ -58,9 +65,12 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                 boolean success = ConcurrentUtil.get(
                         grid.pipeline().run("test-pipelineA", stages, context));
                 assertThat(success).isTrue();
-                assertThat(context.bag.get("itemA")).isEqualTo(1);
-                assertThat(context.bag.get("itemB")).isEqualTo(NUM_NODES);
-                assertThat(context.bag.get("itemC")).isEqualTo(NUM_NODES + 1);
+                assertThat(context.bagInt.get("itemA")).isEqualTo(1);
+                assertThat(context.bagInt.get("itemB")).isEqualTo(NUM_NODES);
+                assertThat(context.bagInt.get("itemC"))
+                        .isEqualTo(NUM_NODES + 1);
+                assertThat(context.bagStr.get("whatStage"))
+                        .isEqualTo("stage-2");
             });
 
             // Trying to run the pipeline again in this session. Only values for
@@ -73,9 +83,11 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                 // All values should be double (i.e., added again by second run
                 // except for item C, which should remain unchanged (their job
                 // did not run twice).
-                assertThat(context.bag.get("itemA")).isEqualTo(2);
-                assertThat(context.bag.get("itemB")).isEqualTo(NUM_NODES * 2);
-                assertThat(context.bag.get("itemC")).isEqualTo(NUM_NODES + 1);
+                assertThat(context.bagInt.get("itemA")).isEqualTo(2);
+                assertThat(context.bagInt.get("itemB"))
+                        .isEqualTo(NUM_NODES * 2);
+                assertThat(context.bagInt.get("itemC"))
+                        .isEqualTo(NUM_NODES + 1);
             });
 
         });
@@ -114,16 +126,76 @@ public abstract class GridPipelineTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 var context = new Context(grid);
                 boolean success = ConcurrentUtil.get(
-                        grid.pipeline().run("test-pipelineA", stages, context));
+                        grid.pipeline().run("test-pipelineB", stages, context));
                 assertThat(success).isFalse();
-                assertThat(context.bag.get("itemA")).isEqualTo(1);
-                assertThat(context.bag.get("itemB")).isNull();
-                assertThat(context.bag.get("itemC")).isEqualTo(NUM_NODES);
-                assertThat(context.bag.get("itemD")).isNull();
-                assertThat(context.bag.get("itemE")).isEqualTo(333);
+                assertThat(context.bagInt.get("itemA")).isEqualTo(1);
+                assertThat(context.bagInt.get("itemB")).isNull();
+                assertThat(context.bagInt.get("itemC")).isEqualTo(NUM_NODES);
+                assertThat(context.bagInt.get("itemD")).isNull();
+                assertThat(context.bagInt.get("itemE")).isEqualTo(333);
             });
 
         });
+    }
+
+    @Test
+    void testJoinMidPipeline() {
+
+        var frozen = new AtomicBoolean(true);
+        var twoNodesBlocked = new CompletableFuture<Void>();
+
+        var sc = new StageCreator();
+        List<GridPipelineStage<Context>> stages = List.of(
+                sc.onAll(ctx -> {
+                    ctx.addOne("count"); // 2
+                }),
+                sc.onAll(ctx -> {
+                    ctx.addOne("count"); // 4
+                }),
+                // third added here
+                sc.onAll(ctx -> {
+                    int countSoFar = ctx.bagInt.get("count");
+                    if (countSoFar == 4) {
+                        twoNodesBlocked.complete(null);
+                    }
+                    while (frozen.get()) {
+                        Sleeper.sleepMillis(100);
+                    }
+                    ctx.addOne("count"); // 7
+                }),
+                sc.onAll(ctx -> {
+                    ctx.addOne("count"); // 10
+                }));
+
+        var future = CompletableFuture.runAsync(() -> {
+            withNewGrid(2, mocker -> {
+                mocker.onEachNodes((grid, index) -> {
+                    var context = new Context(grid);
+                    boolean success = ConcurrentUtil.get(
+                            grid.pipeline().run("test-pipelineC", stages,
+                                    context));
+                    assertThat(success).isTrue();
+                    assertThat(context.bagInt.get("count")).isEqualTo(10);
+                });
+            });
+        });
+
+        ConcurrentUtil.get(twoNodesBlocked, 10, TimeUnit.SECONDS);
+
+        withNewGrid(1, mocker -> {
+            mocker.onEachNodes((grid, index) -> {
+                var context = new Context(grid);
+                frozen.set(false);
+                boolean success = ConcurrentUtil.get(
+                        grid.pipeline().run("test-pipelineC", stages,
+                                context));
+                assertThat(success).isTrue();
+                // if a 3rd node did not join on 3rd stage, total would be 12
+                assertThat(context.bagInt.get("count")).isEqualTo(10);
+            });
+        });
+
+        ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
     }
 
     private static class StageCreator {
@@ -167,21 +239,15 @@ public abstract class GridPipelineTest extends AbstractGridTest {
         }
     }
 
-    //    @Test
-    //    void testGetActiveStageName() {
-    //        fail("Not yet implemented");
-    //    }
-    //
-    //    @Test
-    //    void testGetState() {
-    //        fail("Not yet implemented");
-    //    }
-
     class Context {
-        private final GridMap<Integer> bag;
+        private final GridMap<Integer> bagInt;
+        private final GridMap<String> bagStr;
+        private final Grid grid;
 
         public Context(Grid grid) {
-            bag = grid.storage().getMap("test-store", Integer.class);
+            this.grid = grid;
+            bagInt = grid.storage().getMap("bagInt", Integer.class);
+            bagStr = grid.storage().getMap("bagStr", String.class);
         }
 
         void addOne(String key) {
@@ -189,7 +255,11 @@ public abstract class GridPipelineTest extends AbstractGridTest {
         }
 
         void add(String key, int value) {
-            bag.update(key, v -> v == null ? value : v + value);
+            bagInt.update(key, v -> v == null ? value : v + value);
+        }
+
+        void set(String key, String value) {
+            bagStr.update(key, v -> v == null ? value : v + value);
         }
     }
 
