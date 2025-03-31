@@ -14,17 +14,15 @@
  */
 package com.norconex.grid.core.impl.pipeline;
 
-import static java.util.Optional.ofNullable;
-
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+import org.jgroups.Address;
+
 import com.norconex.grid.core.impl.CoreGrid;
-import com.norconex.grid.core.pipeline.GridPipeline;
+import com.norconex.grid.core.impl.compute.MessageListener;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
-import com.norconex.grid.core.pipeline.GridPipelineState;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -34,56 +32,46 @@ import lombok.extern.slf4j.Slf4j;
  * Runs a series of jobs on a grid, one after the other.
  */
 @Slf4j
-@RequiredArgsConstructor
-public class CoreGridPipeline implements GridPipeline {
+public class CoreGridPipeline extends BaseGridPipeline<CoreGrid> {
 
-    private static final String STAGE_KEY_PREFIX = "PipelineStage-";
-    private static final String STATE_KEY_PREFIX = "PipelineState-";
-
-    private final CoreGrid grid;
+    public CoreGridPipeline(CoreGrid grid) {
+        super(grid);
+    }
 
     @Override
-    public <T> Future<Boolean> run(@NonNull String pipelineName,
+    public <T> Future<Boolean> run(
+            @NonNull String pipelineName,
             @NonNull List<? extends GridPipelineStage<T>> pipelineStages,
             T context) {
-        return new GridPipelineRunner<>(
-                this, pipelineName, pipelineStages).run(context);
+
+        var runner = new GridPipelineRunner<>(
+                this, pipelineName, pipelineStages);
+        var pipeStopListener = new PipelineStopListener(runner);
+        getGrid().addListener(pipeStopListener);
+        return ((CompletableFuture<Boolean>) runner.run(context))
+                .whenCompleteAsync((resp, ex) -> getGrid()
+                        .removeListener(pipeStopListener));
     }
 
     @Override
-    public Optional<String> getActiveStageName(@NonNull String pipelineName) {
-        return ofNullable(grid
-                .storage()
-                .getGlobals()
-                .get(STAGE_KEY_PREFIX + pipelineName));
+    public void requestStop(String pipelineName) {
+        getGrid().send(new StopPipelineMessage(pipelineName));
     }
 
-    @Override
-    public GridPipelineState getState(@NonNull String pipelineName) {
-        return GridPipelineState.of(grid
-                .storage()
-                .getGlobals()
-                .get(STATE_KEY_PREFIX + pipelineName));
-    }
+    @RequiredArgsConstructor
+    private class PipelineStopListener implements MessageListener {
+        private final GridPipelineRunner<?> pipelineRunner;
 
-    CoreGrid getGrid() {
-        return grid;
+        @Override
+        public void onMessage(Object payload, Address from) {
+            var pipeName = pipelineRunner.getPipelineName();
+            StopPipelineMessage.onReceive(payload, pipeName, msg -> {
+                LOG.info("Pipeline \"{}\" received a stop request "
+                        + "during stage \"{}\".",
+                        pipeName,
+                        getActiveStageName(pipeName));
+                pipelineRunner.stopRequested();
+            });
+        }
     }
-
-    void setActiveStageName(@NonNull String pipelineName, String name) {
-        grid.storage().getGlobals().put(
-                STAGE_KEY_PREFIX + pipelineName, name);
-    }
-
-    void setState(@NonNull String pipelineName, GridPipelineState state) {
-        grid.storage().getGlobals().put(
-                STATE_KEY_PREFIX + pipelineName, state.name());
-    }
-
-    @Override
-    public Future<Void> stop(String pipelineName) {
-        return CompletableFuture.runAsync(
-                () -> grid.send(new StopPipelineMessage(pipelineName)));
-    }
-
 }

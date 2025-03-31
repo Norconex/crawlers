@@ -80,7 +80,7 @@ public class MockStorage implements GridStorage {
     }
 
     @Override
-    public synchronized <T> T withTransaction(Callable<T> callable) {
+    public synchronized <T> T runInTransaction(Callable<T> callable) {
         try {
             return callable.call();
         } catch (Exception e) {
@@ -89,7 +89,7 @@ public class MockStorage implements GridStorage {
     }
 
     @Override
-    public <T> Future<T> withTransactionAsync(Callable<T> callable) {
+    public <T> Future<T> runInTransactionAsync(Callable<T> callable) {
         var future = new CompletableFuture<T>();
         CompletableFuture.runAsync(() -> {
             try {

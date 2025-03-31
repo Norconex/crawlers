@@ -20,30 +20,28 @@ import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.jgroups.Address;
-
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridJobState;
-import com.norconex.grid.core.impl.compute.MessageListener;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 import com.norconex.grid.core.pipeline.GridPipelineState;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class GridPipelineRunner<T> {
+public class GridPipelineRunner<T> {
 
     private final List<GridPipelineStage<T>> stages =
             new ArrayList<>();
+    @Getter
     private final String pipelineName;
-    private final CoreGridPipeline pipeline;
+    private final BaseGridPipeline<?> pipeline;
     private final AtomicBoolean stopRequested = new AtomicBoolean();
 
     public GridPipelineRunner(
-            CoreGridPipeline pipeline,
+            BaseGridPipeline<?> pipeline,
             @NonNull String pipelineName,
             @NonNull List<? extends GridPipelineStage<T>> stages) {
         this.pipeline = pipeline;
@@ -62,26 +60,19 @@ class GridPipelineRunner<T> {
     }
 
     public Future<Boolean> run(T context) {
-        var pipeStopListener = new PipelineStopListener();
-
         return ConcurrentUtil.call(() -> {
-            try {
-                pipeline.getGrid().addListener(pipeStopListener);
-                var keepGoing = true;
-                // In case we are just joining, get "remaining" stages
-                for (var stage : getRemainingStages()) {
-                    pipeline.setState(pipelineName, GridPipelineState.ACTIVE);
-                    if (canProceed(context, keepGoing, stage)) {
-                        keepGoing = runStage(stage, context) && keepGoing;
-                    } else {
-                        LOG.info("Skipping stage \"{}\".", stage.getName());
-                    }
+            var keepGoing = true;
+            // In case we are just joining, get "remaining" stages
+            for (var stage : getRemainingStages()) {
+                pipeline.setState(pipelineName, GridPipelineState.ACTIVE);
+                if (canProceed(context, keepGoing, stage)) {
+                    keepGoing = runStage(stage, context) && keepGoing;
+                } else {
+                    LOG.info("Skipping stage \"{}\".", stage.getName());
                 }
-                pipeline.setState(pipelineName, GridPipelineState.ENDED);
-                return keepGoing;
-            } finally {
-                pipeline.getGrid().removeListener(pipeStopListener);
             }
+            pipeline.setState(pipelineName, GridPipelineState.ENDED);
+            return keepGoing;
         });
 
     }
@@ -131,18 +122,7 @@ class GridPipelineRunner<T> {
                 .toList();
     }
 
-    @RequiredArgsConstructor
-    private class PipelineStopListener implements MessageListener {
-
-        @Override
-        public void onMessage(Object payload, Address from) {
-            StopPipelineMessage.onReceive(payload, pipelineName, msg -> {
-                LOG.info("Pipeline \"{}\" received a stop request "
-                        + "during stage \"{}\".",
-                        pipelineName,
-                        pipeline.getActiveStageName(pipelineName));
-                stopRequested.set(true);
-            });
-        }
+    public void stopRequested() {
+        stopRequested.set(true);
     }
 }

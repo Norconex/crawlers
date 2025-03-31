@@ -31,7 +31,7 @@ class CoordJobMessageReceiverTest {
     @Test
     void testOnMessage() throws Exception {
 
-        var grid = new CoreGrid("someNode", "someCluster", new MockStorage());
+        var grid = new CoreGrid("someCluster", new MockStorage());
         var coord = new GridJobCoordinator(grid, "someJob", false);
         var receiver = new CoordJobMessageReceiver(coord);
 
@@ -43,7 +43,7 @@ class CoordJobMessageReceiverTest {
     @Test
     void testStateOfAll() throws Exception {
 
-        var grid = new CoreGrid("someNode", "someCluster", new MockStorage());
+        var grid = new CoreGrid("someCluster", new MockStorage());
         var coord = new GridJobCoordinator(grid, "someJob", false);
         var receiver = new CoordJobMessageReceiver(coord);
 

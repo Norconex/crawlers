@@ -47,7 +47,7 @@ public interface Grid extends Closeable {
     //TODO used?  How does it related to NODE_INDEX?
     String getNodeName();
 
-    String getClusterName();
+    String getGridName();
 
     /**
      * Closes the local connection, releasing any local resources associated

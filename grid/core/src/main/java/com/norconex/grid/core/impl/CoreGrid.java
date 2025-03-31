@@ -47,9 +47,9 @@ public class CoreGrid implements Grid {
     // localAddress.toString() for those who need a name but by default
 
     @Getter
-    private final String clusterName;
-    @Getter
-    private final String nodeName;
+    private final String gridName;
+    //    @Getter
+    //    private final String nodeName;
     @Getter
     private final JChannel channel;
     private final List<MessageListener> listeners =
@@ -60,12 +60,11 @@ public class CoreGrid implements Grid {
     @Getter
     private Address coordinator;
     private View view;
-    private CoreStorageHelper storageHelper;
+    private StorageHelper storageHelper;
 
-    public CoreGrid(String nodeName, String clusterName, GridStorage storage)
+    public CoreGrid(String gridName, GridStorage storage)
             throws Exception {
-        this.clusterName = clusterName;
-        this.nodeName = nodeName;
+        this.gridName = gridName;
         this.storage = storage;
 
         //        // start for local testing
@@ -86,15 +85,15 @@ public class CoreGrid implements Grid {
         //        // end for local testing
 
         channel = new JChannel(); //TODO could be passed in or configured
-        channel.setName(nodeName);
+        //        channel.setName(nodeName);
         channel.setReceiver(createMessagesReceiver());
         //TODO make configurable, like this for unit tests right now
         channel.getProtocolStack().findProtocol(FD_ALL.class);
-        channel.connect(clusterName);
+        channel.connect(gridName);
         localAddress = channel.getAddress();
         view = channel.getView();
         coordinator = view.getCoord();
-        storageHelper = new CoreStorageHelper(this);
+        storageHelper = new StorageHelper(this);
     }
 
     public boolean isCoordinator() {
@@ -139,8 +138,13 @@ public class CoreGrid implements Grid {
                 .orElse(List.of());
     }
 
-    public CoreStorageHelper storageHelper() {
+    public StorageHelper storageHelper() {
         return storageHelper;
+    }
+
+    @Override
+    public String getNodeName() {
+        return localAddress.toString();
     }
 
     @Override

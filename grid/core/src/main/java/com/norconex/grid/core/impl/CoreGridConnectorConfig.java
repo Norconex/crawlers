@@ -12,15 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core;
+package com.norconex.grid.core.impl;
 
-import java.nio.file.Path;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
- * Connector to a Norconex Grid implementation.
+ * <p>
+ * Configuration for {@link CoreGridConnector}.
+ * </p>
  */
-@FunctionalInterface
-public interface GridConnector {
+@Data
+@Accessors(chain = true)
+public class CoreGridConnectorConfig {
 
-    Grid connect(Path workDir);
+    private String gridName = "grid-core";
 }

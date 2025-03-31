@@ -43,8 +43,7 @@ public abstract class AbstractGridTest {
             FailableConsumer<MultiNodesMocker, Exception> consumer) {
         List<Grid> nodes = new ArrayList<>();
         for (var i = 0; i < numNodes; i++) {
-            var grid = getGridConnector().connect(
-                    "Node-" + i, "TestCluster", tempDir);
+            var grid = getGridConnector().connect(tempDir);
             nodes.add(grid);
         }
         //MAYBE wait for cluster connection

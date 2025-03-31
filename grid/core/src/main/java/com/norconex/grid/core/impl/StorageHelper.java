@@ -16,6 +16,7 @@ package com.norconex.grid.core.impl;
 
 import java.util.Optional;
 
+import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridJobState;
 import com.norconex.grid.core.impl.compute.JobStateAtTime;
 import com.norconex.grid.core.storage.GridMap;
@@ -23,13 +24,13 @@ import com.norconex.grid.core.storage.GridMap;
 /**
  * Storage-related utility methods specific to the Core implementation.
  */
-public class CoreStorageHelper {
+public class StorageHelper {
 
     private static final String JOB_STATES_KEY = "__jobStates";
 
     private final GridMap<JobStateAtTime> jobStates;
 
-    public CoreStorageHelper(CoreGrid grid) {
+    public StorageHelper(Grid grid) {
         jobStates = grid.storage().getMap(JOB_STATES_KEY, JobStateAtTime.class);
     }
 

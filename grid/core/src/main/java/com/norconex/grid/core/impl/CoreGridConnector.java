@@ -16,17 +16,24 @@ package com.norconex.grid.core.impl;
 
 import java.nio.file.Path;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridStorage;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
-public class CoreGridConnector implements GridConnector {
+public class CoreGridConnector
+        implements GridConnector, Configurable<CoreGridConnectorConfig> {
+
+    @Getter
+    private final CoreGridConnectorConfig configuration =
+            new CoreGridConnectorConfig();
 
     //FOR now we use constructor, but we'll make it configurable, with
     // a default set in crawler core
@@ -34,10 +41,10 @@ public class CoreGridConnector implements GridConnector {
     private final GridStorage storage;
 
     @Override
-    public Grid connect(String nodeName, String clusterName, Path workDir) {
+    public Grid connect(Path workDir) {
         try {
-            LOG.info("Connecting to: {} -> {}", clusterName, nodeName);
-            return new CoreGrid(nodeName, clusterName, storage);
+            LOG.info("Connecting to grid: \"{}\"", configuration.getGridName());
+            return new CoreGrid(configuration.getGridName(), storage);
         } catch (Exception e) {
             //TODO since a lib now, make checked exception?
             throw new GridException("Could not connect to grid.", e);

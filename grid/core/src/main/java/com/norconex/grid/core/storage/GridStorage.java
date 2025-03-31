@@ -40,8 +40,8 @@ public interface GridStorage {
 
     void clean();
 
-    <T> T withTransaction(Callable<T> callable);
+    <T> T runInTransaction(Callable<T> callable);
 
-    <T> Future<T> withTransactionAsync(Callable<T> callable);
+    <T> Future<T> runInTransactionAsync(Callable<T> callable);
 
 }

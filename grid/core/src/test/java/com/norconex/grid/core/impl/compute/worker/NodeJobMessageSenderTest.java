@@ -30,7 +30,7 @@ class NodeJobMessageSenderTest {
     @Test
     void testSendToCoord() throws Exception {
 
-        var grid = new CoreGrid("someNode", "someCluster", new MockStorage());
+        var grid = new CoreGrid("someCluster", new MockStorage());
         var worker = new NodeJobWorker(grid, "someJob", false);
         var sender = new NodeJobMessageSender(worker);
 

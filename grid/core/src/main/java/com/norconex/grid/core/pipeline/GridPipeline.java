@@ -56,14 +56,15 @@ public interface GridPipeline {
     GridPipelineState getState(@NonNull String pipelineName);
 
     /**
-     * Stops the execution of a running pipeline, or all running pipelines
-     * if the supplied name is <code>null</code>. If no matching pipelines
-     * are currently running, invoking this method has no effect.
+     * Make a request to stops the execution of a running pipeline, or all
+     * running pipelines if the supplied name is <code>null</code>.
+     * If no matching pipelines are currently running, invoking this method
+     * has no effect.
+     *
+     * This method returns right away and lets the pipeline handles the request.
      *
      * @param pipelineName the pipeline to stop, or <code>null</code>
-     * @return a future that returns after the pipeline(s) has stopped or
-     *     right away if there is nothing to stop.
      */
-    Future<Void> stop(String pipelineName);
+    void requestStop(String pipelineName);
 
 }
