@@ -14,14 +14,21 @@
  */
 package com.norconex.grid.core.compute;
 
+import static java.util.Optional.ofNullable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.AbstractGridTest;
+import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridSet;
+import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -141,9 +148,52 @@ public abstract class GridComputeTest extends AbstractGridTest {
         });
     }
 
+    @Test
+    void testStop() {
+        assertThatNoException().isThrownBy(() -> {
+
+            withNewGrid(3, mocker -> {
+                GridMap<Integer> map = mocker
+                        .getGridInstance()
+                        .storage()
+                        .getMap("count", Integer.class);
+                var future = CompletableFuture.runAsync(() -> {
+                    mocker.onEachNodes((grid, index) -> {
+                        map.update("count", v -> v == null ? 1 : v + 1);
+                        grid.compute().runOnAll("test", new StoppableJob());
+                    });
+                });
+
+                ConcurrentUtil.get(CompletableFuture.runAsync(() -> {
+                    while (ofNullable(map.get("count")).orElse(0) < 3) {
+                        Sleeper.sleepMillis(100);
+                    }
+                }), 10, TimeUnit.SECONDS);
+
+                mocker.getGridInstance().compute().stop("test");
+                ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
+            });
+        });
+    }
+
     private void fill(GridSet<String> set, int numEntries) {
         for (var i = 0; i < numEntries; i++) {
             set.add(UUID.randomUUID().toString());
         }
     }
+
+    private static final class StoppableJob implements StoppableRunnable {
+        private CompletableFuture<Void> pendingStop = new CompletableFuture<>();
+
+        @Override
+        public void run() {
+            ConcurrentUtil.get(pendingStop, 20, TimeUnit.SECONDS);
+        }
+
+        @Override
+        public void onStopRequested() {
+            pendingStop.complete(null);
+        }
+    }
+
 }

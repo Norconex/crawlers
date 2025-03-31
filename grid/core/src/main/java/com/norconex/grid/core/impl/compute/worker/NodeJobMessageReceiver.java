@@ -20,7 +20,6 @@ import static com.norconex.grid.core.impl.compute.LogTxt.WORKER;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jgroups.Address;
 
@@ -29,7 +28,6 @@ import com.norconex.grid.core.impl.compute.LogTxt;
 import com.norconex.grid.core.impl.compute.MessageListener;
 import com.norconex.grid.core.impl.compute.messages.GridJobDoneMessage;
 import com.norconex.grid.core.impl.compute.messages.JobStateMessageAck;
-import com.norconex.grid.core.impl.compute.messages.StopJobMessage;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -45,7 +43,6 @@ class NodeJobMessageReceiver implements MessageListener {
             new CompletableFuture<>();
     private final CompletableFuture<GridJobState> pendingCoordDone =
             new CompletableFuture<>();
-    private AtomicBoolean stopRequested = new AtomicBoolean();
 
     @Override
     public void onMessage(Object payload, Address from) {
@@ -66,12 +63,6 @@ class NodeJobMessageReceiver implements MessageListener {
                     }
                     pendingCoordDone.complete(gridJobState);
                 });
-
-        StopJobMessage.onReceive(payload, worker.getJobName(), msg -> {
-            LOG.info("STOP requested.");
-            stopRequested.set(true);
-            //TODO acknowledge?
-        });
     }
 
     void waitForWorkerDoneAckMsg() {
@@ -80,9 +71,5 @@ class NodeJobMessageReceiver implements MessageListener {
 
     GridJobState waitForCoordDoneMsg() {
         return ConcurrentUtil.get(pendingCoordDone, 30, TimeUnit.SECONDS);
-    }
-
-    boolean isStopRequested() {
-        return stopRequested.get();
     }
 }

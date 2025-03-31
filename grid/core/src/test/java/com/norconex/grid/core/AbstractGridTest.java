@@ -26,6 +26,8 @@ import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.grid.core.util.ConcurrentUtil;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -65,8 +67,7 @@ public abstract class AbstractGridTest {
         private final List<Grid> nodes;
 
         public void onEachNodes(
-                FailableBiConsumer<Grid, Integer, Exception> task)
-                throws Exception {
+                FailableBiConsumer<Grid, Integer, Exception> task) {
             var exec = Executors.newFixedThreadPool(nodes.size());
             List<Future<?>> futures = new ArrayList<>();
             for (var i = 0; i < nodes.size(); i++) {
@@ -79,7 +80,7 @@ public abstract class AbstractGridTest {
 
             }
             for (Future<?> f : futures) {
-                f.get();
+                ConcurrentUtil.get(f);
             }
             exec.shutdown();
         }

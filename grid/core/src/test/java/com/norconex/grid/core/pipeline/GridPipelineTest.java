@@ -202,7 +202,6 @@ public abstract class GridPipelineTest extends AbstractGridTest {
     void testPipelineStop() {
 
         var frozen = new AtomicBoolean(true);
-        //        var allNodesBlocked = new CompletableFuture<Void>();
 
         var sc = new StageCreator();
         List<GridPipelineStage<Context>> stages = List.of(
@@ -211,9 +210,6 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                 }),
                 sc.onAll(ctx -> {
                     ctx.bagInt.get("count");
-                    //                    if (countSoFar == 6) {
-                    //                        allNodesBlocked.complete(null);
-                    //                    }
                     while (frozen.get()) {
                         Sleeper.sleepMillis(100);
                     }
@@ -232,8 +228,6 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                 var context = new Context(grid);
                 var future = grid.pipeline().run(
                         "test-pipelineD", stages, context);
-
-                //                ConcurrentUtil.get(allNodesBlocked, 10, TimeUnit.SECONDS);
                 while (!"stage-1"
                         .equals(grid.pipeline()
                                 .getActiveStageName("test-pipelineD")
