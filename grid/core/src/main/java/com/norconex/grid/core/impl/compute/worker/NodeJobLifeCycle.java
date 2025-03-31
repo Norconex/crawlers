@@ -110,7 +110,7 @@ public class NodeJobLifeCycle {
                 if (job instanceof StoppableRunnable stoppable) {
                     LOG.info("Job \"{}\" received a stop request.",
                             worker.getJobName());
-                    stoppable.onStopRequested();
+                    stoppable.stopRequested();
                 } else {
                     LOG.info("Job \"{}\" does not support being stopped. "
                             + "Waiting until it finishes.",

@@ -149,32 +149,32 @@ public abstract class GridComputeTest extends AbstractGridTest {
     }
 
     @Test
-    void testStop() {
-        assertThatNoException().isThrownBy(() -> {
-
-            withNewGrid(3, mocker -> {
-                GridMap<Integer> map = mocker
-                        .getGridInstance()
-                        .storage()
-                        .getMap("count", Integer.class);
-                var future = CompletableFuture.runAsync(() -> {
-                    mocker.onEachNodes((grid, index) -> {
-                        map.update("count", v -> v == null ? 1 : v + 1);
-                        grid.compute().runOnAll("test", new StoppableJob());
+        void testRequestStop() {
+            assertThatNoException().isThrownBy(() -> {
+    
+                withNewGrid(3, mocker -> {
+                    GridMap<Integer> map = mocker
+                            .getGridInstance()
+                            .storage()
+                            .getMap("count", Integer.class);
+                    var future = CompletableFuture.runAsync(() -> {
+                        mocker.onEachNodes((grid, index) -> {
+                            map.update("count", v -> v == null ? 1 : v + 1);
+                            grid.compute().runOnAll("test", new StoppableJob());
+                        });
                     });
+    
+                    ConcurrentUtil.get(CompletableFuture.runAsync(() -> {
+                        while (ofNullable(map.get("count")).orElse(0) < 3) {
+                            Sleeper.sleepMillis(100);
+                        }
+                    }), 10, TimeUnit.SECONDS);
+    
+                    mocker.getGridInstance().compute().requestStop("test");
+                    ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
                 });
-
-                ConcurrentUtil.get(CompletableFuture.runAsync(() -> {
-                    while (ofNullable(map.get("count")).orElse(0) < 3) {
-                        Sleeper.sleepMillis(100);
-                    }
-                }), 10, TimeUnit.SECONDS);
-
-                mocker.getGridInstance().compute().stop("test");
-                ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
             });
-        });
-    }
+        }
 
     private void fill(GridSet<String> set, int numEntries) {
         for (var i = 0; i < numEntries; i++) {
@@ -191,7 +191,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
         }
 
         @Override
-        public void onStopRequested() {
+        public void stopRequested() {
             pendingStop.complete(null);
         }
     }

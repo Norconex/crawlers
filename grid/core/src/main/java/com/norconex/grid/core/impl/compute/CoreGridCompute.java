@@ -14,9 +14,6 @@
  */
 package com.norconex.grid.core.impl.compute;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.compute.GridJobState;
@@ -79,11 +76,7 @@ public class CoreGridCompute implements GridCompute {
     }
 
     @Override
-    public Future<Void> stop(String jobName) {
-        //TODO wait for acknowledgement with timeout
-        return CompletableFuture.runAsync(() -> {
-            grid.send(new StopJobMessage(jobName));
-        });
+    public void requestStop(String jobName) {
+        grid.send(new StopJobMessage(jobName));
     }
-
 }

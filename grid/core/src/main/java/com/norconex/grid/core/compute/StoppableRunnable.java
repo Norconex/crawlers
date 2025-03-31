@@ -20,6 +20,6 @@ package com.norconex.grid.core.compute;
  */
 public interface StoppableRunnable extends Runnable {
 
-    void onStopRequested();
+    void stopRequested();
 
 }

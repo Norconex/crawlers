@@ -14,8 +14,6 @@
  */
 package com.norconex.grid.core.compute;
 
-import java.util.concurrent.Future;
-
 import com.norconex.grid.core.GridException;
 
 import lombok.NonNull;
@@ -110,13 +108,13 @@ public interface GridCompute {
             throws GridException;
 
     /**
-     * Stops the execution of a running job, or all running jobs if the
+     * Requests for the execution of a running job implementing
+     * {@link StoppableRunnable}, or all such running jobs if the
      * supplied job name is <code>null</code>. If no matching jobs
-     * are currently running, invoking this method has no effect.
+     * are currently running, invoking this method has no effect. This method
+     * returns right away and lets the jobs handle the request.
      *
      * @param jobName the job to stop, or <code>null</code>
-     * @return a future that returns after the job (or jobs) has stopped or
-     *     right away if there is nothing to stop.
      */
-    Future<Void> stop(String jobName);
+    void requestStop(String jobName);
 }
