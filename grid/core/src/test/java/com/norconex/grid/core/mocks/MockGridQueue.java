@@ -78,9 +78,12 @@ public class MockGridQueue<T> implements GridQueue<T> {
 
     @Override
     public boolean put(String key, T object) {
+        if (map.containsKey(key)) {
+            return false;
+        }
         var newEntry = SerialUtil.toJsonString(object);
-        return !Objects.equals(newEntry,
-                map.put(key, SerialUtil.toJsonString(object)));
+        return !Objects.equals(
+                newEntry, map.put(key, SerialUtil.toJsonString(object)));
     }
 
     @Override

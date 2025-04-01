@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Nested;
 
 import com.norconex.grid.core.compute.GridComputeTest;
 import com.norconex.grid.core.pipeline.GridPipelineTest;
+import com.norconex.grid.core.storage.GridStorageTest;
 
 /**
  * Main test class to implement for grid implementations.
@@ -39,4 +40,13 @@ public abstract class GridTestSuite extends AbstractGridTest {
             return GridTestSuite.this.getGridConnector();
         }
     }
+
+    @Nested
+    class StorageTest extends GridStorageTest {
+        @Override
+        protected GridConnector getGridConnector() {
+            return GridTestSuite.this.getGridConnector();
+        }
+    }
+
 }

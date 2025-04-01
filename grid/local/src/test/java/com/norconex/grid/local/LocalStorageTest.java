@@ -14,39 +14,12 @@
  */
 package com.norconex.grid.local;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.storage.GridStorageTest;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-class LocalGridTest {
-
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testStorage() {
-
-        fail("Not yet implemented");
+class LocalStorageTest extends GridStorageTest {
+    @Override
+    protected GridConnector getGridConnector() {
+        return new LocalGridConnector();
     }
-
-    @Test
-    void testClose() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    void testCompute() {
-        new LocalGridConnector().connect(tempDir);
-
-        //        grid.compute().fail("Not yet implemented");
-    }
-
-    @Test
-    void testPipeline() {
-        fail("Not yet implemented");
-    }
-
 }

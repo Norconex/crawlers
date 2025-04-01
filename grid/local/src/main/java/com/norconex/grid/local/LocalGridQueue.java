@@ -55,7 +55,7 @@ public class LocalGridQueue<T> implements GridQueue<T> {
 
     @Override
     public boolean contains(Object key) {
-        return sequenceQueue.containsKey(key);
+        return map.containsKey(key);
     }
 
     @Override
@@ -86,6 +86,9 @@ public class LocalGridQueue<T> implements GridQueue<T> {
 
     @Override
     public boolean put(String key, T object) {
+        if (map.containsKey(key)) {
+            return false;
+        }
         var seq = sequence.incrementAndGet();
         sequenceQueue.put(seq, key);
         var newEntry = SerialUtil.toJsonString(object);

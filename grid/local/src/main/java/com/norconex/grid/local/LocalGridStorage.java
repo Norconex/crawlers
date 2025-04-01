@@ -119,22 +119,7 @@ public class LocalGridStorage implements GridStorage {
 
     @Override
     public <T> T runInTransaction(Callable<T> callable) {
-        var txStore = new TransactionStore(mvStore);
-        var tx = txStore.begin();
-        try {
-            var result = callable.call();
-            tx.commit();
-            return result;
-        } catch (Exception e) {
-            tx.rollback();
-            throw new GridException(
-                    "A problem occured during transaction execution.", e);
-        }
-    }
-
-    @Override
-    public <T> Future<T> runInTransactionAsync(Callable<T> callable) {
-        return CompletableFuture.supplyAsync(() -> {
+        synchronized (this) {
             var txStore = new TransactionStore(mvStore);
             var tx = txStore.begin();
             try {
@@ -145,6 +130,26 @@ public class LocalGridStorage implements GridStorage {
                 tx.rollback();
                 throw new GridException(
                         "A problem occured during transaction execution.", e);
+            }
+        }
+    }
+
+    @Override
+    public <T> Future<T> runInTransactionAsync(Callable<T> callable) {
+        return CompletableFuture.supplyAsync(() -> {
+            synchronized (this) {
+                var txStore = new TransactionStore(mvStore);
+                var tx = txStore.begin();
+                try {
+                    var result = callable.call();
+                    tx.commit();
+                    return result;
+                } catch (Exception e) {
+                    tx.rollback();
+                    throw new GridException(
+                            "A problem occured during transaction execution.",
+                            e);
+                }
             }
         });
     }

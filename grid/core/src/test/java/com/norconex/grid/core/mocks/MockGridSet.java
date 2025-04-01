@@ -46,7 +46,7 @@ public class MockGridSet<T> implements GridSet<T> {
 
     @Override
     public boolean contains(Object object) {
-        return set.contains(object);
+        return set.contains(SerialUtil.toJsonString(object));
     }
 
     @Override

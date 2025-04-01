@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -47,6 +48,11 @@ class LocalComputeTest {
     @BeforeEach
     void beforeEach() {
         grid = new LocalGridConnector().connect(tempDir);
+    }
+
+    @AfterEach
+    void afterEach() {
+        grid.close();
     }
 
     @Test
@@ -131,7 +137,6 @@ class LocalComputeTest {
         @Override
         public void run() {
             running.set(true);
-            System.err.println("Running + Blocking here.");
             ConcurrentUtil.get(pendingStop, 20, TimeUnit.SECONDS);
         }
 

@@ -39,7 +39,7 @@ public interface GridQueue<T> extends GridStore<T> {
      * it can be useful if you need to reconcile.
      * @param key unique identifier for an object.
      * @param object the object to add to the queue
-     * @return <code>true</code> if the object was queued (i.e., not object
+     * @return <code>true</code> if the object was queued (i.e., no object
      *     already exist under the same key).
      */
     boolean put(String key, T object);

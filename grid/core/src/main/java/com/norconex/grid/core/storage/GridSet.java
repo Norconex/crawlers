@@ -49,7 +49,7 @@ public interface GridSet<T> extends GridStore<T> {
 
     /**
      * {@inheritDoc}
-     * Key is always <code>null</code>. This method is imlpemented to conforms
+     * Key is always <code>null</code>. This method is implemented to conforms
      * to {@link GridStore#forEach(BiPredicate)}. Use
      * {@link #forEach(Predicate)} for a more appropriate method.
      */

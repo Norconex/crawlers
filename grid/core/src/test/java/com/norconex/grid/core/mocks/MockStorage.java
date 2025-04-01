@@ -20,6 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import com.norconex.grid.core.GridException;
@@ -39,6 +40,7 @@ public class MockStorage implements GridStorage {
     // on same VM
     private static final Map<String, GridStore<?>> GRID_STORES =
             new ConcurrentHashMap<>();
+    private final ReentrantLock transactionLock = new ReentrantLock();
 
     @Override
     public Set<String> getStoreNames() {
@@ -92,11 +94,15 @@ public class MockStorage implements GridStorage {
     public <T> Future<T> runInTransactionAsync(Callable<T> callable) {
         var future = new CompletableFuture<T>();
         CompletableFuture.runAsync(() -> {
+            // Ensure only one transaction modifies the map at a time
+            transactionLock.lock();
             try {
                 future.complete(callable.call());
             } catch (Exception e) {
                 future.completeExceptionally(e);
                 throw new GridException(e);
+            } finally {
+                transactionLock.unlock();
             }
         });
         return future;
