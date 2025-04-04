@@ -18,34 +18,27 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 /**
- * A set of unique objects. Order is not guaranteed.
+ * A set of unique strings. Order is not guaranteed.
  *
- * @param <T> set object type
  */
-public interface GridSet<T> extends GridStore<T> {
-
-    // if method can be made same as key/value store, pass hint instead
-    // to engine when creating stores?
-
-    // Maybe have base DataStore interface for common methods?
-    // including startTransaction and stopTransaction? (optionally implemented)
+public interface GridSet extends GridStore<String> {
 
     /**
      * Adds the given object to the set.
-     * @param object the object to add to the set
+     * @param id a unique identifier
      * @return <code>true</code> if the object was added (i.e., an equal object
      *     did not already exist).
      */
-    boolean add(T object);
+    boolean add(String id);
 
     /**
      * Loops through all elements of this set or until the predicate returns
      * <code>false</code>.
      * @param predicate the predicate applied to each items
      * @return <code>true</code> if the predicate returned <code>true</code>
-     *   for all objects.
+     *   for all strings
      */
-    boolean forEach(Predicate<T> predicate);
+    boolean forEach(Predicate<String> predicate);
 
     /**
      * {@inheritDoc}
@@ -54,5 +47,7 @@ public interface GridSet<T> extends GridStore<T> {
      * {@link #forEach(Predicate)} for a more appropriate method.
      */
     @Override
-    boolean forEach(BiPredicate<String, T> predicate);
+    default boolean forEach(BiPredicate<String, String> predicate) {
+        return forEach(value -> predicate.test(null, value));
+    }
 }

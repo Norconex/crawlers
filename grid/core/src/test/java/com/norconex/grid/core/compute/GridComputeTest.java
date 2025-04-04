@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.AbstractGridTest;
+import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridSet;
 import com.norconex.grid.core.util.ConcurrentUtil;
@@ -40,12 +41,12 @@ public abstract class GridComputeTest extends AbstractGridTest {
 
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnOneTest' part 1 of 2");
-            GridSet<String> set = mocker
-                    .getGridInstance()
+            var set = mocker
+                    .getGrid()
                     .storage()
-                    .getSet("test", String.class);
+                    .getSet("testSet");
             mocker.onEachNodes((grid, index) -> {
-                grid.compute().runOnOne("test", () -> {
+                grid.compute().runOnOne("testJob", () -> {
                     fill(set, 5);
                 });
             });
@@ -54,7 +55,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             // we are allowed to run it again so the numbers should add up.
             LOG.trace("Running 'runOnOneTest' part 2 of 2");
             mocker.onEachNodes((grid, index) -> {
-                grid.compute().runOnOne("test", () -> {
+                grid.compute().runOnOne("testJob", () -> {
                     fill(set, 5);
                 });
             });
@@ -68,12 +69,12 @@ public abstract class GridComputeTest extends AbstractGridTest {
     void runOnOneOnceTest() {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnOneOnceTest' part 1 of 2");
-            GridSet<String> set = mocker
-                    .getGridInstance()
+            var set = mocker
+                    .getGrid()
                     .storage()
-                    .getSet("test", String.class);
+                    .getSet("testSet");
             mocker.onEachNodes((grid, index) -> {
-                grid.compute().runOnOneOnce("test", () -> {
+                grid.compute().runOnOneOnce("testJob", () -> {
                     fill(set, 5);
                 });
             });
@@ -82,7 +83,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             // we can't run the same job twice. number shall be unchanged
             LOG.trace("Running 'runOnOneOnceTest' part 2 of 2");
             mocker.onEachNodes((grid, index) -> {
-                grid.compute().runOnOneOnce("test", () -> {
+                grid.compute().runOnOneOnce("testJob", () -> {
                     fill(set, 5);
                 });
             });
@@ -96,12 +97,12 @@ public abstract class GridComputeTest extends AbstractGridTest {
     void runOnAllTest() throws Exception {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnAllTest' part 1 of 2");
-            GridSet<String> set = mocker
-                    .getGridInstance()
+            var set = mocker
+                    .getGrid()
                     .storage()
-                    .getSet("test", String.class);
+                    .getSet("testSet");
             mocker.onEachNodes((grid, index) -> {
-                grid.compute().runOnAll("test", () -> {
+                grid.compute().runOnAll("testJob", () -> {
                     fill(set, 5);
                 });
             });
@@ -110,7 +111,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             // we are allowed to run it again so the numbers should add up.
             LOG.trace("Running 'runOnAllTest' part 2 of 2");
             mocker.onEachNodes((grid, index) -> {
-                grid.compute().runOnAll("test", () -> {
+                grid.compute().runOnAll("testJob", () -> {
                     fill(set, 5);
                 });
             });
@@ -124,12 +125,12 @@ public abstract class GridComputeTest extends AbstractGridTest {
     void runOnAllOnceTest() throws Exception {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnAllOnceTest' part 1 of 2");
-            GridSet<String> set = mocker
-                    .getGridInstance()
+            var set = mocker
+                    .getGrid()
                     .storage()
-                    .getSet("test", String.class);
+                    .getSet("testSet");
             mocker.onEachNodes((grid, index) -> {
-                grid.compute().runOnAllOnce("test", () -> {
+                grid.compute().runOnAllOnce("testJob", () -> {
                     fill(set, 5);
                 });
             });
@@ -138,7 +139,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             // we can't run the same job twice. number shall be unchanged
             LOG.trace("Running 'runOnAllOnceTest' part 2 of 2");
             mocker.onEachNodes((grid, index) -> {
-                grid.compute().runOnAllOnce("test", () -> {
+                grid.compute().runOnAllOnce("testJob", () -> {
                     fill(set, 5);
                 });
             });
@@ -149,51 +150,56 @@ public abstract class GridComputeTest extends AbstractGridTest {
     }
 
     @Test
-        void testRequestStop() {
-            assertThatNoException().isThrownBy(() -> {
-    
-                withNewGrid(3, mocker -> {
-                    GridMap<Integer> map = mocker
-                            .getGridInstance()
-                            .storage()
-                            .getMap("count", Integer.class);
+    void testRequestStop() {
+        assertThatNoException().isThrownBy(() -> {
+            withNewGrid(3, mocker -> {
+                mocker.onEachNodes((grid, index) -> {
+                    var job = new StoppableJob(grid, () -> mocker.getGrid()
+                            .compute().requestStop("testJob"));
                     var future = CompletableFuture.runAsync(() -> {
-                        mocker.onEachNodes((grid, index) -> {
-                            map.update("count", v -> v == null ? 1 : v + 1);
-                            grid.compute().runOnAll("test", new StoppableJob());
-                        });
+                        grid.compute().runOnAll("testJob", job);
                     });
-    
-                    ConcurrentUtil.get(CompletableFuture.runAsync(() -> {
-                        while (ofNullable(map.get("count")).orElse(0) < 3) {
-                            Sleeper.sleepMillis(100);
-                        }
-                    }), 10, TimeUnit.SECONDS);
-    
-                    mocker.getGridInstance().compute().requestStop("test");
                     ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
                 });
             });
-        }
-
-    private void fill(GridSet<String> set, int numEntries) {
-        for (var i = 0; i < numEntries; i++) {
-            set.add(UUID.randomUUID().toString());
-        }
+        });
     }
 
     private static final class StoppableJob implements StoppableRunnable {
-        private CompletableFuture<Void> pendingStop = new CompletableFuture<>();
+        private final GridMap<Integer> map;
+        private final Runnable onAllStarted;
+        private boolean stopRequested;
+
+        public StoppableJob(Grid grid, Runnable onAllStarted) {
+            map = grid.storage().getMap("intMap", Integer.class);
+            this.onAllStarted = onAllStarted;
+        }
 
         @Override
         public void run() {
-            ConcurrentUtil.get(pendingStop, 20, TimeUnit.SECONDS);
+            map.update("numStarted", v -> v == null ? 1 : v + 1);
+            while (getNumStarted() < 3) {
+                Sleeper.sleepMillis(100);
+            }
+            onAllStarted.run();
+            while (!stopRequested) {
+                Sleeper.sleepMillis(100);
+            }
+        }
+
+        private int getNumStarted() {
+            return ofNullable(map.get("numStarted")).orElse(0);
         }
 
         @Override
         public void stopRequested() {
-            pendingStop.complete(null);
+            stopRequested = true;
         }
     }
 
+    private void fill(GridSet set, int numEntries) {
+        for (var i = 0; i < numEntries; i++) {
+            set.add(UUID.randomUUID().toString());
+        }
+    }
 }

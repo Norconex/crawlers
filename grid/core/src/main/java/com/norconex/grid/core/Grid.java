@@ -23,13 +23,9 @@ import com.norconex.grid.core.storage.GridStorage;
 /**
  * Underlying system used to compute tasks and store crawl session data.
  */
-//High-level interface for abstracting different grid technologies
-
-//TODO MAYBE: leave this as is, but have a wrapper when used that caches
-// each of compute() storage(), etc.
 public interface Grid extends Closeable {
 
-    //TODO use SPI to detect which grid/storage implementation to use
+    //MAYBE: use SPI to detect which grid/storage implementation to use
     // but also offer to optionally pass one in constructor instead.
 
     GridCompute compute();
@@ -39,20 +35,21 @@ public interface Grid extends Closeable {
     GridStorage storage();
 
     /**
-     * Generated ID unique to each node instances in a cluster.
-     * Does not persist: a new one is created each time a new grid instance
-     * is created
-     * @return unique instance id
+     * Logical name unique to each node in a cluster.
+     * @return unique node id
      */
-    //TODO used?  How does it related to NODE_INDEX?
     String getNodeName();
 
+    /**
+     * The name of the grid we are connected to.
+     * @return grid name
+     */
     String getGridName();
 
     /**
-     * Closes the local connection, releasing any local resources associated
-     * to it. If there are still pipelines or jobs running, a stop request
-     * will be made in an attempt to end cleanly.
+     * Closes the local grid connection, releasing any local resources
+     * associated to it. If there are still pipelines or jobs running, a stop
+     * request will be made in an attempt to end cleanly.
      */
     @Override
     void close();

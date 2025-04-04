@@ -14,40 +14,34 @@
  */
 package com.norconex.grid.local;
 
-import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.StringUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.storage.GridSet;
-import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.Getter;
 import lombok.NonNull;
 
-public class LocalGridSet<T> implements GridSet<T> {
+public class LocalGridSet implements GridSet {
     private final MVMap<String, Boolean> map;
     @Getter
-    private final Class<? extends T> type;
+    private final Class<String> type = String.class;
     @Getter
     private String name;
 
     public LocalGridSet(
             @NonNull MVStore mvstore,
-            @NonNull String name,
-            @NonNull Class<? extends T> type) {
-        this.type = type;
+            @NonNull String name) {
         this.name = name;
         map = mvstore.openMap(name);
     }
 
     @Override
-    public boolean contains(Object object) {
-        return map.containsKey(SerialUtil.toJsonString(object));
+    public boolean contains(String id) {
+        return map.containsKey(id);
     }
 
     @Override
@@ -66,35 +60,18 @@ public class LocalGridSet<T> implements GridSet<T> {
     }
 
     @Override
-    public synchronized boolean add(T object) {
-        var newEntry = SerialUtil.toJsonString(object);
-        return !Objects.equals(Boolean.TRUE, map.put(newEntry, Boolean.TRUE));
+    public synchronized boolean add(String id) {
+        return !Objects.equals(Boolean.TRUE, map.put(id, Boolean.TRUE));
     }
 
     @Override
-    public boolean forEach(Predicate<T> predicate) {
+    public boolean forEach(Predicate<String> predicate) {
         for (String key : map.keySet()) {
-            if (!predicate.test(toObject(key))) {
+            if (!predicate.test(key)) {
                 return false;
             }
         }
         return true;
     }
 
-    @Override
-    public boolean forEach(BiPredicate<String, T> predicate) {
-        for (Entry<String, Boolean> en : map.entrySet()) {
-            if (!predicate.test(null, toObject(en.getKey()))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private T toObject(String json) {
-        if (StringUtils.isBlank(json)) {
-            return null;
-        }
-        return SerialUtil.fromJson(json, type);
-    }
 }

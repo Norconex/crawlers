@@ -46,7 +46,7 @@ public class MockGridMap<T> implements GridMap<T> {
     }
 
     @Override
-    public boolean contains(Object key) {
+    public boolean contains(String key) {
         return map.containsKey(key);
     }
 

@@ -22,12 +22,12 @@
     <version>4.0.0-SNAPSHOT</version>
     <relativePath>../..</relativePath>
   </parent>  
-  <artifactId>nx-grid-local</artifactId>
-  <name>Norconex Local Grid </name>  
+  <artifactId>nx-grid-jdbc</artifactId>
+  <name>Norconex Grid JDBC</name>  
 
   <properties>
-    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
-      
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    <hikari.version>6.3.0</hikari.version>      
     <h2.version>2.3.232</h2.version>
   </properties>
 
@@ -44,14 +44,12 @@
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-grid-core</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2-mvstore</artifactId>
-      <version>${h2.version}</version>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>${hikari.version}</version>
     </dependency>
-
-
+    
     <!-- Tests and provided. -->
     <dependency>
       <groupId>com.norconex.commons</groupId>
@@ -66,6 +64,13 @@
       <version>${project.parent.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>${h2.version}</version>
+        <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -109,9 +114,23 @@
       <artifactId>mockito-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-
-  </dependencies>
     
+    <!-- Included as test due to incompatible license -->
+    <dependency>
+      <groupId>com.github.jai-imageio</groupId>
+      <artifactId>jai-imageio-jpeg2000</artifactId>
+      <version>1.4.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- The following is to test write/read to/from XML/JSON/Yaml -->    
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>
@@ -151,12 +170,11 @@
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/grid/local/v4</url>
+      <url>${site.baseurl}/grids/jdbc/v4</url>
     </site>
   </distributionManagement>
 
-
-  <url>https://opensource.norconex.com/grid/local</url>
-  <description>Norconex local grid.</description>
+  <url>https://opensource.norconex.com/crawlers/</url>
+  <description>JDBC implementation of Norconex Grid storage.</description>
 
 </project>

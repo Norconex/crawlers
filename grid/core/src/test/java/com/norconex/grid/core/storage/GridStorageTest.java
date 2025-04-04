@@ -14,7 +14,6 @@
  */
 package com.norconex.grid.core.storage;
 
-import static java.util.Optional.ofNullable;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -63,7 +62,8 @@ public abstract class GridStorageTest extends AbstractGridTest {
 
     @Test
     void testRunInTransaction() throws InterruptedException {
-        var storage = getGridConnector().connect(getTempDir()).storage();
+        var grid = getGridConnector().connect(getTempDir());
+        var storage = grid.storage();
         var map = storage.getMap("transactTestMap", Integer.class);
 
         var numThreads = 5;
@@ -75,11 +75,9 @@ public abstract class GridStorageTest extends AbstractGridTest {
         for (var i = 0; i < numThreads; i++) {
             executor.submit(() -> {
                 try {
-                    // Ensure all threads start at the same time
                     startLatch.await();
                     storage.runInTransaction(() -> {
-                        int current = ofNullable(map.get("count")).orElse(0);
-                        map.put("count", current + 1);
+                        map.update("count", v -> v == null ? 1 : v + 1);
                         return null;
                     });
                     successfulTransactions.incrementAndGet();
@@ -91,14 +89,14 @@ public abstract class GridStorageTest extends AbstractGridTest {
             });
         }
 
-        startLatch.countDown(); // Start all threads
+        startLatch.countDown();
         doneLatch.await();
         executor.shutdown();
 
         // Check if the final value is correct (ensuring atomic increments)
         assertThat(map.get("count")).isEqualTo(numThreads);
         map.clear();
-        storage.clean();
+        grid.storage().destroy();
     }
 
     @Test
@@ -120,8 +118,7 @@ public abstract class GridStorageTest extends AbstractGridTest {
                 try {
                     startLatch.await(); // Ensure all threads start together
                     return storage.runInTransactionAsync(() -> {
-                        int current = ofNullable(map.get("count")).orElse(0);
-                        map.put("count", current + 1);
+                        map.update("count", v -> v == null ? 1 : v + 1);
                         return true;
                     }).get(); // Wait for async completion
                 } catch (Exception e) {
@@ -134,7 +131,7 @@ public abstract class GridStorageTest extends AbstractGridTest {
             futures.add(future);
         }
 
-        startLatch.countDown(); // Start all threads
+        startLatch.countDown();
         doneLatch.await(); // Wait for all transactions to complete
         executor.shutdown();
 
@@ -147,6 +144,6 @@ public abstract class GridStorageTest extends AbstractGridTest {
         // Check final value correctness
         assertThat(map.get("count")).isEqualTo(numThreads);
         map.clear();
-        storage.clean();
+        storage.destroy();
     }
 }

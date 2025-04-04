@@ -16,25 +16,50 @@ package com.norconex.grid.core.impl;
 
 import static java.util.Optional.ofNullable;
 
+import java.net.InetAddress;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jgroups.Address;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ObjectMessage;
 import org.jgroups.Receiver;
 import org.jgroups.View;
+import org.jgroups.protocols.BARRIER;
 import org.jgroups.protocols.FD_ALL;
+import org.jgroups.protocols.FD_SOCK;
+import org.jgroups.protocols.FRAG2;
+import org.jgroups.protocols.MERGE3;
+import org.jgroups.protocols.MFC;
+import org.jgroups.protocols.PING;
+import org.jgroups.protocols.UDP;
+import org.jgroups.protocols.UFC;
+import org.jgroups.protocols.UNICAST3;
+import org.jgroups.protocols.VERIFY_SUSPECT;
+import org.jgroups.protocols.pbcast.GMS;
+import org.jgroups.protocols.pbcast.NAKACK2;
+import org.jgroups.protocols.pbcast.STABLE;
+import org.jgroups.stack.Protocol;
 
+import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.impl.compute.CoreGridCompute;
+import com.norconex.grid.core.impl.compute.JobStateAtTime;
 import com.norconex.grid.core.impl.compute.MessageListener;
+import com.norconex.grid.core.impl.compute.messages.StopJobMessage;
 import com.norconex.grid.core.impl.pipeline.CoreGridPipeline;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
+import com.norconex.grid.core.util.ConcurrentUtil;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -43,14 +68,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CoreGrid implements Grid {
 
-    //TODO remove node name from grid interface? Or make it
-    // localAddress.toString() for those who need a name but by default
-
     @Getter
     private final String gridName;
-    //    @Getter
-    //    private final String nodeName;
-    @Getter
+    private final String nodeName;
     private final JChannel channel;
     private final List<MessageListener> listeners =
             new CopyOnWriteArrayList<>();
@@ -64,31 +84,39 @@ public class CoreGrid implements Grid {
 
     public CoreGrid(String gridName, GridStorage storage)
             throws Exception {
+        this(gridName, null, storage);
+    }
+
+    public CoreGrid(String gridName, String nodeName, GridStorage storage)
+            throws Exception {
         this.gridName = gridName;
+        this.nodeName = nodeName;
         this.storage = storage;
 
-        //        // start for local testing
-        //        var tcp = new TCP();
-        //        var fd_sock2 = new FD_SOCK2();
-        //        fd_sock2.setValue("start_port", 0);
-        //        fd_sock2.setValue("end_port", 0);
-        //
-        //        // Create protocol list
-        //        List<Protocol> protocols = new ArrayList<>();
-        //        protocols.add(tcp);
-        //        // ... add other protocols
-        //        protocols.add(fd_sock2);
-        //
-        //        // Create channel with protocol array
-        //        var protocolArray = protocols.toArray(new Protocol[0]);
-        //        channel = new JChannel(protocolArray);
-        //        // end for local testing
+        Protocol[] protStack = {
+                new UDP().setValue("bind_addr",
+                        InetAddress.getByName("127.0.0.1")),
+                new PING(),
+                new MERGE3(),
+                new FD_SOCK(),
+                new FD_ALL(),
+                new VERIFY_SUSPECT(),
+                new BARRIER(),
+                new NAKACK2(),
+                new UNICAST3(),
+                new STABLE(),
+                new GMS(),
+                new UFC(),
+                new MFC(),
+                new FRAG2() };
 
-        channel = new JChannel(); //TODO could be passed in or configured
-        //        channel.setName(nodeName);
+        //TODO make configurable
+
+        channel = new JChannel(protStack);
+        //TODO support optional logical name        channel.setName(nodeName);
         channel.setReceiver(createMessagesReceiver());
         //TODO make configurable, like this for unit tests right now
-        channel.getProtocolStack().findProtocol(FD_ALL.class);
+        //        channel.getProtocolStack().findProtocol(FD_ALL.class);
         channel.connect(gridName);
         localAddress = channel.getAddress();
         view = channel.getView();
@@ -144,7 +172,10 @@ public class CoreGrid implements Grid {
 
     @Override
     public String getNodeName() {
-        return localAddress.toString();
+        if (StringUtils.isBlank(nodeName)) {
+            return localAddress.toString();
+        }
+        return nodeName;
     }
 
     @Override
@@ -164,10 +195,30 @@ public class CoreGrid implements Grid {
 
     @Override
     public void close() {
+        stopRunningJobs();
         channel.close();
     }
 
     //--- Private methods ------------------------------------------------------
+
+    private void stopRunningJobs() {
+        send(new StopJobMessage(null));
+        var pendingStop = CompletableFuture.runAsync(() -> {
+            Map<String, JobStateAtTime> jobs = null;
+            while (!(jobs = storageHelper().getRunningJobs()).isEmpty()) {
+                LOG.info("The following jobs are still running: \n" + (jobs
+                        .entrySet()
+                        .stream()
+                        .map(en -> ("    - " + en.getKey() + " -> "
+                                + DurationFormatter.COMPACT
+                                        .format(en.getValue().elapsed())))
+                        .collect(Collectors.joining("\n"))));
+                Sleeper.sleepMillis(500);
+            }
+        });
+        //TODO make configurable
+        ConcurrentUtil.get(pendingStop, 1, TimeUnit.MINUTES);
+    }
 
     private Receiver createMessagesReceiver() {
         return new Receiver() {

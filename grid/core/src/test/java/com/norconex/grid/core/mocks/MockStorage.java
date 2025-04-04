@@ -48,9 +48,8 @@ public class MockStorage implements GridStorage {
     }
 
     @Override
-    public <T> GridSet<T> getSet(String name, Class<? extends T> type) {
-        return (GridSet<T>) GRID_STORES.computeIfAbsent(name,
-                nm -> new MockGridSet<T>(nm, type));
+    public GridSet getSet(String name) {
+        return (GridSet) GRID_STORES.computeIfAbsent(name, MockGridSet::new);
     }
 
     @Override
@@ -77,8 +76,13 @@ public class MockStorage implements GridStorage {
     }
 
     @Override
-    public void clean() {
+    public void destroy() {
         GRID_STORES.clear();
+    }
+
+    @Override
+    public boolean storeExists(String name) {
+        return GRID_STORES.containsKey(name);
     }
 
     @Override

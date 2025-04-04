@@ -53,8 +53,6 @@ public class GridPipelineStage<T> {
      */
     private boolean always;
 
-    //TODO add onlyIf (condition) and always (run no matter what -- shutdown)
-
     /**
      * Code meant to run on one or more server nodes (when in a clustered
      * environment).

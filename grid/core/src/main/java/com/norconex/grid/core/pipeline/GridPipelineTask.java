@@ -26,11 +26,6 @@ public interface GridPipelineTask<T> {
      * Code meant to run on one or more server nodes, as part of a grid
      * pipeline.
      * @param ctx an optional context argument
-    //     * @return <code>true</code> for the pipeline to continue to the next task
-    //     *     (if any) or <code>false</code> to stop pipeline execution after this
-    //     *     task.
-    //     */
+     */
     void execute(T ctx);
-
-    //    void onStopRequested(); //TODO
 }

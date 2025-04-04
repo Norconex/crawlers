@@ -23,18 +23,24 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public abstract class GridQueueTest extends AbstractGridStorageTest {
+import com.norconex.grid.core.AbstractGridTest;
+import com.norconex.grid.core.Grid;
 
+public abstract class GridQueueTest extends AbstractGridTest {
+
+    private Grid grid;
     private GridQueue<String> queue;
 
     @BeforeEach
     void beforeEach() {
-        queue = getStorage().getQueue("testQueue", String.class);
+        grid = getGridConnector().connect(getTempDir());
+        queue = grid.storage().getQueue("testQueue", String.class);
     }
 
     @AfterEach
     void afterEach() {
         queue.clear();
+        grid.close();
     }
 
     @Test

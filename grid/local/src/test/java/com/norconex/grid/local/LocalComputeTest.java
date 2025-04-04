@@ -31,7 +31,6 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridJobState;
 import com.norconex.grid.core.compute.StoppableRunnable;
-import com.norconex.grid.core.storage.GridSet;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.Getter;
@@ -59,7 +58,7 @@ class LocalComputeTest {
     void testCanRunMultipleTimes() {
         //NOTE: runOnOne and runOnAll are the same for LocalCompute.
 
-        GridSet<String> set = grid.storage().getSet("store", String.class);
+        var set = grid.storage().getSet("store");
 
         GridJobState state;
 
@@ -87,7 +86,7 @@ class LocalComputeTest {
     void testCanRunOnlyOnce() {
         //NOTE: runOnOneOnce and runOnAllOnce are the same for LocalCompute.
 
-        GridSet<String> set = grid.storage().getSet("store", String.class);
+        var set = grid.storage().getSet("store");
 
         GridJobState state;
 

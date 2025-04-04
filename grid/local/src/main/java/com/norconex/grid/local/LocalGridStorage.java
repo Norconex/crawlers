@@ -31,7 +31,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.tx.TransactionStore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridQueue;
@@ -88,11 +87,10 @@ public class LocalGridStorage implements GridStorage {
         return (GridQueue<T>) getOrCreateStore(name, type, GridQueue.class);
     }
 
-    @SuppressWarnings("unchecked")
     @JsonIgnore
     @Override
-    public <T> GridSet<T> getSet(String name, Class<? extends T> type) {
-        return (GridSet<T>) getOrCreateStore(name, type, GridSet.class);
+    public GridSet getSet(String name) {
+        return (GridSet) getOrCreateStore(name, String.class, GridSet.class);
     }
 
     @JsonIgnore
@@ -155,7 +153,7 @@ public class LocalGridStorage implements GridStorage {
     }
 
     @Override
-    public synchronized void clean() {
+    public synchronized void destroy() {
         mvStore
                 .getMapNames()
                 .stream()
@@ -168,23 +166,20 @@ public class LocalGridStorage implements GridStorage {
         storeTypes.clear();
     }
 
-    GridStore<?> concreteStore(
-            Class<?> storeSuperType,
-            String storeName,
-            Class<?> objectType) {
+    @Override
+    public boolean storeExists(String name) {
+        return mvStore.hasMap(name);
+    }
 
-        @SuppressWarnings("rawtypes")
-        Class<? extends GridStore> concreteType = LocalGridMap.class;
+    GridStore<?> concreteStore(
+            Class<?> storeSuperType, String storeName, Class<?> objectType) {
         if (storeSuperType.equals(GridQueue.class)) {
-            concreteType = LocalGridQueue.class;
-        } else if (storeSuperType.equals(GridSet.class)) {
-            concreteType = LocalGridSet.class;
+            return new LocalGridQueue<>(mvStore, storeName, objectType);
         }
-        return ClassUtil.newInstance(
-                concreteType,
-                mvStore,
-                storeName,
-                objectType);
+        if (storeSuperType.equals(GridSet.class)) {
+            return new LocalGridSet(mvStore, storeName);
+        }
+        return new LocalGridMap<>(mvStore, storeName, objectType);
     }
 
     @SuppressWarnings("unchecked")

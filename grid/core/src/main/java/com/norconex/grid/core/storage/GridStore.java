@@ -39,7 +39,7 @@ public interface GridStore<T> {
      * @param key the object key
      * @return <code>true</code> if key is already present
      */
-    boolean contains(Object key);
+    boolean contains(String key);
 
     /**
      * The store size. It is possible for some implementations to approximate

@@ -47,7 +47,7 @@ public class MockGridQueue<T> implements GridQueue<T> {
     }
 
     @Override
-    public boolean contains(Object key) {
+    public boolean contains(String key) {
         return map.containsKey(key);
     }
 

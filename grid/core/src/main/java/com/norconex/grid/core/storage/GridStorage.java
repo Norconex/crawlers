@@ -32,13 +32,15 @@ public interface GridStorage {
 
     <T> GridQueue<T> getQueue(String name, Class<? extends T> type);
 
-    <T> GridSet<T> getSet(String name, Class<? extends T> type);
+    GridSet getSet(String name);
 
     Set<String> getStoreNames();
 
     void forEachStore(Consumer<GridStore<?>> storeConsumer);
 
-    void clean();
+    boolean storeExists(String name);
+
+    void destroy();
 
     <T> T runInTransaction(Callable<T> callable);
 

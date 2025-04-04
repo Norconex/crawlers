@@ -23,12 +23,6 @@ import java.util.Optional;
  */
 public interface GridQueue<T> extends GridStore<T> {
 
-    // if method can be made same as key/value store, pass hint instead
-    // to engine when creating stores?
-
-    // Maybe have base DataStore interface for common methods?
-    // including startTransaction and stopTransaction? (optionally implemented)
-
     /**
      * Puts the given object a the bottom of the queue, under the specified key.
      * The key is assumed to be unique and is used to prevent duplicates.

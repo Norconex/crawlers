@@ -53,8 +53,12 @@ public abstract class AbstractGridTest {
         } catch (Exception e) {
             fail("Error running on grid.", e);
         } finally {
+            var storageCleaned = false;
             for (Grid grid : nodes) {
-                grid.storage().clean();
+                if (!storageCleaned) {
+                    grid.storage().destroy();
+                    storageCleaned = true;
+                }
                 grid.close();
             }
             nodes.clear();
@@ -84,7 +88,7 @@ public abstract class AbstractGridTest {
             exec.shutdown();
         }
 
-        public Grid getGridInstance() {
+        public Grid getGrid() {
             return nodes.get(0);
         }
     }

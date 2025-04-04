@@ -17,36 +17,29 @@ package com.norconex.grid.core.mocks;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.norconex.grid.core.storage.GridSet;
-import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.Getter;
 import lombok.NonNull;
 
-public class MockGridSet<T> implements GridSet<T> {
+public class MockGridSet implements GridSet {
 
     private final Set<String> set =
             Collections.synchronizedSet(new HashSet<>());
     @Getter
-    private final Class<? extends T> type;
+    private final Class<String> type = String.class;
     @Getter
     private String name;
 
-    public MockGridSet(
-            @NonNull String name,
-            @NonNull Class<? extends T> type) {
-        this.type = type;
+    public MockGridSet(@NonNull String name) {
         this.name = name;
     }
 
     @Override
-    public boolean contains(Object object) {
-        return set.contains(SerialUtil.toJsonString(object));
+    public boolean contains(String id) {
+        return set.contains(id);
     }
 
     @Override
@@ -65,34 +58,17 @@ public class MockGridSet<T> implements GridSet<T> {
     }
 
     @Override
-    public synchronized boolean add(T object) {
-        return set.add(SerialUtil.toJsonString(object));
+    public synchronized boolean add(String id) {
+        return set.add(id);
     }
 
     @Override
-    public boolean forEach(Predicate<T> predicate) {
+    public boolean forEach(Predicate<String> predicate) {
         for (var value : set) {
-            if (!predicate.test(toObject(value))) {
+            if (!predicate.test(value)) {
                 return false;
             }
         }
         return true;
-    }
-
-    @Override
-    public boolean forEach(BiPredicate<String, T> predicate) {
-        for (var value : set) {
-            if (!predicate.test(null, toObject(value))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private T toObject(String json) {
-        if (StringUtils.isBlank(json)) {
-            return null;
-        }
-        return SerialUtil.fromJson(json, type);
     }
 }

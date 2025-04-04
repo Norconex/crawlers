@@ -198,6 +198,18 @@
         <artifactId>nx-committer-core</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.norconex.crawler</groupId>
+        <artifactId>nx-grid-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.norconex.crawler</groupId>
+        <artifactId>nx-grid-local</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- Jackson dependencies -->
 
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -725,17 +737,19 @@
               -Xms512m
               -Xmx512m
               -Djava.net.preferIPv4Stack=true
-              --add-opens java.base/java.lang=ALL-UNNAMED
-              --add-opens java.base/java.lang.invoke=ALL-UNNAMED
-              --add-opens java.base/java.lang.reflect=ALL-UNNAMED
-              --add-opens java.base/java.io=ALL-UNNAMED
-              --add-opens java.base/java.nio=ALL-UNNAMED
-              --add-opens java.base/java.math=ALL-UNNAMED
-              --add-opens java.base/java.util=ALL-UNNAMED
-              --add-opens java.base/java.time=ALL-UNNAMED
-              --add-opens java.base/jdk.internal.misc=ALL-UNNAMED
-              --add-opens java.base/jdk.internal.access=ALL-UNNAMED
-              --add-opens java.base/sun.nio.ch=ALL-UNNAMED
+              <!-- WAS FOR IGNITE: (double -)
+              -add-opens java.base/java.lang=ALL-UNNAMED
+              -add-opens java.base/java.lang.invoke=ALL-UNNAMED
+              -add-opens java.base/java.lang.reflect=ALL-UNNAMED
+              -add-opens java.base/java.io=ALL-UNNAMED
+              -add-opens java.base/java.nio=ALL-UNNAMED
+              -add-opens java.base/java.math=ALL-UNNAMED
+              -add-opens java.base/java.util=ALL-UNNAMED
+              -add-opens java.base/java.time=ALL-UNNAMED
+              -add-opens java.base/jdk.internal.misc=ALL-UNNAMED
+              -add-opens java.base/jdk.internal.access=ALL-UNNAMED
+              -add-opens java.base/sun.nio.ch=ALL-UNNAMED
+              -->
               -Dio.netty.tryReflectionSetAccessible=true
             </argLine>
           </configuration>
@@ -1179,7 +1193,7 @@
     <module>importer</module>
     <module>grid/core</module>
     <module>grid/local</module>
-    <module>grid/ignite</module>
+    <module>grid/jdbc</module>
     <module>crawler/core</module>
     <module>crawler/web</module>
     <module>crawler/fs</module>
