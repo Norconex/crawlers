@@ -82,14 +82,17 @@ public class CoreGrid implements Grid {
     private View view;
     private JobStateStorage jobStateStorage;
 
-    public CoreGrid(String gridName, GridStorage storage)
+    public CoreGrid(CoreGridConnectorConfig connConfig, GridStorage storage)
             throws Exception {
-        this(gridName, null, storage);
+        this(connConfig, null, storage);
     }
 
-    public CoreGrid(String gridName, String nodeName, GridStorage storage)
+    public CoreGrid(
+            CoreGridConnectorConfig connConfig,
+            String nodeName,
+            GridStorage storage)
             throws Exception {
-        this.gridName = gridName;
+        gridName = connConfig.getGridName();
         this.nodeName = nodeName;
         this.storage = storage;
 
@@ -197,6 +200,11 @@ public class CoreGrid implements Grid {
     public void close() {
         stopRunningJobs();
         channel.close();
+    }
+
+    @Override
+    public boolean resetSession() {
+        return jobStateStorage().reset();
     }
 
     //--- Private methods ------------------------------------------------------

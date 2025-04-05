@@ -44,14 +44,14 @@ public class LocalGrid implements Grid {
     private final LocalGridPipeline gridPipeline;
     @Getter
     @Accessors(fluent = true)
-    private final JobStateStorage storageHelper;
+    private final JobStateStorage jobStateStorage;
 
     public LocalGrid(MVStore mvstore) {
         this.mvstore = mvstore;
         gridStorage = new LocalGridStorage(mvstore);
         gridCompute = new LocalGridCompute(this);
         gridPipeline = new LocalGridPipeline(this);
-        storageHelper = new JobStateStorage(this);
+        jobStateStorage = new JobStateStorage(this);
     }
 
     @Override
@@ -86,4 +86,8 @@ public class LocalGrid implements Grid {
         return "local-grid";
     }
 
+    @Override
+    public boolean resetSession() {
+        return jobStateStorage.reset();
+    }
 }

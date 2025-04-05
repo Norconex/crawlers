@@ -47,6 +47,18 @@ public interface Grid extends Closeable {
     String getGridName();
 
     /**
+     * Gets rid of persisted state information about running jobs and any
+     * other bits of information the grid implementation associates with the
+     * concept of a "session".  For instance, jobs launched on the grid
+     * compute "ONCE" will be able to be launched again.
+     * Invoking this method does not delete other persisted data and leaves
+     * stores created by consuming applications intact.
+     * @return <code>true</code> if state was cleared. <code>false</code> if
+     *    there was no persisted state to clear.
+     */
+    boolean resetSession();
+
+    /**
      * Closes the local grid connection, releasing any local resources
      * associated to it. If there are still pipelines or jobs running, a stop
      * request will be made in an attempt to end cleanly.

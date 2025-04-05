@@ -129,7 +129,7 @@ public class CrawlerContext implements AutoCloseable {
     private Path workDir;
     private Path tempDir;
     private CachedStreamFactory streamFactory;
-    private GridMap<Boolean> stateMap; //TODO rename flagsMap?
+    private GridMap<Boolean> ctxStateStore; //TODO rename flagsMap?
     // for some obscure reasons, these 2 bools vanish if @Getter isn't set again
     @Getter
     private boolean resuming; // starting where it ended (before completion)
@@ -198,17 +198,22 @@ public class CrawlerContext implements AutoCloseable {
 
         docProcessingLedger.init(this);
 
-        stateMap = grid.storage().getMap(
+        ctxStateStore = grid.storage().getMap(
                 CrawlerContext.class.getSimpleName(), Boolean.class);
 
         // Here We initialize things that should only be initialized once
         // for the entire crawl sessions (i.e., only set by one node).
-        grid.compute().runOnOneOnce("context-grid-wide-init",
+        grid.compute().runOnOne("context-init",
                 () -> {
                     //TODO encapsulate stateMap and other "generic" stores
                     // into their own object? Or a base object for them all?
-                    stateMap.clear();
-                    setState(KEY_RESUMING, !docProcessingLedger.isQueueEmpty());
+                    var newSession = docProcessingLedger.isQueueEmpty();
+                    if (newSession) {
+                        LOG.info("Starting a new crawl session.");
+                        grid.resetSession();
+                    }
+                    ctxStateStore.clear();
+                    setState(KEY_RESUMING, !newSession);
                     setState(KEY_INCREMENTING,
                             !docProcessingLedger.isProcessedEmpty());
                 });
@@ -369,11 +374,11 @@ public class CrawlerContext implements AutoCloseable {
      * @param key state key
      * @param value state value
      */
-    public void setState(String key, boolean value) {
-        if (stateMap == null) {
+    private void setState(String key, boolean value) {
+        if (ctxStateStore == null) {
             throw new IllegalStateException("Crawler context not initialized.");
         }
-        stateMap.put(key, value);
+        ctxStateStore.put(key, value);
     }
 
     /**
@@ -381,11 +386,11 @@ public class CrawlerContext implements AutoCloseable {
      * @param key state key
      * @return state value
      */
-    public boolean getState(String key) {
-        if (stateMap == null) {
+    private boolean getState(String key) {
+        if (ctxStateStore == null) {
             throw new IllegalStateException("Crawler context not initialized.");
         }
-        return Boolean.TRUE.equals(stateMap.get(key));
+        return Boolean.TRUE.equals(ctxStateStore.get(key));
     }
 
     public void fire(Event event) {

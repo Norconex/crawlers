@@ -44,7 +44,7 @@ public class CoreGridConnector
     public Grid connect(Path workDir) {
         try {
             LOG.info("Connecting to grid: \"{}\"", configuration.getGridName());
-            return new CoreGrid(configuration.getGridName(), storage);
+            return new CoreGrid(configuration, storage);
         } catch (Exception e) {
             //TODO since a lib now, make checked exception?
             throw new GridException("Could not connect to grid.", e);

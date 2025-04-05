@@ -52,7 +52,7 @@ public class DocProcessingLedger { //implements Closeable {
 
     //NOTE: This init performs the necessary steps to "create" the ledger.
     // Actual preparation before crawling start is typically done elsewhere,
-    // on the created ledger. Example, the CrawlerSpect with its
+    // on the created ledger. Example, the CrawlerSpec with its
     // DocLegerInitializer.
     public void init(CrawlerContext crawlerContext) {
         this.crawlerContext = crawlerContext;

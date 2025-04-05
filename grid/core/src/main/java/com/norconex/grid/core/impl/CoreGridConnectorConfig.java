@@ -15,6 +15,7 @@
 package com.norconex.grid.core.impl;
 
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 
 /**
@@ -26,5 +27,6 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class CoreGridConnectorConfig {
 
+    @NonNull
     private String gridName = "grid-core";
 }

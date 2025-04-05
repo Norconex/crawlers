@@ -57,4 +57,9 @@ public class MockFailingGrid implements Grid {
     public String getGridName() {
         return "some-grid";
     }
+
+    @Override
+    public boolean resetSession() {
+        return false;
+    }
 }

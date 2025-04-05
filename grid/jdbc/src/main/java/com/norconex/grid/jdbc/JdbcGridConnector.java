@@ -81,7 +81,7 @@ public class JdbcGridConnector
                 new HikariConfig(configuration.getDatasource().toProperties()));
         try {
             return new CoreGrid(
-                    configuration.getGridName(),
+                    configuration,
                     new JdbcGridStorage(resolveDbAdapter(dataSource)));
         } catch (Exception e) {
             throw new GridException("Could not connect to (JDBC) database.", e);

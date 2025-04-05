@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.grid.core.compute.GridJobState;
 import com.norconex.grid.core.impl.CoreGrid;
+import com.norconex.grid.core.impl.CoreGridConnectorConfig;
 import com.norconex.grid.core.impl.compute.messages.GridJobDoneMessage;
 import com.norconex.grid.core.impl.compute.messages.JobStateMessageAck;
 import com.norconex.grid.core.junit.WithLogLevel;
@@ -32,7 +33,9 @@ class NodeJobMessageReceiverTest {
     @Test
     void testOnMessage() throws Exception {
 
-        var grid = new CoreGrid("someCluster", new MockStorage());
+        var grid = new CoreGrid(
+                new CoreGridConnectorConfig().setGridName("someCluster"),
+                new MockStorage());
         var worker = new NodeJobWorker(grid, "someJob", false);
         var receiver = new NodeJobMessageReceiver(worker);
 

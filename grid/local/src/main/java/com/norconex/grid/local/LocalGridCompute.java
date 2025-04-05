@@ -65,7 +65,7 @@ public class LocalGridCompute implements GridCompute {
                     "Job \"%s\" is already running.".formatted(jobName));
         }
         if (once) {
-            var prevOrCurrentState = grid.storageHelper()
+            var prevOrCurrentState = grid.jobStateStorage()
                     .getJobState(jobName).orElse(GridJobState.IDLE);
             if (prevOrCurrentState.hasRan()) {
                 LOG.warn("""
@@ -79,15 +79,15 @@ public class LocalGridCompute implements GridCompute {
 
         try {
             activeJobs.put(jobName, runnable);
-            grid.storageHelper().setJobStateAtTime(
+            grid.jobStateStorage().setJobStateAtTime(
                     jobName, GridJobState.RUNNING);
             runnable.run();
-            grid.storageHelper().setJobStateAtTime(
+            grid.jobStateStorage().setJobStateAtTime(
                     jobName, GridJobState.COMPLETED);
             return GridJobState.COMPLETED;
         } catch (Exception e) {
             LOG.error("Job {} failed.", jobName, e);
-            grid.storageHelper().setJobStateAtTime(
+            grid.jobStateStorage().setJobStateAtTime(
                     jobName, GridJobState.FAILED);
             return GridJobState.FAILED;
         } finally {

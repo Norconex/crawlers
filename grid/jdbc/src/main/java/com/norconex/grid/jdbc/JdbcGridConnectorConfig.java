@@ -16,6 +16,7 @@ package com.norconex.grid.jdbc;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.grid.core.impl.CoreGridConnectorConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -27,12 +28,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-public class JdbcGridConnectorConfig {
-
-    /**
-     * Name for the grid you are connecting to.
-     */
-    private String gridName = "jdbc-grid";
+public class JdbcGridConnectorConfig extends CoreGridConnectorConfig {
 
     private final Properties datasource = new Properties();
 

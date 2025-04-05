@@ -68,16 +68,22 @@ public class JobStateStorage {
     public Map<String, JobStateAtTime> getRunningJobs() {
         Map<String, JobStateAtTime> jobs = new ListOrderedMap<>();
         return ifStateStoreExists(() -> {
-            if (storage.storeExists(JOB_STATES_KEY)) {
-                jobStates.forEach((name, job) -> {
-                    if (job.getState().isRunning()) {
-                        jobs.put(name, job);
-                    }
-                    return true;
-                });
-            }
+            jobStates.forEach((name, job) -> {
+                if (job.getState().isRunning()) {
+                    jobs.put(name, job);
+                }
+                return true;
+            });
             return jobs;
         }, () -> jobs);
+    }
+
+    public boolean reset() {
+        return ifStateStoreExists(() -> {
+            var hasStates = !jobStates.isEmpty();
+            jobStates.clear();
+            return hasStates;
+        }, () -> false);
     }
 
     // This wrapper method is necessary in case we are destroying the stores

@@ -22,6 +22,8 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.cmd.crawl.queueread.DocProcessorUpsertTest;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
+import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
+import com.norconex.grid.core.GridConnector;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
 public class CoreTestPtProvider implements PolymorphicTypeProvider {
@@ -34,8 +36,7 @@ public class CoreTestPtProvider implements PolymorphicTypeProvider {
         map.put(EventListener.class, CrawlTestCapturer.class);
         map.put(ImporterResponseProcessor.class,
                 DocProcessorUpsertTest.TestResponseProcessor.class);
-        //        map.put(GridConnector.class, IgniteGridConnector.class);
-        //        map.put(GridConnector.class, IgniteGridTestConnector.class);
+        map.put(GridConnector.class, MockFailingGridConnector.class);
         return map;
     }
 }
