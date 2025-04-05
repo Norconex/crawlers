@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.grid.storage.GridMap;
+import com.norconex.grid.core.storage.GridMap;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -25,9 +25,9 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.pipeline.GridPipelineTask;
-import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.LogUtil;
+import com.norconex.grid.core.pipeline.GridPipelineTask;
+import com.norconex.grid.core.util.ConcurrentUtil;
 import com.norconex.importer.doc.DocContext;
 
 import lombok.RequiredArgsConstructor;
@@ -56,9 +56,9 @@ public class CrawlProcessQueueTask implements GridPipelineTask<CrawlerContext> {
     //    private final ProcessDocsAs processAs;
 
     @Override
-    public boolean execute(CrawlerContext ctx) {
+    public void execute(CrawlerContext ctx) {
         if (ctx.isStopping()) {
-            return false;
+            return;
         }
         LOG.info("Processing crawler queue...");
         try {
@@ -71,7 +71,6 @@ public class CrawlProcessQueueTask implements GridPipelineTask<CrawlerContext> {
             ofNullable(ctx.getCallbacks().getAfterCrawlTask())
                     .ifPresent(cb -> cb.accept(ctx));
         }
-        return true;
     }
 
     // just invoked in its own thread
@@ -222,7 +221,8 @@ public class CrawlProcessQueueTask implements GridPipelineTask<CrawlerContext> {
         rec.setState(DocResolutionStatus.ERROR);
         if (LOG.isDebugEnabled()) {
             LOG.info("Could not process document: {} ({})",
-                    docProcessCtx.docContext().getReference(), e.getMessage(), e);
+                    docProcessCtx.docContext().getReference(), e.getMessage(),
+                    e);
         } else {
             LOG.info("Could not process document: {} ({})",
                     docProcessCtx.docContext().getReference(), e.getMessage());
@@ -238,7 +238,8 @@ public class CrawlProcessQueueTask implements GridPipelineTask<CrawlerContext> {
 
         // Rethrow exception if we want the crawler to stop
         var exceptionClasses =
-                docProcessCtx.crawlerContext().getConfiguration().getStopOnExceptions();
+                docProcessCtx.crawlerContext().getConfiguration()
+                        .getStopOnExceptions();
         if (CollectionUtils.isNotEmpty(exceptionClasses)) {
             for (Class<? extends Exception> c : exceptionClasses) {
                 if (c.isAssignableFrom(e.getClass())) {

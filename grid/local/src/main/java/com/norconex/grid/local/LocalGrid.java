@@ -18,7 +18,7 @@ import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.impl.StorageHelper;
+import com.norconex.grid.core.impl.JobStateStorage;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
 
@@ -44,14 +44,14 @@ public class LocalGrid implements Grid {
     private final LocalGridPipeline gridPipeline;
     @Getter
     @Accessors(fluent = true)
-    private final StorageHelper storageHelper;
+    private final JobStateStorage storageHelper;
 
     public LocalGrid(MVStore mvstore) {
         this.mvstore = mvstore;
         gridStorage = new LocalGridStorage(mvstore);
         gridCompute = new LocalGridCompute(this);
         gridPipeline = new LocalGridPipeline(this);
-        storageHelper = new StorageHelper(this);
+        storageHelper = new JobStateStorage(this);
     }
 
     @Override

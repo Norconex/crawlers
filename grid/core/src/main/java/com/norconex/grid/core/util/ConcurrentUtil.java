@@ -18,7 +18,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -109,9 +108,9 @@ public final class ConcurrentUtil {
     }
 
     /**
-     * Launch a number of tasks obtained dynamically, asynchronously with clean
-     * exception handling and thread shutdown. For each
-     * thread the task producer argument is invoked to get a new task instance.
+     * Launch asynchronously a fixed number of tasks obtained dynamically.
+     * For each thread the task producer argument is invoked to get a new task
+     * instance.
      * The returned {@link Future} completes when all tasks have ended.
      * @param taskProducer a function receiving a task index, returning
      *      a runnable task
@@ -120,7 +119,6 @@ public final class ConcurrentUtil {
      */
     public static Future<Void> run(
             @NonNull IntFunction<Runnable> taskProducer, int numTasks) {
-        var executor = Executors.newFixedThreadPool(numTasks);
         var futures = IntStream.range(0, numTasks)
                 .mapToObj(i -> CompletableFuture.runAsync(() -> {
                     try {
@@ -130,22 +128,11 @@ public final class ConcurrentUtil {
                                 e);
                         throw new CompletionException(e);
                     }
-                }, executor))
+                }))
                 .toList();
 
         return CompletableFuture
-                .allOf(futures.toArray(new CompletableFuture[0]))
-                .whenComplete((v, ex) -> {
-                    executor.shutdown();
-                    try {
-                        if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                            executor.shutdownNow();
-                        }
-                    } catch (InterruptedException e) {
-                        executor.shutdownNow();
-                        Thread.currentThread().interrupt();
-                    }
-                });
+                .allOf(futures.toArray(new CompletableFuture[0]));
     }
 
     /**

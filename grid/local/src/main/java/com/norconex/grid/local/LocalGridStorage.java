@@ -106,12 +106,15 @@ public class LocalGridStorage implements GridStorage {
     @Override
     public void forEachStore(Consumer<GridStore<?>> storeConsumer) {
         getStoreNames().forEach(name -> {
-            var entry =
-                    SerialUtil.fromJson(storeTypes.get(name), StoreTypes.class);
-            storeConsumer.accept(concreteStore(
-                    entry.getStoreType(),
-                    name,
-                    entry.getObjectType()));
+            var json = storeTypes.get(name);
+            if (json != null) {
+                var entry =
+                        SerialUtil.fromJson(json, StoreTypes.class);
+                storeConsumer.accept(concreteStore(
+                        entry.getStoreType(),
+                        name,
+                        entry.getObjectType()));
+            }
         });
     }
 

@@ -23,7 +23,6 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
 
@@ -67,7 +66,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
             config.addEventListener(capturer);
             crawler.crawl();
             config.removeEventListener(capturer);
-            GridTestUtil.waitForGridShutdown();
+            //            GridTestUtil.waitForGridShutdown();
             return new CrawlCaptures(
                     captures.context,
                     captures.committer,

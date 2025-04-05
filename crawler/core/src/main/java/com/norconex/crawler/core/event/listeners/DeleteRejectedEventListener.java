@@ -25,8 +25,7 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.storage.GridSet;
-import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.grid.core.storage.GridSet;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -85,7 +84,7 @@ public class DeleteRejectedEventListener implements
     // key=reference; value=whether deletion request was already sent
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private GridSet<String> refStore;
+    private GridSet refStore;
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private boolean doneCrawling;
@@ -112,13 +111,12 @@ public class DeleteRejectedEventListener implements
         // of on completion in case users want to keep a record between
         // two crawl executions.
         refStore = crawlerContext.getGrid().storage()
-                .getSet(DELETED_REFS_CACHE_NAME, String.class);
-        ConcurrentUtil.get(crawlerContext.getGrid().compute()
+                .getSet(DELETED_REFS_CACHE_NAME);
+        crawlerContext.getGrid().compute()
                 .runOnOneOnce("delete-rejected-listener-init", () -> {
                     LOG.info("Clearing any previous deleted references cache.");
                     refStore.clear();
-                    return null;
-                }));
+                });
     }
 
     private void storeRejection(CrawlerEvent event) {
@@ -140,7 +138,7 @@ public class DeleteRejectedEventListener implements
     }
 
     private void commitDeletions(CrawlerContext crawlerContext) {
-        ConcurrentUtil.get(crawlerContext.getGrid().compute().runOnOneOnce(
+        crawlerContext.getGrid().compute().runOnOneOnce(
                 "delete-rejected-listener-commit", () -> {
                     if (LOG.isInfoEnabled()) {
                         LOG.info("Committing {} rejected references for "
@@ -155,7 +153,6 @@ public class DeleteRejectedEventListener implements
                         return true;
                     });
                     LOG.info("Done committing rejected references.");
-                    return null;
-                }));
+                });
     }
 }

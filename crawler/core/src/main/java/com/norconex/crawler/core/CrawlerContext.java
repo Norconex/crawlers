@@ -17,7 +17,6 @@ package com.norconex.crawler.core;
 import static com.norconex.crawler.core.util.ExceptionSwallower.swallow;
 import static java.util.Optional.ofNullable;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,9 +47,6 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.pipeline.GridPipelineState;
-import com.norconex.crawler.core.grid.storage.GridMap;
 import com.norconex.crawler.core.init.CrawlerInitializers;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
@@ -59,6 +55,9 @@ import com.norconex.crawler.core.pipelines.DedupService;
 import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.pipeline.GridPipelineState;
+import com.norconex.grid.core.storage.GridMap;
 import com.norconex.importer.Importer;
 import com.norconex.importer.doc.DocContext;
 
@@ -86,7 +85,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @Getter
 @Slf4j
-public class CrawlerContext implements Closeable {
+public class CrawlerContext implements AutoCloseable {
 
     private static final Map<String, CrawlerContext> INSTANCES =
             new HashMap<>();
@@ -173,10 +172,10 @@ public class CrawlerContext implements Closeable {
     public void init() {
         // NOTE: order matters
 
-        if (INSTANCES.putIfAbsent(grid.nodeId(), this) != null) {
+        if (INSTANCES.putIfAbsent(grid.getNodeName(), this) != null) {
             throw new IllegalStateException(
                     "A crawler context was already created and initialized for "
-                            + "this grid instance.");
+                            + "this grid node.");
         }
 
         // need those? // maybe append cluster node id?
@@ -212,7 +211,6 @@ public class CrawlerContext implements Closeable {
                     setState(KEY_RESUMING, !docProcessingLedger.isQueueEmpty());
                     setState(KEY_INCREMENTING,
                             !docProcessingLedger.isProcessedEmpty());
-                    return null;
                 });
         resuming = getState(KEY_RESUMING);
         incrementing = getState(KEY_INCREMENTING);
@@ -279,7 +277,7 @@ public class CrawlerContext implements Closeable {
 
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
         swallow(eventManager::clearListeners);
-        INSTANCES.remove(grid.nodeId());
+        INSTANCES.remove(grid.getNodeName());
     }
 
     public CrawlDocContext newDocContext(@NonNull String reference) {
@@ -341,14 +339,14 @@ public class CrawlerContext implements Closeable {
     //MAYBE: Consider caching this value once set by DocLedgerInitializer
     public long maxProcessedDocs() {
         var maxDocs = grid.storage()
-                .getGlobalMap().get(KEY_MAX_PROCESSED_DOCS);
+                .getGlobals().get(KEY_MAX_PROCESSED_DOCS);
         return maxDocs == null ? configuration.getMaxDocuments()
                 : Long.parseLong(maxDocs);
     }
 
     public void maxProcessedDocs(long maxDocs) {
         grid.storage()
-                .getGlobalMap()
+                .getGlobals()
                 .put(KEY_MAX_PROCESSED_DOCS, Long.toString(maxDocs));
     }
 

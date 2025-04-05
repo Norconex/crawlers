@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
+import com.norconex.grid.local.LocalGridConnector;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 

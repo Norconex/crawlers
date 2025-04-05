@@ -24,30 +24,24 @@ import com.norconex.crawler.core.cmd.crawl.orphans.CrawlHandleOrphansTask;
 import com.norconex.crawler.core.cmd.crawl.queueread.CrawlProcessQueueTask;
 import com.norconex.crawler.core.cmd.crawl.queueread.CrawlProcessQueueTask.ProcessQueueAction;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.compute.GridCompute.RunOn;
-import com.norconex.crawler.core.grid.pipeline.GridPipelineStage;
-import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.grid.core.compute.GridCompute.RunOn;
+import com.norconex.grid.core.pipeline.GridPipelineStage;
+import com.norconex.grid.core.util.ConcurrentUtil;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
 public class CrawlCommand implements Command {
 
-    private final boolean startClean;
+    private static final String PROGRESS_LOGGER_KEY = "progressLogger";
 
     @Override
     public void execute(CrawlerContext ctx) {
 
-        if (startClean) {
-            cleanFirst(ctx);
-        }
-
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
 
-        var progressLogger = trackProgress(ctx);
+        trackProgress(ctx);
 
         var completed = Boolean.TRUE.equals(ConcurrentUtil.get(ctx.getGrid()
                 .pipeline().run(CrawlerContext.KEY_CRAWL_PIPELINE, List.of(
@@ -102,8 +96,10 @@ public class CrawlCommand implements Command {
             LOG.info("Crawler execution ended before completion.");
         }
 
-        progressLogger.stopTracking();
-        LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
+        ctx.getGrid().compute().requestStop(PROGRESS_LOGGER_KEY);
+
+        //        progressLogger.stopTracking();
+        //        LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
 
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling.");
@@ -117,17 +113,29 @@ public class CrawlCommand implements Command {
         ctx.init();
     }
 
-    private CrawlProgressLogger trackProgress(CrawlerContext ctx) {
+    private void trackProgress(CrawlerContext ctx) {
         var progressLogger = new CrawlProgressLogger(
                 ctx.getMetrics(),
                 ctx.getConfiguration().getMinProgressLoggingInterval());
         // TODO: make sure this (or all) runOnOneOnce can be recovered
         // upon node failure
-        return ConcurrentUtil.get(ctx.getGrid().compute()
-                // only 1 node reports progress
-                .runOnOneOnce("progressLogger", () -> {
-                    progressLogger.startTracking();
-                    return progressLogger;
-                }));
+        // only 1 node reports progress
+        ctx.getGrid()
+                .compute()
+                .runOnOneOnce(PROGRESS_LOGGER_KEY, progressLogger);
     }
+
+    //    private CrawlProgressLogger trackProgress(CrawlerContext ctx) {
+    //        var progressLogger = new CrawlProgressLogger(
+    //                ctx.getMetrics(),
+    //                ctx.getConfiguration().getMinProgressLoggingInterval());
+    //        // TODO: make sure this (or all) runOnOneOnce can be recovered
+    //        // upon node failure
+    //        return ConcurrentUtil.get(ctx.getGrid().compute()
+    //                // only 1 node reports progress
+    //                .runOnOneOnce("progressLogger", () -> {
+    //                    progressLogger.startTracking();
+    //                    return progressLogger;
+    //                }));
+    //    }
 }

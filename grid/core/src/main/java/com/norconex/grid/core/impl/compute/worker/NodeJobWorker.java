@@ -42,7 +42,7 @@ public class NodeJobWorker {
     }
 
     public GridJobState run(Runnable job) {
-        var prevOrCurrentState = grid.storageHelper()
+        var prevOrCurrentState = grid.jobStateStorage()
                 .getJobState(jobName).orElse(GridJobState.IDLE);
         if (!okToRun(prevOrCurrentState, runOnce)) {
             return prevOrCurrentState;

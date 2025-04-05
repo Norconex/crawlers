@@ -43,7 +43,7 @@ public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
 
     @Override
     public boolean test(CrawlerContext crawlerContext) {
-        var globalCache = crawlerContext.getGrid().storage().getGlobalMap();
+        var globalCache = crawlerContext.getGrid().storage().getGlobals();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
             throw new IllegalStateException("Already initializing.");
@@ -59,7 +59,7 @@ public final class DocLedgerInitializer implements Predicate<CrawlerContext> {
 
     private static void prepareForCrawl(CrawlerContext crawlerContext) {
         var storage = crawlerContext.getGrid().storage();
-        storage.getGlobalMap();
+        storage.getGlobals();
         var ledger = crawlerContext.getDocProcessingLedger();
 
         long maxProcessedDocs =

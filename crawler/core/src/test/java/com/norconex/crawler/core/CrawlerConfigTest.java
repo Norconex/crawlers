@@ -17,16 +17,11 @@ package com.norconex.crawler.core;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.grid.MockFailingGrid;
-import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 class CrawlerConfigTest {
@@ -36,12 +31,12 @@ class CrawlerConfigTest {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper
                         .builder()
-                        .polymorphicTypeImpl(
-                                Grid.class,
-                                List.of(MockFailingGrid.class))
-                        .polymorphicTypeImpl(
-                                GridConnector.class,
-                                List.of(MockFailingGridConnector.class))
+                        //                        .polymorphicTypeImpl(
+                        //                                Grid.class,
+                        //                                List.of(MockFailingGrid.class))
+                        //                        .polymorphicTypeImpl(
+                        //                                GridConnector.class,
+                        //                                List.of(MockFailingGridConnector.class))
                         .build().assertWriteRead(
                                 StubCrawlerConfig
                                         .randomMemoryCrawlerConfig(tempDir)));

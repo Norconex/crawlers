@@ -22,12 +22,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.grid.core.GridConnector;
 
 class DocProcessingLedgerTest {
 
@@ -61,7 +60,7 @@ class DocProcessingLedgerTest {
         ctx1.close();
         ctx1.getGrid().close();
 
-        GridTestUtil.waitForGridShutdown();
+        // GridTestUtil.waitForGridShutdown();
 
         // simulate resume
 
@@ -77,6 +76,6 @@ class DocProcessingLedgerTest {
 
         ctx2.close();
         ctx1.getGrid().close();
-        GridTestUtil.waitForGridShutdown();
+        // GridTestUtil.waitForGridShutdown();
     }
 }

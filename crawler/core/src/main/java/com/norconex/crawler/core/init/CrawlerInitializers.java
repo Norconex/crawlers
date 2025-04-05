@@ -28,6 +28,8 @@ import lombok.NonNull;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 
+//TODO is this for "Command" initializers?  Before we can perform grid actions?
+// If so, document it clearly and maybe move under .cmd.*?
 @Slf4j
 public class CrawlerInitializers implements Consumer<CrawlerContext> {
 

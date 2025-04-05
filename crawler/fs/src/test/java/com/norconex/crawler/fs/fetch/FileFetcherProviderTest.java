@@ -69,14 +69,14 @@ class FileFetcherProviderTest {
         crawlerCfg.setFetchers(List.of(fetcher));
 
         var p = new FileFetcherProvider();
-        var ctx = new MockFsCrawlerBuilder(tempDir)
+        try (var ctx = new MockFsCrawlerBuilder(tempDir)
                 .config(crawlerCfg)
-                .crawlerContext();
-        var multiFetcher = p.apply(ctx);
-        ctx.init();
-
-        var response = multiFetcher.fetch(request);
-        assertThat(response.getException()).isNotNull();
+                .crawlerContext()) {
+            var multiFetcher = p.apply(ctx);
+            ctx.init();
+            var response = multiFetcher.fetch(request);
+            assertThat(response.getException()).isNotNull();
+        }
     }
 
 }

@@ -44,10 +44,6 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.grid.MockFailingGrid;
-import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
 import com.norconex.crawler.core.operations.DocumentConsumer;
 import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
@@ -79,9 +75,9 @@ public final class StubCrawlerConfig {
                             Long.class,
                             () -> Math
                                     .abs(new LongRandomizer().getRandomValue()))
-                    .randomize(Grid.class, MockFailingGrid::new)
-                    .randomize(GridConnector.class,
-                            MockFailingGridConnector::new)
+                    //                    .randomize(Grid.class, MockFailingGrid::new)
+                    //                    .randomize(GridConnector.class,
+                    //                            MockFailingGridConnector::new)
                     .randomize(ImporterConfig.class, ImporterConfig::new)
                     .randomize(
                             UpsertRequest.class,

@@ -77,7 +77,8 @@ public class MockCrawlerBuilder {
         return new CrawlerContext(
                 ClassUtil.newInstance(specProviderClass).get(),
                 cfg,
-                cfg.getGridConnector().connect(specProviderClass, cfg));
+                cfg.getGridConnector()
+                        .connect(cfg.getWorkDir().resolve("grid")));
     }
 
     private CrawlerConfig resolvedConfig() {

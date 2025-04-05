@@ -24,7 +24,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
-import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.grid.core.GridConnector;
 import com.norconex.crawler.core.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.operations.filter.DocumentFilter;

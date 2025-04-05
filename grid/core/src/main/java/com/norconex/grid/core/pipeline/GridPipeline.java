@@ -28,8 +28,9 @@ public interface GridPipeline {
      * executing stage or wait for the next one eligible for joining.
      * Stages are run at the same time. A node completing a stage earlier
      * than others will wait for others to return.
-     * Any of the stages returning <code>false</code> will stop the pipeline
-     * for all nodes.
+     * Any failing stage will stop the pipeline and subsequent stages
+     * won't be executed, unless {@link GridPipelineStage#isAlways()} is
+     * <code>true</code>.
      * @param <T> type of context argument passed to each stages
      * @param pipelineName pipeline name
      * @param pipelineStages pipeline stages

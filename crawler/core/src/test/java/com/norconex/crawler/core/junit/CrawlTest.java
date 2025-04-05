@@ -28,8 +28,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerSpecProvider;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
+import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.local.LocalGridConnector;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 

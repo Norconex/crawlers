@@ -25,7 +25,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
+import com.norconex.grid.local.LocalGridConnector;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;

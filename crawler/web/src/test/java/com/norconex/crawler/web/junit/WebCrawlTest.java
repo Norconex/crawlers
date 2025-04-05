@@ -27,9 +27,6 @@ import java.util.function.Supplier;
 import org.jeasy.random.EasyRandom;
 
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
-import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.web.WebCrawlerConfig;
@@ -37,6 +34,8 @@ import com.norconex.crawler.web.WebCrawlerSpecProvider;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest.WebConfigRandomizer;
 import com.norconex.crawler.web.operations.delay.impl.GenericDelayResolver;
+import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.local.LocalGridConnector;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
@@ -56,7 +55,7 @@ public @interface WebCrawlTest {
     Class<? extends GridConnector>[] gridConnectors() default {
             LocalGridConnector.class,
             //            IgniteGridTestConnector.class
-            IgniteGridConnector.class
+            //            IgniteGridConnector.class
     };
 
     boolean randomConfig() default false;

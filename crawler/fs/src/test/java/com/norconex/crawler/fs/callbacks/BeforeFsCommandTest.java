@@ -30,9 +30,10 @@ class BeforeFsCommandTest {
 
     @Test
     void testAccept() {
-        var ctx = new MockFsCrawlerBuilder(tempDir).crawlerContext();
-        ctx.init();
-        assertThatNoException()
-                .isThrownBy(() -> new BeforeFsCommand().accept(ctx));
+        try (var ctx = new MockFsCrawlerBuilder(tempDir).crawlerContext()) {
+            ctx.init();
+            assertThatNoException()
+                    .isThrownBy(() -> new BeforeFsCommand().accept(ctx));
+        }
     }
 }

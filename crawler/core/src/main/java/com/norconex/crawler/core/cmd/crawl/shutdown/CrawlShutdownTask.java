@@ -15,13 +15,13 @@
 package com.norconex.crawler.core.cmd.crawl.shutdown;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.grid.pipeline.GridPipelineTask;
+import com.norconex.grid.core.pipeline.GridPipelineTask;
 
 public class CrawlShutdownTask implements GridPipelineTask<CrawlerContext> {
 
     @Override
-    public boolean execute(CrawlerContext ctx) {
-        // TODO Auto-generated method stub
-        return false;
+    public void execute(CrawlerContext ctx) {
+        // TODO finalization stuff
+
     }
 }

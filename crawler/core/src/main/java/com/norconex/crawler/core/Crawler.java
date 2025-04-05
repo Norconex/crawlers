@@ -25,6 +25,7 @@ import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.cmd.stop.StopCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
+import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
@@ -78,7 +79,10 @@ public class Crawler {
      * @param startClean
      */
     public void crawl(boolean startClean) {
-        executeCommand(new CrawlCommand(startClean));
+        if (startClean) {
+            executeCommand(new CleanCommand());
+        }
+        executeCommand(new CrawlCommand());
     }
 
     public void clean() {
@@ -108,11 +112,11 @@ public class Crawler {
         validateConfig(crawlerConfig);
         LogUtil.logCommandIntro(LOG, crawlerConfig);
         LOG.info("Executing command: {}", command.getClass().getSimpleName());
-
+        var workDir = ConfigUtil.resolveWorkDir(crawlerConfig);
         var spec = ClassUtil.newInstance(crawlerSpecProviderClass).get();
         try (var grid = crawlerConfig
                 .getGridConnector()
-                .connect(crawlerSpecProviderClass, crawlerConfig)) {
+                .connect(workDir.resolve("grid"))) {
             // grid auto closes
             try (var ctx = new CrawlerContext(spec, crawlerConfig, grid)) {
                 ctx.init();

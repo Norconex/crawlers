@@ -96,8 +96,8 @@ public class CrawlerEvent extends Event {
     public static final String CRAWLER_STORE_IMPORT_END =
             "CRAWLER_STORE_IMPORT_END";
 
-    public static final String TASK_RUN_BEGIN = "TASK_RUN_BEGIN";
-    public static final String TASK_RUN_END = "TASK_RUN_END";
+    //    public static final String TASK_RUN_BEGIN = "TASK_RUN_BEGIN";
+    //    public static final String TASK_RUN_END = "TASK_RUN_END";
 
     public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
 

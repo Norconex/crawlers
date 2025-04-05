@@ -16,16 +16,17 @@ package com.norconex.crawler.core.cmd.crawl.init;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.pipeline.GridPipelineTask;
+import com.norconex.grid.core.pipeline.GridPipelineTask;
 
 public class CrawlInitTask implements GridPipelineTask<CrawlerContext> {
 
     @Override
-    public boolean execute(CrawlerContext ctx) {
+    public void execute(CrawlerContext ctx) {
         // We launch a "run thread" notification here as some crawl related
         // actions can be/are done within an initializer execution (like fetch
         // a sitemap.xml, etc.) and they need to receive this notification.
-        ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
+        ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
+                Thread.currentThread());
         try {
             if (ctx.getInitializers() != null) {
                 ctx.getInitializers().accept(ctx);
@@ -34,6 +35,5 @@ public class CrawlInitTask implements GridPipelineTask<CrawlerContext> {
             ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_END,
                     Thread.currentThread());
         }
-        return true;
     }
 }

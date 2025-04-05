@@ -32,8 +32,6 @@ import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.operations.DocumentConsumer;
 import com.norconex.crawler.core.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
@@ -44,6 +42,8 @@ import com.norconex.crawler.core.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
+import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.local.LocalGridConnector;
 import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;

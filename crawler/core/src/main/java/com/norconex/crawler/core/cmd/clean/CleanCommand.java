@@ -17,7 +17,7 @@ package com.norconex.crawler.core.cmd.clean;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.grid.core.compute.GridJobState;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,15 +28,17 @@ public class CleanCommand implements Command {
     public void execute(CrawlerContext ctx) {
         Thread.currentThread().setName(ctx.getId() + "/CLEAN");
         ctx.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN);
-        ConcurrentUtil.get(ctx.getGrid().compute().runOnOneOnce(
+        var resp = ctx.getGrid().compute().runOnOneOnce(
                 CleanCommand.class.getSimpleName(), () -> {
                     ctx.getCommitterService().clean();
                     // Close metrics prematurely, before cleaning, or
                     // it will want to report on a blown-away store:
                     ctx.getMetrics().close();
-                    ctx.getGrid().storage().clean();
-                    return null;
-                }));
+                    ctx.getGrid().storage().destroy();
+                });
+        if (resp != GridJobState.COMPLETED) {
+            LOG.warn("Command returned with a non-completed status: {}", resp);
+        }
         ctx.fire(CrawlerEvent.CRAWLER_CLEAN_END);
     }
 }

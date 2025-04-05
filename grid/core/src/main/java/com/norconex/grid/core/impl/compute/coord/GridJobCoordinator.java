@@ -41,11 +41,11 @@ public class GridJobCoordinator implements Runnable {
 
     @Override
     public void run() {
-        grid.storageHelper().setJobStateAtTime(
+        grid.jobStateStorage().setJobStateAtTime(
                 jobName, GridJobState.RUNNING);
         grid.addListener(messageReceiver);
         var coordState = messageReceiver.waitForAllWorkersDone();
-        grid.storageHelper().setJobStateAtTime(jobName, coordState);
+        grid.jobStateStorage().setJobStateAtTime(jobName, coordState);
         //TODO request ACK?
         messageSender.broadcastAllDone(coordState);
         grid.removeListener(messageReceiver);

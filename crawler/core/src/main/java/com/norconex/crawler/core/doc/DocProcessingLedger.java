@@ -19,9 +19,9 @@ import java.util.function.BiPredicate;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.storage.GridMap;
-import com.norconex.crawler.core.grid.storage.GridQueue;
-import com.norconex.crawler.core.util.SerialUtil;
+import com.norconex.grid.core.storage.GridMap;
+import com.norconex.grid.core.storage.GridQueue;
+import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +60,7 @@ public class DocProcessingLedger { //implements Closeable {
         var storage = crawlerContext.getGrid().storage();
 
         // Because we can't rename caches in all impl, we use references.
-        globalCache = storage.getGlobalMap();
+        globalCache = storage.getGlobals();
         var processedMapName = globalCache.get(KEY_PROCESSED_MAP);
         var cachedMapName = globalCache.get(KEY_CACHED_MAP);
         //TODO if one is null they should both be null. If a concern, check

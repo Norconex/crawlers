@@ -80,7 +80,7 @@ public class CoreGrid implements Grid {
     @Getter
     private Address coordinator;
     private View view;
-    private StorageHelper storageHelper;
+    private JobStateStorage jobStateStorage;
 
     public CoreGrid(String gridName, GridStorage storage)
             throws Exception {
@@ -121,7 +121,7 @@ public class CoreGrid implements Grid {
         localAddress = channel.getAddress();
         view = channel.getView();
         coordinator = view.getCoord();
-        storageHelper = new StorageHelper(this);
+        jobStateStorage = new JobStateStorage(this);
     }
 
     public boolean isCoordinator() {
@@ -166,8 +166,8 @@ public class CoreGrid implements Grid {
                 .orElse(List.of());
     }
 
-    public StorageHelper storageHelper() {
-        return storageHelper;
+    public JobStateStorage jobStateStorage() {
+        return jobStateStorage;
     }
 
     @Override
@@ -205,7 +205,7 @@ public class CoreGrid implements Grid {
         send(new StopJobMessage(null));
         var pendingStop = CompletableFuture.runAsync(() -> {
             Map<String, JobStateAtTime> jobs = null;
-            while (!(jobs = storageHelper().getRunningJobs()).isEmpty()) {
+            while (!(jobs = jobStateStorage().getRunningJobs()).isEmpty()) {
                 LOG.info("The following jobs are still running: \n" + (jobs
                         .entrySet()
                         .stream()

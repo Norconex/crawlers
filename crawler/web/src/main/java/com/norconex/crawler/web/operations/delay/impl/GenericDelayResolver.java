@@ -82,7 +82,8 @@ public class GenericDelayResolver
 
     @Override
     public void accept(CrawlerEvent ev) {
-        if (ev.is(CrawlerEvent.TASK_RUN_BEGIN)) {
+        if (ev.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            //        if (ev.is(CrawlerEvent.TASK_RUN_BEGIN)) {
             schedules.clear();
             configuration.getSchedules().forEach(sch -> {
                 schedules.add(toCircularSchedule(sch));

@@ -31,13 +31,12 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.storage.GridMap;
-import com.norconex.crawler.core.grid.storage.GridQueue;
-import com.norconex.crawler.core.grid.storage.GridSet;
-import com.norconex.crawler.core.grid.storage.GridStorage;
-import com.norconex.crawler.core.grid.storage.GridStore;
-import com.norconex.crawler.core.util.ConcurrentUtil;
-import com.norconex.crawler.core.util.SerialUtil;
+import com.norconex.grid.core.storage.GridMap;
+import com.norconex.grid.core.storage.GridQueue;
+import com.norconex.grid.core.storage.GridSet;
+import com.norconex.grid.core.storage.GridStorage;
+import com.norconex.grid.core.storage.GridStore;
+import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,11 +52,14 @@ public class StoreImportCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN);
         try {
-            ConcurrentUtil.get(ctx.getGrid().compute().runOnOneOnce(
+            ctx.getGrid().compute().runOnOneOnce(
                     StoreImportCommand.class.getSimpleName(), () -> {
-                        importAllStores(ctx);
-                        return null;
-                    }));
+                        try {
+                            importAllStores(ctx);
+                        } catch (ClassNotFoundException | IOException e) {
+                            new CrawlerException(e);
+                        }
+                    });
         } catch (Exception e) {
             throw new CrawlerException("Could not import file: " + inFile, e);
         }
@@ -151,10 +153,6 @@ public class StoreImportCommand implements Command {
         parser.nextToken(); // { //NOSONAR
         if (store instanceof GridMap cache) { //NOSONAR
             cache.put(id, value);
-        } else if (store instanceof GridSet set) { //NOSONAR
-            set.add(objectClass);
-        } else if (store instanceof GridQueue queue) { //NOSONAR
-            queue.put(id, value);
         }
         parser.nextToken(); // } //NOSONAR
     }
@@ -168,7 +166,7 @@ public class StoreImportCommand implements Command {
             return storage.getQueue(storeName, objectType);
         }
         if (storeSuperType.equals(GridSet.class)) {
-            return storage.getSet(storeName, objectType);
+            return storage.getSet(storeName);
         }
         return storage.getMap(storeName, objectType);
     }
