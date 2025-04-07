@@ -113,7 +113,7 @@ public class StopCrawlerOnMaxEventListener implements
         if (isMaxReached()) {
             LOG.info("Maximum number of events reached for crawler: {}",
                     crawlerContext.getId());
-            crawlerContext.stop();
+            crawlerContext.stopCrawlerCommand();
         }
     }
 

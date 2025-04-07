@@ -19,11 +19,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridJobState;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 import com.norconex.grid.core.pipeline.GridPipelineState;
+import com.norconex.grid.core.pipeline.GridPipelineTask;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.Getter;
@@ -39,6 +41,8 @@ public class GridPipelineRunner<T> {
     private final String pipelineName;
     private final BaseGridPipeline<?> pipeline;
     private final AtomicBoolean stopRequested = new AtomicBoolean();
+    private final AtomicReference<GridPipelineTask<T>> activeTask =
+            new AtomicReference<>();
 
     public GridPipelineRunner(
             BaseGridPipeline<?> pipeline,
@@ -63,7 +67,10 @@ public class GridPipelineRunner<T> {
         return ConcurrentUtil.call(() -> {
             var keepGoing = true;
             // In case we are just joining, get "remaining" stages
-            for (var stage : getRemainingStages()) {
+            for (var stage : getAdjustedStages()) {
+                // pipeline state has to be set on the starting stage
+                // since the possible former state is used to establish
+                // the remaining stages.
                 pipeline.setState(pipelineName, GridPipelineState.ACTIVE);
                 if (canProceed(context, keepGoing, stage)) {
                     keepGoing = runStage(stage, context) && keepGoing;
@@ -87,10 +94,12 @@ public class GridPipelineRunner<T> {
     private boolean runStage(GridPipelineStage<T> stage, T context) {
         LOG.info("Pipeline now at stage \"{}\"", stage.getName());
         pipeline.setActiveStageName(pipelineName, stage.getName());
+        activeTask.set(stage.getTask());
         var jobState = pipeline.getGrid().compute().runOn(
                 stage.getRunOn(),
                 stage.getName(),
-                () -> stage.getTask().execute(context));
+                // the runnable here should accept stoppable....?
+                () -> activeTask.get().execute(context));
         if (jobState == GridJobState.FAILED) {
             LOG.info("Pipeline stage \"{}\" failed. Aborting.",
                     stage.getName());
@@ -99,7 +108,7 @@ public class GridPipelineRunner<T> {
         return true;
     }
 
-    private List<GridPipelineStage<T>> getRemainingStages() {
+    private List<GridPipelineStage<T>> getAdjustedStages() {
         var pipeState = pipeline.getState(pipelineName);
         if (pipeState == GridPipelineState.IDLE) {
             LOG.info("Starting \"{}\" pipeline from begining.", pipelineName);
@@ -115,12 +124,28 @@ public class GridPipelineRunner<T> {
                 .orElse(stages.get(0).getName());
         LOG.info("Starting pipeline \"{}\" at stage \"{}\".",
                 pipelineName, stageName);
-        return stages.stream()
-                .dropWhile(stage -> !Objects.equals(stageName, stage.getName()))
-                .toList();
+
+        List<GridPipelineStage<T>> adjustedStages = new ArrayList<>();
+        var caughtUp = false;
+        for (GridPipelineStage<T> stage : stages) {
+            if (caughtUp || Objects.equals(stageName, stage.getName())) {
+                caughtUp = true;
+                adjustedStages.add(stage);
+            }
+            if (stage.isAlways()) {
+                adjustedStages.add(stage);
+            }
+        }
+        return adjustedStages;
+        //        return stages.stream()
+        //                .dropWhile(stage -> !Objects.equals(stageName, stage.getName()))
+        //                .toList();
     }
 
     public void stopRequested() {
         stopRequested.set(true);
+        activeTask.get().stop();
+        pipeline.getActiveStageName(pipelineName)
+                .ifPresent(pipeline.getGrid().compute()::stop);
     }
 }

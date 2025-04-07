@@ -12,14 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.compute;
+package com.norconex.crawler.web.cases.recovery;
 
-/**
- * Jobs passed to the grid compute implementing this interface will be notified
- * when a request for stopping has been made.
- */
-public interface StoppableRunnable extends Runnable {
+import com.norconex.commons.lang.event.Event;
+import com.norconex.commons.lang.event.EventListener;
 
-    void stop();
+import lombok.SneakyThrows;
 
+public class ThrowingEventListener implements EventListener<Event> {
+
+    @SneakyThrows
+    @Override
+    public void accept(Event t) {
+        throw new Throwable("Simulating unrecoverable exception.");
+    }
 }

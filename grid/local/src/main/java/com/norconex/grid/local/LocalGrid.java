@@ -88,6 +88,7 @@ public class LocalGrid implements Grid {
 
     @Override
     public boolean resetSession() {
+        storage().getGlobals().clear();
         return jobStateStorage.reset();
     }
 }

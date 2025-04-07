@@ -155,7 +155,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             withNewGrid(3, mocker -> {
                 mocker.onEachNodes((grid, index) -> {
                     var job = new StoppableJob(grid, () -> mocker.getGrid()
-                            .compute().requestStop("testJob"));
+                            .compute().stop("testJob"));
                     var future = CompletableFuture.runAsync(() -> {
                         grid.compute().runOnAll("testJob", job);
                     });
@@ -192,7 +192,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
         }
 
         @Override
-        public void stopRequested() {
+        public void stop() {
             stopRequested = true;
         }
     }

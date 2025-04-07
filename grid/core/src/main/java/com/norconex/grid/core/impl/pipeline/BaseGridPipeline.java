@@ -67,5 +67,4 @@ public abstract class BaseGridPipeline<T extends Grid>
         grid.storage().getGlobals().put(
                 STATE_KEY_PREFIX + pipelineName, state.name());
     }
-
 }

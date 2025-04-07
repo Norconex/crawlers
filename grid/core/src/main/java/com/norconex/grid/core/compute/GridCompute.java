@@ -116,5 +116,5 @@ public interface GridCompute {
      *
      * @param jobName the job to stop, or <code>null</code>
      */
-    void requestStop(String jobName);
+    void stop(String jobName);
 }

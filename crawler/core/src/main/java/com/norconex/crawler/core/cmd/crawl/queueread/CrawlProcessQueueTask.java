@@ -26,7 +26,7 @@ import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.util.LogUtil;
-import com.norconex.grid.core.pipeline.GridPipelineTask;
+import com.norconex.grid.core.pipeline.BaseGridPipelineTask;
 import com.norconex.grid.core.util.ConcurrentUtil;
 import com.norconex.importer.doc.DocContext;
 
@@ -39,7 +39,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class CrawlProcessQueueTask implements GridPipelineTask<CrawlerContext> {
+public class CrawlProcessQueueTask
+        extends BaseGridPipelineTask<CrawlerContext> {
 
     /**
      * What to do with ALL current entries in the queue.
@@ -57,7 +58,8 @@ public class CrawlProcessQueueTask implements GridPipelineTask<CrawlerContext> {
 
     @Override
     public void execute(CrawlerContext ctx) {
-        if (ctx.isStopping()) {
+        //        if (ctx.isStopping()) {
+        if (isStopRequested()) {
             return;
         }
         LOG.info("Processing crawler queue...");
@@ -88,7 +90,7 @@ public class CrawlProcessQueueTask implements GridPipelineTask<CrawlerContext> {
             // other ending conditions
             //            // At this point all threads/nodes shall reach the same
             //            // conclusion and break, effectively ending crawling.
-            while (!ctx.isStopping()
+            while (!isStopRequested()
                     && !activityChecker.isMaxDocsApplicableAndReached()
                     && processNextInQueue(ctx, activityChecker))
                 ;
@@ -148,7 +150,7 @@ public class CrawlProcessQueueTask implements GridPipelineTask<CrawlerContext> {
         } catch (Exception e) {
             if (handleExceptionAndCheckIfStopCrawler(crawlCtx, docProcessCtx,
                     e)) {
-                crawlCtx.stop();
+                crawlCtx.stopCrawlerCommand();
                 return false;
             }
         } finally {

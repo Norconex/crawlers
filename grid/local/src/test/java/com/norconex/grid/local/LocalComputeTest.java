@@ -123,7 +123,7 @@ class LocalComputeTest {
                 }
             }), 10, TimeUnit.SECONDS);
 
-            grid.compute().requestStop("test");
+            grid.compute().stop("test");
             ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
         });
     }
@@ -140,7 +140,7 @@ class LocalComputeTest {
         }
 
         @Override
-        public void stopRequested() {
+        public void stop() {
             pendingStop.complete(null);
         }
     }

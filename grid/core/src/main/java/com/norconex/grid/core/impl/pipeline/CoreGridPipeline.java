@@ -54,7 +54,7 @@ public class CoreGridPipeline extends BaseGridPipeline<CoreGrid> {
     }
 
     @Override
-    public void requestStop(String pipelineName) {
+    public void stop(String pipelineName) {
         getGrid().send(new StopPipelineMessage(pipelineName));
     }
 

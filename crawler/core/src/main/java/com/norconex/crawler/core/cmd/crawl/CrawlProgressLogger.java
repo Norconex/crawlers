@@ -93,7 +93,7 @@ public class CrawlProgressLogger implements StoppableRunnable {
     }
 
     @Override
-    public void stopRequested() {
+    public void stop() {
         if (!stopWatch.isStopped()) {
             stopWatch.stop();
         }

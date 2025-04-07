@@ -29,7 +29,7 @@ public class StopCommand implements Command {
     public void execute(CrawlerContext ctx) {
         Thread.currentThread().setName(ctx.getId() + "/STOP_REQUEST");
         ctx.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN);
-        ctx.stop();
+        ctx.stopCrawlerCommand();
         ctx.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_END);
     }
 }

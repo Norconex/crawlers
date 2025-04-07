@@ -75,7 +75,11 @@ class SitemapURLDeletionTest {
             </urlset>
             """;
 
-    @WebCrawlTest
+    @WebCrawlTest(config = """
+            recrawlableResolver:
+              class: GenericRecrawlableResolver
+              sitemapSupport: NEVER
+            """)
     void testSitemapURLDeletion(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
@@ -101,12 +105,44 @@ class SitemapURLDeletionTest {
         mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
-                .containsExactlyInAnyOrder(
-                        serverUrl(client, page33Path));
+                .containsExactlyInAnyOrder(serverUrl(client, page33Path));
         assertThat(mem.getDeleteRequests())
                 .map(DeleteRequest::getReference)
+                .containsExactlyInAnyOrder(serverUrl(client, page3Path));
+        mem.clean();
+    }
+
+    // The URL that is 404 should not be deleted if marked not ready for
+    // recrawl.
+    @WebCrawlTest
+    void testSitemapURLDeletionNotReadyForRecrawl(
+            ClientAndServer client, WebCrawlerConfig cfg)
+            throws CommitterException {
+
+        cfg.setSitemapResolver(new GenericSitemapResolver())
+                .setStartReferencesSitemaps(
+                        List.of(serverUrl(client, sitemapPath)))
+                .setOrphansStrategy(OrphansStrategy.PROCESS);
+
+        // First time, 3 upserts and 0 deletes
+        whenSitemap(client, true);
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        assertThat(mem.getUpsertRequests())
+                .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
+                        serverUrl(client, page1Path),
+                        serverUrl(client, page2Path),
                         serverUrl(client, page3Path));
+        assertThat(mem.getDeleteCount()).isZero();
+        mem.clean();
+
+        // Second time, 1 add and 0 delete (not ready for recrawl)
+        whenSitemap(client, false);
+        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        assertThat(mem.getUpsertRequests())
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(serverUrl(client, page33Path));
+        assertThat(mem.getDeleteRequests()).isEmpty();
         mem.clean();
     }
 

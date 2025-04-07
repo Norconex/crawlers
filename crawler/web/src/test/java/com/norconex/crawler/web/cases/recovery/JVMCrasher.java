@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.web.cases.recovery;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -28,8 +30,8 @@ public class JVMCrasher implements EventListener<Event> {
 
     public static final int CRASH_EXIT_VALUE = 13;
 
-    private int crashAt;
-    private int count = 0;
+    private final int crashAt;
+    private AtomicInteger count = new AtomicInteger();
 
     public JVMCrasher() {
         crashAt = 7;
@@ -41,13 +43,12 @@ public class JVMCrasher implements EventListener<Event> {
 
     @Override
     public void accept(Event e) {
-        if (e.is(CrawlerEvent.DOCUMENT_FETCHED)) {
-            count++;
-            if (count % crashAt == 0) {
-                System.err.println(count + " documents fetched. CRASH!");
-                System.err.flush();
-                Runtime.getRuntime().halt(13);
-            }
+        if (e.is(CrawlerEvent.DOCUMENT_FETCHED)
+                && (count.incrementAndGet() % crashAt == 0)) {
+            System.err.println(count + " documents fetched. CRASH!");
+            System.err.flush();
+            //System.exit(13);
+            Runtime.getRuntime().halt(13);
         }
     }
 }

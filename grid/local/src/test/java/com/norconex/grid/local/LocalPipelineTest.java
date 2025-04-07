@@ -173,7 +173,7 @@ class LocalPipelineTest {
                         .orElse(null))) {
             Sleeper.sleepMillis(100);
         }
-        grid.pipeline().requestStop(null);
+        grid.pipeline().stop(null);
         frozen.set(false);
 
         boolean success = ConcurrentUtil.get(

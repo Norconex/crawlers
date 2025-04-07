@@ -94,7 +94,8 @@ public class CrawlerContext implements AutoCloseable {
 
     private static final String KEY_RESUMING = "resuming";
     private static final String KEY_INCREMENTING = "incrementing";
-    private static final String KEY_STOPPING = "stopping";
+    private static final String KEY_STOP_CMD_REQUESTED =
+            "stopCommandRequested";
     private static final String KEY_QUEUE_INITIALIZED = "queueInitialized";
     private static final String KEY_MAX_PROCESSED_DOCS = "maxProcessedDocs";
     //TODO somehow abstract/hide this:
@@ -120,7 +121,7 @@ public class CrawlerContext implements AutoCloseable {
     private Importer importer;
 
     private final CrawlerInitializers initializers;
-    private final CrawlerPipelines pipelines;
+    private final CrawlerPipelines pipelines; //TODO rename docPipelines ................
     private final Fetcher<? extends FetchRequest,
             ? extends FetchResponse> fetcher;
 
@@ -201,6 +202,27 @@ public class CrawlerContext implements AutoCloseable {
         ctxStateStore = grid.storage().getMap(
                 CrawlerContext.class.getSimpleName(), Boolean.class);
 
+        //
+        //        var newSession = docProcessingLedger.isQueueEmpty();
+        //        if (newSession) {
+        //            LOG.info("Starting a new crawl session.");
+        //        } else {
+        //            LOG.info("Resuming a previous crawl session.");
+        //        }
+        //        incrementing =
+        //                !docProcessingLedger.isProcessedEmpty());
+        //
+        //        grid.compute().runOnOne("context-init",
+        //                () -> {
+        //                        grid.resetSession();
+        //                    ctxStateStore.clear();
+        //                    setState(KEY_RESUMING, !newSession);
+        //                    setState(KEY_INCREMENTING,
+        //                            !docProcessingLedger.isProcessedEmpty());
+        //                });
+        //        resuming = getState(KEY_RESUMING);
+        //        incrementing = getState(KEY_INCREMENTING);
+
         // Here We initialize things that should only be initialized once
         // for the entire crawl sessions (i.e., only set by one node).
         grid.compute().runOnOne("context-init",
@@ -211,12 +233,20 @@ public class CrawlerContext implements AutoCloseable {
                     if (newSession) {
                         LOG.info("Starting a new crawl session.");
                         grid.resetSession();
+                    } else {
+                        LOG.info("Resuming a previous crawl session.");
                     }
                     ctxStateStore.clear();
                     setState(KEY_RESUMING, !newSession);
                     setState(KEY_INCREMENTING,
                             !docProcessingLedger.isProcessedEmpty());
                 });
+
+        //TODO have the equivalent of INITIALIZED that we have for pipeline init,
+        // but to confirm these two values have been set.. we would wait
+        // for signal.   //OR, return more tan just the status when we
+        // do compute, allows a response that takes a simple object back
+        // or a string.  Yeah... that would be better. ❤️🧡💚
         resuming = getState(KEY_RESUMING);
         incrementing = getState(KEY_INCREMENTING);
 
@@ -312,16 +342,18 @@ public class CrawlerContext implements AutoCloseable {
     }
 
     /**
-     * Whether a request was made to stop the crawler.
+     * Whether a request was made to stop the current crawler command.
      * @return <code>true</code> if stopping the crawler was requested
      */
-    public boolean isStopping() {
-        return getState(KEY_STOPPING);
+    public boolean isStopCrawlerCommandRequested() {
+        return getState(KEY_STOP_CMD_REQUESTED);
     }
 
-    public void stop() {
+    public void stopCrawlerCommand() {
         LOG.info("Received request to stop the crawler.");
-        setState(KEY_STOPPING, true);
+        grid.pipeline().stop(null);
+        grid.compute().stop(null);
+        setState(KEY_STOP_CMD_REQUESTED, true);
     }
 
     /**

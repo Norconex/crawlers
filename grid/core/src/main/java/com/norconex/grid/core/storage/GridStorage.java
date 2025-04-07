@@ -28,6 +28,9 @@ public interface GridStorage {
      * information).
      * @return globals store
      */
+    //TODO rename "getSessionMap" or equivalent and clear it everytime
+    // the session is reset.  And maybe have the CrawlerContext use that
+    // instead of having its own map for state?
     GridMap<String> getGlobals();
 
     <T> GridQueue<T> getQueue(String name, Class<? extends T> type);

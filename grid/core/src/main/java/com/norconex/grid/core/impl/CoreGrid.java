@@ -202,8 +202,10 @@ public class CoreGrid implements Grid {
         channel.close();
     }
 
+    //TODO move to storage?
     @Override
     public boolean resetSession() {
+        storage().getGlobals().clear();
         return jobStateStorage().reset();
     }
 

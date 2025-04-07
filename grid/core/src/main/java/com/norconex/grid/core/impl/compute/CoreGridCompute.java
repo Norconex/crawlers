@@ -76,7 +76,7 @@ public class CoreGridCompute implements GridCompute {
     }
 
     @Override
-    public void requestStop(String jobName) {
+    public void stop(String jobName) {
         grid.send(new StopJobMessage(jobName));
     }
 }

@@ -28,4 +28,12 @@ public interface GridPipelineTask<T> {
      * @param ctx an optional context argument
      */
     void execute(T ctx);
+
+    /**
+     * Stops the pipeline task. It is up to task implementors to implement
+     * this method, knowing whether their task can be stopped or not.
+     */
+    default void stop() {
+        //NOOP
+    }
 }

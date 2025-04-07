@@ -115,7 +115,6 @@ public class LocalGridConnector
             mvstore.setAutoCommitDelay(
                     configuration.getAutoCommitDelay().intValue());
         }
-
         mvstore.commit();
         return new LocalGrid(mvstore);
     }

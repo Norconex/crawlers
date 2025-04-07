@@ -57,7 +57,7 @@ public class LocalGridPipeline extends BaseGridPipeline<LocalGrid> {
     }
 
     @Override
-    public void requestStop(String pipelineName) {
+    public void stop(String pipelineName) {
         for (Entry<String, GridPipelineRunner<?>> entry : activeRunners
                 .entrySet()) {
             if (pipelineName == null || entry.getKey().equals(pipelineName)) {

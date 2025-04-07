@@ -12,14 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.compute;
+package com.norconex.grid.core.pipeline;
+
+import lombok.Getter;
 
 /**
- * Jobs passed to the grid compute implementing this interface will be notified
- * when a request for stopping has been made.
+ * Implements the stop method to set a "stopRequested" flag obtained via
+ * {@link #isStopRequested()}.
+ *
+ * Alternatively, once can override {@link #stop()} to react instantly
+ * to the stop request.
+ *
+ * @param <T> context object
  */
-public interface StoppableRunnable extends Runnable {
+public abstract class BaseGridPipelineTask<T> implements GridPipelineTask<T> {
 
-    void stop();
+    @Getter
+    private boolean stopRequested;
 
+    @Override
+    public void stop() {
+        stopRequested = true;
+    }
 }

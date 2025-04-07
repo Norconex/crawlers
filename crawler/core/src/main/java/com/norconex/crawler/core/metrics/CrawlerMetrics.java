@@ -23,11 +23,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.DocProcessingLedger;
 import com.norconex.grid.core.storage.GridMap;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
 
     // Scheduled batch flush interval in seconds
@@ -42,6 +47,7 @@ public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
     private GridMap<Long> eventCountsCache;
     private ScheduledExecutorService scheduler;
     private boolean closed;
+    private final Lock flushLock = new ReentrantLock();
 
     public void init(CrawlerContext crawlerContext) {
         ledger = crawlerContext.getDocProcessingLedger();
@@ -59,14 +65,25 @@ public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
     }
 
     private void flushBatch() {
-        synchronized (eventCountsBatch) {
-            eventCountsBatch.forEach((eventName, increment) -> {
-                //THE PROBLEM: eventCountCache has been removed by "clean service"
-                // so it fails here
-                eventCountsCache.update(eventName,
-                        count -> (ofNullable(count).orElse(0L) + increment));
-                eventCountsBatch.put(eventName, 0L);
-            });
+        if (flushLock.tryLock()) {
+            try {
+                eventCountsBatch.forEach((eventName, increment) -> {
+                    try {
+                        eventCountsCache.update(eventName,
+                                count -> (ofNullable(count).orElse(0L)
+                                        + increment));
+                        eventCountsBatch.put(eventName, 0L);
+                    } catch (Exception e) {
+                        LOG.error("Error updating event count cache for event: "
+                                + eventName, e);
+                    }
+                });
+            } finally {
+                flushLock.unlock();
+            }
+        } else {
+            LOG.warn("Could not acquire lock to flush batch, "
+                    + "skipping this interval.");
         }
     }
 

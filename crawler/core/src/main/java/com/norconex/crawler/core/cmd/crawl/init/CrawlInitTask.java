@@ -22,6 +22,7 @@ public class CrawlInitTask implements GridPipelineTask<CrawlerContext> {
 
     @Override
     public void execute(CrawlerContext ctx) {
+
         // We launch a "run thread" notification here as some crawl related
         // actions can be/are done within an initializer execution (like fetch
         // a sitemap.xml, etc.) and they need to receive this notification.

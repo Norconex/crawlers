@@ -86,6 +86,23 @@ public class LocalGridCompute implements GridCompute {
                     jobName, GridJobState.COMPLETED);
             return GridJobState.COMPLETED;
         } catch (Exception e) {
+            // !!!
+            // !!!
+            // !!!
+            // !!!
+            // !!!
+            // WHY SWALLOW HERE? //TODO check if failed higher up and/or
+            // make sure that "stopOnException" works.
+            // Maybe return a respons with exception as argument in addition to state
+            // or maybe have configurable the "stopOnException" to stop
+            // the build if it happens on any of the nodes even if job
+            // as a whole succeeded?
+            // !!!
+            // !!!
+            // !!!
+            // !!!
+            // !!!
+            // !!!
             LOG.error("Job {} failed.", jobName, e);
             grid.jobStateStorage().setJobStateAtTime(
                     jobName, GridJobState.FAILED);
@@ -96,11 +113,11 @@ public class LocalGridCompute implements GridCompute {
     }
 
     @Override
-    public void requestStop(String jobName) {
+    public void stop(String jobName) {
         for (Entry<String, Runnable> entry : activeJobs.entrySet()) {
             if ((jobName == null || entry.getKey().equals(jobName))
                     && entry.getValue() instanceof StoppableRunnable job) {
-                job.stopRequested();
+                job.stop();
             }
         }
     }

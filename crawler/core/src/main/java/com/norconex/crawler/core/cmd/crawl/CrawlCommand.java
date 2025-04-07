@@ -18,7 +18,6 @@ import java.util.List;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.Command;
-import com.norconex.crawler.core.cmd.clean.CleanCommand;
 import com.norconex.crawler.core.cmd.crawl.init.CrawlInitTask;
 import com.norconex.crawler.core.cmd.crawl.orphans.CrawlHandleOrphansTask;
 import com.norconex.crawler.core.cmd.crawl.queueread.CrawlProcessQueueTask;
@@ -44,12 +43,14 @@ public class CrawlCommand implements Command {
         trackProgress(ctx);
 
         var completed = Boolean.TRUE.equals(ConcurrentUtil.get(ctx.getGrid()
+                //        var future = ctx.getGrid()
                 .pipeline().run(CrawlerContext.KEY_CRAWL_PIPELINE, List.of(
                         // Init
                         GridPipelineStage.<CrawlerContext>builder()
                                 .name("crawlInitStage")
-                                .runOn(RunOn.ONE_ONCE)
+                                .runOn(RunOn.ONE)
                                 .task(new CrawlInitTask())
+                                .always(true)
                                 .build(),
                         // Main crawl
                         GridPipelineStage.<CrawlerContext>builder()
@@ -84,33 +85,25 @@ public class CrawlCommand implements Command {
                 //                        .task(new CrawlShutdownTask())
                 //                        .build(),
                 ),
-                        ctx)));
+                        ctx
+                //                        );
+                )));
 
-        //        while (ctx.getCrawlStage() != CrawlStage.ENDED) {
-        //            Sleeper.sleepSeconds(1);
-        //        }
-
+        //        ConcurrentUtil.monitorFuture(future, 2, TimeUnit.SECONDS);
+        //        try {
+        //            if (Boolean.TRUE.equals(future.get())) {
         if (completed) {
             LOG.info("Crawler completed execution.");
         } else {
             LOG.info("Crawler execution ended before completion.");
         }
-
-        ctx.getGrid().compute().requestStop(PROGRESS_LOGGER_KEY);
-
-        //        progressLogger.stopTracking();
-        //        LOG.info("Execution Summary:{}", progressLogger.getExecutionSummary());
-
+        //        } catch (Exception e) {
+        //            LOG.error("Error during crawl execution", e);
+        //        } finally {
+        ctx.getGrid().compute().stop(PROGRESS_LOGGER_KEY);
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling.");
-    }
-
-    private void cleanFirst(CrawlerContext ctx) {
-        new CleanCommand().execute(ctx);
-        // re-initialize the context to recreate destroyed cache
-        // for crawling
-        ctx.close();
-        ctx.init();
+        //        }
     }
 
     private void trackProgress(CrawlerContext ctx) {
@@ -122,20 +115,6 @@ public class CrawlCommand implements Command {
         // only 1 node reports progress
         ctx.getGrid()
                 .compute()
-                .runOnOneOnce(PROGRESS_LOGGER_KEY, progressLogger);
+                .runOnOne(PROGRESS_LOGGER_KEY, progressLogger);
     }
-
-    //    private CrawlProgressLogger trackProgress(CrawlerContext ctx) {
-    //        var progressLogger = new CrawlProgressLogger(
-    //                ctx.getMetrics(),
-    //                ctx.getConfiguration().getMinProgressLoggingInterval());
-    //        // TODO: make sure this (or all) runOnOneOnce can be recovered
-    //        // upon node failure
-    //        return ConcurrentUtil.get(ctx.getGrid().compute()
-    //                // only 1 node reports progress
-    //                .runOnOneOnce("progressLogger", () -> {
-    //                    progressLogger.startTracking();
-    //                    return progressLogger;
-    //                }));
-    //    }
 }

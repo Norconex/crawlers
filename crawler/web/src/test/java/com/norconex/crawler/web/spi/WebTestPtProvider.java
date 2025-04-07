@@ -14,27 +14,23 @@
  */
 package com.norconex.crawler.web.spi;
 
-import org.apache.commons.collections4.MultiMapUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-
 import com.norconex.committer.core.Committer;
-import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
+import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.web.cases.recovery.JVMCrasher;
 import com.norconex.crawler.web.cases.recovery.TestCommitter;
+import com.norconex.crawler.web.cases.recovery.ThrowingEventListener;
 import com.norconex.crawler.web.mocks.MockStartURLsProvider;
 
-public class WebTestPtProvider implements PolymorphicTypeProvider {
+public class WebTestPtProvider extends BasePolymorphicTypeProvider {
 
     @Override
-    public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
-        MultiValuedMap<Class<?>, Class<?>> map =
-                MultiMapUtils.newListValuedHashMap();
-        map.put(EventListener.class, JVMCrasher.class);
-        //        map.put(EventListener.class, CrawlSessionStopper.class);
-        map.put(ReferencesProvider.class, MockStartURLsProvider.class);
-        map.put(Committer.class, TestCommitter.class);
-        return map;
+    protected void register(Registry r) {
+        r.add(EventListener.class,
+                JVMCrasher.class, ThrowingEventListener.class);
+        r.add(ReferencesProvider.class, MockStartURLsProvider.class);
+        r.add(Committer.class, TestCommitter.class);
+
     }
 }

@@ -135,6 +135,27 @@ public final class ConcurrentUtil {
                 .allOf(futures.toArray(new CompletableFuture[0]));
     }
 
+    //    /**
+    //     * Periodically checks the status of the given future and and logs
+    //     * if still active.
+    //     * @param future the future to monitor
+    //     * @param checkInterval the interval at which to check the future status
+    //     * @param timeUnit the time unit of the check interval
+    //     */
+    //    public static void monitorFuture(
+    //            Future<?> future, long checkInterval, TimeUnit timeUnit) {
+    //        var scheduler =
+    //                Executors.newScheduledThreadPool(1);
+    //        scheduler.scheduleAtFixedRate(() -> {
+    //            if (future.isDone() || future.isCancelled()) {
+    //                scheduler.shutdown();
+    //            } else {
+    //                // Optionally log progress or take other actions
+    //                LOG.info("Task is still running...");
+    //            }
+    //        }, checkInterval, checkInterval, timeUnit);
+    //    }
+
     /**
      * Wraps {@link InterruptedException}, {@link TimeoutException},
      * {@link ExecutionException} root cause, and any other checked exceptions
