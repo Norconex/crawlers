@@ -20,9 +20,9 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.operations.filter.FilterGroupResolver;
-import com.norconex.crawler.core.operations.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
 
 import jakarta.xml.bind.annotation.XmlAccessType;

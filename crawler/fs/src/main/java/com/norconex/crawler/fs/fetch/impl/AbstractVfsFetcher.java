@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.fs.fetch.impl;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
+import static com.norconex.crawler.core.doc.CrawlDocMetaConstants.PREFIX;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -30,7 +30,7 @@ import org.apache.commons.vfs2.provider.local.LocalFile;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
@@ -40,7 +40,7 @@ import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.path.FsPath;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -118,7 +118,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
 
             if (fileObject == null || !fileObject.exists()) {
                 return GenericFileFetchResponse.builder()
-                        .resolutionStatus(DocResolutionStatus.NOT_FOUND)
+                        .resolutionStatus(CrawlDocStatus.NOT_FOUND)
                         .build();
             }
 
@@ -134,7 +134,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             //TODO set status if not found or whatever bad state
 
             return GenericFileFetchResponse.builder()
-                    .resolutionStatus(DocResolutionStatus.NEW)
+                    .resolutionStatus(CrawlDocStatus.NEW)
                     .file(fileObject.isFile())
                     .folder(fileObject.isFolder())
                     .build();
@@ -189,8 +189,8 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         meta.set(FsDocMetadata.LAST_MODIFIED, content.getLastModifiedTime());
         var info = content.getContentInfo();
         if (info != null) {
-            meta.set(DocMetadata.CONTENT_ENCODING, info.getContentEncoding());
-            meta.set(DocMetadata.CONTENT_TYPE, info.getContentType());
+            meta.set(DocMetaConstants.CONTENT_ENCODING, info.getContentEncoding());
+            meta.set(DocMetaConstants.CONTENT_TYPE, info.getContentType());
         }
         content.getAttributes().forEach((k, v) -> {
             if (v != null) {

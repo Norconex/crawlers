@@ -34,6 +34,7 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import com.norconex.grid.local.LocalGridConnector;
 
 /**
  * Test detection of duplicate files within crawling session.
@@ -54,6 +55,7 @@ class DeduplicationTest {
         var staticDate = lastModified(978310861000L);
 
         // @formatter:off
+        // 0)
         MockWebsite.whenHtml(
             client,
             homePath,
@@ -69,6 +71,7 @@ class DeduplicationTest {
             """
             .formatted(noDuplPath, metaDuplPath, contentDuplPath));
 
+        // 1) meta dupl with 2 and body dupl with 3
         client
             .when(request().withPath(noDuplPath))
             .respond(response()
@@ -77,6 +80,7 @@ class DeduplicationTest {
                         "A page with same content as another one.",
                         MediaType.HTML_UTF_8));
 
+        // 2) meta dupl with 1
         client
             .when(request().withPath(metaDuplPath))
             .respond(response()
@@ -85,6 +89,7 @@ class DeduplicationTest {
                         "Same Last-Modified HTTP response value as \"noDupl\"",
                         MediaType.HTML_UTF_8));
 
+        // 3) body dupl with 1
         client
             .when(request().withPath(contentDuplPath))
             .respond(response()
@@ -103,6 +108,11 @@ class DeduplicationTest {
         cfg.setStartReferences(List.of(serverUrl(client, homePath)));
         cfg.setMetadataDeduplicate(true);
         cfg.setDocumentDeduplicate(true);
+
+        ((LocalGridConnector) cfg.getGridConnector()).getConfiguration()
+                .setAutoCommitBufferSize(1L)
+                .setAutoCommitDelay(1L);
+
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertRequests())

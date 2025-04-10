@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.fs.doc;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
+import static com.norconex.crawler.core.doc.CrawlDocMetaConstants.PREFIX;
 
 public final class FsDocMetadata {
 

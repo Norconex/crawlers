@@ -17,8 +17,8 @@ package com.norconex.crawler.fs.fetch.impl;
 import static com.norconex.crawler.fs.FsTestUtil.getUpsertRequestContent;
 import static com.norconex.crawler.fs.FsTestUtil.getUpsertRequestMeta;
 import static com.norconex.crawler.fs.doc.FsDocMetadata.FILE_SIZE;
-import static com.norconex.importer.doc.DocMetadata.CONTENT_ENCODING;
-import static com.norconex.importer.doc.DocMetadata.CONTENT_TYPE;
+import static com.norconex.importer.doc.DocMetaConstants.CONTENT_ENCODING;
+import static com.norconex.importer.doc.DocMetaConstants.CONTENT_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 

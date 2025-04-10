@@ -17,7 +17,7 @@ package com.norconex.crawler.web.spi;
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.web.cases.recovery.JVMCrasher;
 import com.norconex.crawler.web.cases.recovery.TestCommitter;
 import com.norconex.crawler.web.cases.recovery.ThrowingEventListener;

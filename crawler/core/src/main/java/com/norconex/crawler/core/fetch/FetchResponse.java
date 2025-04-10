@@ -14,11 +14,11 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 public interface FetchResponse {
 
-    DocResolutionStatus getResolutionStatus();
+    CrawlDocStatus getResolutionStatus();
 
     //TODO should be in core?
     int getStatusCode();

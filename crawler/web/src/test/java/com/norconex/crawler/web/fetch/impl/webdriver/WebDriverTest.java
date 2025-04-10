@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
@@ -34,7 +34,7 @@ class WebDriverTest {
                         HttpMethod.HEAD));
         assertThat(response.getReasonPhrase()).contains("To obtain headers");
         assertThat(response.getResolutionStatus()).isEqualTo(
-                DocResolutionStatus.UNSUPPORTED);
+                CrawlDocStatus.UNSUPPORTED);
     }
 
 }

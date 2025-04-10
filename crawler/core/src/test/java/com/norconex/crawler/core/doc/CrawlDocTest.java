@@ -24,11 +24,11 @@ class CrawlDocTest {
 
     @Test
     void testCrawlDoc() {
-        var rec = new CrawlDocContext("ref");
+        var rec = new CrawlDocLedgerEntry("ref");
         var doc = new CrawlDoc(rec);
         assertThat(doc.hasCache()).isFalse();
 
-        var cachedRec = new CrawlDocContext("ref");
+        var cachedRec = new CrawlDocLedgerEntry("ref");
         doc = new CrawlDoc(rec, cachedRec, CachedInputStream.nullInputStream());
         assertThat(doc.hasCache()).isTrue();
     }

@@ -24,8 +24,8 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -52,7 +52,7 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
 
     @FunctionalInterface
     public interface UnsuccessfulResponseFactory<R> {
-        R create(DocResolutionStatus crawlState, String message, Exception e);
+        R create(CrawlDocStatus crawlState, String message, Exception e);
     }
 
     // this gives a chance to wrap the MultiFetchResponse into
@@ -117,7 +117,7 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
                 allResponses.add(fetchResponse);
 
                 doc.getMetadata().add(
-                        CrawlDocMetadata.FETCHER, fetcher.getClass().getName());
+                        CrawlDocMetaConstants.FETCHER, fetcher.getClass().getName());
 
                 if (fetchResponse.getResolutionStatus() != null
                         && fetchResponse.getResolutionStatus().isGoodState()) {
@@ -134,7 +134,7 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
             //            allResponses.put(unsuccessfulResponseAdaptor.create(
             allResponses.add(
                     unsuccessfulResponseFactory.create(
-                            DocResolutionStatus.UNSUPPORTED,
+                            CrawlDocStatus.UNSUPPORTED,
                             "No fetcher defined accepting reference '"
                                     + doc.getReference()
                                     + "' for fetch request: "
@@ -172,11 +172,11 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
                     "Fetcher {} failed to execute request.",
                     fetcher.getClass().getSimpleName(), e);
             fetchResponse = unsuccessfulResponseFactory.create(
-                    DocResolutionStatus.ERROR, "Fetcher execution failure.", e);
+                    CrawlDocStatus.ERROR, "Fetcher execution failure.", e);
         }
         if (fetchResponse == null) {
             fetchResponse = unsuccessfulResponseFactory.create(
-                    DocResolutionStatus.UNSUPPORTED,
+                    CrawlDocStatus.UNSUPPORTED,
                     "Fetch operation unsupported by fetcher.",
                     null);
         }

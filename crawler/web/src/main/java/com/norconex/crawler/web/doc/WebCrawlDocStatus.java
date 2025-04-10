@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.web.doc;
 
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 /**
  * Represents a URL crawling status.
- * @see DocResolutionStatus
+ * @see CrawlDocStatus
  */
-public class WebCrawlDocStatus extends DocResolutionStatus {
+public class WebCrawlDocStatus extends CrawlDocStatus {
 
     private static final long serialVersionUID = 1L;
 

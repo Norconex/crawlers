@@ -25,7 +25,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
@@ -44,7 +44,7 @@ class CurrentDateTransformerTest {
         t.getConfiguration().setFormat("yyyy-MM-dd'T'HH:mm:ss");
         TestUtil.transform(t, "n/a", meta, ParseState.POST);
         Assertions.assertTrue(
-                meta.getString(DocMetadata.IMPORTED_DATE).matches(
+                meta.getString(DocMetaConstants.IMPORTED_DATE).matches(
                         "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"),
                 "Returned date format does not match");
 
@@ -60,7 +60,7 @@ class CurrentDateTransformerTest {
                                 "lundi", "mardi", "mercredi", "jeudi",
                                 "vendredi",
                                 "samedi", "dimanche" },
-                        meta.getString(DocMetadata.IMPORTED_DATE)),
+                        meta.getString(DocMetaConstants.IMPORTED_DATE)),
                 "Returned date format does not match");
 
         meta = new Properties();

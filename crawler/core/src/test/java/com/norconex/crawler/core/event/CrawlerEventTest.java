@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliException;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
@@ -53,7 +53,7 @@ class CrawlerEventTest {
             CrawlerContext crawlerContext,
             Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>> c) {
         CrawlerEvent.CrawlerEventBuilder<?, ?> b = CrawlerEvent.builder()
-                .docContext(new CrawlDocContext("someref"))
+                .docContext(new CrawlDocLedgerEntry("someref"))
                 .exception(new CliException("someexception"))
                 .message("somemessage")
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)

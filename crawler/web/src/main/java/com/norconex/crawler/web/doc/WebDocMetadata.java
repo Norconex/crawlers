@@ -14,14 +14,14 @@
  */
 package com.norconex.crawler.web.doc;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
+import static com.norconex.crawler.core.doc.CrawlDocMetaConstants.PREFIX;
 
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 /**
  * Metadata constants for common metadata field
  * names typically set by the Web Crawler crawler.
- * @see DocMetadata
+ * @see DocMetaConstants
  */
 public final class WebDocMetadata {
 

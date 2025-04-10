@@ -39,9 +39,9 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
-import com.norconex.crawler.web.operations.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.operations.link.impl.TikaLinkExtractor;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

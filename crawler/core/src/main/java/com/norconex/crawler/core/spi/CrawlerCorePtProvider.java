@@ -23,14 +23,14 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.grid.core.GridConnector;
-import com.norconex.crawler.core.operations.checksum.DocumentChecksummer;
-import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.operations.filter.MetadataFilter;
-import com.norconex.crawler.core.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
 
 /**
  * <p>

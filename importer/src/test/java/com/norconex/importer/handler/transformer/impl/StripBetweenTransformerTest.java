@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.parser.ParseState;
 
 class StripBetweenTransformerTest {
@@ -71,7 +71,7 @@ class StripBetweenTransformerTest {
         try (InputStream is =
                 new BufferedInputStream(new FileInputStream(htmlFile))) {
             var metadata = new Properties();
-            metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+            metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
             var doc = TestUtil.newHandlerContext(
                     htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
             t.handle(doc);
@@ -124,7 +124,7 @@ class StripBetweenTransformerTest {
 
         try (var is = new ByteArrayInputStream(html.getBytes())) {
             var metadata = new Properties();
-            metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+            metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
             var doc = TestUtil.newHandlerContext(
                     "fake.html",
                     is, metadata, ParseState.PRE);

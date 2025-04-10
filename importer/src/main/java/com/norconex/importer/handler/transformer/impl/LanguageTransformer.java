@@ -25,7 +25,7 @@ import org.apache.tika.language.detect.LanguageResult;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandler;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.util.chunk.ChunkedTextReader;
@@ -225,19 +225,19 @@ public class LanguageTransformer
                             results.contains(LanguageResult.NULL))) {
                 LOG.debug("No language found, using fallback language for {}.",
                         docCtx.reference());
-                docCtx.metadata().set(DocMetadata.LANGUAGE,
+                docCtx.metadata().set(DocMetaConstants.LANGUAGE,
                         configuration.getFallbackLanguage());
             } else {
                 Collections.sort(results, langResultComparator);
                 docCtx.metadata().set(
-                        DocMetadata.LANGUAGE,
+                        DocMetaConstants.LANGUAGE,
                         results.get(0).getLanguage());
 
                 if (configuration.isKeepProbabilities()) {
                     var count = 0;
                     for (LanguageResult lang : results) {
                         count++;
-                        var prefix = DocMetadata.LANGUAGE + "." + count;
+                        var prefix = DocMetaConstants.LANGUAGE + "." + count;
                         docCtx.metadata().set(
                                 prefix + ".tag", lang.getLanguage());
                         docCtx.metadata().set(

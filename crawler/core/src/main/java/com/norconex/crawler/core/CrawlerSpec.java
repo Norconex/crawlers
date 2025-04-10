@@ -19,14 +19,14 @@ import java.util.function.Function;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.function.Predicates;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrappers;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.DocLedgerBootstrapper;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
+import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.init.CrawlerInitializers;
-import com.norconex.crawler.core.init.ledger.DocLedgerInitializer;
-import com.norconex.crawler.core.init.queue.QueueInitializer;
-import com.norconex.crawler.core.pipelines.CrawlerPipelines;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -39,22 +39,22 @@ import lombok.experimental.Accessors;
 public class CrawlerSpec {
     private Class<? extends CrawlerConfig> crawlerConfigClass =
             CrawlerConfig.class;
-    private CrawlerInitializers initializers = CrawlerInitializers.builder()
-            .initializers(Predicates.allOf(
-                    new DocLedgerInitializer(),
-                    new QueueInitializer()))
+    private CrawlBootstrappers bootstrappers = CrawlBootstrappers.builder()
+            .bootstrappers(Predicates.allOf(
+                    new DocLedgerBootstrapper(),
+                    new QueueBootstrapper()))
             .build();
-    private CrawlerPipelines pipelines;
+    private CrawlDocPipelines pipelines;
     private CrawlerCallbacks callbacks = CrawlerCallbacks.builder().build();
     private BeanMapper beanMapper = BeanMapper.DEFAULT;
     private EventManager eventManager = new EventManager();
 
     /**
-     * The exact type of {@link CrawlDocContext} if your crawler is subclassing
-     * it. Defaults to {@link CrawlDocContext} class.
+     * The exact type of {@link CrawlDocLedgerEntry} if your crawler is subclassing
+     * it. Defaults to {@link CrawlDocLedgerEntry} class.
      */
-    private Class<? extends CrawlDocContext> docContextType =
-            CrawlDocContext.class;
+    private Class<? extends CrawlDocLedgerEntry> docContextType =
+            CrawlDocLedgerEntry.class;
 
     /**
      * Provides a required fetcher implementation, responsible for obtaining

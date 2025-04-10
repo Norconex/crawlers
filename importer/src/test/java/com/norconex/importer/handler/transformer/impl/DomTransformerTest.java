@@ -44,7 +44,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.util.DomUtil;
 
 class DomTransformerTest {
@@ -84,7 +84,7 @@ class DomTransformerTest {
                                         .setExtract("outerHtml")
                                         .setToField("toField1")));
 
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         InputStream content = new NullInputStream(0);
         t.handle(TestUtil.newHandlerContext("n/a", content, metadata));
 
@@ -121,7 +121,7 @@ class DomTransformerTest {
                                         .setDelete(true)
                                         .setSelector("div")));
 
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         InputStream content = new NullInputStream(0);
         t.handle(TestUtil.newHandlerContext("n/a", content, metadata));
 
@@ -401,7 +401,7 @@ class DomTransformerTest {
         try (InputStream is =
                 new BufferedInputStream(new FileInputStream(htmlFile))) {
             var metadata = new Properties();
-            metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+            metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
             t.handle(
                     TestUtil.newHandlerContext(
                             htmlFile.getAbsolutePath(), is, metadata));
@@ -446,7 +446,7 @@ class DomTransformerTest {
         try (InputStream is =
                 new BufferedInputStream(new FileInputStream(htmlFile))) {
             var metadata = new Properties();
-            metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+            metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
             t.handle(
                     TestUtil.newHandlerContext(
                             htmlFile.getAbsolutePath(), is, metadata));
@@ -507,7 +507,7 @@ class DomTransformerTest {
 
         var metadata = new Properties();
         try (InputStream is = new ByteArrayInputStream(content.getBytes())) {
-            metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+            metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
 
             t.handle(TestUtil.newHandlerContext("n/a", is, metadata));
 
@@ -688,7 +688,7 @@ class DomTransformerTest {
                                         .setDelete(true)));
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
 
         var content = IOUtils.toInputStream(full, UTF_8);
         var doc = TestUtil.newHandlerContext("n/a", content, metadata);
@@ -723,7 +723,7 @@ class DomTransformerTest {
                                         .setDelete(true)));
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         var content = IOUtils.toInputStream(full, UTF_8);
         var doc = TestUtil.newHandlerContext("n/a", content, metadata);
         t.handle(doc);
@@ -754,7 +754,7 @@ class DomTransformerTest {
                 ResourceLoader.getXmlStream(DomTransformerTest.class);
                 var os = new ByteArrayOutputStream()) {
             var metadata = new Properties();
-            metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
+            metadata.set(DocMetaConstants.CONTENT_TYPE, "application/xml");
 
             var doc = TestUtil.newHandlerContext("n/a", content, metadata);
             t.handle(doc);
@@ -784,7 +784,7 @@ class DomTransformerTest {
             Properties metadata, DomTransformer t, String html)
             throws IOException, IOException {
         try (InputStream is = new ByteArrayInputStream(html.getBytes())) {
-            metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+            metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
             t.handle(TestUtil.newHandlerContext("n/a", is, metadata));
         }
     }

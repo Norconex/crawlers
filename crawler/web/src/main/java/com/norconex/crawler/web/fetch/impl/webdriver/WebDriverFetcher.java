@@ -27,8 +27,6 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.remote.CapabilityType;
@@ -42,7 +40,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
@@ -174,8 +172,6 @@ public class WebDriverFetcher
         // add arguments to drivers supporting it
         if (options instanceof FirefoxOptions fireFoxOptions) {
             fireFoxOptions.addArguments(configuration.getArguments());
-        } else if (options instanceof EdgeOptions edgeOptions) {
-            edgeOptions.addArguments(configuration.getArguments());
         }
 
         // We assign a driver here, for any case where the fetcher is used
@@ -226,7 +222,7 @@ public class WebDriverFetcher
                         + "'httpSniffer'.";
             }
             return HttpClientFetchResponse.builder()
-                    .resolutionStatus(DocResolutionStatus.UNSUPPORTED)
+                    .resolutionStatus(CrawlDocStatus.UNSUPPORTED)
                     .reasonPhrase(reason)
                     .statusCode(-1)
                     .build();
@@ -259,7 +255,7 @@ public class WebDriverFetcher
         }
         return HttpClientFetchResponse
                 .builder()
-                .resolutionStatus(DocResolutionStatus.NEW)
+                .resolutionStatus(CrawlDocStatus.NEW)
                 .statusCode(200)
                 .reasonPhrase("No exception thrown, but real status code "
                         + "unknown. Capture headers for real status code.")
@@ -382,10 +378,10 @@ public class WebDriverFetcher
                     .reasonPhrase(sniffedResponse.getReasonPhrase())
                     .userAgent(getUserAgent());
             if (statusCode >= 200 && statusCode < 300) {
-                response = b.resolutionStatus(DocResolutionStatus.NEW).build();
+                response = b.resolutionStatus(CrawlDocStatus.NEW).build();
             } else {
                 response = b.resolutionStatus(
-                        DocResolutionStatus.BAD_STATUS).build();
+                        CrawlDocStatus.BAD_STATUS).build();
             }
         }
 

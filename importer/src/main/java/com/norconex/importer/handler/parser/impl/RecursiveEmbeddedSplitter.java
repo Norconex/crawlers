@@ -14,8 +14,8 @@
  */
 package com.norconex.importer.handler.parser.impl;
 
-import static com.norconex.importer.doc.DocMetadata.EMBEDDED_REFERENCE;
-import static com.norconex.importer.doc.DocMetadata.EMBEDDED_TYPE;
+import static com.norconex.importer.doc.DocMetaConstants.EMBEDDED_REFERENCE;
+import static com.norconex.importer.doc.DocMetaConstants.EMBEDDED_TYPE;
 
 import java.io.IOException;
 import java.io.InputStream;

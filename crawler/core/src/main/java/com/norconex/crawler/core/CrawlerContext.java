@@ -40,18 +40,18 @@ import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.time.DurationFormatter;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrappers;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.DocProcessingLedger;
+import com.norconex.crawler.core.doc.CrawlDocLedger;
+import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.doc.pipelines.DedupService;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.init.CrawlerInitializers;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
-import com.norconex.crawler.core.pipelines.CrawlerPipelines;
-import com.norconex.crawler.core.pipelines.DedupService;
 import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
@@ -106,8 +106,8 @@ public class CrawlerContext implements AutoCloseable {
 
     //--- Set on declaration ---
     private final DedupService dedupService = new DedupService();
-    private final DocProcessingLedger docProcessingLedger =
-            new DocProcessingLedger();
+    private final CrawlDocLedger docProcessingLedger =
+            new CrawlDocLedger();
     private final CrawlerMetrics metrics = new CrawlerMetrics();
 
     //--- Set in constructor ---
@@ -115,7 +115,7 @@ public class CrawlerContext implements AutoCloseable {
     private final CrawlerSpec spec;
 
     private final BeanMapper beanMapper;
-    private final Class<? extends CrawlDocContext> docContextType;
+    private final Class<? extends CrawlDocLedgerEntry> docContextType;
     private final EventManager eventManager;
     private final CrawlerCallbacks callbacks;
 
@@ -123,8 +123,8 @@ public class CrawlerContext implements AutoCloseable {
     private CommitterService<CrawlDoc> committerService;
     private Importer importer;
 
-    private final CrawlerInitializers initializers;
-    private final CrawlerPipelines pipelines; //TODO rename docPipelines ................
+    private final CrawlBootstrappers bootstrappers;
+    private final CrawlDocPipelines pipelines; //TODO rename docPipelines ................
     private final Fetcher<? extends FetchRequest,
             ? extends FetchResponse> fetcher;
 
@@ -169,7 +169,7 @@ public class CrawlerContext implements AutoCloseable {
         importer = new Importer(
                 configuration.getImporterConfig(), eventManager);
         fetcher = spec.fetcherProvider().apply(this);
-        initializers = spec.initializers();
+        bootstrappers = spec.bootstrappers();
         pipelines = spec.pipelines();
     }
 
@@ -296,13 +296,14 @@ public class CrawlerContext implements AutoCloseable {
         INSTANCES.remove(grid.getNodeName());
     }
 
-    public CrawlDocContext newDocContext(@NonNull String reference) {
+    public CrawlDocLedgerEntry newDocContext(@NonNull String reference) {
         var docContext = ClassUtil.newInstance(docContextType);
         docContext.setReference(reference);
         return docContext;
     }
 
-    public CrawlDocContext newDocContext(@NonNull DocContext parentContext) {
+    public CrawlDocLedgerEntry
+            newDocContext(@NonNull DocContext parentContext) {
         var docContext = newDocContext(parentContext.getReference());
         docContext.copyFrom(parentContext);
         return docContext;

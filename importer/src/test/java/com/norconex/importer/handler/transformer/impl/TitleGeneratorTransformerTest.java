@@ -29,7 +29,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.parser.ParseState;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,11 +47,11 @@ class TitleGeneratorTransformerTest {
                 .setDetectHeading(true);
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/plain");
         TestUtil.transform(t, "test.txt", metadata, ParseState.POST);
 
         Assertions.assertNull(
-                metadata.getString(DocMetadata.GENERATED_TITLE),
+                metadata.getString(DocMetaConstants.GENERATED_TITLE),
                 "Title should be null");
     }
 
@@ -66,7 +66,7 @@ class TitleGeneratorTransformerTest {
         InputStream is = new BufferedInputStream(new FileInputStream(file));
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/plain");
         t.handle(
                 TestUtil.newHandlerContext(
                         file.getAbsolutePath(), is, metadata, ParseState.POST));
@@ -93,13 +93,13 @@ class TitleGeneratorTransformerTest {
         InputStream is = new BufferedInputStream(new FileInputStream(file));
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/plain");
         t.handle(
                 TestUtil.newHandlerContext(
                         file.getAbsolutePath(), is, metadata, ParseState.POST));
         is.close();
 
-        var title = metadata.getString(DocMetadata.GENERATED_TITLE);
+        var title = metadata.getString(DocMetaConstants.GENERATED_TITLE);
 
         LOG.debug("TITLE IS: " + title);
         Assertions.assertEquals("Chapter I", title, "Wrong title.");
@@ -113,14 +113,14 @@ class TitleGeneratorTransformerTest {
                 "This is the first line. This is another line.".getBytes());
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/plain");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/plain");
 
         t.handle(
                 TestUtil.newHandlerContext(
                         "test.txt", is, metadata, ParseState.POST));
         is.close();
 
-        var title = metadata.getString(DocMetadata.GENERATED_TITLE);
+        var title = metadata.getString(DocMetaConstants.GENERATED_TITLE);
 
         LOG.debug("TITLE IS: {}", title);
         Assertions.assertEquals(

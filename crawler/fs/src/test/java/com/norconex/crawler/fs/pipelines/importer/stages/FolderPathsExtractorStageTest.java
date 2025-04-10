@@ -23,9 +23,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
 

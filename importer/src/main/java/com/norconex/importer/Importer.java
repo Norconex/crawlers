@@ -36,7 +36,7 @@ import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandler;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.DocHandlerException;
@@ -247,15 +247,15 @@ public class Importer implements AutoCloseable {
 
         //--- Add basic metadata for what we know so far ---
         var meta = document.getMetadata();
-        meta.set(DocMetadata.REFERENCE, document.getReference());
-        meta.set(DocMetadata.CONTENT_TYPE, ct.toString());
+        meta.set(DocMetaConstants.REFERENCE, document.getReference());
+        meta.set(DocMetaConstants.CONTENT_TYPE, ct.toString());
         var contentFamily = ContentFamily.forContentType(ct);
         if (contentFamily != null) {
-            meta.set(DocMetadata.CONTENT_FAMILY, contentFamily.toString());
+            meta.set(DocMetaConstants.CONTENT_FAMILY, contentFamily.toString());
         }
         if (docRecord.getCharset() != null) {
             meta.set(
-                    DocMetadata.CONTENT_ENCODING,
+                    DocMetaConstants.CONTENT_ENCODING,
                     docRecord.getCharset().toString());
         }
     }

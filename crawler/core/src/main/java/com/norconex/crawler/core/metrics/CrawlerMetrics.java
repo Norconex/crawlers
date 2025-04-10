@@ -27,7 +27,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.doc.DocProcessingLedger;
+import com.norconex.crawler.core.doc.CrawlDocLedger;
 import com.norconex.grid.core.storage.GridMap;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class CrawlerMetrics implements CrawlerMetricsMXBean, Closeable {
 
     //MAYBE: have it configured to decide what to capture? Cons: may conflict
     // with listeners expectations.
-    private DocProcessingLedger ledger;
+    private CrawlDocLedger ledger;
     private final ConcurrentHashMap<String, Long> eventCountsBatch =
             new ConcurrentHashMap<>();
     private GridMap<Long> eventCountsCache;

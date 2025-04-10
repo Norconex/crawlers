@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 class CommonAttributesResolverTest {
 
@@ -39,12 +39,12 @@ class CommonAttributesResolverTest {
 
         assertThat(
                 doc.getMetadata().getString(
-                        DocMetadata.CONTENT_ENCODING)).isEqualTo("UTF-16LE");
+                        DocMetaConstants.CONTENT_ENCODING)).isEqualTo("UTF-16LE");
         assertThat(
                 doc.getMetadata().getString(
-                        DocMetadata.CONTENT_TYPE)).isEqualTo("application/pdf");
+                        DocMetaConstants.CONTENT_TYPE)).isEqualTo("application/pdf");
         assertThat(
                 doc.getMetadata().getString(
-                        DocMetadata.CONTENT_FAMILY)).isEqualTo("pdf");
+                        DocMetaConstants.CONTENT_FAMILY)).isEqualTo("pdf");
     }
 }

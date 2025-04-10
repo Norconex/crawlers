@@ -30,9 +30,9 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
-import com.norconex.crawler.web.operations.canon.impl.GenericCanonicalLinkDetector;
 
 /**
  * The tail of redirects should be kept as metadata so implementors

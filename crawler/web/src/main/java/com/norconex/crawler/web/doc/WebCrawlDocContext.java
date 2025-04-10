@@ -21,7 +21,7 @@ import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
 import com.norconex.importer.doc.DocContext;
 
 import lombok.Data;
@@ -31,7 +31,7 @@ import lombok.ToString;
  * A URL being crawled holding relevant crawl information.
  */
 @Data
-public class WebCrawlDocContext extends CrawlDocContext {
+public class WebCrawlDocContext extends CrawlDocLedgerEntry {
 
     private static final long serialVersionUID = 1L;
 

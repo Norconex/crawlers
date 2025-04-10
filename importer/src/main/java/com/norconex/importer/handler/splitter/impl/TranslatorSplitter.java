@@ -39,7 +39,7 @@ import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
@@ -268,7 +268,7 @@ public class TranslatorSplitter
     public void split(DocHandlerContext docCtx) throws DocHandlerException {
 
         // Do not re-translate a document already translated
-        if (docCtx.metadata().containsKey(DocMetadata.TRANSLATED_FROM)) {
+        if (docCtx.metadata().containsKey(DocMetaConstants.TRANSLATED_FROM)) {
             return;
         }
 
@@ -376,12 +376,12 @@ public class TranslatorSplitter
 
         var childInfo = new DocContext(childDocRef);
 
-        childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
+        childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
 
         childInfo.addEmbeddedParentReference(docCtx.reference());
 
-        childMeta.set(DocMetadata.LANGUAGE, targetLang);
-        childMeta.set(DocMetadata.TRANSLATED_FROM, sourceLang);
+        childMeta.set(DocMetaConstants.LANGUAGE, targetLang);
+        childMeta.set(DocMetaConstants.TRANSLATED_FROM, sourceLang);
 
         return new Doc(childDocRef, childInput, childMeta);
     }

@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -79,7 +79,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class CurrentDateTransformerConfig {
 
-    public static final String DEFAULT_FIELD = DocMetadata.IMPORTED_DATE;
+    public static final String DEFAULT_FIELD = DocMetaConstants.IMPORTED_DATE;
 
     /**
      * The target field. Defaults

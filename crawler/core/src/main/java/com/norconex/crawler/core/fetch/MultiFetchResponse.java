@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -41,7 +41,7 @@ public class MultiFetchResponse<T extends FetchResponse>
     private final List<T> fetchResponses;
 
     @Override
-    public DocResolutionStatus getResolutionStatus() {
+    public CrawlDocStatus getResolutionStatus() {
         return getLastFetchResponse().map(
                 FetchResponse::getResolutionStatus).orElse(null);
     }

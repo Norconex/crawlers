@@ -18,26 +18,26 @@ import java.util.List;
 
 import com.norconex.crawler.core.CrawlerSpec;
 import com.norconex.crawler.core.CrawlerSpecProvider;
-import com.norconex.crawler.core.init.CrawlerInitializers;
-import com.norconex.crawler.core.init.ledger.DocLedgerInitializer;
-import com.norconex.crawler.core.init.queue.FileRefEnqueuer;
-import com.norconex.crawler.core.init.queue.ListRefEnqueuer;
-import com.norconex.crawler.core.init.queue.ProviderRefEnqueuer;
-import com.norconex.crawler.core.init.queue.QueueInitializer;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrappers;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.DocLedgerBootstrapper;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.FileRefEnqueuer;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.ListRefEnqueuer;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.ProviderRefEnqueuer;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
+import com.norconex.crawler.web.doc.pipelines.queue.SitemapEnqueuer;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
-import com.norconex.crawler.web.pipelines.WebPipelines;
-import com.norconex.crawler.web.pipelines.queue.SitemapEnqueuer;
 
 public class WebCrawlerSpecProvider implements CrawlerSpecProvider {
 
     @Override
     public CrawlerSpec get() {
         return new CrawlerSpec()
-                .initializers(CrawlerInitializers.builder()
-                        .initializer(new DocLedgerInitializer())
-                        .initializer(new QueueInitializer(List.of(
+                .bootstrappers(CrawlBootstrappers.builder()
+                        .bootstrapper(new DocLedgerBootstrapper())
+                        .bootstrapper(new QueueBootstrapper(List.of(
                                 new SitemapEnqueuer(),
                                 new ListRefEnqueuer(),
                                 new FileRefEnqueuer(),
@@ -46,7 +46,7 @@ public class WebCrawlerSpecProvider implements CrawlerSpecProvider {
                 .crawlerConfigClass(WebCrawlerConfig.class)
                 .fetcherProvider(new HttpFetcherProvider())
                 .callbacks(WebCrawlerCallbacks.get())
-                .pipelines(WebPipelines.create())
+                .pipelines(WebDocPipelines.create())
                 .docContextType(WebCrawlDocContext.class);
     }
 }

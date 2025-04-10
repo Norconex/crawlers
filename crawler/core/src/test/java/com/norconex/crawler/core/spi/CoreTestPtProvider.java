@@ -19,7 +19,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.cmd.crawl.queueread.DocProcessorUpsertTest;
+import com.norconex.crawler.core.cmd.crawl.pipeline.process.ProcessUpsertTest;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
 import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
@@ -35,7 +35,7 @@ public class CoreTestPtProvider implements PolymorphicTypeProvider {
         map.put(EventListener.class, MockCliEventWriter.class);
         map.put(EventListener.class, CrawlTestCapturer.class);
         map.put(ImporterResponseProcessor.class,
-                DocProcessorUpsertTest.TestResponseProcessor.class);
+                ProcessUpsertTest.TestResponseProcessor.class);
         map.put(GridConnector.class, MockFailingGridConnector.class);
         return map;
     }

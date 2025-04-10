@@ -34,7 +34,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.parser.ParseState;
 
 class TextBetweenTransformerTest {
@@ -60,7 +60,7 @@ class TextBetweenTransformerTest {
         metadata.add("fld2", "asdfx4yqwer", "asdfx5yquer");
         metadata.add("fld3", "x6y");
         metadata.add("fld4", "7"); //ignored
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
 
         TestUtil.transform(t, "n/a", metadata, ParseState.PRE);
 
@@ -82,7 +82,7 @@ class TextBetweenTransformerTest {
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
 
         t.handle(
                 TestUtil.newHandlerContext(
@@ -110,7 +110,7 @@ class TextBetweenTransformerTest {
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         t.handle(
                 TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata,
@@ -136,7 +136,7 @@ class TextBetweenTransformerTest {
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
 
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         t.handle(
                 TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata,

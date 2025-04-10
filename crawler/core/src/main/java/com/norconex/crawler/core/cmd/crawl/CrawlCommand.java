@@ -14,17 +14,10 @@
  */
 package com.norconex.crawler.core.cmd.crawl;
 
-import java.util.List;
-
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.Command;
-import com.norconex.crawler.core.cmd.crawl.init.CrawlInitTask;
-import com.norconex.crawler.core.cmd.crawl.orphans.CrawlHandleOrphansTask;
-import com.norconex.crawler.core.cmd.crawl.queueread.CrawlProcessQueueTask;
-import com.norconex.crawler.core.cmd.crawl.queueread.CrawlProcessQueueTask.ProcessQueueAction;
+import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineStages;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.grid.core.compute.GridCompute.RunOn;
-import com.norconex.grid.core.pipeline.GridPipelineStage;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,68 +35,21 @@ public class CrawlCommand implements Command {
 
         trackProgress(ctx);
 
-        var completed = Boolean.TRUE.equals(ConcurrentUtil.get(ctx.getGrid()
-                //        var future = ctx.getGrid()
-                .pipeline().run(CrawlerContext.KEY_CRAWL_PIPELINE, List.of(
-                        // Init
-                        GridPipelineStage.<CrawlerContext>builder()
-                                .name("crawlInitStage")
-                                .runOn(RunOn.ONE)
-                                .task(new CrawlInitTask())
-                                .always(true)
-                                .build(),
-                        // Main crawl
-                        GridPipelineStage.<CrawlerContext>builder()
-                                .name("crawlCoreStage")
-                                .runOn(RunOn.ALL)
-                                .task(new CrawlProcessQueueTask(
-                                        ProcessQueueAction.CRAWL_ALL))
-                                .build(),
-                        // Handle orphans
-                        GridPipelineStage.<CrawlerContext>builder()
-                                .name("crawlOrphansStage")
-                                .runOn(RunOn.ALL)
-                                .task(new CrawlHandleOrphansTask())
-                                .build()
+        var completed = Boolean.TRUE.equals(ConcurrentUtil.get(ctx
+                .getGrid()
+                .pipeline()
+                .run(CrawlerContext.KEY_CRAWL_PIPELINE,
+                        CrawlPipelineStages.create(),
+                        ctx)));
 
-                //                        // Requeue (or ignore) orphans
-                //                        GridPipelineStage.<CrawlerContext>builder()
-                //                                .name("crawlOrphansStage")
-                //                                .runOn(RunOn.ALL)
-                //                                .task(new CrawlHandleOrphansTask())
-                //                                .build(),
-                //                        // Recrawl orphans (if not ignored)
-                //                        GridPipelineStage.<CrawlerContext>builder()
-                //                                .name("crawlOrphansStage")
-                //                                .runOn(RunOn.ALL)
-                //                                .task(new CrawlHandleOrphansTask())
-                //                                .build()
-                //                // Shutdown
-                //                GridPipelineStage.<CrawlerContext>builder()
-                //                        .name("crawlShutdownStage")
-                //                        .runOn(RunOn.ALL)
-                //                        .task(new CrawlShutdownTask())
-                //                        .build(),
-                ),
-                        ctx
-                //                        );
-                )));
-
-        //        ConcurrentUtil.monitorFuture(future, 2, TimeUnit.SECONDS);
-        //        try {
-        //            if (Boolean.TRUE.equals(future.get())) {
         if (completed) {
             LOG.info("Crawler completed execution.");
         } else {
             LOG.info("Crawler execution ended before completion.");
         }
-        //        } catch (Exception e) {
-        //            LOG.error("Error during crawl execution", e);
-        //        } finally {
         ctx.getGrid().compute().stop(PROGRESS_LOGGER_KEY);
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling.");
-        //        }
     }
 
     private void trackProgress(CrawlerContext ctx) {

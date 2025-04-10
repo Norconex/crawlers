@@ -32,7 +32,7 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 /**
  * Test proper charset detection when the declared one does not match
@@ -78,9 +78,9 @@ class ContentTypeCharsetTest {
 
         assertThat(mem1.getUpsertRequests()).hasSize(1);
         var doc1 = mem1.getUpsertRequests().get(0);
-        assertThat(doc1.getMetadata().getString(DocMetadata.CONTENT_TYPE))
+        assertThat(doc1.getMetadata().getString(DocMetaConstants.CONTENT_TYPE))
                 .isEqualTo("application/javascript");
-        assertThat(doc1.getMetadata().getString(DocMetadata.CONTENT_ENCODING))
+        assertThat(doc1.getMetadata().getString(DocMetaConstants.CONTENT_ENCODING))
                 .isEqualTo("Big5");
 
         //--- Second run with detect ---
@@ -95,9 +95,9 @@ class ContentTypeCharsetTest {
 
         assertThat(mem2.getUpsertRequests()).hasSize(1);
         var doc2 = mem2.getUpsertRequests().get(0);
-        assertThat(doc2.getMetadata().getString(DocMetadata.CONTENT_TYPE))
+        assertThat(doc2.getMetadata().getString(DocMetaConstants.CONTENT_TYPE))
                 .isEqualTo("text/html");
-        assertThat(doc2.getMetadata().getString(DocMetadata.CONTENT_ENCODING))
+        assertThat(doc2.getMetadata().getString(DocMetaConstants.CONTENT_ENCODING))
                 .isEqualTo(StandardCharsets.UTF_8.toString());
     }
 }

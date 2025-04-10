@@ -30,7 +30,7 @@ import lombok.ToString;
 @ToString
 public class CrawlDoc extends Doc {
 
-    private final CrawlDocContext cachedDocContext;
+    private final CrawlDocLedgerEntry cachedDocLedgerEntry;
 
     // maybe move this to context or create new QueueDocType
     // (regular, orphans_delete, orphans_reprocess)?
@@ -54,35 +54,35 @@ public class CrawlDoc extends Doc {
 
     public CrawlDoc(
             DocContext docContext,
-            CrawlDocContext cachedDocContext,
+            CrawlDocLedgerEntry cachedDocContext,
             CachedInputStream content) {
         this(docContext, cachedDocContext, content, false);
     }
 
     public CrawlDoc(
             DocContext docContext,
-            CrawlDocContext cachedDocContext,
+            CrawlDocLedgerEntry cachedDocContext,
             CachedInputStream content,
             boolean orphan) {
         super(docContext, content, null);
-        this.cachedDocContext = cachedDocContext;
+        this.cachedDocLedgerEntry = cachedDocContext;
         this.orphan = orphan;
     }
 
     @Override
-    public CrawlDocContext getDocContext() {
-        return (CrawlDocContext) super.getDocContext();
+    public CrawlDocLedgerEntry getDocContext() {
+        return (CrawlDocLedgerEntry) super.getDocContext();
     }
 
     public boolean isOrphan() {
         return orphan;
     }
 
-    public CrawlDocContext getCachedDocContext() {
-        return cachedDocContext;
+    public CrawlDocLedgerEntry getCachedDocContext() {
+        return cachedDocLedgerEntry;
     }
 
     public boolean hasCache() {
-        return cachedDocContext != null;
+        return cachedDocLedgerEntry != null;
     }
 }

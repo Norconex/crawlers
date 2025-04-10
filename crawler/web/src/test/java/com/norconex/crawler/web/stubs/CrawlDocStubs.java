@@ -27,7 +27,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 public final class CrawlDocStubs {
 
@@ -87,7 +87,7 @@ public final class CrawlDocStubs {
         var docRecord = new WebCrawlDocContext(ref);
         docRecord.setContentType(ct);
         var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
-        doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ct);
+        doc.getMetadata().set(DocMetaConstants.CONTENT_TYPE, ct);
         return doc;
     }
 }

@@ -19,7 +19,7 @@ import java.nio.charset.Charset;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.util.chunk.ChunkedTextSupport;
 
 import lombok.Data;
@@ -116,7 +116,7 @@ import lombok.experimental.Accessors;
 public class TitleGeneratorTransformerConfig implements ChunkedTextSupport {
 
     public static final String DEFAULT_TO_FIELD =
-            DocMetadata.GENERATED_TITLE;
+            DocMetaConstants.GENERATED_TITLE;
     public static final int DEFAULT_TITLE_MAX_LENGTH = 150;
     public static final int UNLIMITED_TITLE_LENGTH = -1;
     public static final int DEFAULT_HEADING_MIN_LENGTH = 10;

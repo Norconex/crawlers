@@ -89,10 +89,11 @@ import org.apache.hc.core5.util.Timeout;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -100,7 +101,6 @@ import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.crawler.web.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
-import com.norconex.crawler.web.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
@@ -299,14 +299,14 @@ public class HttpClientFetcher
                     userToken = ctx.getUserToken();
 
                     return responseBuilder
-                            .resolutionStatus(DocResolutionStatus.NEW)
+                            .resolutionStatus(CrawlDocStatus.NEW)
                             .build();
                 }
 
                 // UNMODIFIED
                 if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                     return responseBuilder
-                            .resolutionStatus(DocResolutionStatus.UNMODIFIED)
+                            .resolutionStatus(CrawlDocStatus.UNMODIFIED)
                             .build();
                 }
 
@@ -316,7 +316,7 @@ public class HttpClientFetcher
                 if (configuration.getNotFoundStatusCodes()
                         .contains(statusCode)) {
                     return responseBuilder
-                            .resolutionStatus(DocResolutionStatus.NOT_FOUND)
+                            .resolutionStatus(CrawlDocStatus.NOT_FOUND)
                             .build();
                 }
 
@@ -325,7 +325,7 @@ public class HttpClientFetcher
                         "Unsupported HTTP Response: {}",
                         response.getReasonPhrase());
                 return responseBuilder
-                        .resolutionStatus(DocResolutionStatus.BAD_STATUS)
+                        .resolutionStatus(CrawlDocStatus.BAD_STATUS)
                         .build();
             });
 

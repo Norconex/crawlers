@@ -17,7 +17,7 @@ package com.norconex.crawler.core.mocks.fetch;
 import java.io.ByteArrayInputStream;
 
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchException;
@@ -44,8 +44,8 @@ public class MockFetcher extends AbstractFetcher<
             throws FetchException {
         var resp = new MockFetchResponseImpl();
         resp.setResolutionStatus(
-                returnBadStatus ? DocResolutionStatus.BAD_STATUS
-                        : DocResolutionStatus.NEW);
+                returnBadStatus ? CrawlDocStatus.BAD_STATUS
+                        : CrawlDocStatus.NEW);
         var content = randomDocContent
                 ? "Fake content for: " + fetchRequest.getRef()
                         + "\nRandomness: " + TimeIdGenerator.next()
