@@ -12,14 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.compute;
+package com.norconex.grid.core;
 
-/**
- * Jobs passed to the grid compute implementing this interface will be notified
- * when a request for stopping has been made.
- */
-public interface StoppableRunnable extends Runnable {
+import java.util.List;
 
-    void stop();
+import com.norconex.commons.lang.ExceptionUtil.ExceptionMessage;
 
+public interface GridResult<R, S> {
+
+    R getValue();
+
+    S getState();
+
+    List<ExceptionMessage> getExceptionStack();
 }

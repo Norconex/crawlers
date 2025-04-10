@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.compute.GridComputeState;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 import com.norconex.grid.core.pipeline.GridPipelineState;
 import com.norconex.grid.core.pipeline.GridPipelineTask;
@@ -95,12 +95,12 @@ public class GridPipelineRunner<T> {
         LOG.info("Pipeline now at stage \"{}\"", stage.getName());
         pipeline.setActiveStageName(pipelineName, stage.getName());
         activeTask.set(stage.getTask());
-        var jobState = pipeline.getGrid().compute().runOn(
+        var stageResult = pipeline.getGrid().compute().runOn(
                 stage.getRunOn(),
                 stage.getName(),
                 // the runnable here should accept stoppable....?
                 () -> activeTask.get().execute(context));
-        if (jobState == GridJobState.FAILED) {
+        if (stageResult.getState() == GridComputeState.FAILED) {
             LOG.info("Pipeline stage \"{}\" failed. Aborting.",
                     stage.getName());
             return false;

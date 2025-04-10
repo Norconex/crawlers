@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.cmd.crawl.queueread.DocProcessorContext;
-import com.norconex.crawler.core.cmd.crawl.queueread.DocProcessorFinalize;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.DocResolutionStatus;

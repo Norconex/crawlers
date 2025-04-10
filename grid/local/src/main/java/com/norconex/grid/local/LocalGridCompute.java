@@ -18,10 +18,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.compute.GridJobState;
-import com.norconex.grid.core.compute.StoppableRunnable;
+import com.norconex.grid.core.compute.GridComputeResult;
+import com.norconex.grid.core.compute.GridComputeState;
+import com.norconex.grid.core.compute.GridComputeTask;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,93 +33,82 @@ import lombok.extern.slf4j.Slf4j;
 public class LocalGridCompute implements GridCompute {
 
     private final LocalGrid grid;
-    private static final Map<String, Runnable> activeJobs =
+    private static final Map<String, GridComputeTask<?>> activeTasks =
             new ConcurrentHashMap<>();
 
     @Override
-    public GridJobState runOnOne(String jobName, Runnable runnable)
-            throws GridException {
-        return run(jobName, runnable, false);
+    public <T> GridComputeResult<T> runOnOne(
+            String taskName, GridComputeTask<T> task) throws GridException {
+        return run(taskName, task, false);
     }
 
     @Override
-    public GridJobState runOnOneOnce(String jobName, Runnable runnable)
-            throws GridException {
-        return run(jobName, runnable, true);
+    public <T> GridComputeResult<T> runOnOneOnce(
+            String taskName, GridComputeTask<T> task) throws GridException {
+        return run(taskName, task, true);
     }
 
     @Override
-    public GridJobState runOnAll(String jobName, Runnable runnable)
-            throws GridException {
-        return run(jobName, runnable, false);
+    public <T> GridComputeResult<T> runOnAll(
+            String taskName, GridComputeTask<T> task) throws GridException {
+        return run(taskName, task, false);
     }
 
     @Override
-    public GridJobState runOnAllOnce(String jobName, Runnable runnable)
-            throws GridException {
-        return run(jobName, runnable, true);
+    public <T> GridComputeResult<T> runOnAllOnce(
+            String taskName, GridComputeTask<T> task) throws GridException {
+        return run(taskName, task, true);
     }
 
-    private GridJobState run(String jobName, Runnable runnable, boolean once) {
+    private <T> GridComputeResult<T> run(
+            String taskName, GridComputeTask<T> task, boolean once) {
         // Check if ok to run
-        if (activeJobs.containsKey(jobName)) {
+        if (activeTasks.containsKey(taskName)) {
             throw new IllegalStateException(
-                    "Job \"%s\" is already running.".formatted(jobName));
+                    "Job \"%s\" is already running.".formatted(taskName));
         }
         if (once) {
-            var prevOrCurrentState = grid.jobStateStorage()
-                    .getJobState(jobName).orElse(GridJobState.IDLE);
+            var prevOrCurrentState = grid.computeStateStorage()
+                    .getComputeState(taskName).orElse(GridComputeState.IDLE);
             if (prevOrCurrentState.hasRan()) {
                 LOG.warn("""
                     Ignoring request to run job "{}" ONCE as it \
                     already ran in this crawl session with \
                     status: "{}".""",
-                        jobName, prevOrCurrentState);
-                return prevOrCurrentState;
+                        taskName, prevOrCurrentState);
+                return new GridComputeResult<T>().setState(prevOrCurrentState);
             }
         }
 
+        var result = new GridComputeResult<T>();
+
         try {
-            activeJobs.put(jobName, runnable);
-            grid.jobStateStorage().setJobStateAtTime(
-                    jobName, GridJobState.RUNNING);
-            runnable.run();
-            grid.jobStateStorage().setJobStateAtTime(
-                    jobName, GridJobState.COMPLETED);
-            return GridJobState.COMPLETED;
+            activeTasks.put(taskName, task);
+            grid.computeStateStorage().setComputeStateAtTime(
+                    taskName, GridComputeState.RUNNING);
+            result.setState(GridComputeState.RUNNING);
+            result.setValue(task.execute());
+            result.setState(GridComputeState.COMPLETED);
+            grid.computeStateStorage().setComputeStateAtTime(
+                    taskName, GridComputeState.COMPLETED);
+            return result;
         } catch (Exception e) {
-            // !!!
-            // !!!
-            // !!!
-            // !!!
-            // !!!
-            // WHY SWALLOW HERE? //TODO check if failed higher up and/or
-            // make sure that "stopOnException" works.
-            // Maybe return a respons with exception as argument in addition to state
-            // or maybe have configurable the "stopOnException" to stop
-            // the build if it happens on any of the nodes even if job
-            // as a whole succeeded?
-            // !!!
-            // !!!
-            // !!!
-            // !!!
-            // !!!
-            // !!!
-            LOG.error("Job {} failed.", jobName, e);
-            grid.jobStateStorage().setJobStateAtTime(
-                    jobName, GridJobState.FAILED);
-            return GridJobState.FAILED;
+            LOG.error("Job {} failed.", taskName, e);
+            grid.computeStateStorage().setComputeStateAtTime(
+                    taskName, GridComputeState.FAILED);
+            result.setState(GridComputeState.FAILED);
+            result.setExceptionStack(ExceptionUtil.getExceptionMessageList(e));
+            return result;
         } finally {
-            activeJobs.remove(jobName);
+            activeTasks.remove(taskName);
         }
     }
 
     @Override
-    public void stop(String jobName) {
-        for (Entry<String, Runnable> entry : activeJobs.entrySet()) {
-            if ((jobName == null || entry.getKey().equals(jobName))
-                    && entry.getValue() instanceof StoppableRunnable job) {
-                job.stop();
+    public void stop(String taskName) {
+        for (Entry<String, GridComputeTask<?>> entry : activeTasks.entrySet()) {
+            if ((taskName == null || entry.getKey().equals(taskName))) {
+                entry.getValue().stop();
             }
         }
     }

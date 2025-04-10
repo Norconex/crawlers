@@ -47,7 +47,7 @@ public class DocProcessingLedger { //implements Closeable {
     private GridMap<String> processed;
     private GridMap<String> cached;
     private Class<? extends CrawlDocContext> type;
-    private GridMap<String> globalCache;
+    private GridMap<String> durableAttribs;
     private CrawlerContext crawlerContext;
 
     //NOTE: This init performs the necessary steps to "create" the ledger.
@@ -60,9 +60,10 @@ public class DocProcessingLedger { //implements Closeable {
         var storage = crawlerContext.getGrid().storage();
 
         // Because we can't rename caches in all impl, we use references.
-        globalCache = storage.getGlobals();
-        var processedMapName = globalCache.get(KEY_PROCESSED_MAP);
-        var cachedMapName = globalCache.get(KEY_CACHED_MAP);
+        durableAttribs = storage.getDurableAttributes();
+        var processedMapName = durableAttribs.get(KEY_PROCESSED_MAP);
+        var cachedMapName = durableAttribs.get(KEY_CACHED_MAP);
+
         //TODO if one is null they should both be null. If a concern, check
         // for that and throw an error and/or delete the non-null one.
         if (processedMapName == null) {
@@ -198,20 +199,20 @@ public class DocProcessingLedger { //implements Closeable {
         cached.clear();
 
         // Because we can't rename caches in all impl, we swap references
-        var processedCacheName = globalCache.get(KEY_PROCESSED_MAP);
-        var cachedCacheName = globalCache.get(KEY_CACHED_MAP);
+        var processedStoreName = durableAttribs.get(KEY_PROCESSED_MAP);
+        var cachedStoreName = durableAttribs.get(KEY_CACHED_MAP);
         // If one cache name is null they should both be null and we consider
         // a null name to be the "processed" one.
-        if (processedCacheName == null
-                || PROCESSED_OR_CACHED_1.equals(processedCacheName)) {
-            processedCacheName = PROCESSED_OR_CACHED_2;
-            cachedCacheName = PROCESSED_OR_CACHED_1;
+        if (processedStoreName == null
+                || PROCESSED_OR_CACHED_1.equals(processedStoreName)) {
+            processedStoreName = PROCESSED_OR_CACHED_2;
+            cachedStoreName = PROCESSED_OR_CACHED_1;
         } else {
-            processedCacheName = PROCESSED_OR_CACHED_1;
-            cachedCacheName = PROCESSED_OR_CACHED_2;
+            processedStoreName = PROCESSED_OR_CACHED_1;
+            cachedStoreName = PROCESSED_OR_CACHED_2;
         }
-        globalCache.put(KEY_PROCESSED_MAP, processedCacheName);
-        globalCache.put(KEY_CACHED_MAP, cachedCacheName);
+        durableAttribs.put(KEY_PROCESSED_MAP, processedStoreName);
+        durableAttribs.put(KEY_CACHED_MAP, cachedStoreName);
         var processedBefore = processed;
         processed = cached;
         cached = processedBefore;

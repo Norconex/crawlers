@@ -62,6 +62,7 @@ public class StoreExportCommand implements Command {
                         } catch (IOException e) {
                             throw new CrawlerException(e);
                         }
+                        return null;
                     });
         } catch (Exception e) {
             throw new CrawlerException(

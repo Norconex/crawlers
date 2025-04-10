@@ -50,6 +50,7 @@ public class DocumentChecksumStage
 
         var accepted = ChecksumStageUtil.resolveDocumentChecksum(
                 newDocChecksum, ctx.getDoc());
+
         if (!accepted) {
             var s = new StringBuilder()
                     .append(checksummer.getClass().getSimpleName())

@@ -12,29 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl.compute;
+package com.norconex.grid.core.compute;
 
-import java.io.Serializable;
+//TODO maybe just make it a GridTask in a "task" package and have both
+// compute and pipelines deal with that.
+@FunctionalInterface
+public interface GridComputeTask<T> {
 
-import com.norconex.grid.core.compute.GridJobState;
+    T execute();
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class JobStateAtTime implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private GridJobState state;
-    private long time;
-
-    public JobStateAtTime(GridJobState state) {
-        this(state, System.currentTimeMillis());
-    }
-
-    public long elapsed() {
-        return System.currentTimeMillis() - time;
+    default void stop() {
+        //NOOP
     }
 }

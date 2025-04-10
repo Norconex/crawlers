@@ -116,6 +116,7 @@ public class DeleteRejectedEventListener implements
                 .runOnOneOnce("delete-rejected-listener-init", () -> {
                     LOG.info("Clearing any previous deleted references cache.");
                     refStore.clear();
+                    return null;
                 });
     }
 
@@ -153,6 +154,7 @@ public class DeleteRejectedEventListener implements
                         return true;
                     });
                     LOG.info("Done committing rejected references.");
+                    return null;
                 });
     }
 }

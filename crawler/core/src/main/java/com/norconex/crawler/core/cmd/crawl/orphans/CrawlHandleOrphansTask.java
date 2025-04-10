@@ -54,6 +54,7 @@ public class CrawlHandleOrphansTask
             } else if (strategy == OrphansStrategy.DELETE) {
                 deleteOrphans(ctx);
             }
+            return null;
         });
     }
 

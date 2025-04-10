@@ -16,10 +16,11 @@ package com.norconex.grid.core.impl.compute;
 
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.compute.GridComputeResult;
+import com.norconex.grid.core.compute.GridComputeTask;
 import com.norconex.grid.core.impl.CoreGrid;
-import com.norconex.grid.core.impl.compute.messages.StopJobMessage;
-import com.norconex.grid.core.impl.compute.worker.NodeJobWorker;
+import com.norconex.grid.core.impl.compute.messages.StopComputeMessage;
+import com.norconex.grid.core.impl.compute.worker.NodeTaskWorker;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,52 +32,37 @@ public class CoreGridCompute implements GridCompute {
     private final CoreGrid grid;
 
     @Override
-    public GridJobState runOnOne(String jobName, Runnable runnable)
-            throws GridException {
+    public <T> GridComputeResult<T> runOnOne(
+            String taskName, GridComputeTask<T> task) throws GridException {
         LOG.info("Running job \"{}\" on node \"{}\".",
-                jobName, grid.getCoordinator());
-        return new NodeJobWorker(grid, jobName, false).run(() -> {
-            if (grid.isCoordinator()) {
-                runnable.run();
-            } else {
-                LOG.info("Node \"{}\" wasn't selected to run job \"{}\". "
-                        + "Marking as done.",
-                        grid.getLocalAddress(), jobName);
-            }
-        });
+                taskName, grid.getCoordinator());
+        return new NodeTaskWorker(grid, taskName, RunOn.ONE).run(task);
     }
 
     @Override
-    public GridJobState runOnOneOnce(String jobName, Runnable runnable)
-            throws GridException {
+    public <T> GridComputeResult<T> runOnOneOnce(
+            String taskName, GridComputeTask<T> task) throws GridException {
         LOG.info("Running job \"{}\" on node \"{}\", maximum once",
-                jobName, grid.getCoordinator());
-        return new NodeJobWorker(grid, jobName, true).run(() -> {
-            if (grid.isCoordinator()) {
-                runnable.run();
-            } else {
-                LOG.info("Node \"{}\" as nothing to do for job \"{}\".",
-                        grid.getLocalAddress(), jobName);
-            }
-        });
+                taskName, grid.getCoordinator());
+        return new NodeTaskWorker(grid, taskName, RunOn.ONE_ONCE).run(task);
     }
 
     @Override
-    public GridJobState runOnAll(String jobName, Runnable runnable)
-            throws GridException {
-        LOG.info("Running job \"{}\" on all nodes.", jobName);
-        return new NodeJobWorker(grid, jobName, false).run(runnable);
+    public <T> GridComputeResult<T> runOnAll(
+            String taskName, GridComputeTask<T> task) throws GridException {
+        LOG.info("Running job \"{}\" on all nodes.", taskName);
+        return new NodeTaskWorker(grid, taskName, RunOn.ALL).run(task);
     }
 
     @Override
-    public GridJobState runOnAllOnce(String jobName, Runnable runnable)
-            throws GridException {
-        LOG.info("Running job \"{}\" on all nodes, maximum once.", jobName);
-        return new NodeJobWorker(grid, jobName, true).run(runnable);
+    public <T> GridComputeResult<T> runOnAllOnce(
+            String taskName, GridComputeTask<T> task) throws GridException {
+        LOG.info("Running job \"{}\" on all nodes, maximum once.", taskName);
+        return new NodeTaskWorker(grid, taskName, RunOn.ALL_ONCE).run(task);
     }
 
     @Override
-    public void stop(String jobName) {
-        grid.send(new StopJobMessage(jobName));
+    public void stop(String taskName) {
+        grid.send(new StopComputeMessage(taskName));
     }
 }

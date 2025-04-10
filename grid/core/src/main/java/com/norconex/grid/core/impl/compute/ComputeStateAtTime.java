@@ -12,13 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl.compute.messages;
+package com.norconex.grid.core.impl.compute;
 
 import java.io.Serializable;
-import java.util.Objects;
-import java.util.function.Consumer;
 
-import com.norconex.grid.core.compute.GridJobState;
+import com.norconex.grid.core.compute.GridComputeState;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,18 +25,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GridJobDoneMessage implements Serializable {
+public class ComputeStateAtTime implements Serializable {
     private static final long serialVersionUID = 1L;
-    private String jobName;
-    private GridJobState gridJobState;
+    private GridComputeState state;
+    private long time;
 
-    public static void onReceive(
-            Object payload,
-            String jobName,
-            Consumer<GridJobState> consumer) {
-        if (payload instanceof GridJobDoneMessage msg
-                && Objects.equals(jobName, msg.getJobName())) {
-            consumer.accept(msg.gridJobState);
-        }
+    public ComputeStateAtTime(GridComputeState state) {
+        this(state, System.currentTimeMillis());
+    }
+
+    public long elapsed() {
+        return System.currentTimeMillis() - time;
     }
 }

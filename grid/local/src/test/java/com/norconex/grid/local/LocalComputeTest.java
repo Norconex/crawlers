@@ -29,8 +29,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.compute.GridJobState;
-import com.norconex.grid.core.compute.StoppableRunnable;
+import com.norconex.grid.core.compute.GridComputeResult;
+import com.norconex.grid.core.compute.GridComputeState;
+import com.norconex.grid.core.compute.GridComputeTask;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.Getter;
@@ -60,21 +61,23 @@ class LocalComputeTest {
 
         var set = grid.storage().getSet("store");
 
-        GridJobState state;
+        GridComputeResult<?> result;
 
-        state = grid.compute().runOnOne("myjob", () -> {
+        result = grid.compute().runOnOne("myjob", () -> {
             set.add("123");
+            return null;
         });
 
-        assertThat(state).isSameAs(GridJobState.COMPLETED);
+        assertThat(result.getState()).isSameAs(GridComputeState.COMPLETED);
         assertThat(set.size()).isEqualTo(1);
         assertThat(set.contains("123")).isTrue();
 
         // we are allowed to run it again so the entries should add up.
-        state = grid.compute().runOnAll("myjob", () -> {
+        result = grid.compute().runOnAll("myjob", () -> {
             set.add("456");
+            return null;
         });
-        assertThat(state).isSameAs(GridJobState.COMPLETED);
+        assertThat(result.getState()).isSameAs(GridComputeState.COMPLETED);
         assertThat(set.size()).isEqualTo(2);
         assertThat(set.contains("123")).isTrue();
         assertThat(set.contains("456")).isTrue();
@@ -88,21 +91,23 @@ class LocalComputeTest {
 
         var set = grid.storage().getSet("store");
 
-        GridJobState state;
+        GridComputeResult<?> result;
 
-        state = grid.compute().runOnOneOnce("myjob", () -> {
+        result = grid.compute().runOnOneOnce("myjob", () -> {
             set.add("123");
+            return null;
         });
 
-        assertThat(state).isSameAs(GridJobState.COMPLETED);
+        assertThat(result.getState()).isSameAs(GridComputeState.COMPLETED);
         assertThat(set.size()).isEqualTo(1);
         assertThat(set.contains("123")).isTrue();
 
         // we can't run the same job twice. set shall be unchanged
-        state = grid.compute().runOnAllOnce("myjob", () -> {
+        result = grid.compute().runOnAllOnce("myjob", () -> {
             set.add("456");
+            return null;
         });
-        assertThat(state).isSameAs(GridJobState.COMPLETED);
+        assertThat(result.getState()).isSameAs(GridComputeState.COMPLETED);
         assertThat(set.size()).isEqualTo(1);
         assertThat(set.contains("123")).isTrue();
         assertThat(set.contains("456")).isFalse();
@@ -113,7 +118,7 @@ class LocalComputeTest {
     @Test
     void testStop() {
         assertThatNoException().isThrownBy(() -> {
-            var stoppableJob = new StoppableJob();
+            var stoppableJob = new StoppableTask();
             var future = CompletableFuture.runAsync(() -> {
                 grid.compute().runOnAll("test", stoppableJob);
             });
@@ -128,15 +133,16 @@ class LocalComputeTest {
         });
     }
 
-    private static final class StoppableJob implements StoppableRunnable {
+    private static final class StoppableTask implements GridComputeTask<Void> {
         private CompletableFuture<Void> pendingStop = new CompletableFuture<>();
         @Getter
         private AtomicBoolean running = new AtomicBoolean();
 
         @Override
-        public void run() {
+        public Void execute() {
             running.set(true);
             ConcurrentUtil.get(pendingStop, 20, TimeUnit.SECONDS);
+            return null;
         }
 
         @Override

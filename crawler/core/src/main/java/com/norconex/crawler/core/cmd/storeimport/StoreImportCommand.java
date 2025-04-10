@@ -57,8 +57,9 @@ public class StoreImportCommand implements Command {
                         try {
                             importAllStores(ctx);
                         } catch (ClassNotFoundException | IOException e) {
-                            new CrawlerException(e);
+                            throw new CrawlerException(e);
                         }
+                        return null;
                     });
         } catch (Exception e) {
             throw new CrawlerException("Could not import file: " + inFile, e);

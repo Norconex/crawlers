@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl;
+package com.norconex.grid.core.impl.compute;
 
 import java.util.Map;
 import java.util.Optional;
@@ -21,79 +21,81 @@ import java.util.function.Supplier;
 import org.apache.commons.collections4.map.ListOrderedMap;
 
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.compute.GridJobState;
-import com.norconex.grid.core.impl.compute.JobStateAtTime;
+import com.norconex.grid.core.compute.GridComputeState;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridStorage;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Storage-related utility methods specific to the Core implementation.
+ * Grid-wide state persistence utility.
  */
 @Slf4j
-public class JobStateStorage {
+public class ComputeStateStore {
 
-    private static final String JOB_STATES_KEY = "__jobStates";
+    private static final String COMPUTE_STATES_KEY =
+            ComputeStateStore.class.getName();
 
-    private final GridMap<JobStateAtTime> jobStates;
+    private final GridMap<ComputeStateAtTime> computeStates;
     private final GridStorage storage;
 
-    public JobStateStorage(Grid grid) {
+    public ComputeStateStore(Grid grid) {
         storage = grid.storage();
-        jobStates = storage.getMap(JOB_STATES_KEY, JobStateAtTime.class);
+        computeStates =
+                storage.getMap(COMPUTE_STATES_KEY, ComputeStateAtTime.class);
     }
 
-    public Optional<GridJobState> getJobState(String jobName) {
+    public Optional<GridComputeState> getComputeState(String taskName) {
         return ifStateStoreExists(
-                () -> Optional.ofNullable(jobStates.get(jobName))
-                        .map(JobStateAtTime::getState));
+                () -> Optional.ofNullable(computeStates.get(taskName))
+                        .map(ComputeStateAtTime::getState));
     }
 
-    public Optional<JobStateAtTime> getJobStateAtTime(String jobName) {
+    public Optional<ComputeStateAtTime> getComputeStateAtTime(
+            String taskName) {
         return ifStateStoreExists(
-                () -> Optional.ofNullable(jobStates.get(jobName)));
+                () -> Optional.ofNullable(computeStates.get(taskName)));
     }
 
-    public void setJobStateAtTime(String jobName, GridJobState state) {
+    public void setComputeStateAtTime(String taskName, GridComputeState state) {
         ifStateStoreExists(() -> {
-            jobStates.put(
-                    jobName,
-                    new JobStateAtTime(state, System.currentTimeMillis()));
+            computeStates.put(
+                    taskName,
+                    new ComputeStateAtTime(state, System.currentTimeMillis()));
             return null;
         });
 
     }
 
-    public Map<String, JobStateAtTime> getRunningJobs() {
-        Map<String, JobStateAtTime> jobs = new ListOrderedMap<>();
+    public Map<String, ComputeStateAtTime> getRunningTasks() {
+        Map<String, ComputeStateAtTime> tasks = new ListOrderedMap<>();
         return ifStateStoreExists(() -> {
-            jobStates.forEach((name, job) -> {
-                if (job.getState().isRunning()) {
-                    jobs.put(name, job);
+            computeStates.forEach((name, task) -> {
+                if (task.getState().isRunning()) {
+                    tasks.put(name, task);
                 }
                 return true;
             });
-            return jobs;
-        }, () -> jobs);
+            return tasks;
+        }, () -> tasks);
     }
 
     public boolean reset() {
         return ifStateStoreExists(() -> {
-            var hasStates = !jobStates.isEmpty();
-            jobStates.clear();
+            var hasStates = !computeStates.isEmpty();
+            computeStates.clear();
             return hasStates;
         }, () -> false);
     }
 
     // This wrapper method is necessary in case we are destroying the stores
-    // as part of a job and we want to set/get the job state.
+    // as part of a task and we want to set/get the task state.
     private <T> T ifStateStoreExists(Supplier<T> s) {
         return ifStateStoreExists(s, null);
     }
 
     private <T> T ifStateStoreExists(Supplier<T> supply, Supplier<T> orElse) {
-        if (storage.storeExists(JOB_STATES_KEY)) {
+        if (storage.storeExists(COMPUTE_STATES_KEY)) {
             return supply.get();
         }
         LOG.info("State store no longer exists.");

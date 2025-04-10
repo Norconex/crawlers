@@ -14,15 +14,15 @@
  */
 package com.norconex.grid.core.compute;
 
-import static com.norconex.grid.core.compute.GridJobState.COMPLETED;
-import static com.norconex.grid.core.compute.GridJobState.FAILED;
-import static com.norconex.grid.core.compute.GridJobState.IDLE;
-import static com.norconex.grid.core.compute.GridJobState.RUNNING;
+import static com.norconex.grid.core.compute.GridComputeState.COMPLETED;
+import static com.norconex.grid.core.compute.GridComputeState.FAILED;
+import static com.norconex.grid.core.compute.GridComputeState.IDLE;
+import static com.norconex.grid.core.compute.GridComputeState.RUNNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-class GridJobStateTest {
+class GridComputeStateTest {
 
     @Test
     void testIsRunning() {
@@ -44,18 +44,18 @@ class GridJobStateTest {
     void testIsAny() {
         assertThat(IDLE.isAny(IDLE, RUNNING)).isTrue();
         assertThat(IDLE.isAny(FAILED, COMPLETED)).isFalse();
-        assertThat(IDLE.isAny((GridJobState[]) null)).isFalse();
+        assertThat(IDLE.isAny((GridComputeState[]) null)).isFalse();
         assertThat(IDLE.isAny()).isFalse();
     }
 
     @Test
     void testOf() {
-        assertThat(GridJobState.of("idle")).isSameAs(IDLE);
-        assertThat(GridJobState.of("RUNNING")).isSameAs(RUNNING);
-        assertThat(GridJobState.of("Failed")).isSameAs(FAILED);
-        assertThat(GridJobState.of("Completed")).isSameAs(COMPLETED);
-        assertThat(GridJobState.of("aBadOne")).isSameAs(IDLE);
-        assertThat(GridJobState.of(null)).isSameAs(IDLE);
+        assertThat(GridComputeState.of("idle")).isSameAs(IDLE);
+        assertThat(GridComputeState.of("RUNNING")).isSameAs(RUNNING);
+        assertThat(GridComputeState.of("Failed")).isSameAs(FAILED);
+        assertThat(GridComputeState.of("Completed")).isSameAs(COMPLETED);
+        assertThat(GridComputeState.of("aBadOne")).isSameAs(IDLE);
+        assertThat(GridComputeState.of(null)).isSameAs(IDLE);
     }
 
 }

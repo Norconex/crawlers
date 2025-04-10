@@ -17,59 +17,57 @@ package com.norconex.grid.core.impl.compute.worker;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 import org.jgroups.Address;
 
-import com.norconex.grid.core.compute.GridJobState;
 import com.norconex.grid.core.impl.CoreGrid;
 
 /**
- * This class ensures that a job cannot run concurrently on the same node
+ * This class ensures that a task cannot run concurrently on the same node
  * (even if there are multiple "virtual" nodes in the same JVM) by tracking
- * active jobs in each of a JVM nodes.
+ * active tasks in each of a JVM nodes.
  */
-class NodeJobLock implements AutoCloseable {
+class NodeTaskLock implements AutoCloseable {
 
-    private static final Map<Address, Set<String>> activeJobs =
+    private static final Map<Address, Set<String>> activeTasks =
             new ConcurrentHashMap<>();
 
     private final Address node;
-    private final String jobName;
+    private final String taskName;
 
-    private NodeJobLock(Address node, String jobName) {
+    private NodeTaskLock(Address node, String taskName) {
         this.node = node;
-        this.jobName = jobName;
-        activeJobs.compute(node, (n, set) -> {
+        this.taskName = taskName;
+        activeTasks.compute(node, (n, set) -> {
             if (set == null)
                 set = ConcurrentHashMap.newKeySet();
-            set.add(jobName);
+            set.add(taskName);
             return set;
         });
     }
 
-    public static GridJobState runExclusively(
-            CoreGrid grid, String jobName, Supplier<GridJobState> supplier) {
+    public static void runExclusively(
+            CoreGrid grid, String taskName, Runnable runnable) {
         var addr = grid.getLocalAddress();
-        if (isActive(addr, jobName)) {
-            throw new IllegalStateException("Job '" + jobName
+        if (isActive(addr, taskName)) {
+            throw new IllegalStateException("Task '" + taskName
                     + "' is already running on this node (" + addr + ").");
         }
-        try (var lock = new NodeJobLock(addr, jobName)) {
-            return supplier.get();
+        try (var lock = new NodeTaskLock(addr, taskName)) {
+            runnable.run();
         }
     }
 
-    private static boolean isActive(Address node, String jobName) {
-        var set = activeJobs.get(node);
-        return set != null && set.contains(jobName);
+    private static boolean isActive(Address node, String taskName) {
+        var set = activeTasks.get(node);
+        return set != null && set.contains(taskName);
     }
 
     @Override
     public void close() {
-        activeJobs.compute(node, (n, set) -> {
+        activeTasks.compute(node, (n, set) -> {
             if (set != null) {
-                set.remove(jobName);
+                set.remove(taskName);
                 return set.isEmpty() ? null : set;
             }
             return null;

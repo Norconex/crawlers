@@ -46,7 +46,7 @@ public abstract class BaseGridPipeline<T extends Grid>
     public Optional<String> getActiveStageName(@NonNull String pipelineName) {
         return ofNullable(grid
                 .storage()
-                .getGlobals()
+                .getSessionAttributes()
                 .get(STAGE_KEY_PREFIX + pipelineName));
     }
 
@@ -54,17 +54,17 @@ public abstract class BaseGridPipeline<T extends Grid>
     public GridPipelineState getState(@NonNull String pipelineName) {
         return GridPipelineState.of(grid
                 .storage()
-                .getGlobals()
+                .getSessionAttributes()
                 .get(STATE_KEY_PREFIX + pipelineName));
     }
 
     void setActiveStageName(@NonNull String pipelineName, String name) {
-        grid.storage().getGlobals().put(
+        grid.storage().getSessionAttributes().put(
                 STAGE_KEY_PREFIX + pipelineName, name);
     }
 
     void setState(@NonNull String pipelineName, GridPipelineState state) {
-        grid.storage().getGlobals().put(
+        grid.storage().getSessionAttributes().put(
                 STATE_KEY_PREFIX + pipelineName, state.name());
     }
 }

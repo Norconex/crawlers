@@ -18,7 +18,7 @@ import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.impl.JobStateStorage;
+import com.norconex.grid.core.impl.compute.ComputeStateStore;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
 
@@ -44,14 +44,14 @@ public class LocalGrid implements Grid {
     private final LocalGridPipeline gridPipeline;
     @Getter
     @Accessors(fluent = true)
-    private final JobStateStorage jobStateStorage;
+    private final ComputeStateStore computeStateStorage;
 
     public LocalGrid(MVStore mvstore) {
         this.mvstore = mvstore;
         gridStorage = new LocalGridStorage(mvstore);
         gridCompute = new LocalGridCompute(this);
         gridPipeline = new LocalGridPipeline(this);
-        jobStateStorage = new JobStateStorage(this);
+        computeStateStorage = new ComputeStateStore(this);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class LocalGrid implements Grid {
 
     @Override
     public boolean resetSession() {
-        storage().getGlobals().clear();
-        return jobStateStorage.reset();
+        storage().getSessionAttributes().clear();
+        return computeStateStorage.reset();
     }
 }

@@ -52,7 +52,8 @@ import lombok.ToString;
 @ToString
 public class JdbcGridStorage implements GridStorage {
 
-    private static final String GLOBAL_CACHE_KEY = "global-cache";
+    private static final String SESSION_CACHE_KEY = "session-cache";
+    private static final String DURABLE_CACHE_KEY = "durable-cache";
     private static final String STORE_TYPES_KEY =
             JdbcGridStorage.class.getSimpleName() + "__storetypes";
 
@@ -79,9 +80,16 @@ public class JdbcGridStorage implements GridStorage {
 
     @JsonIgnore
     @Override
-    public GridMap<String> getGlobals() {
+    public GridMap<String> getSessionAttributes() {
         return (GridMap<String>) getOrCreateStore(
-                GLOBAL_CACHE_KEY, String.class, GridMap.class);
+                SESSION_CACHE_KEY, String.class, GridMap.class);
+    }
+
+    @JsonIgnore
+    @Override
+    public GridMap<String> getDurableAttributes() {
+        return (GridMap<String>) getOrCreateStore(
+                DURABLE_CACHE_KEY, String.class, GridMap.class);
     }
 
     @SuppressWarnings("unchecked")

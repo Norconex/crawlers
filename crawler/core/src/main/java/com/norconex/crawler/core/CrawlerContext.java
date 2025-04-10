@@ -61,8 +61,11 @@ import com.norconex.grid.core.storage.GridMap;
 import com.norconex.importer.Importer;
 import com.norconex.importer.doc.DocContext;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -202,30 +205,9 @@ public class CrawlerContext implements AutoCloseable {
         ctxStateStore = grid.storage().getMap(
                 CrawlerContext.class.getSimpleName(), Boolean.class);
 
-        //
-        //        var newSession = docProcessingLedger.isQueueEmpty();
-        //        if (newSession) {
-        //            LOG.info("Starting a new crawl session.");
-        //        } else {
-        //            LOG.info("Resuming a previous crawl session.");
-        //        }
-        //        incrementing =
-        //                !docProcessingLedger.isProcessedEmpty());
-        //
-        //        grid.compute().runOnOne("context-init",
-        //                () -> {
-        //                        grid.resetSession();
-        //                    ctxStateStore.clear();
-        //                    setState(KEY_RESUMING, !newSession);
-        //                    setState(KEY_INCREMENTING,
-        //                            !docProcessingLedger.isProcessedEmpty());
-        //                });
-        //        resuming = getState(KEY_RESUMING);
-        //        incrementing = getState(KEY_INCREMENTING);
-
         // Here We initialize things that should only be initialized once
         // for the entire crawl sessions (i.e., only set by one node).
-        grid.compute().runOnOne("context-init",
+        var result = grid.compute().runOnOne("context-init",
                 () -> {
                     //TODO encapsulate stateMap and other "generic" stores
                     // into their own object? Or a base object for them all?
@@ -237,18 +219,17 @@ public class CrawlerContext implements AutoCloseable {
                         LOG.info("Resuming a previous crawl session.");
                     }
                     ctxStateStore.clear();
-                    setState(KEY_RESUMING, !newSession);
-                    setState(KEY_INCREMENTING,
+                    var props = new GridContextProps();
+                    props.setResuming(!newSession);
+                    props.setIncrementing(
                             !docProcessingLedger.isProcessedEmpty());
+                    setState(KEY_RESUMING, props.isResuming());
+                    setState(KEY_INCREMENTING, props.isIncrementing());
+                    return props;
                 });
 
-        //TODO have the equivalent of INITIALIZED that we have for pipeline init,
-        // but to confirm these two values have been set.. we would wait
-        // for signal.   //OR, return more tan just the status when we
-        // do compute, allows a response that takes a simple object back
-        // or a string.  Yeah... that would be better. ❤️🧡💚
-        resuming = getState(KEY_RESUMING);
-        incrementing = getState(KEY_INCREMENTING);
+        resuming = result.getValue().resuming;
+        incrementing = result.getValue().incrementing;
 
         LogUtil.setMdcCrawlerId(getId());
         Thread.currentThread().setName(getId());
@@ -376,14 +357,14 @@ public class CrawlerContext implements AutoCloseable {
     //MAYBE: Consider caching this value once set by DocLedgerInitializer
     public long maxProcessedDocs() {
         var maxDocs = grid.storage()
-                .getGlobals().get(KEY_MAX_PROCESSED_DOCS);
+                .getSessionAttributes().get(KEY_MAX_PROCESSED_DOCS);
         return maxDocs == null ? configuration.getMaxDocuments()
                 : Long.parseLong(maxDocs);
     }
 
     public void maxProcessedDocs(long maxDocs) {
         grid.storage()
-                .getGlobals()
+                .getSessionAttributes()
                 .put(KEY_MAX_PROCESSED_DOCS, Long.toString(maxDocs));
     }
 
@@ -448,5 +429,13 @@ public class CrawlerContext implements AutoCloseable {
     @Override
     public String toString() {
         return getId();
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    private static class GridContextProps {
+        boolean resuming;
+        boolean incrementing;
     }
 }

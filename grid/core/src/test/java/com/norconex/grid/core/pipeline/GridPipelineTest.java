@@ -16,6 +16,7 @@ package com.norconex.grid.core.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -288,7 +289,9 @@ public abstract class GridPipelineTest extends AbstractGridTest {
         }
     }
 
-    class Context {
+    class Context implements Serializable {
+
+        private static final long serialVersionUID = 1L;
         private final GridMap<Integer> bagInt;
         private final GridMap<String> bagStr;
         private final Grid grid;

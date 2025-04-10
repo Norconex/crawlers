@@ -18,6 +18,7 @@ import static java.util.Optional.ofNullable;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +49,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnOne("testJob", () -> {
                     fill(set, 5);
+                    return null;
                 });
             });
             assertThat(set.size()).isEqualTo(5);
@@ -57,6 +59,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnOne("testJob", () -> {
                     fill(set, 5);
+                    return null;
                 });
             });
             assertThat(set.size()).isEqualTo(10);
@@ -76,6 +79,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnOneOnce("testJob", () -> {
                     fill(set, 5);
+                    return null;
                 });
             });
             assertThat(set.size()).isEqualTo(5);
@@ -85,6 +89,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnOneOnce("testJob", () -> {
                     fill(set, 5);
+                    return null;
                 });
             });
             assertThat(set.size()).isEqualTo(5);
@@ -104,6 +109,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnAll("testJob", () -> {
                     fill(set, 5);
+                    return null;
                 });
             });
             assertThat(set.size()).isEqualTo(15);
@@ -113,6 +119,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnAll("testJob", () -> {
                     fill(set, 5);
+                    return null;
                 });
             });
             assertThat(set.size()).isEqualTo(30);
@@ -132,6 +139,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnAllOnce("testJob", () -> {
                     fill(set, 5);
+                    return null;
                 });
             });
             assertThat(set.size()).isEqualTo(15);
@@ -141,6 +149,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             mocker.onEachNodes((grid, index) -> {
                 grid.compute().runOnAllOnce("testJob", () -> {
                     fill(set, 5);
+                    return null;
                 });
             });
             assertThat(set.size()).isEqualTo(15);
@@ -165,7 +174,8 @@ public abstract class GridComputeTest extends AbstractGridTest {
         });
     }
 
-    private static final class StoppableJob implements StoppableRunnable {
+    private static final class StoppableJob
+            implements GridComputeTask<Serializable> {
         private final GridMap<Integer> map;
         private final Runnable onAllStarted;
         private boolean stopRequested;
@@ -176,7 +186,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
         }
 
         @Override
-        public void run() {
+        public Serializable execute() {
             map.update("numStarted", v -> v == null ? 1 : v + 1);
             while (getNumStarted() < 3) {
                 Sleeper.sleepMillis(100);
@@ -185,6 +195,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
             while (!stopRequested) {
                 Sleeper.sleepMillis(100);
             }
+            return null;
         }
 
         private int getNumStarted() {

@@ -21,8 +21,6 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.cmd.crawl.queueread.DocProcessorContext;
-import com.norconex.crawler.core.cmd.crawl.queueread.DocProcessorUpsert;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;

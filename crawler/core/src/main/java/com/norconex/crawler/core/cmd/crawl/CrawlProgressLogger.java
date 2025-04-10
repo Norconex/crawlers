@@ -28,7 +28,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationUnit;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
-import com.norconex.grid.core.compute.StoppableRunnable;
+import com.norconex.grid.core.compute.GridComputeTask;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @EqualsAndHashCode
 @ToString
-public class CrawlProgressLogger implements StoppableRunnable {
+public class CrawlProgressLogger implements GridComputeTask<Void> {
 
     private final StopWatch stopWatch = new StopWatch();
 
@@ -74,7 +74,7 @@ public class CrawlProgressLogger implements StoppableRunnable {
     }
 
     @Override
-    public void run() {
+    public Void execute() {
         stopTrackingRequested = false;
         if (minLoggingInterval != null && LOG.isInfoEnabled()) {
             execService = Executors.newSingleThreadScheduledExecutor();
@@ -90,6 +90,7 @@ public class CrawlProgressLogger implements StoppableRunnable {
         prevQueuedCount = monitor.getQueuedCount();
         stopWatch.reset();
         stopWatch.start();
+        return null;
     }
 
     @Override

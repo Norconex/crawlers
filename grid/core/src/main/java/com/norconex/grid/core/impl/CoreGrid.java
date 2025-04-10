@@ -52,10 +52,12 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridCompute;
+import com.norconex.grid.core.impl.compute.ComputeStateAtTime;
+import com.norconex.grid.core.impl.compute.ComputeStateStore;
 import com.norconex.grid.core.impl.compute.CoreGridCompute;
-import com.norconex.grid.core.impl.compute.JobStateAtTime;
 import com.norconex.grid.core.impl.compute.MessageListener;
-import com.norconex.grid.core.impl.compute.messages.StopJobMessage;
+import com.norconex.grid.core.impl.compute.messages.TaskPayloadMessenger;
+import com.norconex.grid.core.impl.compute.messages.StopComputeMessage;
 import com.norconex.grid.core.impl.pipeline.CoreGridPipeline;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
@@ -80,7 +82,8 @@ public class CoreGrid implements Grid {
     @Getter
     private Address coordinator;
     private View view;
-    private JobStateStorage jobStateStorage;
+    private ComputeStateStore computeStateStorage;
+    private TaskPayloadMessenger taskPayloadMessenger;
 
     public CoreGrid(CoreGridConnectorConfig connConfig, GridStorage storage)
             throws Exception {
@@ -124,7 +127,8 @@ public class CoreGrid implements Grid {
         localAddress = channel.getAddress();
         view = channel.getView();
         coordinator = view.getCoord();
-        jobStateStorage = new JobStateStorage(this);
+        computeStateStorage = new ComputeStateStore(this);
+        taskPayloadMessenger = new TaskPayloadMessenger(this);
     }
 
     public boolean isCoordinator() {
@@ -152,7 +156,7 @@ public class CoreGrid implements Grid {
     /**
      * Adds a grid message listener.
      * @param listener the listener
-     * @return the supplied listener, for convenience
+     * @return the added listener, for convenience
      */
     public MessageListener addListener(@NotNull MessageListener listener) {
         listeners.add(listener);
@@ -169,8 +173,12 @@ public class CoreGrid implements Grid {
                 .orElse(List.of());
     }
 
-    public JobStateStorage jobStateStorage() {
-        return jobStateStorage;
+    public ComputeStateStore computeStateStorage() {
+        return computeStateStorage;
+    }
+
+    public TaskPayloadMessenger taskPayloadMessenger() {
+        return taskPayloadMessenger;
     }
 
     @Override
@@ -198,25 +206,26 @@ public class CoreGrid implements Grid {
 
     @Override
     public void close() {
-        stopRunningJobs();
+        stopRunningTasks();
         channel.close();
     }
 
     //TODO move to storage?
     @Override
     public boolean resetSession() {
-        storage().getGlobals().clear();
-        return jobStateStorage().reset();
+        storage().getSessionAttributes().clear();
+        return computeStateStorage().reset();
     }
 
     //--- Private methods ------------------------------------------------------
 
-    private void stopRunningJobs() {
-        send(new StopJobMessage(null));
+    private void stopRunningTasks() {
+        send(new StopComputeMessage(null));
         var pendingStop = CompletableFuture.runAsync(() -> {
-            Map<String, JobStateAtTime> jobs = null;
-            while (!(jobs = jobStateStorage().getRunningJobs()).isEmpty()) {
-                LOG.info("The following jobs are still running: \n" + (jobs
+            Map<String, ComputeStateAtTime> tasks = null;
+            while (!(tasks = computeStateStorage().getRunningTasks())
+                    .isEmpty()) {
+                LOG.info("The following tasks are still running: \n" + (tasks
                         .entrySet()
                         .stream()
                         .map(en -> ("    - " + en.getKey() + " -> "

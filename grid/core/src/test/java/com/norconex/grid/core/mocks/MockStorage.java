@@ -66,8 +66,13 @@ public class MockStorage implements GridStorage {
     }
 
     @Override
-    public GridMap<String> getGlobals() {
-        return getMap("mock-global-map", String.class);
+    public GridMap<String> getSessionAttributes() {
+        return getMap("mock-session-map", String.class);
+    }
+
+    @Override
+    public GridMap<String> getDurableAttributes() {
+        return getMap("mock-durable-map", String.class);
     }
 
     @Override

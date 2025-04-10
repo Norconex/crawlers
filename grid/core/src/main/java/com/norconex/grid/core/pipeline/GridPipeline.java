@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Future;
 
-import com.norconex.grid.core.compute.StoppableRunnable;
-
 import lombok.NonNull;
 
 // to get a computed value, rely on storage
@@ -64,10 +62,6 @@ public interface GridPipeline {
      * running pipelines if the supplied name is <code>null</code>.
      * If no matching pipelines are currently running, invoking this method
      * has no effect.
-     * </p>
-     * <p>
-     * A request to stop will be send to all active pipeline jobs that supports
-     * {@link StoppableRunnable}.
      * </p>
      * <p>
      * This method returns right away and lets the pipeline handles the request.

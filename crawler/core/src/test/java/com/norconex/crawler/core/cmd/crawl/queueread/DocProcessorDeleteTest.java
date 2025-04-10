@@ -18,8 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.cmd.crawl.queueread.DocProcessorContext;
-import com.norconex.crawler.core.cmd.crawl.queueread.DocProcessorDelete;
 import com.norconex.crawler.core.doc.DocResolutionStatus;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;

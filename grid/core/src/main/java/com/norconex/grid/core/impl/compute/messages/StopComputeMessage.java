@@ -18,36 +18,24 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import com.norconex.grid.core.compute.GridJobState;
-import com.norconex.grid.core.impl.compute.JobStateAtTime;
-
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class JobStateMessage implements Serializable {
+@AllArgsConstructor
+public class StopComputeMessage implements Serializable {
     private static final long serialVersionUID = 1L;
-
     private String jobName;
-    private JobStateAtTime stateAtTime;
-    private boolean ackRequired;
-
-    public static JobStateMessage of(
-            String jobName, GridJobState state, boolean ackRequired) {
-        return new JobStateMessage(
-                jobName, new JobStateAtTime(state), ackRequired);
-    }
 
     public static void onReceive(
             Object payload,
             String jobName,
-            Consumer<JobStateMessage> consumer) {
-        if (payload instanceof JobStateMessage msg
-                && Objects.equals(jobName, msg.getJobName())) {
+            Consumer<StopComputeMessage> consumer) {
+        if (payload instanceof StopComputeMessage msg
+                && (msg.jobName == null ||
+                        Objects.equals(jobName, msg.getJobName()))) {
             consumer.accept(msg);
         }
     }
