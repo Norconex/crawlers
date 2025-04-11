@@ -16,40 +16,36 @@ package com.norconex.crawler.core.doc.pipelines.queue.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class DepthValidationStageTest {
 
-    @Test
-    void testDepthValidationStage(@TempDir Path tempDir) {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testDepthValidationStage(CrawlerContext crawlCtx) {
 
-        var docRec = new CrawlDocLedgerEntry("ref");
+        var docRec = new CrawlDocContext("ref");
         docRec.setDepth(3);
-        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
-        var ctx = new QueuePipelineContext(crawlerContext, docRec);
+        var ctx = new QueuePipelineContext(crawlCtx, docRec);
 
         // Unlimited depth
-        crawlerContext.getConfiguration().setMaxDepth(-1);
+        crawlCtx.getConfiguration().setMaxDepth(-1);
         docRec.setState(CrawlDocStatus.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(CrawlDocStatus.NEW);
 
         // Max depth
-        crawlerContext.getConfiguration().setMaxDepth(3);
+        crawlCtx.getConfiguration().setMaxDepth(3);
         docRec.setState(CrawlDocStatus.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(CrawlDocStatus.NEW);
 
         // Over max depth
-        crawlerContext.getConfiguration().setMaxDepth(2);
+        crawlCtx.getConfiguration().setMaxDepth(2);
         docRec.setState(CrawlDocStatus.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(CrawlDocStatus.TOO_DEEP);

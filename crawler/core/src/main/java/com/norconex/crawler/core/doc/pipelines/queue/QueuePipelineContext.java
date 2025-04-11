@@ -15,13 +15,13 @@
 package com.norconex.crawler.core.doc.pipelines.queue;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 
 import lombok.Data;
 
 /**
  * Hold necessary objects to a specific pipeline execution over a
- * {@link CrawlDocLedgerEntry}.
+ * {@link CrawlDocContext}.
  * This context is short-lived and can be redeclared in a pipeline
  * chain (i.e., the original context instance may be replaced
  * by one of the pipeline stages).
@@ -29,5 +29,5 @@ import lombok.Data;
 @Data
 public class QueuePipelineContext {
     private final CrawlerContext crawlerContext;
-    private final CrawlDocLedgerEntry docContext;
+    private final CrawlDocContext docContext;
 }

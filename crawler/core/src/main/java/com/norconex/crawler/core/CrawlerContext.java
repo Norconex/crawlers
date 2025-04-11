@@ -43,7 +43,7 @@ import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrappers;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocLedger;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.DedupService;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -56,7 +56,6 @@ import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.pipeline.GridPipelineState;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.importer.Importer;
 import com.norconex.importer.doc.DocContext;
@@ -97,12 +96,8 @@ public class CrawlerContext implements AutoCloseable {
 
     private static final String KEY_RESUMING = "resuming";
     private static final String KEY_INCREMENTING = "incrementing";
-    private static final String KEY_STOP_CMD_REQUESTED =
-            "stopCommandRequested";
     private static final String KEY_QUEUE_INITIALIZED = "queueInitialized";
     private static final String KEY_MAX_PROCESSED_DOCS = "maxProcessedDocs";
-    //TODO somehow abstract/hide this:
-    public static final String KEY_CRAWL_PIPELINE = "crawlPipeline";
 
     //--- Set on declaration ---
     private final DedupService dedupService = new DedupService();
@@ -115,7 +110,7 @@ public class CrawlerContext implements AutoCloseable {
     private final CrawlerSpec spec;
 
     private final BeanMapper beanMapper;
-    private final Class<? extends CrawlDocLedgerEntry> docContextType;
+    private final Class<? extends CrawlDocContext> docContextType;
     private final EventManager eventManager;
     private final CrawlerCallbacks callbacks;
 
@@ -291,60 +286,23 @@ public class CrawlerContext implements AutoCloseable {
             }
         }, "Could not delete the temporary directory:" + tempDir);
 
+        grid.close();
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
         swallow(eventManager::clearListeners);
         INSTANCES.remove(grid.getNodeName());
     }
 
-    public CrawlDocLedgerEntry newDocContext(@NonNull String reference) {
+    public CrawlDocContext newDocContext(@NonNull String reference) {
         var docContext = ClassUtil.newInstance(docContextType);
         docContext.setReference(reference);
         return docContext;
     }
 
-    public CrawlDocLedgerEntry
+    public CrawlDocContext
             newDocContext(@NonNull DocContext parentContext) {
         var docContext = newDocContext(parentContext.getReference());
         docContext.copyFrom(parentContext);
         return docContext;
-    }
-
-    /**
-     * Gets the last registered crawl stage.
-     * @return crawl stage
-     */
-    //TODO needed/useful?
-    public Optional<String> getCrawlStage() {
-        return grid.pipeline().getActiveStageName(KEY_CRAWL_PIPELINE);
-    }
-
-    //TODO needed/useful?
-    public GridPipelineState getCrawlState() {
-        return grid.pipeline().getState(KEY_CRAWL_PIPELINE);
-    }
-
-    /**
-     * Whether a request was made to stop the current crawler command.
-     * @return <code>true</code> if stopping the crawler was requested
-     */
-    public boolean isStopCrawlerCommandRequested() {
-        return getState(KEY_STOP_CMD_REQUESTED);
-    }
-
-    public void stopCrawlerCommand() {
-        LOG.info("Received request to stop the crawler.");
-        grid.pipeline().stop(null);
-        grid.compute().stop(null);
-        setState(KEY_STOP_CMD_REQUESTED, true);
-    }
-
-    /**
-     * Whether the crawler has ended (done or stopped). Same
-     * as invoking <code>getCrawlStage() == CrawlStage.END</code>.
-     * @return <code>true</code> if the crawler has ended
-     */
-    public boolean isEnded() {
-        return getCrawlState() == GridPipelineState.ENDED;
     }
 
     public boolean isQueueInitialized() {

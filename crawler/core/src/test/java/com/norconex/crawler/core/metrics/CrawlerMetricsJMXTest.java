@@ -16,26 +16,17 @@ package com.norconex.crawler.core.metrics;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class CrawlerMetricsJMXTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testCrawlerMonitorJMX() {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testCrawlerMonitorJMX(CrawlerContext crawlCtx) {
         assertThatNoException().isThrownBy(() -> {
-            try (var ctx = new MockCrawlerBuilder(tempDir).crawlerContext()) {
-                ctx.init();
-                CrawlerMetricsJMX.register(ctx);
-                CrawlerMetricsJMX.unregister(ctx);
-            }
+            CrawlerMetricsJMX.register(crawlCtx);
+            CrawlerMetricsJMX.unregister(crawlCtx);
         });
     }
 }

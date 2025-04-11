@@ -16,24 +16,15 @@ package com.norconex.crawler.fs.callbacks;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
+import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class BeforeFsCommandTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testAccept() {
-        try (var ctx = new MockFsCrawlerBuilder(tempDir).crawlerContext()) {
-            ctx.init();
-            assertThatNoException()
-                    .isThrownBy(() -> new BeforeFsCommand().accept(ctx));
-        }
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testAccept(CrawlerContext ctx) {
+        assertThatNoException()
+                .isThrownBy(() -> new BeforeFsCommand().accept(ctx));
     }
 }

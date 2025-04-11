@@ -56,8 +56,8 @@ import com.norconex.grid.core.impl.compute.ComputeStateAtTime;
 import com.norconex.grid.core.impl.compute.ComputeStateStore;
 import com.norconex.grid.core.impl.compute.CoreGridCompute;
 import com.norconex.grid.core.impl.compute.MessageListener;
-import com.norconex.grid.core.impl.compute.messages.TaskPayloadMessenger;
 import com.norconex.grid.core.impl.compute.messages.StopComputeMessage;
+import com.norconex.grid.core.impl.compute.messages.TaskPayloadMessenger;
 import com.norconex.grid.core.impl.pipeline.CoreGridPipeline;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
@@ -215,6 +215,13 @@ public class CoreGrid implements Grid {
     public boolean resetSession() {
         storage().getSessionAttributes().clear();
         return computeStateStorage().reset();
+    }
+
+    @Override
+    public void stop() {
+        LOG.info("Received request to stop the grid.");
+        pipeline().stop(null);
+        compute().stop(null);
     }
 
     //--- Private methods ------------------------------------------------------

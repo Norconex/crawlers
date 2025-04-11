@@ -58,13 +58,14 @@ class FolderPathsExtractorStageTest {
             }
         });
 
-        var ctx = new ImporterPipelineContext(
-                new MockFsCrawlerBuilder(tempDir).crawlerContext(), doc);
-
-        assertThatExceptionOfType(CrawlerException.class)
-                .isThrownBy(() -> //NOSONAR
-                new FolderPathsExtractorStage(
-                        FetchDirective.DOCUMENT).executeStage(ctx))
-                .withMessageContaining("Could not fetch child paths of:");
+        new MockFsCrawlerBuilder(tempDir).withCrawlerContext(crawlCtx -> {
+            var ctx = new ImporterPipelineContext(crawlCtx, doc);
+            assertThatExceptionOfType(CrawlerException.class)
+                    .isThrownBy(() -> //NOSONAR
+            new FolderPathsExtractorStage(
+                    FetchDirective.DOCUMENT).executeStage(ctx))
+                    .withMessageContaining("Could not fetch child paths of:");
+            return null;
+        });
     }
 }

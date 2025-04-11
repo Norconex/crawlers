@@ -16,17 +16,15 @@ package com.norconex.crawler.core.doc.pipelines.importer.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.OnMatchFilter;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.Doc;
 
@@ -35,31 +33,27 @@ import lombok.Data;
 
 class DocumentFiltersStageTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testDocumentFiltersStage() {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testDocumentFiltersStage(CrawlerContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
-        var ctx = new ImporterPipelineContext(crawlerContext, doc);
+        var ctx = new ImporterPipelineContext(crawlCtx, doc);
         var stage = new DocumentFiltersStage();
 
         // no filters is equal to a match
         assertThat(stage.test(ctx)).isTrue();
 
         // test match
-        crawlerContext.getConfiguration().setDocumentFilters(
+        crawlCtx.getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.INCLUDE, true)));
         assertThat(stage.test(ctx)).isTrue();
 
         // test no match
-        crawlerContext.getConfiguration().setDocumentFilters(
+        crawlCtx.getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.INCLUDE, false)));
         assertThat(stage.test(ctx)).isFalse();
 
         // exclude
-        crawlerContext.getConfiguration().setDocumentFilters(
+        crawlCtx.getConfiguration().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.EXCLUDE, false)));
         assertThat(stage.test(ctx)).isFalse();
 

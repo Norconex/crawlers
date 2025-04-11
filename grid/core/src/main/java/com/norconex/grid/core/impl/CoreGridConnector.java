@@ -35,9 +35,6 @@ public class CoreGridConnector
     private final CoreGridConnectorConfig configuration =
             new CoreGridConnectorConfig();
 
-    //FOR now we use constructor, but we'll make it configurable, with
-    // a default set in crawler core
-
     private final GridStorage storage;
 
     @Override
@@ -48,6 +45,13 @@ public class CoreGridConnector
         } catch (Exception e) {
             //TODO since a lib now, make checked exception?
             throw new GridException("Could not connect to grid.", e);
+        }
+    }
+
+    @Override
+    public void requestStop(Path workDir) {
+        try (var grid = connect(workDir)) {
+            grid.stop();
         }
     }
 }

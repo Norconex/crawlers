@@ -14,6 +14,8 @@
  */
 package com.norconex.grid.local;
 
+import java.nio.file.Path;
+
 import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.Grid;
@@ -22,6 +24,7 @@ import com.norconex.grid.core.impl.compute.ComputeStateStore;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -45,6 +48,9 @@ public class LocalGrid implements Grid {
     @Getter
     @Accessors(fluent = true)
     private final ComputeStateStore computeStateStorage;
+    @Getter(value = AccessLevel.PACKAGE)
+    private final Path storagePath;
+    private final LocalGridStopHandler stopHandler;
 
     public LocalGrid(MVStore mvstore) {
         this.mvstore = mvstore;
@@ -52,6 +58,9 @@ public class LocalGrid implements Grid {
         gridCompute = new LocalGridCompute(this);
         gridPipeline = new LocalGridPipeline(this);
         computeStateStorage = new ComputeStateStore(this);
+        storagePath = Path.of(mvstore.getFileStore().getFileName()).getParent();
+        stopHandler = new LocalGridStopHandler(this);
+        stopHandler.listenForStopRequest();
     }
 
     @Override
@@ -66,9 +75,14 @@ public class LocalGrid implements Grid {
 
     @Override
     public void close() {
-        if (!mvstore.isClosed()) {
+        stopHandler.stopListening();
+        if (!isClosed()) {
             mvstore.close();
         }
+    }
+
+    boolean isClosed() {
+        return mvstore.isClosed();
     }
 
     @Override
@@ -90,5 +104,12 @@ public class LocalGrid implements Grid {
     public boolean resetSession() {
         storage().getSessionAttributes().clear();
         return computeStateStorage.reset();
+    }
+
+    @Override
+    public void stop() {
+        stopHandler.stopListening();
+        pipeline().stop(null);
+        compute().stop(null);
     }
 }

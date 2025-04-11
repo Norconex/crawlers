@@ -17,24 +17,18 @@ package com.norconex.crawler.core.doc.pipelines.importer.stages;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.DocMetaConstants;
 
 class CommonAttribsResolutionStageTest {
 
-    @TempDir
-    Path tempDir;
-
-    @Test
-    void testCommonAttribsResolutionStage() {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testCommonAttribsResolutionStage(CrawlerContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref",
                 """
@@ -46,8 +40,7 @@ class CommonAttribsResolutionStageTest {
                   </body>
                 </html>
                 """);
-        var ctx = new ImporterPipelineContext(
-                new MockCrawlerBuilder(tempDir).crawlerContext(), doc);
+        var ctx = new ImporterPipelineContext(crawlCtx, doc);
         new CommonAttribsResolutionStage().test(ctx);
 
         assertThat(doc.getDocContext().getCharset()).isEqualTo(UTF_8);

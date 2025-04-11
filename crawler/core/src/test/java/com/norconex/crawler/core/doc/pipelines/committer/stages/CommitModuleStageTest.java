@@ -16,23 +16,28 @@ package com.norconex.crawler.core.doc.pipelines.committer.stages;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class CommitModuleStageTest {
 
-    @Test
-    void testCommitModuleStage(@TempDir Path tempDir) {
-        var ctx = new CommitterPipelineContext(
-                new MockCrawlerBuilder(tempDir).crawlerContext(),
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testCommitModuleStage(CrawlerContext crwlCtx) {
+        var ctx = new CommitterPipelineContext(crwlCtx,
                 CrawlDocStubs.crawlDoc("ref"));
         assertThatNoException().isThrownBy(
                 () -> new CommitModuleStage().test(ctx));
     }
+
+    //    @Test
+    //    void testCommitModuleStage(@TempDir Path tempDir) {
+    //        var ctx = new CommitterPipelineContext(
+    //                new MockCrawlerBuilder(tempDir).crawlerContext(),
+    //                CrawlDocStubs.crawlDoc("ref"));
+    //        assertThatNoException().isThrownBy(
+    //                () -> new CommitModuleStage().test(ctx));
+    //    }
 }

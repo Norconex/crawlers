@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
 import com.norconex.crawler.web.util.Web;
 
@@ -87,7 +87,7 @@ final class SitemapUtil {
         InputStream is = doc.getInputStream();
         Optional<String> contentType = Optional
                 .ofNullable(doc.getDocContext())
-                .map(CrawlDocLedgerEntry::getContentType)
+                .map(CrawlDocContext::getContentType)
                 .map(ContentType::toString);
         if (contentType.isPresent() && (contentType.get().endsWith("gzip")
                 || doc.getReference().endsWith(".gz"))) {

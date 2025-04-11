@@ -21,28 +21,21 @@ import static com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil.resolveD
 import static com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil.resolveMetaChecksum;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ChecksumStageUtilTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testResolveMetaChecksum() {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testResolveMetaChecksum(CrawlerContext crawlCtx) {
         // true is new/modified
 
-        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var ctx = new ImporterPipelineContext(crawlerContext, doc);
+        var ctx = new ImporterPipelineContext(crawlCtx, doc);
 
         //--- NO CACHE ---
 
@@ -56,7 +49,7 @@ class ChecksumStageUtilTest {
 
         //--- WITH CACHE ---
         doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
-        ctx = new ImporterPipelineContext(crawlerContext, doc);
+        ctx = new ImporterPipelineContext(crawlCtx, doc);
 
         // no checksum - cache with no checksum
         // we considered null-null to mean modified
@@ -86,13 +79,12 @@ class ChecksumStageUtilTest {
         assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
     }
 
-    @Test
-    void testResolveDocumentChecksum() {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testResolveDocumentChecksum(CrawlerContext crawlCtx) {
         // true is new/modified
 
-        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
         var doc = CrawlDocStubs.crawlDoc("ref");
-        var ctx = new CommitterPipelineContext(crawlerContext, doc);
+        var ctx = new CommitterPipelineContext(crawlCtx, doc);
 
         //--- NO CACHE ---
 
@@ -106,7 +98,7 @@ class ChecksumStageUtilTest {
 
         //--- WITH CACHE ---
         doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
-        ctx = new CommitterPipelineContext(crawlerContext, doc);
+        ctx = new CommitterPipelineContext(crawlCtx, doc);
 
         // no checksum - cache with no checksum
         // we considered null-null to mean modified

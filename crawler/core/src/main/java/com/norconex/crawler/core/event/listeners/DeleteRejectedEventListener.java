@@ -23,7 +23,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.grid.core.storage.GridSet;
 
@@ -148,7 +148,7 @@ public class DeleteRejectedEventListener implements
                     refStore.forEach(ref -> {
                         crawlerContext.getCommitterService()
                                 .delete(new CrawlDoc(
-                                        new CrawlDocLedgerEntry(ref),
+                                        new CrawlDocContext(ref),
                                         CachedInputStream
                                                 .cache(new NullInputStream())));
                         return true;

@@ -17,59 +17,50 @@ package com.norconex.crawler.core.doc.pipelines.queue.stages;
 import static com.norconex.commons.lang.config.Configurable.configure;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class ReferenceFiltersStageTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testReferenceFiltersStage() {
-        var crawler = new MockCrawlerBuilder(tempDir).crawlerContext();
-        var docRecord = new CrawlDocLedgerEntry("ref");
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testReferenceFiltersStage(CrawlerContext crawlCtx) {
+        var docRecord = new CrawlDocContext("ref");
         var stage = new ReferenceFiltersStage();
 
         // match - include
-        crawler
-                .getConfiguration()
+        crawlCtx.getConfiguration()
                 .setReferenceFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("ref"))
                                 .setOnMatch(OnMatch.INCLUDE))));
-        var ctx1 = new QueuePipelineContext(crawler, docRecord);
+        var ctx1 = new QueuePipelineContext(crawlCtx, docRecord);
         assertThat(stage.test(ctx1)).isTrue();
 
         // match - exclude
-        crawler
-                .getConfiguration()
+        crawlCtx.getConfiguration()
                 .setReferenceFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("ref"))
                                 .setOnMatch(OnMatch.EXCLUDE))));
-        var ctx2 = new QueuePipelineContext(crawler, docRecord);
+        var ctx2 = new QueuePipelineContext(crawlCtx, docRecord);
         assertThat(stage.test(ctx2)).isFalse();
 
         // no match - include
         stage = new ReferenceFiltersStage("blah");
-        crawler
-                .getConfiguration()
+        crawlCtx.getConfiguration()
                 .setReferenceFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("noref"))
                                 .setOnMatch(OnMatch.INCLUDE))));
-        var ctx3 = new QueuePipelineContext(crawler, docRecord);
+        var ctx3 = new QueuePipelineContext(crawlCtx, docRecord);
         assertThat(stage.test(ctx3)).isFalse();
     }
 }

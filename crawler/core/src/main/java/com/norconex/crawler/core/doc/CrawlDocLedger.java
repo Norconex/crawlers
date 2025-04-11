@@ -66,7 +66,7 @@ public class CrawlDocLedger { //implements Closeable {
     private GridQueue<String> queue;
     private GridMap<String> processed;
     private GridMap<String> cached;
-    private Class<? extends CrawlDocLedgerEntry> type;
+    private Class<? extends CrawlDocContext> type;
     private GridMap<String> durableAttribs;
     private CrawlerContext crawlerContext;
 
@@ -119,12 +119,12 @@ public class CrawlDocLedger { //implements Closeable {
         processed.clear();
     }
 
-    public Optional<CrawlDocLedgerEntry> getProcessed(String id) {
+    public Optional<CrawlDocContext> getProcessed(String id) {
         return Optional.ofNullable(processed.get(id))
                 .map(json -> SerialUtil.fromJson(json, type));
     }
 
-    public synchronized void processed(@NonNull CrawlDocLedgerEntry docCtx) {
+    public synchronized void processed(@NonNull CrawlDocContext docCtx) {
         docCtx.setProcessingStage(CrawlDocStage.RESOLVED);
         processed.put(docCtx.getReference(), SerialUtil.toJsonString(docCtx));
         var cacheDeleted = cached.delete(docCtx.getReference());
@@ -138,7 +138,7 @@ public class CrawlDocLedger { //implements Closeable {
     }
 
     public boolean forEachProcessed(
-            BiPredicate<String, CrawlDocLedgerEntry> predicate) {
+            BiPredicate<String, CrawlDocContext> predicate) {
         return processed.forEach(
                 (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     }
@@ -157,7 +157,7 @@ public class CrawlDocLedger { //implements Closeable {
         queue.clear();
     }
 
-    public void queue(@NonNull CrawlDocLedgerEntry docContext) {
+    public void queue(@NonNull CrawlDocContext docContext) {
         docContext.setProcessingStage(CrawlDocStage.QUEUED);
         queue.put(docContext.getReference(),
                 SerialUtil.toJsonString(docContext));
@@ -170,7 +170,7 @@ public class CrawlDocLedger { //implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    public Optional<CrawlDocLedgerEntry> pollQueue() {
+    public Optional<CrawlDocContext> pollQueue() {
         var opt = queue
                 .poll()
                 .map(json -> SerialUtil.fromJson(json, type));
@@ -183,11 +183,11 @@ public class CrawlDocLedger { //implements Closeable {
         //TODO put back unresolved in queue for processing, since those
         // are when a node crashed and they could never be marked as resolved
 
-        return (Optional<CrawlDocLedgerEntry>) opt;
+        return (Optional<CrawlDocContext>) opt;
     }
 
     public boolean forEachQueued(
-            BiPredicate<String, CrawlDocLedgerEntry> predicate) {
+            BiPredicate<String, CrawlDocContext> predicate) {
         return queue.forEach(
                 (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     }
@@ -198,13 +198,13 @@ public class CrawlDocLedger { //implements Closeable {
         return cached.size();
     }
 
-    public Optional<CrawlDocLedgerEntry> getCached(String id) {
+    public Optional<CrawlDocContext> getCached(String id) {
         return Optional.ofNullable(cached.get(id))
                 .map(json -> SerialUtil.fromJson(json, type));
     }
 
     public boolean forEachCached(
-            BiPredicate<String, CrawlDocLedgerEntry> predicate) {
+            BiPredicate<String, CrawlDocContext> predicate) {
         return cached.forEach(
                 (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     }

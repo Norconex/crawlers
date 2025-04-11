@@ -17,6 +17,8 @@ package com.norconex.crawler.core.mocks.crawler;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.function.FailableFunction;
+
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
@@ -26,6 +28,7 @@ import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 import lombok.Data;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 
 @Data
@@ -69,10 +72,50 @@ public class MockCrawlerBuilder {
     }
 
     /**
-     * Builds a non-initialized mock {@link CrawlerContext}.
+     * Builds a non-initialized mock {@link CrawlerContext}, except for the
+     * grid, which is initialized. Closes the context after the consumable
+     * has ran.
+     * @param <T> type of returned object
+     * @param f function taking consumer context and returning any value back
+     * @return any object
+     */
+    @SneakyThrows
+    public <T> T withCrawlerContext(
+            FailableFunction<CrawlerContext, T, Throwable> f) {
+        // FAULTY.... created but not always closed
+        var cfg = resolvedConfig();
+        try (var ctx = new CrawlerContext(
+                ClassUtil.newInstance(specProviderClass).get(),
+                cfg,
+                cfg.getGridConnector()
+                        .connect(cfg.getWorkDir().resolve("grid")))) {
+            return f.apply(ctx);
+        }
+    }
+
+    /**
+     * Builds an initialized mock {@link CrawlerContext} and Closes the
+     * context after the consumable has ran.
+     * @param <T> type of returned object
+     * @param f function taking consumer context and returning any value back
+     * @return any object
+     */
+    @SneakyThrows
+    public <T> T withInitializedCrawlerContext(
+            FailableFunction<CrawlerContext, T, Throwable> f) {
+        return withCrawlerContext(ctx -> {
+            ctx.init();
+            return f.apply(ctx);
+        });
+    }
+
+    /**
+     * Builds a non-initialized mock {@link CrawlerContext}, except for the
+     * grid.
      * @return crawler context
      */
-    public CrawlerContext crawlerContext() {
+    public CrawlerContext opendedCrawlerContext() {
+        // FAULTY.... created but not always closed
         var cfg = resolvedConfig();
         return new CrawlerContext(
                 ClassUtil.newInstance(specProviderClass).get(),

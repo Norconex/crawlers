@@ -54,6 +54,11 @@ public class MockFailingGrid implements Grid {
     }
 
     @Override
+    public void stop() {
+        // NOOP
+    }
+
+    @Override
     public String getGridName() {
         return "some-grid";
     }

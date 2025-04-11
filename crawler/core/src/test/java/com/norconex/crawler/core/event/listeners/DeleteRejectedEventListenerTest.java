@@ -52,7 +52,6 @@ class DeleteRejectedEventListenerTest {
                           class: Reject
             """
     )
-
     void testDeleteRejectedEventListener(
             CrawlerContext crawlerContext, MemoryCommitter mem) {
 

@@ -19,9 +19,6 @@ import static java.lang.String.join;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -32,7 +29,6 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Java;
 import org.apache.tools.ant.types.Environment;
 
-import com.norconex.committer.core.Committer;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.SystemUtil;
@@ -41,11 +37,11 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.web.WebCrawler;
+import com.norconex.crawler.web.WebTestUtil;
 
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -53,8 +49,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ExternalCrawlSessionLauncher {
-
-    private static final String COMMITER_DIR = "external-test";
 
     public static CrawlOutcome start(CrawlerConfig crawlerConfig) {
         return launch(crawlerConfig, "start");
@@ -68,17 +62,21 @@ public class ExternalCrawlSessionLauncher {
         return launch(crawlerConfig, "clean");
     }
 
+    public static CrawlOutcome stop(CrawlerConfig crawlerConfig) {
+        return launch(crawlerConfig, "stop");
+    }
+
     public static CrawlOutcome launch(
             CrawlerConfig crawlerConfig,
             String action,
             String... extraArgs) {
-        ZonedDateTime.now();
         var executionId = UUID.randomUUID().toString();
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
                 () -> doLaunch(crawlerConfig, action, executionId, extraArgs));
         var outcome = new CrawlOutcome(captured);
         var c = new TestCommitter(
-                crawlerConfig.getWorkDir().resolve(COMMITER_DIR));
+                crawlerConfig.getWorkDir()
+                        .resolve(WebTestUtil.TEST_COMMITER_DIR));
         c.fillMemoryCommitters(outcome, executionId);
         try {
             c.close();
@@ -95,7 +93,7 @@ public class ExternalCrawlSessionLauncher {
             String... extraArgs) {
 
         if ("start".equalsIgnoreCase(action)) {
-            addTestCommitterOnce(crawlerConfig);
+            WebTestUtil.addTestCommitterOnce(crawlerConfig);
         }
 
         // Save session config to file so it can be used from command-line
@@ -156,19 +154,19 @@ public class ExternalCrawlSessionLauncher {
         return retValue;
     }
 
-    // Add a file-based committer to first crawler if none is present
-    @SneakyThrows
-    private static void addTestCommitterOnce(CrawlerConfig cfg) {
-        if (cfg.getCommitters().isEmpty() || cfg.getCommitters()
-                .stream().noneMatch(c -> c instanceof TestCommitter)) {
-            var committer = new TestCommitter(
-                    cfg.getWorkDir().resolve(COMMITER_DIR));
-            committer.init(null);
-            List<Committer> committers = new ArrayList<>(cfg.getCommitters());
-            committers.add(committer);
-            cfg.setCommitters(committers);
-        }
-    }
+    //    // Add a file-based committer to first crawler if none is present
+    //    @SneakyThrows
+    //    private static void addTestCommitterOnce(CrawlerConfig cfg) {
+    //        if (cfg.getCommitters().isEmpty() || cfg.getCommitters()
+    //                .stream().noneMatch(TestCommitter.class::isInstance)) {
+    //            var committer = new TestCommitter(
+    //                    cfg.getWorkDir().resolve(COMMITER_DIR));
+    //            committer.init(null);
+    //            List<Committer> committers = new ArrayList<>(cfg.getCommitters());
+    //            committers.add(committer);
+    //            cfg.setCommitters(committers);
+    //        }
+    //    }
 
     @Data
     @Setter(value = AccessLevel.NONE)

@@ -43,15 +43,20 @@ class FileFetcherProviderTest {
         var crawlerCfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
         var p = new FileFetcherProvider();
 
-        var ctx = new MockFsCrawlerBuilder(tempDir)
+        new MockFsCrawlerBuilder(tempDir)
                 .config(crawlerCfg)
-                .crawlerContext();
+                .withCrawlerContext(ctx -> {
+                    assertThat(p.apply(ctx).getFetchers())
+                            // default fetcher
+                            .containsExactly(new LocalFetcher());
+                    crawlerCfg.setFetchers(
+                            List.of(new HdfsFetcher(), new SmbFetcher()));
+                    assertThat(p.apply(ctx).getFetchers())
+                            .containsExactly(new HdfsFetcher(),
+                                    new SmbFetcher());
+                    return null;
+                });
 
-        assertThat(p.apply(ctx).getFetchers())
-                .containsExactly(new LocalFetcher()); // default fetcher
-        crawlerCfg.setFetchers(List.of(new HdfsFetcher(), new SmbFetcher()));
-        assertThat(p.apply(ctx).getFetchers())
-                .containsExactly(new HdfsFetcher(), new SmbFetcher());
     }
 
     @Test
@@ -69,14 +74,14 @@ class FileFetcherProviderTest {
         crawlerCfg.setFetchers(List.of(fetcher));
 
         var p = new FileFetcherProvider();
-        try (var ctx = new MockFsCrawlerBuilder(tempDir)
+        new MockFsCrawlerBuilder(tempDir)
                 .config(crawlerCfg)
-                .crawlerContext()) {
-            var multiFetcher = p.apply(ctx);
-            ctx.init();
-            var response = multiFetcher.fetch(request);
-            assertThat(response.getException()).isNotNull();
-        }
+                .withInitializedCrawlerContext(crawlCtx -> {
+                    var multiFetcher = p.apply(crawlCtx);
+                    var response = multiFetcher.fetch(request);
+                    assertThat(response.getException()).isNotNull();
+                    return null;
+                });
     }
 
 }

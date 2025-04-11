@@ -21,7 +21,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
@@ -48,7 +48,7 @@ class ProcessFinalizeTest {
         // no doc set and no status set: one should be created and bad status
         ctx.finalized(false);
         ctx.crawlerContext(crawlerContext);
-        ctx.docContext(new CrawlDocLedgerEntry("ref"));
+        ctx.docContext(new CrawlDocContext("ref"));
 
         ProcessFinalize.execute(ctx);
         assertThat(ctx.doc()).isNotNull();
@@ -60,7 +60,7 @@ class ProcessFinalizeTest {
         ctx.doc(
                 new CrawlDoc(
                         doc.getDocContext(),
-                        new CrawlDocLedgerEntry(doc.getDocContext()),
+                        new CrawlDocContext(doc.getDocContext()),
                         doc.getInputStream()));
 
         ctx.finalized(false);

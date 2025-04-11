@@ -17,7 +17,7 @@ package com.norconex.crawler.core.doc.pipelines.queue.stages;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
@@ -26,7 +26,8 @@ class QueueReferenceStageTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
     void testQueueReferenceStage(CrawlerContext ctx) {
-        var docRecord = new CrawlDocLedgerEntry("ref");
+
+        var docRecord = new CrawlDocContext("ref");
         var stage = new QueueReferenceStage();
 
         var ctx1 = new QueuePipelineContext(ctx, docRecord);
@@ -37,7 +38,7 @@ class QueueReferenceStageTest {
         assertThat(stage.test(ctx2)).isTrue();
 
         // a null reference should not fail
-        var ctx3 = new QueuePipelineContext(ctx, new CrawlDocLedgerEntry());
+        var ctx3 = new QueuePipelineContext(ctx, new CrawlDocContext());
         assertThat(stage.test(ctx3)).isTrue();
     }
 }

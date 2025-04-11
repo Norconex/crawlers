@@ -28,4 +28,9 @@ public class MockFailingGridConnector implements GridConnector {
     public Grid connect(Path workDir) {
         return new MockFailingGrid();
     }
+
+    @Override
+    public void requestStop(Path workDir) {
+        // NOOP
+    }
 }

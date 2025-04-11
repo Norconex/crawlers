@@ -97,4 +97,11 @@ public class JdbcGridConnector
         ifNotBlank(configuration.getBigIntType(), adapter::bigIntType);
         return adapter;
     }
+
+    @Override
+    public void requestStop(Path workDir) {
+        try (var grid = connect(workDir)) {
+            grid.stop();
+        }
+    }
 }

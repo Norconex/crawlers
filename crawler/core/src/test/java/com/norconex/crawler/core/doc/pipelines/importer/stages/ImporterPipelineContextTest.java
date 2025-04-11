@@ -18,27 +18,23 @@ import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ImporterPipelineContextTest {
 
-    @Test
-    void testImporterPipelineContext(@TempDir Path tempDir) {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testImporterPipelineContext(CrawlerContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
-        var ctx = new ImporterPipelineContext(crawlerContext, doc);
+        var ctx = new ImporterPipelineContext(crawlCtx, doc);
 
         // metadata: disabled; document: enabled
-        crawlerContext.getConfiguration().setMetadataFetchSupport(
+        crawlCtx.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.DISABLED);
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isFalse();
@@ -46,7 +42,7 @@ class ImporterPipelineContextTest {
         assertThat(ctx.isFetchDirectiveEnabled(DOCUMENT)).isTrue();
 
         // metadata: enabled; document: enabled
-        crawlerContext.getConfiguration().setMetadataFetchSupport(
+        crawlCtx.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isTrue();

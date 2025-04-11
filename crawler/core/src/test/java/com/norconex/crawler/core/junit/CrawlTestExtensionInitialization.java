@@ -27,12 +27,13 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.MapUtil;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.grid.core.GridConnector;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
+import com.norconex.grid.core.GridConnector;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -101,9 +102,8 @@ public class CrawlTestExtensionInitialization
                     .config(crawlerConfig)
                     .specProviderClass(annotation.specProvider())
                     .crawler();
-            var captures = CrawlTestCapturer.capture(crawler, crwl -> {
-                crwl.crawl();
-            });
+            var captures =
+                    CrawlTestCapturer.capture(crawler, Crawler::crawl);
             return new CrawlTestParameters()
                     .setCrawler(crawler)
                     .setCrawlerConfig(crawlerConfig)
@@ -117,7 +117,7 @@ public class CrawlTestExtensionInitialization
             var ctx = new MockCrawlerBuilder(tempDir)
                     .config(crawlerConfig)
                     .specProviderClass(annotation.specProvider())
-                    .crawlerContext();
+                    .opendedCrawlerContext();
 
             ctx.init();
             ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN); // simulate

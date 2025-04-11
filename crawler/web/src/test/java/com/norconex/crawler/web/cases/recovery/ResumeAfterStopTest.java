@@ -17,15 +17,22 @@ package com.norconex.crawler.web.cases.recovery;
 import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
+import com.norconex.commons.lang.Sleeper;
+import com.norconex.crawler.web.WebCrawler;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
@@ -38,65 +45,73 @@ import lombok.extern.slf4j.Slf4j;
  */
 @MockServerSettings
 @Slf4j
-@Disabled("Need refactor to work with new grid.")
 class ResumeAfterStopTest {
 
+    private static final int MAX_DOCS = 25;
+
     @Test
-    void testResumeAfterStop(ClientAndServer client, @TempDir Path tempDir) {
+    void testResumeAfterStop(ClientAndServer client, @TempDir Path tempDir)
+            throws IOException, InterruptedException, ExecutionException,
+            TimeoutException {
         var path = "/resumeAfterStop";
 
         MockWebsite.whenInfiniteDepth(client);
 
-        //        var stopper = new CrawlSessionStopper();
-
-        var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+        //--- Configure ---
+        var crawlerDir = tempDir.resolve("crawler");
+        var cfg = CrawlerConfigStubs.memoryCrawlerConfig(crawlerDir);
         cfg.setStartReferences(List.of(serverUrl(client, path + "/0000")));
-        cfg.setWorkDir(tempDir);
+        cfg.setWorkDir(crawlerDir);
         cfg.setNumThreads(1);
         cfg.setMaxDepth(-1);
-        cfg.setMaxDocuments(10);
+        cfg.setMaxDocuments(MAX_DOCS);
+        cfg.setDelayResolver(WebTestUtil.delayResolver(1000));
         cfg.setMetadataChecksummer(null);
         cfg.setDocumentChecksummer(null);
+        WebTestUtil.addTestCommitterOnce(cfg);
 
-        // First run should stop with 7 commits only (0-6)
-        //        cfg.addEventListener(stopper);
-        var outcome = ExternalCrawlSessionLauncher.start(cfg);
-        LOG.debug(outcome.getStdErr());
-        LOG.debug(outcome.getStdOut());
-        assertThat(outcome.getReturnValue()).isZero();
-        assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(7);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).isEqualTo(
-                        MockWebsite.serverUrl(client, path + "/0006"));
+        var executor = Executors.newFixedThreadPool(2);
 
-        // Second run, it should resume and finish normally, crawling
-        // 10 docs in this session.
-        //   cfg.removeEventListener(stopper);
-        outcome = ExternalCrawlSessionLauncher.start(cfg);
-        LOG.debug(outcome.getStdErr());
-        LOG.debug(outcome.getStdOut());
-        assertThat(outcome.getReturnValue()).isZero();
-        assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(10);
-        assertThat(outcome.getCommitterCombininedLaunches()
-                .getUpsertCount()).isEqualTo(17);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).isEqualTo(
-                        MockWebsite.serverUrl(client, path + "/0016"));
+        //--- Launch ---
+        LOG.debug("Launching crawler in its own thread...");
+        var futureCrawlOutcome =
+                executor.submit(() -> ExternalCrawlSessionLauncher.start(cfg));
+        LOG.debug("Crawler launched...");
 
-        // Recrawl fresh without crash. Since we do not check for duplicates,
-        // it should find 10 "new", added to previous 10.
-        outcome = ExternalCrawlSessionLauncher.start(cfg);
-        LOG.debug(outcome.getStdErr());
-        LOG.debug(outcome.getStdOut());
-        assertThat(outcome.getReturnValue()).isZero();
-        assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(10);
-        assertThat(outcome.getCommitterCombininedLaunches()
-                .getUpsertCount()).isEqualTo(27);
+        // wait until a few docs (3) are crawled
+        while (WebTestUtil.getTestCommitter(cfg) == null
+                || Files.list(WebTestUtil.getTestCommitter(cfg).getDir())
+                        .count() < 2) {
+            Sleeper.sleepMillis(500);
+        }
+
+        //--- Stop ---
+        LOG.debug("Launching stop command...");
+        // Doing it in the main thread since running it externally like
+        // above is synchronized.
+        WebCrawler.create(cfg).stop();
+        LOG.debug("Stop command launched...");
+
+        var crawlOutcome = futureCrawlOutcome.get(20, TimeUnit.SECONDS);
+        var docCount = crawlOutcome.getCommitterAfterLaunch().getRequestCount();
+        assertThat(docCount).isBetween(3, MAX_DOCS - 2);
+
+        //--- Resume ---
+        var finalCountExpecation = MAX_DOCS + docCount;
+
+        cfg.setDelayResolver(WebTestUtil.delayResolver(0));
+        var finalOutcome = ExternalCrawlSessionLauncher.start(cfg);
+        LOG.debug(finalOutcome.getStdErr());
+        LOG.debug(finalOutcome.getStdOut());
+        assertThat(finalOutcome.getReturnValue()).isZero();
+        assertThat(finalOutcome.getCommitterAfterLaunch()
+                .getUpsertCount()).isEqualTo(MAX_DOCS);
+        assertThat(finalOutcome.getCommitterCombininedLaunches()
+                .getUpsertCount()).isEqualTo(finalCountExpecation);
         assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).isEqualTo(
-                        MockWebsite.serverUrl(client, path + "/0026"));
+                finalOutcome.getCommitterAfterLaunch())).isEqualTo(
+                        MockWebsite.serverUrl(client,
+                                path + "/00" + (finalCountExpecation - 1)));
+
     }
 }

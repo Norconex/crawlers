@@ -37,7 +37,7 @@ import com.norconex.crawler.core.stubs.CrawlDocStubs;
 class MetadataDedupStageTest {
 
     @Mock
-    private CrawlerContext crawler;
+    private CrawlerContext crawlerCtx;
     @Mock
     private DedupService dedupService;
 
@@ -45,17 +45,17 @@ class MetadataDedupStageTest {
     void testMetadataDedupStage() {
         when(dedupService.findOrTrackMetadata(Mockito.any()))
                 .thenReturn(Optional.of("someRef"));
-        when(crawler.getDedupService()).thenReturn(dedupService);
+        when(crawlerCtx.getDedupService()).thenReturn(dedupService);
 
         var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
-        when(crawler.getConfiguration()).thenReturn(cfg);
+        when(crawlerCtx.getConfiguration()).thenReturn(cfg);
 
         var doc = CrawlDocStubs.crawlDoc("ref", "content");
         doc.getDocContext().setMetaChecksum("somechecksum");
 
         // Has duplicate meta
-        var ctx = new ImporterPipelineContext(crawler, doc);
+        var ctx = new ImporterPipelineContext(crawlerCtx, doc);
         doc.getDocContext().setState(CrawlDocStatus.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getDocContext().getState()).isSameAs(

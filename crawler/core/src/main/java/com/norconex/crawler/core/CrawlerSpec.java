@@ -22,7 +22,7 @@ import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrappers;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.DocLedgerBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
@@ -50,11 +50,11 @@ public class CrawlerSpec {
     private EventManager eventManager = new EventManager();
 
     /**
-     * The exact type of {@link CrawlDocLedgerEntry} if your crawler is subclassing
-     * it. Defaults to {@link CrawlDocLedgerEntry} class.
+     * The exact type of {@link CrawlDocContext} if your crawler is subclassing
+     * it. Defaults to {@link CrawlDocContext} class.
      */
-    private Class<? extends CrawlDocLedgerEntry> docContextType =
-            CrawlDocLedgerEntry.class;
+    private Class<? extends CrawlDocContext> docContextType =
+            CrawlDocContext.class;
 
     /**
      * Provides a required fetcher implementation, responsible for obtaining

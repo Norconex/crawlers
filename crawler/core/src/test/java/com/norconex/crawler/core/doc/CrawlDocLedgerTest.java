@@ -46,36 +46,37 @@ class CrawlDocLedgerTest {
     @ParameterizedGridConnectorTest
     void testPersistence(Class<? extends GridConnector> connClass) {
 
-        var ctx1 = new MockCrawlerBuilder(tempDir)
+        new MockCrawlerBuilder(tempDir)
                 .configModifier(cfg -> cfg
                         .setGridConnector(ClassUtil.newInstance(connClass)))
-                .crawlerContext();
-        ctx1.init();
-        var ledger1 = ctx1.getDocProcessingLedger();
-        ledger1.queue(new CrawlDocLedgerEntry("ref:queue1"));
-        ledger1.queue(new CrawlDocLedgerEntry("ref:queue2"));
-        ledger1.processed(new CrawlDocLedgerEntry("ref:processed1"));
-        ledger1.processed(new CrawlDocLedgerEntry("ref:processed2"));
-        ledger1.processed(new CrawlDocLedgerEntry("ref:processed3"));
-        ctx1.close();
-        ctx1.getGrid().close();
-
-        // GridTestUtil.waitForGridShutdown();
+                .withInitializedCrawlerContext(ctx -> {
+                    var ledger1 = ctx.getDocProcessingLedger();
+                    ledger1.queue(new CrawlDocContext("ref:queue1"));
+                    ledger1.queue(new CrawlDocContext("ref:queue2"));
+                    ledger1.processed(
+                            new CrawlDocContext("ref:processed1"));
+                    ledger1.processed(
+                            new CrawlDocContext("ref:processed2"));
+                    ledger1.processed(
+                            new CrawlDocContext("ref:processed3"));
+                    ctx.close();
+                    ctx.getGrid().close();
+                    return null;
+                });
 
         // simulate resume
 
-        var ctx2 = new MockCrawlerBuilder(tempDir)
-                .configModifier(
-                        cfg -> cfg.setGridConnector(
-                                ClassUtil.newInstance(connClass)))
-                .crawlerContext();
-        ctx2.init();
-        var ledger2 = ctx2.getDocProcessingLedger();
-        assertThat(ledger2.getQueueCount()).isEqualTo(2);
-        assertThat(ledger2.getProcessedCount()).isEqualTo(3);
+        new MockCrawlerBuilder(tempDir)
+                .configModifier(cfg -> cfg
+                        .setGridConnector(ClassUtil.newInstance(connClass)))
+                .withInitializedCrawlerContext(ctx -> {
+                    var ledger2 = ctx.getDocProcessingLedger();
+                    assertThat(ledger2.getQueueCount()).isEqualTo(2);
+                    assertThat(ledger2.getProcessedCount()).isEqualTo(3);
 
-        ctx2.close();
-        ctx1.getGrid().close();
-        // GridTestUtil.waitForGridShutdown();
+                    ctx.close();
+                    ctx.getGrid().close();
+                    return null;
+                });
     }
 }

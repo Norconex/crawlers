@@ -16,35 +16,32 @@ package com.norconex.crawler.core.doc.pipelines.importer.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Path;
 import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericMetadataFilter;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class MetadataFiltersStageTest {
 
-    @Test
-    void testMetadataFiltersStage(@TempDir Path tempDir) {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testMetadataFiltersStage(CrawlerContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
-        crawlerContext.getConfiguration().setMetadataFetchSupport(
+        crawlCtx.getConfiguration().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 
         // Filter not matching
-        crawlerContext
+        crawlCtx
                 .getConfiguration()
                 .setMetadataFilters(List.of(Configurable.configure(
                         new GenericMetadataFilter(),
@@ -52,14 +49,14 @@ class MetadataFiltersStageTest {
                                 .setFieldMatcher(TextMatcher.basic("blah"))
                                 .setValueMatcher(TextMatcher.basic("blah"))
                                 .setOnMatch(OnMatch.EXCLUDE))));
-        var ctx = new ImporterPipelineContext(crawlerContext, doc);
+        var ctx = new ImporterPipelineContext(crawlCtx, doc);
         doc.getDocContext().setState(CrawlDocStatus.NEW);
         new MetadataFiltersStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getDocContext().getState())
                 .isSameAs(CrawlDocStatus.NEW);
 
         // Filter matching
-        crawlerContext
+        crawlCtx
                 .getConfiguration()
                 .setMetadataFilters(List.of(Configurable.configure(
                         new GenericMetadataFilter(),
@@ -67,7 +64,7 @@ class MetadataFiltersStageTest {
                                 .setFieldMatcher(TextMatcher.basic("myfield"))
                                 .setValueMatcher(TextMatcher.basic("somevalue"))
                                 .setOnMatch(OnMatch.EXCLUDE))));
-        ctx = new ImporterPipelineContext(crawlerContext, doc);
+        ctx = new ImporterPipelineContext(crawlCtx, doc);
         doc.getDocContext().setState(CrawlDocStatus.NEW);
         new MetadataFiltersStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getDocContext().getState()).isSameAs(

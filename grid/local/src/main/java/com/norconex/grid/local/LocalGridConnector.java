@@ -38,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 public class LocalGridConnector
         implements GridConnector, Configurable<LocalGridConnectorConfig> {
 
+    private static final String STORE_DIR_NAME = "localStore";
+
     @Getter
     private final LocalGridConnectorConfig configuration =
             new LocalGridConnectorConfig();
@@ -83,7 +85,7 @@ public class LocalGridConnector
         if (configuration.isEphemeral()) {
             builder.fileName(null);
         } else {
-            storeDir = workDir.resolve("localstore");
+            storeDir = workDir.resolve(STORE_DIR_NAME);
             try {
                 FileUtils.forceMkdir(storeDir.toFile());
             } catch (IOException e) {
@@ -99,11 +101,22 @@ public class LocalGridConnector
             mvstore = builder.open();
         } catch (MVStoreException e) {
             LOG.warn("""
-                An exception occurred while trying to open the store engine.\s\
-                This could happen due to an abnormal shutdown on a previous\s\
-                execution of the crawler. An attempt will be made to recover.\s\
-                It is advised to back-up the store engine if you want to\s\
-                preserve the crawl history.""",
+                An exception occurred while trying to open the store engine.
+
+                The message is:
+
+                   %s
+
+                It is likely that:
+
+                1. There is another process using it, which is not supported
+                   when using the "local grid" implementation.
+
+                2. Could happen due to an abnormal shutdown on a previous
+                   execution of the crawler. An attempt will be made to recover.
+                   It is advised to back-up the store engine if you want to
+                   preserve the crawl history.
+                """.formatted(e.getLocalizedMessage()),
                     e);
             builder.recoveryMode();
             mvstore = builder.open();
@@ -118,6 +131,11 @@ public class LocalGridConnector
         mvstore.commit();
 
         return new LocalGrid(mvstore);
+    }
+
+    @Override
+    public void requestStop(Path workDir) {
+        LocalGridStopHandler.requestStop(workDir.resolve(STORE_DIR_NAME));
     }
 
     private Integer asInt(Long l) {

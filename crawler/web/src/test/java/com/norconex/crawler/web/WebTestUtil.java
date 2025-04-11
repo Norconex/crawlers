@@ -26,8 +26,11 @@ import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -54,6 +57,7 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.CircularRange;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.Crawler;
@@ -62,12 +66,10 @@ import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
-import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.core.storage.GridMap;
+import com.norconex.crawler.web.cases.recovery.TestCommitter;
 import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
-import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
+import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolver;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.DomLinkExtractor;
@@ -81,15 +83,20 @@ import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig.CookieSpec;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.storage.GridMap;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 
 public final class WebTestUtil {
 
     public static final String TEST_CRAWLER_ID = "test-crawler";
     public static final String TEST_CRAWL_SESSION_ID = "test-session";
+    public static final String TEST_COMMITER_DIR = "committer-test";
 
     public static final EasyRandom RANDOMIZER =
             new EasyRandom(new EasyRandomParameters()
@@ -222,6 +229,57 @@ public final class WebTestUtil {
                 .get(0);
     }
 
+    /**
+     * Gets the first {@link MemoryCommitter} encountered from all registered
+     * committers, or null if there are none.
+     * @param config crawler config
+     * @return Memory committer
+     */
+    public static MemoryCommitter memoryCommitter(
+            @NonNull CrawlerConfig config) {
+        return (MemoryCommitter) config
+                .getCommitters()
+                .stream()
+                .filter(MemoryCommitter.class::isInstance)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Gets the first {@link TestCommitter} encountered from all registered
+     * committers, or null if there are none.
+     * @param config crawler config
+     * @return Test committer
+     */
+    public static TestCommitter
+            getTestCommitter(@NonNull CrawlerConfig config) {
+        return (TestCommitter) config
+                .getCommitters()
+                .stream()
+                .filter(TestCommitter.class::isInstance)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Adds a new {@link TestCommitter} to a configuration if none already
+     * exist. Calling this method on the same config more than once has no
+     * effect.
+     * @param cfg crawler config
+     */
+    @SneakyThrows
+    public static void addTestCommitterOnce(@NonNull CrawlerConfig cfg) {
+        if (cfg.getCommitters().isEmpty() || cfg.getCommitters()
+                .stream().noneMatch(TestCommitter.class::isInstance)) {
+            var committer = new TestCommitter(
+                    cfg.getWorkDir().resolve(TEST_COMMITER_DIR));
+            committer.init(null);
+            List<Committer> committers = new ArrayList<>(cfg.getCommitters());
+            committers.add(committer);
+            cfg.setCommitters(committers);
+        }
+    }
+
     public static HttpClientFetcher firstHttpFetcher(
             @NonNull Crawler crawler) {
         return (HttpClientFetcher) crawler
@@ -287,6 +345,11 @@ public final class WebTestUtil {
                 .setRobotsTxtProvider(null)
                 .setSitemapLocator(null)
                 .setSitemapResolver(null);
+    }
+
+    public static DelayResolver delayResolver(long ms) {
+        return Configurable.configure(new GenericDelayResolver(),
+                c -> c.setDefaultDelay(Duration.ofMillis(ms)));
     }
 
     public static ZonedDateTime daysAgo(int days) {

@@ -19,27 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ImportModuleStageTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testImportModuleStage() throws IOException {
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testImportModuleStage(CrawlerContext crawlCtx) throws IOException {
         var doc = CrawlDocStubs.crawlDoc("ref", "tomato");
-        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
-        crawlerContext.getConfiguration().getImporterConfig().setHandlers(
+        crawlCtx.getConfiguration().getImporterConfig().setHandlers(
                 List.of(hctx -> {
                     try {
                         hctx.output().asWriter().write("potato");
@@ -48,8 +43,7 @@ class ImportModuleStageTest {
                     }
                     return true;
                 }));
-        //TODO do we need to execute?  crawlerContext.crawl();
-        var ctx = new ImporterPipelineContext(crawlerContext, doc);
+        var ctx = new ImporterPipelineContext(crawlCtx, doc);
         var stage = new ImportModuleStage();
         stage.test(ctx);
 

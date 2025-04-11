@@ -16,7 +16,7 @@ package com.norconex.crawler.fs.doc;
 
 import java.io.File;
 
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.importer.doc.DocContext;
 
 import lombok.Data;
@@ -26,7 +26,7 @@ import lombok.NonNull;
  * A path being crawled holding relevant crawl information.
  */
 @Data
-public class FsCrawlDocContext extends CrawlDocLedgerEntry {
+public class FsCrawlDocContext extends CrawlDocContext {
 
     private static final long serialVersionUID = 1L;
 

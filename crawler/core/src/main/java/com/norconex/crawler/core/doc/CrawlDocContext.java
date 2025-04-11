@@ -29,9 +29,10 @@ import lombok.Setter;
 /**
  * Holds minimal meta information and state necessary to the proper
  * (re)processing of a document in the context of a crawl.
+ * Also persisted in grid storage as a {@link CrawlDocLedger} entry.
  */
 @EqualsAndHashCode
-public class CrawlDocLedgerEntry extends DocContext {
+public class CrawlDocContext extends DocContext {
     private static final long serialVersionUID = 1L;
 
     // for crawlers that support this notion
@@ -61,10 +62,10 @@ public class CrawlDocLedgerEntry extends DocContext {
     @Getter
     private boolean deleted;
 
-    public CrawlDocLedgerEntry() {
+    public CrawlDocContext() {
     }
 
-    public CrawlDocLedgerEntry(String reference) {
+    public CrawlDocContext(String reference) {
         super(reference);
     }
 
@@ -72,11 +73,11 @@ public class CrawlDocLedgerEntry extends DocContext {
      * Copy constructor.
      * @param docDetails document details to copy
      */
-    public CrawlDocLedgerEntry(DocContext docDetails) {
+    public CrawlDocContext(DocContext docDetails) {
         super(docDetails);
     }
 
-    public CrawlDocLedgerEntry withReference(String reference) {
+    public CrawlDocContext withReference(String reference) {
         var docInfo = BeanUtil.clone(this);
         docInfo.setReference(reference);
         return docInfo;

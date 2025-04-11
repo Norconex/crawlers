@@ -17,12 +17,10 @@ package com.norconex.crawler.core.fetch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
@@ -30,14 +28,12 @@ import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 
 class AbstractFetcherTest {
-
-    @TempDir
-    private Path tempDir;
 
     @Test
     void testAbstractFetcher() {
@@ -53,9 +49,8 @@ class AbstractFetcherTest {
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();
     }
 
-    @Test
-    void testEvents() {
-        var crawlerContext = new MockCrawlerBuilder(tempDir).crawlerContext();
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testEvents(CrawlerContext crawlCtx) {
         List<String> methodsCalled = new ArrayList<>();
         var f = new MockFetcher() {
             @Override
@@ -80,20 +75,20 @@ class AbstractFetcherTest {
         };
         f.accept(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)
-                .source(crawlerContext)
+                .source(crawlCtx)
                 .build());
         f.accept(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)
-                .source(crawlerContext)
+                .source(crawlCtx)
                 .build());
         f.accept(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
-                .source(crawlerContext)
+                .source(crawlCtx)
                 .subject(Thread.currentThread())
                 .build());
         f.accept(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
-                .source(crawlerContext)
+                .source(crawlCtx)
                 .subject(Thread.currentThread())
                 .build());
         assertThat(methodsCalled).containsExactly(

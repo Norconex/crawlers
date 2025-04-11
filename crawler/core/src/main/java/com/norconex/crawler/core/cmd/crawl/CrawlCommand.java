@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CrawlCommand implements Command {
 
+    public static final String KEY_CRAWL_PIPELINE = "crawlPipeline";
     private static final String PROGRESS_LOGGER_KEY = "progressLogger";
 
     @Override
@@ -38,7 +39,7 @@ public class CrawlCommand implements Command {
         var completed = Boolean.TRUE.equals(ConcurrentUtil.get(ctx
                 .getGrid()
                 .pipeline()
-                .run(CrawlerContext.KEY_CRAWL_PIPELINE,
+                .run(KEY_CRAWL_PIPELINE,
                         CrawlPipelineStages.create(),
                         ctx)));
 

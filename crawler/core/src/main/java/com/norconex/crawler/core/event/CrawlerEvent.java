@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.doc.CrawlDocLedgerEntry;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -186,7 +186,7 @@ public class CrawlerEvent extends Event {
      * crawled reference.  CRAWLER_* events will return a <code>null</code>
      * crawl data.
      */
-    private final CrawlDocLedgerEntry docContext;
+    private final CrawlDocContext docContext;
     private final Object subject;
     //TODO keep a reference to actual document?
 

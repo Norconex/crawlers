@@ -22,7 +22,6 @@ import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.clean.CleanCommand;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
-import com.norconex.crawler.core.cmd.stop.StopCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core.util.ConfigUtil;
@@ -55,6 +54,8 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @Getter
 public class Crawler {
+
+    private static final String GRID_WORKDIR_NAME = "grid";
 
     private final Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass;
     private final CrawlerConfig crawlerConfig;
@@ -90,7 +91,11 @@ public class Crawler {
     }
 
     public void stop() {
-        executeCommand(new StopCommand());
+        // Since we are stopping we are not initializing
+        // the context and not formally connecting to the grid
+        var gridWorkDir = ConfigUtil
+                .resolveWorkDir(crawlerConfig).resolve(GRID_WORKDIR_NAME);
+        crawlerConfig.getGridConnector().requestStop(gridWorkDir);
     }
 
     public void storageExport(Path dir, boolean pretty) {
@@ -116,7 +121,7 @@ public class Crawler {
         var spec = ClassUtil.newInstance(crawlerSpecProviderClass).get();
         try (var grid = crawlerConfig
                 .getGridConnector()
-                .connect(workDir.resolve("grid"))) {
+                .connect(workDir.resolve(GRID_WORKDIR_NAME))) {
             // grid auto closes
             try (var ctx = new CrawlerContext(spec, crawlerConfig, grid)) {
                 ctx.init();

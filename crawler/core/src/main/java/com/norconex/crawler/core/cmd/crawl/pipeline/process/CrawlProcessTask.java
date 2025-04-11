@@ -150,7 +150,8 @@ public class CrawlProcessTask
         } catch (Exception e) {
             if (handleExceptionAndCheckIfStopCrawler(crawlCtx, docProcessCtx,
                     e)) {
-                crawlCtx.stopCrawlerCommand();
+                crawlCtx.getGrid().stop();
+                //                crawlCtx.stopCrawlerCommand();
                 return false;
             }
         } finally {

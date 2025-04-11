@@ -31,12 +31,12 @@ class CrawlerConfigTest {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper
                         .builder()
-                        //                        .polymorphicTypeImpl(
-                        //                                Grid.class,
-                        //                                List.of(MockFailingGrid.class))
-                        //                        .polymorphicTypeImpl(
-                        //                                GridConnector.class,
-                        //                                List.of(MockFailingGridConnector.class))
+                        // .polymorphicTypeImpl(
+                        //         Grid.class,
+                        //         List.of(MockFailingGrid.class))
+                        // .polymorphicTypeImpl(
+                        //         GridConnector.class,
+                        //         List.of(MockFailingGridConnector.class))
                         .build().assertWriteRead(
                                 StubCrawlerConfig
                                         .randomMemoryCrawlerConfig(tempDir)));
