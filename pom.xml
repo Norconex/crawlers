@@ -208,6 +208,11 @@
         <artifactId>nx-grid-local</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.norconex.crawler</groupId>
+        <artifactId>nx-grid-local</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
       <!-- Jackson dependencies -->
 
