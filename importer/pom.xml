@@ -47,20 +47,19 @@
   <inceptionYear>2009</inceptionYear>
 
   <repositories>
-    
     <!-- The following repo is required for jai-imageio-jpeg2000 support. -->
-<!--    <repository>
+<!--
+    <repository>
       <id>apache.snapshots</id>
-      <url>http://repository.mygrid.org.uk/artifactory/mygrid-all/</url>-->
-      <!-- url>http://repository.apache.org/snapshots/</url -->
-<!--    </repository>-->
-
+      <url>http://repository.mygrid.org.uk/artifactory/mygrid-all/</url>
+    </repository>
+-->
     <!-- The following repo is required for jj2000 support. -->
-<!--    <repository>
+    <repository>
         <id>unidata-releases</id>
         <name>UNIDATA Releases</name>
-        <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
-    </repository>-->
+        <url>https://repo.osgeo.org/repository/release/</url>
+    </repository>
   </repositories>
 
   <dependencyManagement>
