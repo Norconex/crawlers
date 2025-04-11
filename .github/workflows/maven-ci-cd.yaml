@@ -156,9 +156,14 @@ jobs:
     # Downloaded items won't be downloaded again in this workflow.
     - name: Resolve Maven Dependencies
       run: |
-        mvn dependency:resolve -U \
-        -Dmaven.wagon.rss.buffer.size=2048 \
-        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+        mvn dependency:go-offline -U \
+          -Dmaven.wagon.rss.buffer.size=2048 \
+          -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn    
+#    - name: Resolve Maven Dependencies
+#      run: |
+#        mvn dependency:resolve -U \
+#        -Dmaven.wagon.rss.buffer.size=2048 \
+#        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
     #--- Step ------------------------------------------------------------------
                 
