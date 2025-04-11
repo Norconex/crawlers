@@ -56,11 +56,11 @@
 <!--    </repository>-->
 
     <!-- The following repo is required for jj2000 support. -->
-    <repository>
+<!--    <repository>
         <id>unidata-releases</id>
         <name>UNIDATA Releases</name>
         <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
-    </repository>
+    </repository>-->
   </repositories>
 
   <dependencyManagement>
