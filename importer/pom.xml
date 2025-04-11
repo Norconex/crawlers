@@ -49,11 +49,11 @@
   <repositories>
     
     <!-- The following repo is required for jai-imageio-jpeg2000 support. -->
-    <repository>
+<!--    <repository>
       <id>apache.snapshots</id>
-      <url>http://repository.mygrid.org.uk/artifactory/mygrid-all/</url>
+      <url>http://repository.mygrid.org.uk/artifactory/mygrid-all/</url>-->
       <!-- url>http://repository.apache.org/snapshots/</url -->
-    </repository>
+<!--    </repository>-->
 
     <!-- The following repo is required for jj2000 support. -->
     <repository>
