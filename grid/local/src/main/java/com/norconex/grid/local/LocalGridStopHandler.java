@@ -17,11 +17,9 @@ package com.norconex.grid.local;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.io.FileUtils;
 
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.GridException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +32,7 @@ class LocalGridStopHandler {
     private final Path stopFile;
     private final LocalGrid grid;
     private boolean stopListening;
+    private Thread listenerThread;
 
     public LocalGridStopHandler(LocalGrid grid) {
         this.grid = grid;
@@ -45,22 +44,42 @@ class LocalGridStopHandler {
         // the past, so we remove it.
         deleteStopFile();
 
-        CompletableFuture.runAsync(() -> {
+        listenerThread = new Thread(() -> {
+            LOG.debug("Stop-Request-Watcher started.");
+            var shouldExit = false;
+            while (!shouldExit && !Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    LOG.debug("Stop-Request-Watcher interrupted during sleep. "
+                            + "Exiting.");
+                    // restore interrupt status
+                    Thread.currentThread().interrupt();
+                    shouldExit = true;
+                }
 
-            while (!stopListening && !grid.isClosed()) {
-                Sleeper.sleepSeconds(3);
-                if (Files.exists(stopFile)) {
+                if (stopListening || grid.isClosed()) {
+                    shouldExit = true;
+                } else if (Files.exists(stopFile)) {
                     LOG.info("Received request to stop.");
                     grid.stop();
                     deleteStopFile();
-                    break;
+                    shouldExit = true;
                 }
             }
-        });
+
+            LOG.debug("Stop-Request-Watcher thread exiting.");
+        }, "Stop-Request-Watcher");
+
+        listenerThread.setDaemon(true);
+        listenerThread.start();
     }
 
     public void stopListening() {
         stopListening = true;
+        if (listenerThread != null && listenerThread.isAlive()) {
+            listenerThread.interrupt();
+        }
     }
 
     public static void requestStop(Path storageDir) {

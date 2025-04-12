@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.Sleeper;
@@ -57,6 +58,7 @@ class LocalPipelineTest {
     }
 
     @Test
+    @Timeout(60)
     void testRunSuccess() {
         var sc = new StageCreator();
         List<GridPipelineStage<Context>> stages = List.of(
@@ -100,6 +102,7 @@ class LocalPipelineTest {
     }
 
     @Test
+    @Timeout(60)
     void testRunFailureAndOnlyIfAndAlways() {
         var sc = new StageCreator();
         List<GridPipelineStage<Context>> stages = List.of(
@@ -140,6 +143,7 @@ class LocalPipelineTest {
     }
 
     @Test
+    @Timeout(60)
     void testPipelineStop() {
 
         var frozen = new AtomicBoolean(true);
@@ -167,10 +171,15 @@ class LocalPipelineTest {
         var context = new Context(grid);
         var future = grid.pipeline().run(
                 "test-pipelineD", stages, context);
+        var start = System.currentTimeMillis();
         while (!"stage-1"
                 .equals(grid.pipeline()
                         .getActiveStageName("test-pipelineD")
                         .orElse(null))) {
+            if (System.currentTimeMillis() - start > 10_000) {
+                throw new IllegalStateException(
+                        "Timed out waiting for stage-1 to become active");
+            }
             Sleeper.sleepMillis(100);
         }
         grid.pipeline().stop(null);

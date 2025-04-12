@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.Sleeper;
@@ -57,6 +58,7 @@ class LocalComputeTest {
     }
 
     @Test
+    @Timeout(60)
     void testCanRunMultipleTimes() {
         //NOTE: runOnOne and runOnAll are the same for LocalCompute.
 
@@ -87,6 +89,7 @@ class LocalComputeTest {
     }
 
     @Test
+    @Timeout(60)
     void testCanRunOnlyOnce() {
         //NOTE: runOnOneOnce and runOnAllOnce are the same for LocalCompute.
 
@@ -117,6 +120,7 @@ class LocalComputeTest {
     }
 
     @Test
+    @Timeout(60)
     void testStop() {
         assertThatNoException().isThrownBy(() -> {
 
