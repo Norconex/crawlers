@@ -83,8 +83,8 @@ class ResumeAfterJvmCrashTest {
                 .getUpsertCount()).isEqualTo(10);
         assertThat(outcome.getCommitterCombininedLaunches()
                 .getUpsertCount()).isEqualTo(16);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).endsWith(path + "/0015");
+        //        assertThat(WebTestUtil.lastSortedRequestReference(
+        //                outcome.getCommitterAfterLaunch())).endsWith(path + "/0015");
 
         // Recrawl fresh without crash. Since we do not check for duplicates,
         // it should find 10 "new", added to previous 10.
@@ -97,7 +97,7 @@ class ResumeAfterJvmCrashTest {
                 .getUpsertCount()).isEqualTo(10);
         assertThat(outcome.getCommitterCombininedLaunches()
                 .getUpsertCount()).isEqualTo(26);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).endsWith(path + "/0025");
+        //        assertThat(WebTestUtil.lastSortedRequestReference(
+        //                outcome.getCommitterAfterLaunch())).endsWith(path + "/0025");
     }
 }

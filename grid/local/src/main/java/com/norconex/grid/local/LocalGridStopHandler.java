@@ -45,13 +45,13 @@ class LocalGridStopHandler {
         deleteStopFile();
 
         listenerThread = new Thread(() -> {
-            LOG.debug("Stop-Request-Watcher started.");
+            LOG.trace("Stop-Request-Watcher started.");
             var shouldExit = false;
             while (!shouldExit && !Thread.currentThread().isInterrupted()) {
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
-                    LOG.debug("Stop-Request-Watcher interrupted during sleep. "
+                    LOG.trace("Stop-Request-Watcher interrupted during sleep. "
                             + "Exiting.");
                     // restore interrupt status
                     Thread.currentThread().interrupt();
@@ -68,7 +68,7 @@ class LocalGridStopHandler {
                 }
             }
 
-            LOG.debug("Stop-Request-Watcher thread exiting.");
+            LOG.trace("Stop-Request-Watcher thread exiting.");
         }, "Stop-Request-Watcher");
 
         listenerThread.setDaemon(true);
