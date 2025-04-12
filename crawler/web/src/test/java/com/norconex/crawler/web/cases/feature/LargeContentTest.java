@@ -20,14 +20,18 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
@@ -41,12 +45,21 @@ class LargeContentTest {
     void testLargeContent(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
 
+        Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                .until(client::isRunning);
+
         var minSize = 3 * 1024 * 1024;
         var path = "/largeContent";
 
         whenHtml(client, path, RandomStringUtils.randomAlphanumeric(minSize));
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));
+        var fetcherCfg = ((HttpClientFetcher) cfg.getFetchers().get(0))
+                .getConfiguration();
+        fetcherCfg.setSocketTimeout(Duration.ofSeconds(60))
+                .setConnectionTimeout(Duration.ofSeconds(60))
+                .setConnectionRequestTimeout(Duration.ofSeconds(60));
+
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         var txt = IOUtils.toString(
