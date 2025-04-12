@@ -39,10 +39,12 @@ class CommonAttributesResolverTest {
 
         assertThat(
                 doc.getMetadata().getString(
-                        DocMetaConstants.CONTENT_ENCODING)).isEqualTo("UTF-16LE");
+                        DocMetaConstants.CONTENT_ENCODING))
+                                .isEqualTo("UTF-16LE");
         assertThat(
                 doc.getMetadata().getString(
-                        DocMetaConstants.CONTENT_TYPE)).isEqualTo("application/pdf");
+                        DocMetaConstants.CONTENT_TYPE))
+                                .isEqualTo("application/pdf");
         assertThat(
                 doc.getMetadata().getString(
                         DocMetaConstants.CONTENT_FAMILY)).isEqualTo("pdf");

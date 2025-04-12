@@ -208,11 +208,6 @@
         <artifactId>nx-grid-local</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.norconex.crawler</groupId>
-        <artifactId>nx-grid-local</artifactId>
-        <version>${project.version}</version>
-      </dependency>
 
       <!-- Jackson dependencies -->
 
@@ -793,11 +788,17 @@
           <version>${license-maven-plugin.version}</version>
           <executions>
             <execution>
-              <id>download-licenses</id>
+              <id>aggregate-download-licenses</id>
               <goals>
-                <goal>download-licenses</goal>
+                <goal>aggregate-download-licenses</goal>
               </goals>
-              <phase>generate-resources</phase>
+              <phase>package</phase>
+              <configuration>
+                <connectTimeout>3000</connectTimeout>
+                <connectionRequestTimeout>3000</connectionRequestTimeout>
+                <socketTimeout>3000</socketTimeout>
+                <includeOptional>false</includeOptional>
+              </configuration>
             </execution>
           </executions>
           <inherited>true</inherited>

@@ -70,7 +70,8 @@ class LanguageTransformerTest {
                         factory.newInputStream(sampleTexts.get("en")),
                         meta,
                         ParseState.POST));
-        Assertions.assertNotEquals("en", meta.getString(DocMetaConstants.LANGUAGE));
+        Assertions.assertNotEquals("en",
+                meta.getString(DocMetaConstants.LANGUAGE));
     }
 
     @Test
@@ -85,7 +86,8 @@ class LanguageTransformerTest {
                 meta,
                 ParseState.POST));
         // should use fallback language (en)
-        Assertions.assertEquals("en", meta.getString(DocMetaConstants.LANGUAGE));
+        Assertions.assertEquals("en",
+                meta.getString(DocMetaConstants.LANGUAGE));
     }
 
     @Test
@@ -102,7 +104,8 @@ class LanguageTransformerTest {
                 meta,
                 ParseState.POST));
         // should use fallback language
-        Assertions.assertEquals("it", meta.getString(DocMetaConstants.LANGUAGE));
+        Assertions.assertEquals("it",
+                meta.getString(DocMetaConstants.LANGUAGE));
     }
 
     @Test
@@ -120,7 +123,8 @@ class LanguageTransformerTest {
                             factory.newInputStream(sampleTexts.get(lang)),
                             meta,
                             ParseState.POST));
-            Assertions.assertEquals(lang, meta.getString(DocMetaConstants.LANGUAGE));
+            Assertions.assertEquals(lang,
+                    meta.getString(DocMetaConstants.LANGUAGE));
         }
     }
 
@@ -221,6 +225,7 @@ class LanguageTransformerTest {
                         factory.newInputStream(content),
                         meta,
                         ParseState.POST));
-        Assertions.assertEquals("nl", meta.getString(DocMetaConstants.LANGUAGE));
+        Assertions.assertEquals("nl",
+                meta.getString(DocMetaConstants.LANGUAGE));
     }
 }

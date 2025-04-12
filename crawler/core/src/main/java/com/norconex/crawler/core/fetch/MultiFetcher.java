@@ -117,7 +117,8 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
                 allResponses.add(fetchResponse);
 
                 doc.getMetadata().add(
-                        CrawlDocMetaConstants.FETCHER, fetcher.getClass().getName());
+                        CrawlDocMetaConstants.FETCHER,
+                        fetcher.getClass().getName());
 
                 if (fetchResponse.getResolutionStatus() != null
                         && fetchResponse.getResolutionStatus().isGoodState()) {

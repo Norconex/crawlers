@@ -53,7 +53,8 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
 
-    private static final String CMIS_PREFIX = CrawlDocMetaConstants.PREFIX + "cmis.";
+    private static final String CMIS_PREFIX =
+            CrawlDocMetaConstants.PREFIX + "cmis.";
 
     @Getter
     private final CmisFetcherConfig configuration = new CmisFetcherConfig();

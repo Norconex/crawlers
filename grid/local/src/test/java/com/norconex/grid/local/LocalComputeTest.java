@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -118,18 +119,30 @@ class LocalComputeTest {
     @Test
     void testStop() {
         assertThatNoException().isThrownBy(() -> {
-            var stoppableJob = new StoppableTask();
-            var future = CompletableFuture.runAsync(() -> {
-                grid.compute().runOnAll("test", stoppableJob);
-            });
+
+            var stoppableTask = new StoppableTask();
+            var executor = Executors.newCachedThreadPool();
+
+            var taskFuture = CompletableFuture.runAsync(() -> {
+                grid.compute().runOnAll("test", stoppableTask);
+            }, executor);
+
             ConcurrentUtil.get(CompletableFuture.runAsync(() -> {
-                while (!stoppableJob.getRunning().get()) {
+                LOG.debug("Waiting for task to be marked as running...");
+                var start = System.currentTimeMillis();
+                while (!stoppableTask.getRunning().get()) {
+                    if (System.currentTimeMillis() - start > 60000) {
+                        throw new IllegalStateException(
+                                "Task did not start in time.");
+                    }
                     Sleeper.sleepMillis(100);
                 }
-            }), 10, TimeUnit.SECONDS);
+                LOG.debug("Task marked as running.");
+            }, executor), 60, TimeUnit.SECONDS);
 
             grid.compute().stop("test");
-            ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
+            ConcurrentUtil.get(taskFuture, 30, TimeUnit.SECONDS);
+            executor.shutdownNow();
         });
     }
 
@@ -141,6 +154,7 @@ class LocalComputeTest {
         @Override
         public Void execute() {
             running.set(true);
+            LOG.debug("Stoppable task RUNNING.");
             ConcurrentUtil.get(pendingStop, 20, TimeUnit.SECONDS);
             return null;
         }

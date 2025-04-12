@@ -125,7 +125,8 @@ public class QueueBootstrapper implements Predicate<CrawlerContext> {
     }
 
     private void initializeQueueAsync(
-            Consumer<QueueBootstrapContext> callback, QueueBootstrapContext ctx) {
+            Consumer<QueueBootstrapContext> callback,
+            QueueBootstrapContext ctx) {
         var executor = Executors.newSingleThreadExecutor();
         try {
             executor.submit(() -> {
@@ -147,7 +148,8 @@ public class QueueBootstrapper implements Predicate<CrawlerContext> {
     }
 
     private void initializeQueueSync(
-            Consumer<QueueBootstrapContext> callback, QueueBootstrapContext ctx) {
+            Consumer<QueueBootstrapContext> callback,
+            QueueBootstrapContext ctx) {
         LOG.info("Queuing start references synchronously.");
         callback.accept(ctx);
         ctx.getCrawlerContext().queueInitialized();

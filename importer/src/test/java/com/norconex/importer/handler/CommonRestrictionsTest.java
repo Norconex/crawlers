@@ -125,7 +125,8 @@ class CommonRestrictionsTest {
         var props = new Properties();
         for (String contentType : contentTypes) {
             props.set(DocMetaConstants.CONTENT_TYPE, contentType);
-            if (!restrictions.apply(DocMetaConstants.CONTENT_TYPE).test(props)) {
+            if (!restrictions.apply(DocMetaConstants.CONTENT_TYPE)
+                    .test(props)) {
                 return false;
             }
         }

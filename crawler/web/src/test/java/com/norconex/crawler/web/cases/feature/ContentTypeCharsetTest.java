@@ -80,8 +80,9 @@ class ContentTypeCharsetTest {
         var doc1 = mem1.getUpsertRequests().get(0);
         assertThat(doc1.getMetadata().getString(DocMetaConstants.CONTENT_TYPE))
                 .isEqualTo("application/javascript");
-        assertThat(doc1.getMetadata().getString(DocMetaConstants.CONTENT_ENCODING))
-                .isEqualTo("Big5");
+        assertThat(
+                doc1.getMetadata().getString(DocMetaConstants.CONTENT_ENCODING))
+                        .isEqualTo("Big5");
 
         //--- Second run with detect ---
 
@@ -97,7 +98,8 @@ class ContentTypeCharsetTest {
         var doc2 = mem2.getUpsertRequests().get(0);
         assertThat(doc2.getMetadata().getString(DocMetaConstants.CONTENT_TYPE))
                 .isEqualTo("text/html");
-        assertThat(doc2.getMetadata().getString(DocMetaConstants.CONTENT_ENCODING))
-                .isEqualTo(StandardCharsets.UTF_8.toString());
+        assertThat(
+                doc2.getMetadata().getString(DocMetaConstants.CONTENT_ENCODING))
+                        .isEqualTo(StandardCharsets.UTF_8.toString());
     }
 }

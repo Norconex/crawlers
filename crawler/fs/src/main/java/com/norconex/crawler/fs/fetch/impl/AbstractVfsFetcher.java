@@ -189,7 +189,8 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         meta.set(FsDocMetadata.LAST_MODIFIED, content.getLastModifiedTime());
         var info = content.getContentInfo();
         if (info != null) {
-            meta.set(DocMetaConstants.CONTENT_ENCODING, info.getContentEncoding());
+            meta.set(DocMetaConstants.CONTENT_ENCODING,
+                    info.getContentEncoding());
             meta.set(DocMetaConstants.CONTENT_TYPE, info.getContentType());
         }
         content.getAttributes().forEach((k, v) -> {

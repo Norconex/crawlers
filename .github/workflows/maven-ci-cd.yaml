@@ -154,16 +154,13 @@ jobs:
         
     # Resolving before other mvn commands will fail early if there is an issue.
     # Downloaded items won't be downloaded again in this workflow.
+    # We use :go-offline instead of :resolve so it does not fail if our own
+    # internal dependencies are not yet found on central.
     - name: Resolve Maven Dependencies
       run: |
         mvn dependency:go-offline -U \
           -Dmaven.wagon.rss.buffer.size=2048 \
           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn    
-#    - name: Resolve Maven Dependencies
-#      run: |
-#        mvn dependency:resolve -U \
-#        -Dmaven.wagon.rss.buffer.size=2048 \
-#        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
     #--- Step ------------------------------------------------------------------
                 

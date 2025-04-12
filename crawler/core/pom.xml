@@ -70,10 +70,10 @@
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-committer-core</artifactId>
     </dependency>
-    <dependency>
+<!--    <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-grid-core</artifactId>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-grid-local</artifactId>
