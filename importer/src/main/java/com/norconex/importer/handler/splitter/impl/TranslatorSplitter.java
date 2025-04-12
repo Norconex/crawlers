@@ -25,6 +25,7 @@ import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.exception.TikaException;
 import org.apache.tika.language.translate.Translator;
 import org.apache.tika.language.translate.impl.CachedTranslator;
 import org.apache.tika.language.translate.impl.MicrosoftTranslator;
@@ -40,8 +41,8 @@ import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetaConstants;
-import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 
 import lombok.AccessLevel;
@@ -156,6 +157,10 @@ public class TranslatorSplitter
     @ToString.Exclude
     @Getter(value = AccessLevel.NONE)
     private final Map<String, TranslatorStrategy> translators = new HashMap<>();
+
+    TranslatorSplitter(Map<String, TranslatorStrategy> translators) {
+        this.translators.putAll(translators);
+    }
 
     /**
      * Constructor.
@@ -278,7 +283,10 @@ public class TranslatorSplitter
             // Fields
             try {
                 for (String lang : configuration.getTargetLanguages()) {
-                    translateFields(docCtx, lang);
+                    var childMeta = translateFields(docCtx, lang);
+                    childMeta.forEach((k, vals) -> {
+                        docCtx.metadata().addList(k + "." + lang, vals);
+                    });
                 }
             } catch (DocHandlerException e) {
                 throw e;
@@ -346,7 +354,7 @@ public class TranslatorSplitter
 
     private Doc translateDocumentFromReader(
             DocHandlerContext docCtx, String targetLang, TextReader reader)
-            throws Exception {
+            throws IOException, TikaException {
 
         var translator = getTranslatorStrategy().getTranslator();
         var sourceLang = getResolvedSourceLanguage(docCtx);
@@ -387,7 +395,8 @@ public class TranslatorSplitter
     }
 
     private Properties translateFields(
-            DocHandlerContext docCtx, String targetLang) throws Exception {
+            DocHandlerContext docCtx, String targetLang)
+            throws TikaException, IOException {
 
         var translator = getTranslatorStrategy().getTranslator();
         var sourceLang = getResolvedSourceLanguage(docCtx);
@@ -434,7 +443,7 @@ public class TranslatorSplitter
         return childMeta;
     }
 
-    private TranslatorStrategy getTranslatorStrategy() {
+    TranslatorStrategy getTranslatorStrategy() {
         var strategy = translators.get(configuration.getApi());
         if (strategy == null) {
             throw new ImporterRuntimeException(
@@ -477,7 +486,7 @@ public class TranslatorSplitter
         return lang;
     }
 
-    private abstract static class TranslatorStrategy {
+    abstract static class TranslatorStrategy {
         private static final int DEFAULT_READ_SIZE =
                 DataUnit.KB.toBytes(2).intValue();
         private Translator translator;
