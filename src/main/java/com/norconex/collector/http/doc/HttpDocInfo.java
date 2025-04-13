@@ -55,9 +55,9 @@ public class HttpDocInfo extends CrawlDocInfo {
     private final List<String> referencedUrls = new ArrayList<>();
     @ToStringSummary
     private final List<String> redirectTrail = new ArrayList<>();
+    private String redirectTarget;
 
     public HttpDocInfo() {
-        super();
     }
 
     public HttpDocInfo(String reference) {
@@ -184,9 +184,9 @@ public class HttpDocInfo extends CrawlDocInfo {
     public final void setReference(String url) {
         super.setReference(url);
         if (url != null) {
-            this.urlRoot = HttpURL.getRoot(url);
+            urlRoot = HttpURL.getRoot(url);
         } else {
-            this.urlRoot = null;
+            urlRoot = null;
         }
     }
     /**
@@ -235,8 +235,25 @@ public class HttpDocInfo extends CrawlDocInfo {
      * @param url URL to add
      * @since 3.0.0
      */
-    public void addRedirectURL(String url) {
+    public void addRedirectToTrail(String url) {
         redirectTrail.add(url);
+    }
+
+    /**
+     * Gets the immediate target of a redirect.
+     * @return redirect target or <code>null</code>
+     * @since 3.1.0
+     */
+    public String getRedirectTarget() {
+        return redirectTarget;
+    }
+    /**
+     * Sets the immediate target of a redirect.
+     * @param redirectTarget redirect target
+     * @since 3.1.0
+     */
+    public void setRedirectTarget(String redirectTarget) {
+        this.redirectTarget = redirectTarget;
     }
 
     @Override
@@ -249,7 +266,7 @@ public class HttpDocInfo extends CrawlDocInfo {
     }
     @Override
     public String toString() {
-        ReflectionToStringBuilder b = new ReflectionToStringBuilder(
+        var b = new ReflectionToStringBuilder(
                 this, ToStringStyle.SHORT_PREFIX_STYLE);
         b.setExcludeNullValues(true);
         return b.toString();
