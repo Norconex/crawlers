@@ -15,7 +15,6 @@
 package com.norconex.collector.http.web;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Map;
@@ -37,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.HttpCollector;
-import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.server.TestServer;
 import com.norconex.collector.http.server.TestServerBuilder;
@@ -58,6 +56,7 @@ import com.norconex.collector.http.web.feature.MaxURLs;
 import com.norconex.collector.http.web.feature.ModifiedFiles;
 import com.norconex.collector.http.web.feature.MultiRedirect;
 import com.norconex.collector.http.web.feature.PostImportLinks;
+import com.norconex.collector.http.web.feature.NonRecrawlablesRedirected;
 import com.norconex.collector.http.web.feature.Redirect;
 import com.norconex.collector.http.web.feature.RedirectCanonicalLoop;
 import com.norconex.collector.http.web.feature.RejectedRefsDeletion;
@@ -92,6 +91,7 @@ public class HttpCrawlerWebTest {
 
         // Misc. feature tests
 
+        new NonRecrawlablesRedirected(),
         new MaxConcurrentCrawlers(),
         new HttpFetcherAccept(),
         new LargeContent(),
@@ -153,7 +153,7 @@ public class HttpCrawlerWebTest {
         protected void service(
                 HttpServletRequest req, HttpServletResponse resp)
                         throws ServletException, IOException {
-            String path = req.getPathInfo();
+            var path = req.getPathInfo();
             path = StringUtils.stripStart(path, "/");
             path = StringUtils.substringBefore(path, "/");
 
@@ -170,7 +170,7 @@ public class HttpCrawlerWebTest {
             req.setAttribute(ATTR_HTTPS_PORT, server.getSecurePort());
 
 
-            IWebTest feature = FEATURES_BY_PATH.get(path);
+            var feature = FEATURES_BY_PATH.get(path);
             if (feature == null) {
                 throw new ServletException(
                         "Test feature/path does not exist: " + path);
@@ -215,16 +215,16 @@ public class HttpCrawlerWebTest {
             "featuresProvider"
     })
     public void testFeature(IWebTest feature) throws Exception {
-        String uuid = Long.toString(TimeIdGenerator.next());
-        Path workdir = tempFolder.resolve("workdir" + uuid);
-        String startURL = serverBaseURL + feature.getPath();
-        for (int i = 0; i < feature.numberOfRun(); i++) {
+        var uuid = Long.toString(TimeIdGenerator.next());
+        var workdir = tempFolder.resolve("workdir" + uuid);
+        var startURL = serverBaseURL + feature.getPath();
+        for (var i = 0; i < feature.numberOfRun(); i++) {
             LOG.info("Test run #{}.", i+1);
             feature.initRunIndex(i);
-            HttpCollectorConfig cfg =
+            var cfg =
                     TestUtil.newMemoryCollectorConfig(uuid, workdir, startURL);
             feature.configureCollector(cfg);
-            HttpCollector collector = new HttpCollector(cfg);
+            var collector = new HttpCollector(cfg);
             feature.startCollector(collector);
             feature.test(collector);
             ageFiles(workdir);
@@ -240,7 +240,7 @@ public class HttpCrawlerWebTest {
             throws IOException {
         resp.setContentType("text/html");
         resp.setCharacterEncoding(StandardCharsets.UTF_8.toString());
-        PrintWriter out = resp.getWriter();
+        var out = resp.getWriter();
         out.println("<html style=\"font-family:Arial, "
                 + "Helvetica, sans-serif;\"><body>");
         out.println("<h1>Available test</h1>");
@@ -262,7 +262,7 @@ public class HttpCrawlerWebTest {
 
     // Age progress files to fool activity tracker so we can restart right away.
     private void ageFiles(Path dir) {
-        final long age = System.currentTimeMillis() - (10 * 1000);
+        final var age = System.currentTimeMillis() - (10 * 1000);
         FileUtil.visitAllFiles(
                 dir.toFile(), file -> file.setLastModified(age));
         // sleep 1 second to make sure new dir is created with new timestamp.

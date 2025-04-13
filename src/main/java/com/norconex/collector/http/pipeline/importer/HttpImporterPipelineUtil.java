@@ -14,13 +14,10 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.core.doc.CrawlDocInfo.Stage;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
@@ -50,49 +47,52 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
     public static synchronized void queueRedirectURL(
             HttpImporterPipelineContext ctx,
             IHttpFetchResponse response,
-            String redirectURL) {
-        HttpDocInfo crawlRef = ctx.getDocInfo();
-        String sourceURL =  crawlRef.getReference();
-        Stage redirectStage = ctx.getDocInfoService()
-                .getProcessingStage(redirectURL);
+            String redirectTargetURL) {
+        var docInfo = ctx.getDocInfo();
+        var sourceURL =  docInfo.getReference();
+        var redirectStage = ctx.getDocInfoService()
+                .getProcessingStage(redirectTargetURL);
+        docInfo.setRedirectTarget(redirectTargetURL);
 
-        boolean requeue = false;
+        var requeue = false;
 
         //-- Fired rejected redirected event ---
-        crawlRef.setState(HttpCrawlState.REDIRECT);
-        IHttpFetchResponse newResponse = new HttpFetchResponseBuilder(response)
+        docInfo.setState(HttpCrawlState.REDIRECT);
+        var newResponse = new HttpFetchResponseBuilder(response)
                 .setCrawlState(HttpCrawlState.REDIRECT)
                 .setReasonPhrase(response.getReasonPhrase()
-                        + " (target: " + redirectURL + ")")
+                        + " (target: " + redirectTargetURL + ")")
                 .create();
 
 
-        StringBuilder s = new StringBuilder(
+        var s = new StringBuilder(
                 newResponse.getStatusCode()  + " "
                         + newResponse.getReasonPhrase());
         ctx.fire(HttpCrawlerEvent.REJECTED_REDIRECTED, b -> b
-                .crawlDocInfo(crawlRef)
+                .crawlDocInfo(docInfo)
                 .subject(newResponse)
                 .message(s.toString()));
 
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
         if (Stage.ACTIVE.is(redirectStage)) {
-            rejectRedirectDup("being processed", sourceURL, redirectURL);
+            rejectRedirectDup("being processed", sourceURL, redirectTargetURL);
             return;
-        } else if (Stage.QUEUED.is(redirectStage)) {
-            rejectRedirectDup("queued", sourceURL, redirectURL);
+        }
+        if (Stage.QUEUED.is(redirectStage)) {
+            rejectRedirectDup("queued", sourceURL, redirectTargetURL);
             return;
-        } else if (Stage.PROCESSED.is(redirectStage)) {
+        }
+        if (Stage.PROCESSED.is(redirectStage)) {
             // If part of redirect trail, allow a second queueing
             // but not more.  This in case redirecting back to self is
             // part of a normal flow (e.g. weird login).
             // If already queued twice, we treat as a loop
             // and we reject.
-            if (crawlRef.getRedirectTrail().contains(redirectURL)) {
+            if (docInfo.getRedirectTrail().contains(redirectTargetURL)) {
                 LOG.trace("Redirect encountered for 3rd time, "
-                        + "rejecting: {}", redirectURL);
-                rejectRedirectDup("processed", sourceURL, redirectURL);
+                        + "rejecting: {}", redirectTargetURL);
+                rejectRedirectDup("processed", sourceURL, redirectTargetURL);
                 return;
             }
 
@@ -102,46 +102,46 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
             // XXX getting performance issues.  We can't rely on pre-loaded
             // XXX cached instance, since it is pre-loaded with the source
             // XXX URL, and not the redirect URL. So we load it here.
-            Optional<CrawlDocInfo> op =
-                    ctx.getDocInfoService().getProcessed(redirectURL);
+            var op =
+                    ctx.getDocInfoService().getProcessed(redirectTargetURL);
             if (op.isPresent()) {
                 if (op.get().getState().isGoodState()) {
                     LOG.trace("Redirect URL was previously processed and "
-                            + "is valid, rejecting: {}", redirectURL);
-                    rejectRedirectDup("processed", sourceURL, redirectURL);
+                            + "is valid, rejecting: {}", redirectTargetURL);
+                    rejectRedirectDup("processed", sourceURL, redirectTargetURL);
                     return;
                 }
             } else {
                 LOG.warn("Could not load from store the processed target "
                         + "of previously redirected URL "
-                        + "(should never happen): ", redirectURL);
+                        + "(should never happen): ", redirectTargetURL);
             }
 
             requeue = true;
             LOG.debug("Redirect URL encountered a second time, re-queue it "
                     + "again (once) in case it came from a circular "
-                    + "reference: {}", redirectURL);
+                    + "reference: {}", redirectTargetURL);
         }
 
         //--- Fresh URL, queue it! ---
-        HttpDocInfo newData = new HttpDocInfo(
-                redirectURL, crawlRef.getDepth());
-        newData.setReferrerReference(crawlRef.getReferrerReference());
-        newData.setReferrerLinkMetadata(crawlRef.getReferrerLinkMetadata());
-        newData.setRedirectTrail(crawlRef.getRedirectTrail());
-        newData.addRedirectURL(sourceURL);
+        var newDocInfo = new HttpDocInfo(
+                redirectTargetURL, docInfo.getDepth());
+        newDocInfo.setReferrerReference(docInfo.getReferrerReference());
+        newDocInfo.setReferrerLinkMetadata(docInfo.getReferrerLinkMetadata());
+        newDocInfo.setRedirectTrail(docInfo.getRedirectTrail());
+        newDocInfo.addRedirectToTrail(sourceURL);
         if (requeue) {
-            ctx.getDocInfoService().queue(newData);
+            ctx.getDocInfoService().queue(newDocInfo);
         } else if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                crawlRef.getReference(), redirectURL)) {
-            HttpQueuePipelineContext newContext =
-                    new HttpQueuePipelineContext(ctx.getCrawler(), newData);
+                docInfo.getReference(), redirectTargetURL)) {
+            var newContext =
+                    new HttpQueuePipelineContext(ctx.getCrawler(), newDocInfo);
             new HttpQueuePipeline().execute(newContext);
         } else {
-            LOG.debug("URL redirect target not in scope: {}", redirectURL);
-            newData.setState(CrawlState.REJECTED);
+            LOG.debug("URL redirect target not in scope: {}", redirectTargetURL);
+            newDocInfo.setState(CrawlState.REJECTED);
             ctx.fire(CrawlerEvent.REJECTED_FILTER, b -> b
-                    .crawlDocInfo(newData)
+                    .crawlDocInfo(newDocInfo)
                     .subject(ctx.getConfig().getURLCrawlScopeStrategy()));
         }
     }

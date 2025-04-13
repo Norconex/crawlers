@@ -14,7 +14,6 @@
  */
 package com.norconex.collector.http.web.feature;
 
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,11 +55,11 @@ public class SitemapURLDeletion extends AbstractTestFeature {
     public void service(HttpServletRequest req, HttpServletResponse resp)
             throws Exception {
 
-        int page = NumberUtils.toInt(req.getParameter("page"), -1);
+        var page = NumberUtils.toInt(req.getParameter("page"), -1);
 
-        // if page is blank, the request is for the sitemap
+        // if page param is blank, the request is for the sitemap
         if (page == -1) {
-            String baseLocURL = req.getRequestURL() + "?&amp;page=";
+            var baseLocURL = req.getRequestURL() + "?&amp;page=";
             Map<String, String> vars = new HashMap<>();
             vars.put("loc1", baseLocURL + 1);
             vars.put("loc2", baseLocURL + 2);
@@ -69,7 +68,7 @@ public class SitemapURLDeletion extends AbstractTestFeature {
             } else {
                 vars.put("loc3", baseLocURL + 33);
             }
-            String xml = ResourceLoader.getXmlString(getClass());
+            var xml = ResourceLoader.getXmlString(getClass());
             xml = StringSubstitutor.replace(xml, vars);
             resp.setContentType("application/xml");
             resp.setCharacterEncoding("UTF-8");
@@ -77,7 +76,7 @@ public class SitemapURLDeletion extends AbstractTestFeature {
         } else {
             resp.setContentType("text/html");
             resp.setCharacterEncoding("UTF-8");
-            PrintWriter out = resp.getWriter();
+            var out = resp.getWriter();
             if (page < 3) {
                 out.println("<h1>Sitemap permanent page " + page + "</h1>");
                 out.println("<p>This page should always be there.</p>");

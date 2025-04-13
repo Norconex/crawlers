@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+   <url>
+      <loc>${loc1}</loc>
+      <lastmod>2005-01-01</lastmod>
+   </url>
+   <url>
+      <loc>${loc2}</loc>
+      <lastmod>2005-01-01</lastmod>
+   </url>
+   <url>
+      <loc>${loc3}</loc>
+      <lastmod>2005-01-01</lastmod>
+   </url>
+   <url>
+      <loc>${loc4}</loc>
+      <lastmod>2005-01-01</lastmod>
+   </url>
+   <url>
+      <loc>${loc400}</loc>
+      <lastmod>2005-01-01</lastmod>
+   </url>
+</urlset>
