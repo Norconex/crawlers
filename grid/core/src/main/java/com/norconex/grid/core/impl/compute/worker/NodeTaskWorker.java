@@ -15,6 +15,7 @@
 package com.norconex.grid.core.impl.compute.worker;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 import com.norconex.grid.core.compute.GridCompute.RunOn;
 import com.norconex.grid.core.compute.GridComputeResult;
@@ -23,6 +24,7 @@ import com.norconex.grid.core.compute.GridComputeTask;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.coord.GridTaskCoordinator;
 import com.norconex.grid.core.util.ConcurrentUtil;
+import com.norconex.grid.core.util.NamingExecutor;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +63,11 @@ public class NodeTaskWorker {
         try {
             if (grid.isCoordinator()) {
                 LOG.info("Starting task coordinator...");
-                new Thread(new GridTaskCoordinator(grid, taskName)).start();
+                CompletableFuture.runAsync(
+                        new GridTaskCoordinator(grid, taskName),
+                        new NamingExecutor(
+                                Executors.newFixedThreadPool(1),
+                                "grid-task-coord"));
             }
 
             NodeTaskLock.runExclusively(grid, taskName, () -> {

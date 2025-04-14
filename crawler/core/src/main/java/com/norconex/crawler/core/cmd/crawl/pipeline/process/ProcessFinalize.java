@@ -99,7 +99,7 @@ final class ProcessFinalize {
         //--- Mark reference as Processed --------------------------------------
         try {
             ctx.crawlerContext()
-                    .getDocProcessingLedger()
+                    .getDocLedger()
                     .processed(docRecord);
 
             markReferenceVariationsAsProcessed(ctx);
@@ -199,7 +199,7 @@ final class ProcessFinalize {
             var originalDocRec = ctx.docContext().withReference(originalRef);
             originalDocRec.setOriginalReference(null);
             ctx.crawlerContext()
-                    .getDocProcessingLedger()
+                    .getDocLedger()
                     .processed(originalDocRec);
         }
     }

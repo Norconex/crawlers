@@ -41,6 +41,9 @@ public abstract class AbstractGridTest {
 
     protected void withNewGrid(int numNodes,
             FailableConsumer<MultiNodesMocker, Exception> consumer) {
+
+        //        var threadMXBean = ManagementFactory.getThreadMXBean();
+
         List<Grid> nodes = new ArrayList<>();
         for (var i = 0; i < numNodes; i++) {
             var grid = getGridConnector().connect(tempDir);
@@ -63,6 +66,10 @@ public abstract class AbstractGridTest {
             }
             nodes.clear();
         }
+
+        //        var peakThreadCount = threadMXBean.getPeakThreadCount();
+        //        System.err.println("Peak thread count: " + peakThreadCount);
+
     }
 
     @RequiredArgsConstructor

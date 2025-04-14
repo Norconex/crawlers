@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.time.Duration;
+import java.util.Comparator;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -85,11 +87,20 @@ public class CrawlProgressLogger implements GridComputeTask<Void> {
                 logProgress();
             }, 0, minLoggingInterval.toMillis(), TimeUnit.MILLISECONDS);
         }
-
-        prevProcessedCount = monitor.getProcessedCount();
-        prevQueuedCount = monitor.getQueuedCount();
         stopWatch.reset();
         stopWatch.start();
+        prevProcessedCount = monitor.getProcessedCount();
+        prevQueuedCount = monitor.getQueuedCount();
+
+        while (!stopTrackingRequested) {
+            try {
+                Thread.sleep(100); // Small delay to avoid busy-waiting
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // Restore interrupt
+                break;
+            }
+        }
+
         return null;
     }
 
@@ -106,6 +117,7 @@ public class CrawlProgressLogger implements GridComputeTask<Void> {
                 execService = null;
             }
         }
+        monitor.flush();
         LOG.info("Execution Summary:{}", getExecutionSummary());
     }
 
@@ -122,8 +134,11 @@ public class CrawlProgressLogger implements GridComputeTask<Void> {
                 .append(divideDownStr(processedCount * 1000, elapsed, 1))
                 .append(" processed/seconds")
                 .append("\n  Event counts (incl. resumed):");
-        monitor.getEventCounts().entrySet().stream().forEach(
-                en -> b.append("\n    ")
+        monitor.getEventCounts()
+                .entrySet()
+                .stream()
+                .sorted(Comparator.comparing(Entry<String, Long>::getKey))
+                .forEach(en -> b.append("\n    ")
                         .append(StringUtils.rightPad(en.getKey() + ": ", 32))
                         .append(intFormatter.format(en.getValue())));
         return b.toString();

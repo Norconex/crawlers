@@ -91,7 +91,7 @@ final class ProcessUpsert {
             childDocRec.setReference(childResponse.getReference());
             var childCachedDocRec = ctx
                     .crawlerContext()
-                    .getDocProcessingLedger()
+                    .getDocLedger()
                     .getCached(childResponse.getReference())
                     .orElse(null);
 

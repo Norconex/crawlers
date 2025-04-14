@@ -69,7 +69,7 @@ class CrawlActivityChecker {
         if (deleting) {
             return false;
         }
-        return ctx.getDocProcessingLedger()
+        return ctx.getDocLedger()
                 .isMaxDocsProcessedReached();
     }
 
@@ -117,7 +117,7 @@ class CrawlActivityChecker {
     }
 
     private boolean isQueueEmpty() {
-        return ctx.getDocProcessingLedger().isQueueEmpty();
+        return ctx.getDocLedger().isQueueEmpty();
     }
 
     private String idleTimeoutAsText() {

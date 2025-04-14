@@ -59,7 +59,7 @@ public final class DocLedgerBootstrapper implements Predicate<CrawlerContext> {
     }
 
     private static void prepareForCrawl(CrawlerContext crawlerContext) {
-        var ledger = crawlerContext.getDocProcessingLedger();
+        var ledger = crawlerContext.getDocLedger();
 
         long maxProcessedDocs =
                 crawlerContext.getConfiguration().getMaxDocuments();
@@ -90,7 +90,7 @@ public final class DocLedgerBootstrapper implements Predicate<CrawlerContext> {
                         maxProcessedDocs);
             }
         } else {
-            ledger.clearQueue(); //TODO <-- why? it gets here only if queue is empty to begin with
+            ledger.clearQueue();
 
             // Valid Processed -> Cached
             LOG.info("Caching any valid references from previous run.");

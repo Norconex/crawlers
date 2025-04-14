@@ -14,6 +14,10 @@
  */
 package com.norconex.crawler.core.cmd.crawl;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineStages;
@@ -27,6 +31,8 @@ public class CrawlCommand implements Command {
 
     public static final String KEY_CRAWL_PIPELINE = "crawlPipeline";
     private static final String PROGRESS_LOGGER_KEY = "progressLogger";
+    private CompletableFuture<Void> pendingLoggerStopped =
+            new CompletableFuture<>();
 
     @Override
     public void execute(CrawlerContext ctx) {
@@ -49,6 +55,7 @@ public class CrawlCommand implements Command {
             LOG.info("Crawler execution ended before completion.");
         }
         ctx.getGrid().compute().stop(PROGRESS_LOGGER_KEY);
+        ConcurrentUtil.get(pendingLoggerStopped, 60, TimeUnit.SECONDS);
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling.");
     }
@@ -60,8 +67,11 @@ public class CrawlCommand implements Command {
         // TODO: make sure this (or all) runOnOneOnce can be recovered
         // upon node failure
         // only 1 node reports progress
-        ctx.getGrid()
-                .compute()
-                .runOnOne(PROGRESS_LOGGER_KEY, progressLogger);
+        CompletableFuture.runAsync(() -> {
+            ctx.getGrid()
+                    .compute()
+                    .runOnOne(PROGRESS_LOGGER_KEY, progressLogger);
+            pendingLoggerStopped.complete(null);
+        }, Executors.newFixedThreadPool(1));
     }
 }

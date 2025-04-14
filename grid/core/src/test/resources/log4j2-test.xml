@@ -19,7 +19,9 @@
 <Configuration status="WARN" name="Norconex Collector Core">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-    <PatternLayout pattern="%d{HH:mm:ss} [%t] %-5level %c{2} - %msg%n"/>
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %c{2} - %msg%n%throwable"/>
+<!--       <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg %n%throwable %mdc{userId} %mdc{requestId}" /> -->
+<!--       <PatternLayout pattern="%d{HH:mm:ss} [%t] %-5level %c{2} - %msg%n"/> -->
 <!--       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>  -->
     </Console>
   </Appenders>

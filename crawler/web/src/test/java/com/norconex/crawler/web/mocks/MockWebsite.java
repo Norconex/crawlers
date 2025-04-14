@@ -23,8 +23,6 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
-import java.io.IOException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.mockserver.integration.ClientAndServer;
@@ -32,6 +30,7 @@ import org.mockserver.mock.Expectation;
 import org.mockserver.mock.action.ExpectationResponseCallback;
 import org.mockserver.model.BinaryBody;
 import org.mockserver.model.HttpRequest;
+import org.mockserver.model.HttpResponse;
 import org.mockserver.model.MediaType;
 
 import com.norconex.crawler.web.TestResource;
@@ -173,16 +172,14 @@ public final class MockWebsite {
     }
 
     public static Expectation[] whenHtml(
-            ClientAndServer client, String urlPath, TestResource resource)
-            throws IOException {
+            ClientAndServer client, String urlPath, TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(response().withBody(resource.asString(), HTML_UTF_8));
     }
 
     public static Expectation[] whenPNG(
-            ClientAndServer client, String urlPath, TestResource resource)
-            throws IOException {
+            ClientAndServer client, String urlPath, TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
@@ -209,6 +206,32 @@ public final class MockWebsite {
                         response().withBody(
                                 BinaryBody.binary(
                                         resource.asBytes(), MediaType.PDF)));
+    }
+
+    public static String htmlWithBody(String body) {
+        return """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <title>Test</title>
+                </head>
+                <body>
+                %s
+                </body>
+                </html>
+                """.formatted(body);
+    }
+
+    public static HttpResponse htmlResponseWithBody(String body) {
+        return response()
+                .withStatusCode(200)
+                .withBody(htmlWithBody(body));
+    }
+
+    public static HttpResponse redirectResponse(String url) {
+        return response()
+                .withStatusCode(302)
+                .withHeader("Location", url);
     }
 
     @Data

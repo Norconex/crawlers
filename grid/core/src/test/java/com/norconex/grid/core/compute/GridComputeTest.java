@@ -24,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.AbstractGridTest;
@@ -38,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class GridComputeTest extends AbstractGridTest {
 
     @Test
+    @Timeout(20)
     void runOnOneTest() {
 
         withNewGrid(3, mocker -> {
@@ -69,6 +71,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
     }
 
     @Test
+    @Timeout(20)
     void runOnOneOnceTest() {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnOneOnceTest' part 1 of 2");
@@ -99,6 +102,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
     }
 
     @Test
+    @Timeout(20)
     void runOnAllTest() throws Exception {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnAllTest' part 1 of 2");
@@ -129,6 +133,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
     }
 
     @Test
+    @Timeout(20)
     void runOnAllOnceTest() throws Exception {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnAllOnceTest' part 1 of 2");
@@ -159,6 +164,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
     }
 
     @Test
+    @Timeout(20)
     void testRequestStop() {
         assertThatNoException().isThrownBy(() -> {
             withNewGrid(3, mocker -> {

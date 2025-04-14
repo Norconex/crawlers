@@ -111,7 +111,7 @@ public class CrawlProcessTask
         //                .orphan(orphan);
         try {
             var docContext = crawlCtx
-                    .getDocProcessingLedger()
+                    .getDocLedger()
                     .pollQueue()
                     .orElse(null);
             LOG.trace("Pulled next reference from Queue: {}", docContext);
@@ -151,7 +151,6 @@ public class CrawlProcessTask
             if (handleExceptionAndCheckIfStopCrawler(crawlCtx, docProcessCtx,
                     e)) {
                 crawlCtx.getGrid().stop();
-                //                crawlCtx.stopCrawlerCommand();
                 return false;
             }
         } finally {
@@ -171,7 +170,7 @@ public class CrawlProcessTask
         // or have importer offer its own timer, in addition.
         // var elapsedTime = Timer.timeWatch(() ->
         var cachedDocRec = crawlCtx.isIncrementing() ? crawlCtx
-                .getDocProcessingLedger()
+                .getDocLedger()
                 .getCached(docRec.getReference())
                 .orElse(null)
                 : null;

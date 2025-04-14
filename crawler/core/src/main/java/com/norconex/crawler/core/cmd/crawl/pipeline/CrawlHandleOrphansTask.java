@@ -40,7 +40,7 @@ public class CrawlHandleOrphansTask
             LOG.info("Ignoring possible orphans as per orphan strategy.");
             return;
         }
-        var orphanCount = ctx.getDocProcessingLedger().getCachedCount();
+        var orphanCount = ctx.getDocLedger().getCachedCount();
         if (orphanCount == 0) {
             LOG.info("There are no orphans to process.");
             return;
@@ -59,7 +59,7 @@ public class CrawlHandleOrphansTask
     }
 
     boolean processOrphans(CrawlerContext ctx) {
-        if (ctx.getDocProcessingLedger().isMaxDocsProcessedReached()) {
+        if (ctx.getDocLedger().isMaxDocsProcessedReached()) {
             LOG.info("""
                 Max documents reached. \
                 Not reprocessing orphans (if any). \
@@ -68,7 +68,7 @@ public class CrawlHandleOrphansTask
         }
         LOG.info("Queueing orphan references for processing...");
         var count = new MutableLong();
-        ctx.getDocProcessingLedger().forEachCached((ref, docCtx) -> {
+        ctx.getDocLedger().forEachCached((ref, docCtx) -> {
             docCtx.setOrphan(true);
             ctx.getPipelines()
                     .getQueuePipeline()
@@ -76,15 +76,11 @@ public class CrawlHandleOrphansTask
             count.increment();
             return true;
         });
-        //        if (count.longValue() > 0) {
-        LOG.info("Reprocessing {} orphan references...", count);
-        new CrawlProcessTask(ProcessQueueAction.CRAWL_ALL)
-                .execute(ctx);
-        return true;
 
-        //            processQueue(ctx, CrawlTask_TO_MIGRATE.ARG_FLAG_ORPHAN);
-        //        }
-        //        LOG.info("Reprocessed {} cached/orphan references.", count);
+        LOG.info("Reprocessing {} orphan references...", count);
+        new CrawlProcessTask(ProcessQueueAction.CRAWL_ALL).execute(ctx);
+        LOG.info("Reprocessed {} cached/orphan references.", count);
+        return true;
     }
 
     boolean deleteOrphans(CrawlerContext ctx) {
@@ -92,20 +88,17 @@ public class CrawlHandleOrphansTask
 
         var count = new MutableLong();
 
-        ctx.getDocProcessingLedger().forEachCached((k, docCtx) -> {
+        ctx.getDocLedger().forEachCached((k, docCtx) -> {
             docCtx.setDeleted(true);
-            ctx.getDocProcessingLedger().queue(docCtx);
+            ctx.getDocLedger().queue(docCtx);
             count.increment();
             return true;
         });
-        //        if (count.longValue() > 0) {
         LOG.info("Deleting {} orphan references...", count);
-        new CrawlProcessTask(ProcessQueueAction.DELETE_ALL)
-                .execute(ctx);
+        new CrawlProcessTask(ProcessQueueAction.DELETE_ALL).execute(ctx);
+        LOG.info("Deleted {} orphan references.", count);
         return true;
-        //            processQueue(ctx, CrawlTask_TO_MIGRATE.ARG_FLAG_DELETE);
-        //        }
-        //        LOG.info("Deleted {} orphan references.", count);
+        
     }
 
 }

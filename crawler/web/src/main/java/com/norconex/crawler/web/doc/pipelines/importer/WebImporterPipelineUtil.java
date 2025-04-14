@@ -38,15 +38,13 @@ public final class WebImporterPipelineUtil {
     public static synchronized void queueRedirectURL(
             ImporterPipelineContext context,
             HttpFetchResponse response,
-            String redirectURL) {
+            String redirectTargetURL) {
 
         var ctx = (WebImporterPipelineContext) context;
-        var docTracker = ctx.getCrawlerContext().getDocProcessingLedger();
-
+        var docLedger = ctx.getCrawlerContext().getDocLedger();
         var docContext = (WebCrawlDocContext) ctx.getDoc().getDocContext();
         String sourceURL = docContext.getReference();
-        //        var redirectStage = docTracker.getProcessingStage(redirectURL);
-        var redirectStage = docContext.getProcessingStage();
+        docContext.setRedirectTarget(redirectTargetURL);
 
         var requeue = false;
 
@@ -57,7 +55,7 @@ public final class WebImporterPipelineUtil {
                 .resolutionStatus(WebCrawlDocStatus.REDIRECT)
                 .reasonPhrase(
                         response.getReasonPhrase()
-                                + " (target: " + redirectURL + ")")
+                                + " (target: " + redirectTargetURL + ")")
                 //TODO are these method calls below needed?
                 .redirectTarget(response.getRedirectTarget())
                 .statusCode(response.getStatusCode())
@@ -76,24 +74,25 @@ public final class WebImporterPipelineUtil {
                         .build());
 
         //--- Do not queue if previously handled ---
+        var redirectUrlTargetStage =
+                docLedger.getStage(redirectTargetURL);
+
         //TODO throw an event if already active/processed(ing)?
-        if (CrawlDocStage.QUEUED.is(redirectStage)) {
-            rejectRedirectDup("queued", sourceURL, redirectURL);
+        if (CrawlDocStage.QUEUED.is(redirectUrlTargetStage)) {
+            rejectRedirectDup("queued", sourceURL, redirectTargetURL);
             return;
         }
-        if (CrawlDocStage.RESOLVED.is(redirectStage)
-                || CrawlDocStage.UNRESOLVED.is(redirectStage)) {
+        if (CrawlDocStage.RESOLVED.is(redirectUrlTargetStage)
+                || CrawlDocStage.UNRESOLVED.is(redirectUrlTargetStage)) {
             // If part of redirect trail, allow a second queueing
             // but not more.  This in case redirecting back to self is
             // part of a normal flow (e.g. weird login).
             // If already queued twice, we treat as a loop
             // and we reject.
-            if (docContext.getRedirectTrail().contains(redirectURL)) {
-                LOG.trace(
-                        "Redirect encountered for 3rd time, "
-                                + "rejecting: {}",
-                        redirectURL);
-                rejectRedirectDup("processed", sourceURL, redirectURL);
+            if (docContext.getRedirectTrail().contains(redirectTargetURL)) {
+                LOG.trace("Redirect encountered for 3rd time, rejecting: {}",
+                        redirectTargetURL);
+                rejectRedirectDup("processed", sourceURL, redirectTargetURL);
                 return;
             }
 
@@ -103,39 +102,40 @@ public final class WebImporterPipelineUtil {
             // XXX getting performance issues.  We can't rely on pre-loaded
             // XXX cached instance, since it is pre-loaded with the source
             // XXX URL, and not the redirect URL. So we load it here.
-            var op = docTracker.getProcessed(redirectURL);
+            var op = docLedger.getProcessed(redirectTargetURL);
             if (op.isPresent()) {
                 if (op.get().getState().isGoodState()) {
                     LOG.trace(
                             "Redirect URL was previously processed and "
                                     + "is valid, rejecting: {}",
-                            redirectURL);
-                    rejectRedirectDup("processed", sourceURL, redirectURL);
+                            redirectTargetURL);
+                    rejectRedirectDup("processed", sourceURL,
+                            redirectTargetURL);
                     return;
                 }
             } else {
                 LOG.warn("""
                         Could not load from store the processed target\s\
                         of previously redirected URL\s\
-                        (should never happen):\s""", redirectURL);
+                        (should never happen):\s""", redirectTargetURL);
             }
 
             requeue = true;
             LOG.debug("""
                     Redirect URL encountered a second time, re-queue it\s\
                     again (once) in case it came from a circular\s\
-                    reference: {}""", redirectURL);
+                    reference: {}""", redirectTargetURL);
         }
 
         //--- Fresh URL, queue it! ---
         var newRec = new WebCrawlDocContext(
-                redirectURL, docContext.getDepth());
+                redirectTargetURL, docContext.getDepth());
         newRec.setReferrerReference(docContext.getReferrerReference());
         newRec.setReferrerLinkMetadata(docContext.getReferrerLinkMetadata());
         newRec.setRedirectTrail(docContext.getRedirectTrail());
         newRec.addRedirectURL(sourceURL);
         if (requeue) {
-            docTracker.queue(newRec);
+            docLedger.queue(newRec);
             return;
         }
 
@@ -150,7 +150,8 @@ public final class WebImporterPipelineUtil {
                     .accept(new QueuePipelineContext(ctx.getCrawlerContext(),
                             newRec));
         } else {
-            LOG.debug("URL redirect target not in scope: {}", redirectURL);
+            LOG.debug("URL redirect target not in scope: {}",
+                    redirectTargetURL);
             newRec.setState(CrawlDocStatus.REJECTED);
         }
     }

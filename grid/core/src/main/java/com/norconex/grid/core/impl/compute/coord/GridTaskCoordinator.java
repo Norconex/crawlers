@@ -48,6 +48,8 @@ public class GridTaskCoordinator implements Runnable {
             grid.computeStateStorage().setComputeStateAtTime(
                     taskName, result.getState());
 
+            // Finished with grid task, will unlock all workers waiting
+            // for it.
             grid.taskPayloadMessenger().send(taskName, result);
         });
     }

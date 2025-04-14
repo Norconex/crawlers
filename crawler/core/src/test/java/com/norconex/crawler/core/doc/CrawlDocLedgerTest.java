@@ -35,7 +35,7 @@ class CrawlDocLedgerTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
     void testCleanCrawl(CrawlerContext ctx) {
-        var ledger = ctx.getDocProcessingLedger();
+        var ledger = ctx.getDocLedger();
         // forEach[...] returns true by default when there are no matches
         // we use this here to figure out emptiness for all stages
         assertThat(ledger.forEachCached((s, r) -> false)).isTrue();
@@ -50,7 +50,7 @@ class CrawlDocLedgerTest {
                 .configModifier(cfg -> cfg
                         .setGridConnector(ClassUtil.newInstance(connClass)))
                 .withInitializedCrawlerContext(ctx -> {
-                    var ledger1 = ctx.getDocProcessingLedger();
+                    var ledger1 = ctx.getDocLedger();
                     ledger1.queue(new CrawlDocContext("ref:queue1"));
                     ledger1.queue(new CrawlDocContext("ref:queue2"));
                     ledger1.processed(
@@ -70,7 +70,7 @@ class CrawlDocLedgerTest {
                 .configModifier(cfg -> cfg
                         .setGridConnector(ClassUtil.newInstance(connClass)))
                 .withInitializedCrawlerContext(ctx -> {
-                    var ledger2 = ctx.getDocProcessingLedger();
+                    var ledger2 = ctx.getDocLedger();
                     assertThat(ledger2.getQueueCount()).isEqualTo(2);
                     assertThat(ledger2.getProcessedCount()).isEqualTo(3);
 

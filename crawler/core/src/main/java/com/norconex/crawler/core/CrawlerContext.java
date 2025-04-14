@@ -42,8 +42,8 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrappers;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocLedger;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlDocLedger;
 import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.DedupService;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -51,6 +51,7 @@ import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
+import com.norconex.crawler.core.metrics.CrawlerMetricsImpl;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
 import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
@@ -101,9 +102,8 @@ public class CrawlerContext implements AutoCloseable {
 
     //--- Set on declaration ---
     private final DedupService dedupService = new DedupService();
-    private final CrawlDocLedger docProcessingLedger =
-            new CrawlDocLedger();
-    private final CrawlerMetrics metrics = new CrawlerMetrics();
+    private final CrawlDocLedger docLedger = new CrawlDocLedger();
+    private final CrawlerMetrics metrics = new CrawlerMetricsImpl();
 
     //--- Set in constructor ---
     private final CrawlerConfig configuration;
@@ -195,7 +195,7 @@ public class CrawlerContext implements AutoCloseable {
         eventManager.addListenersFromScan(getConfiguration());
         fire(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN);
 
-        docProcessingLedger.init(this);
+        docLedger.init(this);
 
         ctxStateStore = grid.storage().getMap(
                 CrawlerContext.class.getSimpleName(), Boolean.class);
@@ -206,7 +206,7 @@ public class CrawlerContext implements AutoCloseable {
                 () -> {
                     //TODO encapsulate stateMap and other "generic" stores
                     // into their own object? Or a base object for them all?
-                    var newSession = docProcessingLedger.isQueueEmpty();
+                    var newSession = docLedger.isQueueEmpty();
                     if (newSession) {
                         LOG.info("Starting a new crawl session.");
                         grid.resetSession();
@@ -217,7 +217,7 @@ public class CrawlerContext implements AutoCloseable {
                     var props = new GridContextProps();
                     props.setResuming(!newSession);
                     props.setIncrementing(
-                            !docProcessingLedger.isProcessedEmpty());
+                            !docLedger.isProcessedEmpty());
                     setState(KEY_RESUMING, props.isResuming());
                     setState(KEY_INCREMENTING, props.isIncrementing());
                     return props;

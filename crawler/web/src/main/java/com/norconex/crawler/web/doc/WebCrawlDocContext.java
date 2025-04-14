@@ -71,6 +71,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
 
     private final List<String> referencedUrls = new ArrayList<>();
     private final List<String> redirectTrail = new ArrayList<>();
+    private String redirectTarget;
 
     public WebCrawlDocContext() {
     }

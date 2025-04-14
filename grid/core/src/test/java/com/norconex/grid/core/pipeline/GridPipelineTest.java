@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.AbstractGridTest;
@@ -41,6 +42,7 @@ public abstract class GridPipelineTest extends AbstractGridTest {
     private static final int NUM_NODES = 3;
 
     @Test
+    @Timeout(20)
     void testRunSuccess() {
         var sc = new StageCreator();
         List<GridPipelineStage<Context>> stages = List.of(
@@ -95,6 +97,7 @@ public abstract class GridPipelineTest extends AbstractGridTest {
     }
 
     @Test
+    @Timeout(20)
     void testRunFailureAndOnlyIfAndAlways() {
         var sc = new StageCreator();
         List<GridPipelineStage<Context>> stages = List.of(
@@ -140,6 +143,7 @@ public abstract class GridPipelineTest extends AbstractGridTest {
     }
 
     @Test
+    @Timeout(20)
     void testJoinMidPipeline() {
 
         var frozen = new AtomicBoolean(true);
@@ -200,6 +204,7 @@ public abstract class GridPipelineTest extends AbstractGridTest {
     }
 
     @Test
+    @Timeout(20)
     void testPipelineStop() {
 
         var frozen = new AtomicBoolean(true);

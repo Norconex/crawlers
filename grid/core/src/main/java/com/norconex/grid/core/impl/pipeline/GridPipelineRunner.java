@@ -92,7 +92,7 @@ public class GridPipelineRunner<T> {
     }
 
     private boolean runStage(GridPipelineStage<T> stage, T context) {
-        LOG.info("Pipeline now at stage \"{}\"", stage.getName());
+        LOG.info("Grid pipeline now at stage \"{}\"", stage.getName());
         pipeline.setActiveStageName(pipelineName, stage.getName());
         activeTask.set(stage.getTask());
         var stageResult = pipeline.getGrid().compute().runOn(
@@ -137,9 +137,6 @@ public class GridPipelineRunner<T> {
             }
         }
         return adjustedStages;
-        //        return stages.stream()
-        //                .dropWhile(stage -> !Objects.equals(stageName, stage.getName()))
-        //                .toList();
     }
 
     public void stopRequested() {

@@ -14,12 +14,14 @@
  */
 package com.norconex.grid.local;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -59,7 +61,10 @@ public class LocalGridStorage implements GridStorage {
     private final MVStore mvStore;
     private final MVMap<String, String> storeTypes;
 
-    private final Map<String, GridStore<?>> openedStores = new HashMap<>();
+    private final Map<String, GridStore<?>> openedStores =
+            new ConcurrentHashMap<>();
+
+    private final ReadWriteLock storageLock = new ReentrantReadWriteLock();
 
     public LocalGridStorage(MVStore mvStore) {
         this.mvStore = mvStore;
@@ -71,7 +76,12 @@ public class LocalGridStorage implements GridStorage {
     @JsonIgnore
     @Override
     public <T> GridMap<T> getMap(String name, Class<? extends T> type) {
-        return (GridMap<T>) getOrCreateStore(name, type, GridMap.class);
+        storageLock.readLock().lock();
+        try {
+            return (GridMap<T>) getOrCreateStore(name, type, GridMap.class);
+        } finally {
+            storageLock.readLock().unlock();
+        }
     }
 
     @JsonIgnore
@@ -92,89 +102,93 @@ public class LocalGridStorage implements GridStorage {
     @JsonIgnore
     @Override
     public <T> GridQueue<T> getQueue(String name, Class<? extends T> type) {
-        return (GridQueue<T>) getOrCreateStore(name, type, GridQueue.class);
+        storageLock.readLock().lock();
+        try {
+            return (GridQueue<T>) getOrCreateStore(name, type, GridQueue.class);
+        } finally {
+            storageLock.readLock().unlock();
+        }
     }
 
     @JsonIgnore
     @Override
     public GridSet getSet(String name) {
-        return (GridSet) getOrCreateStore(name, String.class, GridSet.class);
+        storageLock.readLock().lock();
+        try {
+            return (GridSet) getOrCreateStore(name, String.class,
+                    GridSet.class);
+        } finally {
+            storageLock.readLock().unlock();
+        }
     }
 
     @JsonIgnore
     @Override
     public Set<String> getStoreNames() {
-        return getStoreNamesAndVariations()
-                .keySet()
-                .stream()
-                .filter(nm -> !STORE_TYPES_KEY.equals(nm))
-                .collect(Collectors.toSet());
+        storageLock.readLock().lock();
+        try {
+            return getStoreNamesAndVariations()
+                    .keySet()
+                    .stream()
+                    .filter(nm -> !STORE_TYPES_KEY.equals(nm))
+                    .collect(Collectors.toSet());
+        } finally {
+            storageLock.readLock().unlock();
+        }
     }
 
     @Override
     public void forEachStore(Consumer<GridStore<?>> storeConsumer) {
-        getStoreNames().forEach(name -> {
-            var json = storeTypes.get(name);
-            if (json != null) {
-                var entry =
-                        SerialUtil.fromJson(json, StoreTypes.class);
-                storeConsumer.accept(concreteStore(
-                        entry.getStoreType(),
-                        name,
-                        entry.getObjectType()));
-            }
-        });
+        storageLock.readLock().lock();
+        try {
+            getStoreNames().forEach(name -> {
+                var json = storeTypes.get(name);
+                if (json != null) {
+                    var entry = SerialUtil.fromJson(json, StoreTypes.class);
+                    storeConsumer.accept(concreteStore(
+                            entry.getStoreType(), name, entry.getObjectType()));
+                }
+            });
+        } finally {
+            storageLock.readLock().unlock();
+        }
     }
 
     @Override
     public <T> T runInTransaction(Callable<T> callable) {
-        synchronized (this) {
-            var txStore = new TransactionStore(mvStore);
-            var tx = txStore.begin();
-            try {
-                var result = callable.call();
-                tx.commit();
-                return result;
-            } catch (Exception e) {
-                tx.rollback();
-                throw new GridException(
-                        "A problem occured during transaction execution.", e);
-            }
+        var txStore = new TransactionStore(mvStore);
+        var tx = txStore.begin();
+        try {
+            var result = callable.call();
+            tx.commit();
+            return result;
+        } catch (Exception e) {
+            tx.rollback();
+            throw new GridException("Transaction execution failed.", e);
         }
     }
 
     @Override
     public <T> Future<T> runInTransactionAsync(Callable<T> callable) {
-        return CompletableFuture.supplyAsync(() -> {
-            synchronized (this) {
-                var txStore = new TransactionStore(mvStore);
-                var tx = txStore.begin();
-                try {
-                    var result = callable.call();
-                    tx.commit();
-                    return result;
-                } catch (Exception e) {
-                    tx.rollback();
-                    throw new GridException(
-                            "A problem occured during transaction execution.",
-                            e);
-                }
-            }
-        });
+        return CompletableFuture.supplyAsync(() -> runInTransaction(callable));
     }
 
     @Override
-    public synchronized void destroy() {
-        mvStore
-                .getMapNames()
-                .stream()
-                .filter(name -> !name.equals(STORE_TYPES_KEY))
-                .forEach(mapName -> {
-                    storeTypes.remove(mapName);
-                    openedStores.remove(mapName);
-                    mvStore.removeMap(mapName);
-                });
-        storeTypes.clear();
+    public void destroy() {
+        storageLock.writeLock().lock();
+        try {
+            mvStore.getMapNames()
+                    .stream()
+                    .filter(name -> !STORE_TYPES_KEY.equals(name))
+                    .forEach(mapName -> {
+                        storeTypes.remove(mapName);
+                        openedStores.remove(mapName);
+                        mvStore.removeMap(mapName);
+                    });
+            storeTypes.clear();
+        } finally {
+            storageLock.writeLock().unlock();
+        }
     }
 
     @Override
@@ -194,16 +208,13 @@ public class LocalGridStorage implements GridStorage {
     }
 
     @SuppressWarnings("unchecked")
-    private synchronized <T> GridStore<T> getOrCreateStore(
+    private <T> GridStore<T> getOrCreateStore(
             String name, Class<T> objectType, Class<?> storeType) {
-        var store = (GridStore<T>) openedStores.get(name);
-        if (store == null) {
-            storeTypes.put(name, SerialUtil
+        return (GridStore<T>) openedStores.computeIfAbsent(name, nm -> {
+            storeTypes.put(nm, SerialUtil
                     .toJsonString(new StoreTypes(objectType, storeType)));
-            store = (GridStore<T>) concreteStore(storeType, name, objectType);
-            openedStores.put(name, store);
-        }
-        return store;
+            return (GridStore<T>) concreteStore(storeType, nm, objectType);
+        });
     }
 
     // We return "external" names and their internal variations.

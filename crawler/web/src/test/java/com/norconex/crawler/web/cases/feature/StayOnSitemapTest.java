@@ -78,8 +78,7 @@ class StayOnSitemapTest {
         var referrers = new ArrayList<String>();
 
         cfg.setStartReferences(List.of(serverUrl(client, page1Path)));
-        cfg
-                .setSitemapResolver(new GenericSitemapResolver())
+        cfg.setSitemapResolver(new GenericSitemapResolver())
                 .setSitemapLocator(new GenericSitemapLocator())
                 .setMaxDepth(3)
                 // custom fetcher that stores exception (last one)

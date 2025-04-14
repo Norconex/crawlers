@@ -31,22 +31,19 @@ public enum CrawlDocStage {
      */
     QUEUED,
     /**
-     * Grid processing started but did not yet finish or failed.
-     * Documents identified as unresolved when a crawl session is over
-     * are considered to be the result of an unrecoverable error.
-     * Polling a document context from the grid store will automatically
+     * Processing started but did not yet finish or failed.
+     * Polling a document context from the store will automatically
      * make it part of the processed ones, but "unresolved" until
      * fully processed.
+     * Documents identified as unresolved when a crawl session is over
+     * are considered to be the result of an unrecoverable error.
      */
     UNRESOLVED,
     /**
-     * Grid processing completed without issues for this document.
+     * Processing completed without issues for this document.
      * A document is automatically set to "resolved" when it is finalized.
      */
-    RESOLVED
-    /*ACTIVE,
-    PROCESSED,
-    CACHED*/;
+    RESOLVED;
 
     public boolean is(CrawlDocStage processingStage) {
         return processingStage != null && processingStage == this;

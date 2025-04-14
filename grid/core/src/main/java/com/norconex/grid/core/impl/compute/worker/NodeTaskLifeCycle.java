@@ -14,19 +14,23 @@
  */
 package com.norconex.grid.core.impl.compute.worker;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.jgroups.Address;
 
 import com.norconex.commons.lang.ExceptionUtil;
+import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.grid.core.compute.GridComputeState;
 import com.norconex.grid.core.compute.GridComputeTask;
 import com.norconex.grid.core.impl.compute.MessageListener;
-import com.norconex.grid.core.impl.compute.messages.TaskPayloadMessenger;
 import com.norconex.grid.core.impl.compute.messages.StopComputeMessage;
+import com.norconex.grid.core.impl.compute.messages.TaskPayloadMessenger;
 import com.norconex.grid.core.util.ConcurrentUtil;
+import com.norconex.grid.core.util.NamingExecutor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +45,7 @@ public class NodeTaskLifeCycle {
     private final NodeTaskResult nodeResult = new NodeTaskResult();
     private final String taskName;
     private final boolean skipping;
+    private final ReentrantLock stateLock = new ReentrantLock();
 
     public NodeTaskLifeCycle(NodeTaskWorker worker) {
         this.worker = worker;
@@ -54,18 +59,22 @@ public class NodeTaskLifeCycle {
         var stopListener = new JobStopListener(task);
         worker.getGrid().addListener(stopListener);
         try {
-            // set running
             nodeResult.setState(GridComputeState.RUNNING);
-            final var stateLock = new Object(); // Lock for synchronization
 
-            // start coord notif scheduler
             var schedulerTask = scheduler.scheduleAtFixedRate(() -> {
-                synchronized (stateLock) {
-                    messenger.sendToCoord(taskName, nodeResult);
+                if (stateLock.tryLock()) {
+                    try {
+                        messenger.sendToCoord(taskName, nodeResult);
+                    } finally {
+                        stateLock.unlock();
+                    }
+                } else {
+                    LOG.debug(worker.getGrid().getLocalAddress()
+                            + " Skipping update, stateLock busy.");
                 }
             }, 0, 5, TimeUnit.SECONDS);
 
-            // run actual job
+            // Actual task execution
             try {
                 if (skipping) {
                     LOG.info("Node \"{}\" wasn't selected to run job \"{}\". "
@@ -74,29 +83,47 @@ public class NodeTaskLifeCycle {
                 } else {
                     nodeResult.setValue(task.execute());
                 }
-                // Ensure no other thread sends RUNNING after this
-                synchronized (stateLock) {
+
+                // Final state set
+                stateLock.lock();
+                try {
                     nodeResult.setState(GridComputeState.COMPLETED);
+                } finally {
+                    stateLock.unlock();
                 }
             } catch (Exception e) {
                 LOG.error("Job {} failed.", taskName, e);
-                // Ensure no other thread sends RUNNING after this
-                synchronized (stateLock) {
+                stateLock.lock();
+                try {
                     nodeResult.getExceptionStack().addAll(
                             ExceptionUtil.getExceptionMessageList(e));
                     nodeResult.setState(GridComputeState.FAILED);
+                } finally {
+                    stateLock.unlock();
                 }
             }
 
-            // Job ran, so we stop the scheduler and send result, waiting
-            // for acknowledgement.
-            schedulerTask.cancel(true);
-
-            synchronized (stateLock) {
-                ConcurrentUtil.get(
-                        messenger.sendToCoordAndAwaitAck(taskName, nodeResult),
-                        1, TimeUnit.MINUTES);
+            // Wait for final ACK
+            NodeTaskResult resultSnapshot;
+            stateLock.lock();
+            try {
+                resultSnapshot = BeanUtil.clone(nodeResult);
+            } finally {
+                stateLock.unlock();
             }
+
+            // Send final ACK in separate thread, wait safely
+            var ackFuture = CompletableFuture.supplyAsync(
+                    () -> ConcurrentUtil.get(messenger.sendToCoordAndAwaitAck(
+                            taskName, resultSnapshot), 1, TimeUnit.MINUTES),
+                    new NamingExecutor(
+                            Executors.newFixedThreadPool(1),
+                            "msg-send-await-ack"));
+
+            ConcurrentUtil.get(ackFuture, 1, TimeUnit.MINUTES);
+
+            // Stop periodic updates now that final result is sent
+            schedulerTask.cancel(true);
 
         } finally {
             worker.getGrid().removeListener(stopListener);

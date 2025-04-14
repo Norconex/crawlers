@@ -29,6 +29,9 @@ import javax.management.ObjectName;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 
+/**
+ * Offers useful methods for registering and unregistering MXBean to JMX.
+ */
 public final class CrawlerMetricsJMX {
 
     private CrawlerMetricsJMX() {

@@ -14,11 +14,13 @@
  */
 package com.norconex.crawler.web.doc.pipelines.importer.stages;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
+import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,42 +34,54 @@ import lombok.extern.slf4j.Slf4j;
 public class RecrawlableResolverStage extends AbstractImporterStage {
 
     @Override
-    protected boolean executeStage(ImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext pipeCtx) {
         // skip if doc is an orphan
-        if (ctx.getDoc().isOrphan()) {
-            //        if (ctx.isOrphan()) {
+        if (pipeCtx.getDoc().isOrphan()) {
             return true;
         }
 
-        var rr = Web.config(ctx.getCrawlerContext()).getRecrawlableResolver();
+        var crawlerCtx = pipeCtx.getCrawlerContext();
+        var rr = Web.config(crawlerCtx).getRecrawlableResolver();
         if (rr == null) {
             // no resolver means we process it.
             return true;
         }
 
-        var cachedInfo = ctx.getDoc().getCachedDocContext();
-        if (cachedInfo == null) {
+        var cachedDocContext = Web.cachedDocContext(pipeCtx.getDoc());
+        if (cachedDocContext == null) {
             // this document was not previously crawled so process it.
             return true;
         }
 
-        var currentData = ctx.getDoc().getDocContext();
+        var currentDocContext = pipeCtx.getDoc().getDocContext();
 
-        var isRecrawlable = rr.isRecrawlable((WebCrawlDocContext) cachedInfo);
+        var isRecrawlable = rr.isRecrawlable(cachedDocContext);
         if (!isRecrawlable) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        "{} is not ready to be recrawled, skipping it.",
-                        cachedInfo.getReference());
-            }
-            ctx.getCrawlerContext().fire(
+            LOG.debug("{} is not ready to be recrawled, skipping it.",
+                    cachedDocContext.getReference());
+            crawlerCtx.fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_PREMATURE)
-                            .source(ctx.getCrawlerContext())
+                            .source(crawlerCtx)
                             .subject(rr)
-                            .docContext(ctx.getDoc().getDocContext())
+                            .docContext(currentDocContext)
                             .build());
-            currentData.setState(CrawlDocStatus.PREMATURE);
+            currentDocContext.setState(CrawlDocStatus.PREMATURE);
+
+            // If the URL was redirected (as per cache) and the redirect URL
+            // target has not been processed already (still in cache),
+            // re-queue the redirect URL target or it may be wrongfully
+            // considered orphan if not referenced somewhere else during the
+            // crawl.
+            if (StringUtils.isNotBlank(cachedDocContext.getRedirectTarget())) {
+                crawlerCtx.getDocLedger()
+                        .getCached(cachedDocContext.getRedirectTarget())
+                        .ifPresent(targetDocInfo -> crawlerCtx
+                                .getPipelines()
+                                .getQueuePipeline()
+                                .accept(new QueuePipelineContext(
+                                        crawlerCtx, targetDocInfo)));
+            }
         }
         return isRecrawlable;
     }

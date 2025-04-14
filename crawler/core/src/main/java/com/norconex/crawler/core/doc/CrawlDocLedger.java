@@ -97,12 +97,28 @@ public class CrawlDocLedger { //implements Closeable {
     }
 
     /**
-     * Gets whether a reference is in the ledger, excluding cache.
+     * Gets whether a reference is queued, processed or being processed.
      * @param ref document reference
-     * @return <code>true</code> if in "active" ledger
+     * @return <code>true</code> if in "active" stage
      */
-    public boolean isInActiveLedger(String ref) {
+    public boolean isInActiveStage(String ref) {
         return queue.contains(ref) || processed.contains(ref);
+    }
+
+    /**
+     * Gets a reference document processing stage.
+     * @param ref document reference
+     * @return <code>true</code> if in "active" stage
+     */
+    public CrawlDocStage getStage(String ref) {
+        if (queue.contains(ref)) {
+            return CrawlDocStage.QUEUED;
+        }
+        var docCtxOpt = getProcessed(ref);
+        if (docCtxOpt.isPresent()) {
+            return docCtxOpt.get().getProcessingStage();
+        }
+        return CrawlDocStage.NONE;
     }
 
     //--- Processed ---
