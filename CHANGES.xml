@@ -35,6 +35,10 @@
         Jetty 9.4.54.v20240208, Netty 4.1.96.Final, Selenium 4.23.0,
         Apache Commons Lang 3.14.0.
       </action>
+      <action dev="essiembre" type="fix" issue="1121">
+        Fixed redirected URL target being considered orphan when source URL
+        is not yet ready for recrawl.   
+      </action>
       <action dev="essiembre" type="fix" issue="1117">
         Fixed a NullPointerException in WebDriverHttpFetcher occurring in some
         init tasks.  
