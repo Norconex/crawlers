@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.operations.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcherConfig.WaitElementType;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;

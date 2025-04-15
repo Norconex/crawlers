@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
 
     private final List<String> referencedUrls = new ArrayList<>();
     private final List<String> redirectTrail = new ArrayList<>();
+    private String redirectTarget;
 
     public WebCrawlDocContext() {
     }

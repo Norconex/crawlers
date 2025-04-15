@@ -31,3 +31,5 @@ hs_err_pid*
 *.iml
 crawler/core/src/main/resources/log4j2-local.xml
 /.vscode
+.vscode
+

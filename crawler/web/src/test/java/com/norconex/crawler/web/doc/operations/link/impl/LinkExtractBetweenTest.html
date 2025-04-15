@@ -1,0 +1,59 @@
+<!-- 
+   Copyright 2017-2025 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+<html lang="en">
+<head>
+  <title>GenericLinkExtractor Extract Between tests</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+
+  <a href="exclude1.html"></a>
+
+  <include1>
+    <a href="include1.html"></a>
+  </include1>
+
+  <include1>
+    <a href="include2.html"></a>
+    <exclude1>
+      <a href="exclude2.html"></a>
+    </exclude1>  
+    <a href="include3.html"></a>
+  </include1>
+
+  <a href="exclude3.html"></a>
+
+  <exclude2>
+    <a href="exclude4.html"></a>
+  </exclude2>  
+
+  <include2>
+    <a href="include4.html"></a>
+  </include2>  
+  
+  <a href="exclude5.html"></a>
+
+  <exclude2>
+    <a href="exclude6.html"></a>
+    <!-- Because includes are processed first, this one should be extracted -->
+    <include2>
+      <a href="include5.html"></a>
+    </include2>  
+    <a href="exclude7.html"></a>
+  </exclude2>
+  
+</body>
+</html>

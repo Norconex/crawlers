@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,11 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridCache;
-import com.norconex.crawler.core.grid.GridQueue;
-import com.norconex.crawler.core.grid.GridSet;
-import com.norconex.crawler.core.grid.GridStore;
-import com.norconex.crawler.core.util.ConcurrentUtil;
-import com.norconex.crawler.core.util.SerialUtil;
+import com.norconex.grid.core.storage.GridMap;
+import com.norconex.grid.core.storage.GridQueue;
+import com.norconex.grid.core.storage.GridSet;
+import com.norconex.grid.core.storage.GridStore;
+import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,16 +47,23 @@ public class StoreExportCommand implements Command {
     private final Path exportDir;
     private final boolean pretty;
 
+    //TODO have wrapper StoppableRunnable that when invoked,
+    // set stopRequested on context?  Or do it higher up on context?
+
     @Override
     public void execute(CrawlerContext ctx) {
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN);
         try {
-            ConcurrentUtil.block(ctx.getGrid().compute().runLocalOnce(
+            ctx.getGrid().compute().runOnOneOnce(
                     StoreExportCommand.class.getSimpleName(), () -> {
-                        exportAllStores(ctx);
+                        try {
+                            exportAllStores(ctx);
+                        } catch (IOException e) {
+                            throw new CrawlerException(e);
+                        }
                         return null;
-                    }));
+                    });
         } catch (Exception e) {
             throw new CrawlerException(
                     "A problem occured while exporting crawler storage.", e);
@@ -150,6 +156,6 @@ public class StoreExportCommand implements Command {
         if (GridSet.class.isAssignableFrom(concreteClass)) {
             return GridSet.class.getName();
         }
-        return GridCache.class.getName();
+        return GridMap.class.getName();
     }
 }

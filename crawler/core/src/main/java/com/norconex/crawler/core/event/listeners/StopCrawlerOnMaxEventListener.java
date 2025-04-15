@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,8 @@ public class StopCrawlerOnMaxEventListener implements
         if (isMaxReached()) {
             LOG.info("Maximum number of events reached for crawler: {}",
                     crawlerContext.getId());
-            crawlerContext.stop();
+            //            crawlerContext.stopCrawlerCommand();
+            crawlerContext.getGrid().stop();
         }
     }
 

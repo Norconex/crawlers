@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 public interface FetchResponse {
 
-    DocResolutionStatus getResolutionStatus();
+    CrawlDocStatus getResolutionStatus();
 
     //TODO should be in core?
     int getStatusCode();

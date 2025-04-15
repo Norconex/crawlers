@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import javax.management.ObjectName;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 
+/**
+ * Offers useful methods for registering and unregistering MXBean to JMX.
+ */
 public final class CrawlerMetricsJMX {
 
     private CrawlerMetricsJMX() {

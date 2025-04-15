@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,10 @@ public abstract class CrawlerLifeCycleListener
             onCrawlerCrawlBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
             onCrawlerCrawlEnd(event);
-        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
-            onTaskRunBegin(event);
-        } else if (event.is(CrawlerEvent.TASK_RUN_END)) {
-            onTaskRunEnd(event);
+            //        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
+            //            onTaskRunBegin(event);
+            //        } else if (event.is(CrawlerEvent.TASK_RUN_END)) {
+            //            onTaskRunEnd(event);
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)) {
             onCrawlerRunThreadBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)) {
@@ -86,13 +86,13 @@ public abstract class CrawlerLifeCycleListener
         //NOOP
     }
 
-    protected void onTaskRunEnd(CrawlerEvent event) {
-        //NOOP
-    }
-
-    protected void onTaskRunBegin(CrawlerEvent event) {
-        //NOOP
-    }
+    //    protected void onTaskRunEnd(CrawlerEvent event) {
+    //        //NOOP
+    //    }
+    //
+    //    protected void onTaskRunBegin(CrawlerEvent event) {
+    //        //NOOP
+    //    }
 
     protected void onCrawlerRunThreadBegin(CrawlerEvent event) {
         //NOOP

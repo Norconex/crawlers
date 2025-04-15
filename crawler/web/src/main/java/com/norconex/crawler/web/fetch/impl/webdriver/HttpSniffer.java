@@ -1,4 +1,4 @@
-/* Copyright 2018-2024 Norconex Inc.
+/* Copyright 2018-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,11 +144,12 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
                         }, configuration.getMaxBufferSize()));
 
         Optional.ofNullable(configuration.getHost())
-                .map(host -> new InetSocketAddress(host, configuration.getPort()).getAddress())
+                .map(host -> new InetSocketAddress(host,
+                        configuration.getPort()).getAddress())
                 .ifPresentOrElse(
-                        address -> mobProxy.start(configuration.getPort(), address),
-                        () -> mobProxy.start(configuration.getPort())
-                );
+                        address -> mobProxy.start(configuration.getPort(),
+                                address),
+                        () -> mobProxy.start(configuration.getPort()));
 
         var actualPort = mobProxy.getPort();
         var proxyHost = ofNullable(configuration.getHost()).orElse("localhost");

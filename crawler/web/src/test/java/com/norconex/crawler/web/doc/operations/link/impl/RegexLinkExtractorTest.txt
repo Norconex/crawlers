@@ -1,0 +1,23 @@
+   Copyright 2017-2025 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+
+(link1)[http://www.example.com/page1.html] (link2)[http://www.example.com/page2.html]
+<link>http://www.example.com/page3.html</link>
+<link>/page4.html
+</link>
+<link>page5.html</link>
+
+<a href="javascript:;" class="p" id="p_12345">JS Page 1</a>
+<a href="javascript:;" class="p" id="p_67890">JS Page 2</a>

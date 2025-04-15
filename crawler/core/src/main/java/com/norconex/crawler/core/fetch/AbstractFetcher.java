@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.operations.filter.FilterGroupResolver;
-import com.norconex.crawler.core.operations.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
 
 import jakarta.xml.bind.annotation.XmlAccessType;

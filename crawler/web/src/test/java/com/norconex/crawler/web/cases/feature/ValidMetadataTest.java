@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 /**
  * Test that metadata is extracted properly.
@@ -54,9 +54,9 @@ class ValidMetadataTest {
             var meta = doc.getMetadata();
             assertThat(meta.getStrings(HttpHeaders.CONTENT_TYPE))
                     .containsExactly("text/html; charset=UTF-8");
-            assertThat(meta.getStrings(DocMetadata.CONTENT_TYPE))
+            assertThat(meta.getStrings(DocMetaConstants.CONTENT_TYPE))
                     .containsExactly("text/html");
-            assertThat(meta.getStrings(DocMetadata.CONTENT_ENCODING))
+            assertThat(meta.getStrings(DocMetaConstants.CONTENT_ENCODING))
                     .containsExactly(StandardCharsets.UTF_8.toString());
         }
     }

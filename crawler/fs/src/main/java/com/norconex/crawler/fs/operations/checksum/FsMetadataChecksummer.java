@@ -1,4 +1,4 @@
-/* Copyright 2013-2024 Norconex Inc.
+/* Copyright 2013-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.operations.checksum.AbstractMetadataChecksummer;
-import com.norconex.crawler.core.operations.checksum.BaseChecksummerConfig;
-import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.operations.checksum.impl.GenericMetadataChecksummer;
+import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.operations.checksum.AbstractMetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.BaseChecksummerConfig;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 
 import lombok.Data;
@@ -40,7 +40,7 @@ import lombok.Data;
  * <code>true</code>, the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
- * {@link CrawlDocMetadata#CHECKSUM_METADATA}.
+ * {@link CrawlDocMetaConstants#CHECKSUM_METADATA}.
  * </p>
  * <p>
  * To use different fields (one or several) to constitute a checksum,

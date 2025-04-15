@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import lombok.Setter;
 /**
  * Holds minimal meta information and state necessary to the proper
  * (re)processing of a document in the context of a crawl.
+ * Also persisted in grid storage as a {@link CrawlDocLedger} entry.
  */
 @EqualsAndHashCode
 public class CrawlDocContext extends DocContext {
@@ -40,13 +41,13 @@ public class CrawlDocContext extends DocContext {
     @Setter
     @Getter
     @NonNull
-    private DocProcessingStage processingStage = DocProcessingStage.NONE;
+    private CrawlDocStage processingStage = CrawlDocStage.NONE;
 
     private String originalReference; //TODO keep the trail if it changes often?
 
     @ToStringExclude
     private String parentRootReference;
-    private DocResolutionStatus resolutionStatus;
+    private CrawlDocStatus resolutionStatus;
     @ToStringExclude
     private String metaChecksum;
     @ToStringExclude
@@ -54,6 +55,12 @@ public class CrawlDocContext extends DocContext {
     @ToStringExclude
     private ZonedDateTime crawlDate;
     private ZonedDateTime lastModified;
+    @Setter
+    @Getter
+    private boolean orphan;
+    @Setter
+    @Getter
+    private boolean deleted;
 
     public CrawlDocContext() {
     }
@@ -110,12 +117,12 @@ public class CrawlDocContext extends DocContext {
         this.parentRootReference = parentRootReference;
     }
 
-    public DocResolutionStatus getState() {
+    public CrawlDocStatus getState() {
         return resolutionStatus;
     }
 
-    public void setState(DocResolutionStatus state) {
-        this.resolutionStatus = state;
+    public void setState(CrawlDocStatus state) {
+        resolutionStatus = state;
     }
 
     public String getMetaChecksum() {

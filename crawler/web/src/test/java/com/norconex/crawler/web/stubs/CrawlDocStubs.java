@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 public final class CrawlDocStubs {
 
@@ -87,7 +87,7 @@ public final class CrawlDocStubs {
         var docRecord = new WebCrawlDocContext(ref);
         docRecord.setContentType(ct);
         var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
-        doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ct);
+        doc.getMetadata().set(DocMetaConstants.CONTENT_TYPE, ct);
         return doc;
     }
 }

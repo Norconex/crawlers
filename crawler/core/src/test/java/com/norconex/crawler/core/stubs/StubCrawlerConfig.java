@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,14 +44,14 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.crawler.core.doc.operations.DocumentConsumer;
+import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
+import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.mocks.grid.MockFailingGrid;
 import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
-import com.norconex.crawler.core.operations.DocumentConsumer;
-import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
-import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridConnector;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.NonNull;

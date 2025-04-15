@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
+import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
 
@@ -53,7 +53,8 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
 
-    private static final String CMIS_PREFIX = CrawlDocMetadata.PREFIX + "cmis.";
+    private static final String CMIS_PREFIX =
+            CrawlDocMetaConstants.PREFIX + "cmis.";
 
     @Getter
     private final CmisFetcherConfig configuration = new CmisFetcherConfig();

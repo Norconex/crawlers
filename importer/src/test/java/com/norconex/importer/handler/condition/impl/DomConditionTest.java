@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.parser.ParseState;
 
 class DomConditionTest {
@@ -43,7 +43,7 @@ class DomConditionTest {
             throws IOException {
         var cond = new DomCondition();
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
 
         cond.getConfiguration().setSelector("div.disclaimer");
         Assertions.assertTrue(
@@ -70,7 +70,7 @@ class DomConditionTest {
             throws IOException {
         var cond = new DomCondition();
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "application/xml");
 
         cond.getConfiguration().setSelector("food > fruit[color=red]");
         Assertions.assertTrue(
@@ -101,7 +101,7 @@ class DomConditionTest {
             throws IOException {
         var cond = new DomCondition();
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "application/xml");
         metadata.set("field1", xml);
         cond.getConfiguration().setFieldMatcher(TextMatcher.basic("field1"));
 

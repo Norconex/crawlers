@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XmlUtil;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.DocHandlerException;
@@ -234,7 +234,7 @@ public class XmlStreamSplitter
                         childInfo.addEmbeddedParentReference(
                                 xmlDoc.reference());
                         childMeta.set(
-                                DocMetadata.EMBEDDED_REFERENCE, embedRef);
+                                DocMetaConstants.EMBEDDED_REFERENCE, embedRef);
                         splitDocs.add(childDoc);
                     }
                 }

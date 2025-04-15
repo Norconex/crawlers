@@ -1,0 +1,12 @@
+
+Implementors can overwrite defaults so in the end we may have:
+
+- grid-core (has default impl for processing using Jgroups)
+  - grid-ignite-store
+  - grid-jdbc-store
+  - grid-ignite (the whole thing).
+
+- Setup coordinator recovery. Likely just a matter of starting a new
+  Coordinator thread on the new coordinator node.
+
+- Add JGroups configuration options to CoreGridConnectorConfig.

@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 class CommonAttributesResolverTest {
 
@@ -39,12 +39,14 @@ class CommonAttributesResolverTest {
 
         assertThat(
                 doc.getMetadata().getString(
-                        DocMetadata.CONTENT_ENCODING)).isEqualTo("UTF-16LE");
+                        DocMetaConstants.CONTENT_ENCODING))
+                                .isEqualTo("UTF-16LE");
         assertThat(
                 doc.getMetadata().getString(
-                        DocMetadata.CONTENT_TYPE)).isEqualTo("application/pdf");
+                        DocMetaConstants.CONTENT_TYPE))
+                                .isEqualTo("application/pdf");
         assertThat(
                 doc.getMetadata().getString(
-                        DocMetadata.CONTENT_FAMILY)).isEqualTo("pdf");
+                        DocMetaConstants.CONTENT_FAMILY)).isEqualTo("pdf");
     }
 }

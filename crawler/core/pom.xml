@@ -29,11 +29,7 @@
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
       
     <cxf.version>3.4.5</cxf.version>
-    <hikaricp.version>5.1.0</hikaricp.version>
-    <ignite.version>2.16.0</ignite.version>
     <jdom2.version>2.0.6.1</jdom2.version>
-    <mongodb.version>5.1.1</mongodb.version>
-    <swagger.version>2.2.15</swagger.version>
   </properties>
 
   <inceptionYear>2014</inceptionYear>
@@ -74,81 +70,23 @@
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-committer-core</artifactId>
     </dependency>
-    <dependency>
+<!--    <dependency>
       <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-shaded-libs</artifactId>
-    </dependency>
-    
-    <!--TODO: Delete if no longer supported
-        Databases for crawl store. : 
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-sync</artifactId>
-      <version>${mongodb.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP</artifactId>
-      <version>${hikaricp.version}</version>
-    </dependency>
-    -->
-    
-    
-    <!-- REMOVE THIS: conflicts with Ignite H2 version: 
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2-mvstore</artifactId>
-      <version>${h2.version}</version>
-    </dependency>    
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>${h2.version}</version>
-    </dependency>
-    -->
-    <dependency>
-      <groupId>org.apache.ignite</groupId>
-      <artifactId>ignite-core</artifactId>
-      <version>${ignite.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ignite</groupId>
-      <artifactId>ignite-indexing</artifactId>
-      <version>${ignite.version}</version>
-    </dependency>
-
-<!--
-    <dependency>
-      <groupId>org.apache.ignite</groupId>
-      <artifactId>ignite-spring</artifactId>
-      <version>${ignite.version}</version>
-    </dependency>    
-    <dependency>
-      <groupId>org.apache.ignite</groupId>
-      <artifactId>ignite-calcite</artifactId>
-      <version>${ignite.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.h2database</groupId>
-          <artifactId>h2</artifactId>
-        </exclusion>
-      </exclusions>
+      <artifactId>nx-grid-core</artifactId>
     </dependency>-->
     <dependency>
-      <groupId>org.apache.ignite</groupId>
-      <artifactId>ignite-slf4j</artifactId>
-      <version>${ignite.version}</version>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-grid-local</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>info.picocli</groupId>
+      <artifactId>picocli</artifactId>
+    </dependency>    
+
     
-<!--    <dependency>
-        <groupId>org.apache.ignite</groupId>
-        <artifactId>ignite-spring</artifactId>
-        <version>${ignite.version}</version>
-    </dependency>
-    -->
-    
-    <!-- Jackson & misc -->
     <!-- TODO: remove from here as likely inherited from Importer or Nx Lang -->
+    <!--
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
@@ -181,7 +119,8 @@
     <dependency>
       <groupId>info.picocli</groupId>
       <artifactId>picocli</artifactId>
-    </dependency>      
+    </dependency>
+    -->
     
 
     <!-- Tests and provided. -->
@@ -213,18 +152,16 @@
       <artifactId>jcl-over-slf4j</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- TODO: Delete if no longer needed: 
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>mongodb</artifactId>
-      <version>${testcontainers.version}</version>
-      <scope>test</scope>
-    </dependency>
-    -->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jeasy</groupId>

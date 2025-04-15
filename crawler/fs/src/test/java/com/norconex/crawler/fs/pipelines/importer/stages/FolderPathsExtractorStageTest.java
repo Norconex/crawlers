@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
 
@@ -58,13 +58,14 @@ class FolderPathsExtractorStageTest {
             }
         });
 
-        var ctx = new ImporterPipelineContext(
-                new MockFsCrawlerBuilder(tempDir).crawlerContext(), doc);
-
-        assertThatExceptionOfType(CrawlerException.class)
-                .isThrownBy(() -> //NOSONAR
-                new FolderPathsExtractorStage(
-                        FetchDirective.DOCUMENT).executeStage(ctx))
-                .withMessageContaining("Could not fetch child paths of:");
+        new MockFsCrawlerBuilder(tempDir).withCrawlerContext(crawlCtx -> {
+            var ctx = new ImporterPipelineContext(crawlCtx, doc);
+            assertThatExceptionOfType(CrawlerException.class)
+                    .isThrownBy(() -> //NOSONAR
+            new FolderPathsExtractorStage(
+                    FetchDirective.DOCUMENT).executeStage(ctx))
+                    .withMessageContaining("Could not fetch child paths of:");
+            return null;
+        });
     }
 }

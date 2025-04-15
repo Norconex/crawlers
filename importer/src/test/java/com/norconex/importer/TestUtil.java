@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandler;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.condition.Condition;
@@ -199,7 +199,7 @@ public final class TestUtil {
         if (!hasRef) {
             doc.getMetadata().remove("document.reference");
         }
-        var ct = doc.getMetadata().getString(DocMetadata.CONTENT_TYPE);
+        var ct = doc.getMetadata().getString(DocMetaConstants.CONTENT_TYPE);
         if (ct != null) {
             doc.getDocContext().setContentType(ContentType.valueOf(ct));
         }

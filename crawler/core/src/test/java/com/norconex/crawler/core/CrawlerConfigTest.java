@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,11 @@ package com.norconex.crawler.core;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.mocks.grid.MockFailingGrid;
-import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 class CrawlerConfigTest {
@@ -36,12 +31,12 @@ class CrawlerConfigTest {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper
                         .builder()
-                        .polymorphicTypeImpl(
-                                Grid.class,
-                                List.of(MockFailingGrid.class))
-                        .polymorphicTypeImpl(
-                                GridConnector.class,
-                                List.of(MockFailingGridConnector.class))
+                        // .polymorphicTypeImpl(
+                        //         Grid.class,
+                        //         List.of(MockFailingGrid.class))
+                        // .polymorphicTypeImpl(
+                        //         GridConnector.class,
+                        //         List.of(MockFailingGridConnector.class))
                         .build().assertWriteRead(
                                 StubCrawlerConfig
                                         .randomMemoryCrawlerConfig(tempDir)));

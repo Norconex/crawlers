@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2014-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,22 +28,22 @@ import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
+import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.operations.DocumentConsumer;
+import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
+import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
-import com.norconex.crawler.core.operations.DocumentConsumer;
-import com.norconex.crawler.core.operations.checksum.DocumentChecksummer;
-import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.operations.checksum.impl.Md5DocumentChecksummer;
-import com.norconex.crawler.core.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.operations.filter.MetadataFilter;
-import com.norconex.crawler.core.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
-import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
+import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.local.LocalGridConnector;
 import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;
@@ -158,7 +158,7 @@ public class CrawlerConfig {
      * references in one or more separate threads as they are added to the
      * queue (as opposed to wait for queue initialization to be complete).
      * While this may speed up crawling, it may have an unexpected effect on
-     * accuracy of {@link CrawlDocMetadata#DEPTH}. Use of this option is only
+     * accuracy of {@link CrawlDocMetaConstants#DEPTH}. Use of this option is only
      * recommended when start references take a significant time to load.
      */
     private boolean startReferencesAsync;

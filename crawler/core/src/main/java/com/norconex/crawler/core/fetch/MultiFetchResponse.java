@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -41,7 +41,7 @@ public class MultiFetchResponse<T extends FetchResponse>
     private final List<T> fetchResponses;
 
     @Override
-    public DocResolutionStatus getResolutionStatus() {
+    public CrawlDocStatus getResolutionStatus() {
         return getLastFetchResponse().map(
                 FetchResponse::getResolutionStatus).orElse(null);
     }

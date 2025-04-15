@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,13 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridCache;
+import com.norconex.grid.core.storage.GridMap;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
+import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.operations.robot.RobotsTxt;
-import com.norconex.crawler.web.operations.scope.UrlScope;
 
 import lombok.NonNull;
 
@@ -40,11 +40,11 @@ public final class Web {
     private Web() {
     }
 
-    public static <T> GridCache<T> gridCache(
+    public static <T> GridMap<T> gridCache(
             @NonNull CrawlerContext crawlerContext,
             @NonNull String name,
             @NonNull Class<? extends T> type) {
-        return crawlerContext.getGrid().storage().getCache(name, type);
+        return crawlerContext.getGrid().storage().getMap(name, type);
     }
 
     public static void fireIfUrlOutOfScope(

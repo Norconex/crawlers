@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.doc.operations.filter.OnMatch;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core.operations.filter.OnMatch;
-import com.norconex.crawler.core.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;

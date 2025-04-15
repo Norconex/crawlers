@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,18 @@ package com.norconex.crawler.fs.pipelines.importer.stages;
 import java.time.ZonedDateTime;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchUtil;
-import com.norconex.crawler.core.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 import com.norconex.crawler.fs.fetch.FileFetcher;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.NonNull;
 
@@ -79,8 +79,8 @@ public class FileFetchStage extends AbstractImporterStage {
 
         //--- Add collector-specific metadata ---
         var meta = ctx.getDoc().getMetadata();
-        meta.set(DocMetadata.CONTENT_TYPE, docRecord.getContentType());
-        meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getCharset());
+        meta.set(DocMetaConstants.CONTENT_TYPE, docRecord.getContentType());
+        meta.set(DocMetaConstants.CONTENT_ENCODING, docRecord.getCharset());
 
         var state = response.getResolutionStatus();
         //TODO really do here??  or just do it if different than response?
@@ -102,7 +102,7 @@ public class FileFetchStage extends AbstractImporterStage {
         }
 
         String eventType = null;
-        if (state.isOneOf(DocResolutionStatus.NOT_FOUND)) {
+        if (state.isOneOf(CrawlDocStatus.NOT_FOUND)) {
             eventType = CrawlerEvent.REJECTED_NOTFOUND;
         } else {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;

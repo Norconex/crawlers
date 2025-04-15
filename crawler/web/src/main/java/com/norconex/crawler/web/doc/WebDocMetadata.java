@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  */
 package com.norconex.crawler.web.doc;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
+import static com.norconex.crawler.core.doc.CrawlDocMetaConstants.PREFIX;
 
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 /**
  * Metadata constants for common metadata field
  * names typically set by the Web Crawler crawler.
- * @see DocMetadata
+ * @see DocMetaConstants
  */
 public final class WebDocMetadata {
 

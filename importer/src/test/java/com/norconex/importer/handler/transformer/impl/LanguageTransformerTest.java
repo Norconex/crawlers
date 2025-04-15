@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2014-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.parser.ParseState;
 
 class LanguageTransformerTest {
@@ -70,7 +70,8 @@ class LanguageTransformerTest {
                         factory.newInputStream(sampleTexts.get("en")),
                         meta,
                         ParseState.POST));
-        Assertions.assertNotEquals("en", meta.getString(DocMetadata.LANGUAGE));
+        Assertions.assertNotEquals("en",
+                meta.getString(DocMetaConstants.LANGUAGE));
     }
 
     @Test
@@ -85,7 +86,8 @@ class LanguageTransformerTest {
                 meta,
                 ParseState.POST));
         // should use fallback language (en)
-        Assertions.assertEquals("en", meta.getString(DocMetadata.LANGUAGE));
+        Assertions.assertEquals("en",
+                meta.getString(DocMetaConstants.LANGUAGE));
     }
 
     @Test
@@ -102,7 +104,8 @@ class LanguageTransformerTest {
                 meta,
                 ParseState.POST));
         // should use fallback language
-        Assertions.assertEquals("it", meta.getString(DocMetadata.LANGUAGE));
+        Assertions.assertEquals("it",
+                meta.getString(DocMetaConstants.LANGUAGE));
     }
 
     @Test
@@ -120,7 +123,8 @@ class LanguageTransformerTest {
                             factory.newInputStream(sampleTexts.get(lang)),
                             meta,
                             ParseState.POST));
-            Assertions.assertEquals(lang, meta.getString(DocMetadata.LANGUAGE));
+            Assertions.assertEquals(lang,
+                    meta.getString(DocMetaConstants.LANGUAGE));
         }
     }
 
@@ -221,6 +225,7 @@ class LanguageTransformerTest {
                         factory.newInputStream(content),
                         meta,
                         ParseState.POST));
-        Assertions.assertEquals("nl", meta.getString(DocMetadata.LANGUAGE));
+        Assertions.assertEquals("nl",
+                meta.getString(DocMetaConstants.LANGUAGE));
     }
 }

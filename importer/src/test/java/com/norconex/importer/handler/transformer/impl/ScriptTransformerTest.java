@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.ScriptRunner;
 import com.norconex.importer.handler.parser.ParseState;
 
@@ -57,7 +57,7 @@ class ScriptTransformerTest {
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         var doc = TestUtil.newHandlerContext(
                 htmlFile.getAbsolutePath(), is, metadata, ParseState.PRE);
         t.handle(doc);
@@ -129,7 +129,7 @@ class ScriptTransformerTest {
         var t = new ScriptTransformer();
         t.setScriptRunner(new ScriptRunner<>(engineName, script));
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         var is = IOUtils.toInputStream(
                 "World!", StandardCharsets.UTF_8);
         var doc = TestUtil.newHandlerContext(

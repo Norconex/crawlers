@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core.mocks.grid;
 
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerSpecProvider;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridConnector;
+import java.nio.file.Path;
+
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridConnector;
 
 import lombok.Data;
 
@@ -25,9 +25,12 @@ import lombok.Data;
 public class MockFailingGridConnector implements GridConnector {
 
     @Override
-    public Grid connect(
-            Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
-            CrawlerConfig crawlerConfig) {
+    public Grid connect(Path workDir) {
         return new MockFailingGrid();
+    }
+
+    @Override
+    public void requestStop(Path workDir) {
+        // NOOP
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.norconex.crawler.web.callbacks;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.web.operations.scope.impl.GenericUrlScopeResolver;
+import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;

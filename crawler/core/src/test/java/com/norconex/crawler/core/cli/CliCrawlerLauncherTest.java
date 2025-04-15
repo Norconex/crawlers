@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,12 @@ import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
 import com.norconex.crawler.core.mocks.cli.MockCliExit;
 import com.norconex.crawler.core.mocks.cli.MockCliLauncher;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
+import com.norconex.grid.core.GridConnector;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +57,7 @@ class CliCrawlerLauncherTest {
     // too often, modify the ParameterizedGridConnectorTest to handle this.
     @AfterEach
     void tearDown() {
-        GridTestUtil.waitForGridShutdown();
+        //        GridTestUtil.waitForGridShutdown();
     }
 
     @ParameterizedGridConnectorTest
@@ -228,10 +227,10 @@ class CliCrawlerLauncherTest {
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                CrawlerEvent.TASK_RUN_BEGIN,
+                //                CrawlerEvent.TASK_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                CrawlerEvent.TASK_RUN_END,
+                //                CrawlerEvent.TASK_RUN_END,
                 CrawlerEvent.CRAWLER_CRAWL_END,
                 CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
@@ -281,10 +280,10 @@ class CliCrawlerLauncherTest {
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                CrawlerEvent.TASK_RUN_BEGIN,
+                //                CrawlerEvent.TASK_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                CrawlerEvent.TASK_RUN_END,
+                //                CrawlerEvent.TASK_RUN_END,
                 CrawlerEvent.CRAWLER_CRAWL_END,
                 CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,

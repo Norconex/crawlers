@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatchers;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 class CommonRestrictionsTest {
 
@@ -124,8 +124,9 @@ class CommonRestrictionsTest {
             String... contentTypes) {
         var props = new Properties();
         for (String contentType : contentTypes) {
-            props.set(DocMetadata.CONTENT_TYPE, contentType);
-            if (!restrictions.apply(DocMetadata.CONTENT_TYPE).test(props)) {
+            props.set(DocMetaConstants.CONTENT_TYPE, contentType);
+            if (!restrictions.apply(DocMetaConstants.CONTENT_TYPE)
+                    .test(props)) {
                 return false;
             }
         }

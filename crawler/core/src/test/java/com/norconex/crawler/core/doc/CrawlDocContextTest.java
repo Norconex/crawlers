@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ class CrawlDocContextTest {
 
     @Test
     void testStages() {
-        assertThat(DocProcessingStage.RESOLVED.is(null)).isFalse();
-        assertThat(DocProcessingStage.UNRESOLVED.is(
-                DocProcessingStage.UNRESOLVED)).isTrue();
-        assertThat(DocProcessingStage.QUEUED.is(
-                DocProcessingStage.NONE)).isFalse();
-        assertThat(DocProcessingStage.RESOLVED.is(
-                DocProcessingStage.QUEUED)).isFalse();
+        assertThat(CrawlDocStage.RESOLVED.is(null)).isFalse();
+        assertThat(CrawlDocStage.UNRESOLVED.is(
+                CrawlDocStage.UNRESOLVED)).isTrue();
+        assertThat(CrawlDocStage.QUEUED.is(
+                CrawlDocStage.NONE)).isFalse();
+        assertThat(CrawlDocStage.RESOLVED.is(
+                CrawlDocStage.QUEUED)).isFalse();
     }
 }

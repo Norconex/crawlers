@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,16 +50,16 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.doc.operations.filter.OnMatch;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
+import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridConnector;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridConnector;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.junit.CrawlTestCapturer.CrawlCaptures;
-import com.norconex.crawler.core.operations.filter.OnMatch;
-import com.norconex.crawler.core.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core.operations.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
-import com.norconex.crawler.core.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;

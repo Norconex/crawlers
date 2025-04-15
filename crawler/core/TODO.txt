@@ -1,6 +1,18 @@
 TODO:
 ==============
 
+- For compute and pipeline, make everything runnable not returning any value
+  or make them return a value even if they are not the one that ran the job.
+  Involve serialization so the first option is likely the best.
+
+- Add "numberOfTimeFailed" field to docs. And have the "grace" option based 
+  on that value
+
+- Redo all fields store specifically by crawler and add a few contextual
+  ones (e.g., which crawler, index date, orphan flag, updated vs new flag, etc.)
+
+- For Ignite Grid, consider using CheckpointSpi for crawler stages.
+
 - Whenever we return a future, check for errors/exceptions or they're swallowed
 
 - Add concept of doc processing timeout

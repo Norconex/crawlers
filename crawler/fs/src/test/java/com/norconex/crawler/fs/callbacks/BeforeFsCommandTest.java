@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,14 @@ package com.norconex.crawler.fs.callbacks;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
+import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class BeforeFsCommandTest {
 
-    @TempDir
-    private Path tempDir;
-
-    @Test
-    void testAccept() {
-        var ctx = new MockFsCrawlerBuilder(tempDir).crawlerContext();
-        ctx.init();
+    @CrawlTest(focus = Focus.CONTEXT)
+    void testAccept(CrawlerContext ctx) {
         assertThatNoException()
                 .isThrownBy(() -> new BeforeFsCommand().accept(ctx));
     }

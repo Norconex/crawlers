@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.norconex.crawler.core;
 import static com.norconex.crawler.core.util.ExceptionSwallower.swallow;
 import static java.util.Optional.ofNullable;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,29 +40,32 @@ import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.time.DurationFormatter;
-import com.norconex.crawler.core.cmd.crawl.CrawlStage;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrappers;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.DocProcessingLedger;
+import com.norconex.crawler.core.doc.CrawlDocLedger;
+import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.doc.pipelines.DedupService;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.grid.Grid;
-import com.norconex.crawler.core.grid.GridCache;
-import com.norconex.crawler.core.init.CrawlerInitializers;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
+import com.norconex.crawler.core.metrics.CrawlerMetricsImpl;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
-import com.norconex.crawler.core.pipelines.CrawlerPipelines;
-import com.norconex.crawler.core.pipelines.DedupService;
 import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.storage.GridMap;
 import com.norconex.importer.Importer;
 import com.norconex.importer.doc.DocContext;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,7 +88,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @Getter
 @Slf4j
-public class CrawlerContext implements Closeable {
+public class CrawlerContext implements AutoCloseable {
 
     private static final Map<String, CrawlerContext> INSTANCES =
             new HashMap<>();
@@ -94,19 +96,14 @@ public class CrawlerContext implements Closeable {
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
 
     private static final String KEY_RESUMING = "resuming";
-    private static final String KEY_STOPPING = "stopping";
+    private static final String KEY_INCREMENTING = "incrementing";
     private static final String KEY_QUEUE_INITIALIZED = "queueInitialized";
-
-    // -- NOTE on server nodes ---
-    // Some of the following fields are only used on server nodes when on a
-    // grid. They will be initialized on client even if not used... given
-    // on non-grid they are needed on client as well (i.e., there are no
-    // distinctions) and implementers may need them on client extensions,
-    // the benefits outweighs the drawbacks vs splitting them
-    // into two context classes that overlap much.
+    private static final String KEY_MAX_PROCESSED_DOCS = "maxProcessedDocs";
 
     //--- Set on declaration ---
     private final DedupService dedupService = new DedupService();
+    private final CrawlDocLedger docLedger = new CrawlDocLedger();
+    private final CrawlerMetrics metrics = new CrawlerMetricsImpl();
 
     //--- Set in constructor ---
     private final CrawlerConfig configuration;
@@ -121,8 +118,8 @@ public class CrawlerContext implements Closeable {
     private CommitterService<CrawlDoc> committerService;
     private Importer importer;
 
-    private final CrawlerInitializers initializers;
-    private final CrawlerPipelines pipelines;
+    private final CrawlBootstrappers bootstrappers;
+    private final CrawlDocPipelines pipelines; //TODO rename docPipelines ................
     private final Fetcher<? extends FetchRequest,
             ? extends FetchResponse> fetcher;
 
@@ -131,11 +128,13 @@ public class CrawlerContext implements Closeable {
     private Path workDir;
     private Path tempDir;
     private CachedStreamFactory streamFactory;
-    private DocProcessingLedger docProcessingLedger;
-    private CrawlerMetrics metrics;
-    private GridCache<Boolean> stateCache;
+    private GridMap<Boolean> ctxStateStore; //TODO rename flagsMap?
+    // for some obscure reasons, these 2 bools vanish if @Getter isn't set again
+    @Getter
+    private boolean resuming; // starting where it ended (before completion)
+    @Getter
+    private boolean incrementing; // ran before and has a cache
 
-    @SuppressWarnings("resource")
     public CrawlerContext(
             @NonNull CrawlerSpec crawlerSpec,
             @NonNull CrawlerConfig crawlerConfig,
@@ -165,17 +164,17 @@ public class CrawlerContext implements Closeable {
         importer = new Importer(
                 configuration.getImporterConfig(), eventManager);
         fetcher = spec.fetcherProvider().apply(this);
-        initializers = spec.initializers();
+        bootstrappers = spec.bootstrappers();
         pipelines = spec.pipelines();
     }
 
     public void init() {
         // NOTE: order matters
 
-        if (INSTANCES.putIfAbsent(grid.nodeId(), this) != null) {
+        if (INSTANCES.putIfAbsent(grid.getNodeName(), this) != null) {
             throw new IllegalStateException(
-                    "A crawler context was already created for this "
-                            + "local grid node.");
+                    "A crawler context was already created and initialized for "
+                            + "this grid node.");
         }
 
         // need those? // maybe append cluster node id?
@@ -196,18 +195,36 @@ public class CrawlerContext implements Closeable {
         eventManager.addListenersFromScan(getConfiguration());
         fire(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN);
 
-        stateCache = grid.storage().getCache(
+        docLedger.init(this);
+
+        ctxStateStore = grid.storage().getMap(
                 CrawlerContext.class.getSimpleName(), Boolean.class);
-        grid.compute().runLocalOnce(CrawlerContext.class.getSimpleName(),
+
+        // Here We initialize things that should only be initialized once
+        // for the entire crawl sessions (i.e., only set by one node).
+        var result = grid.compute().runOnOne("context-init",
                 () -> {
-                    stateCache.clear();
-                    return null;
+                    //TODO encapsulate stateMap and other "generic" stores
+                    // into their own object? Or a base object for them all?
+                    var newSession = docLedger.isQueueEmpty();
+                    if (newSession) {
+                        LOG.info("Starting a new crawl session.");
+                        grid.resetSession();
+                    } else {
+                        LOG.info("Resuming a previous crawl session.");
+                    }
+                    ctxStateStore.clear();
+                    var props = new GridContextProps();
+                    props.setResuming(!newSession);
+                    props.setIncrementing(
+                            !docLedger.isProcessedEmpty());
+                    setState(KEY_RESUMING, props.isResuming());
+                    setState(KEY_INCREMENTING, props.isIncrementing());
+                    return props;
                 });
 
-        docProcessingLedger = new DocProcessingLedger();
-        metrics = new CrawlerMetrics();
-
-        docProcessingLedger.init(this);
+        resuming = result.getValue().resuming;
+        incrementing = result.getValue().incrementing;
 
         LogUtil.setMdcCrawlerId(getId());
         Thread.currentThread().setName(getId());
@@ -269,9 +286,10 @@ public class CrawlerContext implements Closeable {
             }
         }, "Could not delete the temporary directory:" + tempDir);
 
+        grid.close();
         fire(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END);
         swallow(eventManager::clearListeners);
-        INSTANCES.remove(grid.nodeId());
+        INSTANCES.remove(grid.getNodeName());
     }
 
     public CrawlDocContext newDocContext(@NonNull String reference) {
@@ -280,51 +298,11 @@ public class CrawlerContext implements Closeable {
         return docContext;
     }
 
-    public CrawlDocContext newDocContext(@NonNull DocContext parentContext) {
+    public CrawlDocContext
+            newDocContext(@NonNull DocContext parentContext) {
         var docContext = newDocContext(parentContext.getReference());
         docContext.copyFrom(parentContext);
         return docContext;
-    }
-
-    /**
-     * Gets the last registered crawl stage.
-     * @return crawl stage
-     */
-    public CrawlStage getCrawlStage() {
-        return CrawlStage.of(grid
-                .storage()
-                .getGlobalCache()
-                .get(CrawlStage.class.getSimpleName()));
-    }
-
-    /**
-     * Whether a request was made to stop the crawler.
-     * @return <code>true</code> if stopping the crawler was requested
-     */
-    public boolean isStopping() {
-        return getState(KEY_STOPPING);
-    }
-
-    public void stop() {
-        LOG.info("Received request to stop the crawler.");
-        setState(KEY_STOPPING, true);
-    }
-
-    /**
-     * Whether the crawler has ended (done or stopped). Same
-     * as invoking <code>getCrawlStage() == CrawlStage.END</code>.
-     * @return <code>true</code> if the crawler has ended
-     */
-    public boolean isEnded() {
-        return getCrawlStage() == CrawlStage.ENDED;
-    }
-
-    public boolean isResuming() {
-        return getState(KEY_RESUMING);
-    }
-
-    public void resuming() {
-        setState(KEY_RESUMING, true);
     }
 
     public boolean isQueueInitialized() {
@@ -333,6 +311,20 @@ public class CrawlerContext implements Closeable {
 
     public void queueInitialized() {
         setState(KEY_QUEUE_INITIALIZED, true);
+    }
+
+    //MAYBE: Consider caching this value once set by DocLedgerInitializer
+    public long maxProcessedDocs() {
+        var maxDocs = grid.storage()
+                .getSessionAttributes().get(KEY_MAX_PROCESSED_DOCS);
+        return maxDocs == null ? configuration.getMaxDocuments()
+                : Long.parseLong(maxDocs);
+    }
+
+    public void maxProcessedDocs(long maxDocs) {
+        grid.storage()
+                .getSessionAttributes()
+                .put(KEY_MAX_PROCESSED_DOCS, Long.toString(maxDocs));
     }
 
     public static boolean isInitialized(String nodeId) {
@@ -354,11 +346,11 @@ public class CrawlerContext implements Closeable {
      * @param key state key
      * @param value state value
      */
-    public void setState(String key, boolean value) {
-        if (stateCache == null) {
+    private void setState(String key, boolean value) {
+        if (ctxStateStore == null) {
             throw new IllegalStateException("Crawler context not initialized.");
         }
-        stateCache.put(key, value);
+        ctxStateStore.put(key, value);
     }
 
     /**
@@ -366,11 +358,11 @@ public class CrawlerContext implements Closeable {
      * @param key state key
      * @return state value
      */
-    public boolean getState(String key) {
-        if (stateCache == null) {
+    private boolean getState(String key) {
+        if (ctxStateStore == null) {
             throw new IllegalStateException("Crawler context not initialized.");
         }
-        return Boolean.TRUE.equals(stateCache.get(key));
+        return Boolean.TRUE.equals(ctxStateStore.get(key));
     }
 
     public void fire(Event event) {
@@ -396,5 +388,13 @@ public class CrawlerContext implements Closeable {
     @Override
     public String toString() {
         return getId();
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    private static class GridContextProps {
+        boolean resuming;
+        boolean incrementing;
     }
 }

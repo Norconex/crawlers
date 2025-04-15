@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@ import java.util.function.Function;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.function.Predicates;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrappers;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.DocLedgerBootstrapper;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.init.CrawlerInitializers;
-import com.norconex.crawler.core.init.ledger.DocLedgerInitializer;
-import com.norconex.crawler.core.init.queue.QueueInitializer;
-import com.norconex.crawler.core.pipelines.CrawlerPipelines;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -39,12 +39,12 @@ import lombok.experimental.Accessors;
 public class CrawlerSpec {
     private Class<? extends CrawlerConfig> crawlerConfigClass =
             CrawlerConfig.class;
-    private CrawlerInitializers initializers = CrawlerInitializers.builder()
-            .initializers(Predicates.allOf(
-                    new DocLedgerInitializer(),
-                    new QueueInitializer()))
+    private CrawlBootstrappers bootstrappers = CrawlBootstrappers.builder()
+            .bootstrappers(Predicates.allOf(
+                    new DocLedgerBootstrapper(),
+                    new QueueBootstrapper()))
             .build();
-    private CrawlerPipelines pipelines;
+    private CrawlDocPipelines pipelines;
     private CrawlerCallbacks callbacks = CrawlerCallbacks.builder().build();
     private BeanMapper beanMapper = BeanMapper.DEFAULT;
     private EventManager eventManager = new EventManager();

@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,15 +31,15 @@ import org.mockserver.model.MediaType;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
+import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
+import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.crawler.web.operations.scope.impl.GenericUrlScopeResolver;
-import com.norconex.crawler.web.operations.sitemap.impl.GenericSitemapLocator;
-import com.norconex.crawler.web.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.util.Web;
 
 /**
@@ -78,8 +78,7 @@ class StayOnSitemapTest {
         var referrers = new ArrayList<String>();
 
         cfg.setStartReferences(List.of(serverUrl(client, page1Path)));
-        cfg
-                .setSitemapResolver(new GenericSitemapResolver())
+        cfg.setSitemapResolver(new GenericSitemapResolver())
                 .setSitemapLocator(new GenericSitemapLocator())
                 .setMaxDepth(3)
                 // custom fetcher that stores exception (last one)

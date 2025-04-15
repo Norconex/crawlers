@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2010-2024 Norconex Inc.
+   Copyright 2010-2025 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,19 +47,18 @@
   <inceptionYear>2009</inceptionYear>
 
   <repositories>
-    
     <!-- The following repo is required for jai-imageio-jpeg2000 support. -->
+<!--
     <repository>
       <id>apache.snapshots</id>
       <url>http://repository.mygrid.org.uk/artifactory/mygrid-all/</url>
-      <!-- url>http://repository.apache.org/snapshots/</url -->
     </repository>
-
+-->
     <!-- The following repo is required for jj2000 support. -->
     <repository>
         <id>unidata-releases</id>
         <name>UNIDATA Releases</name>
-        <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
+        <url>https://repo.osgeo.org/repository/release/</url>
     </repository>
   </repositories>
 

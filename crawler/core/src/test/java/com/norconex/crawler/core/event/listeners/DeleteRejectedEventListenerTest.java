@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ class DeleteRejectedEventListenerTest {
                           class: Reject
             """
     )
-
     void testDeleteRejectedEventListener(
             CrawlerContext crawlerContext, MemoryCommitter mem) {
 

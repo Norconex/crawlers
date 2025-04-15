@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 class CharsetTransformerTest {
 
@@ -172,7 +172,7 @@ class CharsetTransformerTest {
 
         var metadata = new Properties();
         metadata.set("field1", new String(sourceBytes, fromCharset));
-        metadata.set(DocMetadata.CONTENT_ENCODING, fromCharset);
+        metadata.set(DocMetaConstants.CONTENT_ENCODING, fromCharset);
 
         InputStream is = new NullInputStream(0);
         t.handle(

@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,24 +24,24 @@ import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core.doc.operations.DocumentConsumer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.operations.DocumentConsumer;
-import com.norconex.crawler.core.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.operations.filter.MetadataFilter;
-import com.norconex.crawler.core.operations.filter.ReferenceFilter;
+import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
+import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
+import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
+import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.doc.operations.robot.RobotsMetaProvider;
+import com.norconex.crawler.web.doc.operations.robot.RobotsTxtProvider;
+import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
+import com.norconex.crawler.web.doc.operations.sitemap.SitemapLocator;
+import com.norconex.crawler.web.doc.operations.sitemap.SitemapResolver;
+import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcher;
-import com.norconex.crawler.web.operations.canon.CanonicalLinkDetector;
-import com.norconex.crawler.web.operations.delay.DelayResolver;
-import com.norconex.crawler.web.operations.link.LinkExtractor;
-import com.norconex.crawler.web.operations.recrawl.RecrawlableResolver;
-import com.norconex.crawler.web.operations.robot.RobotsMetaProvider;
-import com.norconex.crawler.web.operations.robot.RobotsTxtProvider;
-import com.norconex.crawler.web.operations.scope.UrlScopeResolver;
-import com.norconex.crawler.web.operations.sitemap.SitemapLocator;
-import com.norconex.crawler.web.operations.sitemap.SitemapResolver;
-import com.norconex.crawler.web.operations.url.WebUrlNormalizer;
 
 /**
  * <p>
@@ -52,7 +52,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
 
     private static final String WEB_BASE_PKG = "com.norconex.crawler.web";
     private static final String OPERATIONS_BASE_PKG =
-            WEB_BASE_PKG + ".operations";
+            WEB_BASE_PKG + ".doc.operations";
     private static final String FILTER_BASE_PKG =
             OPERATIONS_BASE_PKG + ".filter";
 

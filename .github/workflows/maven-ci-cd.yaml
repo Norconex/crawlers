@@ -149,27 +149,18 @@ jobs:
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
 
-    #--- Step ------------------------------------------------------------------
-
-    # The shaded libs are dependencies to some other modules so we have
-    # to install them in local maven repo first. 
-    - name: Build and Install Shaded Libs
-      run: |
-        mvn clean install \
-        -Dgpg.skip=true \
-        -Dmaven.wagon.rss.buffer.size=2048 \
-        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-        -pl shaded
 
     #--- Step ------------------------------------------------------------------
         
-    # Resolving before most mvn commands will fail early if there is an issue.
+    # Resolving before other mvn commands will fail early if there is an issue.
     # Downloaded items won't be downloaded again in this workflow.
+    # We use :go-offline instead of :resolve so it does not fail if our own
+    # internal dependencies are not yet found on central.
     - name: Resolve Maven Dependencies
       run: |
-        mvn dependency:resolve -U \
-        -Dmaven.wagon.rss.buffer.size=2048 \
-        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+        mvn dependency:go-offline -U \
+          -Dmaven.wagon.rss.buffer.size=2048 \
+          -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn    
 
     #--- Step ------------------------------------------------------------------
                 
@@ -193,10 +184,10 @@ jobs:
       run: |
         changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
         if [ -n "$changed_modules" ]; then
-          pl_argument="$changed_modules"
+          pl_argument="-pl \"$changed_modules\""
           am_argument="-am"
         else
-          pl_argument="!shaded"
+          pl_argument=""
           am_argument=""
         fi
         mvn clean -B verify \
@@ -206,8 +197,7 @@ jobs:
         -Dmaven.javadoc.skip=true \
         -Dmaven.wagon.rss.buffer.size=2048 \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-        -Pjacoco \
-        -pl "$pl_argument" \
+        -Pjacoco $pl_argument \
         -C ${am_argument}
 
     #--- Step ------------------------------------------------------------------
@@ -221,7 +211,7 @@ jobs:
         if [ -n "$changed_modules" ]; then
           IFS=',' read -r -a modules_to_process <<< "$changed_modules"
         else
-          mapfile -t modules_to_process < <(grep -oP '<module>\K.*?(?=</module>)' pom.xml | grep -v 'shaded')
+          mapfile -t modules_to_process < <(grep -oP '<module>\K.*?(?=</module>)' pom.xml)
         fi
 
         # Loop through resolved modules and run Sonar analysis

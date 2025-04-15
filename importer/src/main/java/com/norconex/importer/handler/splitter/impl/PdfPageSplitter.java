@@ -1,4 +1,4 @@
-/* Copyright 2018-2024 Norconex Inc.
+/* Copyright 2018-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocContext;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
@@ -134,7 +134,7 @@ public class PdfPageSplitter
                 var pageInfo = new DocContext(pageRef);
 
                 pageMeta.set(
-                        DocMetadata.EMBEDDED_REFERENCE,
+                        DocMetaConstants.EMBEDDED_REFERENCE,
                         Integer.toString(pageNo));
 
                 pageInfo.addEmbeddedParentReference(docCtx.reference());

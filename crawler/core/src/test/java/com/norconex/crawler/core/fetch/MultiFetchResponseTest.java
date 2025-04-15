@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 import lombok.Data;
 
@@ -46,8 +46,8 @@ class MultiFetchResponseTest {
         }
 
         @Override
-        public DocResolutionStatus getResolutionStatus() {
-            return DocResolutionStatus.MODIFIED;
+        public CrawlDocStatus getResolutionStatus() {
+            return CrawlDocStatus.MODIFIED;
         }
     }
 
@@ -62,7 +62,7 @@ class MultiFetchResponseTest {
         assertThat(gmfr.getReasonPhrase()).isEqualTo("Just because.");
         assertThat(gmfr.getException().getMessage()).isEqualTo("TEST");
         assertThat(gmfr.getResolutionStatus())
-                .isSameAs(DocResolutionStatus.MODIFIED);
+                .isSameAs(CrawlDocStatus.MODIFIED);
         assertThat(gmfr.getFetchResponses()).containsExactlyInAnyOrder(
                 resp1, resp2);
         assertThat(gmfr.getLastFetchResponse()).containsSame(resp2);

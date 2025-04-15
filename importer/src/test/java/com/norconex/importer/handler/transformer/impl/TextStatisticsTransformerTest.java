@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.parser.ParseState;
 
 class TextStatisticsTransformerTest {
@@ -60,7 +60,7 @@ class TextStatisticsTransformerTest {
         var is = IOUtils.toInputStream(txt, StandardCharsets.UTF_8);
 
         var meta = new Properties();
-        meta.set(DocMetadata.CONTENT_TYPE, "text/html");
+        meta.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         t.handle(TestUtil.newHandlerContext("n/a", is, meta, ParseState.PRE));
 
         is.close();

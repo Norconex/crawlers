@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ import java.util.List;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
-import com.norconex.crawler.core.grid.GridConnector;
-import com.norconex.crawler.core.grid.impl.ignite.IgniteGridConnector;
-import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
+import com.norconex.grid.core.GridConnector;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,15 +37,15 @@ class CrawlTestInvocationContext implements TestTemplateInvocationContext {
                 new CrawlTestParameterResolver());
     }
 
-    @Override
-    public String getDisplayName(int invocationIndex) {
-        if (gridConnectorClass.isAssignableFrom(IgniteGridConnector.class)) {
-            return "🔥On Ignite Grid";
-        }
-        if (gridConnectorClass
-                .isAssignableFrom(LocalGridConnector.class)) {
-            return "📂On Local Grid";
-        }
-        return String.format("On grid: %s", gridConnectorClass.getSimpleName());
-    }
+    //    @Override
+    //    public String getDisplayName(int invocationIndex) {
+    //        if (gridConnectorClass.isAssignableFrom(IgniteGridConnector.class)) {
+    //            return "🔥On Ignite Grid";
+    //        }
+    //        if (gridConnectorClass
+    //                .isAssignableFrom(LocalGridConnector.class)) {
+    //            return "📂On Local Grid";
+    //        }
+    //        return String.format("On grid: %s", gridConnectorClass.getSimpleName());
+    //    }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.web.doc;
 
-import com.norconex.crawler.core.doc.DocResolutionStatus;
+import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 /**
  * Represents a URL crawling status.
- * @see DocResolutionStatus
+ * @see CrawlDocStatus
  */
-public class WebCrawlDocStatus extends DocResolutionStatus {
+public class WebCrawlDocStatus extends CrawlDocStatus {
 
     private static final long serialVersionUID = 1L;
 

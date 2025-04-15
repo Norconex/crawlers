@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
+import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig;
 
 import lombok.Data;
@@ -36,9 +36,9 @@ public class ScreenshotHandlerConfig extends DocImageHandlerConfig {
     public static final Path DEFAULT_SCREENSHOT_DIR =
             Paths.get("./screenshots");
     public static final String DEFAULT_SCREENSHOT_DIR_FIELD =
-            CrawlDocMetadata.PREFIX + "screenshot-path";
+            CrawlDocMetaConstants.PREFIX + "screenshot-path";
     public static final String DEFAULT_SCREENSHOT_META_FIELD =
-            CrawlDocMetadata.PREFIX + "screenshot";
+            CrawlDocMetaConstants.PREFIX + "screenshot";
 
     private String cssSelector;
 

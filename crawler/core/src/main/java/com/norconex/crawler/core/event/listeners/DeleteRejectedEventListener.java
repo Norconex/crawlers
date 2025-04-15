@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.grid.GridSet;
-import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.grid.core.storage.GridSet;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -85,7 +84,7 @@ public class DeleteRejectedEventListener implements
     // key=reference; value=whether deletion request was already sent
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private GridSet<String> refStore;
+    private GridSet refStore;
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private boolean doneCrawling;
@@ -96,11 +95,12 @@ public class DeleteRejectedEventListener implements
             return;
         }
 
-        if (CrawlerEvent.CRAWLER_CRAWL_END.equals(event.getName())) {
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            //        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
+            init(crawlerEvent.getSource());
+        } else if (CrawlerEvent.CRAWLER_CRAWL_END.equals(event.getName())) {
             doneCrawling = true;
             commitDeletions(crawlerEvent.getSource());
-        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
-            init(crawlerEvent.getSource());
         } else {
             storeRejection(crawlerEvent);
         }
@@ -111,13 +111,13 @@ public class DeleteRejectedEventListener implements
         // of on completion in case users want to keep a record between
         // two crawl executions.
         refStore = crawlerContext.getGrid().storage()
-                .getSet(DELETED_REFS_CACHE_NAME, String.class);
-        ConcurrentUtil.block(crawlerContext.getGrid().compute()
-                .runLocalOnce("delete-rejected-listener-init", () -> {
+                .getSet(DELETED_REFS_CACHE_NAME);
+        crawlerContext.getGrid().compute()
+                .runOnOneOnce("delete-rejected-listener-init", () -> {
                     LOG.info("Clearing any previous deleted references cache.");
                     refStore.clear();
                     return null;
-                }));
+                });
     }
 
     private void storeRejection(CrawlerEvent event) {
@@ -139,7 +139,7 @@ public class DeleteRejectedEventListener implements
     }
 
     private void commitDeletions(CrawlerContext crawlerContext) {
-        ConcurrentUtil.block(crawlerContext.getGrid().compute().runLocalOnce(
+        crawlerContext.getGrid().compute().runOnOneOnce(
                 "delete-rejected-listener-commit", () -> {
                     if (LOG.isInfoEnabled()) {
                         LOG.info("Committing {} rejected references for "
@@ -155,6 +155,6 @@ public class DeleteRejectedEventListener implements
                     });
                     LOG.info("Done committing rejected references.");
                     return null;
-                }));
+                });
     }
 }

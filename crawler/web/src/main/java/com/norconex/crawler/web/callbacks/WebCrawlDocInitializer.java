@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.function.BiConsumer;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
+import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 
@@ -42,7 +42,7 @@ class WebCrawlDocInitializer
         // (and use reflextion?)
 
         //TODO should DEPTH be set here now that is is in Core?
-        metadata.add(CrawlDocMetadata.DEPTH, docRecord.getDepth());
+        metadata.add(CrawlDocMetaConstants.DEPTH, docRecord.getDepth());
         metadata.add(
                 WebDocMetadata.SM_CHANGE_FREQ,
                 docRecord.getSitemapChangeFreq());

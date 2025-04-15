@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
-import com.norconex.crawler.web.operations.canon.impl.GenericCanonicalLinkDetector;
 
 /**
  * The tail of redirects should be kept as metadata so implementors

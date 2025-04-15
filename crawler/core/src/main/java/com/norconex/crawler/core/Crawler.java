@@ -22,9 +22,9 @@ import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.clean.CleanCommand;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
-import com.norconex.crawler.core.cmd.stop.StopCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
+import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
@@ -55,6 +55,8 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class Crawler {
 
+    private static final String GRID_WORKDIR_NAME = "grid";
+
     private final Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass;
     private final CrawlerConfig crawlerConfig;
 
@@ -78,7 +80,10 @@ public class Crawler {
      * @param startClean
      */
     public void crawl(boolean startClean) {
-        executeCommand(new CrawlCommand(startClean));
+        if (startClean) {
+            executeCommand(new CleanCommand());
+        }
+        executeCommand(new CrawlCommand());
     }
 
     public void clean() {
@@ -86,7 +91,11 @@ public class Crawler {
     }
 
     public void stop() {
-        executeCommand(new StopCommand());
+        // Since we are stopping we are not initializing
+        // the context and not formally connecting to the grid
+        var gridWorkDir = ConfigUtil
+                .resolveWorkDir(crawlerConfig).resolve(GRID_WORKDIR_NAME);
+        crawlerConfig.getGridConnector().requestStop(gridWorkDir);
     }
 
     public void storageExport(Path dir, boolean pretty) {
@@ -108,11 +117,11 @@ public class Crawler {
         validateConfig(crawlerConfig);
         LogUtil.logCommandIntro(LOG, crawlerConfig);
         LOG.info("Executing command: {}", command.getClass().getSimpleName());
-
+        var workDir = ConfigUtil.resolveWorkDir(crawlerConfig);
         var spec = ClassUtil.newInstance(crawlerSpecProviderClass).get();
         try (var grid = crawlerConfig
                 .getGridConnector()
-                .connect(crawlerSpecProviderClass, crawlerConfig)) {
+                .connect(workDir.resolve(GRID_WORKDIR_NAME))) {
             // grid auto closes
             try (var ctx = new CrawlerContext(spec, crawlerConfig, grid)) {
                 ctx.init();

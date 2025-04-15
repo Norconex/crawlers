@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +39,9 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
+import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
-import com.norconex.crawler.web.operations.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.operations.link.impl.TikaLinkExtractor;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

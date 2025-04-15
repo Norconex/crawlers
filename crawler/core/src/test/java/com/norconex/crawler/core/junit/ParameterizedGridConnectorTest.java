@@ -29,9 +29,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import com.norconex.crawler.core.grid.impl.ignite.LocalIgniteGridConnector;
-import com.norconex.crawler.core.grid.impl.local.LocalGridConnector;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest.GridConnectorProvider;
+import com.norconex.grid.local.LocalGridConnector;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -45,9 +44,7 @@ public @interface ParameterizedGridConnectorTest {
                 ExtensionContext context) {
             return Stream.of(
                     arguments(named("📂On Local Grid",
-                            LocalGridConnector.class)),
-                    arguments(named("🔥On Ignite Grid",
-                            LocalIgniteGridConnector.class)));
+                            LocalGridConnector.class)));
         }
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2013-2024 Norconex Inc.
+/* Copyright 2013-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.fs.doc;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
+import static com.norconex.crawler.core.doc.CrawlDocMetaConstants.PREFIX;
 
 public final class FsDocMetadata {
 

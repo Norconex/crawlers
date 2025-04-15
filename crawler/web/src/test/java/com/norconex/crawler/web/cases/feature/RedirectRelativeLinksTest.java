@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 /**
  * The final URL of a redirect should be stored so relative links in it
@@ -85,7 +85,7 @@ class RedirectRelativeLinksTest {
         assertThat(doc.getReference()).isEqualTo(finalUrl);
 
         // The only reference in metadata should be the final.
-        assertThat(doc.getMetadata().getStrings(DocMetadata.REFERENCE))
+        assertThat(doc.getMetadata().getStrings(DocMetaConstants.REFERENCE))
                 .containsExactly(finalUrl);
 
         // Exracted URLs should be relative to final URL.

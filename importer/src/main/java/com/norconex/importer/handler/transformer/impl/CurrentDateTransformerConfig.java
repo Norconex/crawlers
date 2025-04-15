@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -79,7 +79,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class CurrentDateTransformerConfig {
 
-    public static final String DEFAULT_FIELD = DocMetadata.IMPORTED_DATE;
+    public static final String DEFAULT_FIELD = DocMetaConstants.IMPORTED_DATE;
 
     /**
      * The target field. Defaults

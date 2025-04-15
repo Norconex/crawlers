@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.norconex.crawler.core.cmd.clean;
 import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.grid.core.compute.GridComputeState;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,15 +28,19 @@ public class CleanCommand implements Command {
     public void execute(CrawlerContext ctx) {
         Thread.currentThread().setName(ctx.getId() + "/CLEAN");
         ctx.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN);
-        ConcurrentUtil.block(ctx.getGrid().compute().runLocalOnce(
+        var result = ctx.getGrid().compute().runOnOneOnce(
                 CleanCommand.class.getSimpleName(), () -> {
                     ctx.getCommitterService().clean();
                     // Close metrics prematurely, before cleaning, or
                     // it will want to report on a blown-away store:
                     ctx.getMetrics().close();
-                    ctx.getGrid().storage().clean();
+                    ctx.getGrid().storage().destroy();
                     return null;
-                }));
+                });
+        if (result.getState() != GridComputeState.COMPLETED) {
+            LOG.warn("Command returned with a non-completed status: {}",
+                    result);
+        }
         ctx.fire(CrawlerEvent.CRAWLER_CLEAN_END);
     }
 }

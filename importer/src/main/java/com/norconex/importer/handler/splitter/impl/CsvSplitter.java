@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2014-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
@@ -209,7 +209,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
         childInfo.setReference(childDocRef);
         childInfo.addEmbeddedParentReference(docCtx.reference());
 
-        childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
+        childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
 
         return childDoc;
     }

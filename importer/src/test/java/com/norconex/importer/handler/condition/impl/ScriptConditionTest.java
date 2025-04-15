@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.ScriptRunner;
 
 class ScriptConditionTest {
@@ -52,7 +52,7 @@ class ScriptConditionTest {
         var htmlFile = TestUtil.getAliceHtmlFile();
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
-        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
         var returnValue = cond.test(
                 TestUtil.newHandlerContext(
                         htmlFile.getAbsolutePath(), is, metadata));

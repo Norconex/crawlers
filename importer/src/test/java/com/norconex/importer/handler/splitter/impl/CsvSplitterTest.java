@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2014-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocMetaConstants;
 
 class CsvSplitterTest {
 
@@ -55,7 +55,7 @@ class CsvSplitterTest {
         var docs = split(splitter);
         Assertions.assertEquals(
                 "654-0987", docs.get(2).getMetadata().getString(
-                        DocMetadata.EMBEDDED_REFERENCE),
+                        DocMetaConstants.EMBEDDED_REFERENCE),
                 "Could not find embedded William Dalton phone reference.");
     }
 
@@ -69,7 +69,7 @@ class CsvSplitterTest {
         Assertions.assertEquals(
                 "William Dalton",
                 docs.get(3).getMetadata().getString(
-                        DocMetadata.EMBEDDED_REFERENCE),
+                        DocMetaConstants.EMBEDDED_REFERENCE),
                 "Could not find embedded William Dalton reference.");
     }
 

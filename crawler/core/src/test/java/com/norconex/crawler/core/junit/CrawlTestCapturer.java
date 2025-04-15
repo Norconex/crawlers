@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.grid.GridTestUtil;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
 
@@ -67,7 +66,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
             config.addEventListener(capturer);
             crawler.crawl();
             config.removeEventListener(capturer);
-            GridTestUtil.waitForGridShutdown();
+            //            GridTestUtil.waitForGridShutdown();
             return new CrawlCaptures(
                     captures.context,
                     captures.committer,
