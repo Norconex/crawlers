@@ -80,7 +80,7 @@
     <jsoup.version>1.15.4</jsoup.version>
     <log4j.version>2.24.3</log4j.version>
     <picocli.version>4.7.6</picocli.version>
-    <slf4j.version>2.0.14</slf4j.version>
+    <slf4j.version>2.0.17</slf4j.version>
     <velocity-engine.version>2.3</velocity-engine.version>
     <xerces.version>2.12.2</xerces.version>
     <xml-bind-api.version>4.0.2</xml-bind-api.version>
