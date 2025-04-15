@@ -32,7 +32,7 @@
     <shared-resources.include>scripts/**</shared-resources.include> 
       
     <commons-net.version>3.11.1</commons-net.version>
-    <commons-vfs.version>2.9.0</commons-vfs.version>
+    <commons-vfs.version>2.10.0</commons-vfs.version>
     <ftpserver.version>1.2.0</ftpserver.version>
     <hadoop.version>3.4.1</hadoop.version>
     <jackrabbit.version>2.21.7</jackrabbit.version>
