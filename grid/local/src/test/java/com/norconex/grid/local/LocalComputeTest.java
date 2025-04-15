@@ -131,18 +131,20 @@ class LocalComputeTest {
                 grid.compute().runOnAll("test", stoppableTask);
             }, executor);
 
-            ConcurrentUtil.get(CompletableFuture.runAsync(() -> {
-                LOG.debug("Waiting for task to be marked as running...");
-                var start = System.currentTimeMillis();
-                while (!stoppableTask.getRunning().get()) {
-                    if (System.currentTimeMillis() - start > 60000) {
-                        throw new IllegalStateException(
-                                "Task did not start in time.");
-                    }
-                    Sleeper.sleepMillis(100);
-                }
-                LOG.debug("Task marked as running.");
-            }, executor), 60, TimeUnit.SECONDS);
+            ConcurrentUtil.get(CompletableFuture
+                    .runAsync(ConcurrentUtil.withThreadName("test-stop", () -> {
+                        LOG.debug(
+                                "Waiting for task to be marked as running...");
+                        var start = System.currentTimeMillis();
+                        while (!stoppableTask.getRunning().get()) {
+                            if (System.currentTimeMillis() - start > 60000) {
+                                throw new IllegalStateException(
+                                        "Task did not start in time.");
+                            }
+                            Sleeper.sleepMillis(100);
+                        }
+                        LOG.debug("Task marked as running.");
+                    }), executor), 60, TimeUnit.SECONDS);
 
             grid.compute().stop("test");
             ConcurrentUtil.get(taskFuture, 30, TimeUnit.SECONDS);

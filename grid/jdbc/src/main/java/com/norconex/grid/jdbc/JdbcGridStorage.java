@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -32,6 +31,7 @@ import com.norconex.grid.core.storage.GridQueue;
 import com.norconex.grid.core.storage.GridSet;
 import com.norconex.grid.core.storage.GridStorage;
 import com.norconex.grid.core.storage.GridStore;
+import com.norconex.grid.core.util.ConcurrentUtil;
 import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.AccessLevel;
@@ -155,7 +155,8 @@ public class JdbcGridStorage implements GridStorage {
 
     @Override
     public <T> Future<T> runInTransactionAsync(Callable<T> callable) {
-        return CompletableFuture.supplyAsync(() -> runInTransaction(callable));
+        return ConcurrentUtil.supplyOneFixedThread("jdbc-grid-transac",
+                () -> runInTransaction(callable));
     }
 
     @SuppressWarnings("unchecked")

@@ -15,7 +15,6 @@
 package com.norconex.grid.core.impl.compute.worker;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 
 import com.norconex.grid.core.compute.GridCompute.RunOn;
 import com.norconex.grid.core.compute.GridComputeResult;
@@ -24,7 +23,6 @@ import com.norconex.grid.core.compute.GridComputeTask;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.coord.GridTaskCoordinator;
 import com.norconex.grid.core.util.ConcurrentUtil;
-import com.norconex.grid.core.util.NamingExecutor;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -57,17 +55,14 @@ public class NodeTaskWorker {
         @SuppressWarnings("unchecked")
         var gridResultListener = grid.taskPayloadMessenger()
                 .addTaskMessageListener(taskName, GridComputeResult.class,
-                        (payload, from) -> pendingGridResult
-                                .complete((GridComputeResult<T>) payload));
+                        (payload, from) -> pendingGridResult.complete(
+                                (GridComputeResult<T>) payload));
 
         try {
             if (grid.isCoordinator()) {
                 LOG.info("Starting task coordinator...");
-                CompletableFuture.runAsync(
-                        new GridTaskCoordinator(grid, taskName),
-                        new NamingExecutor(
-                                Executors.newFixedThreadPool(1),
-                                "grid-task-coord"));
+                ConcurrentUtil.runOneFixedThread("grid-task-coord",
+                        new GridTaskCoordinator(grid, taskName));
             }
 
             NodeTaskLock.runExclusively(grid, taskName, () -> {
@@ -79,7 +74,9 @@ public class NodeTaskWorker {
 
             });
 
-            return ConcurrentUtil.get(pendingGridResult);//, 5, TimeUnit.MINUTES);
+            //MAYBE: have a timeout since all nodes should finish close
+            // to each other in most cases?
+            return ConcurrentUtil.get(pendingGridResult);
 
         } finally {
             grid.removeListener(gridResultListener);

@@ -20,9 +20,7 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -228,22 +226,24 @@ public class CoreGrid implements Grid {
 
     private void stopRunningTasks() {
         send(new StopComputeMessage(null));
-        var pendingStop = CompletableFuture.runAsync(() -> {
+
+        var pendingStop = ConcurrentUtil.runOneFixedThread("stop-tasks", () -> {
             Map<String, ComputeStateAtTime> tasks = null;
             while (!(tasks = computeStateStorage().getRunningTasks())
                     .isEmpty()) {
-                LOG.info("The following tasks are still running: \n" + (tasks
-                        .entrySet()
-                        .stream()
-                        .map(en -> ("    - " + en.getKey() + " -> "
-                                + DurationFormatter.COMPACT
-                                        .format(en.getValue().elapsed())))
-                        .collect(Collectors.joining("\n"))));
+                LOG.info("The following tasks are still running: \n"
+                        + (tasks.entrySet()
+                                .stream()
+                                .map(en -> ("    - " + en.getKey()
+                                        + " -> "
+                                        + DurationFormatter.COMPACT.format(
+                                                en.getValue().elapsed())))
+                                .collect(Collectors.joining("\n"))));
                 Sleeper.sleepMillis(500);
             }
         });
         //TODO make configurable
-        ConcurrentUtil.get(pendingStop, 1, TimeUnit.MINUTES);
+        ConcurrentUtil.getUnderAMinute(pendingStop);
     }
 
     private Receiver createMessagesReceiver() {

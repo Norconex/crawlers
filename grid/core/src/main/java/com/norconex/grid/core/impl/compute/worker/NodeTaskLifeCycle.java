@@ -14,7 +14,6 @@
  */
 package com.norconex.grid.core.impl.compute.worker;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +29,6 @@ import com.norconex.grid.core.impl.compute.MessageListener;
 import com.norconex.grid.core.impl.compute.messages.StopComputeMessage;
 import com.norconex.grid.core.impl.compute.messages.TaskPayloadMessenger;
 import com.norconex.grid.core.util.ConcurrentUtil;
-import com.norconex.grid.core.util.NamingExecutor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,19 +58,20 @@ public class NodeTaskLifeCycle {
         worker.getGrid().addListener(stopListener);
         try {
             nodeResult.setState(GridComputeState.RUNNING);
-
-            var schedulerTask = scheduler.scheduleAtFixedRate(() -> {
-                if (stateLock.tryLock()) {
-                    try {
-                        messenger.sendToCoord(taskName, nodeResult);
-                    } finally {
-                        stateLock.unlock();
-                    }
-                } else {
-                    LOG.debug(worker.getGrid().getLocalAddress()
-                            + " Skipping update, stateLock busy.");
-                }
-            }, 0, 5, TimeUnit.SECONDS);
+            var schedulerTask = scheduler.scheduleAtFixedRate(
+                    ConcurrentUtil.withThreadName("node-task-lifecycle", () -> {
+                        if (stateLock.tryLock()) {
+                            try {
+                                messenger.sendToCoord(taskName, nodeResult);
+                            } finally {
+                                stateLock.unlock();
+                            }
+                        } else {
+                            LOG.trace(worker.getGrid().getLocalAddress()
+                                    + " Skipping update, stateLock busy.");
+                        }
+                    }),
+                    0, 5, TimeUnit.SECONDS);
 
             // Actual task execution
             try {
@@ -113,14 +112,11 @@ public class NodeTaskLifeCycle {
             }
 
             // Send final ACK in separate thread, wait safely
-            var ackFuture = CompletableFuture.supplyAsync(
-                    () -> ConcurrentUtil.get(messenger.sendToCoordAndAwaitAck(
-                            taskName, resultSnapshot), 1, TimeUnit.MINUTES),
-                    new NamingExecutor(
-                            Executors.newFixedThreadPool(1),
-                            "msg-send-await-ack"));
-
-            ConcurrentUtil.get(ackFuture, 1, TimeUnit.MINUTES);
+            var ackFuture = ConcurrentUtil.supplyOneFixedThread(
+                    "msg-send-await-ack", () -> ConcurrentUtil.getUnderAMinute(
+                            messenger.sendToCoordAndAwaitAck(
+                                    taskName, resultSnapshot)));
+            ConcurrentUtil.getUnderAMinute(ackFuture);
 
             // Stop periodic updates now that final result is sent
             schedulerTask.cancel(true);

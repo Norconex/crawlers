@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.fail;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -83,10 +85,16 @@ public abstract class AbstractGridTest {
             for (var i = 0; i < nodes.size(); i++) {
                 var node = nodes.get(i);
                 var index = i;
-                futures.add(exec.submit(() -> {
-                    task.accept(node, index);
-                    return null;
-                }));
+                futures.add(CompletableFuture.runAsync(
+                        ConcurrentUtil.withThreadName("multi-nodes-mock",
+                                () -> {
+                                    try {
+                                        task.accept(node, index);
+                                    } catch (Exception e) {
+                                        throw new CompletionException(e);
+                                    }
+                                }),
+                        exec));
 
             }
             for (Future<?> f : futures) {

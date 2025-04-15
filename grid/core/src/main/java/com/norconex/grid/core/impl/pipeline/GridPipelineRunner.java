@@ -17,7 +17,7 @@ package com.norconex.grid.core.impl.pipeline;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -63,8 +63,8 @@ public class GridPipelineRunner<T> {
         this.stages.addAll(stages);
     }
 
-    public Future<Boolean> run(T context) {
-        return ConcurrentUtil.call(() -> {
+    public CompletableFuture<Boolean> run(T context) {
+        return ConcurrentUtil.supplyOneFixedThread("grid-pipe-runner", () -> {
             var keepGoing = true;
             // In case we are just joining, get "remaining" stages
             for (var stage : getAdjustedStages()) {

@@ -15,7 +15,6 @@
 package com.norconex.grid.core.impl.pipeline;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import org.jgroups.Address;
@@ -48,9 +47,9 @@ public class CoreGridPipeline extends BaseGridPipeline<CoreGrid> {
                 this, pipelineName, pipelineStages);
         var pipeStopListener = new PipelineStopListener(runner);
         getGrid().addListener(pipeStopListener);
-        return ((CompletableFuture<Boolean>) runner.run(context))
-                .whenCompleteAsync((resp, ex) -> getGrid()
-                        .removeListener(pipeStopListener));
+
+        return runner.run(context).whenCompleteAsync(
+                (resp, ex) -> getGrid().removeListener(pipeStopListener));
     }
 
     @Override

@@ -18,6 +18,8 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import org.jgroups.Address;
@@ -44,6 +46,7 @@ public class TaskPayloadMessenger {
     private final CoreGrid grid;
     private final Map<String, PendingAck> pendingAcks =
             new ConcurrentHashMap<>();
+    private final Executor listenerExecutor = Executors.newCachedThreadPool();
 
     public TaskPayloadMessenger(CoreGrid grid) {
         this.grid = grid;
@@ -98,11 +101,13 @@ public class TaskPayloadMessenger {
      */
     public MessageListener addTaskMessageListener(
             String taskName, MessageListener listener) {
+
         MessageListener envelListener =
                 (envel, from) -> TaskPayloadEnvelope.onReceive(
                         envel,
                         taskName,
-                        payload -> listener.onMessage(payload, from));
+                        payload -> listenerExecutor.execute(
+                                () -> listener.onMessage(payload, from)));
         grid.addListener(envelListener);
         return envelListener;
     }

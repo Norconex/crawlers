@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.Serializable;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -103,7 +101,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
 
     @Test
     @Timeout(20)
-    void runOnAllTest() throws Exception {
+    void runOnAllTest() {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnAllTest' part 1 of 2");
             var set = mocker
@@ -134,7 +132,7 @@ public abstract class GridComputeTest extends AbstractGridTest {
 
     @Test
     @Timeout(20)
-    void runOnAllOnceTest() throws Exception {
+    void runOnAllOnceTest() {
         withNewGrid(3, mocker -> {
             LOG.trace("Running 'runOnAllOnceTest' part 1 of 2");
             var set = mocker
@@ -171,10 +169,11 @@ public abstract class GridComputeTest extends AbstractGridTest {
                 mocker.onEachNodes((grid, index) -> {
                     var job = new StoppableJob(grid, () -> mocker.getGrid()
                             .compute().stop("testJob"));
-                    var future = CompletableFuture.runAsync(() -> {
-                        grid.compute().runOnAll("testJob", job);
-                    });
-                    ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
+                    var future = ConcurrentUtil.runOneFixedThread("test-stop",
+                            () -> {
+                                grid.compute().runOnAll("testJob", job);
+                            });
+                    ConcurrentUtil.getUnderSecs(future, 10);
                 });
             });
         });
