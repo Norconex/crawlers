@@ -29,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Represents one node running a job as part of a multi-nodes job.
+ * There should be at most one node task worker with a given task name
+ * running at any given time within the same grid node instance.
  */
 @Slf4j
 @Getter
@@ -61,7 +63,8 @@ public class NodeTaskWorker {
         try {
             if (grid.isCoordinator()) {
                 LOG.info("Starting task coordinator...");
-                ConcurrentUtil.runOneFixedThread("grid-task-coord",
+                grid.getNodeExecutors().runLongTask(
+                        "grid-task-coord",
                         new GridTaskCoordinator(grid, taskName));
             }
 

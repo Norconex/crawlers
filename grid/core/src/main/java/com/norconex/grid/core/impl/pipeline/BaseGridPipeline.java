@@ -29,18 +29,16 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Runs a series of jobs on a grid, one after the other.
- * @param <T> concrete type of grid
  */
 @Slf4j
 @RequiredArgsConstructor
-public abstract class BaseGridPipeline<T extends Grid>
-        implements GridPipeline {
+public abstract class BaseGridPipeline implements GridPipeline {
 
     private static final String STAGE_KEY_PREFIX = "PipelineStage-";
     private static final String STATE_KEY_PREFIX = "PipelineState-";
 
     @Getter
-    private final T grid;
+    private final Grid grid;
 
     @Override
     public Optional<String> getActiveStageName(@NonNull String pipelineName) {

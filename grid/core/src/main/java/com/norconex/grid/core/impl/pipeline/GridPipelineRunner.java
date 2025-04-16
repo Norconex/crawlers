@@ -26,7 +26,6 @@ import com.norconex.grid.core.compute.GridComputeState;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 import com.norconex.grid.core.pipeline.GridPipelineState;
 import com.norconex.grid.core.pipeline.GridPipelineTask;
-import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -39,13 +38,13 @@ public class GridPipelineRunner<T> {
             new ArrayList<>();
     @Getter
     private final String pipelineName;
-    private final BaseGridPipeline<?> pipeline;
+    private final BaseGridPipeline pipeline;
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private final AtomicReference<GridPipelineTask<T>> activeTask =
             new AtomicReference<>();
 
     public GridPipelineRunner(
-            BaseGridPipeline<?> pipeline,
+            BaseGridPipeline pipeline,
             @NonNull String pipelineName,
             @NonNull List<? extends GridPipelineStage<T>> stages) {
         this.pipeline = pipeline;
@@ -64,24 +63,25 @@ public class GridPipelineRunner<T> {
     }
 
     public CompletableFuture<Boolean> run(T context) {
-        return ConcurrentUtil.supplyOneFixedThread("grid-pipe-runner", () -> {
-            var keepGoing = true;
-            // In case we are just joining, get "remaining" stages
-            for (var stage : getAdjustedStages()) {
-                // pipeline state has to be set on the starting stage
-                // since the possible former state is used to establish
-                // the remaining stages.
-                pipeline.setState(pipelineName, GridPipelineState.ACTIVE);
-                if (canProceed(context, keepGoing, stage)) {
-                    keepGoing = runStage(stage, context) && keepGoing;
-                } else {
-                    LOG.info("Skipping stage \"{}\".", stage.getName());
-                }
-            }
-            pipeline.setState(pipelineName, GridPipelineState.ENDED);
-            return keepGoing;
-        });
-
+        return pipeline.getGrid().getNodeExecutors()
+                .supplyLongTaskWithAutoShutdown("grid-pipe-runner", () -> {
+                    var keepGoing = true;
+                    // In case we are just joining, get "remaining" stages
+                    for (var stage : getAdjustedStages()) {
+                        // pipeline state has to be set on the starting stage
+                        // since the possible former state is used to establish
+                        // the remaining stages.
+                        pipeline.setState(pipelineName,
+                                GridPipelineState.ACTIVE);
+                        if (canProceed(context, keepGoing, stage)) {
+                            keepGoing = runStage(stage, context) && keepGoing;
+                        } else {
+                            LOG.info("Skipping stage \"{}\".", stage.getName());
+                        }
+                    }
+                    pipeline.setState(pipelineName, GridPipelineState.ENDED);
+                    return keepGoing;
+                });
     }
 
     private boolean canProceed(

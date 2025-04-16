@@ -31,10 +31,15 @@ import lombok.extern.slf4j.Slf4j;
  * Runs a series of jobs on a grid, one after the other.
  */
 @Slf4j
-public class CoreGridPipeline extends BaseGridPipeline<CoreGrid> {
+public class CoreGridPipeline extends BaseGridPipeline {
 
     public CoreGridPipeline(CoreGrid grid) {
         super(grid);
+    }
+
+    @Override
+    public CoreGrid getGrid() {
+        return (CoreGrid) super.getGrid();
     }
 
     @Override

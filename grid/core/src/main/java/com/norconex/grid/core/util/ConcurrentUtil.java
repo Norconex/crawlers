@@ -18,13 +18,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +30,54 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class ConcurrentUtil {
     private ConcurrentUtil() {
+    }
+
+    public static CompletableFuture<Void> runWithAutoShutdown(
+            @NonNull Runnable task, @NonNull ExecutorService executor) {
+        return withAutoShutdown(
+                CompletableFuture.runAsync(task, executor), executor);
+    }
+
+    public static <T> CompletableFuture<T> supplyWithAutoShutdown(
+            @NonNull Supplier<T> task, @NonNull ExecutorService executor) {
+        return withAutoShutdown(
+                CompletableFuture.supplyAsync(task, executor), executor);
+    }
+
+    public static <T> CompletableFuture<T> callWithAutoShutdown(
+            @NonNull Callable<T> task, @NonNull ExecutorService executor) {
+        return withAutoShutdown(CompletableFuture.supplyAsync(() -> {
+            try {
+                return task.call();
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }, executor), executor);
+    }
+
+    public static <T> CompletableFuture<T> withAutoShutdown(
+            @NonNull CompletableFuture<T> future,
+            @NonNull ExecutorService executor) {
+        return future.handle((res, ex) -> {
+            if (ex != null) {
+                throw new CompletionException(ex);
+            }
+            return res;
+        }).whenComplete((res, ex) -> {
+            executor.shutdown();
+            //            // running in separate thread not to block.
+            //            CompletableFuture.runAsync(() -> {
+            //                try {
+            //                    if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+            //                        executor.shutdownNow();
+            //                    }
+            //                } catch (InterruptedException e) {
+            //                    Thread.currentThread().interrupt();
+            //                    LOG.debug("Shutdown task interrupted while waiting for "
+            //                            + "executor termination");
+            //                }
+            //            });
+        });
     }
 
     /**
@@ -85,87 +131,18 @@ public final class ConcurrentUtil {
         return get(future, seconds, TimeUnit.SECONDS);
     }
 
-    public static CompletableFuture<Void> runOneFixedThread(
-            String threadName, Runnable runnable) {
-        return CompletableFuture.runAsync(
-                withThreadName(threadName, runnable),
-                Executors.newFixedThreadPool(1));
-    }
-
-    public static <T> CompletableFuture<T> supplyOneFixedThread(
-            String threadName, Supplier<T> supplier) {
-        return CompletableFuture.supplyAsync(
-                withThreadName(threadName, supplier),
-                Executors.newFixedThreadPool(1));
-    }
-
-    public static Runnable withThreadName(
-            @NonNull String name, @NonNull Runnable task) {
-        return () -> {
-            try {
-                withThreadName(name, Executors.callable(task)).call();
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        };
-    }
-
-    public static <T> Supplier<T> withThreadName(
-            @NonNull String name, @NonNull Supplier<T> supplier) {
-        Callable<T> callable = supplier::get;
-        Callable<T> namedCallable = withThreadName(name, callable);
-        return () -> {
-            try {
-                return namedCallable.call();
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        };
-    }
-
-    public static <T> Callable<T> withThreadName(
-            @NonNull String name, @NonNull Callable<T> task) {
-        return () -> {
-            var current = Thread.currentThread();
-            var originalName = current.getName();
-            current.setName(name);
-            try {
-                return task.call();
-            } finally {
-                current.setName(originalName);
-            }
-        };
-    }
-
-    /**
-     * Launch asynchronously a fixed number of tasks obtained dynamically.
-     * For each thread the task producer argument is invoked to get a new task
-     * instance.
-     * The returned {@link Future} completes when all tasks have ended.
-     * @param taskProducer a function receiving a task index, returning
-     *      a runnable task
-     * @param numTasks the number of tasks to run concurrently
-     * @return a future with a <code>null</code> return value
-     */
-    public static Future<Void> run(
-            @NonNull IntFunction<Runnable> taskProducer, int numTasks) {
-        var executor = Executors.newFixedThreadPool(numTasks);
-        var futures = IntStream.range(0, numTasks)
-                .mapToObj(i -> CompletableFuture.runAsync(
-                        withThreadName("run-pool", () -> {
-                            try {
-                                taskProducer.apply(i).run();
-                            } catch (Exception e) {
-                                LOG.error("Problem running task {} of {}.",
-                                        i, numTasks, e);
-                                throw new CompletionException(e);
-                            }
-                        }), executor))
-                .toList();
-
-        return CompletableFuture
-                .allOf(futures.toArray(new CompletableFuture[0]));
-    }
+    //    /**
+    //     * A thread factory creating a simple thread with the supplied thread name.
+    //     * @param name thread name
+    //     * @return thread factory
+    //     */
+    //    public static ThreadFactory threadFactory(String name) {
+    //        return r -> {
+    //            var t = new Thread(r);
+    //            t.setName(name);
+    //            return t;
+    //        };
+    //    }
 
     /**
      * Wraps {@link InterruptedException}, {@link TimeoutException},

@@ -29,6 +29,7 @@ import org.apache.commons.lang3.function.FailableConsumer;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.grid.core.util.ConcurrentUtil;
+import com.norconex.grid.core.util.ThreadRenamer;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +44,6 @@ public abstract class AbstractGridTest {
 
     protected void withNewGrid(int numNodes,
             FailableConsumer<MultiNodesMocker, Exception> consumer) {
-
-        //        var threadMXBean = ManagementFactory.getThreadMXBean();
 
         List<Grid> nodes = new ArrayList<>();
         for (var i = 0; i < numNodes; i++) {
@@ -69,9 +68,19 @@ public abstract class AbstractGridTest {
             nodes.clear();
         }
 
-        //        var peakThreadCount = threadMXBean.getPeakThreadCount();
-        //        System.err.println("Peak thread count: " + peakThreadCount);
-
+        //        ThreadTracker.printAllThreads("blah");
+        //        System.err
+        //                .println("LIVE THREADS: " + ThreadTracker.getLiveThreadCount());
+        //        System.err
+        //                .println("PEAK THREADS: " + ThreadTracker.getPeakThreadCount());
+        //        if (COUNT_THREADS) {
+        //            var peakThreadCount = threadMXBean.getPeakThreadCount();
+        //            for (Thread t : Thread.getAllStackTraces().keySet()) {
+        //                System.err.println(
+        //                        t.getName() + " (daemon=" + t.isDaemon() + ")");
+        //            }
+        //            System.err.println("Peak thread count: " + peakThreadCount);
+        //        }
     }
 
     @RequiredArgsConstructor
@@ -86,14 +95,13 @@ public abstract class AbstractGridTest {
                 var node = nodes.get(i);
                 var index = i;
                 futures.add(CompletableFuture.runAsync(
-                        ConcurrentUtil.withThreadName("multi-nodes-mock",
-                                () -> {
-                                    try {
-                                        task.accept(node, index);
-                                    } catch (Exception e) {
-                                        throw new CompletionException(e);
-                                    }
-                                }),
+                        ThreadRenamer.set("multi-nodes-mock", () -> {
+                            try {
+                                task.accept(node, index);
+                            } catch (Exception e) {
+                                throw new CompletionException(e);
+                            }
+                        }),
                         exec));
 
             }

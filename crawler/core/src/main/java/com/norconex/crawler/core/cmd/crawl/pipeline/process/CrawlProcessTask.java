@@ -49,16 +49,10 @@ public class CrawlProcessTask
         CRAWL_ALL, DELETE_ALL
     }
 
-    //    public enum ProcessDocsAs {
-    //        REGULAR, ORPHANS
-    //    }
-
     private final ProcessQueueAction queueAction;
-    //    private final ProcessDocsAs processAs;
 
     @Override
     public void execute(CrawlerContext ctx) {
-        //        if (ctx.isStopping()) {
         if (isStopRequested()) {
             return;
         }
@@ -66,9 +60,11 @@ public class CrawlProcessTask
         try {
             ofNullable(ctx.getCallbacks().getBeforeCrawlTask())
                     .ifPresent(cb -> cb.accept(ctx));
-            ConcurrentUtil.get(ConcurrentUtil.run(
-                    index -> () -> processQueue(ctx, index),
-                    ctx.getConfiguration().getNumThreads()));
+            //TODO add timeout?
+            ConcurrentUtil.get(ctx.getGrid().getNodeExecutors()
+                    .runLongTasksWithAutoShutdown("crawl",
+                            index -> (() -> processQueue(ctx, index)),
+                            ctx.getConfiguration().getNumThreads()));
         } finally {
             ofNullable(ctx.getCallbacks().getAfterCrawlTask())
                     .ifPresent(cb -> cb.accept(ctx));

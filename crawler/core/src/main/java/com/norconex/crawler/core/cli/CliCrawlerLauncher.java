@@ -22,7 +22,8 @@ import picocli.CommandLine.PicocliException;
 
 /**
  * Launches a crawler command with given crawler specifications and
- * command-line arguments. Typically not invoked directly, and used by
+ * command-line arguments. Meant to be invoked from a
+ * <code>main(String[] args)</code> method, from
  * crawler implementations (e.g., FS, Web).
  */
 public final class CliCrawlerLauncher {

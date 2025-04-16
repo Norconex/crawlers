@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.Serializable;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -30,6 +32,7 @@ import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridSet;
 import com.norconex.grid.core.util.ConcurrentUtil;
+import com.norconex.grid.core.util.ThreadRenamer;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -169,10 +172,14 @@ public abstract class GridComputeTest extends AbstractGridTest {
                 mocker.onEachNodes((grid, index) -> {
                     var job = new StoppableJob(grid, () -> mocker.getGrid()
                             .compute().stop("testJob"));
-                    var future = ConcurrentUtil.runOneFixedThread("test-stop",
-                            () -> {
+                    var executor = Executors.newFixedThreadPool(
+                            1,
+                            grid.getNodeExecutors()
+                                    .threadFactory("test-stop-" + index));
+                    var future = CompletableFuture.runAsync(
+                            ThreadRenamer.set("test-stop", () -> {
                                 grid.compute().runOnAll("testJob", job);
-                            });
+                            }), executor);
                     ConcurrentUtil.getUnderSecs(future, 10);
                 });
             });

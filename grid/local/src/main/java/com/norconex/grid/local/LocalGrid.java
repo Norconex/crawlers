@@ -23,6 +23,7 @@ import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.impl.compute.ComputeStateStore;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
+import com.norconex.grid.core.util.ExecutorManager;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -51,6 +52,8 @@ public class LocalGrid implements Grid {
     @Getter(value = AccessLevel.PACKAGE)
     private final Path storagePath;
     private final LocalGridStopHandler stopHandler;
+    @Getter
+    private ExecutorManager nodeExecutors;
 
     public LocalGrid(MVStore mvstore) {
         this.mvstore = mvstore;
@@ -61,6 +64,7 @@ public class LocalGrid implements Grid {
         storagePath = Path.of(mvstore.getFileStore().getFileName()).getParent();
         stopHandler = new LocalGridStopHandler(this);
         stopHandler.listenForStopRequest();
+        nodeExecutors = new ExecutorManager("local-node");
     }
 
     @Override
@@ -79,6 +83,7 @@ public class LocalGrid implements Grid {
         if (!isClosed()) {
             mvstore.close();
         }
+        nodeExecutors.shutdown();
     }
 
     boolean isClosed() {

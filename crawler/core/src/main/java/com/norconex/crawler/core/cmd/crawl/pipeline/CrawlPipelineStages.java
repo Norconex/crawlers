@@ -41,7 +41,7 @@ public final class CrawlPipelineStages {
                         .build(),
                 // Main crawl
                 GridPipelineStage.<CrawlerContext>builder()
-                        .name("crawlCoreStage")
+                        .name("crawlProcessStage")
                         .runOn(RunOn.ALL)
                         .task(new CrawlProcessTask(
                                 ProcessQueueAction.CRAWL_ALL))

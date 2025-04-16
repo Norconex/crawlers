@@ -17,7 +17,6 @@ package com.norconex.grid.local;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
@@ -32,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  * Runs a series of jobs on a grid, one after the other.
  */
 @Slf4j
-public class LocalGridPipeline extends BaseGridPipeline<LocalGrid> {
+public class LocalGridPipeline extends BaseGridPipeline {
 
     private final Map<String, GridPipelineRunner<?>> activeRunners =
             new ConcurrentHashMap<>();
@@ -50,10 +49,10 @@ public class LocalGridPipeline extends BaseGridPipeline<LocalGrid> {
         var runner = new GridPipelineRunner<>(
                 this, pipelineName, pipelineStages);
         activeRunners.put(pipelineName, runner);
-        return ((CompletableFuture<Boolean>) runner.run(context))
-                .whenCompleteAsync(
+        return runner.run(context)
+                //                .whenCompleteAsync(
+                .whenComplete(
                         (resp, ex) -> activeRunners.remove(pipelineName));
-
     }
 
     @Override

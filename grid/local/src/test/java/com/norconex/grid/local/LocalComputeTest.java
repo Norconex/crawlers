@@ -35,6 +35,7 @@ import com.norconex.grid.core.compute.GridComputeResult;
 import com.norconex.grid.core.compute.GridComputeState;
 import com.norconex.grid.core.compute.GridComputeTask;
 import com.norconex.grid.core.util.ConcurrentUtil;
+import com.norconex.grid.core.util.ThreadRenamer;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -132,7 +133,7 @@ class LocalComputeTest {
             }, executor);
 
             ConcurrentUtil.get(CompletableFuture
-                    .runAsync(ConcurrentUtil.withThreadName("test-stop", () -> {
+                    .runAsync(ThreadRenamer.set("test-stop", () -> {
                         LOG.debug(
                                 "Waiting for task to be marked as running...");
                         var start = System.currentTimeMillis();

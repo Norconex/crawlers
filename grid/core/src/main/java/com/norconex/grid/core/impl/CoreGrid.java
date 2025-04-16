@@ -14,6 +14,7 @@
  */
 package com.norconex.grid.core.impl;
 
+import static com.norconex.grid.core.util.ConcurrentUtil.getUnderAMinute;
 import static java.util.Optional.ofNullable;
 
 import java.net.InetAddress;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +61,7 @@ import com.norconex.grid.core.impl.compute.messages.TaskPayloadMessenger;
 import com.norconex.grid.core.impl.pipeline.CoreGridPipeline;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
-import com.norconex.grid.core.util.ConcurrentUtil;
+import com.norconex.grid.core.util.ExecutorManager;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -70,18 +72,22 @@ public class CoreGrid implements Grid {
 
     @Getter
     private final String gridName;
-    private final String nodeName;
+    private String nodeName;
     private final JChannel channel;
     private final List<MessageListener> listeners =
             new CopyOnWriteArrayList<>();
     private final GridStorage storage;
     @Getter
-    private final Address localAddress;
+    private Address localAddress;
     @Getter
     private Address coordinator;
     private View view;
     private ComputeStateStore computeStateStorage;
     private TaskPayloadMessenger taskPayloadMessenger;
+    @Getter
+    private ExecutorManager nodeExecutors;
+    // This will block tasks until the node joins
+    private final CountDownLatch latch = new CountDownLatch(1);
 
     public CoreGrid(CoreGridConnectorConfig connConfig, GridStorage storage)
             throws Exception {
@@ -117,14 +123,21 @@ public class CoreGrid implements Grid {
         //TODO make configurable
 
         channel = new JChannel(protStack);
+        // This is the name the node will have when joining the grid.
+        if (StringUtils.isNotBlank(nodeName)) {
+            channel.setName(nodeName);
+        }
+
         //TODO support optional logical name        channel.setName(nodeName);
         channel.setReceiver(createMessagesReceiver());
         //TODO make configurable, like this for unit tests right now
         //        channel.getProtocolStack().findProtocol(FD_ALL.class);
         channel.connect(gridName);
-        localAddress = channel.getAddress();
-        view = channel.getView();
-        coordinator = view.getCoord();
+        //        localAddress = channel.getAddress();
+        //        view = channel.getView();
+        //        coordinator = view.getCoord();
+        latch.await();
+
         computeStateStorage = new ComputeStateStore(this);
         taskPayloadMessenger = new TaskPayloadMessenger(this);
     }
@@ -181,9 +194,6 @@ public class CoreGrid implements Grid {
 
     @Override
     public String getNodeName() {
-        if (StringUtils.isBlank(nodeName)) {
-            return localAddress.toString();
-        }
         return nodeName;
     }
 
@@ -205,6 +215,7 @@ public class CoreGrid implements Grid {
     @Override
     public void close() {
         stopRunningTasks();
+        nodeExecutors.shutdown();
         channel.close();
     }
 
@@ -227,23 +238,30 @@ public class CoreGrid implements Grid {
     private void stopRunningTasks() {
         send(new StopComputeMessage(null));
 
-        var pendingStop = ConcurrentUtil.runOneFixedThread("stop-tasks", () -> {
-            Map<String, ComputeStateAtTime> tasks = null;
-            while (!(tasks = computeStateStorage().getRunningTasks())
-                    .isEmpty()) {
-                LOG.info("The following tasks are still running: \n"
-                        + (tasks.entrySet()
-                                .stream()
-                                .map(en -> ("    - " + en.getKey()
-                                        + " -> "
-                                        + DurationFormatter.COMPACT.format(
-                                                en.getValue().elapsed())))
-                                .collect(Collectors.joining("\n"))));
-                Sleeper.sleepMillis(500);
-            }
-        });
-        //TODO make configurable
-        ConcurrentUtil.getUnderAMinute(pendingStop);
+        //TODO make timeout make configurable
+        getUnderAMinute(nodeExecutors
+                .runLongTaskWithAutoShutdown("stop-tasks", () -> {
+                    Map<String, ComputeStateAtTime> tasks = null;
+                    while (!(tasks = computeStateStorage().getRunningTasks())
+                            .isEmpty()) {
+                        logRunningTasks(tasks);
+                        Sleeper.sleepMillis(500);
+                    }
+                }));
+    }
+
+    private void logRunningTasks(Map<String, ComputeStateAtTime> tasks) {
+        if (!LOG.isInfoEnabled()) {
+            return;
+        }
+        var txtLines = tasks
+                .entrySet()
+                .stream()
+                .map(en -> "    - %s -> %s".formatted(
+                        en.getKey(), DurationFormatter.COMPACT.format(
+                                en.getValue().elapsed())))
+                .collect(Collectors.joining("\n"));
+        LOG.info("The following tasks are still running: \n{}", txtLines);
     }
 
     private Receiver createMessagesReceiver() {
@@ -259,6 +277,19 @@ public class CoreGrid implements Grid {
             @Override
             public void viewAccepted(View newView) {
                 view = newView;
+
+                if (latch.getCount() > 0
+                        && newView.containsMember(channel.getAddress())) {
+                    view = channel.getView();
+                    localAddress = channel.getAddress();
+                    if (StringUtils.isBlank(nodeName)) {
+                        nodeName = channel.getAddressAsString();
+                    }
+                    LOG.info("Node joined: " + nodeName);
+                    nodeExecutors = new ExecutorManager(nodeName);
+                    latch.countDown();
+                }
+
                 LOG.info("Grid now has {} nodes.", view.size());
                 var prevCoord = coordinator;
                 var nextCoord = view.getCoord();

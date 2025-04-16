@@ -80,9 +80,10 @@ public class JdbcGridConnector
         var dataSource = new HikariDataSource(
                 new HikariConfig(configuration.getDatasource().toProperties()));
         try {
-            return new CoreGrid(
-                    configuration,
-                    new JdbcGridStorage(resolveDbAdapter(dataSource)));
+            var storage = new JdbcGridStorage(resolveDbAdapter(dataSource));
+            var grid = new CoreGrid(configuration, storage);
+            storage.init(grid);
+            return grid;
         } catch (Exception e) {
             throw new GridException("Could not connect to (JDBC) database.", e);
         }
