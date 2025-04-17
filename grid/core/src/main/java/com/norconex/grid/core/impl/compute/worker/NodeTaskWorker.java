@@ -60,12 +60,15 @@ public class NodeTaskWorker {
                         (payload, from) -> pendingGridResult.complete(
                                 (GridComputeResult<T>) payload));
 
+        var taskCoordinator =
+                grid.isCoordinator() ? new GridTaskCoordinator(grid, taskName)
+                        : null;
+
         try {
-            if (grid.isCoordinator()) {
+            if (taskCoordinator != null) {
                 LOG.info("Starting task coordinator...");
                 grid.getNodeExecutors().runLongTask(
-                        "grid-task-coord",
-                        new GridTaskCoordinator(grid, taskName));
+                        "grid-task-coord", taskCoordinator);
             }
 
             NodeTaskLock.runExclusively(grid, taskName, () -> {
@@ -82,6 +85,10 @@ public class NodeTaskWorker {
             return ConcurrentUtil.get(pendingGridResult);
 
         } finally {
+            if (taskCoordinator != null) {
+                LOG.info("Stopping task coordinator...");
+                taskCoordinator.stop();
+            }
             grid.removeListener(gridResultListener);
         }
 

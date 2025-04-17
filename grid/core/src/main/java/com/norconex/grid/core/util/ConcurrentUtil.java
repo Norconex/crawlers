@@ -65,18 +65,6 @@ public final class ConcurrentUtil {
             return res;
         }).whenComplete((res, ex) -> {
             executor.shutdown();
-            //            // running in separate thread not to block.
-            //            CompletableFuture.runAsync(() -> {
-            //                try {
-            //                    if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-            //                        executor.shutdownNow();
-            //                    }
-            //                } catch (InterruptedException e) {
-            //                    Thread.currentThread().interrupt();
-            //                    LOG.debug("Shutdown task interrupted while waiting for "
-            //                            + "executor termination");
-            //                }
-            //            });
         });
     }
 
@@ -130,19 +118,6 @@ public final class ConcurrentUtil {
     public static <T> T getUnderSecs(Future<T> future, int seconds) {
         return get(future, seconds, TimeUnit.SECONDS);
     }
-
-    //    /**
-    //     * A thread factory creating a simple thread with the supplied thread name.
-    //     * @param name thread name
-    //     * @return thread factory
-    //     */
-    //    public static ThreadFactory threadFactory(String name) {
-    //        return r -> {
-    //            var t = new Thread(r);
-    //            t.setName(name);
-    //            return t;
-    //        };
-    //    }
 
     /**
      * Wraps {@link InterruptedException}, {@link TimeoutException},

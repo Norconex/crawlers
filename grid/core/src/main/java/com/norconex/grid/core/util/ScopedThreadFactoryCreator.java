@@ -71,10 +71,10 @@ public class ScopedThreadFactoryCreator {
                     return;
                 }
 
+                var arrow = ended ? "🡩" : "🡫";
                 var allScopedCnt = SCOPED_THREAD_COUNTS.values().stream()
                         .mapToInt(AtomicInteger::get)
                         .sum();
-
                 var scopedAliveCount = new AtomicInteger();
                 var activeThreads = ThreadTracker.allThreadInfos().stream()
                         .sorted(Comparator.comparing(ThreadInfo::getThreadName))
@@ -91,7 +91,8 @@ public class ScopedThreadFactoryCreator {
                             var status = StringUtils.rightPad(
                                     t.getThreadState().name(), 15);
                             return status + mark + tname;
-                        }).collect(Collectors.joining("\n    "));
+                        }).collect(Collectors.joining(
+                                "\n" + arrow + "     "));
 
                 LOG.debug(StringSubstitutor.replace("""
 
@@ -104,9 +105,9 @@ public class ScopedThreadFactoryCreator {
                     ${ar} Total scoped threads created: ${allScopedCnt}
                     ${ar} Scoped threads still alive:   ${scopedAlives}
                     ${ar} Threads:
-                        ${activeThreads}
+                    ${ar}     ${activeThreads}
                     """, MapUtil.toMap(
-                        "ar", ended ? "🡩" : "🡫",
+                        "ar", arrow,
                         "when", ended ? "ENDED" : "BEGAN",
                         "scopeCnt", scopedCount,
                         "threadName", threadName,
@@ -122,42 +123,4 @@ public class ScopedThreadFactoryCreator {
 
         };
     }
-
-    //    private void debugBefore(
-    //            String scopeName,
-    //            String fullName,
-    //            int createdCount,
-    //            int usageCount) {
-    //        LOG.debug("""
-    //
-    //
-    //            🡫 TASK BEGAN | THREAD %s | USAGE: %s | %s
-    //            🡫 ------------------------------------------------
-    //            🡫 Scope:
-    //            🡫 Alive threads count: %s
-    //            🡫 Peak  threads count: %s
-    //            """.formatted(
-    //                createdCount,
-    //                usageCount,
-    //                fullName,
-    //                ThreadTracker.getLiveThreadCount(),
-    //                ThreadTracker.getPeakThreadCount()));
-    //    }
-
-    //    private void debugAfter(String fullName, int createdCount, int usageCount) {
-    //        LOG.debug("""
-    //
-    //
-    //            🡩 TASK ENDED | THREAD %s | USAGE: %s | %s
-    //            🡩 ------------------------------------------------
-    //            🡩 Alive threads count: %s
-    //            🡩 Peak  threads count: %s
-    //            """.formatted(
-    //                createdCount,
-    //                usageCount,
-    //                fullName,
-    //                ThreadTracker.getLiveThreadCount(),
-    //                ThreadTracker.getPeakThreadCount()));
-    //    }
-
 }

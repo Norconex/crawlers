@@ -12,17 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core;
+package com.norconex.grid.core.impl.compute;
 
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.grid.core.impl.CoreGridConnector;
-import com.norconex.grid.core.mocks.MockStorage;
+import static org.assertj.core.api.Assertions.assertThat;
 
-class CoreImplGridTestSuite extends GridTestSuite {
-    @Override
-    protected GridConnector getGridConnector(String gridName) {
-        return Configurable.configure(
-                new CoreGridConnector(new MockStorage()),
-                cfg -> cfg.setGridName(gridName));
+import org.junit.jupiter.api.Test;
+
+import com.norconex.grid.core.compute.GridComputeState;
+
+class ComputeStateAtTimeTest {
+
+    @Test
+    void testElapsed() {
+        var stateAtTime = new ComputeStateAtTime(GridComputeState.COMPLETED);
+        assertThat(stateAtTime.elapsed()).isLessThan(1000);
     }
+
 }

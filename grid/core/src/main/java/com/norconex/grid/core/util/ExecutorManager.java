@@ -163,7 +163,7 @@ public class ExecutorManager {
      * @return future
      * @see #getShortTaskExecutor()
      */
-    public <T> Future<T> runShortTask(
+    public <T> Future<T> supplyShortTask(
             @NonNull String taskName, @NonNull Supplier<T> task) {
         return callShortTask(taskName, task::get);
     }

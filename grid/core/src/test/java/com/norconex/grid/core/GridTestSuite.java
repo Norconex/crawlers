@@ -28,24 +28,24 @@ public abstract class GridTestSuite extends AbstractGridTest {
     @Nested
     class ComputeTest extends GridComputeTest {
         @Override
-        protected GridConnector getGridConnector() {
-            return GridTestSuite.this.getGridConnector();
+        protected GridConnector getGridConnector(String gridName) {
+            return GridTestSuite.this.getGridConnector(gridName);
         }
     }
 
     @Nested
     class PipelineTest extends GridPipelineTest {
         @Override
-        protected GridConnector getGridConnector() {
-            return GridTestSuite.this.getGridConnector();
+        protected GridConnector getGridConnector(String gridName) {
+            return GridTestSuite.this.getGridConnector(gridName);
         }
     }
 
     @Nested
     class StorageTest extends GridStorageTest {
         @Override
-        protected GridConnector getGridConnector() {
-            return GridTestSuite.this.getGridConnector();
+        protected GridConnector getGridConnector(String gridName) {
+            return GridTestSuite.this.getGridConnector(gridName);
         }
     }
 

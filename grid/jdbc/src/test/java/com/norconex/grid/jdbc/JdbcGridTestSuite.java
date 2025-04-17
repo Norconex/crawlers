@@ -35,15 +35,16 @@ class JdbcGridTestSuite extends GridTestSuite {
     private Path tempDir;
 
     @Override
-    protected GridConnector getGridConnector() {
+    protected GridConnector getGridConnector(String gridName) {
         try {
             var connStr = ("jdbc:h2:file:" + StringUtils.removeStart(
-                    tempDir.toUri().toURL() + "test", "file:/"));
+                    tempDir.toUri().toURL() + gridName, "file:/"));
             //+ ";TRACE_LEVEL_FILE=4";//;LOCK_TIMEOUT=10000;LOCK_MODE=3";
             LOG.info("Connecting to a grid backed by H2: {}", connStr);
             return Configurable.configure(new JdbcGridConnector(), cfg -> {
                 var ds = cfg.getDatasource();
                 ds.add("jdbcUrl", connStr);
+                cfg.setGridName(gridName);
             });
         } catch (MalformedURLException e) {
             fail("Count not create JDBC connection.", e);

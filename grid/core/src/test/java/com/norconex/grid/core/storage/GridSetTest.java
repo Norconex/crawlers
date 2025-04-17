@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.grid.core.AbstractGridTest;
 import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.mocks.MockGridName;
 
 public abstract class GridSetTest extends AbstractGridTest {
 
@@ -32,14 +33,17 @@ public abstract class GridSetTest extends AbstractGridTest {
     private GridSet set;
 
     @BeforeEach
-    void beforeEach() {
-        grid = getGridConnector().connect(getTempDir());
+    void beforeEachSetTest() {
+        grid = getGridConnector(MockGridName.generate())
+                .connect(getTempDir());
         set = grid.storage().getSet("testSet");
     }
 
     @AfterEach
-    void afterEach() {
+    void afterEachSetTest() {
         set.clear();
+        grid.close();
+        grid.storage().destroy();
         grid.close();
     }
 

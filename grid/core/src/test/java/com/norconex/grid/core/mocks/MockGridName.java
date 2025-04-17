@@ -12,17 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core;
+package com.norconex.grid.core.mocks;
 
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.grid.core.impl.CoreGridConnector;
-import com.norconex.grid.core.mocks.MockStorage;
+import java.util.concurrent.atomic.AtomicInteger;
 
-class CoreImplGridTestSuite extends GridTestSuite {
-    @Override
-    protected GridConnector getGridConnector(String gridName) {
-        return Configurable.configure(
-                new CoreGridConnector(new MockStorage()),
-                cfg -> cfg.setGridName(gridName));
+public final class MockGridName {
+
+    private static final AtomicInteger GRID_COUNT = new AtomicInteger();
+
+    private MockGridName() {
+    }
+
+    public static String generate() {
+        return "mock-grid-" + GRID_COUNT.incrementAndGet();
     }
 }

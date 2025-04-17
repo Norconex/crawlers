@@ -15,6 +15,7 @@
 package com.norconex.grid.local;
 
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.mvstore.MVStore;
 
@@ -46,17 +47,29 @@ public class LocalGrid implements Grid {
     private final LocalGridStorage gridStorage;
     private final LocalGridCompute gridCompute;
     private final LocalGridPipeline gridPipeline;
+
+    private final LocalGridStopHandler stopHandler;
+
     @Getter
     @Accessors(fluent = true)
     private final ComputeStateStore computeStateStorage;
     @Getter(value = AccessLevel.PACKAGE)
     private final Path storagePath;
-    private final LocalGridStopHandler stopHandler;
     @Getter
     private ExecutorManager nodeExecutors;
+    @Getter
+    private final String gridName;
+    @Getter
+    private final String nodeName;
+    // there should ever be only one node per JVM with this local grid,
+    // but in case this is attempted, we help a bit by giving a unique node
+    // name.
+    private static final AtomicInteger NODE_COUNT = new AtomicInteger();
 
-    public LocalGrid(MVStore mvstore) {
+    public LocalGrid(MVStore mvstore, String gridName) {
         this.mvstore = mvstore;
+        this.gridName = gridName;
+        nodeName = "local-node-" + NODE_COUNT.getAndIncrement();
         gridStorage = new LocalGridStorage(mvstore);
         gridCompute = new LocalGridCompute(this);
         gridPipeline = new LocalGridPipeline(this);
@@ -70,11 +83,6 @@ public class LocalGrid implements Grid {
     @Override
     public GridStorage storage() {
         return gridStorage;
-    }
-
-    @Override
-    public String getNodeName() {
-        return "local-node";
     }
 
     @Override
@@ -98,11 +106,6 @@ public class LocalGrid implements Grid {
     @Override
     public GridPipeline pipeline() {
         return gridPipeline;
-    }
-
-    @Override
-    public String getGridName() {
-        return "local-grid";
     }
 
     @Override

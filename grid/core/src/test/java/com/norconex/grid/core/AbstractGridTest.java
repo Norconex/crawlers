@@ -18,101 +18,152 @@ import static org.assertj.core.api.Assertions.fail;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.grid.core.util.ConcurrentUtil;
-import com.norconex.grid.core.util.ThreadRenamer;
+import com.norconex.commons.lang.Sleeper;
+import com.norconex.grid.core.junit.WithTestWatcherLogging;
+import com.norconex.grid.core.mocks.MockGridName;
+import com.norconex.grid.core.util.ExecutorManager;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+@WithTestWatcherLogging
 public abstract class AbstractGridTest {
+
+    private static final AtomicInteger TEST_COUNT = new AtomicInteger();
 
     @Getter
     @TempDir
     private Path tempDir;
 
-    protected abstract GridConnector getGridConnector();
+    private ExecutorManager em;
 
-    protected void withNewGrid(int numNodes,
-            FailableConsumer<MultiNodesMocker, Exception> consumer) {
+    @BeforeEach
+    void beforeEachGridTest() {
+        em = new ExecutorManager("mock-test-" + TEST_COUNT.incrementAndGet());
+    }
 
-        List<Grid> nodes = new ArrayList<>();
-        for (var i = 0; i < numNodes; i++) {
-            var grid = getGridConnector().connect(tempDir);
-            nodes.add(grid);
+    @AfterEach
+    void afterEachGridTest() {
+        if (em != null) {
+            em.shutdown();
         }
-        //MAYBE wait for cluster connection
+    }
 
+    protected abstract GridConnector getGridConnector(String gridName);
+
+    /**
+     * Creates a new grid instance that lives for the duration of the
+     * consumer execution.
+     * @param consumer consumer of grid nodes
+     */
+    protected void withNewGrid(
+            FailableConsumer<MockNodeManager, Exception> consumer) {
+
+        var manager = new MockNodeManager();
         try {
-            consumer.accept(new MultiNodesMocker(nodes));
+            consumer.accept(manager);
         } catch (Exception e) {
             fail("Error running on grid.", e);
         } finally {
+            manager.waitUntilAllDone();
+            manager.closeAll();
+        }
+    }
+
+    @RequiredArgsConstructor
+    public class MockNodeManager {
+        private final String gridName = MockGridName.generate();
+        private final List<Grid> currentNodes =
+                Collections.synchronizedList(new ArrayList<>());
+        private final AtomicInteger currentNumDone = new AtomicInteger();
+
+        boolean allDone() {
+            return currentNodes.size() > 0
+                    && currentNodes.size() == currentNumDone.get();
+        }
+
+        void waitUntilAllDone() {
+            var then = System.currentTimeMillis();
+            // wait for 10 seconds
+            while (!allDone() && System.currentTimeMillis() - then < 10_000) {
+                Sleeper.sleepMillis(100);
+            }
+        }
+
+        /**
+         * Clears the nodes created so far but keeps the storage.
+         */
+        public synchronized void disconnect() {
+            waitUntilAllDone();
+            if (!allDone()) {
+                throw new IllegalStateException("""
+                    Cannot reset the test \
+                    grid while there are one or more nodes stil \
+                    executing tasks.""");
+            }
+            currentNodes.forEach(Grid::close);
+            currentNodes.clear();
+            currentNumDone.set(0);
+            LOG.debug("Test grid reset.");
+        }
+
+        void closeAll() {
             var storageCleaned = false;
-            for (Grid grid : nodes) {
+            for (Grid grid : currentNodes) {
                 if (!storageCleaned) {
                     grid.storage().destroy();
                     storageCleaned = true;
                 }
                 grid.close();
             }
-            nodes.clear();
+            currentNodes.clear();
         }
 
-        //        ThreadTracker.printAllThreads("blah");
-        //        System.err
-        //                .println("LIVE THREADS: " + ThreadTracker.getLiveThreadCount());
-        //        System.err
-        //                .println("PEAK THREADS: " + ThreadTracker.getPeakThreadCount());
-        //        if (COUNT_THREADS) {
-        //            var peakThreadCount = threadMXBean.getPeakThreadCount();
-        //            for (Thread t : Thread.getAllStackTraces().keySet()) {
-        //                System.err.println(
-        //                        t.getName() + " (daemon=" + t.isDaemon() + ")");
-        //            }
-        //            System.err.println("Peak thread count: " + peakThreadCount);
-        //        }
-    }
+        public void onNewNode(
+                FailableConsumer<Grid, Exception> nodeConsumer) {
+            onNewNodes(1, (grid, index) -> nodeConsumer.accept(grid));
+        }
 
-    @RequiredArgsConstructor
-    public static class MultiNodesMocker {
-        private final List<Grid> nodes;
+        public void onNewNodes(
+                int numNodes,
+                FailableBiConsumer<Grid, Integer, Exception> nodeConsumer) {
 
-        public void onEachNodes(
-                FailableBiConsumer<Grid, Integer, Exception> task) {
-            var exec = Executors.newFixedThreadPool(nodes.size());
-            List<Future<?>> futures = new ArrayList<>();
-            for (var i = 0; i < nodes.size(); i++) {
-                var node = nodes.get(i);
+            if (allDone()) {
+                throw new IllegalStateException("""
+                    All nodes on test grid ran \
+                    and were done with that grid. \
+                    Too late to add more.""");
+            }
+
+            // Add new nodes to existing grid
+            for (var i = 0; i < numNodes; i++) {
+                var node = getGridConnector(gridName)
+                        .connect(tempDir); //TODO make unique per node?
+                currentNodes.add(node);
                 var index = i;
-                futures.add(CompletableFuture.runAsync(
-                        ThreadRenamer.set("multi-nodes-mock", () -> {
-                            try {
-                                task.accept(node, index);
-                            } catch (Exception e) {
-                                throw new CompletionException(e);
-                            }
-                        }),
-                        exec));
-
+                em.runShortTask("mock-task-" + currentNodes.size(), () -> {
+                    try {
+                        nodeConsumer.accept(node, index);
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    } finally {
+                        currentNumDone.incrementAndGet();
+                    }
+                });
             }
-            for (Future<?> f : futures) {
-                ConcurrentUtil.get(f);
-            }
-            exec.shutdown();
-        }
-
-        public Grid getGrid() {
-            return nodes.get(0);
         }
     }
 }

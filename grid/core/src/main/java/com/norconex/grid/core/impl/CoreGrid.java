@@ -214,9 +214,9 @@ public class CoreGrid implements Grid {
 
     @Override
     public void close() {
-        stopRunningTasks();
         nodeExecutors.shutdown();
         channel.close();
+        LOG.info("⛓️‍💥 Disconnected from grid: " + getGridName());
     }
 
     //TODO move to storage?
@@ -231,6 +231,7 @@ public class CoreGrid implements Grid {
         LOG.info("Received request to stop the grid.");
         pipeline().stop(null);
         compute().stop(null);
+        stopRunningTasks();
     }
 
     //--- Private methods ------------------------------------------------------
@@ -285,22 +286,25 @@ public class CoreGrid implements Grid {
                     if (StringUtils.isBlank(nodeName)) {
                         nodeName = channel.getAddressAsString();
                     }
-                    LOG.info("Node joined: " + nodeName);
+                    LOG.info("Node joined grid \"{}\": {}", gridName, nodeName);
                     nodeExecutors = new ExecutorManager(nodeName);
                     latch.countDown();
                 }
 
-                LOG.info("Grid now has {} nodes.", view.size());
+                LOG.info("Grid \"{}\" now has {} node(s).",
+                        gridName, view.size());
                 var prevCoord = coordinator;
                 var nextCoord = view.getCoord();
                 coordinator = nextCoord;
                 if (!Objects.equals(prevCoord, nextCoord)) {
                     // if it changed (as opposed to first set), notify all
                     if (prevCoord == null) {
-                        LOG.info("Elected coordinator: {}", nextCoord);
+                        LOG.info("Grid \"{}\" elected coordinator: {}",
+                                gridName, nextCoord);
                     } else {
-                        LOG.info("New coordinator elected: {} -> {}",
-                                prevCoord, nextCoord);
+                        LOG.info(
+                                "New grid \"{}\" coordinator elected: {} -> {}",
+                                gridName, prevCoord, nextCoord);
                         //TODO handle handling of new coordinator
                         //send(new NewCoordMessage());
                     }

@@ -14,6 +14,8 @@
  */
 package com.norconex.grid.core.impl.compute.coord;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.compute.GridComputeResult;
 import com.norconex.grid.core.compute.GridComputeState;
@@ -28,6 +30,7 @@ public class GridTaskCoordinator implements Runnable {
 
     private final CoreGrid grid;
     private final String taskName;
+    private final AtomicBoolean stopRequested = new AtomicBoolean();
 
     public GridTaskCoordinator(CoreGrid grid, String taskName) {
         this.grid = grid;
@@ -40,8 +43,10 @@ public class GridTaskCoordinator implements Runnable {
             grid.computeStateStorage().setComputeStateAtTime(
                     taskName, GridComputeState.RUNNING);
 
-            GridComputeResult<?> result = null;
-            while ((result = reducer.reduce()).getState().isRunning()) {
+            GridComputeResult<?> result = new GridComputeResult<>()
+                    .setState(GridComputeState.RUNNING);
+            while (!stopRequested.get()
+                    && (result = reducer.reduce()).getState().isRunning()) {
                 Sleeper.sleepMillis(250);
             }
 
@@ -54,4 +59,7 @@ public class GridTaskCoordinator implements Runnable {
         });
     }
 
+    public void stop() {
+        stopRequested.set(true);
+    }
 }

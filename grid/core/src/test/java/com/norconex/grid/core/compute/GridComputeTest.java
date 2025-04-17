@@ -39,128 +39,127 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class GridComputeTest extends AbstractGridTest {
 
+    private static final int NUM_NODES = 3;
+
     @Test
     @Timeout(20)
     void runOnOneTest() {
 
-        withNewGrid(3, mocker -> {
+        withNewGrid(cluster -> {
             LOG.trace("Running 'runOnOneTest' part 1 of 2");
-            var set = mocker
-                    .getGrid()
-                    .storage()
-                    .getSet("testSet");
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                var set = grid.storage().getSet("testSet");
                 grid.compute().runOnOne("testJob", () -> {
                     fill(set, 5);
                     return null;
                 });
+                assertThat(set.size()).isEqualTo(5);
             });
-            assertThat(set.size()).isEqualTo(5);
+
+            cluster.disconnect();
 
             // we are allowed to run it again so the numbers should add up.
             LOG.trace("Running 'runOnOneTest' part 2 of 2");
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                var set = grid.storage().getSet("testSet");
                 grid.compute().runOnOne("testJob", () -> {
                     fill(set, 5);
                     return null;
                 });
+                assertThat(set.size()).isEqualTo(10);
+                set.clear();
             });
-            assertThat(set.size()).isEqualTo(10);
 
-            set.clear();
         });
     }
 
     @Test
     @Timeout(20)
     void runOnOneOnceTest() {
-        withNewGrid(3, mocker -> {
+        withNewGrid(cluster -> {
             LOG.trace("Running 'runOnOneOnceTest' part 1 of 2");
-            var set = mocker
-                    .getGrid()
-                    .storage()
-                    .getSet("testSet");
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                var set = grid.storage().getSet("testSet");
                 grid.compute().runOnOneOnce("testJob", () -> {
                     fill(set, 5);
                     return null;
                 });
+                assertThat(set.size()).isEqualTo(5);
             });
-            assertThat(set.size()).isEqualTo(5);
+
+            cluster.disconnect();
 
             // we can't run the same job twice. number shall be unchanged
             LOG.trace("Running 'runOnOneOnceTest' part 2 of 2");
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                var set = grid.storage().getSet("testSet");
                 grid.compute().runOnOneOnce("testJob", () -> {
                     fill(set, 5);
                     return null;
                 });
+                assertThat(set.size()).isEqualTo(5);
+                set.clear();
             });
-            assertThat(set.size()).isEqualTo(5);
-
-            set.clear();
         });
     }
 
     @Test
     @Timeout(20)
     void runOnAllTest() {
-        withNewGrid(3, mocker -> {
+        withNewGrid(cluster -> {
             LOG.trace("Running 'runOnAllTest' part 1 of 2");
-            var set = mocker
-                    .getGrid()
-                    .storage()
-                    .getSet("testSet");
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                var set = grid.storage().getSet("testSet");
                 grid.compute().runOnAll("testJob", () -> {
                     fill(set, 5);
                     return null;
                 });
+                assertThat(set.size()).isEqualTo(15);
             });
-            assertThat(set.size()).isEqualTo(15);
+
+            cluster.disconnect();
 
             // we are allowed to run it again so the numbers should add up.
             LOG.trace("Running 'runOnAllTest' part 2 of 2");
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                var set = grid.storage().getSet("testSet");
                 grid.compute().runOnAll("testJob", () -> {
                     fill(set, 5);
                     return null;
                 });
+                assertThat(set.size()).isEqualTo(30);
+                set.clear();
             });
-            assertThat(set.size()).isEqualTo(30);
-
-            set.clear();
         });
     }
 
     @Test
     @Timeout(20)
     void runOnAllOnceTest() {
-        withNewGrid(3, mocker -> {
+        withNewGrid(cluster -> {
             LOG.trace("Running 'runOnAllOnceTest' part 1 of 2");
-            var set = mocker
-                    .getGrid()
-                    .storage()
-                    .getSet("testSet");
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                var set = grid.storage().getSet("testSet");
                 grid.compute().runOnAllOnce("testJob", () -> {
                     fill(set, 5);
                     return null;
                 });
+                assertThat(set.size()).isEqualTo(15);
             });
-            assertThat(set.size()).isEqualTo(15);
+
+            cluster.disconnect();
 
             // we can't run the same job twice. number shall be unchanged
             LOG.trace("Running 'runOnAllOnceTest' part 2 of 2");
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                var set = grid.storage().getSet("testSet");
                 grid.compute().runOnAllOnce("testJob", () -> {
                     fill(set, 5);
                     return null;
                 });
+                assertThat(set.size()).isEqualTo(15);
+                set.clear();
             });
-            assertThat(set.size()).isEqualTo(15);
-
-            set.clear();
         });
     }
 
@@ -168,13 +167,12 @@ public abstract class GridComputeTest extends AbstractGridTest {
     @Timeout(20)
     void testRequestStop() {
         assertThatNoException().isThrownBy(() -> {
-            withNewGrid(3, mocker -> {
-                mocker.onEachNodes((grid, index) -> {
-                    var job = new StoppableJob(grid, () -> mocker.getGrid()
-                            .compute().stop("testJob"));
+            withNewGrid(cluster -> {
+                cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                    var job = new StoppableJob(grid,
+                            () -> grid.compute().stop("testJob"));
                     var executor = Executors.newFixedThreadPool(
-                            1,
-                            grid.getNodeExecutors()
+                            1, grid.getNodeExecutors()
                                     .threadFactory("test-stop-" + index));
                     var future = CompletableFuture.runAsync(
                             ThreadRenamer.set("test-stop", () -> {

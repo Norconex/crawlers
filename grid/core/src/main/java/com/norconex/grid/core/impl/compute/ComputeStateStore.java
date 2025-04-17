@@ -98,7 +98,7 @@ public class ComputeStateStore {
         if (storage.storeExists(COMPUTE_STATES_KEY)) {
             return supply.get();
         }
-        LOG.info("State store no longer exists.");
+        LOG.debug("State store no longer exists.");
         return orElse != null ? orElse.get() : null;
     }
 }

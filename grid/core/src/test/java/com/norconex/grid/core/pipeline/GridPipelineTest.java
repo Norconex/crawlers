@@ -62,8 +62,8 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                     ctx.addOne("itemC");
                 }));
 
-        withNewGrid(NUM_NODES, mocker -> {
-            mocker.onEachNodes((grid, index) -> {
+        withNewGrid(cluster -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
                 var context = new Context(grid);
                 boolean success = ConcurrentUtil.get(
                         grid.pipeline().run("test-pipelineA", stages, context));
@@ -76,9 +76,11 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                         .isEqualTo("stage-2");
             });
 
+            cluster.disconnect();
+
             // Trying to run the pipeline again in this session. Only values for
             // the items of stages that are allow to re-run will be updated.
-            mocker.onEachNodes((grid, index) -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
                 var context = new Context(grid);
                 boolean success = ConcurrentUtil.get(
                         grid.pipeline().run("test-pipelineA", stages, context));
@@ -126,8 +128,8 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                     builder.always(true);
                 }));
 
-        withNewGrid(NUM_NODES, mocker -> {
-            mocker.onEachNodes((grid, index) -> {
+        withNewGrid(cluster -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
                 var context = new Context(grid);
                 boolean success = ConcurrentUtil.get(
                         grid.pipeline().run("test-pipelineB", stages, context));
@@ -173,8 +175,8 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                 }));
 
         var future = CompletableFuture.runAsync(() -> {
-            withNewGrid(2, mocker -> {
-                mocker.onEachNodes((grid, index) -> {
+            withNewGrid(cluster -> {
+                cluster.onNewNodes(2, (grid, index) -> {
                     var context = new Context(grid);
                     boolean success = ConcurrentUtil.get(
                             grid.pipeline().run("test-pipelineC", stages,
@@ -187,13 +189,12 @@ public abstract class GridPipelineTest extends AbstractGridTest {
 
         ConcurrentUtil.get(twoNodesBlocked, 10, TimeUnit.SECONDS);
 
-        withNewGrid(1, mocker -> {
-            mocker.onEachNodes((grid, index) -> {
+        withNewGrid(cluster -> {
+            cluster.onNewNode(grid -> {
                 var context = new Context(grid);
                 frozen.set(false);
                 boolean success = ConcurrentUtil.get(
-                        grid.pipeline().run("test-pipelineC", stages,
-                                context));
+                        grid.pipeline().run("test-pipelineC", stages, context));
                 assertThat(success).isTrue();
                 // if a 3rd node did not join on 3rd stage, total would be 12
                 assertThat(context.bagInt.get("count")).isEqualTo(10);
@@ -229,8 +230,8 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                     ctx.addOne("count"); // N/A
                 }));
 
-        withNewGrid(NUM_NODES, mocker -> {
-            mocker.onEachNodes((grid, index) -> {
+        withNewGrid(cluster -> {
+            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
                 var context = new Context(grid);
                 var future = grid.pipeline().run(
                         "test-pipelineD", stages, context);

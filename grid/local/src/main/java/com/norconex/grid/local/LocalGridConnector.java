@@ -27,18 +27,31 @@ import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
 import com.norconex.grid.core.GridException;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode
 @ToString
 @Slf4j
+@NoArgsConstructor
 public class LocalGridConnector
         implements GridConnector, Configurable<LocalGridConnectorConfig> {
 
+    public static final String DEFAULT_GRID_NAME = "local-grid";
     private static final String STORE_DIR_NAME = "localStore";
+
+    // Grid name not configurable, available via package scope for testing.
+    @Getter(value = AccessLevel.PACKAGE)
+    private String gridName = DEFAULT_GRID_NAME;
+
+    LocalGridConnector(@NonNull String gridName) {
+        this.gridName = gridName;
+    }
 
     @Getter
     private final LocalGridConnectorConfig configuration =
@@ -130,7 +143,7 @@ public class LocalGridConnector
         }
         mvstore.commit();
 
-        return new LocalGrid(mvstore);
+        return new LocalGrid(mvstore, gridName);
     }
 
     @Override

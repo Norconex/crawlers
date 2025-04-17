@@ -43,31 +43,6 @@ public final class ThreadTracker {
         return allThreadInfos(t -> true);
     }
 
-    public static void printAllThreads(String reason) {
-        System.err.println("==== Thread Dump: " + reason + " ====");
-        var threadIds = THREAD_MX_BEAN.getAllThreadIds();
-        var threadInfos =
-                THREAD_MX_BEAN.getThreadInfo(threadIds, Integer.MAX_VALUE);
-
-        Arrays.stream(threadInfos)
-                .filter(info -> info != null)
-                .forEach(ThreadTracker::printThreadInfo);
-
-        System.err.println("==== End of Thread Dump ====");
-    }
-
-    private static void printThreadInfo(ThreadInfo info) {
-        System.err.printf("\"%s\" Id=%d State=%s%n",
-                info.getThreadName(), info.getThreadId(),
-                info.getThreadState());
-
-        for (StackTraceElement ste : info.getStackTrace()) {
-            System.err.println("    at " + ste);
-        }
-
-        System.err.println();
-    }
-
     public static int getLiveThreadCount() {
         return THREAD_MX_BEAN.getThreadCount();
     }

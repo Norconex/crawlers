@@ -19,7 +19,7 @@ import com.norconex.grid.core.storage.GridStorageTest;
 
 class LocalStorageTest extends GridStorageTest {
     @Override
-    protected GridConnector getGridConnector() {
-        return new LocalGridConnector();
+    protected GridConnector getGridConnector(String gridName) {
+        return new LocalGridConnector(gridName);
     }
 }
