@@ -22,6 +22,7 @@ import java.lang.annotation.Target;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.stream.Stream;
 
 import javax.servlet.ServletException;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.HttpHeader;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.server.TestServer;
@@ -54,26 +57,22 @@ import com.norconex.commons.lang.file.WebFile;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.doc.Doc;
 
-//TODO if EDGE fails, log an error and assume false (ignore the test).
-
 @Disabled
 public class WebDriverHttpFetcherTest  {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(WebDriverHttpFetcherTest.class);
 
-//  https://googlechromelabs.github.io/chrome-for-testing/
-
-
+    // https://googlechromelabs.github.io/chrome-for-testing/
     private static final Path chromeDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://storage.googleapis.com/"
-                    + "chrome-for-testing-public/122.0.6261.69/win64/"
+                    + "chrome-for-testing-public/135.0.7049.95/win64/"
                     + "chromedriver-win64.zip!/chromedriver-win64/"
                     + "chromedriver.exe",
-                    "chromedriver-122.0.6261.69.exe"))
+                    "chromedriver-135.0.7049.95.exe"))
             .get();
 
-//  https://github.com/mozilla/geckodriver/releases/
+    // https://github.com/mozilla/geckodriver/releases/
     private static final Path firefoxDriverPath = new OSResource<Path>()
             .win(WebFile.create(
                     "https://github.com/mozilla/geckodriver/releases/download/"
@@ -81,14 +80,8 @@ public class WebDriverHttpFetcherTest  {
                     "geckodriver-0.34.0.exe"))
             .get();
 
-//  https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
-//    private static final Path edgeDriverPath = new OSResource<Path>()
-//            .win(WebFile.create("https://msedgedriver.azureedge.net/85.0.564.51"
-//                    + "/edgedriver_win64.zip!/msedgedriver.exe",
-//                    "edgedriver-85.0.564.51.exe"))
-//            .get();
 
-//  https://github.com/operasoftware/operachromiumdriver/releases
+    // https://github.com/operasoftware/operachromiumdriver/releases
     private static final Path operaDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://github.com/operasoftware/"
                     + "operachromiumdriver/releases/download/v.121.0.6167.140/"
@@ -101,7 +94,6 @@ public class WebDriverHttpFetcherTest  {
         return Stream.of(
                 createFetcher(Browser.FIREFOX, firefoxDriverPath),
                 createFetcher(Browser.CHROME, chromeDriverPath),
-//                createFetcher(Browser.EDGE, edgeDriverPath),
                 createFetcher(Browser.OPERA, operaDriverPath)
         );
     }
@@ -130,19 +122,22 @@ public class WebDriverHttpFetcherTest  {
                         HttpServletRequest req, HttpServletResponse resp)
                         throws ServletException, IOException {
                     // Return more than 2 MB of text.
-                    resp.getWriter().write(RandomStringUtils.randomAlphanumeric(
-                            LARGE_CONTENT_MIN_SIZE));
+                    var content = RandomStringUtils.randomAlphanumeric(
+                            LARGE_CONTENT_MIN_SIZE);
+                    resp.getWriter().write(content);
+                    resp.setHeader(HttpHeader.CONTENT_LENGTH.toString(),
+                            Long.toString(content.getBytes().length));
                     resp.flushBuffer();
                 }
             }, "/largeContent")
             .build();
 
     @BeforeAll
-    public static void beforeClass() {
+    static void beforeClass() {
         server.start();
     }
     @AfterAll
-    public static void afterClass() {
+    static void afterClass() {
         server.stop();
     }
 
@@ -151,8 +146,8 @@ public class WebDriverHttpFetcherTest  {
             WebDriverHttpFetcher fetcher) throws Exception {
         assumeDriverPresent(fetcher);
         TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
-            Doc doc = fetch(fetcher, "/");
-            LOG.debug("'/' META: " + doc.getMetadata());
+            var doc = fetch(fetcher, "/");
+            LOG.debug("'/' META: {}", doc.getMetadata());
             Assertions.assertTrue(IOUtils.toString(
                     doc.getInputStream(), StandardCharsets.UTF_8).contains(
                             "JavaScript-rendered!"));
@@ -165,7 +160,7 @@ public class WebDriverHttpFetcherTest  {
     public void testTakeScreenshots(
             WebDriverHttpFetcher fetcher) throws Exception {
         assumeDriverPresent(fetcher);
-        ScreenshotHandler h = new ScreenshotHandler();
+        var h = new ScreenshotHandler();
         h.setTargetDir(Paths.get("./target/screenshots"));
         h.setCssSelector("#applePicture");
         fetcher.setScreenshotHandler(h);
@@ -186,14 +181,19 @@ public class WebDriverHttpFetcherTest  {
                 "SKIPPING: " + fetcher.getConfig().getBrowser().name()
                 + " does not support setting proxy to obtain headers.");
 
-        HttpSnifferConfig cfg = new HttpSnifferConfig();
+        var cfg = new HttpSnifferConfig();
         fetcher.getConfig().setHttpSnifferConfig(cfg);
 
         TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
-            Doc doc = fetch(fetcher, "/headers");
-            LOG.debug("'/headers' META: " + doc.getMetadata());
+            var doc = fetch(fetcher, "/headers");
+            LOG.debug("'/headers' META: {}", doc.getMetadata());
             Assertions.assertEquals(
                     "test_value", doc.getMetadata().getString("TEST_KEY"));
+
+            Assertions.assertEquals("OK", doc.getMetadata().getString(
+                    HttpDocMetadata.HTTP_STATUS_REASON));
+            Assertions.assertEquals(200, doc.getMetadata().getInteger(
+                    HttpDocMetadata.HTTP_STATUS_CODE, -1));
         });
     }
 
@@ -205,11 +205,11 @@ public class WebDriverHttpFetcherTest  {
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
 
         TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
-            Doc doc = fetch(fetcher, "/orange.html");
-            String h1 = IOUtils.toString(doc.getInputStream(),
+            var doc = fetch(fetcher, "/orange.html");
+            var h1 = IOUtils.toString(doc.getInputStream(),
                     StandardCharsets.UTF_8).replaceFirst(
                             "(?s).*<h1>(.*?)</h1>.*", "$1");
-            LOG.debug("New H1: " + h1);
+            LOG.debug("New H1: {}", h1);
             Assertions.assertEquals("Melon", h1);
         });
     }
@@ -219,7 +219,8 @@ public class WebDriverHttpFetcherTest  {
             throws Exception {
         assumeDriverPresent(fetcher);
         TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
-            String userAgent = fetcher.getUserAgent();
+            fetch(fetcher, "/headers.html");
+            var userAgent = fetcher.getUserAgent();
             LOG.debug("User agent: {}", userAgent);
             Assertions.assertTrue(
                     StringUtils.isNotBlank(userAgent),
@@ -228,6 +229,7 @@ public class WebDriverHttpFetcherTest  {
     }
 
     // Test case for https://github.com/Norconex/collector-http/issues/751
+    // Should support large content when increasing buffer size.
     @BrowserTest
     public void testLargeContentUsingSniffer(WebDriverHttpFetcher fetcher)
             throws Exception {
@@ -239,15 +241,16 @@ public class WebDriverHttpFetcherTest  {
                 "SKIPPING: " + fetcher.getConfig().getBrowser().name()
                 + " does not support setting proxy.");
 
-        HttpSnifferConfig cfg = new HttpSnifferConfig();
+        var cfg = new HttpSnifferConfig();
         cfg.setMaxBufferSize(6 * 1024 * 1024);
+        cfg.setResponseTimeout(Duration.ofSeconds(10));
         fetcher.getConfig().setHttpSnifferConfig(cfg);
 
         TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
-            Doc doc = fetch(fetcher, "/largeContent");
-            String txt = IOUtils.toString(
+            var doc = fetch(fetcher, "/largeContent");
+            var txt = IOUtils.toString(
                     doc.getInputStream(), StandardCharsets.UTF_8);
-            LOG.error("Large content extracted byte length: {}",
+            LOG.debug("Large content extracted byte length: {}",
                     txt.getBytes(StandardCharsets.UTF_8).length);
             Assertions.assertTrue(txt.length() >= LARGE_CONTENT_MIN_SIZE);
         });
@@ -255,7 +258,7 @@ public class WebDriverHttpFetcherTest  {
 
     private static WebDriverHttpFetcher createFetcher(
             Browser browser, Path driverPath) {
-        WebDriverHttpFetcher fetcher = new WebDriverHttpFetcher();
+        var fetcher = new WebDriverHttpFetcher();
         fetcher.getConfig().setBrowser(browser);
         fetcher.getConfig().setDriverPath(driverPath);
         fetcher.getConfig().setPageLoadTimeout(5 * 1000);
@@ -277,7 +280,7 @@ public class WebDriverHttpFetcherTest  {
 
     private Doc fetch(WebDriverHttpFetcher fetcher, String urlPath)
             throws HttpFetchException {
-        CrawlDoc doc = new CrawlDoc(new HttpDocInfo(
+        var doc = new CrawlDoc(new HttpDocInfo(
                 "http://localhost:" + server.getPort() + urlPath),
                 new CachedStreamFactory(10000, 10000).newInputStream());
         fetcher.fetch(doc, HttpMethod.GET);

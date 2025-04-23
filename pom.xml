@@ -35,12 +35,12 @@
     <commons-lang3.version>3.14.0</commons-lang3.version>
       
     <bc.version>1.69</bc.version>
-    <browsermob.version>2.1.5</browsermob.version>
+    <littleproxy.version>2.4.0</littleproxy.version>
     <guava.version>33.0.0-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
     <jetty.version>9.4.54.v20240208</jetty.version>
     <netty.version>4.1.96.Final</netty.version>
-    <selenium.version>4.23.0</selenium.version>
+    <selenium.version>4.31.0</selenium.version>
     <okhttp.version>3.14.9</okhttp.version>
     
     <commons-compress.version>1.21</commons-compress.version>
@@ -164,11 +164,11 @@
 
     <!-- For capturing http headers: -->
     <dependency>
-      <groupId>net.lightbody.bmp</groupId>
-      <artifactId>browsermob-core</artifactId>
-      <version>${browsermob.version}</version>
+      <groupId>io.github.littleproxy</groupId>
+      <artifactId>littleproxy</artifactId>
+      <version>${littleproxy.version}</version>
     </dependency>
-
+    
     <!-- Logging dependencies: -->
 
     <dependency>

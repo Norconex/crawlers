@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.fetch.impl.webdriver;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,8 +41,13 @@ import com.norconex.commons.lang.xml.XML;
  * <userAgent>(optionally overwrite browser user agent)</userAgent>
  * <maxBufferSize>
  *   (Maximum byte size before a request/response content is considered
- *    too large. Can be specified using notations, e.g., 25MB. Default is 10MB)
+ *    too large. Can be specified using notations, e.g., 25MB.
+ *    Zero or less means unlimited. Default is 10MB)
  * </maxBufferSize>
+ * <responseTimeout>
+ *   How long to wait for the HTTP response from the target host to be
+ *   processed.
+ * </responseTimeout>
  * <!-- Optional HTTP request headers passed on every HTTP requests -->
  * <headers>
  *   <!-- You can repeat this header tag as needed. -->
@@ -68,6 +74,8 @@ public class HttpSnifferConfig implements IXMLConfigurable {
 
     public static final int DEFAULT_MAX_BUFFER_SIZE =
             DataUnit.MB.toBytes(10).intValue();
+    public static final Duration DEFAULT_RESPONSE_TIMEOUT =
+            Duration.ofMinutes(2);
 
     private int port;
     private String host;
@@ -75,6 +83,7 @@ public class HttpSnifferConfig implements IXMLConfigurable {
     private final Map<String, String> requestHeaders = new HashMap<>();
     private int maxBufferSize = DEFAULT_MAX_BUFFER_SIZE;
     private final ProxySettings chainedProxy = new ProxySettings();
+    private Duration responseTimeout = DEFAULT_RESPONSE_TIMEOUT;
 
     public int getPort() {
         return port;
@@ -121,6 +130,27 @@ public class HttpSnifferConfig implements IXMLConfigurable {
     }
 
     /**
+     * Gets the amount of time for the HTTP sniffer to wait for the target
+     * host response matching the request being "sniffed". Default is
+     * 2 minutes.
+     * @return a duration
+     * @since 3.1.0
+     */
+    public Duration getResponseTimeout() {
+        return responseTimeout;
+    }
+    /**
+     * Gets the amount of time for the HTTP sniffer to wait for the target
+     * host response matching the request being "sniffed". Default is
+     * 2 minutes.
+     * @since 3.1.0
+     * @param responseTimeout response timeout
+     */
+    public void setResponseTimeout(Duration responseTimeout) {
+        this.responseTimeout = responseTimeout;
+    }
+
+    /**
      * Gets chained proxy settings, if any. That is, when the sniffer proxy
      * has to itself use a proxy.
      * @return chained proxy settings
@@ -146,9 +176,10 @@ public class HttpSnifferConfig implements IXMLConfigurable {
         setUserAgent(xml.getString("userAgent", getUserAgent()));
         setMaxBufferSize(xml.getDataSize(
                 "maxBufferSize", (long) getMaxBufferSize()).intValue());
+        setResponseTimeout(xml.getDuration("responseTimeout", responseTimeout));
         setRequestHeaders(xml.getStringMap(
                 "headers/header", "@name", ".", requestHeaders));
-        xml.ifXML("chainedProxy", x -> chainedProxy.loadFromXML(x));
+        xml.ifXML("chainedProxy", chainedProxy::loadFromXML);
     }
     @Override
     public void saveToXML(XML xml) {
@@ -156,6 +187,7 @@ public class HttpSnifferConfig implements IXMLConfigurable {
         xml.addElement("host", host);
         xml.addElement("userAgent", userAgent);
         xml.addElement("maxBufferSize", maxBufferSize);
+        xml.addElement("responseTimeout", responseTimeout);
         var xmlHeaders = xml.addXML("headers");
         for (Entry<String, String> entry : requestHeaders.entrySet()) {
             xmlHeaders.addXML("header").setAttribute(

@@ -84,9 +84,6 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
     private String waitForElementSelector;
     private long waitForElementTimeout;
 
-    public WebDriverHttpFetcherConfig() {
-    }
-
     public Browser getBrowser() {
         return browser;
     }

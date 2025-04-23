@@ -13,3 +13,5 @@
 /debug.log
 /.factorypath
 /.dbeaver/
+/littleproxy_cert
+/littleproxy_keystore.jks

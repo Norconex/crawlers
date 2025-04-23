@@ -46,8 +46,13 @@ public final class HttpDocMetadata {
     /** @since 3.0.0 */
     public static final String HTTP_FETCHER =
             PREFIX + "http-fetcher";
+    /** @since 3.1.0 */
+    public static final String HTTP_STATUS_CODE =
+            PREFIX + "http-status-code";
+    /** @since 3.1.0 */
+    public static final String HTTP_STATUS_REASON =
+            PREFIX + "http-status-reason";
 
     private HttpDocMetadata() {
-        super();
     }
 }
