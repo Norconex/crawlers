@@ -21,8 +21,15 @@ import static java.util.Optional.ofNullable;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,6 +39,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpStatus;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
@@ -48,18 +56,20 @@ import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
-import com.norconex.collector.http.fetch.impl.webdriver.HttpSniffer.SniffedResponseHeader;
+import com.norconex.collector.http.fetch.impl.webdriver.HttpSniffer.SniffedResponseHeaders;
 import com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcherConfig.WaitElementType;
 import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -211,7 +221,8 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     //--- Set on fetcher request ---
 
     // We need to make WebDrivers thread-safe
-    private static final ThreadLocal<WebDriver> THREADED_DRIVER = new ThreadLocal<>();
+    private static final ThreadLocal<WebDriver> THREADED_DRIVER =
+            new ThreadLocal<>();
 
 
     /**
@@ -266,9 +277,9 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
         options = browser.createOptions(location);
         if (cfg.getHttpSnifferConfig() != null) {
-            LOG.info("Starting {} HTTP sniffer...", browser);
-            httpSniffer = new HttpSniffer();
-            httpSniffer.start(options, cfg.getHttpSnifferConfig());
+            LOG.info("Starting {} HTTP sniffing proxy...", browser);
+            httpSniffer = new HttpSniffer(cfg.getHttpSnifferConfig());
+            httpSniffer.configureBrowser(browser, options);
             userAgent = cfg.getHttpSnifferConfig().getUserAgent();
         }
         options.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
@@ -290,43 +301,25 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         if (method != GET) {
             var reason = "HTTP " + httpMethod + " method not supported.";
             if (method == HEAD) {
-                reason += " To obtain headers, use GET with a configured "
-                        + "'httpSniffer'.";
+                reason += " To obtain headers, use GET with the HttpSniffer.";
             }
             return HttpFetchResponseBuilder
                     .unsupported()
                     .setReasonPhrase(reason)
                     .create();
         }
+
 	    LOG.debug("Fetching document: {}", doc.getReference());
 
-	    SniffedResponseHeader sniffedResponse = null;
-	    if (httpSniffer != null) {
-	        sniffedResponse = httpSniffer.track(doc.getReference());
-	    }
-
-        doc.setInputStream(fetchDocumentContent(doc.getReference()));
-
-        var fetchResponse = resolveDriverResponse(doc, sniffedResponse);
-
-        if (httpSniffer != null) {
-            httpSniffer.untrack(doc.getReference());
-        }
+	    var fetchDocHandler = httpSniffer != null
+	            ? fetchDocWithSnifferHandler()
+                : fetchDocHandler();
+	    var fetchResponse = fetchDocHandler.apply(doc);
 
         if (screenshotHandler != null) {
             screenshotHandler.takeScreenshot(getWebDriver(), doc);
         }
-
-        if (fetchResponse != null) {
-            return fetchResponse;
-        }
-        return new HttpFetchResponseBuilder()
-                .setCrawlState(CrawlState.NEW)
-                .setStatusCode(200)
-                .setReasonPhrase("No exception thrown, but real status code "
-                        + "unknown. Capture headers for real status code.")
-                .setUserAgent(getUserAgent())
-                .create();
+        return fetchResponse;
     }
 
     @Override
@@ -348,7 +341,11 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         var driver = THREADED_DRIVER.get();
         if (driver != null) {
             LOG.info("Shutting down {} web driver.", browser);
-            driver.quit();
+            try {
+                driver.quit();
+            } catch (Exception e) {
+                LOG.warn("Failed to quit WebDriver cleanly", e);
+            }
         }
         THREADED_DRIVER.remove();
     }
@@ -365,8 +362,8 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             LOG.info("Creating {} web driver.", browser);
             driver = browser.createDriver(location, options);
             if (StringUtils.isBlank(userAgent)) {
-                userAgent = (String) ((JavascriptExecutor) driver).executeScript(
-                        "return navigator.userAgent;");
+                userAgent = (String) ((JavascriptExecutor) driver)
+                        .executeScript("return navigator.userAgent;");
             }
             THREADED_DRIVER.set(driver);
         }
@@ -429,46 +426,135 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
         var pageSource = driver.getPageSource();
 
-        LOG.debug("Fetched page source length: {}", pageSource.length());
+        var len = pageSource == null ? "unknown" : pageSource.length();
+        LOG.debug("Fetched page source length: {}", len);
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
 
-    private IHttpFetchResponse resolveDriverResponse(
-            CrawlDoc doc, SniffedResponseHeader sniffedResponse) {
 
-        IHttpFetchResponse response = null;
-        if (sniffedResponse != null) {
-            sniffedResponse.getHeaders().asMap().forEach((k, v) -> {
+    private Function<CrawlDoc, IHttpFetchResponse> fetchDocHandler() {
+        return doc -> {
+            doc.setInputStream(fetchDocumentContent(doc.getReference()));
+            // We assume text/html until maybe WebDriver expands its
+            // API to obtain different types of files.
+            if (doc.getDocInfo().getContentType() == null) {
+                doc.getDocInfo().setContentType(ContentType.HTML);
+            }
+
+            return new HttpFetchResponseBuilder()
+                .setCrawlState(CrawlState.NEW)
+                .setStatusCode(200)
+                .setReasonPhrase("Real status code unknown. Use HTTP Sniffer "
+                        + "to capture real status code.")
+                .setUserAgent(getUserAgent())
+                .create();
+        };
+    }
+
+    private Function<CrawlDoc, IHttpFetchResponse>
+            fetchDocWithSnifferHandler() {
+        return doc -> {
+            var url = doc.getReference();
+            var crawlRequestId = UUID.randomUUID().toString();
+            var augmentedUrl = new HttpURL(url);
+            augmentedUrl.getQueryString().set(
+                        HttpSniffer.PARAM_REQUEST_ID, crawlRequestId);
+            var respFuture = httpSniffer.track(crawlRequestId);
+            var b = new HttpFetchResponseBuilder();
+
+            // Do fetch
+            doc.setInputStream(fetchDocumentContent(augmentedUrl.toString()));
+
+            var sniffedResp = getFutureSniffedResponse(
+                    respFuture,
+                    e -> buildFailedSniffedHttpFetchResponse(b, e));
+
+            if (sniffedResp == null) {
+                return b.create();
+            }
+
+            // Apply HTTP headers
+            for (String name : sniffedResp.getHeaders().names()) {
+                var values = sniffedResp.getHeaders().getAll(name);
                 // Content-Type + Content Encoding (Charset)
-                var values = (List<String>) v;
-                // Content-Type + Content Encoding (Charset)
-                if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(k)
+                if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)
                         && !values.isEmpty()) {
                     ApacheHttpUtil.applyContentTypeAndCharset(
                             values.get(0), doc.getDocInfo());
                 }
-                doc.getMetadata().addList(k, values);
-            });
+                doc.getMetadata().addList(name, values);
+            }
+            // Add collector metadata
+            doc.getMetadata().add(
+                    HttpDocMetadata.HTTP_STATUS_CODE,
+                    sniffedResp.getStatus().code());
+            doc.getMetadata().add(
+                    HttpDocMetadata.HTTP_STATUS_REASON,
+                    sniffedResp.getStatus().reasonPhrase());
 
-            var statusCode = sniffedResponse.getStatusCode();
-            var b = new HttpFetchResponseBuilder()
-                    .setStatusCode(statusCode)
-                    .setReasonPhrase(sniffedResponse.getReasonPhrase())
-                    .setUserAgent(getUserAgent());
-            if (statusCode >= 200 && statusCode < 300) {
-                response = b.setCrawlState(CrawlState.NEW).create();
+            userAgent = StringUtils.firstNonBlank(
+                    userAgent, sniffedResp.getRequestUserAgent());
+
+            IHttpFetchResponse fetchResponse = null;
+            var status = sniffedResp.getStatus();
+            b.setStatusCode(status.code())
+                    .setReasonPhrase(status.reasonPhrase())
+                    .setUserAgent(userAgent);
+            if (status.code() >= 200 && status.code() < 300) {
+                fetchResponse = b.setCrawlState(CrawlState.NEW).create();
             } else {
-                response = b.setCrawlState(CrawlState.BAD_STATUS).create();
+                fetchResponse = b.setCrawlState(CrawlState.BAD_STATUS).create();
+            }
+            return fetchResponse;
+        };
+    }
+
+    private void buildFailedSniffedHttpFetchResponse(
+            HttpFetchResponseBuilder b, Exception e) {
+        if (e != null) {
+            b.setException(e);
+            b.setCrawlState(CrawlState.ERROR);
+            b.setUserAgent(getUserAgent());
+            if (e instanceof TimeoutException) {
+                b.setStatusCode(HttpStatus.GATEWAY_TIMEOUT_504);
+                b.setReasonPhrase("Sniffing timed out");
+            } else {
+                b.setStatusCode(HttpStatus.BAD_GATEWAY_502);
+                b.setReasonPhrase("Sniffing failed");
             }
         }
+    }
 
-        //TODO we assume text/html as default until WebDriver expands its API
-        // to obtain different types of files.
-        if (doc.getDocInfo().getContentType() == null) {
-            doc.getDocInfo().setContentType(ContentType.HTML);
+    private SniffedResponseHeaders getFutureSniffedResponse(
+            CompletableFuture<SniffedResponseHeaders> future,
+            Consumer<Exception> exceptionCatcher) {
+
+        SniffedResponseHeaders resp = null;
+        try {
+            var timeout = ofNullable(cfg
+                    .getHttpSnifferConfig()
+                    .getResponseTimeout())
+                    .orElse(HttpSnifferConfig.DEFAULT_RESPONSE_TIMEOUT);
+            resp = future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            exceptionCatcher.accept(e);
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+                LOG.warn("Sniffer thread was interrupted while waiting "
+                        + "for response.", e);
+            } else if (e instanceof TimeoutException) {
+                LOG.warn("Timed out waiting for sniffed response", e);
+            } else if (e instanceof CancellationException) {
+                LOG.warn("Sniffer async task was cancelled before completion",
+                        e);
+            } else if (e instanceof ExecutionException) {
+                LOG.error("Error while executing sniffer async task",
+                        e.getCause());
+            } else {
+                LOG.warn("Error while executing sniffer async task", e);
+            }
         }
-
-        return response;
+        return resp;
     }
 
     @Override

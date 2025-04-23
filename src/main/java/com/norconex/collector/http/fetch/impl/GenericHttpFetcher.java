@@ -55,7 +55,6 @@ import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -92,6 +91,7 @@ import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
@@ -103,12 +103,10 @@ import com.norconex.collector.http.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.collector.http.fetch.util.HstsResolver;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocInfo;
 import com.norconex.importer.util.CharsetUtil;
 
 /**
@@ -308,12 +306,12 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
     private static final SchemePortResolver SCHEME_PORT_RESOLVER = host -> {
         Args.notNull(host, "HTTP host");
-        final int port = host.getPort();
+        final var port = host.getPort();
         if (port > 0) {
             return port;
         }
-        final String name = host.getSchemeName();
-        if (name.equalsIgnoreCase("ftp")) {
+        final var name = host.getSchemeName();
+        if ("ftp".equalsIgnoreCase(name)) {
             return FTP_PORT;
         }
         return DefaultSchemePortResolver.INSTANCE.resolve(host);
@@ -330,10 +328,9 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         this(new GenericHttpFetcherConfig());
     }
     public GenericHttpFetcher(GenericHttpFetcherConfig httpFetcherConfig) {
-        super();
         Objects.requireNonNull(
                 httpFetcherConfig, "'httpFetcherConfig' must not be null.");
-        this.cfg = httpFetcherConfig;
+        cfg = httpFetcherConfig;
     }
 
     public GenericHttpFetcherConfig getConfig() {
@@ -350,8 +347,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     protected void fetcherStartup(HttpCollector c) {
-    	this.httpClient = createHttpClient();
-        String userAgent = cfg.getUserAgent();
+    	httpClient = createHttpClient();
+        var userAgent = cfg.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
             LOG.info("User-Agent: <None specified>");
             LOG.debug("It is recommended you identify yourself to web sites "
@@ -363,7 +360,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
         if (cfg.getAuthConfig() != null && AUTH_METHOD_FORM.equalsIgnoreCase(
                 cfg.getAuthConfig().getMethod())) {
-            authenticateUsingForm(this.httpClient);
+            authenticateUsingForm(httpClient);
         }
     }
     @Override
@@ -404,11 +401,11 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
             LOG.debug("Fetching: {}", doc.getReference());
 
-            HttpMethod method = ofNullable(httpMethod).orElse(GET);
+            var method = ofNullable(httpMethod).orElse(GET);
             request = ApacheHttpUtil.createUriRequest(
                     doc.getReference(), method);
 
-            HttpClientContext ctx = HttpClientContext.create();
+            var ctx = HttpClientContext.create();
             // auth cache
             ctx.setAuthCache(authCache);
             // user token
@@ -424,17 +421,17 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             }
 
             // Execute the method.
-            HttpResponse response = httpClient.execute(request, ctx);
+            var response = httpClient.execute(request, ctx);
 
             //--- Process the response -----------------------------------------
 
-            int statusCode = response.getStatusLine().getStatusCode();
-            String reason = response.getStatusLine().getReasonPhrase();
+            var statusCode = response.getStatusLine().getStatusCode();
+            var reason = response.getStatusLine().getReasonPhrase();
 
             LOG.debug("Fetch status for: \"{}\": {} - {}",
                     doc.getReference(), statusCode, reason);
 
-            HttpFetchResponseBuilder responseBuilder =
+            var responseBuilder =
                     new HttpFetchResponseBuilder()
                 .setStatusCode(statusCode)
                 .setReasonPhrase(reason)
@@ -445,6 +442,11 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             //--- Extract headers ---
             ApacheHttpUtil.applyResponseHeaders(
                     response, cfg.getHeadersPrefix(), doc);
+
+            //--- Extra document metadata ---
+            doc.getMetadata().add(HttpDocMetadata.HTTP_STATUS_CODE, statusCode);
+            doc.getMetadata().add(
+                    HttpDocMetadata.HTTP_STATUS_REASON, reason);
 
             //--- Extract body ---
             if (HttpMethod.GET.is(method) || HttpMethod.POST.is(method)) {
@@ -503,7 +505,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     // by framework?  Then how to leverage getting it from client
     // directly (e.g. http response headers)?  Rely on metadata for that?
     private void performDetection(Doc doc) {
-        DocInfo info = doc.getDocInfo();
+        var info = doc.getDocInfo();
         try {
             if (cfg.isForceContentTypeDetection()
                     || info.getContentType() == null) {
@@ -527,8 +529,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     //TODO Offer global PropertySetter option when adding headers and/or other fields
 
     protected HttpClient createHttpClient() {
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        SSLContext sslContext = createSSLContext();
+        var builder = HttpClientBuilder.create();
+        var sslContext = createSSLContext();
         builder.setSSLContext(sslContext);
         builder.setSSLSocketFactory(createSSLSocketFactory(sslContext));
         builder.setSchemePortResolver(createSchemePortResolver());
@@ -566,7 +568,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             return;
         }
         try {
-            Object connManager =
+            var connManager =
                     FieldUtils.readField(httpClient, "connManager", true);
             if (connManager instanceof PoolingHttpClientConnectionManager) {
                 ((PoolingHttpClientConnectionManager) connManager)
@@ -635,7 +637,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         // together and we add the preemptive authentication directly
         // in the default HTTP headers.
         if (cfg.getAuthConfig() != null && cfg.getAuthConfig().isPreemptive()) {
-            HttpAuthConfig authConfig = cfg.getAuthConfig();
+            var authConfig = cfg.getAuthConfig();
             if (StringUtils.isBlank(
                     authConfig.getCredentials().getUsername())) {
                 LOG.warn("Preemptive authentication is enabled while no "
@@ -647,13 +649,13 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                         + "method other than \"Basic\" may not produce the "
                         + "expected outcome.");
             }
-            String password = EncryptionUtil.decryptPassword(
+            var password = EncryptionUtil.decryptPassword(
                     authConfig.getCredentials());
-            String auth = authConfig.getCredentials().getUsername()
+            var auth = authConfig.getCredentials().getUsername()
                     + ":" + password;
-            byte[] encodedAuth = Base64.encodeBase64(
+            var encodedAuth = Base64.encodeBase64(
                     auth.getBytes(StandardCharsets.ISO_8859_1));
-            String authHeader = "Basic " + new String(encodedAuth);
+            var authHeader = "Basic " + new String(encodedAuth);
             headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION, authHeader));
         }
         return headers;
@@ -663,7 +665,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         return SCHEME_PORT_RESOLVER;
     }
     protected RequestConfig createRequestConfig() {
-        RequestConfig.Builder builder = RequestConfig.custom()
+        var builder = RequestConfig.custom()
                 .setConnectTimeout(cfg.getConnectionTimeout())
                 .setSocketTimeout(cfg.getSocketTimeout())
                 .setConnectionRequestTimeout(cfg.getConnectionRequestTimeout())
@@ -697,9 +699,9 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         CredentialsProvider credsProvider = null;
 
         //--- Proxy ---
-        ProxySettings proxy = cfg.getProxySettings();
+        var proxy = cfg.getProxySettings();
         if (proxy.isSet() && proxy.getCredentials().isSet()) {
-            String password = EncryptionUtil.decryptPassword(
+            var password = EncryptionUtil.decryptPassword(
                     proxy.getCredentials());
             credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(new AuthScope(
@@ -712,7 +714,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
 
         //--- Auth ---
-        HttpAuthConfig authConfig = cfg.getAuthConfig();
+        var authConfig = cfg.getAuthConfig();
         if (authConfig != null
                 && authConfig.getCredentials().isSet()
                 && !AUTH_METHOD_FORM.equalsIgnoreCase(authConfig.getMethod())
@@ -721,7 +723,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 credsProvider = new BasicCredentialsProvider();
             }
             Credentials creds = null;
-            String password = EncryptionUtil.decryptPassword(
+            var password = EncryptionUtil.decryptPassword(
                     authConfig.getCredentials());
             if (AUTH_METHOD_NTLM.equalsIgnoreCase(authConfig.getMethod())) {
                 creds = new NTCredentials(
@@ -759,7 +761,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             return null;
         }
 
-        SSLContext context = sslContext;
+        var context = sslContext;
         if (context == null) {
             try {
                 context = SSLContexts.custom()
@@ -778,7 +780,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             @Override
             protected void prepareSocket(SSLSocket socket)
                     throws IOException {
-                SSLParameters sslParams = new SSLParameters();
+                var sslParams = new SSLParameters();
 
                 // Trust all certificates
                 if (cfg.isTrustAllSSLCertificates()) {

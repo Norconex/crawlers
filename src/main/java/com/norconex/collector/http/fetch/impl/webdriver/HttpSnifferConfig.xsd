@@ -24,6 +24,7 @@
       <xs:element name="host" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="maxBufferSize" type="xs:int" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="responseTimeout"  type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="headers" minOccurs="0" maxOccurs="1">
         <xs:complexType>
           <xs:all>
