@@ -52,7 +52,7 @@ public class StoreImportCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN);
         try {
-            ctx.getGrid().compute().runOnOneOnce(
+            ctx.getGrid().getCompute().runOnOneOnce(
                     StoreImportCommand.class.getSimpleName(), () -> {
                         try {
                             importAllStores(ctx);
@@ -122,7 +122,7 @@ public class StoreImportCommand implements Command {
                 }
 
                 LOG.info("Importing \"{}\".", storeName);
-                var storage = crawlerContext.getGrid().storage();
+                var storage = crawlerContext.getGrid().getStorage();
 
                 GridStore<?> store = concreteStore(
                         storage, storeSuperClass, storeName, objectClass);

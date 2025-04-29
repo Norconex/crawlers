@@ -20,10 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.compute.GridComputeResult;
-import com.norconex.grid.core.compute.GridComputeState;
-import com.norconex.grid.core.compute.GridComputeTask;
+import com.norconex.grid.core.compute_DELETE.GridCompute;
+import com.norconex.grid.core.compute_DELETE.GridComputeResult;
+import com.norconex.grid.core.compute_DELETE.GridComputeState;
+import com.norconex.grid.core.compute_DELETE.GridComputeTask;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +70,7 @@ public class LocalGridCompute implements GridCompute {
         if (once) {
             var prevOrCurrentState = grid.computeStateStorage()
                     .getComputeState(taskName).orElse(GridComputeState.IDLE);
-            if (prevOrCurrentState.hasRan()) {
+            if (prevOrCurrentState.isTerminal()) {
                 LOG.warn("""
                     Ignoring request to run job "{}" ONCE as it \
                     already ran in this crawl session with \

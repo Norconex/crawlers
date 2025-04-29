@@ -147,7 +147,7 @@ public class LocalGridConnector
     }
 
     @Override
-    public void requestStop(Path workDir) {
+    public void shutdownGrid(Path workDir) {
         LocalGridStopHandler.requestStop(workDir.resolve(STORE_DIR_NAME));
     }
 

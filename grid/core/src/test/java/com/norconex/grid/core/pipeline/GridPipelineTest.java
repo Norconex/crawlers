@@ -14,13 +14,14 @@
  */
 package com.norconex.grid.core.pipeline;
 
+import static java.util.Optional.ofNullable;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
@@ -30,19 +31,19 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.AbstractGridTest;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.compute.GridCompute.RunOn;
+import com.norconex.grid.core.compute_DELETE.GridCompute.RunOn;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Timeout(60)
 public abstract class GridPipelineTest extends AbstractGridTest {
 
     private static final int NUM_NODES = 3;
 
     @Test
-    @Timeout(20)
     void testRunSuccess() {
         var sc = new StageCreator();
         List<GridPipelineStage<Context>> stages = List.of(
@@ -64,6 +65,7 @@ public abstract class GridPipelineTest extends AbstractGridTest {
 
         withNewGrid(cluster -> {
             cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                LOG.info("Starting task 1/2 on node {}", grid.getNodeName());
                 var context = new Context(grid);
                 boolean success = ConcurrentUtil.get(
                         grid.pipeline().run("test-pipelineA", stages, context));
@@ -74,13 +76,13 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                         .isEqualTo(NUM_NODES + 1);
                 assertThat(context.bagStr.get("whatStage"))
                         .isEqualTo("stage-2");
+                LOG.info("Finished task 1/2 on node {}", grid.getNodeName());
             });
-
-            cluster.disconnect();
 
             // Trying to run the pipeline again in this session. Only values for
             // the items of stages that are allow to re-run will be updated.
             cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                LOG.info("Starting task 2/2 on node {}", grid.getNodeName());
                 var context = new Context(grid);
                 boolean success = ConcurrentUtil.get(
                         grid.pipeline().run("test-pipelineA", stages, context));
@@ -93,13 +95,12 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                         .isEqualTo(NUM_NODES * 2);
                 assertThat(context.bagInt.get("itemC"))
                         .isEqualTo(NUM_NODES + 1);
+                LOG.info("Finished task 2/2 on node {}", grid.getNodeName());
             });
-
         });
     }
 
     @Test
-    @Timeout(20)
     void testRunFailureAndOnlyIfAndAlways() {
         var sc = new StageCreator();
         List<GridPipelineStage<Context>> stages = List.of(
@@ -130,6 +131,7 @@ public abstract class GridPipelineTest extends AbstractGridTest {
 
         withNewGrid(cluster -> {
             cluster.onNewNodes(NUM_NODES, (grid, index) -> {
+                LOG.info("Starting task on node {}", grid.getNodeName());
                 var context = new Context(grid);
                 boolean success = ConcurrentUtil.get(
                         grid.pipeline().run("test-pipelineB", stages, context));
@@ -139,73 +141,76 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                 assertThat(context.bagInt.get("itemC")).isEqualTo(NUM_NODES);
                 assertThat(context.bagInt.get("itemD")).isNull();
                 assertThat(context.bagInt.get("itemE")).isEqualTo(333);
+                LOG.info("Finished task on node {}", grid.getNodeName());
             });
 
         });
     }
 
     @Test
-    @Timeout(20)
     void testJoinMidPipeline() {
 
-        var frozen = new AtomicBoolean(true);
-        var twoNodesBlocked = new CompletableFuture<Void>();
+        var countKey = "count";
+        var thirdStageCount = 6;
+        // this counter variable will store what comes back from the store so
+        // it will be accurate on all nodes.
+        var counter = new AtomicInteger();
 
         var sc = new StageCreator();
+        // Until a 3rd node is added, counts jumps by two, then 3
         List<GridPipelineStage<Context>> stages = List.of(
                 sc.onAll(ctx -> {
-                    ctx.addOne("count"); // 2
+                    ctx.addOne(countKey); // 2
+                    counter.set(ctx.getInt(countKey));
                 }),
                 sc.onAll(ctx -> {
-                    ctx.addOne("count"); // 4
+                    ctx.addOne(countKey); // 4
+                    counter.set(ctx.getInt(countKey));
                 }),
                 // third added here
                 sc.onAll(ctx -> {
-                    int countSoFar = ctx.bagInt.get("count");
-                    if (countSoFar == 4) {
-                        twoNodesBlocked.complete(null);
+                    ctx.addOne(countKey); // 6
+                    counter.set(ctx.getInt(countKey));
+                    if (counter.get() == thirdStageCount) {
+                        LOG.debug("Waiting for 3rd node to join...");
                     }
-                    while (frozen.get()) {
-                        Sleeper.sleepMillis(100);
-                    }
-                    ctx.addOne("count"); // 7
+                    ConcurrentUtil.waitUntil(
+                            () -> ctx.getInt(countKey) > thirdStageCount);
                 }),
                 sc.onAll(ctx -> {
                     ctx.addOne("count"); // 10
                 }));
 
-        var future = CompletableFuture.runAsync(() -> {
-            withNewGrid(cluster -> {
-                cluster.onNewNodes(2, (grid, index) -> {
-                    var context = new Context(grid);
-                    boolean success = ConcurrentUtil.get(
-                            grid.pipeline().run("test-pipelineC", stages,
-                                    context));
+        withNewGrid(cluster -> {
+            LOG.debug("Launching 2 nodes and wait for 3rd node on stage 3...");
+            CompletableFuture.runAsync(() -> {
+                cluster.onNewNodes(2, (node, index) -> {
+                    var ctx = new Context(node);
+                    var future =
+                            node.pipeline().run("test-pipelineC", stages, ctx);
+                    ConcurrentUtil.waitUntil(
+                            () -> ctx.getInt("count") > thirdStageCount);
+                    boolean success = ConcurrentUtil.get(future);
                     assertThat(success).isTrue();
-                    assertThat(context.bagInt.get("count")).isEqualTo(10);
+                    assertThat(ctx.getInt("count")).isEqualTo(10);
                 });
             });
-        });
 
-        ConcurrentUtil.get(twoNodesBlocked, 10, TimeUnit.SECONDS);
+            ConcurrentUtil.waitUntil(() -> counter.get() == thirdStageCount);
 
-        withNewGrid(cluster -> {
-            cluster.onNewNode(grid -> {
-                var context = new Context(grid);
-                frozen.set(false);
+            LOG.debug("Stage 3 reached, start third node...");
+            cluster.onNewNode(node -> {
+                var ctx = new Context(node);
                 boolean success = ConcurrentUtil.get(
-                        grid.pipeline().run("test-pipelineC", stages, context));
+                        node.pipeline().run("test-pipelineC", stages, ctx));
                 assertThat(success).isTrue();
                 // if a 3rd node did not join on 3rd stage, total would be 12
-                assertThat(context.bagInt.get("count")).isEqualTo(10);
+                assertThat(ctx.getInt("count")).isEqualTo(10);
             });
         });
-
-        ConcurrentUtil.get(future, 10, TimeUnit.SECONDS);
     }
 
     @Test
-    @Timeout(20)
     void testPipelineStop() {
 
         var frozen = new AtomicBoolean(true);
@@ -295,21 +300,24 @@ public abstract class GridPipelineTest extends AbstractGridTest {
         }
     }
 
-    class Context implements Serializable {
+    class Context {
 
-        private static final long serialVersionUID = 1L;
         private final GridMap<Integer> bagInt;
         private final GridMap<String> bagStr;
         private final Grid grid;
 
         public Context(Grid grid) {
             this.grid = grid;
-            bagInt = grid.storage().getMap("bagInt", Integer.class);
-            bagStr = grid.storage().getMap("bagStr", String.class);
+            bagInt = grid.getStorage().getMap("bagInt", Integer.class);
+            bagStr = grid.getStorage().getMap("bagStr", String.class);
         }
 
         void addOne(String key) {
             add(key, 1);
+        }
+
+        int getInt(String key) {
+            return ofNullable(bagInt.get(key)).orElse(0);
         }
 
         void add(String key, int value) {

@@ -55,7 +55,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     public void init(CrawlerContext crawlerContext) {
         cache.clear();
         ledger = crawlerContext.getDocLedger();
-        eventCountsStore = crawlerContext.getGrid().storage().getMap(
+        eventCountsStore = crawlerContext.getGrid().getStorage().getMap(
                 "CrawlerMetrics.eventCounts", Long.class);
         crawlerContext.getEventManager().addListener(
                 event -> batchIncrementCounter(event.getName(), 1L));

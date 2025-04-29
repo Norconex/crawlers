@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.core.impl.CoreGridConnector;
+import com.norconex.grid.core.impl_DELETE.CoreGridConnector;
 
 class CoreGridPtProviderTest {
 

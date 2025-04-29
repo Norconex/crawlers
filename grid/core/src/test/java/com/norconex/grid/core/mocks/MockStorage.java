@@ -14,6 +14,7 @@
  */
 package com.norconex.grid.core.mocks;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -115,5 +116,10 @@ public class MockStorage implements GridStorage {
             }
         });
         return future;
+    }
+
+    @Override
+    public void close() throws IOException {
+        //NOOP
     }
 }

@@ -19,35 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.norconex.grid.core.cluster.ClusterExtension;
+import com.norconex.grid.core.cluster.SingleNodeTest;
 
-import com.norconex.grid.core.AbstractGridTest;
-import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.mocks.MockGridName;
+public abstract class GridQueueTest {
 
-public abstract class GridQueueTest extends AbstractGridTest {
-
-    private Grid grid;
-    private GridQueue<String> queue;
-
-    @BeforeEach
-    void beforeEachQueueTest() {
-        grid = getGridConnector(MockGridName.generate())
-                .connect(getTempDir());
-        queue = grid.storage().getQueue("testQueue", String.class);
-    }
-
-    @AfterEach
-    void afterEachQueueTest() {
-        queue.clear();
-        grid.storage().destroy();
-        grid.close();
-    }
-
-    @Test
-    void testPutPoll() {
+    @SingleNodeTest
+    void testPutPoll(GridQueue<String> queue) {
         assertThat(queue.isEmpty()).isTrue();
         assertThat(queue.size()).isZero();
 
@@ -60,9 +38,8 @@ public abstract class GridQueueTest extends AbstractGridTest {
         assertThat(queue.isEmpty()).isFalse();
         assertThat(queue.size()).isEqualTo(3);
 
-        String value;
+        var value = queue.poll().orElse(null);
 
-        value = queue.poll().orElse(null);
         assertThat(queue.size()).isEqualTo(2);
         assertThat(value).isEqualTo("123");
 
@@ -78,25 +55,26 @@ public abstract class GridQueueTest extends AbstractGridTest {
         assertThat(value).isNull();
     }
 
-    @Test
-    void testGetName() {
-        assertThat(queue.getName()).isEqualTo("testQueue");
+    @SingleNodeTest
+    void testGetName(GridQueue<String> queue) {
+        assertThat(queue.getName())
+                .startsWith(ClusterExtension.QUEUE_STORE_PREFIX);
     }
 
-    @Test
-    void testGetType() {
+    @SingleNodeTest
+    void testGetType(GridQueue<String> queue) {
         assertThat(queue.getType()).isEqualTo(String.class);
     }
 
-    @Test
-    void testContains() {
+    @SingleNodeTest
+    void testContains(GridQueue<String> queue) {
         assertThat(queue.contains("abc")).isFalse();
         queue.put("abc", "123");
         assertThat(queue.contains("abc")).isTrue();
     }
 
-    @Test
-    void testSize() {
+    @SingleNodeTest
+    void testSize(GridQueue<String> queue) {
         assertThat(queue.size()).isZero();
         queue.put("abc", "123");
         queue.put("def", "456");
@@ -107,8 +85,8 @@ public abstract class GridQueueTest extends AbstractGridTest {
         assertThat(queue.size()).isEqualTo(2);
     }
 
-    @Test
-    void testClear() {
+    @SingleNodeTest
+    void testClear(GridQueue<String> queue) {
         queue.put("abc", "123");
         queue.put("def", "456");
         assertThat(queue.size()).isEqualTo(2);
@@ -116,8 +94,8 @@ public abstract class GridQueueTest extends AbstractGridTest {
         assertThat(queue.size()).isZero();
     }
 
-    @Test
-    void testForEach() {
+    @SingleNodeTest
+    void testForEach(GridQueue<String> queue) {
         queue.put("abc", "123");
         queue.put("def", "456");
         queue.put("ghi", "789");
@@ -141,8 +119,8 @@ public abstract class GridQueueTest extends AbstractGridTest {
         assertThat(someEntries).isEqualTo(List.of("abc123"));
     }
 
-    @Test
-    void testIsEmpty() {
+    @SingleNodeTest
+    void testIsEmpty(GridQueue<String> queue) {
         assertThat(queue.isEmpty()).isTrue();
         queue.put("abc", "123");
         queue.put("def", "456");

@@ -44,7 +44,7 @@ public final class DocLedgerBootstrapper implements Predicate<CrawlerContext> {
     @Override
     public boolean test(CrawlerContext crawlerContext) {
         var globalCache =
-                crawlerContext.getGrid().storage().getSessionAttributes();
+                crawlerContext.getGrid().getStorage().getSessionAttributes();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
             throw new IllegalStateException("Already initializing.");

@@ -197,12 +197,12 @@ public class CrawlerContext implements AutoCloseable {
 
         docLedger.init(this);
 
-        ctxStateStore = grid.storage().getMap(
+        ctxStateStore = grid.getStorage().getMap(
                 CrawlerContext.class.getSimpleName(), Boolean.class);
 
         // Here We initialize things that should only be initialized once
         // for the entire crawl sessions (i.e., only set by one node).
-        var result = grid.compute().runOnOne("context-init",
+        var result = grid.getCompute().runOnOne("context-init",
                 () -> {
                     //TODO encapsulate stateMap and other "generic" stores
                     // into their own object? Or a base object for them all?
@@ -315,14 +315,14 @@ public class CrawlerContext implements AutoCloseable {
 
     //MAYBE: Consider caching this value once set by DocLedgerInitializer
     public long maxProcessedDocs() {
-        var maxDocs = grid.storage()
+        var maxDocs = grid.getStorage()
                 .getSessionAttributes().get(KEY_MAX_PROCESSED_DOCS);
         return maxDocs == null ? configuration.getMaxDocuments()
                 : Long.parseLong(maxDocs);
     }
 
     public void maxProcessedDocs(long maxDocs) {
-        grid.storage()
+        grid.getStorage()
                 .getSessionAttributes()
                 .put(KEY_MAX_PROCESSED_DOCS, Long.toString(maxDocs));
     }

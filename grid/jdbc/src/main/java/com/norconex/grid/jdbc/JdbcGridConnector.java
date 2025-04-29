@@ -24,13 +24,12 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.impl.CoreGrid;
+import com.norconex.grid.core.impl_DELETE.CoreGrid_ORIG;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,10 +64,19 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @Slf4j
-@RequiredArgsConstructor
 public class JdbcGridConnector
         implements GridConnector,
         Configurable<JdbcGridConnectorConfig> {
+
+    //    private final HikariDataSource testDataSource;
+    //
+    //    public JdbcGridConnector() {
+    //        this(null);
+    //    }
+    //
+    //    JdbcGridConnector(HikariDataSource ds) {
+    //        testDataSource = ds;
+    //    }
 
     @Getter
     private final JdbcGridConnectorConfig configuration =
@@ -77,12 +85,42 @@ public class JdbcGridConnector
     @Override
     public Grid connect(Path workDir) {
         // create data source
-        var dataSource = new HikariDataSource(
-                new HikariConfig(configuration.getDatasource().toProperties()));
+        var dataSource = new HikariDataSource(new HikariConfig(
+                configuration.getDatasource().toProperties()));
+        //        var dataSource = testDataSource != null ? testDataSource
+        //                : new HikariDataSource(new HikariConfig(
+        //                        configuration.getDatasource().toProperties()));
+
+        //////////////////
+        //        try (var conn = dataSource.getConnection()) {
+        //            var dbName = StringUtils.substringAfterLast(
+        //                    configuration.getDatasource().getString("jdbcUrl"), "/");
+        //            dbName = StringUtils.substringBefore(dbName, "?");
+        //
+        //            var sql = """
+        //            SELECT pid, usename, state, query, backend_start
+        //            FROM pg_stat_activity
+        //            WHERE datname = '%s';
+        //            """.formatted(dbName);
+        //            var result = conn.createStatement().executeQuery(sql);
+        //            while (result.next()) {
+        //                System.err.println("%s | %s | %s | %s | %s".formatted(
+        //                        result.getString(1),
+        //                        result.getString(2),
+        //                        result.getString(3),
+        //                        result.getString(4),
+        //                        result.getString(5)));
+        //            }
+        //        } catch (SQLException e1) {
+        //            e1.printStackTrace();
+        //        }
+
+        ///////////////////
         try {
             var storage = new JdbcGridStorage(resolveDbAdapter(dataSource));
-            var grid = new CoreGrid(configuration, storage);
+            var grid = new CoreGrid_ORIG(configuration, storage);
             storage.init(grid);
+            LOG.info("Connected to JDBC-backed Grid.");
             return grid;
         } catch (Exception e) {
             throw new GridException("Could not connect to (JDBC) database.", e);
@@ -100,7 +138,7 @@ public class JdbcGridConnector
     }
 
     @Override
-    public void requestStop(Path workDir) {
+    public void shutdownGrid(Path workDir) {
         try (var grid = connect(workDir)) {
             grid.stop();
         }

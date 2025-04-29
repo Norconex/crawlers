@@ -14,12 +14,11 @@
  */
 package com.norconex.crawler.web.fetch;
 
-import javax.annotation.Nonnull;
-
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchRequest;
 
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * HTTP Fetch request.
@@ -28,8 +27,8 @@ import lombok.Data;
 @Data
 public class HttpFetchRequest implements FetchRequest {
 
-    @Nonnull
+    @NonNull
     private final CrawlDoc doc;
-    @Nonnull
+    @NonNull
     private final HttpMethod method;
 }

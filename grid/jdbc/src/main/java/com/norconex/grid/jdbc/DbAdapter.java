@@ -14,7 +14,6 @@
  */
 package com.norconex.grid.jdbc;
 
-import java.io.StringReader;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -24,8 +23,6 @@ import java.sql.SQLException;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableConsumer;
 import org.apache.commons.lang3.function.FailableFunction;
@@ -34,6 +31,7 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.util.SerialUtil;
+import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -77,13 +75,19 @@ final class DbAdapter {
     private String bigIntType;
     private String textType;
     private UnaryOperator<String> escaper;
+    private HikariDataSource dataSource;
 
-    private DbAdapter(DataSource dataSource) {
+    private DbAdapter(@NonNull HikariDataSource dataSource) {
+        this.dataSource = dataSource;
         transactionManager = new TransactionManager(dataSource);
     }
 
+    void close() {
+        dataSource.close();
+    }
+
     static DbAdapter create(
-            String jdbcUrlOrDataSource, DataSource dataSource) {
+            String jdbcUrlOrDataSource, HikariDataSource dataSource) {
         var dbType = detectDbType(jdbcUrlOrDataSource);
         var adapter = new DbAdapter(dataSource)
                 .dbType(dbType)
@@ -212,7 +216,8 @@ final class DbAdapter {
         try {
             return executeWrite(sql, stmt -> {
                 stmt.setString(1, rightSizeId(id));
-                stmt.setClob(2, SerialUtil.toJsonReader(value));
+                //                stmt.setClob(2, SerialUtil.toJsonReader(value));
+                stmt.setString(2, SerialUtil.toJsonString(value));
                 if (thirdArg != null) {
                     stmt.setString(3, thirdArg);
                 }
@@ -364,8 +369,9 @@ final class DbAdapter {
         try {
             return executeWrite(sql, stmt -> {
                 stmt.setString(1, rightSizeId(id));
-                stmt.setClob(2,
-                        new StringReader(SerialUtil.toJsonString(value)));
+                //                stmt.setClob(2,
+                //                      new StringReader(SerialUtil.toJsonString(value)));
+                stmt.setString(2, SerialUtil.toJsonString(value));
             }) > 0;
         } catch (GridException e) {
             // if the row already exist with the same values, it could mean
@@ -425,26 +431,35 @@ final class DbAdapter {
     }
 
     /**
-     * Creates a table only if it doesn't exist.
+     * Creates a table only if it doesn't exist, handling possible concurrency
+     * issues in multi-nodes environment.
      */
     void createTableIfNotExists(String tableName, String createSQL) {
-        transactionManager.runInTransaction(conn -> {
+        // Do NOT run DDL operations in a transaction. Not all DB will like it.
+        try (var conn = dataSource.getConnection()) {
             if (!tableExists(tableName)) {
                 LOG.info("Creating table: {}", tableName);
-                try (var statement = conn.createStatement()) {
-                    statement.execute(createSQL);
-                    LOG.info("Table created successfully: {}", tableName);
-                } catch (SQLException e) {
-                    if (!tableExists(tableName)) {
-                        throw e;
-                    }
-                    LOG.info("Table already exist: {}", tableName);
-                }
+                doCreateTable(conn, tableName, createSQL);
             } else {
                 LOG.info("Table found: {}", tableName);
             }
-            return null;
-        });
+        } catch (SQLException e) {
+            throw new GridException("Could not create table " + tableName);
+        }
+    }
+
+    private void doCreateTable(
+            Connection conn, String tableName, String createSQL)
+            throws SQLException {
+        try (var statement = conn.createStatement()) {
+            statement.execute(createSQL);
+            LOG.info("Table created successfully: {}", tableName);
+        } catch (SQLException e) {
+            if (!tableExists(tableName)) {
+                throw e;
+            }
+            LOG.info("Table already exist: {}", tableName);
+        }
     }
 
     void dropTableIfExists(String tableName) {

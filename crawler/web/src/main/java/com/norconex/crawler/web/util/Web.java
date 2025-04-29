@@ -44,7 +44,7 @@ public final class Web {
             @NonNull CrawlerContext crawlerContext,
             @NonNull String name,
             @NonNull Class<? extends T> type) {
-        return crawlerContext.getGrid().storage().getMap(name, type);
+        return crawlerContext.getGrid().getStorage().getMap(name, type);
     }
 
     public static void fireIfUrlOutOfScope(

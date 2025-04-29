@@ -14,14 +14,12 @@
  */
 package com.norconex.grid.core;
 
-import java.nio.file.Path;
-
 /**
  * Connector to a supported Grid implementation.
  */
 public interface GridConnector {
 
-    Grid connect(Path workDir);
+    Grid connect(GridContext ctx);
 
     /**
      * Short-lived method that requests an existing grid to stop.
@@ -30,8 +28,8 @@ public interface GridConnector {
      * and will not participate in existing grid activities before
      * exiting. It does not wait for the grid to stop to return.
      * In some cases, it may not even have invoke the
-     * {@link #connect(Path)} method.
+     * {@link #connect(GridContext)} method.
      * @param workDir working directory
      */
-    void requestStop(Path workDir);
+    void shutdownGrid(GridContext ctx);
 }

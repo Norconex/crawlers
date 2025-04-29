@@ -42,6 +42,11 @@ public final class WebDocMetadata {
     public static final String ORIGINAL_REFERENCE =
             PREFIX + "original-reference";
 
+    public static final String HTTP_STATUS_CODE =
+            PREFIX + "http-status-code";
+    public static final String HTTP_STATUS_REASON =
+            PREFIX + "http-status-reason";
+
     private WebDocMetadata() {
     }
 }

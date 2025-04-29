@@ -14,56 +14,31 @@
  */
 package com.norconex.grid.core.impl;
 
-import static com.norconex.grid.core.util.ConcurrentUtil.getUnderAMinute;
 import static java.util.Optional.ofNullable;
 
-import java.net.InetAddress;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jgroups.Address;
 import org.jgroups.JChannel;
-import org.jgroups.Message;
-import org.jgroups.ObjectMessage;
 import org.jgroups.Receiver;
 import org.jgroups.View;
-import org.jgroups.protocols.BARRIER;
-import org.jgroups.protocols.FD_ALL;
-import org.jgroups.protocols.FD_SOCK;
-import org.jgroups.protocols.FRAG2;
-import org.jgroups.protocols.MERGE3;
-import org.jgroups.protocols.MFC;
-import org.jgroups.protocols.PING;
-import org.jgroups.protocols.UDP;
-import org.jgroups.protocols.UFC;
-import org.jgroups.protocols.UNICAST3;
-import org.jgroups.protocols.VERIFY_SUSPECT;
-import org.jgroups.protocols.pbcast.GMS;
-import org.jgroups.protocols.pbcast.NAKACK2;
-import org.jgroups.protocols.pbcast.STABLE;
-import org.jgroups.stack.Protocol;
 
-import com.norconex.commons.lang.Sleeper;
-import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.impl.compute.ComputeStateAtTime;
-import com.norconex.grid.core.impl.compute.ComputeStateStore;
-import com.norconex.grid.core.impl.compute.CoreGridCompute;
-import com.norconex.grid.core.impl.compute.MessageListener;
-import com.norconex.grid.core.impl.compute.messages.StopComputeMessage;
-import com.norconex.grid.core.impl.compute.messages.TaskPayloadMessenger;
-import com.norconex.grid.core.impl.pipeline.CoreGridPipeline;
-import com.norconex.grid.core.pipeline.GridPipeline;
+import com.norconex.grid.core.GridContext;
+import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.storage.GridStorage;
 import com.norconex.grid.core.util.ExecutorManager;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -72,244 +47,224 @@ public class CoreGrid implements Grid {
 
     @Getter
     private final String gridName;
+    @Getter
     private String nodeName;
-    private final JChannel channel;
-    private final List<MessageListener> listeners =
-            new CopyOnWriteArrayList<>();
+    @Getter
+    private final GridContext gridContext;
+    @Getter
+    private final CoreCompute compute;
+    @Getter
     private final GridStorage storage;
-    @Getter
-    private Address localAddress;
-    @Getter
-    private Address coordinator;
+
+    private final List<QuorumWaiter> quorumWaiters = new ArrayList<>();
+    private final ScheduledExecutorService quorumScheduler =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                var t = new Thread(r);
+                t.setDaemon(true);
+                t.setName("grid-quorum-scheduler");
+                return t;
+            });
+
+    //--- JGroups ---
+    private final JChannel channel;
     private View view;
-    private ComputeStateStore computeStateStorage;
-    private TaskPayloadMessenger taskPayloadMessenger;
     @Getter
-    private ExecutorManager nodeExecutors;
-    // This will block tasks until the node joins
-    private final CountDownLatch latch = new CountDownLatch(1);
+    private Address nodeAddress;
+    @Getter
+    private Address coordAddress;
 
-    public CoreGrid(CoreGridConnectorConfig connConfig, GridStorage storage)
-            throws Exception {
-        this(connConfig, null, storage);
-    }
+    //    private final RpcDispatcher dispatcher;
+    //    private final List<GridTask> pipeline;
+    //    private final TaskHandler taskHandler;
 
-    public CoreGrid(
+    CoreGrid(
             CoreGridConnectorConfig connConfig,
-            String nodeName,
-            GridStorage storage)
+            GridStorage storage,
+            GridContext gridContext)
             throws Exception {
+        LOG.info(org.jgroups.Version.printDescription());
+        this.gridContext = gridContext;
         gridName = connConfig.getGridName();
-        this.nodeName = nodeName;
+        nodeName = connConfig.getNodeName();
         this.storage = storage;
-
-        Protocol[] protStack = {
-                new UDP().setValue("bind_addr",
-                        InetAddress.getByName("127.0.0.1")),
-                new PING(),
-                new MERGE3(),
-                new FD_SOCK(),
-                new FD_ALL(),
-                new VERIFY_SUSPECT(),
-                new BARRIER(),
-                new NAKACK2(),
-                new UNICAST3(),
-                new STABLE(),
-                new GMS(),
-                new UFC(),
-                new MFC(),
-                new FRAG2() };
-
-        //TODO make configurable
-
-        channel = new JChannel(protStack);
-        // This is the name the node will have when joining the grid.
+        channel = new JChannel(connConfig.getProtocols());
+        // The name the node and channel will share. If not set, will be the
+        // address from the view, obtained after connecting
         if (StringUtils.isNotBlank(nodeName)) {
             channel.setName(nodeName);
         }
-
-        //TODO support optional logical name        channel.setName(nodeName);
-        channel.setReceiver(createMessagesReceiver());
-        //TODO make configurable, like this for unit tests right now
-        //        channel.getProtocolStack().findProtocol(FD_ALL.class);
+        channel.setReceiver(new JGroupMessageReceiver());
         channel.connect(gridName);
-        //        localAddress = channel.getAddress();
-        //        view = channel.getView();
-        //        coordinator = view.getCoord();
-        latch.await();
+        compute = new CoreCompute(this);
 
-        computeStateStorage = new ComputeStateStore(this);
-        taskPayloadMessenger = new TaskPayloadMessenger(this);
+        //        taskHandler = new TaskHandler(channel.getAddress());
+        //        channel.connect("grid-cluster");
+        //        dispatcher = new RpcDispatcher(channel, taskHandler);
+
     }
 
     public boolean isCoordinator() {
-        return Objects.equals(localAddress, coordinator);
+        return Objects.equals(nodeAddress, coordAddress);
     }
 
-    public void send(Object payload) {
-        try {
-            Message msg = new ObjectMessage(null, payload);
-            channel.send(msg);
-        } catch (Exception e) {
-            LOG.error("Could not send message: {}.", payload, e);
-        }
+    public JChannel getChannel() {
+        return channel;
     }
 
-    public void sendTo(Address dest, Object payload) {
-        try {
-            Message msg = new ObjectMessage(dest, payload);
-            channel.send(msg);
-        } catch (Exception e) {
-            LOG.error("Could not send message: {}.", payload, e);
-        }
+    public List<Address> getGridMembers() {
+        return ofNullable(view).map(View::getMembers).orElse(List.of());
     }
 
-    /**
-     * Adds a grid message listener.
-     * @param listener the listener
-     * @return the added listener, for convenience
-     */
-    public MessageListener addListener(@NotNull MessageListener listener) {
-        listeners.add(listener);
-        return listener;
-    }
-
-    public void removeListener(MessageListener listener) {
-        listeners.remove(listener);
-    }
-
-    public List<Address> getClusterMembers() {
-        return ofNullable(channel.getView())
-                .map(View::getMembers)
-                .orElse(List.of());
-    }
-
-    public ComputeStateStore computeStateStorage() {
-        return computeStateStorage;
-    }
-
-    public TaskPayloadMessenger taskPayloadMessenger() {
-        return taskPayloadMessenger;
-    }
-
-    @Override
-    public String getNodeName() {
-        return nodeName;
-    }
-
-    @Override
-    public GridCompute compute() {
-        return new CoreGridCompute(this);
-    }
-
-    @Override
-    public GridPipeline pipeline() {
-        return new CoreGridPipeline(this);
-    }
-
-    @Override
-    public GridStorage storage() {
-        return storage;
-    }
+    //    public TaskHandler getTaskHandler() {
+    //        return taskHandler;
+    //    }
 
     @Override
     public void close() {
-        nodeExecutors.shutdown();
-        channel.close();
-        LOG.info("⛓️‍💥 Disconnected from grid: " + getGridName());
+        //        if (dispatcher != null)
+        //            try {
+        //                dispatcher.close();
+        //            } catch (IOException e) {
+        //                // TODO Auto-generated catch block
+        //                e.printStackTrace();
+        //            }
+        if (channel != null) {
+            channel.close();
+        }
     }
 
-    //TODO move to storage?
+    //    @Override
+    //    public GridPipeline pipeline() {
+    //        // TODO Auto-generated method stub
+    //        return null;
+    //    }
+
+    @Override
+    public ExecutorManager getNodeExecutors() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @Override
     public boolean resetSession() {
-        storage().getSessionAttributes().clear();
-        return computeStateStorage().reset();
+        // TODO Auto-generated method stub
+        return false;
     }
 
     @Override
     public void stop() {
-        LOG.info("Received request to stop the grid.");
-        pipeline().stop(null);
-        compute().stop(null);
-        stopRunningTasks();
+        // TODO Auto-generated method stub
+
     }
 
-    //--- Private methods ------------------------------------------------------
-
-    private void stopRunningTasks() {
-        send(new StopComputeMessage(null));
-
-        //TODO make timeout make configurable
-        getUnderAMinute(nodeExecutors
-                .runLongTaskWithAutoShutdown("stop-tasks", () -> {
-                    Map<String, ComputeStateAtTime> tasks = null;
-                    while (!(tasks = computeStateStorage().getRunningTasks())
-                            .isEmpty()) {
-                        logRunningTasks(tasks);
-                        Sleeper.sleepMillis(500);
-                    }
-                }));
-    }
-
-    private void logRunningTasks(Map<String, ComputeStateAtTime> tasks) {
-        if (!LOG.isInfoEnabled()) {
-            return;
+    @Override
+    public CompletableFuture<Void> awaitMinimumNodes(
+            int count, Duration timeout) {
+        if (count <= 0) {
+            throw new IllegalArgumentException(
+                    "Minimum node count must be > 0");
         }
-        var txtLines = tasks
-                .entrySet()
-                .stream()
-                .map(en -> "    - %s -> %s".formatted(
-                        en.getKey(), DurationFormatter.COMPACT.format(
-                                en.getValue().elapsed())))
-                .collect(Collectors.joining("\n"));
-        LOG.info("The following tasks are still running: \n{}", txtLines);
+        if (timeout == null || timeout.isNegative() || timeout.isZero()) {
+            throw new IllegalArgumentException("Timeout must be positive");
+        }
+
+        var future = new CompletableFuture<Void>();
+        synchronized (this) {
+            if (getMemberCount(channel) >= count) {
+                future.complete(null);
+                return future;
+            }
+
+            // Track all pending quorum futures
+            quorumWaiters.add(new QuorumWaiter(count, future));
+        }
+
+        // Schedule timeout
+        quorumScheduler.schedule(() -> {
+            if (!future.isDone()) {
+                future.completeExceptionally(new TimeoutException(
+                        "Timed out waiting for minimum %s nodes. Got %s."
+                                .formatted(count, getMemberCount(channel))));
+            }
+        }, timeout.toMillis(), TimeUnit.MILLISECONDS);
+
+        return future;
     }
 
-    private Receiver createMessagesReceiver() {
-        return new Receiver() {
-            @Override
-            public void receive(Message msg) {
-                var payload = msg.getObject();
-                for (MessageListener listener : listeners) {
-                    listener.onMessage(payload, msg.getSrc());
+    private static int getMemberCount(JChannel channel) {
+        return ofNullable(channel)
+                .map(JChannel::getView)
+                .map(View::getMembers)
+                .map(List::size)
+                .orElse(0);
+    }
+
+    //--- Inner Classes ---
+
+    private class JGroupMessageReceiver implements Receiver {
+        private final CountDownLatch initializedLatch = new CountDownLatch(1);
+
+        //TODO Add method to receive/listen to messages???
+
+        @Override
+        public void viewAccepted(View newView) {
+            view = newView;
+
+            if (initializedLatch.getCount() > 0
+                    && newView.containsMember(channel.getAddress())) {
+                view = channel.getView();
+                nodeAddress = channel.getAddress();
+                if (StringUtils.isBlank(nodeName)) {
+                    nodeName = channel.getAddressAsString();
+                }
+                LOG.info("Node joined \"{}\" grid: {}", gridName, nodeName);
+                //nodeExecutors = new ExecutorManager(nodeName);
+
+                initializedLatch.countDown();
+            }
+
+            var currentSize = newView.getMembers().size();
+            LOG.info("Current \"{}\" grid size: {}", gridName, currentSize);
+            var prevCoordAddress = coordAddress;
+            var nextCoordAddress = view.getCoord();
+            coordAddress = nextCoordAddress;
+            if (!Objects.equals(prevCoordAddress, nextCoordAddress)) {
+                // if it changed (as opposed to first set), notify all
+                if (prevCoordAddress == null) {
+                    LOG.info("Grid \"{}\" elected coordinator: {}",
+                            gridName, nextCoordAddress);
+                } else {
+                    LOG.info("New \"{}\" grid coordinator elected: {} -> "
+                            + "{}", gridName,
+                            prevCoordAddress, nextCoordAddress);
+                    //TODO handle handling of new coordinator
+                    //send(new NewCoordMessage());
                 }
             }
 
-            @Override
-            public void viewAccepted(View newView) {
-                view = newView;
-
-                if (latch.getCount() > 0
-                        && newView.containsMember(channel.getAddress())) {
-                    view = channel.getView();
-                    localAddress = channel.getAddress();
-                    if (StringUtils.isBlank(nodeName)) {
-                        nodeName = channel.getAddressAsString();
-                    }
-                    LOG.info("Node joined grid \"{}\": {}", gridName, nodeName);
-                    nodeExecutors = new ExecutorManager(nodeName);
-                    latch.countDown();
-                }
-
-                LOG.info("Grid \"{}\" now has {} node(s).",
-                        gridName, view.size());
-                var prevCoord = coordinator;
-                var nextCoord = view.getCoord();
-                coordinator = nextCoord;
-                if (!Objects.equals(prevCoord, nextCoord)) {
-                    // if it changed (as opposed to first set), notify all
-                    if (prevCoord == null) {
-                        LOG.info("Grid \"{}\" elected coordinator: {}",
-                                gridName, nextCoord);
-                    } else {
-                        LOG.info(
-                                "New grid \"{}\" coordinator elected: {} -> {}",
-                                gridName, prevCoord, nextCoord);
-                        //TODO handle handling of new coordinator
-                        //send(new NewCoordMessage());
+            // Inform quorum waiters if applicable
+            synchronized (this) {
+                var iter = quorumWaiters.iterator();
+                while (iter.hasNext()) {
+                    var waiter = iter.next();
+                    if (currentSize >= waiter.count
+                            && !waiter.future.isDone()) {
+                        System.err.println("XXX in View: Quorum met!");
+                        waiter.future.complete(null);
+                        iter.remove();
                     }
                 }
             }
-        };
+        }
+    }
+
+    private static class QuorumWaiter {
+        final int count;
+        final CompletableFuture<Void> future;
+
+        QuorumWaiter(int count, CompletableFuture<Void> future) {
+            this.count = count;
+            this.future = future;
+        }
     }
 }

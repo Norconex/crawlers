@@ -14,213 +14,91 @@
  */
 package com.norconex.grid.core.compute;
 
-import static java.util.Optional.ofNullable;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.Serializable;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 
-import org.junit.jupiter.api.Test;
+import org.jgroups.util.UUID;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.commons.lang.Sleeper;
-import com.norconex.grid.core.AbstractGridTest;
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.storage.GridMap;
+import com.norconex.grid.core.GridContext;
+import com.norconex.grid.core.cluster.Cluster;
+import com.norconex.grid.core.cluster.ClusterTest;
+import com.norconex.grid.core.compute.BaseGridTask.SingleNodeTask;
 import com.norconex.grid.core.storage.GridSet;
-import com.norconex.grid.core.util.ConcurrentUtil;
-import com.norconex.grid.core.util.ThreadRenamer;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class GridComputeTest extends AbstractGridTest {
+@Timeout(60)
+public abstract class GridComputeTest implements Serializable {
 
-    private static final int NUM_NODES = 3;
+    private static final long serialVersionUID = 1L;
 
-    @Test
-    @Timeout(20)
-    void runOnOneTest() {
+    @ClusterTest
+    void runOnOneTest(Cluster cluster) {
+        cluster.onThreeNewNodes(grid -> {
+            LOG.debug("Starting task 1/2 on node {}", grid.getNodeName());
+            grid.getCompute().executeTask(new SingleNodeTask("testJob") {
+                private static final long serialVersionUID = 1L;
 
-        withNewGrid(cluster -> {
-            LOG.trace("Running 'runOnOneTest' part 1 of 2");
-            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                var set = grid.storage().getSet("testSet");
-                grid.compute().runOnOne("testJob", () -> {
+                @Override
+                public String execute(GridContext ctx) {
+                    var set = getGridSet(ctx);
                     fill(set, 5);
                     return null;
-                });
-                assertThat(set.size()).isEqualTo(5);
+                }
             });
+            var set = getGridSet(grid);
+            assertThat(set.size()).isEqualTo(5);
+            LOG.debug("Finished task 1/2 on node {}", grid.getNodeName());
+        });
 
-            cluster.disconnect();
+        // we are allowed to run it again so the numbers should add up.
+        LOG.trace("Running 'runOnOneTest' part 2 of 2");
+        cluster.onThreeNewNodes(grid -> {
+            LOG.debug("Starting task 2/2 on node {}", grid.getNodeName());
+            grid.getCompute().executeTask(new SingleNodeTask("testJob") {
+                private static final long serialVersionUID = 1L;
 
-            // we are allowed to run it again so the numbers should add up.
-            LOG.trace("Running 'runOnOneTest' part 2 of 2");
-            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                var set = grid.storage().getSet("testSet");
-                grid.compute().runOnOne("testJob", () -> {
+                @Override
+                public String execute(GridContext ctx) {
+                    var set = getGridSet(ctx);
                     fill(set, 5);
                     return null;
-                });
-                assertThat(set.size()).isEqualTo(10);
-                set.clear();
+                }
             });
 
+            var set = getGridSet(grid);
+            assertThat(set.size()).isEqualTo(10);
+            LOG.debug("Finished task 2/2 on node {}", grid.getNodeName());
         });
     }
 
-    @Test
-    @Timeout(20)
-    void runOnOneOnceTest() {
-        withNewGrid(cluster -> {
-            LOG.trace("Running 'runOnOneOnceTest' part 1 of 2");
-            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                var set = grid.storage().getSet("testSet");
-                grid.compute().runOnOneOnce("testJob", () -> {
-                    fill(set, 5);
-                    return null;
-                });
-                assertThat(set.size()).isEqualTo(5);
-            });
-
-            cluster.disconnect();
-
-            // we can't run the same job twice. number shall be unchanged
-            LOG.trace("Running 'runOnOneOnceTest' part 2 of 2");
-            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                var set = grid.storage().getSet("testSet");
-                grid.compute().runOnOneOnce("testJob", () -> {
-                    fill(set, 5);
-                    return null;
-                });
-                assertThat(set.size()).isEqualTo(5);
-                set.clear();
-            });
-        });
+    private static GridSet getGridSet(GridContext ctx) {
+        return getGridSet(ctx.getGrid());
     }
 
-    @Test
-    @Timeout(20)
-    void runOnAllTest() {
-        withNewGrid(cluster -> {
-            LOG.trace("Running 'runOnAllTest' part 1 of 2");
-            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                var set = grid.storage().getSet("testSet");
-                grid.compute().runOnAll("testJob", () -> {
-                    fill(set, 5);
-                    return null;
-                });
-                assertThat(set.size()).isEqualTo(15);
-            });
-
-            cluster.disconnect();
-
-            // we are allowed to run it again so the numbers should add up.
-            LOG.trace("Running 'runOnAllTest' part 2 of 2");
-            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                var set = grid.storage().getSet("testSet");
-                grid.compute().runOnAll("testJob", () -> {
-                    fill(set, 5);
-                    return null;
-                });
-                assertThat(set.size()).isEqualTo(30);
-                set.clear();
-            });
-        });
+    private static GridSet getGridSet(Grid grid) {
+        return grid.getStorage().getSet("testSet");
     }
 
-    @Test
-    @Timeout(20)
-    void runOnAllOnceTest() {
-        withNewGrid(cluster -> {
-            LOG.trace("Running 'runOnAllOnceTest' part 1 of 2");
-            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                var set = grid.storage().getSet("testSet");
-                grid.compute().runOnAllOnce("testJob", () -> {
-                    fill(set, 5);
-                    return null;
-                });
-                assertThat(set.size()).isEqualTo(15);
-            });
-
-            cluster.disconnect();
-
-            // we can't run the same job twice. number shall be unchanged
-            LOG.trace("Running 'runOnAllOnceTest' part 2 of 2");
-            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                var set = grid.storage().getSet("testSet");
-                grid.compute().runOnAllOnce("testJob", () -> {
-                    fill(set, 5);
-                    return null;
-                });
-                assertThat(set.size()).isEqualTo(15);
-                set.clear();
-            });
-        });
-    }
-
-    @Test
-    @Timeout(20)
-    void testRequestStop() {
-        assertThatNoException().isThrownBy(() -> {
-            withNewGrid(cluster -> {
-                cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-                    var job = new StoppableJob(grid,
-                            () -> grid.compute().stop("testJob"));
-                    var executor = Executors.newFixedThreadPool(
-                            1, grid.getNodeExecutors()
-                                    .threadFactory("test-stop-" + index));
-                    var future = CompletableFuture.runAsync(
-                            ThreadRenamer.set("test-stop", () -> {
-                                grid.compute().runOnAll("testJob", job);
-                            }), executor);
-                    ConcurrentUtil.getUnderSecs(future, 10);
-                });
-            });
-        });
-    }
-
-    private static final class StoppableJob
-            implements GridComputeTask<Serializable> {
-        private final GridMap<Integer> map;
-        private final Runnable onAllStarted;
-        private boolean stopRequested;
-
-        public StoppableJob(Grid grid, Runnable onAllStarted) {
-            map = grid.storage().getMap("intMap", Integer.class);
-            this.onAllStarted = onAllStarted;
-        }
-
-        @Override
-        public Serializable execute() {
-            map.update("numStarted", v -> v == null ? 1 : v + 1);
-            while (getNumStarted() < 3) {
-                Sleeper.sleepMillis(100);
-            }
-            onAllStarted.run();
-            while (!stopRequested) {
-                Sleeper.sleepMillis(100);
-            }
-            return null;
-        }
-
-        private int getNumStarted() {
-            return ofNullable(map.get("numStarted")).orElse(0);
-        }
-
-        @Override
-        public void stop() {
-            stopRequested = true;
-        }
-    }
-
-    private void fill(GridSet set, int numEntries) {
+    private static void fill(GridSet set, int numEntries) {
         for (var i = 0; i < numEntries; i++) {
             set.add(UUID.randomUUID().toString());
         }
     }
+
+    //    static class SetFillExecutor implements GridTaskExecutor {
+    //        @Override
+    //        public Object execute(Grid grid) {
+    //            var set = grid.storage().getSet("testSet");
+    //                for (var i = 0; i < numEntries; i++) {
+    //                    set.add(UUID.randomUUID().toString());
+    //                }
+    //            return null;
+    //        }
+    //    }
+
 }

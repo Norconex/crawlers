@@ -232,6 +232,15 @@ public class LocalGridStorage implements GridStorage {
         return names;
     }
 
+    @Override
+    public void close() {
+        mvStore.close();
+    }
+
+    public boolean isClosed() {
+        return mvStore.isClosed();
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

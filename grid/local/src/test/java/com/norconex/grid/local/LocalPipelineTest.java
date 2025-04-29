@@ -31,7 +31,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.compute.GridCompute.RunOn;
+import com.norconex.grid.core.compute_DELETE.GridCompute.RunOn;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 import com.norconex.grid.core.pipeline.GridPipelineTask;
 import com.norconex.grid.core.storage.GridMap;
@@ -240,8 +240,8 @@ class LocalPipelineTest {
 
         public Context(Grid grid) {
             this.grid = grid;
-            bagInt = grid.storage().getMap("bagInt", Integer.class);
-            bagStr = grid.storage().getMap("bagStr", String.class);
+            bagInt = grid.getStorage().getMap("bagInt", Integer.class);
+            bagStr = grid.getStorage().getMap("bagStr", String.class);
         }
 
         void addOne(String key) {

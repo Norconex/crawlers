@@ -22,7 +22,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+
+import com.norconex.commons.lang.Sleeper;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -117,6 +120,18 @@ public final class ConcurrentUtil {
 
     public static <T> T getUnderSecs(Future<T> future, int seconds) {
         return get(future, seconds, TimeUnit.SECONDS);
+    }
+
+    /**
+     * In some cases we do not want to block any thread when waiting for
+     * a future completion. This method instead loops (with a tiny delay)
+     * until the supplier returns <code>true</code>.
+     * @param condition condition evaluated (<code>true</code> to exit the loop)
+     */
+    public static void waitUntil(BooleanSupplier condition) {
+        while (!condition.getAsBoolean()) {
+            Sleeper.sleepMillis(100);
+        }
     }
 
     /**

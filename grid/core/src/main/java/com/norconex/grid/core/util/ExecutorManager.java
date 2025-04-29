@@ -21,7 +21,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,6 +66,7 @@ public class ExecutorManager {
      * Gracefully shuts down all executors for this node.
      */
     public void shutdown() {
+        // Await for jobs to shutdown before returning? (i.e., awaitShutdown)
         shortTaskExecutor.shutdown();
         longTaskExecutors.values().forEach(ExecutorService::shutdown);
         scheduledTaskExecutors.values().forEach(ExecutorService::shutdown);
@@ -151,9 +151,18 @@ public class ExecutorManager {
      * @return future
      * @see #getShortTaskExecutor()
      */
-    public <T> Future<T> callShortTask(
+    public <T> CompletableFuture<T> callShortTask(
             @NonNull String taskName, @NonNull Callable<T> task) {
-        return shortTaskExecutor.submit(ThreadRenamer.suffix(taskName, task));
+
+        return CompletableFuture.supplyAsync(
+                ThreadRenamer.suffix(taskName, (Supplier<T>) () -> {
+                    try {
+                        return task.call();
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                }), shortTaskExecutor);
+        //return shortTaskExecutor.submit(ThreadRenamer.suffix(taskName, task));
     }
 
     /**
@@ -163,7 +172,7 @@ public class ExecutorManager {
      * @return future
      * @see #getShortTaskExecutor()
      */
-    public <T> Future<T> supplyShortTask(
+    public <T> CompletableFuture<T> supplyShortTask(
             @NonNull String taskName, @NonNull Supplier<T> task) {
         return callShortTask(taskName, task::get);
     }
@@ -175,7 +184,7 @@ public class ExecutorManager {
      * @return future
      * @see #getShortTaskExecutor()
      */
-    public Future<Void> runShortTask(
+    public CompletableFuture<Void> runShortTask(
             @NonNull String taskName, @NonNull Runnable task) {
         return callShortTask(taskName, () -> {
             task.run();

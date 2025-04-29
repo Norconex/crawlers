@@ -14,19 +14,18 @@
  */
 package com.norconex.crawler.fs.fetch;
 
-import javax.annotation.Nonnull;
-
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchRequest;
 
 import lombok.Data;
+import lombok.NonNull;
 
 //TODO move to crawler-core as a generic implementation?
 @Data
 public class FileFetchRequest implements FetchRequest {
 
-    @Nonnull
+    @NonNull
     private final CrawlDoc doc;
 
     private final FetchDirective fetchDirective;

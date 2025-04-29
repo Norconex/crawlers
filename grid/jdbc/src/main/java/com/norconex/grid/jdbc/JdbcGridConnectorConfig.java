@@ -16,7 +16,7 @@ package com.norconex.grid.jdbc;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.grid.core.impl.CoreGridConnectorConfig;
+import com.norconex.grid.core.impl_DELETE.CoreGridConnectorConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -36,8 +36,9 @@ public class JdbcGridConnectorConfig extends CoreGridConnectorConfig {
     private String bigIntType;
     private String textType;
 
-    public void setDatasource(Properties datasource) {
+    public JdbcGridConnectorConfig setDatasource(Properties datasource) {
         CollectionUtil.setAll(this.datasource, datasource);
+        return this;
     }
 
 }

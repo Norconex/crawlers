@@ -46,7 +46,7 @@ public class CrawlHandleOrphansTask
             return;
         }
 
-        ctx.getGrid().compute().runOnOneOnce("requeue-orphans", () -> {
+        ctx.getGrid().getCompute().runOnOneOnce("requeue-orphans", () -> {
             // If PROCESS, we do not care to validate if really orphan since
             // all cache items will be reprocessed regardless
             if (strategy == OrphansStrategy.PROCESS) {

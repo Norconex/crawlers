@@ -110,9 +110,9 @@ public class DeleteRejectedEventListener implements
         // Delete any previously created store. We do it here instead
         // of on completion in case users want to keep a record between
         // two crawl executions.
-        refStore = crawlerContext.getGrid().storage()
+        refStore = crawlerContext.getGrid().getStorage()
                 .getSet(DELETED_REFS_CACHE_NAME);
-        crawlerContext.getGrid().compute()
+        crawlerContext.getGrid().getCompute()
                 .runOnOneOnce("delete-rejected-listener-init", () -> {
                     LOG.info("Clearing any previous deleted references cache.");
                     refStore.clear();
@@ -139,7 +139,7 @@ public class DeleteRejectedEventListener implements
     }
 
     private void commitDeletions(CrawlerContext crawlerContext) {
-        crawlerContext.getGrid().compute().runOnOneOnce(
+        crawlerContext.getGrid().getCompute().runOnOneOnce(
                 "delete-rejected-listener-commit", () -> {
                     if (LOG.isInfoEnabled()) {
                         LOG.info("Committing {} rejected references for "

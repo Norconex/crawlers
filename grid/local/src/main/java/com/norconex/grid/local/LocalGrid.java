@@ -14,14 +14,18 @@
  */
 package com.norconex.grid.local;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.impl.compute.ComputeStateStore;
+import com.norconex.grid.core.GridException;
+import com.norconex.grid.core.compute_DELETE.GridCompute;
+import com.norconex.grid.core.impl_DELETE.compute_DELETE.ComputeStateStore;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
 import com.norconex.grid.core.util.ExecutorManager;
@@ -43,7 +47,7 @@ import lombok.experimental.Accessors;
 @ToString
 public class LocalGrid implements Grid {
 
-    private final MVStore mvstore;
+    // private final MVStore mvstore;
     private final LocalGridStorage gridStorage;
     private final LocalGridCompute gridCompute;
     private final LocalGridPipeline gridPipeline;
@@ -67,7 +71,7 @@ public class LocalGrid implements Grid {
     private static final AtomicInteger NODE_COUNT = new AtomicInteger();
 
     public LocalGrid(MVStore mvstore, String gridName) {
-        this.mvstore = mvstore;
+        //        this.mvstore = mvstore;
         this.gridName = gridName;
         nodeName = "local-node-" + NODE_COUNT.getAndIncrement();
         gridStorage = new LocalGridStorage(mvstore);
@@ -81,25 +85,29 @@ public class LocalGrid implements Grid {
     }
 
     @Override
-    public GridStorage storage() {
+    public GridStorage getStorage() {
         return gridStorage;
     }
 
     @Override
     public void close() {
         stopHandler.stopListening();
-        if (!isClosed()) {
-            mvstore.close();
-        }
         nodeExecutors.shutdown();
+        if (!isClosed()) {
+            try {
+                getStorage().close();
+            } catch (IOException e) {
+                throw new GridException("Cannot close local database.", e);
+            }
+        }
     }
 
     boolean isClosed() {
-        return mvstore.isClosed();
+        return gridStorage.isClosed();
     }
 
     @Override
-    public GridCompute compute() {
+    public GridCompute getCompute() {
         return gridCompute;
     }
 
@@ -110,7 +118,7 @@ public class LocalGrid implements Grid {
 
     @Override
     public boolean resetSession() {
-        storage().getSessionAttributes().clear();
+        getStorage().getSessionAttributes().clear();
         return computeStateStorage.reset();
     }
 
@@ -118,6 +126,15 @@ public class LocalGrid implements Grid {
     public void stop() {
         stopHandler.stopListening();
         pipeline().stop(null);
-        compute().stop(null);
+        getCompute().stop(null);
+    }
+
+    /**
+     * <b>Not applicable to local grid.</b>
+     */
+    @Override
+    public CompletableFuture<Void> awaitMinimumNodes(
+            int count, Duration timeout) {
+        return CompletableFuture.completedFuture(null);
     }
 }

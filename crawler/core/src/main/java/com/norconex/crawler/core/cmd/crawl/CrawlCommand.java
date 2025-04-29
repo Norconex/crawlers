@@ -54,7 +54,7 @@ public class CrawlCommand implements Command {
         } else {
             LOG.info("Crawler execution ended before completion.");
         }
-        ctx.getGrid().compute().stop(PROGRESS_LOGGER_KEY);
+        ctx.getGrid().getCompute().stop(PROGRESS_LOGGER_KEY);
         ConcurrentUtil.get(pendingLoggerStopped, 60, TimeUnit.SECONDS);
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling.");
@@ -69,7 +69,7 @@ public class CrawlCommand implements Command {
         // only 1 node reports progress
         CompletableFuture.runAsync(() -> {
             ctx.getGrid()
-                    .compute()
+                    .getCompute()
                     .runOnOne(PROGRESS_LOGGER_KEY, progressLogger);
             pendingLoggerStopped.complete(null);
         }, Executors.newFixedThreadPool(1));

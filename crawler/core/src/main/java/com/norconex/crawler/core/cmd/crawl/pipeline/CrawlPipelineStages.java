@@ -20,7 +20,7 @@ import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapTask;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
-import com.norconex.grid.core.compute.GridCompute.RunOn;
+import com.norconex.grid.core.compute_DELETE.GridCompute.RunOn;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 
 public final class CrawlPipelineStages {

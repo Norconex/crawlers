@@ -95,7 +95,7 @@ public class Crawler {
         // the context and not formally connecting to the grid
         var gridWorkDir = ConfigUtil
                 .resolveWorkDir(crawlerConfig).resolve(GRID_WORKDIR_NAME);
-        crawlerConfig.getGridConnector().requestStop(gridWorkDir);
+        crawlerConfig.getGridConnector().shutdownGrid(gridWorkDir);
     }
 
     public void storageExport(Path dir, boolean pretty) {

@@ -31,9 +31,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.compute.GridComputeResult;
-import com.norconex.grid.core.compute.GridComputeState;
-import com.norconex.grid.core.compute.GridComputeTask;
+import com.norconex.grid.core.compute_DELETE.GridComputeResult;
+import com.norconex.grid.core.compute_DELETE.GridComputeState;
+import com.norconex.grid.core.compute_DELETE.GridComputeTask;
 import com.norconex.grid.core.util.ConcurrentUtil;
 import com.norconex.grid.core.util.ThreadRenamer;
 
@@ -63,11 +63,11 @@ class LocalComputeTest {
     void testCanRunMultipleTimes() {
         //NOTE: runOnOne and runOnAll are the same for LocalCompute.
 
-        var set = grid.storage().getSet("store");
+        var set = grid.getStorage().getSet("store");
 
         GridComputeResult<?> result;
 
-        result = grid.compute().runOnOne("myjob", () -> {
+        result = grid.getCompute().runOnOne("myjob", () -> {
             set.add("123");
             return null;
         });
@@ -77,7 +77,7 @@ class LocalComputeTest {
         assertThat(set.contains("123")).isTrue();
 
         // we are allowed to run it again so the entries should add up.
-        result = grid.compute().runOnAll("myjob", () -> {
+        result = grid.getCompute().runOnAll("myjob", () -> {
             set.add("456");
             return null;
         });
@@ -94,11 +94,11 @@ class LocalComputeTest {
     void testCanRunOnlyOnce() {
         //NOTE: runOnOneOnce and runOnAllOnce are the same for LocalCompute.
 
-        var set = grid.storage().getSet("store");
+        var set = grid.getStorage().getSet("store");
 
         GridComputeResult<?> result;
 
-        result = grid.compute().runOnOneOnce("myjob", () -> {
+        result = grid.getCompute().runOnOneOnce("myjob", () -> {
             set.add("123");
             return null;
         });
@@ -108,7 +108,7 @@ class LocalComputeTest {
         assertThat(set.contains("123")).isTrue();
 
         // we can't run the same job twice. set shall be unchanged
-        result = grid.compute().runOnAllOnce("myjob", () -> {
+        result = grid.getCompute().runOnAllOnce("myjob", () -> {
             set.add("456");
             return null;
         });
@@ -129,7 +129,7 @@ class LocalComputeTest {
             var executor = Executors.newCachedThreadPool();
 
             var taskFuture = CompletableFuture.runAsync(() -> {
-                grid.compute().runOnAll("test", stoppableTask);
+                grid.getCompute().runOnAll("test", stoppableTask);
             }, executor);
 
             ConcurrentUtil.get(CompletableFuture
@@ -147,7 +147,7 @@ class LocalComputeTest {
                         LOG.debug("Task marked as running.");
                     }), executor), 60, TimeUnit.SECONDS);
 
-            grid.compute().stop("test");
+            grid.getCompute().stop("test");
             ConcurrentUtil.get(taskFuture, 30, TimeUnit.SECONDS);
             executor.shutdownNow();
         });

@@ -19,36 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.norconex.grid.core.cluster.ClusterExtension;
+import com.norconex.grid.core.cluster.SingleNodeTest;
 
-import com.norconex.grid.core.AbstractGridTest;
-import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.mocks.MockGridName;
+public abstract class GridSetTest {
 
-public abstract class GridSetTest extends AbstractGridTest {
-
-    private Grid grid;
-    private GridSet set;
-
-    @BeforeEach
-    void beforeEachSetTest() {
-        grid = getGridConnector(MockGridName.generate())
-                .connect(getTempDir());
-        set = grid.storage().getSet("testSet");
-    }
-
-    @AfterEach
-    void afterEachSetTest() {
-        set.clear();
-        grid.close();
-        grid.storage().destroy();
-        grid.close();
-    }
-
-    @Test
-    void testForEachBiPredicate() {
+    @SingleNodeTest
+    void testForEachBiPredicate(GridSet set) {
         set.add("abc");
         set.add("def");
         set.add("ghi");
@@ -73,14 +50,14 @@ public abstract class GridSetTest extends AbstractGridTest {
         assertThat(someEntries.size()).isEqualTo(1);
     }
 
-    @Test
-    void testAdd() {
+    @SingleNodeTest
+    void testAdd(GridSet set) {
         assertThat(set.add("abc")).isTrue();
         assertThat(set.add("abc")).isFalse();
     }
 
-    @Test
-    void testForEachPredicate() {
+    @SingleNodeTest
+    void testForEachPredicate(GridSet set) {
         set.add("abc");
         set.add("def");
         set.add("ghi");
@@ -104,25 +81,25 @@ public abstract class GridSetTest extends AbstractGridTest {
         assertThat(someEntries.size()).isEqualTo(1);
     }
 
-    @Test
-    void testGetName() {
-        assertThat(set.getName()).isEqualTo("testSet");
+    @SingleNodeTest
+    void testGetName(GridSet set) {
+        assertThat(set.getName()).startsWith(ClusterExtension.SET_STORE_PREFIX);
     }
 
-    @Test
-    void testGetType() {
+    @SingleNodeTest
+    void testGetType(GridSet set) {
         assertThat(set.getType()).isEqualTo(String.class);
     }
 
-    @Test
-    void testContains() {
+    @SingleNodeTest
+    void testContains(GridSet set) {
         assertThat(set.contains("abc")).isFalse();
         set.add("abc");
         assertThat(set.contains("abc")).isTrue();
     }
 
-    @Test
-    void testSize() {
+    @SingleNodeTest
+    void testSize(GridSet set) {
         assertThat(set.size()).isZero();
         set.add("abc");
         set.add("def");
@@ -133,8 +110,8 @@ public abstract class GridSetTest extends AbstractGridTest {
         assertThat(set.size()).isEqualTo(2);
     }
 
-    @Test
-    void testClear() {
+    @SingleNodeTest
+    void testClear(GridSet set) {
         set.add("abc");
         set.add("def");
         assertThat(set.size()).isEqualTo(2);
@@ -142,8 +119,8 @@ public abstract class GridSetTest extends AbstractGridTest {
         assertThat(set.size()).isZero();
     }
 
-    @Test
-    void testIsEmpty() {
+    @SingleNodeTest
+    void testIsEmpty(GridSet set) {
         assertThat(set.isEmpty()).isTrue();
         set.add("abc");
         set.add("def");

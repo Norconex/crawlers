@@ -32,12 +32,13 @@
       
     <mockserver.version>5.15.0</mockserver.version>      
       
-    <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
+    <!-- TODO: SEVERAL BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
       
     <bc.version>1.70</bc.version>
-    <browsermob.version>2.1.5</browsermob.version>
+    <findbugs.version>3.0.2</findbugs.version>
     <guava.version>33.2.1-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
+    <littleproxy.version>2.4.0</littleproxy.version>
     <netty.version>4.1.110.Final</netty.version>
     <selenium.version>4.27.0</selenium.version>
     <selenium-htmlunit3.version>4.27.0</selenium-htmlunit3.version>
@@ -54,7 +55,7 @@
   <dependencyManagement>
     <dependencies>
 
-      <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
+      <!-- TODO: SEVERAL BELO FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
         
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -208,13 +209,20 @@
       <artifactId>htmlunit3-driver</artifactId>
       <version>${selenium-htmlunit3.version}</version>
     </dependency>
-
+    
     <!-- For capturing http headers: -->
     <dependency>
-      <groupId>net.lightbody.bmp</groupId>
-      <artifactId>browsermob-core</artifactId>
-      <version>${browsermob.version}</version>
+      <groupId>io.github.littleproxy</groupId>
+      <artifactId>littleproxy</artifactId>
+      <version>${littleproxy.version}</version>
     </dependency>
+    
+    <!-- Seems to be referenced by Guava -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>${findbugs.version}</version>
+    </dependency>    
 
     <!-- Logging dependencies: -->
 

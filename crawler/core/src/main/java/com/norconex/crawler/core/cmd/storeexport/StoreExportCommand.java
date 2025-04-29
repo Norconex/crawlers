@@ -55,7 +55,7 @@ public class StoreExportCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN);
         try {
-            ctx.getGrid().compute().runOnOneOnce(
+            ctx.getGrid().getCompute().runOnOneOnce(
                     StoreExportCommand.class.getSimpleName(), () -> {
                         try {
                             exportAllStores(ctx);
@@ -73,7 +73,7 @@ public class StoreExportCommand implements Command {
 
     private void exportAllStores(CrawlerContext crawlerContext)
             throws IOException {
-        var storage = crawlerContext.getGrid().storage();
+        var storage = crawlerContext.getGrid().getStorage();
         Files.createDirectories(exportDir);
 
         var outFile = exportDir.resolve(

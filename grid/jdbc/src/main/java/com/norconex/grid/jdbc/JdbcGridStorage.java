@@ -16,6 +16,7 @@ package com.norconex.grid.jdbc;
 
 import static com.norconex.grid.core.util.SerialUtil.toJsonString;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -62,17 +63,17 @@ public class JdbcGridStorage implements GridStorage {
     @Getter(value = AccessLevel.PROTECTED)
     private final DbAdapter dbAdapter;
 
-    private final GridMap<String> storeTypes;
+    private GridMap<String> storeTypes;
 
     private final Map<String, GridStore<?>> openedStores = new HashMap<>();
     private ExecutorManager executors;
 
     public JdbcGridStorage(@NonNull DbAdapter dbAdapter) {
         this.dbAdapter = dbAdapter;
-        storeTypes = getMap(STORE_TYPES_KEY, String.class);
     }
 
     public void init(Grid grid) {
+        storeTypes = getMap(STORE_TYPES_KEY, String.class);
         executors = grid.getNodeExecutors();
     }
 
@@ -188,6 +189,11 @@ public class JdbcGridStorage implements GridStorage {
             return new JdbcGridSet(dbAdapter, storeName);
         }
         return new JdbcGridMap<>(dbAdapter, storeName, objectType);
+    }
+
+    @Override
+    public void close() throws IOException {
+        dbAdapter.close();
     }
 
     @Data

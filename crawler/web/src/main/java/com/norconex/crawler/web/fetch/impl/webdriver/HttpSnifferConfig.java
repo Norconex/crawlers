@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +28,6 @@ import lombok.experimental.Accessors;
  * <p>
  * Configuration for {@link HttpSniffer}.
  * </p>
- * @since 3.0.0
  */
 @Data
 @Accessors(chain = true)
@@ -35,6 +35,8 @@ public class HttpSnifferConfig {
 
     public static final int DEFAULT_MAX_BUFFER_SIZE =
             DataUnit.MB.toBytes(10).intValue();
+    public static final Duration DEFAULT_RESPONSE_TIMEOUT =
+            Duration.ofMinutes(2);
 
     /**
      * The host name passed to the browser pointing to the sniffer proxy.
@@ -61,9 +63,13 @@ public class HttpSnifferConfig {
     /**
      * Chained proxy for cases where the HTTP Sniffer itself needs to use a
      * proxy.
-     * @since 3.1.0
      */
     private final ProxySettings chainedProxy = new ProxySettings();
+
+    /**
+     * Maximum wait time for the target host to respond.
+     */
+    private Duration responseTimeout = DEFAULT_RESPONSE_TIMEOUT;
 
     /**
      * Gets the request headers to add to every HTTP request.
@@ -89,7 +95,6 @@ public class HttpSnifferConfig {
      * Gets chained proxy settings, if any. That is, when the sniffer proxy
      * has to itself use a proxy.
      * @return chained proxy settings
-     * @since 3.1.0
      */
     public ProxySettings getChainedProxy() {
         return chainedProxy;
@@ -100,7 +105,6 @@ public class HttpSnifferConfig {
      * has to itself use a proxy.
      * @param chainedProxy chained proxy settings
      * @return this
-     * @since 3.1.0
      */
     public HttpSnifferConfig setChainedProxy(ProxySettings chainedProxy) {
         this.chainedProxy.copyFrom(chainedProxy);

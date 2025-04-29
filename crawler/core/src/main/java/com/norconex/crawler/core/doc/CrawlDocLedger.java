@@ -77,7 +77,7 @@ public class CrawlDocLedger { //implements Closeable {
     public void init(CrawlerContext crawlerContext) {
         this.crawlerContext = crawlerContext;
         type = crawlerContext.getDocContextType();
-        var storage = crawlerContext.getGrid().storage();
+        var storage = crawlerContext.getGrid().getStorage();
 
         // Because we can't rename caches in all impl, we use references.
         durableAttribs = storage.getDurableAttributes();

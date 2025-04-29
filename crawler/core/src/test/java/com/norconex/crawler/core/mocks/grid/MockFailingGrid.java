@@ -14,10 +14,12 @@
  */
 package com.norconex.crawler.core.mocks.grid;
 
+import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.compute.GridCompute;
+import com.norconex.grid.core.compute_DELETE.GridCompute;
 import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
 import com.norconex.grid.core.util.ExecutorManager;
@@ -30,12 +32,12 @@ public class MockFailingGrid implements Grid {
     private final String nodeId = UUID.randomUUID().toString();
 
     @Override
-    public GridCompute compute() {
+    public GridCompute getCompute() {
         throw new UnsupportedOperationException("IN_TEST");
     }
 
     @Override
-    public GridStorage storage() {
+    public GridStorage getStorage() {
         throw new UnsupportedOperationException("IN_TEST");
     }
 
@@ -72,5 +74,11 @@ public class MockFailingGrid implements Grid {
     @Override
     public boolean resetSession() {
         return false;
+    }
+
+    @Override
+    public CompletableFuture<Void> awaitMinimumNodes(
+            int count, Duration timeout) {
+        throw new UnsupportedOperationException("IN_TEST");
     }
 }

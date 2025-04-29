@@ -17,11 +17,11 @@ package com.norconex.grid.local;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 
-import com.norconex.grid.core.impl.pipeline.BaseGridPipeline;
-import com.norconex.grid.core.impl.pipeline.GridPipelineRunner;
+import com.norconex.grid.core.impl_DELETE.pipeline.BaseGridPipeline;
+import com.norconex.grid.core.impl_DELETE.pipeline.GridPipelineRunner;
 import com.norconex.grid.core.pipeline.GridPipelineStage;
 
 import lombok.NonNull;
@@ -41,7 +41,7 @@ public class LocalGridPipeline extends BaseGridPipeline {
     }
 
     @Override
-    public <T> Future<Boolean> run(
+    public <T> CompletableFuture<Boolean> run(
             @NonNull String pipelineName,
             @NonNull List<? extends GridPipelineStage<T>> pipelineStages,
             T context) {

@@ -20,6 +20,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.htmlunit.BrowserVersion;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.PageLoadStrategy;
+import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
@@ -37,7 +39,9 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.GeckoDriverService;
+import org.openqa.selenium.internal.Require;
 import org.openqa.selenium.remote.AbstractDriverOptions;
+import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
@@ -45,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.SystemUtil;
+import com.norconex.commons.lang.net.Host;
 import com.norconex.crawler.core.CrawlerException;
 
 import lombok.AccessLevel;
@@ -78,6 +83,15 @@ public enum Browser {
                     .location(location)
                     .options(options)
                     .build(),
+            // proxy setup
+            (options, host) -> {
+                var chromeOptions = (ChromeOptions) options;
+                chromeOptions.addArguments(Tools.chromiumCommonArgs(host));
+                if (Tools.LOG.isDebugEnabled()) {
+                    System.setProperty(
+                            "webdriver.chrome.verboseLogging", "true");
+                }
+            },
             BrowserVersion.CHROME),
 
     /* NOTE: Firefox (remote) driver seems to fail to return when page load
@@ -128,6 +142,27 @@ public enum Browser {
                     .location(location)
                     .options(options)
                     .build(),
+            // proxy setup
+            (options, host) -> {
+                // Fix bug with firefox where request/response filters are not
+                // triggered properly unless dealing with firefox profile
+                var profile = ((FirefoxOptions) options).getProfile();
+                profile.setAcceptUntrustedCertificates(true);
+                profile.setAssumeUntrustedCertificateIssuer(true);
+                profile.setPreference("network.proxy.http", host.getName());
+                profile.setPreference("network.proxy.http_port",
+                        host.getPort());
+                profile.setPreference("network.proxy.ssl", host.getName());
+                profile.setPreference("network.proxy.ssl_port", host.getPort());
+                profile.setPreference("network.proxy.type", 1);
+                profile.setPreference("network.proxy.no_proxies_on", "");
+                profile.setPreference("devtools.console.stdout.content", true);
+                // Required since FF v67 to enable a localhost proxy:
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=1535581
+                profile.setPreference(
+                        "network.proxy.allow_hijacking_localhost", true);
+                ((FirefoxOptions) options).setProfile(profile);
+            },
             BrowserVersion.FIREFOX),
 
     EDGE(
@@ -141,10 +176,14 @@ public enum Browser {
                     .location(location)
                     .options(options)
                     .build(),
+            // proxy setup
+            (options, host) -> {
+                ((EdgeOptions) options).setProxy(
+                        new Proxy().setHttpProxy(host.toString()));
+            },
             BrowserVersion.EDGE),
 
-    /* NOTE: Safari path is constant so it is ignored if supplied.
-     */
+    // NOTE: Safari path is constant so it is ignored if supplied.
     SAFARI(
             // browser-specific options
             location -> new SafariOptions(),
@@ -154,6 +193,11 @@ public enum Browser {
                     .location(location)
                     .options(options)
                     .build(),
+            // proxy setup
+            (options, host) -> {
+                ((SafariOptions) options).setProxy(
+                        new Proxy().setHttpProxy(host.toString()));
+            },
             null),
 
     OPERA(
@@ -168,6 +212,13 @@ public enum Browser {
                     .location(location)
                     .options(options)
                     .build(),
+            // proxy setup
+            (options, host) -> {
+                ((ChromeOptions) options)
+                        .addArguments("--user-agent=Opera/9.80 "
+                                + "(Windows NT 10.0; Win64; x64)")
+                        .addArguments(Tools.chromiumCommonArgs(host));
+            },
             null),
 
     CUSTOM(
@@ -178,9 +229,15 @@ public enum Browser {
                     .location(location)
                     .options(options)
                     .build(),
+            // proxy setup
+            (options, host) -> options.setCapability(
+                    CapabilityType.PROXY,
+                    Require.nonNull(
+                            "Proxy",
+                            new Proxy().setHttpProxy(host.toString()))),
             null);
 
-    private static final Logger LOG = LoggerFactory.getLogger(Browser.class);
+    private static final Logger LOG = Tools.LOG;
     private static final String OPERA_DRIVER_EXE_PROPERTY =
             "webdriver.opera.driver";
 
@@ -188,6 +245,8 @@ public enum Browser {
             MutableCapabilities> optionsSupplier;
     private final BiFunction<WebDriverLocation, MutableCapabilities,
             WebDriver> driverFactory;
+    private final BiConsumer<MutableCapabilities, Host> proxySetter;
+
     @Getter(value = AccessLevel.PACKAGE)
     private final BrowserVersion htmlUnitBrowser;
 
@@ -195,9 +254,11 @@ public enum Browser {
             Function<WebDriverLocation, MutableCapabilities> optionsSupplier,
             BiFunction<WebDriverLocation, MutableCapabilities,
                     WebDriver> driverFactory,
+            BiConsumer<MutableCapabilities, Host> proxySetter,
             BrowserVersion htmlUnitBrowser) {
         this.optionsSupplier = optionsSupplier;
         this.driverFactory = driverFactory;
+        this.proxySetter = proxySetter;
         this.htmlUnitBrowser = htmlUnitBrowser;
     }
 
@@ -209,6 +270,10 @@ public enum Browser {
             WebDriverLocation location,
             MutableCapabilities options) {
         return driverFactory.apply(location, options);
+    }
+
+    public void configureProxy(MutableCapabilities options, Host proxyHost) {
+        proxySetter.accept(options, proxyHost);
     }
 
     public static Browser of(String name) {
@@ -293,6 +358,37 @@ public enum Browser {
         @Override
         protected Set<String> getExtraCapabilityNames() {
             return Collections.emptySet();
+        }
+    }
+
+    private static final class Tools {
+        private static final Logger LOG = LoggerFactory.getLogger(
+                Browser.class); //NOSONAR
+
+        private Tools() {
+        }
+
+        private static String[] chromiumCommonArgs(Host host) {
+            // Some arguments are required since Chrome v72 to enable a
+            // localhost proxy:
+            // https://bugs.chromium.org/p/chromium/issues/detail?id=899126#c15
+            return new String[] {
+                    "--proxy-bypass-list=<-loopback>",
+                    "--proxy-server=" + host,
+                    "--disable-popup-blocking",
+                    "--disable-extensions",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--disable-software-rasterizer",
+                    "--disable-infobars",
+                    "--disable-browser-side-navigation",
+                    "--disable-features=EnableEphemeralFlashPermission",
+                    "--disable-translate",
+                    "--disable-sync",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                    "--disable-sign-in"
+            };
         }
     }
 }

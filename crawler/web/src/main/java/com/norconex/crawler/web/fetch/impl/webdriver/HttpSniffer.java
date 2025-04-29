@@ -14,32 +14,51 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.USER_AGENT;
 import static java.util.Optional.ofNullable;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.collections4.MultiMapUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength;
-import org.apache.commons.collections4.map.ReferenceMap;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.littleshoot.proxy.ChainedProxy;
+import org.littleshoot.proxy.ChainedProxyAdapter;
+import org.littleshoot.proxy.ChainedProxyManager;
+import org.littleshoot.proxy.HttpFilters;
+import org.littleshoot.proxy.HttpFiltersAdapter;
+import org.littleshoot.proxy.HttpFiltersSourceAdapter;
+import org.littleshoot.proxy.HttpProxyServer;
+import org.littleshoot.proxy.extras.SelfSignedMitmManager;
+import org.littleshoot.proxy.extras.SelfSignedSslEngineSource;
+import org.littleshoot.proxy.impl.ClientDetails;
+import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.openqa.selenium.MutableCapabilities;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxOptions;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
+import com.norconex.commons.lang.net.Host;
+import com.norconex.commons.lang.net.ProxySettings;
+import com.norconex.commons.lang.url.HttpURL;
 
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpObject;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import net.lightbody.bmp.BrowserMobProxyServer;
-import net.lightbody.bmp.filters.ResponseFilterAdapter;
-import net.lightbody.bmp.proxy.auth.AuthType;
 
 /**
  * <p>
@@ -58,167 +77,197 @@ import net.lightbody.bmp.proxy.auth.AuthType;
 @ToString
 public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
-    //MAYBE If it gets stable enough, move the proxy setting to Browser class.
+    public static final String PARAM_REQUEST_ID = "crawlRequestId";
+    public static final String HEADER_REQUEST_ID = "X-Crawl-Request-Id";
 
     @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private final Map<String, SniffedResponseHeader> trackedUrlResponses =
-            new ReferenceMap<>(ReferenceStrength.HARD, ReferenceStrength.WEAK);
-
-    @JsonIgnore
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private BrowserMobProxyServer mobProxy;
+    private final Cache<String,
+            CompletableFuture<SniffedResponseHeaders>> sniffedHeaders =
+                    CacheBuilder.newBuilder()
+                            .expireAfterWrite(5, TimeUnit.MINUTES)
+                            .build();
 
     @Getter
     private final HttpSnifferConfig configuration = new HttpSnifferConfig();
+    private final HttpProxyServer proxyServer;
+    private final Host proxyHost;
 
-    SniffedResponseHeader track(String url) {
-        return trackedUrlResponses.computeIfAbsent(
-                url, na -> new SniffedResponseHeader());
-    }
+    public HttpSniffer() {
+        var hostName = ofNullable(configuration.getHost()).orElse("localhost");
 
-    void untrack(String url) {
-        trackedUrlResponses.remove(url);
-    }
+        var serverBootstrap = DefaultHttpProxyServer.bootstrap()
+                .withAddress(new InetSocketAddress(
+                        hostName, configuration.getPort()))
+                .withAllowLocalOnly(false)
+                .withFiltersSource(new SniffingHttpFilter())
+                .withManInTheMiddle(new SelfSignedMitmManager(
+                        new SelfSignedSslEngineSource(
+                                true, /* trustAllServers= */
+                                true)));/* sendCerts= */
 
-    void start(MutableCapabilities options) {
-        //NOTE we use to have `mobProxy.setMitmDisabled(true)` in this method,
-        // but that made it fail to invoke the response filter set below.
-        // We can make that option configurable if it causes issues for some.
-
-        mobProxy = new BrowserMobProxyServer();
-        mobProxy.setTrustAllServers(true);
-        mobProxy.setTrustSource(null);
-
-        var chainedCfg = configuration.getChainedProxy();
-        if (chainedCfg.isSet()) {
-            var inetAddress = chainedCfg.getHost().toInetSocketAddress();
-            // Set Chained Proxy Host and IP
-            mobProxy.setChainedProxy(inetAddress);
-            LOG.info("Chained proxy set on HTTP Sniffer as: {}.", inetAddress);
-            // Set Chained Proxy Credentials
-            var creds = chainedCfg.getCredentials();
-            if (chainedCfg.getCredentials().isSet()) {
-                mobProxy.chainedProxyAuthorization(
-                        creds.getUsername(),
-                        EncryptionUtil.decryptPassword(creds),
-                        AuthType.BASIC);
-                LOG.info("Chained proxy authorization set.");
-            }
+        // chained proxy
+        if (configuration.getChainedProxy().isSet()) {
+            serverBootstrap.withChainProxyManager(
+                    new ChainedProxies(configuration.getChainedProxy()));
         } else {
-            LOG.info("No chained proxy configured on HTTP Sniffer.");
+            LOG.info("No chained proxy configured on SniffingProxy.");
         }
 
-        // request headers
-        configuration.getRequestHeaders().entrySet().forEach(
-                en -> mobProxy.addHeader(en.getKey(), en.getValue()));
+        proxyServer = serverBootstrap.start();
+        proxyHost = new Host(
+                hostName, proxyServer.getListenAddress().getPort());
+        LOG.info("SnifferProxy started as: {}.", proxyHost);
+    }
 
-        // User agent
-        if (StringUtils.isNotBlank(configuration.getUserAgent())) {
-            mobProxy.addRequestFilter((request, contents, messageInfo) -> {
-                request.headers().remove("User-Agent");
-                request.headers().add(
-                        "User-Agent", configuration.getUserAgent());
-                return null;// Return null to continue with the modified request
+    public void stop() {
+        proxyServer.stop();
+    }
+
+    public InetSocketAddress getAddress() {
+        return new InetSocketAddress(proxyHost.getName(), proxyHost.getPort());
+    }
+
+    public CompletableFuture<SniffedResponseHeaders> track(String requestId) {
+        var future = new CompletableFuture<SniffedResponseHeaders>();
+        sniffedHeaders.put(requestId, future);
+        future.whenComplete((res, ex) -> sniffedHeaders.invalidate(requestId));
+        return future;
+    }
+
+    public void configureBrowser(Browser browser, MutableCapabilities opts) {
+        browser.configureProxy(opts, proxyHost);
+    }
+
+    /**
+     * Handles proxy chaining
+     */
+    class ChainedProxies implements ChainedProxyManager {
+        private final ProxySettings settings;
+
+        ChainedProxies(ProxySettings proxySettings) {
+            settings = proxySettings;
+        }
+
+        @Override
+        public void lookupChainedProxies(
+                HttpRequest httpRequest,
+                Queue<ChainedProxy> chainedProxies,
+                ClientDetails clientDetails) {
+            chainedProxies.add(new ChainedProxyAdapter() {
+                @Override
+                public InetSocketAddress getChainedProxyAddress() {
+                    var addr = new InetSocketAddress(
+                            settings.getHost().getName(),
+                            settings.getHost().getPort());
+                    LOG.info("Chained proxy set on SniffingProxy: {}.", addr);
+                    return addr;
+                }
+
+                @Override
+                public String getUsername() {
+                    return settings.getCredentials().getUsername();
+                }
+
+                @Override
+                public String getPassword() {
+                    LOG.info("Chained proxy credentials set.");
+                    if (settings.getCredentials().isSet()) {
+                        return EncryptionUtil.decryptPassword(
+                                settings.getCredentials());
+                    }
+                    return null;
+                }
             });
         }
+    }
 
-        //Fix response too long in HttpSniffer
-        mobProxy.addLastHttpFilterFactory(
-                new ResponseFilterAdapter.FilterSource(
-                        (response, contents, messageInfo) -> {
-                            // sniff only if original URL is being tracked
-                            var trackedResponse = trackedUrlResponses
-                                    .get(messageInfo.getOriginalUrl());
-                            if (trackedResponse != null) {
-                                response.headers().forEach(
-                                        en -> trackedResponse.headers.put(
-                                                en.getKey(), en.getValue()));
-                                trackedResponse.statusCode =
-                                        response.status().code();
-                                trackedResponse.reasonPhrase =
-                                        response.status().reasonPhrase();
+    /**
+     * Filters requests and responses to intercept HTTP headers
+     */
+    class SniffingHttpFilter extends HttpFiltersSourceAdapter {
+        @Override
+        public HttpFilters filterRequest(
+                HttpRequest originalRequest, ChannelHandlerContext ctx) {
+            return new HttpFiltersAdapter(originalRequest) {
+                private String requestId;
+                private String browserAgent;
+
+                @Override
+                public HttpResponse clientToProxyRequest(HttpObject httpObj) {
+                    if (httpObj instanceof HttpRequest request) {
+                        LOG.trace("Sniffer incoming request: {}",
+                                request.uri());
+                        var decoder = new QueryStringDecoder(request.uri());
+                        var ids = decoder.parameters().get(PARAM_REQUEST_ID);
+                        if (CollectionUtils.isNotEmpty(ids)) {
+                            var url = new HttpURL(request.uri());
+                            requestId = ids.get(0);
+
+                            url.getQueryString().remove(PARAM_REQUEST_ID);
+                            request.headers().set(HEADER_REQUEST_ID, requestId);
+
+                            // Add custom request headers
+                            configuration
+                                    .getRequestHeaders()
+                                    .entrySet()
+                                    .forEach(en -> request.headers().add(
+                                            en.getKey(),
+                                            en.getValue()));
+                            browserAgent = request.headers().get(USER_AGENT);
+                            // Overwrite with custom user agent
+                            if (StringUtils.isNotBlank(
+                                    configuration.getUserAgent())) {
+                                request.headers().remove(USER_AGENT);
+                                request.headers().add(
+                                        USER_AGENT,
+                                        configuration.getUserAgent());
                             }
-                        }, configuration.getMaxBufferSize()));
 
-        Optional.ofNullable(configuration.getHost())
-                .map(host -> new InetSocketAddress(host,
-                        configuration.getPort()).getAddress())
-                .ifPresentOrElse(
-                        address -> mobProxy.start(configuration.getPort(),
-                                address),
-                        () -> mobProxy.start(configuration.getPort()));
+                            request.setUri(url.toString());
+                        }
+                    }
+                    return null; // continue chain
+                }
 
-        var actualPort = mobProxy.getPort();
-        var proxyHost = ofNullable(configuration.getHost()).orElse("localhost");
-        LOG.info("HttpSniffer set as a proxy on browser as: {}.",
-                proxyHost + ":" + actualPort);
+                @Override
+                public HttpObject serverToProxyResponse(HttpObject httpObj) {
+                    if (httpObj instanceof HttpResponse response
+                            && requestId != null) {
+                        var future = sniffedHeaders.getIfPresent(requestId);
+                        var header = new SniffedResponseHeaders(
+                                requestId,
+                                response.status(),
+                                response.headers(),
+                                browserAgent);
+                        if (future != null) {
+                            future.complete(header);
+                        }
+                    }
+                    return httpObj;
+                }
+            };
+        }
 
-        // Fix bug with firefox where request/response filters are not
-        // triggered properly unless dealing with firefox profile
-        if (options instanceof FirefoxOptions) {
-            //TODO Shall we prevent calls to firefox browser addons?
-            var profile = ((FirefoxOptions) options).getProfile();
-            profile.setAcceptUntrustedCertificates(true);
-            profile.setAssumeUntrustedCertificateIssuer(true);
-            profile.setPreference("network.proxy.http", proxyHost);
-            profile.setPreference("network.proxy.http_port", actualPort);
-            profile.setPreference("network.proxy.ssl", proxyHost);
-            profile.setPreference("network.proxy.ssl_port", actualPort);
-            profile.setPreference("network.proxy.type", 1);
-            profile.setPreference("network.proxy.no_proxies_on", "");
-            profile.setPreference("devtools.console.stdout.content", true);
-            // Required since FF v67 to enable a localhost proxy:
-            // https://bugzilla.mozilla.org/show_bug.cgi?id=1535581
-            profile.setPreference(
-                    "network.proxy.allow_hijacking_localhost", true);
-            ((FirefoxOptions) options).setProfile(profile);
+        @Override
+        public int getMaximumRequestBufferSizeInBytes() {
+            return configuration.getMaxBufferSize();
+        }
 
-        } else if (options instanceof ChromeOptions chromeOptions) {
-            // Required since Chrome v72 to enable a localhost proxy:
-            // https://bugs.chromium.org/p/chromium/issues/detail?id=899126#c15
-            chromeOptions.addArguments(
-                    "--proxy-bypass-list=<-loopback>",
-                    "--proxy-server=" + proxyHost + ":" + actualPort,
-                    "--disable-popup-blocking",
-                    "--disable-extensions",
-                    "--disable-dev-shm-usage",
-                    "--disable-gpu",
-                    "--disable-software-rasterizer",
-                    "--disable-infobars",
-                    "--disable-browser-side-navigation",
-                    "--disable-features=EnableEphemeralFlashPermission",
-                    "--disable-translate",
-                    "--disable-sync",
-                    "--no-first-run",
-                    "--no-default-browser-check",
-                    "--disable-sign-in");
-            if (LOG.isDebugEnabled()) {
-                System.setProperty("webdriver.chrome.verboseLogging", "true");
-            }
+        @Override
+        public int getMaximumResponseBufferSizeInBytes() {
+            return configuration.getMaxBufferSize();
         }
     }
 
-    void stop() {
-        if (mobProxy != null && mobProxy.isStarted()) {
-            mobProxy.stop();
-            mobProxy = null;
-        }
-    }
-
-    @EqualsAndHashCode
-    @ToString
+    @Data
+    @Accessors(chain = true)
     @Getter
-    static class SniffedResponseHeader {
-        private final MultiValuedMap<String, String> headers =
-                MultiMapUtils.newListValuedHashMap();
-        private int statusCode;
-        private String reasonPhrase;
-
-        public MultiValuedMap<String, String> getHeaders() {
-            return headers;
-        }
+    static class SniffedResponseHeaders {
+        private final String requestId;
+        private final HttpResponseStatus status;
+        private final HttpHeaders headers;
+        private final String requestUserAgent;
     }
 }

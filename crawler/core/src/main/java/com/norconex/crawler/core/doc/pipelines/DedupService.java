@@ -38,7 +38,7 @@ public class DedupService implements Closeable {
         if (initialized) {
             throw new IllegalStateException("Already initialized.");
         }
-        var storeEngine = crawler.getGrid().storage();
+        var storeEngine = crawler.getGrid().getStorage();
         var config = crawler.getConfiguration();
 
         // only enable if configured to do dedup

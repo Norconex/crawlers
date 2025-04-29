@@ -19,35 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.norconex.grid.core.cluster.ClusterExtension;
+import com.norconex.grid.core.cluster.SingleNodeTest;
 
-import com.norconex.grid.core.AbstractGridTest;
-import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.mocks.MockGridName;
+public abstract class GridMapTest {
 
-public abstract class GridMapTest extends AbstractGridTest {
-
-    private Grid grid;
-    private GridMap<String> map;
-
-    @BeforeEach
-    void beforeEachMapTest() {
-        grid = getGridConnector(MockGridName.generate())
-                .connect(getTempDir());
-        map = grid.storage().getMap("testMap", String.class);
-    }
-
-    @AfterEach
-    void afterEachMapTest() {
-        map.clear();
-        grid.storage().destroy();
-        grid.close();
-    }
-
-    @Test
-    void testPut() {
+    @SingleNodeTest
+    void testPut(GridMap<String> map) {
         assertThat(map.put("abc", "123")).isTrue();
         assertThat(map.get("abc")).isEqualTo("123");
 
@@ -58,8 +36,8 @@ public abstract class GridMapTest extends AbstractGridTest {
         assertThat(map.put("abc", "456")).isTrue();
     }
 
-    @Test
-    void testUpdate() {
+    @SingleNodeTest
+    void testUpdate(GridMap<String> map) {
         // first with nothing to update, should just add
         assertThat(map.update(
                 "abc", v -> v == null ? "123" : v + "123")).isTrue();
@@ -71,8 +49,8 @@ public abstract class GridMapTest extends AbstractGridTest {
         assertThat(map.get("abc")).isEqualTo("123123");
     }
 
-    @Test
-    void testDelete() {
+    @SingleNodeTest
+    void testDelete(GridMap<String> map) {
         map.put("abc", "123");
         map.put("def", "456");
         assertThat(map.size()).isEqualTo(2);
@@ -88,25 +66,25 @@ public abstract class GridMapTest extends AbstractGridTest {
         assertThat(map.delete("abc")).isFalse();
     }
 
-    @Test
-    void testGetName() {
-        assertThat(map.getName()).isEqualTo("testMap");
+    @SingleNodeTest
+    void testGetName(GridMap<String> map) {
+        assertThat(map.getName()).startsWith(ClusterExtension.MAP_STORE_PREFIX);
     }
 
-    @Test
-    void testGetType() {
+    @SingleNodeTest
+    void testGetType(GridMap<String> map) {
         assertThat(map.getType()).isEqualTo(String.class);
     }
 
-    @Test
-    void testContains() {
+    @SingleNodeTest
+    void testContains(GridMap<String> map) {
         assertThat(map.contains("abc")).isFalse();
         map.put("abc", "123");
         assertThat(map.contains("abc")).isTrue();
     }
 
-    @Test
-    void testSize() {
+    @SingleNodeTest
+    void testSize(GridMap<String> map) {
         assertThat(map.size()).isZero();
         map.put("abc", "123");
         map.put("def", "456");
@@ -117,8 +95,8 @@ public abstract class GridMapTest extends AbstractGridTest {
         assertThat(map.size()).isEqualTo(2);
     }
 
-    @Test
-    void testClear() {
+    @SingleNodeTest
+    void testClear(GridMap<String> map) {
         map.put("abc", "123");
         map.put("def", "456");
         assertThat(map.size()).isEqualTo(2);
@@ -126,8 +104,8 @@ public abstract class GridMapTest extends AbstractGridTest {
         assertThat(map.size()).isZero();
     }
 
-    @Test
-    void testForEach() {
+    @SingleNodeTest
+    void testForEach(GridMap<String> map) {
         map.put("abc", "123");
         map.put("def", "456");
         map.put("ghi", "789");
@@ -152,8 +130,8 @@ public abstract class GridMapTest extends AbstractGridTest {
 
     }
 
-    @Test
-    void testIsEmpty() {
+    @SingleNodeTest
+    void testIsEmpty(GridMap<String> map) {
         assertThat(map.isEmpty()).isTrue();
         map.put("abc", "123");
         map.put("def", "456");

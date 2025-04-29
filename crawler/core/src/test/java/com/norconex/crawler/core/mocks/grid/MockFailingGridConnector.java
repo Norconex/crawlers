@@ -30,7 +30,7 @@ public class MockFailingGridConnector implements GridConnector {
     }
 
     @Override
-    public void requestStop(Path workDir) {
+    public void shutdownGrid(Path workDir) {
         // NOOP
     }
 }

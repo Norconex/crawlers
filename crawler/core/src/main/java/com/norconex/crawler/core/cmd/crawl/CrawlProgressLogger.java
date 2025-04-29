@@ -30,7 +30,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationUnit;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
-import com.norconex.grid.core.compute.GridComputeTask;
+import com.norconex.grid.core.compute_DELETE.GridComputeTask;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
