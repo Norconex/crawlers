@@ -14,18 +14,26 @@
  */
 package com.norconex.grid.core.compute;
 
+import static java.util.Optional.ofNullable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.Serializable;
 
 import org.jgroups.util.UUID;
 import org.junit.jupiter.api.Timeout;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.cluster.Cluster;
 import com.norconex.grid.core.cluster.ClusterTest;
+import com.norconex.grid.core.compute.BaseGridTask.AllNodesOnceTask;
+import com.norconex.grid.core.compute.BaseGridTask.AllNodesTask;
+import com.norconex.grid.core.compute.BaseGridTask.SingleNodeOnceTask;
 import com.norconex.grid.core.compute.BaseGridTask.SingleNodeTask;
+import com.norconex.grid.core.impl.compute.TaskState;
+import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridSet;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,10 +52,8 @@ public abstract class GridComputeTest implements Serializable {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                public String execute(GridContext ctx) {
-                    var set = getGridSet(ctx);
-                    fill(set, 5);
-                    return null;
+                public Serializable execute(GridContext ctx) {
+                    return fillFive(ctx);
                 }
             });
             var set = getGridSet(grid);
@@ -56,27 +62,193 @@ public abstract class GridComputeTest implements Serializable {
         });
 
         // we are allowed to run it again so the numbers should add up.
-        LOG.trace("Running 'runOnOneTest' part 2 of 2");
         cluster.onThreeNewNodes(grid -> {
             LOG.debug("Starting task 2/2 on node {}", grid.getNodeName());
             grid.getCompute().executeTask(new SingleNodeTask("testJob") {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                public String execute(GridContext ctx) {
-                    var set = getGridSet(ctx);
-                    fill(set, 5);
-                    return null;
+                public Serializable execute(GridContext ctx) {
+                    return fillFive(ctx);
                 }
             });
-
             var set = getGridSet(grid);
             assertThat(set.size()).isEqualTo(10);
             LOG.debug("Finished task 2/2 on node {}", grid.getNodeName());
         });
+
+    }
+
+    @ClusterTest
+    void runOnOneOnceTest(Cluster cluster) {
+        cluster.onThreeNewNodes(grid -> {
+            LOG.trace("Running 'runOnOneOnceTest' part 1 of 2");
+            var status = grid.getCompute().executeTask(
+                    new SingleNodeOnceTask("testJob") {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Serializable execute(GridContext ctx) {
+                            return fillFive(ctx);
+                        }
+                    });
+            var set = getGridSet(grid);
+            assertThat(set.size()).isEqualTo(5);
+            assertThat(status.getState()).isSameAs(TaskState.COMPLETED);
+        });
+
+        cluster.onThreeNewNodes(grid -> {
+            // we can't run the same job twice. number shall be unchanged
+            LOG.trace("Running 'runOnOneOnceTest' part 2 of 2");
+            var status = grid.getCompute().executeTask(
+                    new SingleNodeOnceTask("testJob") {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Serializable execute(GridContext ctx) {
+                            return fillFive(ctx);
+                        }
+                    });
+
+            var set = getGridSet(grid);
+
+            assertThat(set.size()).isEqualTo(5);
+            assertThat(status.getState()).isSameAs(TaskState.FAILED);
+        });
+
+    }
+
+    @ClusterTest
+    void runOnAllTest(Cluster cluster) {
+        cluster.onThreeNewNodes(grid -> {
+            LOG.trace("Running 'runOnAllTest' part 1 of 2");
+            var status = grid.getCompute().executeTask(
+                    new AllNodesTask("testJob") {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Serializable execute(GridContext ctx) {
+                            return fillFive(ctx);
+                        }
+                    });
+            var set = getGridSet(grid);
+            assertThat(set.size()).isEqualTo(15);
+            assertThat(status.getState()).isSameAs(TaskState.COMPLETED);
+        });
+
+        cluster.onThreeNewNodes(grid -> {
+            // we are allowed to run it again so the numbers should add up.
+            LOG.trace("Running 'runOnAllTest' part 2 of 2");
+            var status = grid.getCompute().executeTask(
+                    new AllNodesTask("testJob") {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Serializable execute(GridContext ctx) {
+                            return fillFive(ctx);
+                        }
+                    });
+            var set = getGridSet(grid);
+            assertThat(set.size()).isEqualTo(30);
+            assertThat(status.getState()).isSameAs(TaskState.COMPLETED);
+        });
+    }
+
+    @ClusterTest
+    void runOnAllOnceTest(Cluster cluster) {
+        cluster.onThreeNewNodes(grid -> {
+            LOG.trace("Running 'runOnAllOnceTest' part 1 of 2");
+            var status = grid.getCompute().executeTask(
+                    new AllNodesOnceTask("testJob") {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Serializable execute(GridContext ctx) {
+                            return fillFive(ctx);
+                        }
+                    });
+            var set = getGridSet(grid);
+            assertThat(set.size()).isEqualTo(15);
+            assertThat(status.getState()).isSameAs(TaskState.COMPLETED);
+        });
+
+        cluster.onThreeNewNodes(grid -> {
+            // we can't run the same job twice. number shall be unchanged
+            LOG.trace("Running 'runOnAllOnceTest' part 2 of 2");
+            var status = grid.getCompute().executeTask(
+                    new AllNodesOnceTask("testJob") {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Serializable execute(GridContext ctx) {
+                            return fillFive(ctx);
+                        }
+                    });
+            var set = getGridSet(grid);
+            assertThat(set.size()).isEqualTo(15);
+            assertThat(status.getState()).isSameAs(TaskState.FAILED);
+        });
+    }
+
+    @ClusterTest
+    void testRequestStop(Cluster cluster) {
+        // if the stop request is not received, the test will timeout
+        assertThatNoException().isThrownBy(() -> {
+            cluster.onThreeNewNodes(grid -> {
+                var job = new StoppableTask("testJob", ExecutionMode.ALL_NODES);
+                grid.getCompute().executeTask(job);
+            });
+        });
+        assertThatNoException().isThrownBy(() -> {
+            cluster.onThreeNewNodes(grid -> {
+                var job = new StoppableTask(
+                        "testJob", ExecutionMode.SINGLE_NODE);
+                grid.getCompute().executeTask(job);
+            });
+        });
+    }
+
+    //--- Private --------------------------------------------------------------
+
+    private static final class StoppableTask extends BaseGridTask {
+        private static final long serialVersionUID = 1L;
+        private boolean stopRequested;
+        private volatile GridMap<Integer> map;
+
+        public StoppableTask(String id, ExecutionMode executionMode) {
+            super(id, executionMode);
+        }
+
+        @Override
+        public Serializable execute(GridContext ctx) {
+            map = ctx.getGrid().getStorage().getMap("intMap", Integer.class);
+            map.update("numStarted", v -> v == null ? 1 : v + 1);
+            while (getNumStarted() < 3) {
+                Sleeper.sleepMillis(100);
+            }
+
+            ctx.getGrid().getCompute().stopTask("testJob");
+            //            onAllStarted.run();
+            while (!stopRequested) {
+                Sleeper.sleepMillis(100);
+            }
+            LOG.debug("Test StoppableTask received stop request and ended.");
+            return null;
+        }
+
+        private int getNumStarted() {
+            return ofNullable(map.get("numStarted")).orElse(0);
+        }
+
+        @Override
+        public void stop() {
+            stopRequested = true;
+        }
     }
 
     private static GridSet getGridSet(GridContext ctx) {
+        System.err.println("XXX stop requested in stoppable task.");
         return getGridSet(ctx.getGrid());
     }
 
@@ -84,21 +256,11 @@ public abstract class GridComputeTest implements Serializable {
         return grid.getStorage().getSet("testSet");
     }
 
-    private static void fill(GridSet set, int numEntries) {
-        for (var i = 0; i < numEntries; i++) {
+    private static Serializable fillFive(GridContext ctx) {
+        var set = getGridSet(ctx);
+        for (var i = 0; i < 5; i++) {
             set.add(UUID.randomUUID().toString());
         }
+        return null;
     }
-
-    //    static class SetFillExecutor implements GridTaskExecutor {
-    //        @Override
-    //        public Object execute(Grid grid) {
-    //            var set = grid.storage().getSet("testSet");
-    //                for (var i = 0; i < numEntries; i++) {
-    //                    set.add(UUID.randomUUID().toString());
-    //                }
-    //            return null;
-    //        }
-    //    }
-
 }

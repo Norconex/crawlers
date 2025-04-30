@@ -14,6 +14,7 @@
  */
 package com.norconex.grid.core.impl.compute;
 
+import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.compute.GridPipeline;
@@ -52,25 +53,25 @@ public class CoreCompute implements GridCompute {
     }
 
     @Override
-    public void executeTask(@NonNull GridTask task) {
-        System.err.println("HELLO Task!");
+    public TaskStatus executeTask(@NonNull GridTask task) {
         try {
-            coord.executeTask(task);
+            var status = coord.executeTask(task);
+            if (status == null || status.getState() == null) {
+                return new TaskStatus(TaskState.FAILED, null,
+                        "Could not determine state of executed task.");
+            }
+            return status;
         } catch (Exception e) {
-            //TODO this:
-            LOG.error("TODO: handle me differently.", e);
-            throw new GridException("TODO: handle me differently.", e);
-
+            LOG.error("Exception occured executing task {}", task.getId(), e);
+            return new TaskStatus(TaskState.FAILED, null,
+                    "Exception occured executing task " + task.getId() + ": "
+                            + ExceptionUtil.getFormattedMessages(e));
         }
-    }
-
-    public void receiveAndExecuteTask(GridTask task) {
-        task.execute(grid.getGridContext());
     }
 
     @Override
     public void executePipeline(@NonNull GridPipeline pipeline) {
-        System.err.println("HELLO Pipeline!");
+        System.err.println("XXX HELLO Pipeline!");
         //        try {
         //            pipelineExecutor.execute(pipeline);
         //        } catch (Exception e) {
@@ -80,9 +81,13 @@ public class CoreCompute implements GridCompute {
     }
 
     @Override
-    public void stop(String taskId) {
-        // TODO Auto-generated method stub
-
+    public void stopTask(String taskId) {
+        try {
+            coord.stopTask(taskId);
+        } catch (Exception e) {
+            throw new GridException(
+                    "Error while requesting task to stop: " + taskId);
+        }
     }
 
     //

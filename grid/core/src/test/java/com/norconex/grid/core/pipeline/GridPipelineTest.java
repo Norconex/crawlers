@@ -246,7 +246,7 @@ public abstract class GridPipelineTest extends AbstractGridTest {
                                 .orElse(null))) {
                     Sleeper.sleepMillis(100);
                 }
-                grid.pipeline().stop(null);
+                grid.pipeline().stopTask(null);
                 frozen.set(false);
 
                 boolean success = ConcurrentUtil.get(

@@ -18,7 +18,9 @@ import static java.util.Optional.ofNullable;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +44,9 @@ public class Worker {
     // <taskId, ...>
     private final Map<String, TaskProgress> localTaskProgresses =
             new ConcurrentHashMap<>();
+
+    // <taskId>
+    private final Set<String> requestedStops = new CopyOnWriteArraySet<>();
 
     // <taskId, ...>
     // Tasks that coordinator informed was done, successfully or not
@@ -131,6 +136,24 @@ public class Worker {
         return Optional.ofNullable(gridTaskProgresses.get(taskId));
     }
 
+    // Remote
+    public void stopNodeTask(String taskId) {
+        requestedStops.add(taskId);
+        LOG.debug("Node {} received request for stopping task {}",
+                grid.getNodeAddress(), taskId);
+    }
+
+    // Local
+    public boolean isNodeTaskStopRequested(String taskId) {
+        return requestedStops.remove(taskId);
+    }
+
+    // Remote
+    public void clearTaskStatus(String taskId) {
+        localTaskProgresses.remove(taskId);
+        // don't clear other member variables
+    }
+
     //--- Private methods ------------------------------------------------------
 
     private boolean isTaskDone(GridTask task) {
@@ -148,6 +171,12 @@ public class Worker {
             return new TaskProgress(
                     progress.getStatus(), System.currentTimeMillis());
         });
+        // Also check for a stop request if one was made.
+        if (isNodeTaskStopRequested(task.getId())) {
+            LOG.info("Node {} received request to stop task {}. Task notified.",
+                    grid.getNodeAddress(), task.getId());
+            task.stop();
+        }
     }
 
     private void cleanupProgress(GridTask task) {

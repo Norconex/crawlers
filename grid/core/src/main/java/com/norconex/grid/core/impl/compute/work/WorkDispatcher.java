@@ -39,8 +39,10 @@ public class WorkDispatcher {
 
     private enum WorkerMethod {
         startNodeTask, //NOSONAR
+        stopNodeTask, //NOSONAR
         getNodeTaskProgress, //NOSONAR
         setGridTaskProgress, //NOSONAR
+        clearTaskStatus, //NOSONAR
     }
 
     private final RpcDispatcher dispatcher;
@@ -63,6 +65,16 @@ public class WorkDispatcher {
                 call,
                 new RequestOptions(ResponseMode.GET_NONE, 0)
                         .setAnycasting(onOne));
+    }
+
+    public void stopTaskOnNodes(String taskId) throws Exception {
+        var call = MethodCallBuilder
+                .create(WorkerMethod.stopNodeTask)
+                .argValues(taskId)
+                .argTypes(String.class)
+                .build();
+        dispatcher.callRemoteMethods(
+                null, call, new RequestOptions(ResponseMode.GET_NONE, 0));
     }
 
     public RspList<TaskProgress> getTaskProgressFromNodes(
@@ -89,6 +101,16 @@ public class WorkDispatcher {
                 null,
                 call,
                 new RequestOptions(ResponseMode.GET_NONE, 0));
+    }
+
+    public void clearTaskStatusOnNodes(String taskId) throws Exception {
+        var call = MethodCallBuilder
+                .create(WorkerMethod.clearTaskStatus)
+                .argValues(taskId)
+                .argTypes(String.class)
+                .build();
+        dispatcher.callRemoteMethods(
+                null, call, new RequestOptions(ResponseMode.GET_NONE, 0));
     }
 
     @Accessors(fluent = true)

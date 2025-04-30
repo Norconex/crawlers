@@ -18,5 +18,8 @@ import com.norconex.grid.core.AbstractGridTestSuite;
 
 @WithCoreCluster
 public class CoreGridTestSuite extends AbstractGridTestSuite {
+
+    private static final long serialVersionUID = 1L;
+
     // tests are inherited
 }
