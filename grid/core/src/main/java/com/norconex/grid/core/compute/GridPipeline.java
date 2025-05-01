@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import com.norconex.grid.core.GridContext;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,13 +35,13 @@ import lombok.With;
 @Getter
 public class GridPipeline {
 
-    private final String pipelineId;
+    private final String id;
     private final List<Stage> stages;
 
     public GridPipeline(
             @NonNull String pipelineId,
             @NonNull List<Stage> stages) {
-        this.pipelineId = pipelineId;
+        id = pipelineId;
         this.stages = Collections.unmodifiableList(new ArrayList<>(stages));
     }
 
@@ -65,7 +67,7 @@ public class GridPipeline {
          * Conditionally execute this stage.
          */
         @With
-        private Predicate<Object> onlyIf;
+        private Predicate<GridContext> onlyIf;
 
         /**
          * Always run even if a previous stage returned false to end the pipeline.

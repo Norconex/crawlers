@@ -26,10 +26,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.TaskState;
+import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.TaskProgress;
-import com.norconex.grid.core.impl.compute.TaskState;
-import com.norconex.grid.core.impl.compute.TaskStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
  * Meant to be invoked remotely when a task is run on all nodes or targetting
  * this worker node.
  */
+// A local instance is bound to the grid in the WorkDispatcher
 @Slf4j
 public class Worker {
 
@@ -46,14 +47,17 @@ public class Worker {
             new ConcurrentHashMap<>();
 
     // <taskId>
-    private final Set<String> requestedStops = new CopyOnWriteArraySet<>();
+    private final Set<String> requestedTaskStops = new CopyOnWriteArraySet<>();
+    // <pipelineId>
+    private final Set<String> requestedPipeStops = new CopyOnWriteArraySet<>();
 
     // <taskId, ...>
     // Tasks that coordinator informed was done, successfully or not
     private final Map<String, TaskProgress> gridTaskProgresses =
             new ConcurrentHashMap<>();
 
-    // A local instance is bound to the grid in the WorkDispatcher
+    // <pipelineId>
+    private final Set<String> donePipelines = new CopyOnWriteArraySet<>();
 
     private final CoreGrid grid;
 
@@ -73,9 +77,14 @@ public class Worker {
         var taskId = task.getId();
         var nodeAddr = grid.getNodeAddress();
 
-        // If already completed, return now
+        // If already done or running, return now
         if (isTaskDone(task)) {
             LOG.debug("Task {} already done on node {}, skipping",
+                    taskId, nodeAddr);
+            return;
+        }
+        if (isTaskRunning(task)) {
+            LOG.debug("Task {} already running on node {}, skipping",
                     taskId, nodeAddr);
             return;
         }
@@ -85,9 +94,9 @@ public class Worker {
                 new TaskStatus(TaskState.RUNNING, null, null),
                 System.currentTimeMillis()));
 
-        // Schedule heartbeats every 5 seconds
+        // Schedule heartbeats at interval
         heartbeatScheduler.scheduleAtFixedRate(
-                () -> updateHeartbeat(task), 0, 5, TimeUnit.SECONDS);
+                () -> updateHeartbeat(task), 0, 1, TimeUnit.SECONDS);
 
         // Run task asynchronously
         Executors.newSingleThreadExecutor().submit(() -> {
@@ -96,7 +105,6 @@ public class Worker {
                 localTaskProgresses.put(taskId, new TaskProgress(
                         new TaskStatus(TaskState.COMPLETED, result, null),
                         System.currentTimeMillis()));
-
                 LOG.info("Task {} completed on node {}", taskId, nodeAddr);
             } catch (Exception e) {
                 localTaskProgresses.put(taskId, new TaskProgress(
@@ -104,7 +112,7 @@ public class Worker {
                         System.currentTimeMillis()));
                 LOG.error("Task {} failed on node {}", taskId, nodeAddr, e);
             } finally {
-                cleanupProgress(task);
+                delayedCleanupProgress(task);
             }
         });
     }
@@ -112,7 +120,7 @@ public class Worker {
     // Remote
     public TaskProgress getNodeTaskProgress(String taskId) {
         var progress = localTaskProgresses.getOrDefault(
-                taskId, new TaskProgress(null, 0L));
+                taskId, new TaskProgress(null, System.currentTimeMillis()));
         LOG.debug("Node {} returning progress for task {}: state={}, "
                 + "heartbeat={}",
                 grid.getNodeAddress(),
@@ -138,20 +146,44 @@ public class Worker {
 
     // Remote
     public void stopNodeTask(String taskId) {
-        requestedStops.add(taskId);
+        requestedTaskStops.add(taskId);
         LOG.debug("Node {} received request for stopping task {}",
                 grid.getNodeAddress(), taskId);
     }
 
     // Local
     public boolean isNodeTaskStopRequested(String taskId) {
-        return requestedStops.remove(taskId);
+        return requestedTaskStops.remove(taskId);
+    }
+
+    // Remote
+    public void stopPipeline(String pipelineId) {
+        requestedPipeStops.add(pipelineId);
+        LOG.debug("Node {} received request for stopping pipeline {}",
+                grid.getNodeAddress(), pipelineId);
+    }
+
+    // Local (only relevant to coordinator, who will stop pipe + all tasks)
+    public boolean isPipelineStopRequested(String pipelineId) {
+        return requestedPipeStops.remove(pipelineId);
     }
 
     // Remote
     public void clearTaskStatus(String taskId) {
         localTaskProgresses.remove(taskId);
         // don't clear other member variables
+    }
+
+    // Remote
+    public void setPipelineDone(String pipelineId) {
+        donePipelines.add(pipelineId);
+        LOG.debug("Node {} received notification of pipeline done: {}",
+                grid.getNodeAddress(), pipelineId);
+    }
+
+    // Local
+    public boolean isPipelineDone(String pipelineId) {
+        return donePipelines.remove(pipelineId);
     }
 
     //--- Private methods ------------------------------------------------------
@@ -161,6 +193,14 @@ public class Worker {
                 .map(TaskProgress::getStatus)
                 .map(TaskStatus::getState)
                 .filter(TaskState::isTerminal)
+                .isPresent();
+    }
+
+    private boolean isTaskRunning(GridTask task) {
+        return ofNullable(localTaskProgresses.get(task.getId()))
+                .map(TaskProgress::getStatus)
+                .map(TaskStatus::getState)
+                .filter(TaskState::isRunning)
                 .isPresent();
     }
 
@@ -179,7 +219,7 @@ public class Worker {
         }
     }
 
-    private void cleanupProgress(GridTask task) {
+    private void delayedCleanupProgress(GridTask task) {
         // Schedule cleanup after 5 minutes
         localTaskProgresses.computeIfPresent(task.getId(), (id, progress) -> {
             heartbeatScheduler.schedule(() -> {

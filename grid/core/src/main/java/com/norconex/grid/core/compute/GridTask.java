@@ -20,7 +20,6 @@ import java.util.List;
 import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.impl.compute.TaskProgress;
-import com.norconex.grid.core.impl.compute.TaskStatus;
 
 /**
  * Core interface for tasks that can be executed on the grid
@@ -33,10 +32,8 @@ public interface GridTask extends Serializable {
 
     ExecutionMode getExecutionMode();
 
-    //TODO support the return value or return void. A few options:
-    // 1. Return an object that could either be single value or a List
-    // 2. Always return a List
-    // 3. Add with the task a new property GridResultAgreggator/Reducer
+    // each node return value will make up a list that will go through
+    // the aggregate method.
     Serializable execute(GridContext gridContext);
 
     /**

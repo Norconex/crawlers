@@ -32,7 +32,6 @@ import com.norconex.grid.core.compute.BaseGridTask.AllNodesOnceTask;
 import com.norconex.grid.core.compute.BaseGridTask.AllNodesTask;
 import com.norconex.grid.core.compute.BaseGridTask.SingleNodeOnceTask;
 import com.norconex.grid.core.compute.BaseGridTask.SingleNodeTask;
-import com.norconex.grid.core.impl.compute.TaskState;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridSet;
 
@@ -40,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Timeout(60)
-public abstract class GridComputeTest implements Serializable {
+public abstract class GridComputeTaskTest implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -229,7 +228,6 @@ public abstract class GridComputeTest implements Serializable {
             }
 
             ctx.getGrid().getCompute().stopTask("testJob");
-            //            onAllStarted.run();
             while (!stopRequested) {
                 Sleeper.sleepMillis(100);
             }
@@ -248,7 +246,6 @@ public abstract class GridComputeTest implements Serializable {
     }
 
     private static GridSet getGridSet(GridContext ctx) {
-        System.err.println("XXX stop requested in stoppable task.");
         return getGridSet(ctx.getGrid());
     }
 

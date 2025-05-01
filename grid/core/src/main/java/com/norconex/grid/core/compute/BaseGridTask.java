@@ -14,20 +14,19 @@
  */
 package com.norconex.grid.core.compute;
 
+import static java.util.Optional.ofNullable;
+
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.grid.core.impl.compute.TaskProgress;
-import com.norconex.grid.core.impl.compute.TaskState;
-import com.norconex.grid.core.impl.compute.TaskStatus;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
 @Getter
 public abstract class BaseGridTask implements GridTask {
 
@@ -35,6 +34,12 @@ public abstract class BaseGridTask implements GridTask {
 
     private final String id;
     private final ExecutionMode executionMode;
+
+    public BaseGridTask(@NonNull String id, ExecutionMode executionMode) {
+        this.id = id;
+        this.executionMode =
+                ofNullable(executionMode).orElse(ExecutionMode.ALL_NODES);
+    }
 
     public abstract static class SingleNodeTask extends BaseGridTask {
         private static final long serialVersionUID = 1L;

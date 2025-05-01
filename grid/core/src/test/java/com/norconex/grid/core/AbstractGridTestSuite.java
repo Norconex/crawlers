@@ -19,7 +19,8 @@ import java.io.Serializable;
 import org.junit.jupiter.api.Nested;
 
 import com.norconex.grid.core.cluster.WithCluster;
-import com.norconex.grid.core.compute.GridComputeTest;
+import com.norconex.grid.core.compute.GridComputePipelineTest;
+import com.norconex.grid.core.compute.GridComputeTaskTest;
 import com.norconex.grid.core.storage.GridStorageTest;
 
 /**
@@ -37,7 +38,13 @@ public abstract class AbstractGridTestSuite implements Serializable {
     }
 
     @Nested
-    class ComputeTest extends GridComputeTest {
+    class ComputeTaskTest extends GridComputeTaskTest {
+
+        private static final long serialVersionUID = 1L;
+    }
+
+    @Nested
+    class ComputePipelineTest extends GridComputePipelineTest {
 
         private static final long serialVersionUID = 1L;
     }

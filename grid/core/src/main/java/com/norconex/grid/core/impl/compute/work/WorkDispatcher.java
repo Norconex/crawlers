@@ -34,7 +34,9 @@ import com.norconex.grid.core.impl.compute.TaskProgress;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class WorkDispatcher {
 
     private enum WorkerMethod {
@@ -43,6 +45,8 @@ public class WorkDispatcher {
         getNodeTaskProgress, //NOSONAR
         setGridTaskProgress, //NOSONAR
         clearTaskStatus, //NOSONAR
+        setPipelineDone, //NOSONAR
+        stopPipeline, //NOSONAR
     }
 
     private final RpcDispatcher dispatcher;
@@ -53,7 +57,42 @@ public class WorkDispatcher {
         dispatcher = new RpcDispatcher(grid.getChannel(), worker);
     }
 
-    public void startTaskOnNodes(GridTask task) throws Exception {
+    /**
+     * Starts the given task on the address supplied, ONLY if execution
+     * mode is ALL_NODES or it is the coordinator. You should favor
+     * {@link #startTaskOnNodes(GridTask)} and use this one mainly
+     * for joining nodes.
+     * @param task the task to execute
+     * @throws Exception error in execution
+     */
+    public void startTaskOnNode(GridTask task, Address address)
+            throws Exception {
+        if (task.getExecutionMode() == ExecutionMode.ALL_NODES ||
+                (task.getExecutionMode() == ExecutionMode.SINGLE_NODE
+                        && grid.isCoordinator())) {
+            var call = MethodCallBuilder
+                    .create(WorkerMethod.startNodeTask)
+                    .argValues(task)
+                    .argTypes(GridTask.class)
+                    .build();
+            dispatcher.callRemoteMethodsWithFuture(
+                    List.of(address),
+                    call,
+                    new RequestOptions(ResponseMode.GET_NONE, 0)
+                            .setAnycasting(true));
+        } else {
+            LOG.debug("Trying to start a single-node task on a "
+                    + "non-coordinator. Ignoring request.");
+        }
+    }
+
+    /**
+     * Starts the given task on one or more nodes.
+     * @param task the task to execute
+     * @throws Exception error in execution
+     */
+    public void startTaskOnNodes(GridTask task)
+            throws Exception {
         var call = MethodCallBuilder
                 .create(WorkerMethod.startNodeTask)
                 .argValues(task)
@@ -85,7 +124,7 @@ public class WorkDispatcher {
                 .argTypes(String.class)
                 .build();
         return dispatcher.callRemoteMethods(
-                new ArrayList<>(pendingNodes), //TODO why wrapping in ArrayList?
+                new ArrayList<>(pendingNodes),
                 call,
                 new RequestOptions(ResponseMode.GET_ALL, 2000));
     }
@@ -111,6 +150,30 @@ public class WorkDispatcher {
                 .build();
         dispatcher.callRemoteMethods(
                 null, call, new RequestOptions(ResponseMode.GET_NONE, 0));
+    }
+
+    public void setPipelineDoneOnNodes(String pipelineId) throws Exception {
+        var call = MethodCallBuilder
+                .create(WorkerMethod.setPipelineDone)
+                .argValues(pipelineId)
+                .argTypes(String.class)
+                .build();
+        dispatcher.callRemoteMethods(
+                null, call, new RequestOptions(ResponseMode.GET_NONE, 0));
+    }
+
+    // only notifies coord, who will stop pipe + all tasks
+    public void stopPipeline(String pipelineId) throws Exception {
+        var call = MethodCallBuilder
+                .create(WorkerMethod.stopPipeline)
+                .argValues(pipelineId)
+                .argTypes(String.class)
+                .build();
+        dispatcher.callRemoteMethods(
+                List.of(grid.getCoordAddress()),
+                call,
+                new RequestOptions(ResponseMode.GET_NONE, 0)
+                        .setAnycasting(true));
     }
 
     @Accessors(fluent = true)

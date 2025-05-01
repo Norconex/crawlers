@@ -14,15 +14,13 @@
  */
 package com.norconex.grid.core.compute;
 
-import static com.norconex.grid.core.impl.compute.TaskState.COMPLETED;
-import static com.norconex.grid.core.impl.compute.TaskState.FAILED;
-import static com.norconex.grid.core.impl.compute.TaskState.PENDING;
-import static com.norconex.grid.core.impl.compute.TaskState.RUNNING;
+import static com.norconex.grid.core.compute.TaskState.COMPLETED;
+import static com.norconex.grid.core.compute.TaskState.FAILED;
+import static com.norconex.grid.core.compute.TaskState.PENDING;
+import static com.norconex.grid.core.compute.TaskState.RUNNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-
-import com.norconex.grid.core.impl.compute.TaskState;
 
 class TaskStateTest {
 

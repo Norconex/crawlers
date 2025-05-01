@@ -32,10 +32,11 @@ import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.TaskState;
+import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.impl.CoreGrid;
+import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.impl.compute.TaskProgress;
-import com.norconex.grid.core.impl.compute.TaskState;
-import com.norconex.grid.core.impl.compute.TaskStatus;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
@@ -45,10 +46,10 @@ import lombok.extern.slf4j.Slf4j;
  * Coordinate tasks execution across a grid.
  */
 @Slf4j
-public class WorkCoordinator {
+public class TaskCoordinator {
     //TODO make configurable?
-    private static final long POLLING_INTERVAL_MS = 2000;
-    private static final long HEARTBEAT_EXPIRY_MS = 30000;
+    static final long POLLING_INTERVAL_MS = 2000;
+    static final long HEARTBEAT_EXPIRY_MS = 30000;
     private static final long MAX_TASK_DURATION_MS = 600000;
 
     private final WorkDispatcher dispatcher;
@@ -60,10 +61,10 @@ public class WorkCoordinator {
     // for session/resumes.  Should be reset when session is reset.
     private final GridMap<TaskState> taskStateStore;
 
-    public WorkCoordinator(CoreGrid grid) {
-        this.grid = grid;
-        localWorker = new Worker(grid);
-        dispatcher = new WorkDispatcher(grid, localWorker);
+    public TaskCoordinator(CoreCompute compute) {
+        grid = compute.getGrid();
+        localWorker = compute.getLocalWorker();
+        dispatcher = compute.getDispatcher();
         taskStateStore =
                 grid.getStorage().getMap("task-state", TaskState.class);
     }
@@ -83,6 +84,9 @@ public class WorkCoordinator {
                                         + "with this single-node task."
                                 : "will participate when asked by the "
                                         + "coordinator.");
+                //TODO verify if this will get called even if joining,
+                // and will wait... and will receive remote task request
+                // in parallel.
             }
             return awaitCoordinatorDoneSignal(task);
         }
@@ -240,6 +244,7 @@ public class WorkCoordinator {
             taskStateStore.put(task.getId(),
                     status != null ? status.getState() : TaskState.FAILED);
         }
+
         dispatcher.setGridTaskProgressOnNodes(task.getId(),
                 new TaskProgress(status, System.currentTimeMillis()));
         return status;
@@ -248,34 +253,39 @@ public class WorkCoordinator {
     private void trackProgress(
             AggregatedContext agg, GridTask task, Set<Address> pendingNodes)
             throws Exception {
-
         var progressList = dispatcher.getTaskProgressFromNodes(
                 task.getId(), pendingNodes);
-
         for (Map.Entry<Address, Rsp<TaskProgress>> entry : progressList
                 .entrySet()) {
             var srcNode = entry.getKey();
             var rsp = entry.getValue();
             var progress = rsp.getValue();
-            var status = progress != null ? progress.getStatus() : null;
-            System.err.println("PROGRESS: " + srcNode + ": " + progress);
             agg.lastProgresses.put(srcNode, progress);
+            var status = progress != null ? progress.getStatus() : null;
+
+            if (status == null) {
+                // The status is set on remote nodes the moment task execution
+                // is invoked. If null, it likely means a new node has joined
+                // and we need to resend the command so it knows what to do.
+                dispatcher.startTaskOnNode(task, srcNode);
+            }
 
             // check if node expired
-            if (hasNodeExpired(agg, progress)) {
+            if (CoordUtil.hasNodeTaskExpired(agg.taskStartTime, progress)) {
                 agg.doneNodes.add(srcNode);
                 LOG.error("Node {} expired - No heartbeat received.",
                         grid.getNodeAddress());
                 continue;
             }
 
-            if (isGoodNodeResponse(rsp)) {
-                if (status.getState() == TaskState.COMPLETED) {
-                    LOG.debug("Task {} completed on node {}",
-                            task.getId(), grid.getNodeAddress());
+            if (CoordUtil.isValidNodeResponse(rsp)) {
+                if (status != null
+                        && status.getState().isTerminal()) {
+                    LOG.debug("Task {} done on node {} with state: {}",
+                            task.getId(),
+                            grid.getNodeAddress(),
+                            status.getState());
                     agg.doneNodes.add(srcNode);
-                } else {
-                    agg.allDone = false; // needed? false by default.
                 }
             } else {
                 handleError(agg, rsp, progress, srcNode);
@@ -300,49 +310,24 @@ public class WorkCoordinator {
             error = "No response or failed RPC";
         }
         LOG.error(error);
-        if (!isState(progress, TaskState.FAILED)) {
+        if (!CoordUtil.isState(progress, TaskState.FAILED)) {
             agg.lastProgresses.put(srcNode, new TaskProgress(
                     new TaskStatus(TaskState.FAILED, null, error),
                     heartbeat));
         }
     }
 
-    private boolean isGoodNodeResponse(Rsp<TaskProgress> rsp) {
-        return rsp.wasReceived()
-                && !rsp.hasException()
-                && !rsp.wasSuspected()
-                && !rsp.wasUnreachable()
-                && rsp.getValue() != null;
-    }
-
-    private boolean hasNodeExpired(AggregatedContext agg,
-            TaskProgress progress) {
-        var lastHeartbeat = progress != null
-                ? progress.getLastHeartbeat()
-                : agg.taskStartTime;
-        return System.currentTimeMillis()
-                - lastHeartbeat > HEARTBEAT_EXPIRY_MS;
-    }
-
-    private boolean isState(TaskProgress progress, TaskState state) {
-        return ofNullable(progress)
-                .map(TaskProgress::getStatus)
-                .map(TaskStatus::getState)
-                .filter(s -> s == state)
-                .isPresent();
-    }
-
-    private Set<Address> getPendingNodes(Set<Address> completedNodes) {
+    private Set<Address> getPendingNodes(Set<Address> doneNodes) {
         return grid.getGridMembers().stream()
-                .filter(addr -> !completedNodes.contains(addr))
+                .filter(addr -> !doneNodes.contains(addr))
                 .collect(Collectors.toSet());
     }
 
-    private static class AggregatedContext {
+    static class AggregatedContext {
         private final Map<Address, TaskProgress> lastProgresses =
                 new HashMap<>();
         private final Set<Address> doneNodes = new HashSet<>();
-        private final long taskStartTime = System.currentTimeMillis();
+        final long taskStartTime = System.currentTimeMillis();
         private boolean allDone;
 
         long taskElapsed() {

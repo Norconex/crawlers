@@ -28,8 +28,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.function.FailableConsumer;
 
-import com.norconex.grid.core.BaseGridContext;
 import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridException;
+import com.norconex.grid.core.TestGridContext;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,13 @@ public class Cluster implements Closeable {
             nodes.clear();
             tempDir = null;
         }
+    }
+
+    public Grid getLastNodeCreated() {
+        if (!nodes.isEmpty()) {
+            return nodes.get(nodes.size() - 1);
+        }
+        throw new GridException("No nodes available.");
     }
 
     public void onOneNewNode(FailableConsumer<Grid, Exception> nodeConsumer) {
@@ -183,7 +191,7 @@ public class Cluster implements Closeable {
         for (var i = 0; i < numNodes; i++) {
             var nodeName = gridName + "-node-" + nodeCount.incrementAndGet();
             var node = connectorFactory.create(
-                    gridName, nodeName).connect(new BaseGridContext(tempDir));
+                    gridName, nodeName).connect(new TestGridContext(tempDir));
             newNodes.add(node);
             nodes.put(node, false);
         }

@@ -12,17 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.compute;
+package com.norconex.grid.core.util;
 
-import com.norconex.grid.core.Grid;
+import java.io.Serializable;
 
-/**
- * Context object passed to
- */
-public interface GridTaskContext {
-    /**
-     * Gets a grid instance (node).
-     * @return grid instance
-     */
-    Grid getGrid();
+@FunctionalInterface
+public interface SerializableRunnable
+        extends Serializable, Runnable {
+
 }

@@ -1,4 +1,4 @@
-package com.norconex.grid.core.impl.compute;
+package com.norconex.grid.core.compute;
 
 import java.io.Serializable;
 

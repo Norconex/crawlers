@@ -2,6 +2,8 @@ package com.norconex.grid.core.impl.compute;
 
 import java.io.Serializable;
 
+import com.norconex.grid.core.compute.TaskStatus;
+
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 

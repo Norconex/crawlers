@@ -19,8 +19,13 @@ import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.compute.GridPipeline;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.TaskState;
+import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.impl.CoreGrid;
-import com.norconex.grid.core.impl.compute.work.WorkCoordinator;
+import com.norconex.grid.core.impl.compute.work.PipelineCoordinator;
+import com.norconex.grid.core.impl.compute.work.TaskCoordinator;
+import com.norconex.grid.core.impl.compute.work.WorkDispatcher;
+import com.norconex.grid.core.impl.compute.work.Worker;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -31,31 +36,26 @@ public class CoreCompute implements GridCompute {
 
     @Getter
     private final CoreGrid grid;
+    @Getter
+    private final WorkDispatcher dispatcher;
+    @Getter
+    private final Worker localWorker;
 
-    private final WorkCoordinator coord;
-
-    //    private final CorePipelineExecutor pipelineExecutor;
-    //    @Getter
-    //    private final CoreTaskExecutor taskExecutor;
-    //    @Getter
-    //    private final CoreWorker worker;
-    //    @Getter
-    //    private final RpcDispatcher dispatcher;
+    private final TaskCoordinator taskCoord;
+    private final PipelineCoordinator pipeCoord;
 
     public CoreCompute(CoreGrid grid) {
         this.grid = grid;
-        coord = new WorkCoordinator(grid);
-
-        //        worker = new CoreWorker(grid);
-        //        dispatcher = new RpcDispatcher(grid.getChannel(), worker);
-        //        taskExecutor = new CoreTaskExecutor(this, dispatcher);
-        //        pipelineExecutor = new CorePipelineExecutor(this);
+        localWorker = new Worker(grid);
+        dispatcher = new WorkDispatcher(grid, localWorker);
+        taskCoord = new TaskCoordinator(this);
+        pipeCoord = new PipelineCoordinator(this);
     }
 
     @Override
     public TaskStatus executeTask(@NonNull GridTask task) {
         try {
-            var status = coord.executeTask(task);
+            var status = taskCoord.executeTask(task);
             if (status == null || status.getState() == null) {
                 return new TaskStatus(TaskState.FAILED, null,
                         "Could not determine state of executed task.");
@@ -70,32 +70,51 @@ public class CoreCompute implements GridCompute {
     }
 
     @Override
-    public void executePipeline(@NonNull GridPipeline pipeline) {
-        System.err.println("XXX HELLO Pipeline!");
-        //        try {
-        //            pipelineExecutor.execute(pipeline);
-        //        } catch (Exception e) {
-        //            // TODO Auto-generated catch block
-        //            e.printStackTrace();
-        //        }
-    }
-
-    @Override
     public void stopTask(String taskId) {
         try {
-            coord.stopTask(taskId);
+            taskCoord.stopTask(taskId);
         } catch (Exception e) {
             throw new GridException(
                     "Error while requesting task to stop: " + taskId);
         }
     }
 
-    //
-    //    if (dispatcher != null)
-    //        try {
-    //            dispatcher.close();
-    //        } catch (IOException e) {
-    //            // TODO Auto-generated catch block
-    //            e.printStackTrace();
-    //        }
+    @Override
+    public void executePipeline(@NonNull GridPipeline pipeline) {
+        try {
+            pipeCoord.executePipeline(pipeline);
+        } catch (Exception e) {
+            LOG.error("Exception occured executing pipeline {}",
+                    pipeline.getId(), e);
+            throw new GridException(
+                    "Exception occured executing pipeline " + pipeline.getId(),
+                    e);
+        }
+    }
+
+    @Override
+    public void stopPipeline(String pipelineId) {
+        try {
+            pipeCoord.stopPipeline(pipelineId);
+        } catch (Exception e) {
+            throw new GridException(
+                    "Error while requesting pipeline to stop: " + pipelineId);
+        }
+    }
+
+    // -1 if none active
+    @Override
+    public int getActivePipelineStageIndex(String pipelineId) {
+        return pipeCoord.getActiveStageIndex(pipelineId);
+    }
+
+    //    public void close() {
+    //        if (dispatcher != null)
+    //            try {
+    //                dispatcher.close();
+    //            } catch (IOException e) {
+    //                // TODO Auto-generated catch block
+    //                e.printStackTrace();
+    //            }
+    //    }
 }

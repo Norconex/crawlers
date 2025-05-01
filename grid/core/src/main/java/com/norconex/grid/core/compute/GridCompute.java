@@ -14,8 +14,6 @@
  */
 package com.norconex.grid.core.compute;
 
-import com.norconex.grid.core.impl.compute.TaskStatus;
-
 import lombok.NonNull;
 
 /**
@@ -33,7 +31,11 @@ public interface GridCompute {
      */
     TaskStatus executeTask(@NonNull GridTask task);
 
+    void stopTask(String taskId);
+
     void executePipeline(@NonNull GridPipeline pipeline);
 
-    void stopTask(String taskId);
+    void stopPipeline(@NonNull String pipelineId);
+
+    int getActivePipelineStageIndex(@NonNull String pipelineId);
 }

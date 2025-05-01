@@ -67,15 +67,10 @@ public class CoreGrid implements Grid {
 
     //--- JGroups ---
     private final JChannel channel;
-    private View view;
     @Getter
     private Address nodeAddress;
     @Getter
     private Address coordAddress;
-
-    //    private final RpcDispatcher dispatcher;
-    //    private final List<GridTask> pipeline;
-    //    private final TaskHandler taskHandler;
 
     CoreGrid(
             CoreGridConnectorConfig connConfig,
@@ -96,11 +91,6 @@ public class CoreGrid implements Grid {
         channel.setReceiver(new JGroupMessageReceiver());
         channel.connect(gridName);
         compute = new CoreCompute(this);
-
-        //        taskHandler = new TaskHandler(channel.getAddress());
-        //        channel.connect("grid-cluster");
-        //        dispatcher = new RpcDispatcher(channel, taskHandler);
-
     }
 
     public boolean isCoordinator() {
@@ -112,12 +102,9 @@ public class CoreGrid implements Grid {
     }
 
     public List<Address> getGridMembers() {
-        return ofNullable(view).map(View::getMembers).orElse(List.of());
+        return ofNullable(channel.getView()).map(View::getMembers)
+                .orElse(List.of());
     }
-
-    //    public TaskHandler getTaskHandler() {
-    //        return taskHandler;
-    //    }
 
     @Override
     public void close() {
@@ -132,12 +119,6 @@ public class CoreGrid implements Grid {
             channel.close();
         }
     }
-
-    //    @Override
-    //    public GridPipeline pipeline() {
-    //        // TODO Auto-generated method stub
-    //        return null;
-    //    }
 
     @Override
     public ExecutorManager getNodeExecutors() {
@@ -207,23 +188,21 @@ public class CoreGrid implements Grid {
         //TODO Add method to receive/listen to messages???
 
         @Override
-        public void viewAccepted(View newView) {
-            view = newView;
+        public void viewAccepted(View view) {
+            //            view = newView;
 
             if (initializedLatch.getCount() > 0
-                    && newView.containsMember(channel.getAddress())) {
+                    && view.containsMember(channel.getAddress())) {
                 view = channel.getView();
                 nodeAddress = channel.getAddress();
                 if (StringUtils.isBlank(nodeName)) {
                     nodeName = channel.getAddressAsString();
                 }
                 LOG.info("Node joined \"{}\" grid: {}", gridName, nodeName);
-                //nodeExecutors = new ExecutorManager(nodeName);
-
                 initializedLatch.countDown();
             }
 
-            var currentSize = newView.getMembers().size();
+            var currentSize = view.getMembers().size();
             LOG.info("Current \"{}\" grid size: {}", gridName, currentSize);
             var prevCoordAddress = coordAddress;
             var nextCoordAddress = view.getCoord();
@@ -249,7 +228,6 @@ public class CoreGrid implements Grid {
                     var waiter = iter.next();
                     if (currentSize >= waiter.count
                             && !waiter.future.isDone()) {
-                        System.err.println("XXX in View: Quorum met!");
                         waiter.future.complete(null);
                         iter.remove();
                     }

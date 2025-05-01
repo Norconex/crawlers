@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl.compute;
+package com.norconex.grid.core.compute;
 
 import java.util.stream.Stream;
 
