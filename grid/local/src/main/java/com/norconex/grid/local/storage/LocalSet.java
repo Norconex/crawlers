@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.local;
+package com.norconex.grid.local.storage;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -25,14 +25,14 @@ import com.norconex.grid.core.storage.GridSet;
 import lombok.Getter;
 import lombok.NonNull;
 
-public class LocalGridSet implements GridSet {
+public class LocalSet implements GridSet {
     private final MVMap<String, Boolean> map;
     @Getter
     private final Class<String> type = String.class;
     @Getter
     private String name;
 
-    public LocalGridSet(
+    public LocalSet(
             @NonNull MVStore mvstore,
             @NonNull String name) {
         this.name = name;

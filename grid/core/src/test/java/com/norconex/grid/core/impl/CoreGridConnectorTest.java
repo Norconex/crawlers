@@ -35,7 +35,7 @@ class CoreGridConnectorTest {
                                 // NOOP
                             }
                         }));
-        assertThatExceptionOfType(GridException.class).isThrownBy(
+        assertThatExceptionOfType(GridException.class).isThrownBy( //NOSONAR
                 () -> new CoreGridConnector(new MockStorage()).connect(
                         new BaseGridContext(null) {
                             @Override

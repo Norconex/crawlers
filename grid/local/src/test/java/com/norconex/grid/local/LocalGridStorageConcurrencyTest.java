@@ -27,11 +27,13 @@ import org.h2.mvstore.MVStore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.grid.local.storage.LocalStorage;
+
 class LocalGridStorageConcurrencyTest {
 
     private File tempFile;
     private MVStore mvStore;
-    private LocalGridStorage storage;
+    private LocalStorage storage;
 
     void setup() {
         try {
@@ -39,7 +41,7 @@ class LocalGridStorageConcurrencyTest {
             mvStore = new MVStore.Builder()
                     .fileName(tempFile.getAbsolutePath())
                     .open();
-            storage = new LocalGridStorage(mvStore);
+            storage = new LocalStorage(mvStore);
         } catch (Exception e) {
             fail("Failed to initialize test store", e);
         }

@@ -210,7 +210,7 @@ public class Cluster implements Closeable {
         try {
             ConcurrentUtil.get(CompletableFuture.allOf(
                     quorumFutures.toArray(new CompletableFuture[0])));
-            LOG.info("Quorum reached across all nodes. Test can proceed.");
+            LOG.debug("Quorum reached across all nodes. Test can proceed.");
         } catch (Exception ex) {
             LOG.error("Failed to reach quorum", ex);
             throw new AssertionError("Failed to reach quorum", ex);

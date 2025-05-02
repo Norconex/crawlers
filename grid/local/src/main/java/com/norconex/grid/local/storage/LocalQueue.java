@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.local;
+package com.norconex.grid.local.storage;
 
 import static java.util.Optional.ofNullable;
 
@@ -32,7 +32,7 @@ import com.norconex.grid.core.util.SerialUtil;
 import lombok.Getter;
 import lombok.NonNull;
 
-public class LocalGridQueue<T> implements GridQueue<T> {
+public class LocalQueue<T> implements GridQueue<T> {
 
     private final AtomicLong sequence = new AtomicLong(0);
     private final MVMap<Long, String> sequenceQueue;
@@ -42,7 +42,7 @@ public class LocalGridQueue<T> implements GridQueue<T> {
     @Getter
     private String name;
 
-    public LocalGridQueue(
+    public LocalQueue(
             @NonNull MVStore mvstore,
             @NonNull String name,
             @NonNull Class<? extends T> type) {

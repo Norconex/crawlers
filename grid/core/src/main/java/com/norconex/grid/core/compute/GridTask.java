@@ -19,7 +19,6 @@ import java.util.List;
 
 import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.impl.compute.TaskProgress;
 
 /**
  * Core interface for tasks that can be executed on the grid
@@ -54,7 +53,7 @@ public interface GridTask extends Serializable {
      * @param results list of results from all nodes
      * @return aggregated result.
      */
-    TaskStatus aggregate(List<TaskProgress> results);
+    TaskStatus aggregate(List<TaskStatus> results);
 
     /**
      * Request for the job to stop. The request can be asynchronous and return

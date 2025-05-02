@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.local;
+package com.norconex.grid.core.impl.compute.pipeline;
 
-import com.norconex.grid.core.cluster.WithCluster;
-import com.norconex.grid.core.storage.GridStorageTest;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-@WithCluster(connectorFactory = LocalClusterTestConnectorFactory.class)
-class LocalStorageTest extends GridStorageTest {
-
-    private static final long serialVersionUID = 1L;
-
+@Data
+@Accessors(chain = true)
+public class PipeStageDirectives {
+    boolean skip;
+    boolean markActive;
 }

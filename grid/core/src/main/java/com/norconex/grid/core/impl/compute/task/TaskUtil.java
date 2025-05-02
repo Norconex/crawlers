@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl.compute.work;
+package com.norconex.grid.core.impl.compute.task;
 
 import static java.util.Optional.ofNullable;
 
@@ -23,17 +23,16 @@ import com.norconex.grid.core.compute.GridTask;
 import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.impl.CoreGrid;
-import com.norconex.grid.core.impl.compute.TaskProgress;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public final class CoordUtil {
+public final class TaskUtil {
 
-    private CoordUtil() {
+    private TaskUtil() {
     }
 
-    static boolean isValidNodeResponse(Rsp<TaskProgress> rsp) {
+    public static boolean isValidNodeResponse(Rsp<TaskProgress> rsp) {
         return rsp.wasReceived()
                 && !rsp.hasException()
                 && !rsp.wasSuspected()
@@ -41,7 +40,7 @@ public final class CoordUtil {
                 && rsp.getValue() != null;
     }
 
-    static boolean hasNodeTaskExpired(
+    public static boolean hasNodeTaskExpired(
             long taskStartTime, TaskProgress progress) {
         var lastHeartbeat = progress != null
                 ? progress.getLastHeartbeat()
@@ -50,7 +49,7 @@ public final class CoordUtil {
                 - lastHeartbeat > TaskCoordinator.HEARTBEAT_EXPIRY_MS;
     }
 
-    static boolean isState(TaskProgress progress, TaskState state) {
+    public static boolean isState(TaskProgress progress, TaskState state) {
         return ofNullable(progress)
                 .map(TaskProgress::getStatus)
                 .map(TaskStatus::getState)
@@ -58,7 +57,8 @@ public final class CoordUtil {
                 .isPresent();
     }
 
-    static void logNonCoordinatorCantExecute(CoreGrid grid, GridTask task) {
+    public static void logNonCoordinatorCantExecute(CoreGrid grid,
+            GridTask task) {
         if (!LOG.isDebugEnabled()) {
             return;
         }

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl.compute.work;
+package com.norconex.grid.core.impl.compute;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,7 +29,7 @@ import org.jgroups.util.RspList;
 import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
 import com.norconex.grid.core.impl.CoreGrid;
-import com.norconex.grid.core.impl.compute.TaskProgress;
+import com.norconex.grid.core.impl.compute.task.TaskProgress;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

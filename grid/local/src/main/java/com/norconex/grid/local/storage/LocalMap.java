@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.local;
+package com.norconex.grid.local.storage;
 
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -32,7 +32,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LocalGridMap<T> implements GridMap<T> {
+public class LocalMap<T> implements GridMap<T> {
 
     private final MVMap<String, String> map;
     @Getter
@@ -40,7 +40,7 @@ public class LocalGridMap<T> implements GridMap<T> {
     @Getter
     private String name;
 
-    public LocalGridMap(
+    public LocalMap(
             @NonNull MVStore mvstore,
             @NonNull String name,
             @NonNull Class<? extends T> type) {

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.local;
+package com.norconex.grid.local.storage;
 
 import java.util.Map;
 import java.util.Set;
@@ -50,13 +50,13 @@ import lombok.extern.slf4j.Slf4j;
  * Local storage, using an embedded database persisted to local file system.
  */
 @Slf4j
-public class LocalGridStorage implements GridStorage {
+public class LocalStorage implements GridStorage {
 
     private static final String SUFFIX_SEPARATOR = "__";
     private static final String SESSION_CACHE_KEY = "session-cache";
     private static final String DURABLE_CACHE_KEY = "durable-cache";
     private static final String STORE_TYPES_KEY =
-            LocalGridStorage.class.getSimpleName() + "__storetypes";
+            LocalStorage.class.getSimpleName() + "__storetypes";
 
     private final MVStore mvStore;
     private final MVMap<String, String> storeTypes;
@@ -66,7 +66,7 @@ public class LocalGridStorage implements GridStorage {
 
     private final ReadWriteLock storageLock = new ReentrantReadWriteLock();
 
-    public LocalGridStorage(MVStore mvStore) {
+    public LocalStorage(MVStore mvStore) {
         this.mvStore = mvStore;
         storeTypes = mvStore.openMap(STORE_TYPES_KEY);
         mvStore.commit();
@@ -199,12 +199,12 @@ public class LocalGridStorage implements GridStorage {
     GridStore<?> concreteStore(
             Class<?> storeSuperType, String storeName, Class<?> objectType) {
         if (storeSuperType.equals(GridQueue.class)) {
-            return new LocalGridQueue<>(mvStore, storeName, objectType);
+            return new LocalQueue<>(mvStore, storeName, objectType);
         }
         if (storeSuperType.equals(GridSet.class)) {
-            return new LocalGridSet(mvStore, storeName);
+            return new LocalSet(mvStore, storeName);
         }
-        return new LocalGridMap<>(mvStore, storeName, objectType);
+        return new LocalMap<>(mvStore, storeName, objectType);
     }
 
     @SuppressWarnings("unchecked")

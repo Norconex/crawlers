@@ -22,10 +22,8 @@ import com.norconex.grid.core.compute.GridTask;
 import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.impl.CoreGrid;
-import com.norconex.grid.core.impl.compute.work.PipelineCoordinator;
-import com.norconex.grid.core.impl.compute.work.TaskCoordinator;
-import com.norconex.grid.core.impl.compute.work.WorkDispatcher;
-import com.norconex.grid.core.impl.compute.work.Worker;
+import com.norconex.grid.core.impl.compute.pipeline.PipelineCoordinator;
+import com.norconex.grid.core.impl.compute.task.TaskCoordinator;
 
 import lombok.Getter;
 import lombok.NonNull;

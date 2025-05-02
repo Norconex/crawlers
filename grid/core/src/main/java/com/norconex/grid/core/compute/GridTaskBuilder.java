@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Objects;
 
 import com.norconex.grid.core.GridContext;
-import com.norconex.grid.core.impl.compute.TaskProgress;
 import com.norconex.grid.core.util.SerializableConsumer;
 import com.norconex.grid.core.util.SerializableFunction;
 import com.norconex.grid.core.util.SerializableRunnable;
@@ -47,7 +46,7 @@ public final class GridTaskBuilder implements Serializable {
      */
     private ExecutionMode executionMode;
     private SerializableFunction<GridContext, Serializable> executor;
-    private SerializableFunction<List<TaskProgress>, TaskStatus> aggregator;
+    private SerializableFunction<List<TaskStatus>, TaskStatus> aggregator;
     private SerializableRunnable stopHandler;
 
     private GridTaskBuilder() {
@@ -139,7 +138,7 @@ public final class GridTaskBuilder implements Serializable {
             }
 
             @Override
-            public TaskStatus aggregate(List<TaskProgress> results) {
+            public TaskStatus aggregate(List<TaskStatus> results) {
                 if (aggregator != null) {
                     return aggregator.apply(results);
                 }

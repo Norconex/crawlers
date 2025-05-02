@@ -20,8 +20,6 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.norconex.grid.core.impl.compute.TaskProgress;
-
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -115,17 +113,17 @@ public abstract class BaseGridTask implements GridTask {
      * @return aggregated result
      */
     @Override
-    public TaskStatus aggregate(List<TaskProgress> results) {
+    public TaskStatus aggregate(List<TaskStatus> results) {
         if (CollectionUtils.isEmpty(results)) {
             return new TaskStatus(TaskState.FAILED, null,
                     "Task execution returned no status.");
         }
         if (results.size() < 2) {
-            return results.get(0).getStatus();
+            return results.get(0);
         }
         TaskStatus status = null;
-        for (TaskProgress progress : results) {
-            status = progress.getStatus();
+        for (TaskStatus nodeStatus : results) {
+            status = nodeStatus;
             if (status != null && status.getState() == TaskState.COMPLETED) {
                 break;
             }

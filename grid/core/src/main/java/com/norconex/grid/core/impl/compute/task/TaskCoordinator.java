@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.impl.compute.work;
+package com.norconex.grid.core.impl.compute.task;
 
 import static java.util.Optional.ofNullable;
 
@@ -37,7 +37,8 @@ import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.CoreCompute;
-import com.norconex.grid.core.impl.compute.TaskProgress;
+import com.norconex.grid.core.impl.compute.WorkDispatcher;
+import com.norconex.grid.core.impl.compute.Worker;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
@@ -49,9 +50,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TaskCoordinator {
     //TODO make configurable?
-    static final long POLLING_INTERVAL_MS = 100; // WHILE TESTING
+    public static final long POLLING_INTERVAL_MS = 100; // WHILE TESTING
     //    static final long POLLING_INTERVAL_MS = 2000;
-    static final long HEARTBEAT_EXPIRY_MS = 30000;
+    public static final long HEARTBEAT_EXPIRY_MS = 30000;
     private static final long MAX_TASK_DURATION_MS = 600000;
 
     private final WorkDispatcher dispatcher;
@@ -77,7 +78,7 @@ public class TaskCoordinator {
         // send an execution request, we'll have to make sure the coordinator
         // gets it.
         if (!grid.isCoordinator()) {
-            CoordUtil.logNonCoordinatorCantExecute(grid, task);
+            TaskUtil.logNonCoordinatorCantExecute(grid, task);
             //TODO verify if this will get called even if joining,
             // and will wait... and will receive remote task request
             // in parallel.
@@ -232,8 +233,10 @@ public class TaskCoordinator {
                 status = new TaskStatus(TaskState.RUNNING, null, null);
             }
         } else {
-            status = task.aggregate(
-                    new ArrayList<>(agg.lastProgresses.values()));
+            status = task.aggregate(new ArrayList<>(agg.lastProgresses
+                    .values()
+                    .stream()
+                    .map(TaskProgress::getStatus).toList()));
             taskStateStore.put(task.getId(),
                     status != null ? status.getState() : TaskState.FAILED);
         }
@@ -264,14 +267,14 @@ public class TaskCoordinator {
             }
 
             // check if node expired
-            if (CoordUtil.hasNodeTaskExpired(agg.taskStartTime, progress)) {
+            if (TaskUtil.hasNodeTaskExpired(agg.taskStartTime, progress)) {
                 agg.doneNodes.add(srcNode);
                 LOG.error("Node {} expired - No heartbeat received.",
                         grid.getNodeAddress());
                 continue;
             }
 
-            if (CoordUtil.isValidNodeResponse(rsp)) {
+            if (TaskUtil.isValidNodeResponse(rsp)) {
                 if (status != null
                         && status.getState().isTerminal()) {
                     LOG.debug("Task {} done on node {} with state: {}",
@@ -303,7 +306,7 @@ public class TaskCoordinator {
             error = "No response or failed RPC";
         }
         LOG.error(error);
-        if (!CoordUtil.isState(progress, TaskState.FAILED)) {
+        if (!TaskUtil.isState(progress, TaskState.FAILED)) {
             agg.lastProgresses.put(srcNode, new TaskProgress(
                     new TaskStatus(TaskState.FAILED, null, error),
                     heartbeat));

@@ -25,7 +25,7 @@ import com.norconex.grid.core.GridException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class LocalGridStopHandler {
+class LocalStopHandler {
 
     public static final String STOPFILE_NAME = "stop-requested";
 
@@ -34,7 +34,7 @@ class LocalGridStopHandler {
     private boolean stopListening;
     private Thread listenerThread;
 
-    public LocalGridStopHandler(LocalGrid grid) {
+    public LocalStopHandler(LocalGrid grid) {
         this.grid = grid;
         stopFile = grid.getStoragePath().resolve(STOPFILE_NAME);
     }

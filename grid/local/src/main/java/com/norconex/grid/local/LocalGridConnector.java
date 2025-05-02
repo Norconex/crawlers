@@ -25,6 +25,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
 
 import lombok.AccessLevel;
@@ -58,7 +59,7 @@ public class LocalGridConnector
             new LocalGridConnectorConfig();
 
     @Override
-    public Grid connect(Path workDir) {
+    public Grid connect(GridContext gridContext) {
         var builder = new MVStore.Builder();
         if (configuration.getPageSplitSize() != null) {
             //MVStore expects it as bytes
@@ -98,7 +99,7 @@ public class LocalGridConnector
         if (configuration.isEphemeral()) {
             builder.fileName(null);
         } else {
-            storeDir = workDir.resolve(STORE_DIR_NAME);
+            storeDir = gridContext.getWorkDir().resolve(STORE_DIR_NAME);
             try {
                 FileUtils.forceMkdir(storeDir.toFile());
             } catch (IOException e) {
@@ -143,12 +144,15 @@ public class LocalGridConnector
         }
         mvstore.commit();
 
-        return new LocalGrid(mvstore, gridName);
+        var grid = new LocalGrid(mvstore, gridName, gridContext);
+        gridContext.init(grid);
+        return grid;
     }
 
     @Override
-    public void shutdownGrid(Path workDir) {
-        LocalGridStopHandler.requestStop(workDir.resolve(STORE_DIR_NAME));
+    public void shutdownGrid(GridContext gridContext) {
+        LocalStopHandler
+                .requestStop(gridContext.getWorkDir().resolve(STORE_DIR_NAME));
     }
 
     private Integer asInt(Long l) {

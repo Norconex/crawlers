@@ -23,18 +23,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.compute_DELETE.GridCompute;
-import com.norconex.grid.core.impl_DELETE.compute_DELETE.ComputeStateStore;
-import com.norconex.grid.core.pipeline.GridPipeline;
 import com.norconex.grid.core.storage.GridStorage;
-import com.norconex.grid.core.util.ExecutorManager;
+import com.norconex.grid.local.storage.LocalStorage;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.experimental.Accessors;
 
 /**
  * A "local" grid implementation, using the host resources only and using an
@@ -47,20 +44,23 @@ import lombok.experimental.Accessors;
 @ToString
 public class LocalGrid implements Grid {
 
-    // private final MVStore mvstore;
-    private final LocalGridStorage gridStorage;
-    private final LocalGridCompute gridCompute;
-    private final LocalGridPipeline gridPipeline;
-
-    private final LocalGridStopHandler stopHandler;
-
     @Getter
-    @Accessors(fluent = true)
-    private final ComputeStateStore computeStateStorage;
+    private final GridContext gridContext;
+
+    // private final MVStore mvstore;
+    private final LocalStorage gridStorage;
+    private final LocalCompute gridCompute;
+    //    private final LocalGridPipeline gridPipeline;
+
+    private final LocalStopHandler stopHandler;
+
+    //    @Getter
+    //    @Accessors(fluent = true)
+    //    private final ComputeStateStore computeStateStorage;
     @Getter(value = AccessLevel.PACKAGE)
     private final Path storagePath;
-    @Getter
-    private ExecutorManager nodeExecutors;
+    //    @Getter
+    //    private ExecutorManager nodeExecutors;
     @Getter
     private final String gridName;
     @Getter
@@ -70,18 +70,20 @@ public class LocalGrid implements Grid {
     // name.
     private static final AtomicInteger NODE_COUNT = new AtomicInteger();
 
-    public LocalGrid(MVStore mvstore, String gridName) {
+    public LocalGrid(
+            MVStore mvstore, String gridName, GridContext gridContext) {
         //        this.mvstore = mvstore;
         this.gridName = gridName;
+        this.gridContext = gridContext;
         nodeName = "local-node-" + NODE_COUNT.getAndIncrement();
-        gridStorage = new LocalGridStorage(mvstore);
-        gridCompute = new LocalGridCompute(this);
-        gridPipeline = new LocalGridPipeline(this);
-        computeStateStorage = new ComputeStateStore(this);
+        gridStorage = new LocalStorage(mvstore);
+        gridCompute = new LocalCompute(this);
+        //        gridPipeline = new LocalGridPipeline(this);
+        //        computeStateStorage = new ComputeStateStore(this);
         storagePath = Path.of(mvstore.getFileStore().getFileName()).getParent();
-        stopHandler = new LocalGridStopHandler(this);
+        stopHandler = new LocalStopHandler(this);
         stopHandler.listenForStopRequest();
-        nodeExecutors = new ExecutorManager("local-node");
+        //        nodeExecutors = new ExecutorManager("local-node");
     }
 
     @Override
@@ -92,7 +94,7 @@ public class LocalGrid implements Grid {
     @Override
     public void close() {
         stopHandler.stopListening();
-        nodeExecutors.shutdown();
+        //        nodeExecutors.shutdown();
         if (!isClosed()) {
             try {
                 getStorage().close();
@@ -107,26 +109,22 @@ public class LocalGrid implements Grid {
     }
 
     @Override
-    public GridCompute getCompute() {
+    public LocalCompute getCompute() {
         return gridCompute;
-    }
-
-    @Override
-    public GridPipeline pipeline() {
-        return gridPipeline;
     }
 
     @Override
     public boolean resetSession() {
         getStorage().getSessionAttributes().clear();
-        return computeStateStorage.reset();
+        //        return computeStateStorage.reset();
+        return true;
     }
 
     @Override
     public void stop() {
         stopHandler.stopListening();
-        pipeline().stop(null);
-        getCompute().stop(null);
+        //        pipeline().stopTask(null);
+        //        getCompute().stopTask(null);
     }
 
     /**
@@ -137,4 +135,5 @@ public class LocalGrid implements Grid {
             int count, Duration timeout) {
         return CompletableFuture.completedFuture(null);
     }
+
 }

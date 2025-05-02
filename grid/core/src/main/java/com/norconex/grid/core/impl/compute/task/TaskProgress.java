@@ -1,4 +1,4 @@
-package com.norconex.grid.core.impl.compute;
+package com.norconex.grid.core.impl.compute.task;
 
 import java.io.Serializable;
 
@@ -30,20 +30,4 @@ public class TaskProgress implements Serializable {// Streamable {
     public long getLastHeartbeat() {
         return lastHeartbeat;
     }
-
-    //    @Override
-    //    public void writeTo(java.io.DataOutput out) throws IOException {
-    //        Util.writeStreamable(status, out);
-    //        out.writeLong(lastHeartbeat);
-    //    }
-    //
-    //    @Override
-    //    public void readFrom(java.io.DataInput in) throws IOException {
-    //        try {
-    //            status = Util.readStreamable(TaskStatus::new, in);
-    //        } catch (ClassNotFoundException e) {
-    //            throw new IOException(e);
-    //        }
-    //        lastHeartbeat = in.readLong();
-    //    }
 }
