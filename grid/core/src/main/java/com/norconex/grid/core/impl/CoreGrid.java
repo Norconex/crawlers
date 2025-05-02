@@ -67,10 +67,13 @@ public class CoreGrid implements Grid {
 
     //--- JGroups ---
     private final JChannel channel;
-    @Getter
-    private Address nodeAddress;
-    @Getter
-    private Address coordAddress;
+    //    @Getter
+    //    private Address nodeAddress;
+    //    @Getter
+    //    private Address coordAddress;
+
+    // used to detect coordinator changes only
+    private Address cachedCoordAddress;
 
     CoreGrid(
             CoreGridConnectorConfig connConfig,
@@ -91,14 +94,23 @@ public class CoreGrid implements Grid {
         channel.setReceiver(new JGroupMessageReceiver());
         channel.connect(gridName);
         compute = new CoreCompute(this);
+
     }
 
     public boolean isCoordinator() {
-        return Objects.equals(nodeAddress, coordAddress);
+        return Objects.equals(getNodeAddress(), getCoordAddress());
     }
 
     public JChannel getChannel() {
         return channel;
+    }
+
+    public Address getNodeAddress() {
+        return channel.getAddress();
+    }
+
+    public Address getCoordAddress() {
+        return channel.getView().getCoord();
     }
 
     public List<Address> getGridMembers() {
@@ -189,12 +201,8 @@ public class CoreGrid implements Grid {
 
         @Override
         public void viewAccepted(View view) {
-            //            view = newView;
-
             if (initializedLatch.getCount() > 0
                     && view.containsMember(channel.getAddress())) {
-                view = channel.getView();
-                nodeAddress = channel.getAddress();
                 if (StringUtils.isBlank(nodeName)) {
                     nodeName = channel.getAddressAsString();
                 }
@@ -202,24 +210,20 @@ public class CoreGrid implements Grid {
                 initializedLatch.countDown();
             }
 
+            var coordAddress = channel.view().getCoord();
+            if (cachedCoordAddress == null) {
+                LOG.info("Grid \"{}\" elected coordinator: {}",
+                        gridName, view);
+            } else if (!Objects.equals(cachedCoordAddress, coordAddress)) {
+                LOG.info("New \"{}\" grid coordinator elected: {} -> "
+                        + "{}", gridName,
+                        cachedCoordAddress, coordAddress);
+                //TODO need to handle the change??
+            }
+            cachedCoordAddress = coordAddress;
+
             var currentSize = view.getMembers().size();
             LOG.info("Current \"{}\" grid size: {}", gridName, currentSize);
-            var prevCoordAddress = coordAddress;
-            var nextCoordAddress = view.getCoord();
-            coordAddress = nextCoordAddress;
-            if (!Objects.equals(prevCoordAddress, nextCoordAddress)) {
-                // if it changed (as opposed to first set), notify all
-                if (prevCoordAddress == null) {
-                    LOG.info("Grid \"{}\" elected coordinator: {}",
-                            gridName, nextCoordAddress);
-                } else {
-                    LOG.info("New \"{}\" grid coordinator elected: {} -> "
-                            + "{}", gridName,
-                            prevCoordAddress, nextCoordAddress);
-                    //TODO handle handling of new coordinator
-                    //send(new NewCoordMessage());
-                }
-            }
 
             // Inform quorum waiters if applicable
             synchronized (this) {

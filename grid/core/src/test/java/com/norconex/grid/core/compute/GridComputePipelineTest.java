@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Timeout;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
@@ -199,97 +200,64 @@ public abstract class GridComputePipelineTest implements Serializable {
             assertThat(new Store(grid).getInt("count")).isEqualTo(10);
         });
     }
-    //
-    //    @Test
-    //    void testPipelineStop() {
-    //
-    //        var frozen = new AtomicBoolean(true);
-    //
-    //        var sc = new StageCreator();
-    //        List<GridPipelineStage<Context>> stages = List.of(
-    //                sc.onAll(ctx -> {
-    //                    ctx.addOne("count"); // 3
-    //                }),
-    //                sc.onAll(ctx -> {
-    //                    ctx.bagInt.get("count");
-    //                    while (frozen.get()) {
-    //                        Sleeper.sleepMillis(100);
-    //                    }
-    //                    ctx.addOne("count"); // 6
-    //                }),
-    //                // stop here
-    //                sc.onAll(ctx -> {
-    //                    ctx.addOne("count"); // N/A
-    //                }),
-    //                sc.onAll(ctx -> {
-    //                    ctx.addOne("count"); // N/A
-    //                }));
-    //
-    //        withNewGrid(cluster -> {
-    //            cluster.onNewNodes(NUM_NODES, (grid, index) -> {
-    //                var context = new Context(grid);
-    //                var future = grid.pipeline().run(
-    //                        "test-pipelineD", stages, context);
-    //                while (!"stage-1"
-    //                        .equals(grid.pipeline()
-    //                                .getActiveStageName("test-pipelineD")
-    //                                .orElse(null))) {
-    //                    Sleeper.sleepMillis(100);
-    //                }
-    //                grid.pipeline().stopTask(null);
-    //                frozen.set(false);
-    //
-    //                boolean success = ConcurrentUtil.get(
-    //                        future, 10, TimeUnit.SECONDS);
-    //
-    //                assertThat(success).isTrue();
-    //                assertThat(context.bagInt.get("count")).isEqualTo(6);
-    //            });
-    //
-    //        });
-    //    }
-    //
-    //    private static class StageCreator {
-    //        int counter = 0;
-    //
-    //        GridPipelineStage<Context> onOne(GridPipelineTask<Context> task) {
-    //            return build(RunOn.ONE, task);
-    //        }
-    //
-    //        GridPipelineStage<Context> onAll(GridPipelineTask<Context> task) {
-    //            return build(RunOn.ALL, task);
-    //        }
-    //
-    //        GridPipelineStage<Context> onOneOnce(GridPipelineTask<Context> task) {
-    //            return build(RunOn.ONE_ONCE, task);
-    //        }
-    //
-    //        GridPipelineStage<Context> onAllOnce(GridPipelineTask<Context> task) {
-    //            return build(RunOn.ALL_ONCE, task);
-    //        }
-    //
-    //        GridPipelineStage<Context> build(
-    //                RunOn runOn,
-    //                GridPipelineTask<Context> task) {
-    //            return build(runOn, task, null);
-    //        }
-    //
-    //        GridPipelineStage<Context> build(
-    //                RunOn runOn,
-    //                GridPipelineTask<Context> task,
-    //                Consumer<GridPipelineStage.GridPipelineStageBuilder<
-    //                        Context>> builderModifier) {
-    //            var builder = GridPipelineStage.<Context>builder()
-    //                    .name("stage-" + counter++)
-    //                    .runOn(runOn)
-    //                    .task(task);
-    //            if (builderModifier != null) {
-    //                builderModifier.accept(builder);
-    //            }
-    //            return builder.build();
-    //        }
-    //    }
-    //
+
+    @ClusterTest
+    void testPipelineStop(Cluster cluster) {
+        var unblockedKey = "unblocked";
+        var countKey = "count";
+        var pipeline = GridPipeline.of("test-pipelineD",
+                new Stage(GridTaskBuilder.create("task1")
+                        .allNodes()
+                        .processor(ctx -> new Store(ctx).addOne(countKey)) // 3
+                        .build()),
+                new Stage(GridTaskBuilder.create("task2")
+                        .allNodes()
+                        .processor(ctx -> {
+                            var store = new Store(ctx);
+                            LOG.debug("Waiting for unblocking...");
+                            while (!store.getBool(unblockedKey)) {
+                                Sleeper.sleepMillis(100);
+                            }
+                            store.addOne("count"); // 6
+
+                            // give enough time for the stop request to
+                            // propagate
+                            Sleeper.sleepSeconds(2);
+                        })
+                        .build()),
+                // stop here
+                new Stage(GridTaskBuilder.create("task3")
+                        .allNodes()
+                        .processor(ctx -> new Store(ctx).addOne(countKey)) //N/A
+                        .build()),
+                new Stage(GridTaskBuilder.create("task4")
+                        .allNodes()
+                        .processor(ctx -> new Store(ctx).addOne(countKey)) //N/A
+                        .build()));
+
+        var nodeCreated = new AtomicBoolean();
+        var taskFuture = CompletableFuture.runAsync(() -> {
+            cluster.onThreeNewNodes(grid -> {
+                nodeCreated.set(true);
+                grid.getCompute().executePipeline(pipeline);
+            });
+        });
+
+        ConcurrentUtil.waitUntil(nodeCreated::get);
+        var grid = cluster.getLastNodeCreated();
+        while (grid.getCompute()
+                .getActivePipelineStageIndex("test-pipelineD") < 1) {
+            Sleeper.sleepMillis(100);
+        }
+
+        grid.getCompute().stopPipeline("test-pipelineD");
+        var store = new Store(grid);
+        store.set(unblockedKey, true);
+
+        ConcurrentUtil.get(taskFuture);
+        assertThat(store.bagInt.get("count")).isEqualTo(6);
+    }
+
     //--- Private --------------------------------------------------------------
 
     static class Store implements Serializable {
@@ -298,6 +266,7 @@ public abstract class GridComputePipelineTest implements Serializable {
 
         private final GridMap<Integer> bagInt;
         private final GridMap<String> bagStr;
+        private final GridMap<Boolean> bagBool;
 
         public Store(GridContext ctx) {
             this(ctx.getGrid());
@@ -306,6 +275,7 @@ public abstract class GridComputePipelineTest implements Serializable {
         public Store(Grid grid) {
             bagInt = grid.getStorage().getMap("bagInt", Integer.class);
             bagStr = grid.getStorage().getMap("bagStr", String.class);
+            bagBool = grid.getStorage().getMap("bagBool", Boolean.class);
         }
 
         Store addOne(String key) {
@@ -317,8 +287,17 @@ public abstract class GridComputePipelineTest implements Serializable {
             return ofNullable(bagInt.get(key)).orElse(0);
         }
 
+        boolean getBool(String key) {
+            return ofNullable(bagBool.get(key)).orElse(false);
+        }
+
         Store add(String key, int value) {
             bagInt.update(key, v -> v == null ? value : v + value);
+            return this;
+        }
+
+        Store set(String key, boolean value) {
+            bagBool.put(key, value);
             return this;
         }
 
@@ -332,45 +311,4 @@ public abstract class GridComputePipelineTest implements Serializable {
             return this;
         }
     }
-    //
-    //    private static GridMap<Integer> plusOneIntMap(GridContext ctx) {
-    //        getGridIntMap(ctx.getGrid()).;
-    //    }
-    //
-    //    private static GridMap<Integer> getGridIntMap(GridContext ctx) {
-    //        return getGridIntMap(ctx.getGrid());
-    //    }
-    //
-    //    private static GridMap<Integer> getGridIntMap(Grid grid) {
-    //        return grid.getStorage().getMap("testIntMap", Integer.class);
-    //    }
-    //        class Context extends BaseGridContext {
-    //
-    //                private final GridMap<Integer> bagInt;
-    //                private final GridMap<String> bagStr;
-    //                private final Grid grid;
-    //
-    //                public Context(Grid grid) {
-    //                    super();
-    //                    this.grid = grid;
-    //                    bagInt = grid.getStorage().getMap("bagInt", Integer.class);
-    //                    bagStr = grid.getStorage().getMap("bagStr", String.class);
-    //                }
-    //
-    //                void addOne(String key) {
-    //                    add(key, 1);
-    //                }
-    //
-    //                int getInt(String key) {
-    //                    return ofNullable(bagInt.get(key)).orElse(0);
-    //                }
-    //
-    //                void add(String key, int value) {
-    //                    bagInt.update(key, v -> v == null ? value : v + value);
-    //                }
-    //
-    //                void set(String key, String value) {
-    //                    bagStr.update(key, v -> v == null ? value : v + value);
-    //                }
-    //        }
 }

@@ -63,6 +63,7 @@ public class WorkDispatcher {
      * {@link #startTaskOnNodes(GridTask)} and use this one mainly
      * for joining nodes.
      * @param task the task to execute
+     * @param address the node to potentially execute the task on
      * @throws Exception error in execution
      */
     public void startTaskOnNode(GridTask task, Address address)
@@ -75,11 +76,10 @@ public class WorkDispatcher {
                     .argValues(task)
                     .argTypes(GridTask.class)
                     .build();
-            dispatcher.callRemoteMethodsWithFuture(
-                    List.of(address),
+            dispatcher.callRemoteMethodWithFuture(
+                    address,
                     call,
-                    new RequestOptions(ResponseMode.GET_NONE, 0)
-                            .setAnycasting(true));
+                    new RequestOptions(ResponseMode.GET_NONE, 0));
         } else {
             LOG.debug("Trying to start a single-node task on a "
                     + "non-coordinator. Ignoring request.");
@@ -98,12 +98,18 @@ public class WorkDispatcher {
                 .argValues(task)
                 .argTypes(GridTask.class)
                 .build();
-        var onOne = task.getExecutionMode() == ExecutionMode.SINGLE_NODE;
-        dispatcher.callRemoteMethodsWithFuture(
-                onOne ? List.of(grid.getCoordAddress()) : null,
-                call,
-                new RequestOptions(ResponseMode.GET_NONE, 0)
-                        .setAnycasting(onOne));
+        if (task.getExecutionMode() == ExecutionMode.SINGLE_NODE) {
+            dispatcher.callRemoteMethodWithFuture(
+                    grid.getCoordAddress(),
+                    call,
+                    new RequestOptions(ResponseMode.GET_NONE, 0));
+
+        } else {
+            dispatcher.callRemoteMethodsWithFuture(
+                    null,
+                    call,
+                    new RequestOptions(ResponseMode.GET_NONE, 0));
+        }
     }
 
     public void stopTaskOnNodes(String taskId) throws Exception {
@@ -172,8 +178,7 @@ public class WorkDispatcher {
         dispatcher.callRemoteMethods(
                 List.of(grid.getCoordAddress()),
                 call,
-                new RequestOptions(ResponseMode.GET_NONE, 0)
-                        .setAnycasting(true));
+                new RequestOptions(ResponseMode.GET_NONE, 0));
     }
 
     @Accessors(fluent = true)

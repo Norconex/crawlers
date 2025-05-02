@@ -74,6 +74,7 @@ public class Worker {
 
     // Remote
     public void startNodeTask(GridTask task) {
+
         var taskId = task.getId();
         var nodeAddr = grid.getNodeAddress();
 
@@ -121,7 +122,7 @@ public class Worker {
     public TaskProgress getNodeTaskProgress(String taskId) {
         var progress = localTaskProgresses.getOrDefault(
                 taskId, new TaskProgress(null, System.currentTimeMillis()));
-        LOG.debug("Node {} returning progress for task {}: state={}, "
+        LOG.trace("Node {} returning progress for task {}: state={}, "
                 + "heartbeat={}",
                 grid.getNodeAddress(),
                 taskId,
@@ -135,7 +136,7 @@ public class Worker {
     // Remote
     public void setGridTaskProgress(String taskId, TaskProgress progress) {
         gridTaskProgresses.put(taskId, progress);
-        LOG.debug("Node {} received notification of {} grid task progress: {}",
+        LOG.trace("Node {} received notification of {} grid task progress: {}",
                 grid.getNodeAddress(), taskId, progress);
     }
 
@@ -206,7 +207,7 @@ public class Worker {
 
     private void updateHeartbeat(GridTask task) {
         localTaskProgresses.computeIfPresent(task.getId(), (id, progress) -> {
-            LOG.debug("Node {} storing heartbeat for task {}",
+            LOG.trace("Node {} storing heartbeat for task {}",
                     grid.getNodeAddress(), task.getId());
             return new TaskProgress(
                     progress.getStatus(), System.currentTimeMillis());

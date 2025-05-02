@@ -19,6 +19,7 @@ import static java.util.Optional.ofNullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -48,7 +49,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TaskCoordinator {
     //TODO make configurable?
-    static final long POLLING_INTERVAL_MS = 2000;
+    static final long POLLING_INTERVAL_MS = 100; // WHILE TESTING
+    //    static final long POLLING_INTERVAL_MS = 2000;
     static final long HEARTBEAT_EXPIRY_MS = 30000;
     private static final long MAX_TASK_DURATION_MS = 600000;
 
@@ -70,24 +72,15 @@ public class TaskCoordinator {
     }
 
     public TaskStatus executeTask(GridTask task) throws Exception {
+
         //TODO, not a supported use case yet, but if joining remotely to
         // send an execution request, we'll have to make sure the coordinator
         // gets it.
         if (!grid.isCoordinator()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("""
-                    Non-coordinator node {}. Letting the coordinator node \
-                    start task {} and this node {}""",
-                        grid.getNodeAddress(), task.getId(),
-                        task.getExecutionMode() == ExecutionMode.SINGLE_NODE
-                                ? "will wait for the coordinator to be done "
-                                        + "with this single-node task."
-                                : "will participate when asked by the "
-                                        + "coordinator.");
-                //TODO verify if this will get called even if joining,
-                // and will wait... and will receive remote task request
-                // in parallel.
-            }
+            CoordUtil.logNonCoordinatorCantExecute(grid, task);
+            //TODO verify if this will get called even if joining,
+            // and will wait... and will receive remote task request
+            // in parallel.
             return awaitCoordinatorDoneSignal(task);
         }
 
@@ -197,7 +190,7 @@ public class TaskCoordinator {
 
         //TODO remove `&& !agg.taskExpired()` or allow infinite?
         while (!agg.allDone && !agg.taskExpired()) {
-            var pendingNodes = getPendingNodes(agg.doneNodes);
+            var pendingNodes = getPendingNodes(task, agg.doneNodes);
             if (pendingNodes.isEmpty()) {
                 agg.allDone = true;
                 break;
@@ -317,8 +310,12 @@ public class TaskCoordinator {
         }
     }
 
-    private Set<Address> getPendingNodes(Set<Address> doneNodes) {
-        return grid.getGridMembers().stream()
+    private Set<Address> getPendingNodes(
+            GridTask task, Set<Address> doneNodes) {
+        var workers = task.getExecutionMode() == ExecutionMode.SINGLE_NODE
+                ? List.of(grid.getCoordAddress())
+                : grid.getGridMembers();
+        return workers.stream()
                 .filter(addr -> !doneNodes.contains(addr))
                 .collect(Collectors.toSet());
     }

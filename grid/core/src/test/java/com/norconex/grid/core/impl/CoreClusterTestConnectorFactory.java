@@ -58,33 +58,53 @@ public class CoreClusterTestConnectorFactory
 
     protected List<Protocol> createProtocols() {
         return new ArrayList<>(List.of(
+
+                // SHARED_LOOPBACK:
+                // Suitable for local testing or single-machine clusters.
                 new SHARED_LOOPBACK()
                         .setBindAddr(localhostAddress()),
+
+                // PING and MERGE3: Handle discovery and cluster merging.
                 new PING(),
                 new MERGE3()
                         .setMaxInterval(30000)
                         .setMinInterval(10000),
+
+                // FD_SOCK and FD_ALL3: Provide failure detection.
                 new FD_SOCK()
                         .setStartPort(57800),
                 new FD_ALL3()
                         .setTimeout(12000)
                         .setInterval(3000),
+
+                // VERIFY_SUSPECT: Confirms suspected node failures.
                 new VERIFY_SUSPECT()
                         .setTimeout(1500),
+
+                // NAKACK2 and UNICAST3: Handle reliable multicast and unicast
+                // messaging, respectively.
                 new NAKACK2()
                         .useMcastXmit(false),
                 new UNICAST3(),
+
+                // STABLE: Ensures garbage collection of old messages.
                 new STABLE()
                         .setDesiredAverageGossip(50000),
+
+                // GMS: Manages group membership.
                 new GMS()
                         .printLocalAddress(true)
                         .setJoinTimeout(3000),
+
+                // UFC and MFC: Handle flow control.
                 new UFC()
                         .setMaxCredits(20000000)
                         .setMinThreshold(0.4),
                 new MFC()
                         .setMaxCredits(20000000)
                         .setMinThreshold(0.4),
+
+                // FRAG2: Handles message fragmentation.
                 new FRAG2()
                         .setFragSize(60000)));
     }
