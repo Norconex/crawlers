@@ -84,9 +84,4 @@ public class GridPipeline {
         @NonNull
         private final GridTask task;
     }
-
-    //    public void stop() {
-    //        // TODO Auto-generated method stub
-    //
-    //    }
 }

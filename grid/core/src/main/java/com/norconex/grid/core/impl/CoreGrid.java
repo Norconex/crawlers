@@ -37,7 +37,6 @@ import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.storage.GridStorage;
-import com.norconex.grid.core.util.ExecutorManager;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +79,7 @@ public class CoreGrid implements Grid {
             GridStorage storage,
             GridContext gridContext)
             throws Exception {
-        LOG.info(org.jgroups.Version.printDescription());
+        LOG.debug(org.jgroups.Version.printDescription());
         this.gridContext = gridContext;
         gridName = connConfig.getGridName();
         nodeName = connConfig.getNodeName();
@@ -130,12 +129,6 @@ public class CoreGrid implements Grid {
         if (channel != null) {
             channel.close();
         }
-    }
-
-    @Override
-    public ExecutorManager getNodeExecutors() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
