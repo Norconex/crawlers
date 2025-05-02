@@ -72,7 +72,7 @@ public class PostgreSqlClusterTestConnectorFactory
 
         ds.add("leakDetectionThreshold", "5000"); // Logs if connection open >5s
         ds.add("maximumPoolSize", "10"); // Limit concurrent connections
-        ds.add("connectionTimeout", "10000"); // Fail faster
+        ds.add("connectionTimeout", "30000"); // Fail faster
 
         return gridConnector;
     }

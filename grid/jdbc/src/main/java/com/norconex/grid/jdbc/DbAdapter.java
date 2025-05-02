@@ -83,7 +83,16 @@ final class DbAdapter {
     }
 
     void close() {
+        //        try (var conn = dataSource.getConnection()) {
+        //            conn.createStatement().execute("CHECKPOINT SYNC"); // Flush and sync to disk
+        //            System.out.println("CHECKPOINT SYNC executed");
+        //        } catch (Exception e) {
+        //            System.err
+        //                    .println("Error during CHECKPOINT SYNC: " + e.getMessage());
+        //        }
+
         dataSource.close();
+        LOG.debug("✖️ JDBC datasource closed.");
     }
 
     static DbAdapter create(
@@ -473,6 +482,7 @@ final class DbAdapter {
         sql = sql.formatted(tableName);
         try {
             executeWrite(sql, null);
+            LOG.info("Table deleted: %s".formatted(tableName));
         } catch (GridException e) {
             // Catch exception and check if already deleted
             Sleeper.sleepMillis(100);

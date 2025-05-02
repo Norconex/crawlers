@@ -75,6 +75,7 @@ public class JdbcGridConnector
     public Grid connect(GridContext ctx) {
         var dataSource = new HikariDataSource(new HikariConfig(
                 configuration.getDatasource().toProperties()));
+        LOG.debug("✔️ JDBC datasource created.");
         try {
             var storage = new JdbcGridStorage(resolveDbAdapter(dataSource));
             var grid = new CoreGrid(configuration, storage, ctx);

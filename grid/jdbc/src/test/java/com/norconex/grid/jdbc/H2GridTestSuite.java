@@ -14,6 +14,11 @@
  */
 package com.norconex.grid.jdbc;
 
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.io.TempDir;
+
 import com.norconex.grid.core.AbstractGridTestSuite;
 import com.norconex.grid.core.cluster.WithCluster;
 
@@ -23,4 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 @WithCluster(connectorFactory = H2ClusterTestConnectorFactory.class)
 class H2GridTestSuite extends AbstractGridTestSuite {
     private static final long serialVersionUID = 1L;
+
+    @BeforeAll
+    static void shareBaseTempDir(@TempDir Path tempDir) {
+        H2ClusterTestConnectorFactory.tempBasePath = tempDir;
+    }
 }

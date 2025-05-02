@@ -19,12 +19,10 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -46,7 +44,6 @@ public class ClusterExtension
     public static final String SET_STORE_PREFIX = "set_store_";
     public static final String QUEUE_STORE_PREFIX = "queue_store_";
 
-    private static final String TEMP_DIR = "tempDir";
     private static final String CLUSTER = "cluster";
     private static final String NUM_NODES = "numNodes";
     private static final String SINGLE_NODE = "singleNode";
@@ -57,7 +54,6 @@ public class ClusterExtension
     public void beforeEach(ExtensionContext context) throws Exception {
         var tempDir = Files.createTempDirectory("gridtest-");
         var store = getStore(context);
-        store.put(TEMP_DIR, tempDir);
 
         var annotation = resolveEffectiveClusterAnnotation(context);
         var connectorFactory = annotation.connectorFactory()
@@ -72,20 +68,8 @@ public class ClusterExtension
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
         var store = getStore(context);
-
-        //TODO destroy the store?
         Optional.ofNullable(store.remove(CLUSTER, Cluster.class))
                 .ifPresent(Cluster::close);
-
-        Optional.ofNullable(store.remove(TEMP_DIR, Path.class))
-                .ifPresent(temp -> {
-                    try {
-                        FileUtils.deleteDirectory(temp.toFile());
-                    } catch (Exception e) {
-                        throw new RuntimeException(
-                                "Failed to delete temp directory: " + temp, e);
-                    }
-                });
     }
 
     @Override
@@ -96,8 +80,7 @@ public class ClusterExtension
         var numNodes = getStore(extensionContext).get(NUM_NODES, Integer.class);
         var type = parameterContext.getParameter().getType();
 
-        return type.isAssignableFrom(Path.class)
-                || (type.isAssignableFrom(Cluster.class) && numNodes <= 0)
+        return (type.isAssignableFrom(Cluster.class) && numNodes <= 0)
                 || (type.isAssignableFrom(Grid.class) && numNodes == 1)
                 || (GridStore.class.isAssignableFrom(type) && numNodes == 1)
                 || (isGridList(parameterContext) && numNodes > 1);
@@ -112,9 +95,6 @@ public class ClusterExtension
         var store = getStore(extensionContext);
         var type = parameterContext.getParameter().getType();
 
-        if (type.isAssignableFrom(Path.class)) {
-            return store.get(TEMP_DIR);
-        }
         // cluster
         if (type.isAssignableFrom(Cluster.class) && numNodes <= 0) {
             return store.get(CLUSTER, Cluster.class);

@@ -21,12 +21,14 @@ import org.junit.jupiter.api.Nested;
 import com.norconex.grid.core.cluster.WithCluster;
 import com.norconex.grid.core.compute.GridComputePipelineTest;
 import com.norconex.grid.core.compute.GridComputeTaskTest;
+import com.norconex.grid.core.junit.WithTestWatcherLogging;
 import com.norconex.grid.core.storage.GridStorageTest;
 
 /**
  * Implementors need to annotate their subclass with
  * {@literal @}{@link WithCluster} (or a composite annotation including it).
  */
+@WithTestWatcherLogging
 public abstract class AbstractGridTestSuite implements Serializable {
 
     private static final long serialVersionUID = 1L;
