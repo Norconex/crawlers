@@ -45,7 +45,7 @@ public class PipelineCoordinator {
         localWorker = compute.getLocalWorker();
         dispatcher = compute.getDispatcher();
         pipeActiveStages = grid.getStorage().getMap(
-                "pipeline-stage", Integer.class);
+                "pipeline_stage", Integer.class);
     }
 
     public void executePipeline(GridPipeline pipeline) throws Exception {

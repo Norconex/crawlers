@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -33,7 +34,6 @@ import com.norconex.grid.core.storage.GridQueue;
 import com.norconex.grid.core.storage.GridSet;
 import com.norconex.grid.core.storage.GridStorage;
 import com.norconex.grid.core.storage.GridStore;
-import com.norconex.grid.core.util.ExecutorManager;
 import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.AccessLevel;
@@ -66,7 +66,6 @@ public class JdbcGridStorage implements GridStorage {
     private GridMap<String> storeTypes;
 
     private final Map<String, GridStore<?>> openedStores = new HashMap<>();
-    private ExecutorManager executors;
 
     public JdbcGridStorage(@NonNull DbAdapter dbAdapter) {
         this.dbAdapter = dbAdapter;
@@ -74,7 +73,6 @@ public class JdbcGridStorage implements GridStorage {
 
     public void init(Grid grid) {
         storeTypes = getMap(STORE_TYPES_KEY, String.class);
-        executors = grid.getNodeExecutors();
     }
 
     @SuppressWarnings("unchecked")
@@ -161,8 +159,8 @@ public class JdbcGridStorage implements GridStorage {
 
     @Override
     public <T> Future<T> runInTransactionAsync(Callable<T> callable) {
-        return executors.callShortTask("jdbc-grid-transac",
-                () -> runInTransaction(callable));
+        return Executors.newSingleThreadExecutor()
+                .submit(() -> runInTransaction(callable));
     }
 
     @SuppressWarnings("unchecked")

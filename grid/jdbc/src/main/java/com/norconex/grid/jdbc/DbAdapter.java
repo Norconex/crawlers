@@ -333,10 +333,11 @@ final class DbAdapter {
                     """;
             case POSTGRESQL:
                 yield """
-                    INSERT INTO %s (id, json)
+                    INSERT INTO %1$s (id, json)
                     VALUES (?, ?)
                     ON CONFLICT (id) DO
-                    UPDATE SET json = EXCLUDED.json;
+                    UPDATE SET json = EXCLUDED.json
+                    WHERE %1$s.json IS DISTINCT FROM EXCLUDED.json;
                     """;
             case MYSQL, MARIADB:
                 yield """
@@ -424,7 +425,7 @@ final class DbAdapter {
             sql = sql.formatted(tableName);
             return executeRead(sql, null,
                     rs -> rs.next()
-                            ? SerialUtil.fromJson(rs.getString("value"), type)
+                            ? SerialUtil.fromJson(rs.getString("json"), type)
                             : null);
         }
         return pollFallback(tableName, type);

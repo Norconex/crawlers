@@ -54,7 +54,7 @@ public class CoreGridConnectorConfig {
      * makes up the grid.  Cannot be <code>null</code>.
      */
     @NonNull
-    private String gridName = "grid-core";
+    private String gridName = "grid_core";
 
     /**
      * Name unique to a grid node. Leave <code>null</code> to have it

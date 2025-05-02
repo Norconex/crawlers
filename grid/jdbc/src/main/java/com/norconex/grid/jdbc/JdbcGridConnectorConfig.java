@@ -16,7 +16,7 @@ package com.norconex.grid.jdbc;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.grid.core.impl_DELETE.CoreGridConnectorConfig;
+import com.norconex.grid.core.impl.CoreGridConnectorConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -42,9 +42,9 @@ import com.norconex.grid.core.storage.GridStore;
 public class ClusterExtension
         implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
-    public static final String MAP_STORE_PREFIX = "map-store-";
-    public static final String SET_STORE_PREFIX = "set-store-";
-    public static final String QUEUE_STORE_PREFIX = "queue-store-";
+    public static final String MAP_STORE_PREFIX = "map_store_";
+    public static final String SET_STORE_PREFIX = "set_store_";
+    public static final String QUEUE_STORE_PREFIX = "queue_store_";
 
     private static final String TEMP_DIR = "tempDir";
     private static final String CLUSTER = "cluster";

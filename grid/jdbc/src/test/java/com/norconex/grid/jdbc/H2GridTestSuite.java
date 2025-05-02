@@ -12,18 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.mocks;
+package com.norconex.grid.jdbc;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import com.norconex.grid.core.AbstractGridTestSuite;
+import com.norconex.grid.core.cluster.WithCluster;
 
-public final class MockGridName {
+import lombok.extern.slf4j.Slf4j;
 
-    private static final AtomicInteger GRID_COUNT = new AtomicInteger();
-
-    private MockGridName() {
-    }
-
-    public static String generate() {
-        return "mock_grid_" + GRID_COUNT.incrementAndGet();
-    }
+@Slf4j
+@WithCluster(connectorFactory = H2ClusterTestConnectorFactory.class)
+class H2GridTestSuite extends AbstractGridTestSuite {
+    private static final long serialVersionUID = 1L;
 }

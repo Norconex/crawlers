@@ -38,7 +38,7 @@ import com.norconex.grid.core.storage.GridSet;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Timeout(60)
+@Timeout(30)
 public abstract class GridComputeTaskTest implements Serializable {
 
     private static final long serialVersionUID = 1L;

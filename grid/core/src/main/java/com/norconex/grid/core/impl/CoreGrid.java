@@ -16,6 +16,7 @@ package com.norconex.grid.core.impl;
 
 import static java.util.Optional.ofNullable;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,7 @@ public class CoreGrid implements Grid {
     // used to detect coordinator changes only
     private Address cachedCoordAddress;
 
-    CoreGrid(
+    public CoreGrid(
             CoreGridConnectorConfig connConfig,
             GridStorage storage,
             GridContext gridContext)
@@ -126,6 +127,11 @@ public class CoreGrid implements Grid {
         //                // TODO Auto-generated catch block
         //                e.printStackTrace();
         //            }
+        try {
+            storage.close();
+        } catch (IOException e) {
+            LOG.error("Node {} could not close storage.", getNodeName(), e);
+        }
         if (channel != null) {
             channel.close();
         }

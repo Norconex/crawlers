@@ -36,14 +36,14 @@ import com.norconex.grid.core.util.ConcurrentUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Timeout(60)
+@Timeout(30)
 public abstract class GridComputePipelineTest implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @ClusterTest
     void testRunSuccess(Cluster cluster) {
-        var pipeline = GridPipeline.of("test-pipelineA",
+        var pipeline = GridPipeline.of("test_pipelineA",
                 new Stage(GridTaskBuilder.create("task1")
                         .singleNode()
                         .processor(ctx -> new Store(ctx).addOne("itemA"))
@@ -60,7 +60,7 @@ public abstract class GridComputePipelineTest implements Serializable {
                                         .getGrid()
                                         .getCompute()
                                         .getActivePipelineStageIndex(
-                                                "test-pipelineA"))
+                                                "test_pipelineA"))
                                 .addOne("itemC"))
                         .build()),
                 new Stage(GridTaskBuilder.create("task4")
@@ -98,7 +98,7 @@ public abstract class GridComputePipelineTest implements Serializable {
 
     @ClusterTest
     void testRunFailureAndOnlyIfAndAlways(Cluster cluster) {
-        var pipeline = GridPipeline.of("test-pipelineB",
+        var pipeline = GridPipeline.of("test_pipelineB",
                 // Runs OK
                 new Stage(GridTaskBuilder.create("task1")
                         .singleNode()
@@ -152,7 +152,7 @@ public abstract class GridComputePipelineTest implements Serializable {
 
         var countKey = "count";
         var thirdStageCount = 6;
-        var pipeline = GridPipeline.of("test-pipelineC",
+        var pipeline = GridPipeline.of("test_pipelineC",
                 new Stage(GridTaskBuilder.create("task1")
                         .allNodes()
                         .processor(ctx -> new Store(ctx).addOne(countKey)) // 2
@@ -205,7 +205,7 @@ public abstract class GridComputePipelineTest implements Serializable {
     void testPipelineStop(Cluster cluster) {
         var unblockedKey = "unblocked";
         var countKey = "count";
-        var pipeline = GridPipeline.of("test-pipelineD",
+        var pipeline = GridPipeline.of("test_pipelineD",
                 new Stage(GridTaskBuilder.create("task1")
                         .allNodes()
                         .processor(ctx -> new Store(ctx).addOne(countKey)) // 3
@@ -246,11 +246,11 @@ public abstract class GridComputePipelineTest implements Serializable {
         ConcurrentUtil.waitUntil(nodeCreated::get);
         var grid = cluster.getLastNodeCreated();
         while (grid.getCompute()
-                .getActivePipelineStageIndex("test-pipelineD") < 1) {
+                .getActivePipelineStageIndex("test_pipelineD") < 1) {
             Sleeper.sleepMillis(100);
         }
 
-        grid.getCompute().stopPipeline("test-pipelineD");
+        grid.getCompute().stopPipeline("test_pipelineD");
         var store = new Store(grid);
         store.set(unblockedKey, true);
 

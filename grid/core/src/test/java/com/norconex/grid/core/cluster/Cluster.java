@@ -59,7 +59,7 @@ public class Cluster implements Closeable {
             Path tempDir) {
         this.connectorFactory = connectorFactory;
         this.tempDir = tempDir;
-        gridName = "test-grid-" + clusterCount.incrementAndGet();
+        gridName = "test_grid_" + clusterCount.incrementAndGet();
     }
 
     @Override

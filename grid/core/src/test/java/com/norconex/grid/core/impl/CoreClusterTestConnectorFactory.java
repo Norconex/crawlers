@@ -14,26 +14,6 @@
  */
 package com.norconex.grid.core.impl;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jgroups.protocols.FD_ALL3;
-import org.jgroups.protocols.FD_SOCK;
-import org.jgroups.protocols.FRAG2;
-import org.jgroups.protocols.MERGE3;
-import org.jgroups.protocols.MFC;
-import org.jgroups.protocols.PING;
-import org.jgroups.protocols.SHARED_LOOPBACK;
-import org.jgroups.protocols.UFC;
-import org.jgroups.protocols.UNICAST3;
-import org.jgroups.protocols.VERIFY_SUSPECT;
-import org.jgroups.protocols.pbcast.GMS;
-import org.jgroups.protocols.pbcast.NAKACK2;
-import org.jgroups.protocols.pbcast.STABLE;
-import org.jgroups.stack.Protocol;
-
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.GridConnector;
 import com.norconex.grid.core.cluster.ClusterConnectorFactory;
@@ -49,72 +29,12 @@ public class CoreClusterTestConnectorFactory
                 new CoreGridConnector(createGridStorage()),
                 cfg -> cfg.setGridName(gridName)
                         .setNodeName(nodeName)
-                        .setProtocols(createProtocols()));
+                        .setProtocols(
+                                CoreClusterTestProtocols.createProtocols()));
     }
 
     protected GridStorage createGridStorage() {
         return new MockStorage();
-    }
-
-    protected List<Protocol> createProtocols() {
-        return new ArrayList<>(List.of(
-
-                // SHARED_LOOPBACK:
-                // Suitable for local testing or single-machine clusters.
-                new SHARED_LOOPBACK()
-                        .setBindAddr(localhostAddress()),
-
-                // PING and MERGE3: Handle discovery and cluster merging.
-                new PING(),
-                new MERGE3()
-                        .setMaxInterval(30000)
-                        .setMinInterval(10000),
-
-                // FD_SOCK and FD_ALL3: Provide failure detection.
-                new FD_SOCK()
-                        .setStartPort(57800),
-                new FD_ALL3()
-                        .setTimeout(12000)
-                        .setInterval(3000),
-
-                // VERIFY_SUSPECT: Confirms suspected node failures.
-                new VERIFY_SUSPECT()
-                        .setTimeout(1500),
-
-                // NAKACK2 and UNICAST3: Handle reliable multicast and unicast
-                // messaging, respectively.
-                new NAKACK2()
-                        .useMcastXmit(false),
-                new UNICAST3(),
-
-                // STABLE: Ensures garbage collection of old messages.
-                new STABLE()
-                        .setDesiredAverageGossip(50000),
-
-                // GMS: Manages group membership.
-                new GMS()
-                        .printLocalAddress(true)
-                        .setJoinTimeout(3000),
-
-                // UFC and MFC: Handle flow control.
-                new UFC()
-                        .setMaxCredits(20000000)
-                        .setMinThreshold(0.4),
-                new MFC()
-                        .setMaxCredits(20000000)
-                        .setMinThreshold(0.4),
-
-                // FRAG2: Handles message fragmentation.
-                new FRAG2()
-                        .setFragSize(60000)));
-    }
-
-    private static InetAddress localhostAddress() {
-        try {
-            return InetAddress.getByName("localhost");
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

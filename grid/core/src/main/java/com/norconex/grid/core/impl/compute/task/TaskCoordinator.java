@@ -69,7 +69,7 @@ public class TaskCoordinator {
         localWorker = compute.getLocalWorker();
         dispatcher = compute.getDispatcher();
         taskStateStore =
-                grid.getStorage().getMap("task-state", TaskState.class);
+                grid.getStorage().getMap("task_state", TaskState.class);
     }
 
     public TaskStatus executeTask(GridTask task) throws Exception {
