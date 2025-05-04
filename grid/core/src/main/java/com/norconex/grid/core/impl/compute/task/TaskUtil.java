@@ -16,6 +16,8 @@ package com.norconex.grid.core.impl.compute.task;
 
 import static java.util.Optional.ofNullable;
 
+import java.time.Duration;
+
 import org.jgroups.util.Rsp;
 
 import com.norconex.grid.core.compute.ExecutionMode;
@@ -41,12 +43,12 @@ public final class TaskUtil {
     }
 
     public static boolean hasNodeTaskExpired(
-            long taskStartTime, TaskProgress progress) {
+            long taskStartTime, TaskProgress progress, Duration nodeTimeout) {
         var lastHeartbeat = progress != null
                 ? progress.getLastHeartbeat()
                 : taskStartTime;
         return System.currentTimeMillis()
-                - lastHeartbeat > TaskCoordinator.HEARTBEAT_EXPIRY_MS;
+                - lastHeartbeat > nodeTimeout.toMillis();
     }
 
     public static boolean isState(TaskProgress progress, TaskState state) {

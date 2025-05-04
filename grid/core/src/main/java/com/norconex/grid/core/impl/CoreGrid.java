@@ -55,6 +55,8 @@ public class CoreGrid implements Grid {
     private final CoreCompute compute;
     @Getter
     private final GridStorage storage;
+    @Getter
+    private final CoreGridConnectorConfig connectorConfig;
 
     private final List<QuorumWaiter> quorumWaiters = new ArrayList<>();
     private final ScheduledExecutorService quorumScheduler =
@@ -67,12 +69,8 @@ public class CoreGrid implements Grid {
 
     //--- JGroups ---
     private final JChannel channel;
-    //    @Getter
-    //    private Address nodeAddress;
-    //    @Getter
-    //    private Address coordAddress;
 
-    // used to detect coordinator changes only
+    // used to detect coordinator changes only (otherwise obtained dynamically)
     private Address cachedCoordAddress;
 
     public CoreGrid(
@@ -82,6 +80,7 @@ public class CoreGrid implements Grid {
             throws Exception {
         LOG.debug(org.jgroups.Version.printDescription());
         this.gridContext = gridContext;
+        connectorConfig = connConfig;
         gridName = connConfig.getGridName();
         nodeName = connConfig.getNodeName();
         this.storage = storage;

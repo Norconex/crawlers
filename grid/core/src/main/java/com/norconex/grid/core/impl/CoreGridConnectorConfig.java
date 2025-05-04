@@ -14,6 +14,7 @@
  */
 package com.norconex.grid.core.impl;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,16 +52,43 @@ public class CoreGridConnectorConfig {
 
     /**
      * Logical grid name to connect to. All nodes joining on the same name
-     * makes up the grid.  Cannot be <code>null</code>.
+     * makes up the grid.  Cannot be <code>null</code>. Default name is
+     * <code>default_grid</code>.
      */
     @NonNull
-    private String gridName = "grid_core";
+    private String gridName = "default_grid";
 
     /**
      * Name unique to a grid node. Leave <code>null</code> to have it
      * auto-assigned. Default is <code>null</code>.
      */
     private String nodeName = null;
+
+    /**
+     * Maximum amount of time a node can stop responding before being
+     * considered "expired". An expired node will be ignored when
+     * establishing a task completion and for result aggregation.
+     * Default is 30 seconds. Cannot be <code>null</code>.
+     */
+    @NonNull
+    private Duration nodeTimeout = Duration.ofSeconds(30);
+
+    /**
+     * Maximum amount of time a task can run on the grid, after which, it is
+     * considered to have failed and will abort. Use when you can
+     * estimate how long a task is supposed to take. Default
+     * is <code>null</code>, which means no timeout.
+     */
+    private Duration taskTimeout = null;
+
+    /**
+     * Amount of time between periodic check on node task execution statuses.
+     * If you have a lot of nodes, you can configure a larger delay to
+     * minimize network traffic. Default is 1 second. Cannot
+     * be <code>null</code>
+     */
+    @NonNull
+    private Duration heartbeatInterval = Duration.ofSeconds(1);
 
     /**
      * Protocol layers used by JGroups to handle event messages between nodes.
@@ -81,13 +109,21 @@ public class CoreGridConnectorConfig {
             new MFC(),
             new FRAG2()));
 
+    /**
+     * Protocol layers used by JGroups to handle event messages between nodes.
+     * @return protocols
+     */
     public List<Protocol> getProtocols() {
         return Collections.unmodifiableList(protocols);
     }
 
+    /**
+     * Protocol layers used by JGroups to handle event messages between nodes.
+     * @param protocols the protocols
+     * @return this, for chaining
+     */
     public CoreGridConnectorConfig setProtocols(List<Protocol> protocols) {
         CollectionUtil.setAll(this.protocols, protocols);
         return this;
     }
-
 }

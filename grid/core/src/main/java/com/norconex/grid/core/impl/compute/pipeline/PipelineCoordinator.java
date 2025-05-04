@@ -26,7 +26,6 @@ import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.impl.compute.WorkDispatcher;
 import com.norconex.grid.core.impl.compute.Worker;
-import com.norconex.grid.core.impl.compute.task.TaskCoordinator;
 import com.norconex.grid.core.storage.GridMap;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,9 +56,9 @@ public class PipelineCoordinator {
                     + "coordinator for instructions.");
             while (!localWorker.isPipelineDone(pipeline.getId())
                     && !ctx.isStopRequested()) {
-                Thread.sleep(TaskCoordinator.POLLING_INTERVAL_MS);
-                //TODO have configurable timeout here?
-                //TODO check for expiry here, either pipeline expiry
+                Thread.sleep(grid.getConnectorConfig().getHeartbeatInterval()
+                        .toMillis());
+                //TODO check for expiry here? either pipeline expiry
                 // or based on active task.
             }
             return;

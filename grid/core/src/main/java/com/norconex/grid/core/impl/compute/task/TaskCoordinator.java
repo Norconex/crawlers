@@ -16,6 +16,7 @@ package com.norconex.grid.core.impl.compute.task;
 
 import static java.util.Optional.ofNullable;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ import com.norconex.grid.core.impl.compute.Worker;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -49,15 +51,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class TaskCoordinator {
-    //TODO make configurable?
-    public static final long POLLING_INTERVAL_MS = 100; // WHILE TESTING
-    //    static final long POLLING_INTERVAL_MS = 2000;
-    public static final long HEARTBEAT_EXPIRY_MS = 30000;
-    private static final long MAX_TASK_DURATION_MS = 600000;
-
     private final WorkDispatcher dispatcher;
     private final Worker localWorker;
     private final CoreGrid grid;
+    private final Duration taskTimeout;
 
     // MAYBE: move somewhere more generic, like former ComputeStateStore?
     // Make sure to use it or remove entirely. Likely still needed
@@ -70,6 +67,7 @@ public class TaskCoordinator {
         dispatcher = compute.getDispatcher();
         taskStateStore =
                 grid.getStorage().getMap("task_state", TaskState.class);
+        taskTimeout = grid.getConnectorConfig().getTaskTimeout();
     }
 
     public TaskStatus executeTask(GridTask task) throws Exception {
@@ -153,7 +151,8 @@ public class TaskCoordinator {
                 return false;
             }
             var heartbeat = gridProgress.getLastHeartbeat();
-            if (heartbeat - startTime.get() > HEARTBEAT_EXPIRY_MS) {
+            if (heartbeat - startTime.get() > grid.getConnectorConfig()
+                    .getNodeTimeout().toMillis()) {
                 throw new GridException("Task expired. No hearbeat "
                         + "received from coordinator.");
             }
@@ -183,13 +182,12 @@ public class TaskCoordinator {
 
         taskStateStore.put(task.getId(), TaskState.RUNNING);
 
-        var agg = new AggregatedContext();
+        var agg = new AggregatedContext(taskTimeout);
 
         // mark the starting status for all nodes to be PENDING
         grid.getGridMembers().forEach(addr -> agg.lastProgresses.put(
                 addr, new TaskProgress(new TaskStatus(), agg.taskStartTime)));
 
-        //TODO remove `&& !agg.taskExpired()` or allow infinite?
         while (!agg.allDone && !agg.taskExpired()) {
             var pendingNodes = getPendingNodes(task, agg.doneNodes);
             if (pendingNodes.isEmpty()) {
@@ -201,9 +199,9 @@ public class TaskCoordinator {
             notifyNodesOfGridProgressOrAggregate(agg, task, false);
 
             if (!agg.allDone) {
-                Thread.sleep(POLLING_INTERVAL_MS);
+                Thread.sleep(grid.getConnectorConfig().getHeartbeatInterval()
+                        .toMillis());
             }
-
         }
 
         try {
@@ -223,9 +221,19 @@ public class TaskCoordinator {
             throws Exception {
         TaskStatus status = null;
         if (!agg.allDone) {
+            // if not all nodes are done but the coordinator is, it likely
+            // means a task has expired.
             if (coordDone) {
-                var err = "Task %s timed out after %s seconds."
-                        .formatted(task.getId(), MAX_TASK_DURATION_MS / 1000);
+                String err;
+                if (agg.taskExpired()) {
+                    err = "Task %s timed out after %s seconds."
+                            .formatted(task.getId(), taskTimeout.toSeconds());
+                } else {
+                    err = """
+                        Task controller reported being done while some \
+                        nodes are still executing. This should not \
+                        happen. Failing the task.""";
+                }
                 LOG.error(err);
                 taskStateStore.put(task.getId(), TaskState.FAILED);
                 status = new TaskStatus(TaskState.FAILED, null, err);
@@ -267,7 +275,10 @@ public class TaskCoordinator {
             }
 
             // check if node expired
-            if (TaskUtil.hasNodeTaskExpired(agg.taskStartTime, progress)) {
+            if (TaskUtil.hasNodeTaskExpired(
+                    agg.taskStartTime,
+                    progress,
+                    grid.getConnectorConfig().getNodeTimeout())) {
                 agg.doneNodes.add(srcNode);
                 LOG.error("Node {} expired - No heartbeat received.",
                         grid.getNodeAddress());
@@ -323,11 +334,13 @@ public class TaskCoordinator {
                 .collect(Collectors.toSet());
     }
 
+    @RequiredArgsConstructor
     static class AggregatedContext {
         private final Map<Address, TaskProgress> lastProgresses =
                 new HashMap<>();
         private final Set<Address> doneNodes = new HashSet<>();
         final long taskStartTime = System.currentTimeMillis();
+        private final Duration taskTimeout;
         private boolean allDone;
 
         long taskElapsed() {
@@ -335,7 +348,10 @@ public class TaskCoordinator {
         }
 
         boolean taskExpired() {
-            return taskElapsed() >= MAX_TASK_DURATION_MS;
+            if (taskTimeout == null) {
+                return false;
+            }
+            return taskElapsed() >= taskTimeout.toMillis();
         }
     }
 }

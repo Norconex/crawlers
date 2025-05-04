@@ -14,6 +14,8 @@
  */
 package com.norconex.grid.core.impl;
 
+import java.time.Duration;
+
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.GridConnector;
 import com.norconex.grid.core.cluster.ClusterConnectorFactory;
@@ -30,7 +32,8 @@ public class CoreClusterTestConnectorFactory
                 cfg -> cfg.setGridName(gridName)
                         .setNodeName(nodeName)
                         .setProtocols(
-                                CoreClusterTestProtocols.createProtocols()));
+                                CoreClusterTestProtocols.createProtocols())
+                        .setHeartbeatInterval(Duration.ofMillis(100)));
     }
 
     protected GridStorage createGridStorage() {
