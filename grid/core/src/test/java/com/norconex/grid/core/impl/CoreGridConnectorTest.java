@@ -14,13 +14,11 @@
  */
 package com.norconex.grid.core.impl;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
 
 import com.norconex.grid.core.BaseGridContext;
-import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.mocks.MockStorage;
 
 class CoreGridConnectorTest {
@@ -29,19 +27,6 @@ class CoreGridConnectorTest {
     void testConnect() {
         assertThatNoException().isThrownBy(
                 () -> new CoreGridConnector(new MockStorage()).connect(
-                        new BaseGridContext(null) {
-                            @Override
-                            protected void doInit() {
-                                // NOOP
-                            }
-                        }));
-        assertThatExceptionOfType(GridException.class).isThrownBy( //NOSONAR
-                () -> new CoreGridConnector(new MockStorage()).connect(
-                        new BaseGridContext(null) {
-                            @Override
-                            protected void doInit() {
-                                throw new GridException("Test");
-                            }
-                        }));
+                        new BaseGridContext(null)));
     }
 }

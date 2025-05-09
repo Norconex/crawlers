@@ -17,6 +17,7 @@ package com.norconex.grid.core.util;
 import java.io.Serializable;
 import java.util.function.Consumer;
 
+//TODO move to Nx Commons?
 @FunctionalInterface
 public interface SerializableConsumer<T>
         extends Serializable, Consumer<T> {

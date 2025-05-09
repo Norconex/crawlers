@@ -26,7 +26,7 @@ class GridPipelineTest {
     void testOfStringStageArray() {
         var pipe = GridPipeline.of("pipeId", new Stage(GridTaskBuilder
                 .create("id")
-                .executor(ctx -> "test")
+                .executor(g -> "test")
                 .build()));
         assertThat(pipe.getId()).isEqualTo("pipeId");
         assertThat(pipe.getStages()).hasSize(1);
@@ -37,7 +37,7 @@ class GridPipelineTest {
     void testOfStringGridTaskArray() {
         var pipe = GridPipeline.of("pipeId", GridTaskBuilder
                 .create("id")
-                .executor(ctx -> "test")
+                .executor(g -> "test")
                 .build());
         assertThat(pipe.getId()).isEqualTo("pipeId");
         assertThat(pipe.getStages()).hasSize(1);

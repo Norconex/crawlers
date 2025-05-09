@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.cluster.Cluster;
 import com.norconex.grid.core.cluster.ClusterTest;
 import com.norconex.grid.core.cluster.WithCluster;
@@ -54,8 +53,8 @@ public class LocalComputeTaskTest implements Serializable {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                public Serializable execute(GridContext ctx) {
-                    return fillFive(ctx);
+                public Serializable execute(Grid grid) {
+                    return fillFive(grid);
                 }
             });
             var set = getGridSet(grid);
@@ -70,8 +69,8 @@ public class LocalComputeTaskTest implements Serializable {
                 private static final long serialVersionUID = 1L;
 
                 @Override
-                public Serializable execute(GridContext ctx) {
-                    return fillFive(ctx);
+                public Serializable execute(Grid grid) {
+                    return fillFive(grid);
                 }
             });
             var set = getGridSet(grid);
@@ -90,8 +89,8 @@ public class LocalComputeTaskTest implements Serializable {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public Serializable execute(GridContext ctx) {
-                            return fillFive(ctx);
+                        public Serializable execute(Grid grid) {
+                            return fillFive(grid);
                         }
                     });
             var set = getGridSet(grid);
@@ -108,8 +107,8 @@ public class LocalComputeTaskTest implements Serializable {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public Serializable execute(GridContext ctx) {
-                            return fillFive(ctx);
+                        public Serializable execute(Grid grid) {
+                            return fillFive(grid);
                         }
                     });
 
@@ -130,8 +129,8 @@ public class LocalComputeTaskTest implements Serializable {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public Serializable execute(GridContext ctx) {
-                            return fillFive(ctx);
+                        public Serializable execute(Grid grid) {
+                            return fillFive(grid);
                         }
                     });
             var set = getGridSet(grid);
@@ -147,8 +146,8 @@ public class LocalComputeTaskTest implements Serializable {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public Serializable execute(GridContext ctx) {
-                            return fillFive(ctx);
+                        public Serializable execute(Grid grid) {
+                            return fillFive(grid);
                         }
                     });
             var set = getGridSet(grid);
@@ -166,8 +165,8 @@ public class LocalComputeTaskTest implements Serializable {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public Serializable execute(GridContext ctx) {
-                            return fillFive(ctx);
+                        public Serializable execute(Grid grid) {
+                            return fillFive(grid);
                         }
                     });
             var set = getGridSet(grid);
@@ -183,8 +182,8 @@ public class LocalComputeTaskTest implements Serializable {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public Serializable execute(GridContext ctx) {
-                            return fillFive(ctx);
+                        public Serializable execute(Grid grid) {
+                            return fillFive(grid);
                         }
                     });
             var set = getGridSet(grid);
@@ -223,8 +222,8 @@ public class LocalComputeTaskTest implements Serializable {
         }
 
         @Override
-        public Serializable execute(GridContext ctx) {
-            ctx.getGrid().getCompute().stopTask("testJob");
+        public Serializable execute(Grid grid) {
+            grid.getCompute().stopTask("testJob");
             while (!stopRequested) {
                 Sleeper.sleepMillis(100);
             }
@@ -238,16 +237,12 @@ public class LocalComputeTaskTest implements Serializable {
         }
     }
 
-    private static GridSet getGridSet(GridContext ctx) {
-        return getGridSet(ctx.getGrid());
-    }
-
     private static GridSet getGridSet(Grid grid) {
         return grid.getStorage().getSet("testSet");
     }
 
-    private static Serializable fillFive(GridContext ctx) {
-        var set = getGridSet(ctx);
+    private static Serializable fillFive(Grid grid) {
+        var set = getGridSet(grid);
         for (var i = 0; i < 5; i++) {
             set.add(UUID.randomUUID().toString());
         }

@@ -19,33 +19,12 @@ import java.nio.file.Path;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+//TODO transform to a builder if getting too many fields
 @RequiredArgsConstructor
 @Getter
 public class BaseGridContext implements GridContext {
 
     private final Path workDir;
 
-    private Grid grid;
-
-    /**
-     * {@inheritDoc}
-     * Sets the grid on this grid context and invoke {@link #doInit()}.
-     */
-    @Override
-    public final void init(Grid grid) {
-        if (this.grid != null) {
-            throw new IllegalArgumentException(
-                    "Grid context already initialized.");
-        }
-        this.grid = grid;
-        doInit();
-    }
-
-    /**
-     * Invoked after the grid has been set, which can be obtained
-     * via {@link #getGrid()}. Default implementation does nothing.
-     */
-    protected void doInit() {
-        // NOOP
-    }
+    //    private final Function<Grid, Object> taskContextProvider;
 }

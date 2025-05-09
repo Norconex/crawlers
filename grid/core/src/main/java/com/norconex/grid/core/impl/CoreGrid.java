@@ -20,8 +20,10 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,12 +47,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CoreGrid implements Grid {
 
+    /**
+     * Key used to store a default context. This key is used to register
+     * a context under a {@code null} or blank key, or when specifying a
+     * {@code null} context key in a submitted grid task.
+     */
+    public static final String DEFAULT_CONTEXT_KEY = "default";
+
     @Getter
     private final String gridName;
     @Getter
     private String nodeName;
-    @Getter
-    private final GridContext gridContext;
     @Getter
     private final CoreCompute compute;
     @Getter
@@ -67,6 +74,8 @@ public class CoreGrid implements Grid {
                 return t;
             });
 
+    private final Map<String, Object> localContexts = new ConcurrentHashMap<>();
+
     //--- JGroups ---
     private final JChannel channel;
 
@@ -76,10 +85,11 @@ public class CoreGrid implements Grid {
     public CoreGrid(
             CoreGridConnectorConfig connConfig,
             GridStorage storage,
+            //TODO goback to passing workdir only?  And let connectors
+            // needing to pass one, pass it?
             GridContext gridContext)
             throws Exception {
         LOG.debug(org.jgroups.Version.printDescription());
-        this.gridContext = gridContext;
         connectorConfig = connConfig;
         gridName = connConfig.getGridName();
         nodeName = connConfig.getNodeName();
@@ -146,6 +156,26 @@ public class CoreGrid implements Grid {
     public void stop() {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public void registerContext(String contextKey, Object context) {
+        localContexts.put(StringUtils.isBlank(contextKey)
+                ? DEFAULT_CONTEXT_KEY
+                : contextKey,
+                context);
+    }
+
+    @Override
+    public Object getContext(String contextKey) {
+        return localContexts.get(
+                StringUtils.isBlank(contextKey) ? DEFAULT_CONTEXT_KEY
+                        : contextKey);
+    }
+
+    @Override
+    public Object unregisterContext(String contextKey) {
+        return localContexts.remove(contextKey);
     }
 
     @Override

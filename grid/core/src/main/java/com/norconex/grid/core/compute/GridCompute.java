@@ -27,9 +27,9 @@ public interface GridCompute {
     /**
      * Execute a task on the grid.
      * @param task the task to execute
-     * @return execution status (never <code>null</code>)
+     * @return execution status (never {@code null})
      */
-    TaskStatus executeTask(@NonNull GridTask task);
+    TaskExecutionResult executeTask(@NonNull GridTask task);
 
     void stopTask(String taskId);
 
@@ -38,5 +38,4 @@ public interface GridCompute {
     void stopPipeline(@NonNull String pipelineId);
 
     int getActivePipelineStageIndex(@NonNull String pipelineId);
-
 }

@@ -12,13 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core.util;
+package com.norconex.grid.core;
 
-import java.io.Serializable;
+import lombok.RequiredArgsConstructor;
 
-//TODO move to Nx Commons?
-@FunctionalInterface
-public interface SerializableRunnable
-        extends Serializable, Runnable {
-
+@RequiredArgsConstructor
+public class TestTaskContext {
+    // add stuff here if testing context
 }

@@ -80,7 +80,6 @@ public class JdbcGridConnector
             var storage = new JdbcGridStorage(resolveDbAdapter(dataSource));
             var grid = new CoreGrid(configuration, storage, ctx);
             storage.init(grid);
-            ctx.init(grid);
             LOG.info("Connected to JDBC-backed Grid.");
             return grid;
         } catch (Exception e) {

@@ -14,7 +14,7 @@
  */
 package com.norconex.grid.core.impl.compute.pipeline;
 
-import com.norconex.grid.core.GridContext;
+import com.norconex.grid.core.Grid;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +25,7 @@ public final class PipeUtil {
     }
 
     public static PipeStageDirectives getStageDirectives(
-            GridContext gridContext, PipeExecutionContext pipeCtx) {
+            Grid grid, PipeExecutionContext pipeCtx) {
 
         var directives = new PipeStageDirectives();
         if (pipeCtx.isStopRequested()) {
@@ -95,7 +95,7 @@ public final class PipeUtil {
         }
 
         if (pipeCtx.getActiveStage().getOnlyIf() != null
-                && !pipeCtx.getActiveStage().getOnlyIf().test(gridContext)) {
+                && !pipeCtx.getActiveStage().getOnlyIf().test(grid)) {
             LOG.info("""
                     Pipeline {} stage index {} for task {} did not meet \
                     "onlyIf" condition. Skipping it.""",

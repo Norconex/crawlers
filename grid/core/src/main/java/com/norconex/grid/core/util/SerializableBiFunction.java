@@ -12,30 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.grid.core;
+package com.norconex.grid.core.util;
 
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.Serializable;
+import java.util.function.BiFunction;
 
-public class TestGridContext extends BaseGridContext {
-
-    private final Map<String, Object> context = new ConcurrentHashMap<>();
-
-    public TestGridContext(Path workDir) {
-        super(workDir);
-    }
-
-    public Object get(String key) {
-        return context.get(key);
-    }
-
-    public void set(String key, Object obj) {
-        context.put(key, obj);
-    }
-
-    public void clear() {
-        context.clear();
-    }
+//TODO move to Nx Commons?
+@FunctionalInterface
+public interface SerializableBiFunction<T, U, R>
+        extends Serializable, BiFunction<T, U, R> {
 
 }

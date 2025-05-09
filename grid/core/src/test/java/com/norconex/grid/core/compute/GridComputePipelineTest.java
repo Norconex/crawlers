@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.cluster.Cluster;
 import com.norconex.grid.core.cluster.ClusterTest;
@@ -46,18 +45,17 @@ public abstract class GridComputePipelineTest implements Serializable {
         var pipeline = GridPipeline.of("test_pipelineA",
                 new Stage(GridTaskBuilder.create("task1")
                         .singleNode()
-                        .processor(ctx -> new Store(ctx).addOne("itemA"))
+                        .processor(g -> new Store(g).addOne("itemA"))
                         .build()),
                 new Stage(GridTaskBuilder.create("task2")
                         .allNodes()
-                        .processor(ctx -> new Store(ctx).addOne("itemB"))
+                        .processor(g -> new Store(g).addOne("itemB"))
                         .build()),
                 new Stage(GridTaskBuilder.create("task3")
                         .singleNode()
                         .once()
-                        .processor(ctx -> new Store(ctx)
-                                .set("whatStage", ctx
-                                        .getGrid()
+                        .processor(g -> new Store(g)
+                                .set("whatStage", g
                                         .getCompute()
                                         .getActivePipelineStageIndex(
                                                 "test_pipelineA"))
@@ -66,7 +64,7 @@ public abstract class GridComputePipelineTest implements Serializable {
                 new Stage(GridTaskBuilder.create("task4")
                         .allNodes()
                         .once()
-                        .processor(ctx -> new Store(ctx).addOne("itemC"))
+                        .processor(g -> new Store(g).addOne("itemC"))
                         .build()));
 
         cluster.onThreeNewNodes(grid -> {
@@ -102,20 +100,20 @@ public abstract class GridComputePipelineTest implements Serializable {
                 // Runs OK
                 new Stage(GridTaskBuilder.create("task1")
                         .singleNode()
-                        .processor(ctx -> new Store(ctx).addOne("itemA"))
+                        .processor(g -> new Store(g).addOne("itemA"))
                         .build()),
 
                 // skipped for not meeting condition
                 new Stage(GridTaskBuilder.create("task2")
                         .singleNode()
-                        .processor(ctx -> new Store(ctx).addOne("itemB"))
+                        .processor(g -> new Store(g).addOne("itemB"))
                         .build()).withOnlyIf(ctx -> false),
 
                 // Fails the build after setting its value:
                 new Stage(GridTaskBuilder.create("task3")
                         .allNodes()
-                        .processor(ctx -> {
-                            new Store(ctx).addOne("itemC");
+                        .processor(g -> {
+                            new Store(g).addOne("itemC");
                             throw new GridException("Simulating failure.");
                         })
                         .build()),
@@ -123,13 +121,13 @@ public abstract class GridComputePipelineTest implements Serializable {
                 new Stage(GridTaskBuilder.create("task4")
                         .singleNode()
                         .once()
-                        .processor(ctx -> new Store(ctx).addOne("itemD"))
+                        .processor(g -> new Store(g).addOne("itemD"))
                         .build()),
                 // should "always" get executed:
                 new Stage(GridTaskBuilder.create("task5")
                         .allNodes()
                         .once()
-                        .processor(ctx -> new Store(ctx).add("itemE", 111))
+                        .processor(g -> new Store(g).add("itemE", 111))
                         .build()).withAlways(true));
 
         cluster.onThreeNewNodes(grid -> {
@@ -155,16 +153,16 @@ public abstract class GridComputePipelineTest implements Serializable {
         var pipeline = GridPipeline.of("test_pipelineC",
                 new Stage(GridTaskBuilder.create("task1")
                         .allNodes()
-                        .processor(ctx -> new Store(ctx).addOne(countKey)) // 2
+                        .processor(g -> new Store(g).addOne(countKey)) // 2
                         .build()),
                 new Stage(GridTaskBuilder.create("task2")
                         .allNodes()
-                        .processor(ctx -> new Store(ctx).addOne(countKey)) // 4
+                        .processor(g -> new Store(g).addOne(countKey)) // 4
                         .build()),
                 new Stage(GridTaskBuilder.create("task3")
                         .allNodes()
-                        .processor(ctx -> {
-                            var store = new Store(ctx).addOne(countKey); // 6
+                        .processor(g -> {
+                            var store = new Store(g).addOne(countKey); // 6
                             if (store.getInt(countKey) == thirdStageCount) {
                                 LOG.debug("Waiting for 3rd node to join...");
                             }
@@ -174,7 +172,7 @@ public abstract class GridComputePipelineTest implements Serializable {
                         .build()),
                 new Stage(GridTaskBuilder.create("task4")
                         .allNodes()
-                        .processor(ctx -> new Store(ctx).addOne(countKey)) //10
+                        .processor(g -> new Store(g).addOne(countKey)) //10
                         .build()));
 
         var nodeCreated = new AtomicBoolean();
@@ -208,12 +206,12 @@ public abstract class GridComputePipelineTest implements Serializable {
         var pipeline = GridPipeline.of("test_pipelineD",
                 new Stage(GridTaskBuilder.create("task1")
                         .allNodes()
-                        .processor(ctx -> new Store(ctx).addOne(countKey)) // 3
+                        .processor(g -> new Store(g).addOne(countKey)) // 3
                         .build()),
                 new Stage(GridTaskBuilder.create("task2")
                         .allNodes()
-                        .processor(ctx -> {
-                            var store = new Store(ctx);
+                        .processor(g -> {
+                            var store = new Store(g);
                             LOG.debug("Waiting for unblocking...");
                             while (!store.getBool(unblockedKey)) {
                                 Sleeper.sleepMillis(100);
@@ -228,11 +226,11 @@ public abstract class GridComputePipelineTest implements Serializable {
                 // stop here
                 new Stage(GridTaskBuilder.create("task3")
                         .allNodes()
-                        .processor(ctx -> new Store(ctx).addOne(countKey)) //N/A
+                        .processor(g -> new Store(g).addOne(countKey)) //N/A
                         .build()),
                 new Stage(GridTaskBuilder.create("task4")
                         .allNodes()
-                        .processor(ctx -> new Store(ctx).addOne(countKey)) //N/A
+                        .processor(g -> new Store(g).addOne(countKey)) //N/A
                         .build()));
 
         var nodeCreated = new AtomicBoolean();
@@ -267,10 +265,6 @@ public abstract class GridComputePipelineTest implements Serializable {
         private final GridMap<Integer> bagInt;
         private final GridMap<String> bagStr;
         private final GridMap<Boolean> bagBool;
-
-        public Store(GridContext ctx) {
-            this(ctx.getGrid());
-        }
 
         public Store(Grid grid) {
             bagInt = grid.getStorage().getMap("bagInt", Integer.class);

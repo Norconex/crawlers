@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.compute.TaskState;
-import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.storage.GridMap;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class LocalTaskCoordinator {
                 grid.getStorage().getMap("task-state", TaskState.class);
     }
 
-    TaskStatus executeTask(GridTask task) {
+    TaskExecutionResult executeTask(GridTask task) {
         // Check if ok to run
         if (activeTasks.containsKey(task.getId())) {
             throw new IllegalStateException(
@@ -59,7 +59,7 @@ public class LocalTaskCoordinator {
                     already ran in this crawl session with \
                     status: "{}".""",
                         task.getId(), prevOrCurrentState);
-                return new TaskStatus(
+                return new TaskExecutionResult(
                         TaskState.FAILED,
                         null,
                         "Task already ran with state: " + prevOrCurrentState);
@@ -69,14 +69,15 @@ public class LocalTaskCoordinator {
         try {
             activeTasks.put(task.getId(), task);
             taskStateStore.put(task.getId(), TaskState.RUNNING);
-            var result = task.execute(grid.getGridContext());
-            var status = new TaskStatus(TaskState.COMPLETED, result, null);
+            var result = task.execute(grid);
+            var status =
+                    new TaskExecutionResult(TaskState.COMPLETED, result, null);
             var aggStatus = task.aggregate(List.of(status));
             taskStateStore.put(task.getId(), TaskState.COMPLETED);
             return aggStatus;
         } catch (Exception e) {
             LOG.error("task {} failed.", task.getId(), e);
-            var status = new TaskStatus(
+            var status = new TaskExecutionResult(
                     TaskState.FAILED,
                     null,
                     ExceptionUtil.getFormattedMessages(e));

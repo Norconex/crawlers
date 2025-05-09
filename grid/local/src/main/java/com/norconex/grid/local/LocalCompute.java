@@ -17,7 +17,7 @@ package com.norconex.grid.local;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.compute.GridPipeline;
 import com.norconex.grid.core.compute.GridTask;
-import com.norconex.grid.core.compute.TaskStatus;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class LocalCompute implements GridCompute {
     }
 
     @Override
-    public TaskStatus executeTask(@NonNull GridTask task) {
+    public TaskExecutionResult executeTask(@NonNull GridTask task) {
         return taskCoord.executeTask(task);
     }
 

@@ -18,7 +18,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-import com.norconex.grid.core.GridContext;
+import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.util.SerializableConsumer;
 import com.norconex.grid.core.util.SerializableFunction;
 import com.norconex.grid.core.util.SerializableRunnable;
@@ -45,8 +45,9 @@ public final class GridTaskBuilder implements Serializable {
      * Defaults to {@link ExecutionMode#ALL_NODES}.
      */
     private ExecutionMode executionMode;
-    private SerializableFunction<GridContext, Serializable> executor;
-    private SerializableFunction<List<TaskStatus>, TaskStatus> aggregator;
+    private SerializableFunction<Grid, Serializable> executor;
+    private SerializableFunction<List<TaskExecutionResult>,
+            TaskExecutionResult> aggregator;
     private SerializableRunnable stopHandler;
 
     private GridTaskBuilder() {
@@ -86,33 +87,35 @@ public final class GridTaskBuilder implements Serializable {
     }
 
     /**
-     * Executes the task and return a result.
+     * An executor that will execute a task and return a result.
+     * It is given a context, as specified by the grid consuming node.
      * @param executor the executor
-     * @return execution result
+     * @return this, for chaining
      */
     public GridTaskBuilder executor(
-            SerializableFunction<GridContext, Serializable> executor) {
+            SerializableFunction<Grid, Serializable> executor) {
         this.executor = executor;
         return this;
     }
 
     /**
-     * Same as {@link #executor(SerializableFunction)} but does not return
-     * a value. When invoked, {@link GridTask#execute(GridContext)} will
-     * return <code>null</code>.
+     * A processor that will process a task without returning a result.
+     * It is given a context, as specified by the grid consuming node.
+     * When invoked, {@link GridTask#execute(Grid)} will
+     * return {@code null}.
      * @param processor the processor
      * @return this, for chaining
      */
-    public GridTaskBuilder
-            processor(SerializableConsumer<GridContext> processor) {
-        executor = ctx -> {
-            processor.accept(ctx);
+    public GridTaskBuilder processor(
+            SerializableConsumer<Grid> processor) {
+        executor = grid -> {
+            processor.accept(grid);
             return null;
         };
         return this;
     }
 
-    public GridTask build() {
+    public BaseGridTask build() {
         Objects.requireNonNull(id, "'id' must not be null.");
         Objects.requireNonNull(executor, "'executor' must not be null.");
         return new BaseGridTask(id, executionMode) {
@@ -133,17 +136,17 @@ public final class GridTaskBuilder implements Serializable {
             }
 
             @Override
-            public Serializable execute(GridContext gridContext) {
-                return executor.apply(gridContext);
+            public Serializable execute(Grid grid) {
+                return executor.apply(grid);
             }
 
             @Override
-            public TaskStatus aggregate(List<TaskStatus> results) {
+            public TaskExecutionResult
+                    aggregate(List<TaskExecutionResult> results) {
                 if (aggregator != null) {
                     return aggregator.apply(results);
                 }
                 return super.aggregate(results);
-
             }
         };
     }

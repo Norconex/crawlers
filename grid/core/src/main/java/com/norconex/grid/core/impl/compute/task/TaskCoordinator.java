@@ -35,7 +35,7 @@ import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
 import com.norconex.grid.core.compute.TaskState;
-import com.norconex.grid.core.compute.TaskStatus;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.impl.compute.WorkDispatcher;
@@ -70,7 +70,7 @@ public class TaskCoordinator {
         taskTimeout = grid.getConnectorConfig().getTaskTimeout();
     }
 
-    public TaskStatus executeTask(GridTask task) throws Exception {
+    public TaskExecutionResult executeTask(GridTask task) throws Exception {
 
         //TODO, not a supported use case yet, but if joining remotely to
         // send an execution request, we'll have to make sure the coordinator
@@ -91,7 +91,7 @@ public class TaskCoordinator {
             LOG.error("Task {} is marked to run once, but already ran in this "
                     + "grid session with status: {}. Failing it.",
                     task.getId(), state);
-            var taskStatus = new TaskStatus(
+            var taskStatus = new TaskExecutionResult(
                     TaskState.FAILED,
                     null,
                     "Task already ran in this grid session with state: "
@@ -130,9 +130,9 @@ public class TaskCoordinator {
         dispatcher.stopTaskOnNodes(taskId);
     }
 
-    private TaskStatus awaitCoordinatorDoneSignal(GridTask task) {
+    private TaskExecutionResult awaitCoordinatorDoneSignal(GridTask task) {
         var startTime = new AtomicLong(System.currentTimeMillis());
-        var taskStatusRef = new AtomicReference<TaskStatus>();
+        var taskStatusRef = new AtomicReference<TaskExecutionResult>();
         ConcurrentUtil.waitUntil(() -> {
             if (localWorker.isNodeTaskStopRequested(task.getId())) {
                 LOG.info("""
@@ -140,7 +140,7 @@ public class TaskCoordinator {
                     task {} while waiting for coordinator signal. \
                     Stopping (no longer waiting).""",
                         grid.getNodeAddress(), task.getId());
-                taskStatusRef.set(new TaskStatus(
+                taskStatusRef.set(new TaskExecutionResult(
                         TaskState.COMPLETED, null, null));
                 return true;
             }
@@ -178,7 +178,7 @@ public class TaskCoordinator {
         return taskStatusRef.get();
     }
 
-    private TaskStatus trackAndAggregateResult(GridTask task) throws Exception {
+    private TaskExecutionResult trackAndAggregateResult(GridTask task) throws Exception {
 
         taskStateStore.put(task.getId(), TaskState.RUNNING);
 
@@ -186,7 +186,7 @@ public class TaskCoordinator {
 
         // mark the starting status for all nodes to be PENDING
         grid.getGridMembers().forEach(addr -> agg.lastProgresses.put(
-                addr, new TaskProgress(new TaskStatus(), agg.taskStartTime)));
+                addr, new TaskProgress(new TaskExecutionResult(), agg.taskStartTime)));
 
         while (!agg.allDone && !agg.taskExpired()) {
             var pendingNodes = getPendingNodes(task, agg.doneNodes);
@@ -216,10 +216,10 @@ public class TaskCoordinator {
         }
     }
 
-    private TaskStatus notifyNodesOfGridProgressOrAggregate(
+    private TaskExecutionResult notifyNodesOfGridProgressOrAggregate(
             AggregatedContext agg, GridTask task, boolean coordDone)
             throws Exception {
-        TaskStatus status = null;
+        TaskExecutionResult status = null;
         if (!agg.allDone) {
             // if not all nodes are done but the coordinator is, it likely
             // means a task has expired.
@@ -236,9 +236,9 @@ public class TaskCoordinator {
                 }
                 LOG.error(err);
                 taskStateStore.put(task.getId(), TaskState.FAILED);
-                status = new TaskStatus(TaskState.FAILED, null, err);
+                status = new TaskExecutionResult(TaskState.FAILED, null, err);
             } else {
-                status = new TaskStatus(TaskState.RUNNING, null, null);
+                status = new TaskExecutionResult(TaskState.RUNNING, null, null);
             }
         } else {
             status = task.aggregate(new ArrayList<>(agg.lastProgresses
@@ -319,7 +319,7 @@ public class TaskCoordinator {
         LOG.error(error);
         if (!TaskUtil.isState(progress, TaskState.FAILED)) {
             agg.lastProgresses.put(srcNode, new TaskProgress(
-                    new TaskStatus(TaskState.FAILED, null, error),
+                    new TaskExecutionResult(TaskState.FAILED, null, error),
                     heartbeat));
         }
     }

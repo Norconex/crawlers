@@ -15,10 +15,11 @@
 package com.norconex.grid.core.util;
 
 import java.io.Serializable;
+import java.util.function.BiConsumer;
 
 //TODO move to Nx Commons?
 @FunctionalInterface
-public interface SerializableRunnable
-        extends Serializable, Runnable {
+public interface SerializableBiConsumer<T, U>
+        extends Serializable, BiConsumer<T, U> {
 
 }

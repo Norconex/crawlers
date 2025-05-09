@@ -75,10 +75,10 @@ public final class ConcurrentUtil {
      * Calls {@link Future#get()} and wraps thread related exceptions
      * in a runtime CompletionException. See
      * {@link #wrapAsCompletionException(Exception)} for more details.
-     * Passing a <code>null</code> future has no effect and returns
-     * <code>null</code>.
+     * Passing a {@code null} future has no effect and returns
+     * {@code null}.
      * @param future the future to get
-     * @return the completed future value, if any, or <code>null</code>
+     * @return the completed future value, if any, or {@code null}
      */
     public static <T> T get(Future<T> future) {
         if (future == null) {
@@ -95,13 +95,13 @@ public final class ConcurrentUtil {
      * Calls {@link Future#get(long, TimeUnit)} and wraps thread related
      * exceptions in a runtime CompletionException. See
      * {@link #wrapAsCompletionException(Exception)} for more details.
-     * Passing a <code>null</code> future has no effect and returns
-     * <code>null</code>.
+     * Passing a {@code null} future has no effect and returns
+     * {@code null}.
      * @param <T> future return value
      * @param future the future to get
      * @param timeout
      * @param unit
-     * @return the completed future value, if any, or <code>null</code>
+     * @return the completed future value, if any, or {@code null}
      */
     public static <T> T get(Future<T> future, long timeout, TimeUnit unit) {
         if (future == null) {

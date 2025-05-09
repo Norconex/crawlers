@@ -17,9 +17,12 @@ package com.norconex.grid.local;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.Grid;
@@ -44,8 +47,14 @@ import lombok.ToString;
 @ToString
 public class LocalGrid implements Grid {
 
-    @Getter
-    private final GridContext gridContext;
+    //TODO create an abstract BaseGrid and move at least the context map?
+
+    /**
+     * Key used to store a default context. This key is used to register
+     * a context under a {@code null} or blank key, or when specifying a
+     * {@code null} context key in a submitted grid task.
+     */
+    public static final String DEFAULT_CONTEXT_KEY = "default";
 
     // private final MVStore mvstore;
     private final LocalStorage gridStorage;
@@ -70,11 +79,12 @@ public class LocalGrid implements Grid {
     // name.
     private static final AtomicInteger NODE_COUNT = new AtomicInteger();
 
+    private final Map<String, Object> localContexts = new ConcurrentHashMap<>();
+
     public LocalGrid(
             MVStore mvstore, String gridName, GridContext gridContext) {
         //        this.mvstore = mvstore;
         this.gridName = gridName;
-        this.gridContext = gridContext;
         nodeName = "local-node-" + NODE_COUNT.getAndIncrement();
         gridStorage = new LocalStorage(mvstore);
         gridCompute = new LocalCompute(this);
@@ -125,6 +135,26 @@ public class LocalGrid implements Grid {
         stopHandler.stopListening();
         //        pipeline().stopTask(null);
         //        getCompute().stopTask(null);
+    }
+
+    @Override
+    public void registerContext(String contextKey, Object context) {
+        localContexts.put(StringUtils.isBlank(contextKey)
+                ? DEFAULT_CONTEXT_KEY
+                : contextKey,
+                context);
+    }
+
+    @Override
+    public Object getContext(String contextKey) {
+        return localContexts.get(
+                StringUtils.isBlank(contextKey) ? DEFAULT_CONTEXT_KEY
+                        : contextKey);
+    }
+
+    @Override
+    public Object unregisterContext(String contextKey) {
+        return localContexts.remove(contextKey);
     }
 
     /**

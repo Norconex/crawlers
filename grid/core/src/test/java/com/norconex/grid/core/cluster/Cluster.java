@@ -28,9 +28,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.function.FailableConsumer;
 
+import com.norconex.grid.core.BaseGridContext;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
-import com.norconex.grid.core.TestGridContext;
+import com.norconex.grid.core.TestTaskContext;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -190,8 +191,9 @@ public class Cluster implements Closeable {
         List<Grid> newNodes = new ArrayList<>();
         for (var i = 0; i < numNodes; i++) {
             var nodeName = gridName + "-node-" + nodeCount.incrementAndGet();
-            var node = connectorFactory.create(
-                    gridName, nodeName).connect(new TestGridContext(tempDir));
+            var node = connectorFactory.create(gridName, nodeName).connect(
+                    new BaseGridContext(tempDir));
+            node.registerContext(null, new TestTaskContext());
             newNodes.add(node);
             nodes.put(node, false);
         }

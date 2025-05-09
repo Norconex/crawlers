@@ -23,7 +23,7 @@ import org.jgroups.util.Rsp;
 import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
 import com.norconex.grid.core.compute.TaskState;
-import com.norconex.grid.core.compute.TaskStatus;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.impl.CoreGrid;
 
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +54,7 @@ public final class TaskUtil {
     public static boolean isState(TaskProgress progress, TaskState state) {
         return ofNullable(progress)
                 .map(TaskProgress::getStatus)
-                .map(TaskStatus::getState)
+                .map(TaskExecutionResult::getState)
                 .filter(s -> s == state)
                 .isPresent();
     }

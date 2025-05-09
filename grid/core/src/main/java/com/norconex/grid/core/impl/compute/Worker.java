@@ -26,8 +26,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.compute.TaskState;
-import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.task.TaskProgress;
 
@@ -92,7 +92,7 @@ public class Worker {
 
         LOG.info("Node {} starting task {}", nodeAddr, taskId);
         localTaskProgresses.put(task.getId(), new TaskProgress(
-                new TaskStatus(TaskState.RUNNING, null, null),
+                new TaskExecutionResult(TaskState.RUNNING, null, null),
                 System.currentTimeMillis()));
 
         // Schedule heartbeats at interval
@@ -102,14 +102,16 @@ public class Worker {
         // Run task asynchronously
         Executors.newSingleThreadExecutor().submit(() -> {
             try {
-                var result = task.execute(grid.getGridContext());
+                var result = task.execute(grid);
                 localTaskProgresses.put(taskId, new TaskProgress(
-                        new TaskStatus(TaskState.COMPLETED, result, null),
+                        new TaskExecutionResult(
+                                TaskState.COMPLETED, result, null),
                         System.currentTimeMillis()));
                 LOG.info("Task {} completed on node {}", taskId, nodeAddr);
             } catch (Exception e) {
                 localTaskProgresses.put(taskId, new TaskProgress(
-                        new TaskStatus(TaskState.FAILED, null, e.getMessage()),
+                        new TaskExecutionResult(TaskState.FAILED, null,
+                                e.getMessage()),
                         System.currentTimeMillis()));
                 LOG.error("Task {} failed on node {}", taskId, nodeAddr, e);
             } finally {
@@ -192,7 +194,7 @@ public class Worker {
     private boolean isTaskDone(GridTask task) {
         return ofNullable(localTaskProgresses.get(task.getId()))
                 .map(TaskProgress::getStatus)
-                .map(TaskStatus::getState)
+                .map(TaskExecutionResult::getState)
                 .filter(TaskState::isTerminal)
                 .isPresent();
     }
@@ -200,7 +202,7 @@ public class Worker {
     private boolean isTaskRunning(GridTask task) {
         return ofNullable(localTaskProgresses.get(task.getId()))
                 .map(TaskProgress::getStatus)
-                .map(TaskStatus::getState)
+                .map(TaskExecutionResult::getState)
                 .filter(TaskState::isRunning)
                 .isPresent();
     }

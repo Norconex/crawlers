@@ -52,15 +52,15 @@ public class CoreGridConnectorConfig {
 
     /**
      * Logical grid name to connect to. All nodes joining on the same name
-     * makes up the grid.  Cannot be <code>null</code>. Default name is
+     * makes up the grid.  Cannot be {@code null}. Default name is
      * <code>default_grid</code>.
      */
     @NonNull
     private String gridName = "default_grid";
 
     /**
-     * Name unique to a grid node. Leave <code>null</code> to have it
-     * auto-assigned. Default is <code>null</code>.
+     * Name unique to a grid node. Leave {@code null} to have it
+     * auto-assigned. Default is {@code null}.
      */
     private String nodeName = null;
 
@@ -68,7 +68,7 @@ public class CoreGridConnectorConfig {
      * Maximum amount of time a node can stop responding before being
      * considered "expired". An expired node will be ignored when
      * establishing a task completion and for result aggregation.
-     * Default is 30 seconds. Cannot be <code>null</code>.
+     * Default is 30 seconds. Cannot be {@code null}.
      */
     @NonNull
     private Duration nodeTimeout = Duration.ofSeconds(30);
@@ -77,7 +77,7 @@ public class CoreGridConnectorConfig {
      * Maximum amount of time a task can run on the grid, after which, it is
      * considered to have failed and will abort. Use when you can
      * estimate how long a task is supposed to take. Default
-     * is <code>null</code>, which means no timeout.
+     * is {@code null}, which means no timeout.
      */
     private Duration taskTimeout = null;
 
@@ -85,7 +85,7 @@ public class CoreGridConnectorConfig {
      * Amount of time between periodic check on node task execution statuses.
      * If you have a lot of nodes, you can configure a larger delay to
      * minimize network traffic. Default is 1 second. Cannot
-     * be <code>null</code>
+     * be {@code null}
      */
     @NonNull
     private Duration heartbeatInterval = Duration.ofSeconds(1);

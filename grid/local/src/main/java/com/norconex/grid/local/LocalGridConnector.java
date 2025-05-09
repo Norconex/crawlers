@@ -144,9 +144,7 @@ public class LocalGridConnector
         }
         mvstore.commit();
 
-        var grid = new LocalGrid(mvstore, gridName, gridContext);
-        gridContext.init(grid);
-        return grid;
+        return new LocalGrid(mvstore, gridName, gridContext);
     }
 
     @Override

@@ -16,16 +16,24 @@ package com.norconex.grid.core;
 
 import java.nio.file.Path;
 
+/**
+ * Provides required and optional contextual properties for {@link Grid}
+ * implementations to initialize properly.
+ */
 public interface GridContext {
-
+    /**
+     * Returns the working directory for resolving relative paths,
+     * or {@code null}
+     * if unspecified. Implementations should default to a suitable directory
+     * (e.g., {@code System.getProperty("user.dir")}) if {@code null}.
+     * @return working directory
+     */
     Path getWorkDir();
 
-    Grid getGrid();
-
-    /**
-     * Method invoked by the grid connector before returning the Grid.
-     * Cannot be invoked again (will throw an {@link IllegalStateException}.
-     * @param grid a grid instance
-     */
-    void init(Grid grid);
+    //    /**
+    //     * Supplies a task context created once per node and shared across all
+    //     * tasks executed on that node.
+    //     * @return task context
+    //     */
+    //    Function<Grid, Object> getTaskContextProvider();
 }

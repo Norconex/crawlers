@@ -33,7 +33,7 @@ public abstract class BaseGridTask implements GridTask {
     private final String id;
     private final ExecutionMode executionMode;
 
-    public BaseGridTask(@NonNull String id, ExecutionMode executionMode) {
+    protected BaseGridTask(@NonNull String id, ExecutionMode executionMode) {
         this.id = id;
         this.executionMode =
                 ofNullable(executionMode).orElse(ExecutionMode.ALL_NODES);
@@ -87,9 +87,8 @@ public abstract class BaseGridTask implements GridTask {
     }
 
     /**
-     * {@inheritDoc}
      * <p>
-     * Default aggregation implementation uses basic heuristics.
+     * This implementation uses basic aggregation heuristics.
      * </p>
      * <p>
      * If a single result is
@@ -113,23 +112,23 @@ public abstract class BaseGridTask implements GridTask {
      * @return aggregated result
      */
     @Override
-    public TaskStatus aggregate(List<TaskStatus> results) {
+    public TaskExecutionResult aggregate(List<TaskExecutionResult> results) {
         if (CollectionUtils.isEmpty(results)) {
-            return new TaskStatus(TaskState.FAILED, null,
+            return new TaskExecutionResult(TaskState.FAILED, null,
                     "Task execution returned no status.");
         }
         if (results.size() < 2) {
             return results.get(0);
         }
-        TaskStatus status = null;
-        for (TaskStatus nodeStatus : results) {
+        TaskExecutionResult status = null;
+        for (TaskExecutionResult nodeStatus : results) {
             status = nodeStatus;
             if (status != null && status.getState() == TaskState.COMPLETED) {
                 break;
             }
         }
         if (status == null || status.getState() == null) {
-            return new TaskStatus(TaskState.FAILED, null,
+            return new TaskExecutionResult(TaskState.FAILED, null,
                     "Task execution returned no valid status.");
         }
         return status;

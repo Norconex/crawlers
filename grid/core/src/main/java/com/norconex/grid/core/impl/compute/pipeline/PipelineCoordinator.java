@@ -47,7 +47,8 @@ public class PipelineCoordinator {
                 "pipeline_stage", Integer.class);
     }
 
-    public void executePipeline(GridPipeline pipeline) throws Exception {
+    public void
+            executePipeline(GridPipeline pipeline) throws Exception {
         var ctx = new PipeExecutionContext();
         ctx.setPipeline(pipeline);
 
@@ -72,9 +73,10 @@ public class PipelineCoordinator {
             ctx.setStartIndex(getStartingStageIndex(pipeline));
             for (var i = 0; i < pipeline.getStages().size(); i++) {
                 ctx.setCurrentIndex(i);
-                ctx.setActiveStage(
-                        pipeline.getStages().get(ctx.getCurrentIndex()));
-                ctx.setActiveTask(ctx.getActiveStage().getTask());
+                ctx.setActiveStage(pipeline.getStages()
+                        .get(ctx.getCurrentIndex()));
+                ctx.setActiveTask(
+                        ctx.getActiveStage().getTask());
                 executeStage(ctx);
             }
             // marking as complete
@@ -85,8 +87,7 @@ public class PipelineCoordinator {
     }
 
     private void executeStage(PipeExecutionContext ctx) {
-        var directives = PipeUtil.getStageDirectives(
-                grid.getGridContext(), ctx);
+        var directives = PipeUtil.getStageDirectives(grid, ctx);
         if (directives.isMarkActive()) {
             pipeActiveStages.put(
                     ctx.getPipeline().getId(), ctx.getCurrentIndex());

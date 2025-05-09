@@ -19,8 +19,8 @@ import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.compute.GridPipeline;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.compute.TaskState;
-import com.norconex.grid.core.compute.TaskStatus;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.pipeline.PipelineCoordinator;
 import com.norconex.grid.core.impl.compute.task.TaskCoordinator;
@@ -51,17 +51,17 @@ public class CoreCompute implements GridCompute {
     }
 
     @Override
-    public TaskStatus executeTask(@NonNull GridTask task) {
+    public TaskExecutionResult executeTask(@NonNull GridTask task) {
         try {
             var status = taskCoord.executeTask(task);
             if (status == null || status.getState() == null) {
-                return new TaskStatus(TaskState.FAILED, null,
+                return new TaskExecutionResult(TaskState.FAILED, null,
                         "Could not determine state of executed task.");
             }
             return status;
         } catch (Exception e) {
             LOG.error("Exception occured executing task {}", task.getId(), e);
-            return new TaskStatus(TaskState.FAILED, null,
+            return new TaskExecutionResult(TaskState.FAILED, null,
                     "Exception occured executing task " + task.getId() + ": "
                             + ExceptionUtil.getFormattedMessages(e));
         }

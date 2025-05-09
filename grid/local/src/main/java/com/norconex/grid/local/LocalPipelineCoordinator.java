@@ -88,8 +88,7 @@ public class LocalPipelineCoordinator {
     }
 
     private void executeStage(PipeExecutionContext ctx) {
-        var directives = PipeUtil.getStageDirectives(
-                grid.getGridContext(), ctx);
+        var directives = PipeUtil.getStageDirectives(grid, ctx);
         if (directives.isMarkActive()) {
             pipeActiveStages.put(
                     ctx.getPipeline().getId(), ctx.getCurrentIndex());

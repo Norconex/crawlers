@@ -38,7 +38,7 @@ public interface Grid extends Closeable {
      * Holds context data specific to each grid instances.
      * @return grid context
      */
-    GridContext getGridContext();
+    // GridContext getGridContext();
 
     /**
      * Logical name unique to each node in a cluster.
@@ -103,4 +103,28 @@ public interface Grid extends Closeable {
      *         or {@code timeout <= 0}
      */
     CompletableFuture<Void> awaitMinimumNodes(int count, Duration timeout);
+
+    /**
+     * Register a context object that will be available locally on this node,
+     * and passed as argument to grid tasks referencing its key. Can be any
+     * object type.
+     * @param contextKey A unique identifier for this context
+     * @param context The context object (not serialized)
+     */
+    void registerContext(String contextKey, Object context);
+
+    /**
+     * Get a registered context object by its key.
+     * @param contextKey The unique identifier of a registered context
+     * @return the associated context object, or {@code null} if none
+     *       is none could be found under the given key.
+     */
+    Object getContext(String contextKey);
+
+    /**
+     * Unregister a context object that is no longer needed by any task
+     * @param contextKey The unique identifier of a registered context
+     * @return the object removed, if any
+     */
+    Object unregisterContext(String contextKey);
 }

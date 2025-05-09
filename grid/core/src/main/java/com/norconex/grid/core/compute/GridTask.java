@@ -17,7 +17,7 @@ package com.norconex.grid.core.compute;
 import java.io.Serializable;
 import java.util.List;
 
-import com.norconex.grid.core.GridContext;
+import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
 
 /**
@@ -31,9 +31,13 @@ public interface GridTask extends Serializable {
 
     ExecutionMode getExecutionMode();
 
-    // each node return value will make up a list that will go through
-    // the aggregate method.
-    Serializable execute(GridContext gridContext);
+    /**
+     * Executes the task.
+     * @param grid the grid instance executing this task
+     * @return execution result, or {@code null} when the execution does not
+     *         produce any result
+     */
+    Serializable execute(Grid grid);
 
     /**
      * Whether the task is meant to be run only once per grid session
@@ -44,8 +48,7 @@ public interface GridTask extends Serializable {
     boolean isOnce();
 
     //OR make this one part of compute.executeTask argument?
-    // or put a map of reducers in GridContext, keyed by taskId, or
-    // task type?
+    // or put a map of reducers, keyed by taskId, or task type?
     /**
      * Aggregates all results from running execute on different nodes.
      * Meant to be called by a coordinator that sends back the final result
@@ -53,7 +56,7 @@ public interface GridTask extends Serializable {
      * @param results list of results from all nodes
      * @return aggregated result.
      */
-    TaskStatus aggregate(List<TaskStatus> results);
+    TaskExecutionResult aggregate(List<TaskExecutionResult> results);
 
     /**
      * Request for the job to stop. The request can be asynchronous and return

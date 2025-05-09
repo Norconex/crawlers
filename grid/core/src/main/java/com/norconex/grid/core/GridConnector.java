@@ -19,7 +19,13 @@ package com.norconex.grid.core;
  */
 public interface GridConnector {
 
-    Grid connect(GridContext ctx);
+    /**
+     * Creates a Grid instance with the given configuration and context.
+     * @param config Grid configuration (required).
+     * @param gridContext grid context for initialization
+     * @return A configured Grid instance.
+     */
+    Grid connect(GridContext gridContext);
 
     /**
      * Short-lived method that requests an existing grid to stop.
@@ -27,9 +33,9 @@ public interface GridConnector {
      * initialization required to send a stop request to the grid
      * and will not participate in existing grid activities before
      * exiting. It does not wait for the grid to stop to return.
-     * In some cases, it may not even have invoke the
+     * In some cases, it may not even have to invoke the
      * {@link #connect(GridContext)} method.
-     * @param workDir working directory
+     * @param gridContext grid context for initialization
      */
-    void shutdownGrid(GridContext ctx);
+    void shutdownGrid(GridContext gridContext);
 }
