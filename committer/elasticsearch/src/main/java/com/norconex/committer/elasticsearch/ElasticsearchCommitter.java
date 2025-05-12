@@ -75,7 +75,7 @@ import lombok.extern.slf4j.Slf4j;
  * By default the "body" of a document is read as an input stream
  * and stored in a "content" field.  You can change that target field name
  * with {@link ElasticsearchCommitterConfig#setTargetContentField(String)}.
- * If you set the target content field to <code>null</code>, it will
+ * If you set the target content field to {@code null}, it will
  * effectively skip storing the content stream.
  * </p>
  *

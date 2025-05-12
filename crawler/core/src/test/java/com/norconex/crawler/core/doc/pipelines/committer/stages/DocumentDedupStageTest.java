@@ -34,7 +34,7 @@ class DocumentDedupStageTest {
     void testTest() {
         new MockCrawlerBuilder(tempDir).configModifier(c -> {
             c.setDocumentDeduplicate(true);
-        }).withInitializedCrawlerContext(ctx -> {
+        }).withCrawlContext(ctx -> {
             // first time checksum is not found and will cache it.
             var doc1 = CrawlDocStubs.crawlDoc("ref1", "content1");
             doc1.getDocContext().setContentChecksum("content-checksum");
@@ -45,7 +45,7 @@ class DocumentDedupStageTest {
 
         new MockCrawlerBuilder(tempDir).configModifier(c -> {
             c.setDocumentDeduplicate(true);
-        }).withInitializedCrawlerContext(ctx -> {
+        }).withCrawlContext(ctx -> {
             // second time checksum is found and will reject the dupl.
             var doc2 = CrawlDocStubs.crawlDoc("ref2", "content2");
             doc2.getDocContext().setContentChecksum("content-checksum");

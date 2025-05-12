@@ -25,8 +25,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocLedger;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.grid.core.storage.GridMap;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,12 +52,12 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     private final MetricsCache cache = new MetricsCache();
 
     @Override
-    public void init(CrawlerContext crawlerContext) {
+    public void init(CrawlContext crawlContext) {
         cache.clear();
-        ledger = crawlerContext.getDocLedger();
-        eventCountsStore = crawlerContext.getGrid().getStorage().getMap(
+        ledger = crawlContext.getDocLedger();
+        eventCountsStore = crawlContext.getGrid().getStorage().getMap(
                 "CrawlerMetrics.eventCounts", Long.class);
-        crawlerContext.getEventManager().addListener(
+        crawlContext.getEventManager().addListener(
                 event -> batchIncrementCounter(event.getName(), 1L));
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this::flushBatch,

@@ -38,11 +38,11 @@ public class BaseFsCommitterConfig extends BaseCommitterConfig {
     private boolean compress;
     private boolean splitUpsertDelete;
     /**
-     * The file name prefix (default is <code>null</code>).
+     * The file name prefix (default is {@code null}).
      */
     private String fileNamePrefix;
     /**
-     * The file name suffix (default is <code>null</code>).
+     * The file name suffix (default is {@code null}).
      */
     private String fileNameSuffix;
 

@@ -51,7 +51,7 @@ public class ImporterEvent extends Event {
     public static final String IMPORTER_PARSER_ERROR = "IMPORTER_PARSER_ERROR";
 
     /**
-     * Gets the document parse state (never <code>null</code>).
+     * Gets the document parse state (never {@code null}).
      * @return parse state
      */
     @SuppressWarnings("javadoc")

@@ -36,7 +36,7 @@ public class QueueReferenceStage implements Predicate<QueuePipelineContext> {
             return true;
         }
 
-        var ledger = ctx.getCrawlerContext().getDocLedger();
+        var ledger = ctx.getCrawlContext().getDocLedger();
         if (ledger.isInActiveStage(ref)) {
             LOG.debug("Reference already accounted for: {}", ref);
         } else {

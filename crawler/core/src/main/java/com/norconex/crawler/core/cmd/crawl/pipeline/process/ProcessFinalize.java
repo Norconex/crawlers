@@ -69,10 +69,10 @@ final class ProcessFinalize {
             // important to call this before copying properties further down
             //TODO revisit all the before/after on crawlerImpl
             ofNullable(ctx
-                    .crawlerContext()
+                    .crawlContext()
                     .getCallbacks()
                     .getBeforeDocumentFinalizing())
-                            .ifPresent(bdf -> bdf.accept(ctx.crawlerContext(),
+                            .ifPresent(bdf -> bdf.accept(ctx.crawlContext(),
                                     doc));
 
             //--- If doc crawl was incomplete, set missing info from cache -----
@@ -98,7 +98,7 @@ final class ProcessFinalize {
 
         //--- Mark reference as Processed --------------------------------------
         try {
-            ctx.crawlerContext()
+            ctx.crawlContext()
                     .getDocLedger()
                     .processed(docRecord);
 
@@ -110,11 +110,10 @@ final class ProcessFinalize {
                     docRecord.getReference(), e.getMessage(), e);
         } finally {
             ofNullable(ctx
-                    .crawlerContext()
+                    .crawlContext()
                     .getCallbacks()
-                    .getAfterDocumentFinalizing())
-                            .ifPresent(adf -> adf.accept(ctx.crawlerContext(),
-                                    doc));
+                    .getAfterDocumentFinalizing()).ifPresent(
+                            adf -> adf.accept(ctx.crawlContext(), doc));
         }
 
         try {
@@ -149,8 +148,8 @@ final class ProcessFinalize {
             // markReferenceVariationsAsProcessed(...) method
 
             var strategy = Optional.ofNullable(
-                    ctx.crawlerContext()
-                            .getConfiguration()
+                    ctx.crawlContext()
+                            .getCrawlConfig()
                             .getSpoiledReferenceStrategizer())
                     .map(srs -> srs.resolveSpoiledReferenceStrategy(
                             ctx.docContext().getReference(),
@@ -198,7 +197,7 @@ final class ProcessFinalize {
 
             var originalDocRec = ctx.docContext().withReference(originalRef);
             originalDocRec.setOriginalReference(null);
-            ctx.crawlerContext()
+            ctx.crawlContext()
                     .getDocLedger()
                     .processed(originalDocRec);
         }

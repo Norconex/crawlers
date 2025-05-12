@@ -47,7 +47,7 @@ public final class CommitterContext {
 
     /**
      * Gets a unique working directory for a committer (if one is needed).
-     * @return working directory (never <code>null</code>)
+     * @return working directory (never {@code null})
      */
     public Path getWorkDir() {
         return workDir;

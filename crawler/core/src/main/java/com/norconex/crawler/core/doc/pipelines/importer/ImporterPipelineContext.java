@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core.doc.pipelines.importer;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;
@@ -32,7 +32,7 @@ import lombok.Data;
 @Data
 public class ImporterPipelineContext {
 
-    private final CrawlerContext crawlerContext;
+    private final CrawlContext crawlContext;
     private final CrawlDoc doc;
 
     private ImporterResponse importerResponse;
@@ -58,7 +58,7 @@ public class ImporterPipelineContext {
         // current directive is DOCUMENT, then metadata had to be performed.
         return currentDirective == FetchDirective.DOCUMENT
                 && FetchDirectiveSupport.isEnabled(
-                        crawlerContext.getConfiguration()
+                        crawlContext.getCrawlConfig()
                                 .getMetadataFetchSupport());
     }
 
@@ -71,11 +71,11 @@ public class ImporterPipelineContext {
     public boolean isFetchDirectiveEnabled(FetchDirective directive) {
         return (directive == FetchDirective.METADATA
                 && FetchDirectiveSupport.isEnabled(
-                        crawlerContext.getConfiguration()
+                        crawlContext.getCrawlConfig()
                                 .getMetadataFetchSupport()))
                 || (directive == FetchDirective.DOCUMENT
                         && FetchDirectiveSupport.isEnabled(
-                                crawlerContext.getConfiguration()
+                                crawlContext.getCrawlConfig()
                                         .getDocumentFetchSupport()));
     }
 }

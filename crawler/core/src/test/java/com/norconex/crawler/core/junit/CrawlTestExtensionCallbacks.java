@@ -14,24 +14,30 @@
  */
 package com.norconex.crawler.core.junit;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
+import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.map.MapUtil;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.session.TestSessionUtil;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 import com.norconex.grid.core.GridConnector;
 
@@ -42,8 +48,8 @@ import lombok.extern.slf4j.Slf4j;
 // test method parameters.
 @Slf4j
 @RequiredArgsConstructor
-public class CrawlTestExtensionInitialization
-        implements BeforeTestExecutionCallback {
+public class CrawlTestExtensionCallbacks implements
+        BeforeTestExecutionCallback, AfterTestExecutionCallback {
 
     private final Class<? extends GridConnector> gridConnectorClass;
     private final CrawlTest annotation;
@@ -51,17 +57,22 @@ public class CrawlTestExtensionInitialization
     @Override
     public void beforeTestExecution(ExtensionContext context)
             throws Exception {
-        CrawlTestParameters.set(context, initialize(context));
+        CrawlTestParameters.set(context, initialize());
     }
 
-    public CrawlTestParameters initialize(ExtensionContext context)
+    @Override
+    public void afterTestExecution(ExtensionContext context) throws Exception {
+        destroy(context);
+    }
+
+    public CrawlTestParameters initialize()
             throws Exception {
         // Create a temporary directory before each test
         var tempDir = Files.createTempDirectory("crawltest");
 
-        var spec = ClassUtil.newInstance(annotation.specProvider()).get();
+        var spec = ClassUtil.newInstance(annotation.driverFactory()).get();
 
-        var crawlerConfig = annotation.randomConfig()
+        var crawlConfig = annotation.randomConfig()
                 ? StubCrawlerConfig.randomMemoryCrawlerConfig(
                         tempDir,
                         spec.crawlerConfigClass(),
@@ -74,7 +85,7 @@ public class CrawlTestExtensionInitialization
         LOG.info("Setting grid connector: {}", gridConnectorClass);
         GridConnector gridConnector =
                 gridConnectorClass.getDeclaredConstructor().newInstance();
-        crawlerConfig.setGridConnector(gridConnector);
+        crawlConfig.setGridConnector(gridConnector);
 
         // apply custom config from text
         if (StringUtils.isNotBlank(annotation.config())) {
@@ -83,7 +94,7 @@ public class CrawlTestExtensionInitialization
                     MapUtil.<String, String>toMap(
                             (Object[]) annotation.vars()));
             spec.beanMapper().read(
-                    crawlerConfig,
+                    crawlConfig,
                     new StringReader(cfgStr),
                     Format.fromContent(cfgStr, Format.XML));
         }
@@ -91,41 +102,38 @@ public class CrawlTestExtensionInitialization
         // apply config modifier from consumer
         if (annotation.configModifier() != null) {
             @SuppressWarnings("unchecked")
-            var c = (Consumer<CrawlerConfig>) ClassUtil
+            var c = (Consumer<CrawlConfig>) ClassUtil
                     .newInstance(annotation.configModifier());
-            c.accept(crawlerConfig);
+            c.accept(crawlConfig);
         }
 
         // --- Focus: CRAWL ---
         if (annotation.focus() == Focus.CRAWL) {
             var crawler = new MockCrawlerBuilder(tempDir)
-                    .config(crawlerConfig)
-                    .specProviderClass(annotation.specProvider())
+                    .crawlDriver(toCrawlDriver(annotation.driverFactory()))
+                    .config(crawlConfig)
                     .crawler();
-            var captures =
-                    CrawlTestCapturer.capture(crawler, Crawler::crawl);
+            var captures = CrawlTestCapturer.capture(crawler, Crawler::crawl);
             return new CrawlTestParameters()
                     .setCrawler(crawler)
-                    .setCrawlerConfig(crawlerConfig)
-                    .setCrawlerContext(captures.getContext())
+                    .setCrawlConfig(crawlConfig)
+                    .setCrawlContext(captures.getContext())
                     .setMemoryCommitter(captures.getCommitter())
                     .setWorkDir(tempDir);
         }
 
         // --- Focus: CONTEXT ---
         if (annotation.focus() == Focus.CONTEXT) {
-            var ctx = new MockCrawlerBuilder(tempDir)
-                    .config(crawlerConfig)
-                    .specProviderClass(annotation.specProvider())
-                    .opendedCrawlerContext();
-
-            ctx.init();
+            var ctx = TestSessionUtil.createCrawlerContext(
+                    toCrawlDriver(annotation.driverFactory()),
+                    crawlConfig,
+                    tempDir);
             ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN); // simulate
             return new CrawlTestParameters()
                     .setCrawler(null)
-                    .setCrawlerConfig(crawlerConfig)
-                    .setCrawlerContext(ctx)
-                    .setMemoryCommitter((MemoryCommitter) crawlerConfig
+                    .setCrawlConfig(crawlConfig)
+                    .setCrawlContext(ctx)
+                    .setMemoryCommitter((MemoryCommitter) crawlConfig
                             .getCommitters().get(0))
                     .setWorkDir(tempDir);
         }
@@ -133,10 +141,48 @@ public class CrawlTestExtensionInitialization
         // --- Focus: CONFIG ---
         return new CrawlTestParameters()
                 .setCrawler(null)
-                .setCrawlerConfig(crawlerConfig)
-                .setCrawlerContext(null)
-                .setMemoryCommitter((MemoryCommitter) crawlerConfig
+                .setCrawlConfig(crawlConfig)
+                .setCrawlContext(null)
+                .setMemoryCommitter((MemoryCommitter) crawlConfig
                         .getCommitters().get(0))
                 .setWorkDir(tempDir);
+    }
+
+    public void destroy(ExtensionContext context)
+            throws Exception {
+        var params = CrawlTestParameters.get(context);
+        if (params.getCrawlContext() != null) {
+            // simulate
+            params.getCrawlContext().fire(CrawlerEvent.CRAWLER_CRAWL_END);
+            TestSessionUtil.destroyCrawlerContext(params.getCrawlContext());
+        }
+        if (params.getMemoryCommitter() != null) {
+            params.getMemoryCommitter().clean();
+            params.getMemoryCommitter().close();
+        }
+        if (params.getWorkDir() != null) {
+            // Clean up the temporary directory after each test
+            var tempDir = params.getWorkDir();
+            if (tempDir != null) {
+                Files.walk(tempDir)
+                        // Delete files before directories
+                        .sorted((path1, path2) -> path2.compareTo(path1))
+                        .forEach(path -> {
+                            try {
+                                FileUtil.delete(path.toFile());
+                            } catch (IOException e) {
+                                throw new RuntimeException(
+                                        "Failed to delete file: " + path, e);
+                            }
+                        });
+            }
+        }
+    }
+
+    private CrawlDriver toCrawlDriver(
+            Class<? extends Supplier<CrawlDriver>> supplierClass) {
+        System.err.println("XXX NULL HERE? --> "
+                + ClassUtil.newInstance(supplierClass).get());
+        return ClassUtil.newInstance(supplierClass).get();
     }
 }

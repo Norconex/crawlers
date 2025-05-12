@@ -65,6 +65,9 @@ import lombok.extern.slf4j.Slf4j;
 @Setter(AccessLevel.NONE)
 public class CommitterService<T> implements Closeable {
 
+    //NOTE: Takes a generic type given it may sometimes be used
+    // for other types than CrawlDoc from the crawler-core project
+
     @Default
     private List<Committer> committers = Collections.emptyList();
     @Default

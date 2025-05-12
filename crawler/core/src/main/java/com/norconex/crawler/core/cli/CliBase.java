@@ -18,11 +18,10 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerSpec;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.EqualsAndHashCode;
@@ -68,10 +67,8 @@ public abstract class CliBase implements Runnable {
 
     @Override
     public void run() {
-        var crawlerSpec =
-                ClassUtil.newInstance(parent.getSpecProviderClass()).get();
-        runCommand(new Crawler(parent.getSpecProviderClass(),
-                loadConfiguration(crawlerSpec)));
+        var driver = parent.getCrawlDriver();
+        runCommand(new Crawler(driver, loadConfiguration(driver)));
     }
 
     protected abstract void runCommand(Crawler crawler);
@@ -84,7 +81,7 @@ public abstract class CliBase implements Runnable {
         return spec.commandLine().getErr();
     }
 
-    private CrawlerConfig loadConfiguration(CrawlerSpec spec) {
+    private CrawlConfig loadConfiguration(CrawlDriver driver) {
         if (getConfigFile() == null
                 || !Files.exists(getConfigFile())
                 || !getConfigFile().toFile().isFile()) {
@@ -96,9 +93,9 @@ public abstract class CliBase implements Runnable {
             return ConfigurationLoader
                     .builder()
                     .variablesFile(getVariablesFile())
-                    .beanMapper(spec.beanMapper())
+                    .beanMapper(driver.beanMapper())
                     .build()
-                    .toObject(getConfigFile(), spec.crawlerConfigClass());
+                    .toObject(getConfigFile(), driver.crawlerConfigClass());
         } catch (ConstraintViolationException e) {
             if (!e.getConstraintViolations().isEmpty()) {
                 var b = new StringBuilder();

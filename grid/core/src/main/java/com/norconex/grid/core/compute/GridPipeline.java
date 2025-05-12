@@ -59,6 +59,10 @@ public class GridPipeline {
                 Stream.of(task).map(Stage::new).toList());
     }
 
+    //TODO, somehow have stages receive the response from the previous stage
+    // if possible given we can resume. Then maybe the task would be
+    // obtained via a function instead.
+
     @RequiredArgsConstructor
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @Getter
@@ -71,9 +75,10 @@ public class GridPipeline {
         private Predicate<Grid> onlyIf;
 
         /**
-         * Always run even if a previous stage returned false to end the pipeline.
-         * If just joining a grid, stages before the current one are a usually
-         * not run, but those will this property set to <code>true</code> will.
+         * Always run even if a previous stage returned {@code false} to end the
+         * pipeline. If just joining a grid, stages before the current one are
+         * a usually not run, unless they are also marked to always run
+         * ({@code true}).
          */
         @With
         private boolean always;

@@ -20,16 +20,16 @@ import java.io.StringReader;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class DocumentChecksumStageTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testDocumentChecksumStage(CrawlerContext crawlCtx) {
+    void testDocumentChecksumStage(CrawlContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new CommitterPipelineContext(crawlCtx, doc);
         var stage = new DocumentChecksumStage();
@@ -40,11 +40,11 @@ class DocumentChecksumStageTest {
     }
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testNoDocumentChecksummer(CrawlerContext crawlCtx) {
+    void testNoDocumentChecksummer(CrawlContext crawlCtx) {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         BeanMapper.DEFAULT.read(
-                crawlCtx.getConfiguration(),
+                crawlCtx.getCrawlConfig(),
                 new StringReader("""
                         <crawler id="id">\
                         <documentChecksummer />\
@@ -59,16 +59,16 @@ class DocumentChecksumStageTest {
     }
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testRejectedUnmodified(CrawlerContext crawlCtx) {
+    void testRejectedUnmodified(CrawlContext crawlCtx) {
 
         var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
         doc.getDocContext().setContentChecksum(crawlCtx
-                .getConfiguration()
+                .getCrawlConfig()
                 .getDocumentChecksummer()
                 .createDocumentChecksum(doc));
 
         doc.getCachedDocContext().setContentChecksum(crawlCtx
-                .getConfiguration()
+                .getCrawlConfig()
                 .getDocumentChecksummer()
                 .createDocumentChecksum(doc));
 

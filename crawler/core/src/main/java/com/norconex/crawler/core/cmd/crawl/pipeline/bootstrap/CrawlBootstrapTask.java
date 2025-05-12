@@ -14,14 +14,26 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap;
 
-import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.grid.core.pipeline.GridPipelineTask;
+import java.io.Serializable;
 
-public class CrawlBootstrapTask implements GridPipelineTask<CrawlerContext> {
+import org.apache.commons.collections4.CollectionUtils;
+
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.compute.BaseGridTask.SingleNodeTask;
+
+public class CrawlBootstrapTask extends SingleNodeTask {
+
+    private static final long serialVersionUID = 1L;
+
+    public CrawlBootstrapTask(String id) {
+        super(id);
+    }
 
     @Override
-    public void execute(CrawlerContext ctx) {
+    public Serializable execute(Grid grid) {
+        var ctx = CrawlContext.get(grid);
 
         // We launch a "run thread" notification here as some crawl related
         // actions can be/are done within an initializer execution (like fetch
@@ -29,12 +41,13 @@ public class CrawlBootstrapTask implements GridPipelineTask<CrawlerContext> {
         ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 Thread.currentThread());
         try {
-            if (ctx.getBootstrappers() != null) {
-                ctx.getBootstrappers().accept(ctx);
+            if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
+                ctx.getBootstrappers().forEach(boot -> boot.bootstrap(ctx));
             }
         } finally {
             ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_END,
                     Thread.currentThread());
         }
+        return null;
     }
 }

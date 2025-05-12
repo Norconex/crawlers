@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -29,6 +30,7 @@ import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerCo
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
+@Timeout(30)
 class StopCrawlerOnMaxEventListenerTest {
 
     private static final String UPSERTED = COMMITTER_SERVICE_UPSERT_END;

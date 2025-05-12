@@ -15,10 +15,11 @@
 package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger;
 
 import java.util.Locale;
-import java.util.function.Predicate;
 
 import com.norconex.commons.lang.PercentFormatter;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.ResumeState;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,35 +36,31 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @Slf4j
-public final class DocLedgerBootstrapper implements Predicate<CrawlerContext> {
+public final class DocLedgerBootstrapper implements CrawlBootstrapper {
 
     //NOTE: Runs after the DocProcessingLedger#init() method has been invoked.
 
-    public static final String KEY_INITIALIZING = "ledger.initializing";
+    public static final String KEY_INITIALIZING = "ledgerInitializing";
 
     @Override
-    public boolean test(CrawlerContext crawlerContext) {
+    public void bootstrap(CrawlContext crawlContext) {
         var globalCache =
-                crawlerContext.getGrid().getStorage().getSessionAttributes();
+                crawlContext.getGrid().getStorage().getSessionAttributes();
 
         if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
             throw new IllegalStateException("Already initializing.");
         }
         globalCache.put(KEY_INITIALIZING, "true");
         try {
-            prepareForCrawl(crawlerContext);
+            prepareForCrawl(crawlContext);
         } finally {
             globalCache.put(KEY_INITIALIZING, "false");
         }
-        return true;
     }
 
-    private static void prepareForCrawl(CrawlerContext crawlerContext) {
-        var ledger = crawlerContext.getDocLedger();
-
-        long maxProcessedDocs =
-                crawlerContext.getConfiguration().getMaxDocuments();
-        if (crawlerContext.isResuming()) {
+    private static void prepareForCrawl(CrawlContext crawlContext) {
+        var ledger = crawlContext.getDocLedger();
+        if (crawlContext.getResumeState() == ResumeState.RESUMED) {
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();
@@ -71,7 +68,7 @@ public final class DocLedgerBootstrapper implements Predicate<CrawlerContext> {
                         + ledger.getQueueCount()
                         + ledger.getCachedCount();
                 LOG.info("RESUMING \"{}\" at {} ({}/{}).",
-                        crawlerContext.getId(),
+                        crawlContext.getId(),
                         PercentFormatter.format(
                                 processedCount, totalCount, 2, Locale.ENGLISH),
                         processedCount, totalCount);
@@ -79,15 +76,6 @@ public final class DocLedgerBootstrapper implements Predicate<CrawlerContext> {
                         + "\n    Queued: " + ledger.getQueueCount()
                         + "\n Processed: " + processedCount
                         + "\n    Cached: " + ledger.getCachedCount());
-            }
-
-            if (maxProcessedDocs > -1) {
-                maxProcessedDocs += ledger.getProcessedCount();
-                LOG.info("""
-                    An additional maximum of {} processed documents is
-                    added to this resumed session, for a maximum total of {}.
-                    """, crawlerContext.getConfiguration().getMaxDocuments(),
-                        maxProcessedDocs);
             }
         } else {
             ledger.clearQueue();
@@ -107,6 +95,5 @@ public final class DocLedgerBootstrapper implements Predicate<CrawlerContext> {
                 }
             }
         }
-        crawlerContext.maxProcessedDocs(maxProcessedDocs);
     }
 }

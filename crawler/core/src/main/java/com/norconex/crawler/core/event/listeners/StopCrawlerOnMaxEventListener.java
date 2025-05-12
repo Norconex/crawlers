@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
+import com.norconex.crawler.core.session.CrawlContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * Alternative to {@link CrawlerConfig#setMaxDocuments(int)} for stopping
+ * Alternative to {@link CrawlConfig#setMaxDocuments(int)} for stopping
  * the crawler upon reaching specific event counts. The event counts are only
  * kept for a crawling session.  They are reset to zero upon restarting
  * the crawler.
@@ -94,13 +94,13 @@ public class StopCrawlerOnMaxEventListener implements
     private Map<String, AtomicLong> eventCounts = new ConcurrentHashMap<>();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private CrawlerContext crawlerContext;
+    private CrawlContext crawlContext;
 
     @Override
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             eventCounts.clear();
-            crawlerContext = ((CrawlerEvent) event).getSource();
+            crawlContext = ((CrawlerEvent) event).getSource();
         }
 
         if (!configuration.getEventMatcher().matches(event.getName())) {
@@ -112,9 +112,9 @@ public class StopCrawlerOnMaxEventListener implements
 
         if (isMaxReached()) {
             LOG.info("Maximum number of events reached for crawler: {}",
-                    crawlerContext.getId());
-            //            crawlerContext.stopCrawlerCommand();
-            crawlerContext.getGrid().stop();
+                    crawlContext.getId());
+            //            crawlContext.stopCrawlerCommand();
+            crawlContext.getGrid().stop();
         }
     }
 

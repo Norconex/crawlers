@@ -16,36 +16,36 @@ package com.norconex.crawler.core.doc.pipelines.queue.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 
 class DepthValidationStageTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testDepthValidationStage(CrawlerContext crawlCtx) {
+    void testDepthValidationStage(CrawlContext crawlCtx) {
 
         var docRec = new CrawlDocContext("ref");
         docRec.setDepth(3);
         var ctx = new QueuePipelineContext(crawlCtx, docRec);
 
         // Unlimited depth
-        crawlCtx.getConfiguration().setMaxDepth(-1);
+        crawlCtx.getCrawlConfig().setMaxDepth(-1);
         docRec.setState(CrawlDocStatus.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(CrawlDocStatus.NEW);
 
         // Max depth
-        crawlCtx.getConfiguration().setMaxDepth(3);
+        crawlCtx.getCrawlConfig().setMaxDepth(3);
         docRec.setState(CrawlDocStatus.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(CrawlDocStatus.NEW);
 
         // Over max depth
-        crawlCtx.getConfiguration().setMaxDepth(2);
+        crawlCtx.getCrawlConfig().setMaxDepth(2);
         docRec.setState(CrawlDocStatus.NEW);
         new DepthValidationStage().test(ctx);
         assertThat(docRec.getState()).isSameAs(CrawlDocStatus.TOO_DEEP);

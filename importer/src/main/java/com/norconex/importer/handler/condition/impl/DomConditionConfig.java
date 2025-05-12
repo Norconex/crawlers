@@ -205,7 +205,7 @@ public class DomConditionConfig {
 
     /**
      * Gets what should be extracted for the value. One of
-     * "text" (default), "html", or "outerHtml". <code>null</code> means
+     * "text" (default), "html", or "outerHtml". {@code null} means
      * this class will use the default ("text").
      * @return what should be extracted for the value
      */
@@ -215,7 +215,7 @@ public class DomConditionConfig {
 
     /**
      * Sets what should be extracted for the value. One of
-     * "text" (default), "html", or "outerHtml". <code>null</code> means
+     * "text" (default), "html", or "outerHtml". {@code null} means
      * this class will use the default ("text").
      * @param extract what should be extracted for the value
      */

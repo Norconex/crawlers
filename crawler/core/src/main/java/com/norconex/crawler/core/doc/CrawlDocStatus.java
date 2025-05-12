@@ -113,7 +113,7 @@ public class CrawlDocStatus implements Serializable {
     }
 
     /**
-     * Null-safe version of {@link #isGoodState()}.  A <code>null</code>
+     * Null-safe version of {@link #isGoodState()}.  A {@code null}
      * state returns <code>false</code>.
      * @param state the state to test
      * @return <code>true</code> if status is valid.

@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericMetadataFilter;
@@ -29,20 +28,20 @@ import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class MetadataFiltersStageTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testMetadataFiltersStage(CrawlerContext crawlCtx) {
+    void testMetadataFiltersStage(CrawlContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        crawlCtx.getConfiguration().setMetadataFetchSupport(
+        crawlCtx.getCrawlConfig().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 
         // Filter not matching
-        crawlCtx
-                .getConfiguration()
+        crawlCtx.getCrawlConfig()
                 .setMetadataFilters(List.of(Configurable.configure(
                         new GenericMetadataFilter(),
                         cfg -> cfg
@@ -56,8 +55,7 @@ class MetadataFiltersStageTest {
                 .isSameAs(CrawlDocStatus.NEW);
 
         // Filter matching
-        crawlCtx
-                .getConfiguration()
+        crawlCtx.getCrawlConfig()
                 .setMetadataFilters(List.of(Configurable.configure(
                         new GenericMetadataFilter(),
                         cfg -> cfg

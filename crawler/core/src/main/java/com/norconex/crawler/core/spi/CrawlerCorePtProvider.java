@@ -44,7 +44,7 @@ public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
     @Override
     public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
         //NOTE:
-        // CrawlSessionConfig and CrawlerConfig are not registered here.
+        // CrawlSessionConfig and CrawlConfig are not registered here.
         // We leave it to crawler implementation to register them as/if
         // required. If one day we make all crawlers configurable in same
         // crawl session, this is likely where we would add it.

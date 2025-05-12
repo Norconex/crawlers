@@ -51,17 +51,17 @@ public class ReferenceFiltersStage implements Predicate<QueuePipelineContext> {
         return OnMatchFiltersResolver
                 .<String, ReferenceFilter>builder()
                 .subject(ctx.getDocContext().getReference())
-                .filters(ctx.getCrawlerContext().getConfiguration()
+                .filters(ctx.getCrawlContext().getCrawlConfig()
                         .getReferenceFilters())
                 .predicate((s, f) -> f.acceptReference(s))
                 .onRejected((f, msg) -> {
                     LOG.debug(
                             "REJECTED reference{}: {} Filter={}",
                             msgSuffix, ctx.getDocContext().getReference(), f);
-                    ctx.getCrawlerContext().fire(
+                    ctx.getCrawlContext().fire(
                             CrawlerEvent.builder()
                                     .name(CrawlerEvent.REJECTED_FILTER)
-                                    .source(ctx.getCrawlerContext())
+                                    .source(ctx.getCrawlContext())
                                     .docContext(ctx.getDocContext())
                                     .subject(f)
                                     .message(msg + msgSuffix)

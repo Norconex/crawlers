@@ -58,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * The top-level queue directory is the one defined in the
  * {@link CommitterContext} initialization argument or the system
- * temporary directory if <code>null</code>. A "queue" sub-folder will be
+ * temporary directory if {@code null}. A "queue" sub-folder will be
  * created for queued requests, while an "error" one will also be created
  * for failed batches.
  * </p>

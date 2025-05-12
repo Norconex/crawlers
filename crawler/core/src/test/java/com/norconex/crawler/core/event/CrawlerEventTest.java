@@ -18,17 +18,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.cli.CliException;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.session.CrawlContext;
 
 class CrawlerEventTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testCrawlerEvent(CrawlerContext ctx) {
+    void testCrawlerEvent(CrawlContext ctx) {
         var event = event(ctx, b -> {});
 
         assertThat(event.getSubject()).hasToString("somesubject");
@@ -49,14 +49,14 @@ class CrawlerEventTest {
     }
 
     private CrawlerEvent event(
-            CrawlerContext crawlerContext,
+            CrawlContext crawlContext,
             Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>> c) {
         CrawlerEvent.CrawlerEventBuilder<?, ?> b = CrawlerEvent.builder()
                 .docContext(new CrawlDocContext("someref"))
                 .exception(new CliException("someexception"))
                 .message("somemessage")
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
-                .source(crawlerContext)
+                .source(crawlContext)
                 .subject("somesubject");
         c.accept(b);
         return b.build();

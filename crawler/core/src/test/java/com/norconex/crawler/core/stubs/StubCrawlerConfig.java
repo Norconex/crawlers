@@ -43,7 +43,7 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
@@ -108,12 +108,12 @@ public final class StubCrawlerConfig {
     private StubCrawlerConfig() {
     }
 
-    public static CrawlerConfig memoryCrawlerConfig(Path workDir) {
-        return toMemoryCrawlerConfig(workDir, new CrawlerConfig());
+    public static CrawlConfig memoryCrawlerConfig(Path workDir) {
+        return toMemoryCrawlerConfig(workDir, new CrawlConfig());
     }
 
-    public static CrawlerConfig memoryCrawlerConfig(
-            Path workDir, Class<? extends CrawlerConfig> cfgClass) {
+    public static CrawlConfig memoryCrawlerConfig(
+            Path workDir, Class<? extends CrawlConfig> cfgClass) {
         return toMemoryCrawlerConfig(workDir, ClassUtil.newInstance(cfgClass));
     }
 
@@ -123,22 +123,22 @@ public final class StubCrawlerConfig {
      * @param cfg crawler config
      * @return same config instance, for chaining
      */
-    public static CrawlerConfig toMemoryCrawlerConfig(
-            Path workDir, CrawlerConfig cfg) {
+    public static CrawlConfig toMemoryCrawlerConfig(
+            Path workDir, CrawlConfig cfg) {
         return cfg.setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
                 .setCommitters(List.of(new MemoryCommitter()));
     }
 
-    public static CrawlerConfig randomMemoryCrawlerConfig(Path workDir) {
+    public static CrawlConfig randomMemoryCrawlerConfig(Path workDir) {
         return randomMemoryCrawlerConfig(
-                workDir, CrawlerConfig.class, RANDOMIZER);
+                workDir, CrawlConfig.class, RANDOMIZER);
     }
 
-    public static CrawlerConfig randomMemoryCrawlerConfig(
+    public static CrawlConfig randomMemoryCrawlerConfig(
             Path workDir,
-            Class<? extends CrawlerConfig> cfgClass,
+            Class<? extends CrawlConfig> cfgClass,
             EasyRandom randomizer) {
         return randomizer.nextObject(cfgClass)
                 .setId(CRAWLER_ID)
@@ -147,7 +147,7 @@ public final class StubCrawlerConfig {
                 .setCommitters(List.of(new MemoryCommitter()));
     }
 
-    public static Path writeConfigToDir(@NonNull CrawlerConfig config) {
+    public static Path writeConfigToDir(@NonNull CrawlConfig config) {
         var file = config
                 .getWorkDir()
                 .resolve(TimeIdGenerator.next() + ".yaml");
@@ -160,7 +160,7 @@ public final class StubCrawlerConfig {
     }
 
     public static Path writeConfigToDir(
-            Path workDir, Consumer<CrawlerConfig> c) {
+            Path workDir, Consumer<CrawlConfig> c) {
         var config = memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(config);
@@ -169,10 +169,10 @@ public final class StubCrawlerConfig {
     }
 
     public static void writeOrUpdateConfigToFile(
-            Path configFile, Consumer<CrawlerConfig> c) {
-        CrawlerConfig config = null;
+            Path configFile, Consumer<CrawlConfig> c) {
+        CrawlConfig config = null;
         if (Files.exists(configFile)) {
-            config = new CrawlerConfig();
+            config = new CrawlConfig();
             try (Reader r = Files.newBufferedReader(configFile)) {
                 BeanMapper.DEFAULT.read(config, r,
                         Format.fromPath(configFile, Format.JSON));

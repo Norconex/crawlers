@@ -34,7 +34,7 @@ public class DeleteRejectedEventListenerConfig {
      * Gets the event matcher used to identify which events can trigger
      * a deletion request. Default is regular expression
      * <code>REJECTED_.*</code>.
-     * @return text matcher, never <code>null</code>
+     * @return text matcher, never {@code null}
      */
     public TextMatcher getEventMatcher() {
         return eventMatcher;

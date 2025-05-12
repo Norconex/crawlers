@@ -16,9 +16,12 @@ package com.norconex.grid.core.compute;
 
 import static java.util.Optional.ofNullable;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+
+import com.norconex.grid.core.Grid;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -84,6 +87,26 @@ public abstract class BaseGridTask implements GridTask {
     @Override
     public boolean isOnce() {
         return false;
+    }
+
+    /**
+     * This implementation will invoke {@link #process(Grid)} unless overridden.
+     * Must implement one of {@link #execute(Grid)} or {@link #process(Grid)}.
+     */
+    @Override
+    public Serializable execute(Grid grid) {
+        process(grid);
+        return null;
+    }
+
+    /**
+     * Process a task without returning a value. Same as invoking
+     * {@link #execute(Grid)} and returning {@code null}.
+     * Must implement one of {@link #execute(Grid)} or {@link #process(Grid)}.
+     */
+    public void process(Grid grid) {
+        throw new UnsupportedOperationException(
+                "Your grid task must override either 'execute' or 'process'.");
     }
 
     /**

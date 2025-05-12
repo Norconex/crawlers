@@ -30,7 +30,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationUnit;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
-import com.norconex.grid.core.compute_DELETE.GridComputeTask;
+import com.norconex.crawler.core.session.CrawlContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @EqualsAndHashCode
 @ToString
-public class CrawlProgressLogger implements GridComputeTask<Void> {
+public class CrawlProgressLogger {
 
     private final StopWatch stopWatch = new StopWatch();
 
@@ -65,9 +65,10 @@ public class CrawlProgressLogger implements GridComputeTask<Void> {
     private final NumberFormat intFormatter = NumberFormat.getIntegerInstance();
 
     // Minimum 1 second
-    public CrawlProgressLogger(
-            CrawlerMetrics monitor, Duration minLoggingInterval) {
-        this.monitor = monitor;
+    public CrawlProgressLogger(CrawlContext ctx) {
+        monitor = ctx.getMetrics();
+        var minLoggingInterval =
+                ctx.getCrawlConfig().getMinProgressLoggingInterval();
         if (minLoggingInterval == null || minLoggingInterval.getSeconds() < 1) {
             this.minLoggingInterval = null;
         } else {
@@ -75,8 +76,17 @@ public class CrawlProgressLogger implements GridComputeTask<Void> {
         }
     }
 
-    @Override
-    public Void execute() {
+    //    public CrawlProgressLogger(
+    //            CrawlerMetrics monitor, Duration minLoggingInterval) {
+    //        this.monitor = monitor;
+    //        if (minLoggingInterval == null || minLoggingInterval.getSeconds() < 1) {
+    //            this.minLoggingInterval = null;
+    //        } else {
+    //            this.minLoggingInterval = minLoggingInterval;
+    //        }
+    //    }
+
+    public Void start() {
         stopTrackingRequested = false;
         if (minLoggingInterval != null && LOG.isInfoEnabled()) {
             execService = Executors.newSingleThreadScheduledExecutor();
@@ -104,7 +114,6 @@ public class CrawlProgressLogger implements GridComputeTask<Void> {
         return null;
     }
 
-    @Override
     public void stop() {
         if (!stopWatch.isStopped()) {
             stopWatch.stop();

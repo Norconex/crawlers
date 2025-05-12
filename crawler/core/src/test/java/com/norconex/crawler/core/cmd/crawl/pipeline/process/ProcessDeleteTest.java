@@ -17,22 +17,22 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ProcessDeleteTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testDocProcessorDelete(CrawlerContext ctx, MemoryCommitter mem) {
+    void testDocProcessorDelete(CrawlContext ctx, MemoryCommitter mem) {
 
         var doc = CrawlDocStubs.crawlDoc("http://delete.me");
 
         var docProcCtx = new ProcessContext()
                 .finalized(false)
-                .crawlerContext(ctx)
+                .crawlContext(ctx)
                 .docContext(doc.getDocContext())
                 .doc(doc);
 

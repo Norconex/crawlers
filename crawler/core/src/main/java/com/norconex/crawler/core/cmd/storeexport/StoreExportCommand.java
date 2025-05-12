@@ -27,10 +27,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.grid.core.compute.GridTaskBuilder;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridQueue;
 import com.norconex.grid.core.storage.GridSet;
@@ -51,19 +52,21 @@ public class StoreExportCommand implements Command {
     // set stopRequested on context?  Or do it higher up on context?
 
     @Override
-    public void execute(CrawlerContext ctx) {
+    public void execute(CrawlContext ctx) {
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN);
         try {
-            ctx.getGrid().getCompute().runOnOneOnce(
-                    StoreExportCommand.class.getSimpleName(), () -> {
-                        try {
-                            exportAllStores(ctx);
-                        } catch (IOException e) {
-                            throw new CrawlerException(e);
-                        }
-                        return null;
-                    });
+            ctx.getGrid().getCompute()
+                    .executeTask(GridTaskBuilder.create("storeExportTask")
+                            .singleNode()
+                            .processor(grid -> {
+                                try {
+                                    exportAllStores(ctx);
+                                } catch (IOException e) {
+                                    throw new CrawlerException(e);
+                                }
+                            })
+                            .build());
         } catch (Exception e) {
             throw new CrawlerException(
                     "A problem occured while exporting crawler storage.", e);
@@ -71,13 +74,13 @@ public class StoreExportCommand implements Command {
         ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END);
     }
 
-    private void exportAllStores(CrawlerContext crawlerContext)
+    private void exportAllStores(CrawlContext crawlContext)
             throws IOException {
-        var storage = crawlerContext.getGrid().getStorage();
+        var storage = crawlContext.getGrid().getStorage();
         Files.createDirectories(exportDir);
 
         var outFile = exportDir.resolve(
-                FileUtil.toSafeFileName(crawlerContext.getId() + ".zip"));
+                FileUtil.toSafeFileName(crawlContext.getId() + ".zip"));
         LOG.info("Exporting crawler storage to file: {}", outFile);
 
         try (var zipOS = new ZipOutputStream(
@@ -88,7 +91,7 @@ public class StoreExportCommand implements Command {
                 try {
                     zipOS.putNextEntry(new ZipEntry(
                             FileUtil.toSafeFileName(name) + ".json"));
-                    exportOneStore(crawlerContext, store, zipOS, type);
+                    exportOneStore(crawlContext, store, zipOS, type);
                     zipOS.flush();
                     zipOS.closeEntry();
                 } catch (IOException e) {
@@ -102,7 +105,7 @@ public class StoreExportCommand implements Command {
     }
 
     private void exportOneStore(
-            CrawlerContext crawlerContext,
+            CrawlContext crawlContext,
             GridStore<?> store,
             OutputStream out,
             Class<?> type) throws IOException {
@@ -118,7 +121,7 @@ public class StoreExportCommand implements Command {
         var cnt = new MutableLong();
         var lastPercent = new MutableLong();
         writer.writeStartObject();
-        writer.writeStringField("crawler", crawlerContext.getId());
+        writer.writeStringField("crawler", crawlContext.getId());
         writer.writeStringField("store", store.getName());
         writer.writeStringField("storeType", storeSuperClassName(store));
         writer.writeStringField("objectType", type.getName());

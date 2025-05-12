@@ -35,7 +35,7 @@ class MultiFetcherTest {
                 .setDenyRequest(false)
                 .setReturnBadStatus(false));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
-        assertThat(((MultiFetchResponse<?>) resp)
+        assertThat(((MultiFetchResponse) resp)
                 .getFetchResponses()).hasSize(1);
     }
 
@@ -45,9 +45,7 @@ class MultiFetcherTest {
                 .setDenyRequest(false)
                 .setReturnBadStatus(true));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
-        assertThat(
-                ((MultiFetchResponse<?>) resp)
-                        .getFetchResponses()).hasSize(2);
+        assertThat(((MultiFetchResponse) resp).getFetchResponses()).hasSize(2);
     }
 
     @Test
@@ -59,20 +57,18 @@ class MultiFetcherTest {
         // Even though there are no matching fetchers, there is always
         // at least once response returned. In this case, it will be
         // one with status UNSUPPORTED.
-        assertThat(
-                ((MultiFetchResponse<?>) resp)
-                        .getFetchResponses()).hasSize(1);
+        assertThat(((MultiFetchResponse) resp)
+                .getFetchResponses()).hasSize(1);
         assertThat(resp.getResolutionStatus())
                 .isSameAs(CrawlDocStatus.UNSUPPORTED);
     }
 
-    private MultiFetcher<MockFetchRequest, MockFetchResponse> multiFetcher(
-            MockFetcher... fetchers) {
+    private MultiFetcher multiFetcher(MockFetcher... fetchers) {
         return MultiFetcher
-                .<MockFetchRequest, MockFetchResponse>builder()
+                .builder()
                 .fetchers(List.of(fetchers))
-                .responseListAdapter(MockMultiFetcherResponse::new)
-                .unsuccessfulResponseAdaptor(
+                .responseAggregator(responses -> responses.get(0))
+                .unsuccessfulResponseFactory(
                         (state, msg, ex) -> new MockFetchResponseImpl()
                                 .setResolutionStatus(state)
                                 .setReasonPhrase(msg)
@@ -83,8 +79,7 @@ class MultiFetcherTest {
     }
 
     static class MockMultiFetcherResponse
-            extends MultiFetchResponse<MockFetchResponse>
-            implements MockFetchResponse {
+            extends MultiFetchResponse implements MockFetchResponse {
         public MockMultiFetcherResponse(
                 List<MockFetchResponse> fetchResponses) {
             super(fetchResponses);

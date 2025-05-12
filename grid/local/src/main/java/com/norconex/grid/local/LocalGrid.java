@@ -56,20 +56,12 @@ public class LocalGrid implements Grid {
      */
     public static final String DEFAULT_CONTEXT_KEY = "default";
 
-    // private final MVStore mvstore;
     private final LocalStorage gridStorage;
     private final LocalCompute gridCompute;
-    //    private final LocalGridPipeline gridPipeline;
-
     private final LocalStopHandler stopHandler;
 
-    //    @Getter
-    //    @Accessors(fluent = true)
-    //    private final ComputeStateStore computeStateStorage;
     @Getter(value = AccessLevel.PACKAGE)
     private final Path storagePath;
-    //    @Getter
-    //    private ExecutorManager nodeExecutors;
     @Getter
     private final String gridName;
     @Getter
@@ -83,17 +75,13 @@ public class LocalGrid implements Grid {
 
     public LocalGrid(
             MVStore mvstore, String gridName, GridContext gridContext) {
-        //        this.mvstore = mvstore;
         this.gridName = gridName;
         nodeName = "local-node-" + NODE_COUNT.getAndIncrement();
         gridStorage = new LocalStorage(mvstore);
         gridCompute = new LocalCompute(this);
-        //        gridPipeline = new LocalGridPipeline(this);
-        //        computeStateStorage = new ComputeStateStore(this);
         storagePath = Path.of(mvstore.getFileStore().getFileName()).getParent();
         stopHandler = new LocalStopHandler(this);
         stopHandler.listenForStopRequest();
-        //        nodeExecutors = new ExecutorManager("local-node");
     }
 
     @Override
@@ -126,15 +114,12 @@ public class LocalGrid implements Grid {
     @Override
     public boolean resetSession() {
         getStorage().getSessionAttributes().clear();
-        //        return computeStateStorage.reset();
         return true;
     }
 
     @Override
     public void stop() {
         stopHandler.stopListening();
-        //        pipeline().stopTask(null);
-        //        getCompute().stopTask(null);
     }
 
     @Override
@@ -165,5 +150,4 @@ public class LocalGrid implements Grid {
             int count, Duration timeout) {
         return CompletableFuture.completedFuture(null);
     }
-
 }

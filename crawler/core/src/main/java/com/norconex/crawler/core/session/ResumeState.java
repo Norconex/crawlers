@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,13 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core;
+package com.norconex.crawler.core.session;
 
-/**
- * Creates an initialized crawler builder, which can be further tuned
- * as/if needed. Implementations must have a no-arguments public constructor.
- */
-@FunctionalInterface
-public interface CrawlerSpecProvider {
-    CrawlerSpec get();
+public enum ResumeState {
+    INITIAL,
+    RESUMED
 }

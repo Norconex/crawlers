@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,19 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.mocks.crawler;
+package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap;
 
-import com.norconex.crawler.core.CrawlerSpec;
-import com.norconex.crawler.core.CrawlerSpecProvider;
-import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.stubs.PipelineStubs;
+import com.norconex.crawler.core.session.CrawlContext;
 
-public class MockCrawlerSpecProvider implements CrawlerSpecProvider {
+@FunctionalInterface
+public interface CrawlBootstrapper {
 
-    @Override
-    public CrawlerSpec get() {
-        return new CrawlerSpec()
-                .fetcherProvider(crawler -> new MockFetcher())
-                .pipelines(PipelineStubs.pipelines());
-    }
+    void bootstrap(CrawlContext crawlContext);
 }

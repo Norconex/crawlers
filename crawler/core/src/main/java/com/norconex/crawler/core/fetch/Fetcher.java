@@ -16,12 +16,10 @@ package com.norconex.crawler.core.fetch;
 
 /**
  * Fetch resources.
- * @param <T> fetch request type
- * @param <R> fetch response type
  */
-public interface Fetcher<T extends FetchRequest, R extends FetchResponse> {
+public interface Fetcher {
 
-    boolean accept(T fetchRequest);
+    boolean accept(FetchRequest fetchRequest);
 
-    R fetch(T fetchRequest) throws FetchException;
+    FetchResponse fetch(FetchRequest fetchRequest) throws FetchException;
 }

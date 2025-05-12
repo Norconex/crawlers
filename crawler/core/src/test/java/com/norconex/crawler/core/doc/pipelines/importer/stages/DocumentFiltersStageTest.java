@@ -18,13 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.OnMatchFilter;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.Doc;
 
@@ -34,7 +34,7 @@ import lombok.Data;
 class DocumentFiltersStageTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testDocumentFiltersStage(CrawlerContext crawlCtx) {
+    void testDocumentFiltersStage(CrawlContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new ImporterPipelineContext(crawlCtx, doc);
         var stage = new DocumentFiltersStage();
@@ -43,17 +43,17 @@ class DocumentFiltersStageTest {
         assertThat(stage.test(ctx)).isTrue();
 
         // test match
-        crawlCtx.getConfiguration().setDocumentFilters(
+        crawlCtx.getCrawlConfig().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.INCLUDE, true)));
         assertThat(stage.test(ctx)).isTrue();
 
         // test no match
-        crawlCtx.getConfiguration().setDocumentFilters(
+        crawlCtx.getCrawlConfig().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.INCLUDE, false)));
         assertThat(stage.test(ctx)).isFalse();
 
         // exclude
-        crawlCtx.getConfiguration().setDocumentFilters(
+        crawlCtx.getCrawlConfig().setDocumentFilters(
                 List.of(new TestFilter(OnMatch.EXCLUDE, false)));
         assertThat(stage.test(ctx)).isFalse();
 

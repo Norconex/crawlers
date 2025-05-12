@@ -104,13 +104,13 @@ public class DocHandlerContext {
      * (in order):
      * <ul>
      *  <li>If the document has been parsed already, return UTF-8.</li>
-     *  <li>If the provided Charset if not <code>null</code>, return it.</li>
+     *  <li>If the provided Charset if not {@code null}, return it.</li>
      *  <li>If the document has a Charset on it, return it.</li>
      *  <li>Fallback to UTF-8.</li>
      * </ul>
      * @param charset the charset to use if non-null and the document has not
      *     been parsed yet.
-     * @return a character set (never <code>null</code>)
+     * @return a character set (never {@code null})
      */
     public Charset resolveCharset(Charset charset) {
         return CharsetUtil.firstNonNullOrUTF8(

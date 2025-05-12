@@ -21,11 +21,11 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.grid.core.GridConnector;
 
 class CrawlDocLedgerTest {
@@ -34,7 +34,7 @@ class CrawlDocLedgerTest {
     private Path tempDir;
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testCleanCrawl(CrawlerContext ctx) {
+    void testCleanCrawl(CrawlContext ctx) {
         var ledger = ctx.getDocLedger();
         // forEach[...] returns true by default when there are no matches
         // we use this here to figure out emptiness for all stages
@@ -49,7 +49,7 @@ class CrawlDocLedgerTest {
         new MockCrawlerBuilder(tempDir)
                 .configModifier(cfg -> cfg
                         .setGridConnector(ClassUtil.newInstance(connClass)))
-                .withInitializedCrawlerContext(ctx -> {
+                .withCrawlContext(ctx -> {
                     var ledger1 = ctx.getDocLedger();
                     ledger1.queue(new CrawlDocContext("ref:queue1"));
                     ledger1.queue(new CrawlDocContext("ref:queue2"));
@@ -59,8 +59,6 @@ class CrawlDocLedgerTest {
                             new CrawlDocContext("ref:processed2"));
                     ledger1.processed(
                             new CrawlDocContext("ref:processed3"));
-                    ctx.close();
-                    ctx.getGrid().close();
                     return null;
                 });
 
@@ -69,13 +67,10 @@ class CrawlDocLedgerTest {
         new MockCrawlerBuilder(tempDir)
                 .configModifier(cfg -> cfg
                         .setGridConnector(ClassUtil.newInstance(connClass)))
-                .withInitializedCrawlerContext(ctx -> {
+                .withCrawlContext(ctx -> {
                     var ledger2 = ctx.getDocLedger();
                     assertThat(ledger2.getQueueCount()).isEqualTo(2);
                     assertThat(ledger2.getProcessedCount()).isEqualTo(3);
-
-                    ctx.close();
-                    ctx.getGrid().close();
                     return null;
                 });
     }

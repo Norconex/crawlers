@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
@@ -27,17 +26,18 @@ import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategize
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 
 class ProcessFinalizeTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testThreadActionFinalize(CrawlerContext crawlerContext) {
+    void testThreadActionFinalize(CrawlContext crawlContext) {
         var strategy = new MutableObject<>(
                 SpoiledReferenceStrategy.IGNORE);
         SpoiledReferenceStrategizer spoiledHandler =
                 (ref, state) -> strategy.getValue();
 
-        crawlerContext.getConfiguration().setSpoiledReferenceStrategizer(
+        crawlContext.getCrawlConfig().setSpoiledReferenceStrategizer(
                 spoiledHandler);
         var ctx = new ProcessContext();
 
@@ -47,7 +47,7 @@ class ProcessFinalizeTest {
 
         // no doc set and no status set: one should be created and bad status
         ctx.finalized(false);
-        ctx.crawlerContext(crawlerContext);
+        ctx.crawlContext(crawlContext);
         ctx.docContext(new CrawlDocContext("ref"));
 
         ProcessFinalize.execute(ctx);

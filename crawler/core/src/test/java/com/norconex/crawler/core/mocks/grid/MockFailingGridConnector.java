@@ -14,10 +14,9 @@
  */
 package com.norconex.crawler.core.mocks.grid;
 
-import java.nio.file.Path;
-
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.GridContext;
 
 import lombok.Data;
 
@@ -25,12 +24,12 @@ import lombok.Data;
 public class MockFailingGridConnector implements GridConnector {
 
     @Override
-    public Grid connect(Path workDir) {
+    public Grid connect(GridContext gridContext) {
         return new MockFailingGrid();
     }
 
     @Override
-    public void shutdownGrid(Path workDir) {
+    public void shutdownGrid(GridContext gridContext) {
         // NOOP
     }
 }

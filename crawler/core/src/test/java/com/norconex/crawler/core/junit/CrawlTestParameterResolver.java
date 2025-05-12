@@ -22,9 +22,9 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.session.CrawlContext;
 
 /**
  * Resolves test method parameters. Invoked after
@@ -39,8 +39,8 @@ public class CrawlTestParameterResolver implements ParameterResolver {
                 parameterContext.getParameter().getType();
         return List.of(
                 Crawler.class,
-                CrawlerConfig.class,
-                CrawlerContext.class,
+                CrawlConfig.class,
+                CrawlContext.class,
                 MemoryCommitter.class,
                 Path.class)
                 .stream()
@@ -60,14 +60,14 @@ public class CrawlTestParameterResolver implements ParameterResolver {
             return params.getCrawler();
         }
 
-        // CrawlerConfig
-        if (CrawlerConfig.class.isAssignableFrom(paramType)) {
-            return params.getCrawlerConfig();
+        // CrawlConfig
+        if (CrawlConfig.class.isAssignableFrom(paramType)) {
+            return params.getCrawlConfig();
         }
 
-        // CrawlerContext
-        if (CrawlerContext.class.isAssignableFrom(paramType)) {
-            return params.getCrawlerContext();
+        // CrawlContext
+        if (CrawlContext.class.isAssignableFrom(paramType)) {
+            return params.getCrawlContext();
         }
 
         // First committer

@@ -66,7 +66,7 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
 
     /**
      * The document field name containing the value to be stored
-     * in Solr ID field. A <code>null</code> value (default) will use the
+     * in Solr ID field. A {@code null} value (default) will use the
      * document reference instead of a document field.
      */
     private String sourceIdField;
@@ -79,7 +79,7 @@ public class SolrCommitterConfig extends BaseBatchCommitterConfig {
 
     /**
      * The name of the Solr field where content will be stored. Default
-     * is "content". A <code>null</code> value will disable storing the content.
+     * is "content". A {@code null} value will disable storing the content.
      */
     private String targetContentField = DEFAULT_SOLR_CONTENT_FIELD;
 

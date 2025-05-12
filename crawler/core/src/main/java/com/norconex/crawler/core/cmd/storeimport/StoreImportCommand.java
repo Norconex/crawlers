@@ -27,10 +27,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.grid.core.compute.GridTaskBuilder;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridQueue;
 import com.norconex.grid.core.storage.GridSet;
@@ -48,26 +49,29 @@ public class StoreImportCommand implements Command {
     private final Path inFile;
 
     @Override
-    public void execute(CrawlerContext ctx) {
+    public void execute(CrawlContext ctx) {
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN);
         try {
-            ctx.getGrid().getCompute().runOnOneOnce(
-                    StoreImportCommand.class.getSimpleName(), () -> {
-                        try {
-                            importAllStores(ctx);
-                        } catch (ClassNotFoundException | IOException e) {
-                            throw new CrawlerException(e);
-                        }
-                        return null;
-                    });
+            ctx.getGrid().getCompute()
+                    .executeTask(GridTaskBuilder.create("storeImportTask")
+                            .singleNode()
+                            .processor(grid -> {
+                                try {
+                                    importAllStores(ctx);
+                                } catch (ClassNotFoundException
+                                        | IOException e) {
+                                    throw new CrawlerException(e);
+                                }
+                            })
+                            .build());
         } catch (Exception e) {
             throw new CrawlerException("Could not import file: " + inFile, e);
         }
         ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_END);
     }
 
-    private void importAllStores(CrawlerContext crawlerContext)
+    private void importAllStores(CrawlContext crawlContext)
             throws IOException, ClassNotFoundException {
         // Export/Import is normally executed in a controlled environment
         // so not susceptible to Zip Bomb attacks.
@@ -75,10 +79,10 @@ public class StoreImportCommand implements Command {
                 IOUtils.buffer(Files.newInputStream(inFile)))) {
             var zipEntry = zipIn.getNextEntry(); //NOSONAR
             while (zipEntry != null) {
-                if (!importOneStore(crawlerContext, zipIn)) {
+                if (!importOneStore(crawlContext, zipIn)) {
                     LOG.debug("Input file \"{}\" not matching crawler "
                             + "\"{}\". Skipping.",
-                            inFile, crawlerContext.getId());
+                            inFile, crawlContext.getId());
                 }
                 zipIn.closeEntry();
                 zipEntry = zipIn.getNextEntry(); //NOSONAR
@@ -89,7 +93,7 @@ public class StoreImportCommand implements Command {
 
     @SuppressWarnings("unchecked")
     private boolean importOneStore(
-            CrawlerContext crawlerContext, InputStream in)
+            CrawlContext crawlContext, InputStream in)
             throws IOException, ClassNotFoundException {
 
         var parser = SerialUtil.jsonParser(in);
@@ -122,7 +126,7 @@ public class StoreImportCommand implements Command {
                 }
 
                 LOG.info("Importing \"{}\".", storeName);
-                var storage = crawlerContext.getGrid().getStorage();
+                var storage = crawlContext.getGrid().getStorage();
 
                 GridStore<?> store = concreteStore(
                         storage, storeSuperClass, storeName, objectClass);

@@ -66,9 +66,7 @@ public final class ConcurrentUtil {
                 throw new CompletionException(ex);
             }
             return res;
-        }).whenComplete((res, ex) -> {
-            executor.shutdown();
-        });
+        }).whenComplete((res, ex) -> executor.shutdown());
     }
 
     /**

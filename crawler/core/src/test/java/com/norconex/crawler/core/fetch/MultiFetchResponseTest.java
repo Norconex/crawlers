@@ -56,7 +56,7 @@ class MultiFetchResponseTest {
         var resp1 = new TestResponse("resp1");
         var resp2 = new TestResponse("resp2");
 
-        var gmfr = new MultiFetchResponse<>(List.of(resp1, resp2));
+        var gmfr = new MultiFetchResponse(List.of(resp1, resp2));
 
         assertThat(gmfr.getStatusCode()).isEqualTo(123);
         assertThat(gmfr.getReasonPhrase()).isEqualTo("Just because.");

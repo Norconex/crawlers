@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -65,7 +66,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class CrawlerConfig {
+public class CrawlConfig {
 
     /** Default relative directory where generated files are written. */
     public static final Path DEFAULT_WORKDIR = Paths.get("./work");
@@ -116,7 +117,7 @@ public class CrawlerConfig {
 
     /**
      * The base directory location where files generated during execution
-     * will reside. When <code>null</code> the collector will use
+     * will reside. When {@code null} the collector will use
      * <code>./work</code>, relative to the execution "current" directory.
      */
     private Path workDir = DEFAULT_WORKDIR;
@@ -220,7 +221,7 @@ public class CrawlerConfig {
      * the crawler queue will restart the processing.
      * A non-zero value can be useful if the crawler queue can be populated
      * by an external process. Default is zero (does not wait).
-     * {@value #DEFAULT_IDLE_PROCESSING_TIMEOUT}. A <code>null</code>
+     * {@value #DEFAULT_IDLE_PROCESSING_TIMEOUT}. A {@code null}
      * value is equivalent to zero.
      * The smallest considered unit is seconds (milliseconds are rounded up).
      */
@@ -230,7 +231,7 @@ public class CrawlerConfig {
      * Minimum amount of time to wait between each logging of crawling
      * progress. Minimum value is 1 second.
      * Default value is {@value #DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL}.
-     * A <code>null</code> value or a value below 1 second disables progress
+     * A {@code null} value or a value below 1 second disables progress
      * logging.
      */
     private Duration minProgressLoggingInterval =
@@ -244,7 +245,7 @@ public class CrawlerConfig {
      * </p><p>
      * Unless explicitly stated otherwise by a crawler implementation, the
      * default strategy is to <code>PROCESS</code> orphans.
-     * Setting a <code>null</code> value is the same as setting
+     * Setting a {@code null} value is the same as setting
      * <code>IGNORE</code>.
      * </p><p>
      * <b>Be careful:</b> Setting the orphan strategy to <code>DELETE</code>
@@ -272,7 +273,7 @@ public class CrawlerConfig {
 
     /**
      * The metadata checksummer.
-     * Metadata checksum generation is disabled when <code>null</code>.
+     * Metadata checksum generation is disabled when {@code null}.
      */
     private MetadataChecksummer metadataChecksummer;
 
@@ -290,7 +291,7 @@ public class CrawlerConfig {
     /**
      * Whether to turn ON deduplication based on metadata checksum.
      * To enable, {@link #getMetadataChecksummer()} must not return
-     * <code>null</code>.
+     * {@code null}.
      * Not recommended unless you know for sure your metadata
      * checksum is acceptably unique.
      */
@@ -299,7 +300,7 @@ public class CrawlerConfig {
     /**
      * Whether to turn ON deduplication based on document checksum.
      * To enable, {@link #getDocumentChecksummer()} must not return
-     * <code>null</code>.
+     * {@code null}.
      * Not recommended unless you know for sure your document
      * checksum is acceptably unique.
      */
@@ -307,7 +308,7 @@ public class CrawlerConfig {
 
     /**
      * The document checksummer. Document checksum generation is disabled
-     * when <code>null</code>.
+     * when {@code null}.
      */
     private DocumentChecksummer documentChecksummer =
             new Md5DocumentChecksummer();
@@ -332,7 +333,7 @@ public class CrawlerConfig {
      * One or more fetchers responsible for obtaining documents and their
      * metadata from a source.
      */
-    private final List<Fetcher<?, ?>> fetchers = new ArrayList<>();
+    private final List<Fetcher> fetchers = new ArrayList<>();
 
     /**
      * The maximum number of times a fetcher will re-attempt fetching
@@ -351,7 +352,7 @@ public class CrawlerConfig {
 
     /**
      * Gets the references to initiate crawling from.
-     * @return start references (never <code>null</code>)
+     * @return start references (never {@code null})
      */
     public List<String> getStartReferences() {
         return Collections.unmodifiableList(startReferences);
@@ -362,7 +363,7 @@ public class CrawlerConfig {
      * @param startReferences start references
      * @return this
      */
-    public CrawlerConfig setStartReferences(List<String> startReferences) {
+    public CrawlConfig setStartReferences(List<String> startReferences) {
         CollectionUtil.setAll(this.startReferences, startReferences);
         return this;
     }
@@ -372,7 +373,7 @@ public class CrawlerConfig {
      * start references.  Files are expected to have one reference per line.
      * Blank lines and lines starting with # (comment) are ignored.
      * @return file paths of seed files containing references
-     *         (never <code>null</code>)
+     *         (never {@code null})
      */
     public List<Path> getStartReferencesFiles() {
         return Collections.unmodifiableList(startReferencesFiles);
@@ -386,7 +387,7 @@ public class CrawlerConfig {
      *     references
      * @return this
      */
-    public CrawlerConfig setStartReferencesFiles(
+    public CrawlConfig setStartReferencesFiles(
             List<Path> startReferencesFiles) {
         CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
         return this;
@@ -396,7 +397,7 @@ public class CrawlerConfig {
      * Gets the providers of references used as starting points for crawling.
      * Use this approach when references need to be provided
      * dynamically at launch time.
-     * @return start references providers (never <code>null</code>)
+     * @return start references providers (never {@code null})
      */
     public List<ReferencesProvider> getStartReferencesProviders() {
         return Collections.unmodifiableList(startReferencesProviders);
@@ -409,7 +410,7 @@ public class CrawlerConfig {
      * @param startReferencesProviders start references provider
      * @return this
      */
-    public CrawlerConfig setStartReferencesProviders(
+    public CrawlConfig setStartReferencesProviders(
             List<ReferencesProvider> startReferencesProviders) {
         CollectionUtil.setAll(
                 this.startReferencesProviders, startReferencesProviders);
@@ -445,7 +446,7 @@ public class CrawlerConfig {
      *         encountered
      * @return this
      */
-    public CrawlerConfig setStopOnExceptions(
+    public CrawlConfig setStopOnExceptions(
             List<Class<? extends Exception>> stopOnExceptions) {
         CollectionUtil.setAll(this.stopOnExceptions, stopOnExceptions);
         return this;
@@ -464,7 +465,7 @@ public class CrawlerConfig {
      * @param referenceFilters the referenceFilters to set
      * @return this
      */
-    public CrawlerConfig setReferenceFilters(
+    public CrawlConfig setReferenceFilters(
             List<ReferenceFilter> referenceFilters) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
         return this;
@@ -483,7 +484,7 @@ public class CrawlerConfig {
      * @param documentFilters document filters
      * @return this
      */
-    public CrawlerConfig setDocumentFilters(
+    public CrawlConfig setDocumentFilters(
             List<DocumentFilter> documentFilters) {
         CollectionUtil.setAll(this.documentFilters, documentFilters);
         return this;
@@ -502,7 +503,7 @@ public class CrawlerConfig {
      * @param metadataFilters metadata filters
      * @return this
      */
-    public CrawlerConfig setMetadataFilters(
+    public CrawlConfig setMetadataFilters(
             List<MetadataFilter> metadataFilters) {
         CollectionUtil.setAll(this.metadataFilters, metadataFilters);
         return this;
@@ -511,7 +512,7 @@ public class CrawlerConfig {
     /**
      * Gets Committers responsible for persisting information
      * to a target location/repository.
-     * @return list of Committers (never <code>null</code>)
+     * @return list of Committers (never {@code null})
      */
     public List<Committer> getCommitters() {
         return Collections.unmodifiableList(committers);
@@ -523,7 +524,7 @@ public class CrawlerConfig {
      * @param committers list of Committers
      * @return this
      */
-    public CrawlerConfig setCommitters(List<Committer> committers) {
+    public CrawlConfig setCommitters(List<Committer> committers) {
         CollectionUtil.setAll(this.committers, committers);
         return this;
     }
@@ -545,7 +546,7 @@ public class CrawlerConfig {
      * @param eventListeners event listeners.
      * @return this
      */
-    public CrawlerConfig setEventListeners(
+    public CrawlConfig setEventListeners(
             List<EventListener<?>> eventListeners) {
         CollectionUtil.setAll(this.eventListeners, eventListeners);
         return this;
@@ -558,7 +559,7 @@ public class CrawlerConfig {
      * @param eventListeners event listeners.
      * @return this
      */
-    public CrawlerConfig addEventListeners(
+    public CrawlConfig addEventListeners(
             List<EventListener<?>> eventListeners) {
         this.eventListeners.addAll(eventListeners);
         return this;
@@ -571,7 +572,7 @@ public class CrawlerConfig {
      * @param eventListener event listener.
      * @return this
      */
-    public CrawlerConfig addEventListener(EventListener<?> eventListener) {
+    public CrawlConfig addEventListener(EventListener<?> eventListener) {
         eventListeners.add(eventListener);
         return this;
     }
@@ -592,7 +593,7 @@ public class CrawlerConfig {
      * are not cleared.
      * @return this
      */
-    public CrawlerConfig clearEventListeners() {
+    public CrawlConfig clearEventListeners() {
         eventListeners.clear();
         return this;
     }
@@ -610,7 +611,7 @@ public class CrawlerConfig {
      * @param preImportConsumers pre-import consumers
      * @return this
      */
-    public CrawlerConfig setPreImportConsumers(
+    public CrawlConfig setPreImportConsumers(
             List<DocumentConsumer> preImportConsumers) {
         CollectionUtil.setAll(preImportConsumers, preImportConsumers);
         CollectionUtil.removeNulls(preImportConsumers);
@@ -630,7 +631,7 @@ public class CrawlerConfig {
      * @param postImportConsumers post-import consumers
      * @return this
      */
-    public CrawlerConfig setPostImportConsumers(
+    public CrawlConfig setPostImportConsumers(
             List<DocumentConsumer> postImportConsumers) {
         CollectionUtil.setAll(postImportConsumers, postImportConsumers);
         CollectionUtil.removeNulls(postImportConsumers);
@@ -645,7 +646,7 @@ public class CrawlerConfig {
      * successfully process a reference (others are not invoked).
      * @return one or more fetchers
      */
-    public List<Fetcher<?, ?>> getFetchers() { //NOSONAR
+    public List<Fetcher> getFetchers() { //NOSONAR
         return Collections.unmodifiableList(fetchers);
     }
 
@@ -658,8 +659,8 @@ public class CrawlerConfig {
      * @param fetchers one or more fetchers
      * @return this
      */
-    public CrawlerConfig setFetchers(List<Fetcher<?, ?>> fetchers) {
-        CollectionUtil.setAll(this.fetchers, fetchers);
+    public CrawlConfig setFetchers(List<Fetcher> fetchers) {
+        CollectionUtil.setAll((Collection<Fetcher>) this.fetchers, fetchers);
         return this;
     }
 }

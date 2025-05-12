@@ -21,7 +21,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class TextChunk {
     /**
-     * The field name where the text is coming from. <code>null</code>
+     * The field name where the text is coming from. {@code null}
      * if the text comes from the document content instead.
      */
     private final String field; // null if content

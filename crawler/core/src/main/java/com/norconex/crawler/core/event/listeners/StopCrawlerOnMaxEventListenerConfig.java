@@ -56,7 +56,7 @@ public class StopCrawlerOnMaxEventListenerConfig {
 
     /**
      * Gets the event matcher used to identify which events will be counted.
-     * @return text matcher, never <code>null</code>
+     * @return text matcher, never {@code null}
      */
     public TextMatcher getEventMatcher() {
         return eventMatcher;

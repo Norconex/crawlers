@@ -64,7 +64,7 @@ import lombok.experimental.FieldNameConstants;
  * <h2>Content handling</h2>
  * <p>
  * The document content is represented by creating a column with a blank or
- * <code>null</code> field name. When requested, the "content" column
+ * {@code null} field name. When requested, the "content" column
  * will always be present for both upserts and deletes, even if deletes do not
  * have content, for consistency.
  * </p>

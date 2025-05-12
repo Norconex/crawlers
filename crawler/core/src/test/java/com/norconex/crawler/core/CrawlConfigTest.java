@@ -24,7 +24,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
-class CrawlerConfigTest {
+class CrawlConfigTest {
 
     @Test
     void testCrawlerConfig(@TempDir Path tempDir) {

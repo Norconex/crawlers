@@ -19,8 +19,8 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.session.CrawlContext;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -41,14 +41,14 @@ public class CrawlerEvent extends Event {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String CRAWLER_CONTEXT_INIT_BEGIN =
-            "CRAWLER_CONTEXT_INIT_BEGIN";
-    public static final String CRAWLER_CONTEXT_INIT_END =
-            "CRAWLER_CONTEXT_INIT_END";
-    public static final String CRAWLER_CONTEXT_SHUTDOWN_BEGIN =
-            "CRAWLER_CONTEXT_SHUTDOWN_BEGIN";
-    public static final String CRAWLER_CONTEXT_SHUTDOWN_END =
-            "CRAWLER_CONTEXT_SHUTDOWN_END";
+    //    public static final String CRAWLER_CONTEXT_INIT_BEGIN =
+    //            "CRAWLER_CONTEXT_INIT_BEGIN";
+    //    public static final String CRAWLER_CONTEXT_INIT_END =
+    //            "CRAWLER_CONTEXT_INIT_END";
+    //    public static final String CRAWLER_CONTEXT_SHUTDOWN_BEGIN =
+    //            "CRAWLER_CONTEXT_SHUTDOWN_BEGIN";
+    //    public static final String CRAWLER_CONTEXT_SHUTDOWN_END =
+    //            "CRAWLER_CONTEXT_SHUTDOWN_END";
 
     /**
      * The crawler is about to begin crawling.
@@ -183,7 +183,7 @@ public class CrawlerEvent extends Event {
 
     /**
      * Gets the crawl data holding contextual information about the
-     * crawled reference.  CRAWLER_* events will return a <code>null</code>
+     * crawled reference.  CRAWLER_* events will return a {@code null}
      * crawl data.
      */
     private final CrawlDocContext docContext;
@@ -200,8 +200,8 @@ public class CrawlerEvent extends Event {
     }
 
     @Override
-    public CrawlerContext getSource() {
-        return (CrawlerContext) super.getSource();
+    public CrawlContext getSource() {
+        return (CrawlContext) super.getSource();
     }
 
     //    public boolean isCrawlerShutdown() {

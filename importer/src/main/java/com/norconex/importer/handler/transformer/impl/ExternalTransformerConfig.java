@@ -139,7 +139,7 @@ import lombok.experimental.Accessors;
  * error streams.  If <code>${OUTPUT_META}</code> is found in the command,
  * the output format will be
  * used to parse the outgoing metadata file. Leave the format to
- * <code>null</code> to rely on extraction patterns for parsing the output file.
+ * {@code null} to rely on extraction patterns for parsing the output file.
  * </p>
  * <p>
  * When <code>${OUTPUT_META}</code> is omitted, extraction patterns will be
@@ -260,10 +260,10 @@ public class ExternalTransformerConfig {
 
     /**
      * Sets the environment variables. Clearing any previously assigned
-     * environment variables. When <code>null</code>, uses
+     * environment variables. When {@code null}, uses
      * the current process environment variables (default).
      * @param environmentVariables environment variables
-     * @return environment variables or <code>null</code> if using the current
+     * @return environment variables or {@code null} if using the current
      *         process environment variables
      */
     private Map<String, String> environmentVariables = null;
@@ -281,7 +281,7 @@ public class ExternalTransformerConfig {
     /*
      * Sets the format of the metadata output file from the external
      * application. One of "json" (default), "xml", or "properties" is expected.
-     * Set to <code>null</code> for relying metadata extraction
+     * Set to {@code null} for relying metadata extraction
      * patterns instead.
      * Only applicable when the <code>${OUTPUT}</code> token
      * is part of the command.

@@ -22,21 +22,21 @@ import java.nio.file.Path;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlerException;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Enqueues references from files obtained from the crawler configuration
- * {@link CrawlerConfig#getStartReferencesFiles()}.
+ * {@link CrawlConfig#getStartReferencesFiles()}.
  */
 @Slf4j
-public class FileRefEnqueuer implements ReferenceEnqueuer {
+public class RefFileEnqueuer implements ReferenceEnqueuer {
 
     @Override
     public int enqueue(QueueBootstrapContext ctx) {
-        var cfg = ctx.getCrawlerContext().getConfiguration();
+        var cfg = ctx.getCrawlContext().getCrawlConfig();
         var refsFiles = cfg.getStartReferencesFiles();
         var cnt = 0;
         for (Path refsFile : refsFiles) {

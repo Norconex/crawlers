@@ -163,7 +163,7 @@ import lombok.extern.slf4j.Slf4j;
  * error streams.  If <code>${OUTPUT_META}</code> is found in the command,
  * the output format will be
  * used to parse the outgoing metadata file. Leave the format to
- * <code>null</code> to rely on extraction patterns for parsing the output file.
+ * {@code null} to rely on extraction patterns for parsing the output file.
  * </p>
  * <p>
  * When <code>${OUTPUT_META}</code> is omitted, extraction patterns will be

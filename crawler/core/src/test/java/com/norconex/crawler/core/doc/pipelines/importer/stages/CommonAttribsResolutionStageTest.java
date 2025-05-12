@@ -18,17 +18,17 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.DocMetaConstants;
 
 class CommonAttribsResolutionStageTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testCommonAttribsResolutionStage(CrawlerContext crawlCtx) {
+    void testCommonAttribsResolutionStage(CrawlContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref",
                 """

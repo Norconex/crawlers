@@ -19,10 +19,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.compute_DELETE.GridCompute;
-import com.norconex.grid.core.pipeline.GridPipeline;
+import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.storage.GridStorage;
-import com.norconex.grid.core.util.ExecutorManager;
 
 import lombok.Data;
 
@@ -42,18 +40,8 @@ public class MockFailingGrid implements Grid {
     }
 
     @Override
-    public GridPipeline pipeline() {
-        throw new UnsupportedOperationException("IN_TEST");
-    }
-
-    @Override
     public String getNodeName() {
         return nodeId;
-    }
-
-    @Override
-    public ExecutorManager getNodeExecutors() {
-        throw new UnsupportedOperationException("IN_TEST");
     }
 
     @Override
@@ -79,6 +67,21 @@ public class MockFailingGrid implements Grid {
     @Override
     public CompletableFuture<Void> awaitMinimumNodes(
             int count, Duration timeout) {
+        throw new UnsupportedOperationException("IN_TEST");
+    }
+
+    @Override
+    public void registerContext(String contextKey, Object context) {
+        throw new UnsupportedOperationException("IN_TEST");
+    }
+
+    @Override
+    public Object getContext(String contextKey) {
+        throw new UnsupportedOperationException("IN_TEST");
+    }
+
+    @Override
+    public Object unregisterContext(String contextKey) {
         throw new UnsupportedOperationException("IN_TEST");
     }
 }

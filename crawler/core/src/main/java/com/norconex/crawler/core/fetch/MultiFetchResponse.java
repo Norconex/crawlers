@@ -29,16 +29,14 @@ import lombok.Setter;
 /**
  * Holds all responses obtained from fetching a document
  * using one or multiple fetchers.
- * @param <T> fetch response type
  */
 @Data
 @RequiredArgsConstructor
-public class MultiFetchResponse<T extends FetchResponse>
-        implements FetchResponse {
+public class MultiFetchResponse implements FetchResponse {
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private final List<T> fetchResponses;
+    private final List<? extends FetchResponse> fetchResponses;
 
     @Override
     public CrawlDocStatus getResolutionStatus() {
@@ -64,11 +62,11 @@ public class MultiFetchResponse<T extends FetchResponse>
                 FetchResponse::getException).orElse(null);
     }
 
-    public List<T> getFetchResponses() {
+    public List<FetchResponse> getFetchResponses() {
         return Collections.unmodifiableList(fetchResponses);
     }
 
-    protected Optional<T> getLastFetchResponse() {
+    protected Optional<FetchResponse> getLastFetchResponse() {
         if (fetchResponses.isEmpty()) {
             return Optional.empty();
         }

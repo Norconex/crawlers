@@ -26,9 +26,9 @@ import lombok.experimental.Accessors;
 
 /**
  * An Importer request, unique for each document to be imported.
- * A <code>null</code> is accepted for the file or input stream. This can
+ * A {@code null} is accepted for the file or input stream. This can
  * sometimes be useful when dealing with meta data only.
- * A <code>null</code> reference can also be provided, in which case the
+ * A {@code null} reference can also be provided, in which case the
  * file name will be used as the reference when a file is provided, or an
  * empty string when dealing with an input stream.  It is recommended
  * to pass a reference that represents your document when possible (at least

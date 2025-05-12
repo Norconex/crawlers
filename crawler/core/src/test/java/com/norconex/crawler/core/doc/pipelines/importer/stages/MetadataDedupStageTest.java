@@ -24,20 +24,20 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.DedupService;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 @MockitoSettings
 class MetadataDedupStageTest {
 
     @Mock
-    private CrawlerContext crawlerCtx;
+    private CrawlContext crawlerCtx;
     @Mock
     private DedupService dedupService;
 
@@ -47,9 +47,9 @@ class MetadataDedupStageTest {
                 .thenReturn(Optional.of("someRef"));
         when(crawlerCtx.getDedupService()).thenReturn(dedupService);
 
-        var cfg = new CrawlerConfig();
+        var cfg = new CrawlConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
-        when(crawlerCtx.getConfiguration()).thenReturn(cfg);
+        when(crawlerCtx.getCrawlConfig()).thenReturn(cfg);
 
         var doc = CrawlDocStubs.crawlDoc("ref", "content");
         doc.getDocContext().setMetaChecksum("somechecksum");

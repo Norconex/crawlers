@@ -25,13 +25,13 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.Xml;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
+import com.norconex.crawler.core.session.CrawlContext;
 
 class AbstractFetcherTest {
 
@@ -50,37 +50,37 @@ class AbstractFetcherTest {
     }
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testEvents(CrawlerContext crawlCtx) {
+    void testEvents(CrawlContext crawlCtx) {
         List<String> methodsCalled = new ArrayList<>();
         var f = new MockFetcher() {
             @Override
-            protected void fetcherStartup(CrawlerContext crawler) {
+            protected void fetcherStartup(CrawlContext crawler) {
                 methodsCalled.add("fetcherStartup");
             }
 
             @Override
-            protected void fetcherShutdown(CrawlerContext crawler) {
+            protected void fetcherShutdown(CrawlContext crawler) {
                 methodsCalled.add("fetcherShutdown");
             }
 
             @Override
-            protected void fetcherThreadBegin(CrawlerContext crawler) {
+            protected void fetcherThreadBegin(CrawlContext crawler) {
                 methodsCalled.add("fetcherThreadBegin");
             }
 
             @Override
-            protected void fetcherThreadEnd(CrawlerContext crawler) {
+            protected void fetcherThreadEnd(CrawlContext crawler) {
                 methodsCalled.add("fetcherThreadEnd");
             }
         };
-        f.accept(CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)
-                .source(crawlCtx)
-                .build());
-        f.accept(CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)
-                .source(crawlCtx)
-                .build());
+        //        f.accept(CrawlerEvent.builder()
+        //                .name(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)
+        //                .source(crawlCtx)
+        //                .build());
+        //        f.accept(CrawlerEvent.builder()
+        //                .name(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)
+        //                .source(crawlCtx)
+        //                .build());
         f.accept(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
                 .source(crawlCtx)

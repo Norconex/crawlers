@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
@@ -38,24 +38,24 @@ import lombok.extern.slf4j.Slf4j;
  * enqueuers. Default enqueuers are:
  * </p>
  * <ul>
- *   <li>{@link ListRefEnqueuer} (list of references)</li>
- *   <li>{@link FileRefEnqueuer} (files containing references)</li>
- *   <li>{@link ProviderRefEnqueuer} (Java-based reference providers)</li>
+ *   <li>{@link RefListEnqueuer} (list of references)</li>
+ *   <li>{@link RefFileEnqueuer} (files containing references)</li>
+ *   <li>{@link RefProviderEnqueuer} (Java-based reference providers)</li>
  * </ul>
  * <p>
- * Those are configurable in {@link CrawlerConfig}.
+ * Those are configurable in {@link CrawlConfig}.
  * </p>
  */
 @Slf4j
 @EqualsAndHashCode
-public class QueueBootstrapper implements Predicate<CrawlerContext> {
+public class QueueBootstrapper implements CrawlBootstrapper {
 
     private final List<ReferenceEnqueuer> enqueuers = new ArrayList<>();
 
     public QueueBootstrapper() {
-        enqueuers.add(new ListRefEnqueuer());
-        enqueuers.add(new FileRefEnqueuer());
-        enqueuers.add(new ProviderRefEnqueuer());
+        enqueuers.add(new RefListEnqueuer());
+        enqueuers.add(new RefFileEnqueuer());
+        enqueuers.add(new RefProviderEnqueuer());
     }
 
     public QueueBootstrapper(
@@ -66,12 +66,12 @@ public class QueueBootstrapper implements Predicate<CrawlerContext> {
     }
 
     @Override
-    public boolean test(CrawlerContext crawlerContext) {
-        if (crawlerContext.isResuming()) {
+    public void bootstrap(CrawlContext crawlContext) {
+        if (crawlContext.isResumedCrawlSession()) {
             LOG.info("Unfinished previous crawl detected. Resuming...");
         } else {
             LOG.info("Queuing start references ({})...",
-                    crawlerContext.getConfiguration().isStartReferencesAsync()
+                    crawlContext.getCrawlConfig().isStartReferencesAsync()
                             ? "asynchronously"
                             : "synchronously");
         }
@@ -85,15 +85,10 @@ public class QueueBootstrapper implements Predicate<CrawlerContext> {
         // with an incomplete queue initialization, or make initialization
         // more sophisticated so we can resume in the middle of it
         // (this last option would likely be very impractical).
-        //        var initializer = crawlerContext.getSpec().queueInitializer();
-        //
-        //        if (initializer != null) {
         LOG.info("Queueing initial references...");
         var queueInitContext = new QueueBootstrapContext(
-                crawlerContext,
-                crawlerContext.isResuming(),
-                docCtx -> queue(
-                        new QueuePipelineContext(crawlerContext, docCtx)));
+                crawlContext, docCtx -> queue(
+                        new QueuePipelineContext(crawlContext, docCtx)));
 
         var callback = (Consumer<QueueBootstrapContext>) ctx -> {
             var cnt = 0;
@@ -106,20 +101,17 @@ public class QueueBootstrapper implements Predicate<CrawlerContext> {
             }
         };
 
-        var cfg = crawlerContext.getConfiguration();
+        var cfg = crawlContext.getCrawlConfig();
         if (cfg.isStartReferencesAsync()) {
             initializeQueueAsync(callback, queueInitContext);
         } else {
             initializeQueueSync(callback, queueInitContext);
         }
-
-        crawlerContext.queueInitialized();
-        return true;
     }
 
     private void queue(QueuePipelineContext context) {
-        context.getCrawlerContext()
-                .getPipelines()
+        context.getCrawlContext()
+                .getDocPipelines()
                 .getQueuePipeline()
                 .accept(context);
     }
@@ -130,11 +122,13 @@ public class QueueBootstrapper implements Predicate<CrawlerContext> {
         var executor = Executors.newSingleThreadExecutor();
         try {
             executor.submit(() -> {
-                LogUtil.setMdcCrawlerId(ctx.getCrawlerContext().getId());
-                Thread.currentThread().setName(ctx.getCrawlerContext().getId());
+                LogUtil.setMdcCrawlerId(ctx.getCrawlContext().getId());
+                Thread.currentThread().setName(ctx.getCrawlContext().getId());
                 LOG.info("Queuing start references asynchronously.");
                 callback.accept(ctx);
-                ctx.getCrawlerContext().queueInitialized();
+                ctx.getCrawlContext()
+                        .getSessionStore()
+                        .setQueueInitialized(true);
             });
         } finally {
             try {
@@ -152,6 +146,6 @@ public class QueueBootstrapper implements Predicate<CrawlerContext> {
             QueueBootstrapContext ctx) {
         LOG.info("Queuing start references synchronously.");
         callback.accept(ctx);
-        ctx.getCrawlerContext().queueInitialized();
+        ctx.getCrawlContext().getSessionStore().setQueueInitialized(true);
     }
 }

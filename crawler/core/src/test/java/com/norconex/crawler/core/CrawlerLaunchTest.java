@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
 
 class CrawlerLaunchTest {
 
@@ -33,7 +33,7 @@ class CrawlerLaunchTest {
     void test() {
         System.setProperty("tempDir", tempDir.toString());
         var exitVal = CliCrawlerLauncher.launch(
-                MockCrawlerSpecProvider.class,
+                new MockCrawlDriverFactory().get(),
                 "start",
                 "-config=./src/test/resources/memoryCrawler.yaml");
         assertThat(exitVal).isZero();

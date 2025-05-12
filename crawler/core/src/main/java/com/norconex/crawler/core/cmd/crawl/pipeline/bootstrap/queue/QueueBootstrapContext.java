@@ -16,8 +16,8 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue;
 
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.session.CrawlContext;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,13 +31,11 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 public class QueueBootstrapContext {
     @Getter
-    private final CrawlerContext crawlerContext;
-    @Getter
-    private final boolean resuming;
+    private final CrawlContext crawlContext;
     private final Consumer<CrawlDocContext> queuer;
 
     public void queue(@NonNull String reference) {
-        var rec = crawlerContext.newDocContext(reference);
+        var rec = crawlContext.createDocContext(reference);
         rec.setDepth(0);
         queue(rec);
     }

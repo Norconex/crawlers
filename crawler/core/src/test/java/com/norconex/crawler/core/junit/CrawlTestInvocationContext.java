@@ -32,7 +32,7 @@ class CrawlTestInvocationContext implements TestTemplateInvocationContext {
     @Override
     public List<Extension> getAdditionalExtensions() {
         return List.of(
-                new CrawlTestExtensionInitialization(
+                new CrawlTestExtensionCallbacks(
                         gridConnectorClass, annotation),
                 new CrawlTestParameterResolver());
     }

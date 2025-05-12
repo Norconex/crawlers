@@ -26,7 +26,7 @@ import lombok.experimental.Accessors;
  * For metadata fields,
  * control characters (char &lt;= 32) are removed before evaluating whether
  * their values are empty. Dealing with the document content will
- * rather check if it is <code>null</code> or empty (no bytes returned
+ * rather check if it is {@code null} or empty (no bytes returned
  * when read).
  * </p>
  *

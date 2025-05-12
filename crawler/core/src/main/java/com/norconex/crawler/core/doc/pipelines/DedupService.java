@@ -14,17 +14,16 @@
  */
 package com.norconex.crawler.core.doc.pipelines;
 
-import java.io.Closeable;
 import java.util.Optional;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.grid.core.storage.GridMap;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DedupService implements Closeable {
+public class DedupService {
 
     //TODO merge with CrawlDocLedger if we can query by checksum
     // at no extra cost?
@@ -32,27 +31,27 @@ public class DedupService implements Closeable {
     private GridMap<String> dedupMetadataStore; // checksum -> ref
     private GridMap<String> dedupDocumentStore; // checksum -> ref
 
-    private boolean initialized;
-
-    public void init(CrawlerContext crawler) {
-        if (initialized) {
-            throw new IllegalStateException("Already initialized.");
-        }
-        var storeEngine = crawler.getGrid().getStorage();
-        var config = crawler.getConfiguration();
+    public void init(CrawlContext ctx) {
+        var crawlConfig = ctx.getCrawlConfig();
+        var grid = ctx.getGrid();
+        var storeEngine = grid.getStorage();
 
         // only enable if configured to do dedup
-        if (config.isMetadataDeduplicate()
-                && config.getMetadataChecksummer() != null) {
+        if (crawlConfig.isMetadataDeduplicate()
+                && crawlConfig.getMetadataChecksummer() != null) {
             dedupMetadataStore =
                     storeEngine.getMap("dedupMetadata", String.class);
             LOG.info("Initialized deduplication based on document metadata.");
+        } else {
+            dedupMetadataStore = null;
         }
-        if (config.isDocumentDeduplicate()
-                && config.getDocumentChecksummer() != null) {
+        if (crawlConfig.isDocumentDeduplicate()
+                && crawlConfig.getDocumentChecksummer() != null) {
             dedupDocumentStore =
                     storeEngine.getMap("dedupDocument", String.class);
             LOG.info("Initialized deduplication based on document content.");
+        } else {
+            dedupDocumentStore = null;
         }
     }
 
@@ -97,10 +96,5 @@ public class DedupService implements Closeable {
             store.put(checksum, reference);
         }
         return Optional.ofNullable(ref);
-    }
-
-    @Override
-    public void close() {
-        initialized = false;
     }
 }

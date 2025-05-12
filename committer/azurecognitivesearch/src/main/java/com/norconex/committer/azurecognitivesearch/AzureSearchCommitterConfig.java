@@ -113,7 +113,7 @@ public class AzureSearchCommitterConfig
     /**
      * The document field name containing the value to be stored
      * in Azure Search document key field. Default is not a field
-     * (<code>null</code>), but rather
+     * ({@code null}), but rather
      * the document reference.
      */
     private String sourceKeyField;
@@ -127,13 +127,13 @@ public class AzureSearchCommitterConfig
     /**
      * The name of the Azure Search field where content will be stored.
      * Default is "content".
-     * Specifying a <code>null</code> value will disable storing the content.
+     * Specifying a {@code null} value will disable storing the content.
      */
     private String targetContentField = DEFAULT_AZURE_CONTENT_FIELD;
 
     /**
      * Gets the proxy settings.
-     * @return proxy settings (never <code>null</code>).
+     * @return proxy settings (never {@code null}).
      */
     public ProxySettings getProxySettings() {
         return proxySettings;

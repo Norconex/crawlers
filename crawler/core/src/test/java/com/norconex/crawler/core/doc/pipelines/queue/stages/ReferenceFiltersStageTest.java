@@ -20,23 +20,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 
 class ReferenceFiltersStageTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testReferenceFiltersStage(CrawlerContext crawlCtx) {
+    void testReferenceFiltersStage(CrawlContext crawlCtx) {
         var docRecord = new CrawlDocContext("ref");
         var stage = new ReferenceFiltersStage();
 
         // match - include
-        crawlCtx.getConfiguration()
+        crawlCtx.getCrawlConfig()
                 .setReferenceFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("ref"))
@@ -45,7 +45,7 @@ class ReferenceFiltersStageTest {
         assertThat(stage.test(ctx1)).isTrue();
 
         // match - exclude
-        crawlCtx.getConfiguration()
+        crawlCtx.getCrawlConfig()
                 .setReferenceFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("ref"))
@@ -55,7 +55,7 @@ class ReferenceFiltersStageTest {
 
         // no match - include
         stage = new ReferenceFiltersStage("blah");
-        crawlCtx.getConfiguration()
+        crawlCtx.getCrawlConfig()
                 .setReferenceFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("noref"))

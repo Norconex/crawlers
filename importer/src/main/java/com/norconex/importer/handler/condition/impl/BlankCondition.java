@@ -34,7 +34,7 @@ import lombok.experimental.FieldNameConstants;
  * For metadata fields,
  * control characters (char &lt;= 32) are removed before evaluating whether
  * their values are empty. Dealing with the document content will
- * instead check if it is <code>null</code> or empty (no bytes returned
+ * instead check if it is {@code null} or empty (no bytes returned
  * when read).
  * </p>
  *

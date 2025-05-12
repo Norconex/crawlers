@@ -26,12 +26,12 @@ import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerSpecProvider;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 import com.norconex.grid.core.GridConnector;
 import com.norconex.grid.local.LocalGridConnector;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
-import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 /**
  * <p>
@@ -65,13 +65,13 @@ public @interface CrawlTest {
      * </p>
      * <ul>
      *   <li>
-     *     Crawler (when focus is {@link Focus#CRAWL}, else <code>null</code>)
+     *     Crawler (when focus is {@link Focus#CRAWL}, else {@code null})
      *   </li>
      *   <li>
-     *     CrawlerConfig
+     *     CrawlConfig
      *   </li>
      *   <li>
-     *     CrawlerContext (<code>null</code> when focus is {@link Focus#CONFIG})
+     *     CrawlContext ({@code null} when focus is {@link Focus#CONFIG})
      *   </li>
      *   <li>
      *     Committer (an instance of <code>MemoryCommitter</code>)
@@ -85,7 +85,7 @@ public @interface CrawlTest {
         /**
          * Before each text execution, create a crawler, invoke the crawl
          * command, and destroy the crawler after each execution.
-         * All resolvable method arguments are set (non-<code>null</code>).
+         * All resolvable method arguments are set (non-{@code null}).
          */
         CRAWL,
         /**
@@ -94,13 +94,13 @@ public @interface CrawlTest {
          * Does not crawl and outcome is unexpected if trying to launch a crawl
          * while the separate crawler context is active.
          * The resolvable <code>Crawler</code> method arguments is always
-         * <code>null</code>.
+         * {@code null}.
          */
         CONTEXT,
         /**
          * Makes resolvable method arguments available without initialization.
          * The resolvable <code>Crawler</code> method arguments is always
-         * <code>null</code>.
+         * {@code null}.
          */
         CONFIG
     }
@@ -109,7 +109,8 @@ public @interface CrawlTest {
      * Use a the given crawler specs.
      * @return crawler specs
      */
-    Class<? extends CrawlerSpecProvider> specProvider() default MockCrawlerSpecProvider.class;
+    Class<? extends Supplier<
+            CrawlDriver>> driverFactory() default MockCrawlDriverFactory.class;
 
     Class<? extends GridConnector>[] gridConnectors() default {
             LocalGridConnector.class,
@@ -176,12 +177,12 @@ public @interface CrawlTest {
      * @return crawler configuration consumer
      */
     Class<? extends Consumer<
-            ? extends CrawlerConfig>> configModifier() default NoCrawlerConfigModifier.class;
+            ? extends CrawlConfig>> configModifier() default NoCrawlerConfigModifier.class;
 
     public static final class NoCrawlerConfigModifier
-            implements Consumer<CrawlerConfig> {
+            implements Consumer<CrawlConfig> {
         @Override
-        public void accept(CrawlerConfig t) {
+        public void accept(CrawlConfig t) {
             //NOOP
         }
     }

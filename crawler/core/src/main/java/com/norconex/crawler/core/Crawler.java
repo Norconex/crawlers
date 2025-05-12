@@ -18,14 +18,15 @@ import java.nio.file.Path;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.clean.CleanCommand;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
+import com.norconex.crawler.core.session.CrawlSessionManager;
 import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.LogUtil;
+import com.norconex.grid.core.BaseGridContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -48,23 +49,25 @@ import lombok.extern.slf4j.Slf4j;
  *     -DenableJMX=true
  * </pre>
  *
- * @see CrawlerConfig
+ * @see CrawlConfig
  */
 @Slf4j
 @EqualsAndHashCode
-@Getter
 public class Crawler {
 
     private static final String GRID_WORKDIR_NAME = "grid";
 
-    private final Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass;
-    private final CrawlerConfig crawlerConfig;
+    @Getter
+    private final CrawlDriver crawlDriver;
+    @Getter
+    private final CrawlConfig crawlConfig;
 
-    public Crawler(
-            Class<? extends CrawlerSpecProvider> crawlerSpecProviderClass,
-            CrawlerConfig crawlerConfig) {
-        this.crawlerSpecProviderClass = crawlerSpecProviderClass;
-        this.crawlerConfig = crawlerConfig;
+    private final CrawlSessionManager sessionManager;
+
+    public Crawler(CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
+        this.crawlDriver = crawlDriver;
+        this.crawlConfig = crawlConfig;
+        sessionManager = new CrawlSessionManager(crawlDriver, crawlConfig);
     }
 
     /**
@@ -94,8 +97,10 @@ public class Crawler {
         // Since we are stopping we are not initializing
         // the context and not formally connecting to the grid
         var gridWorkDir = ConfigUtil
-                .resolveWorkDir(crawlerConfig).resolve(GRID_WORKDIR_NAME);
-        crawlerConfig.getGridConnector().shutdownGrid(gridWorkDir);
+                .resolveWorkDir(crawlConfig).resolve(GRID_WORKDIR_NAME);
+        //TODO Provide task context instead of null
+        crawlConfig.getGridConnector().shutdownGrid(
+                new BaseGridContext(gridWorkDir));
     }
 
     public void storageExport(Path dir, boolean pretty) {
@@ -106,27 +111,30 @@ public class Crawler {
         executeCommand(new StoreImportCommand(inFile));
     }
 
-    private void validateConfig(CrawlerConfig config) {
+    private void validateConfig(CrawlConfig config) {
         if (StringUtils.isBlank(config.getId())) {
             throw new CrawlerException(
                     "Crawler must be given a unique identifier (id).");
         }
     }
 
-    protected void executeCommand(Command command) {
-        validateConfig(crawlerConfig);
-        LogUtil.logCommandIntro(LOG, crawlerConfig);
+    private void executeCommand(Command command) {
+        validateConfig(crawlConfig);
+        LogUtil.logCommandIntro(LOG, crawlConfig);
         LOG.info("Executing command: {}", command.getClass().getSimpleName());
-        var workDir = ConfigUtil.resolveWorkDir(crawlerConfig);
-        var spec = ClassUtil.newInstance(crawlerSpecProviderClass).get();
-        try (var grid = crawlerConfig
-                .getGridConnector()
-                .connect(workDir.resolve(GRID_WORKDIR_NAME))) {
-            // grid auto closes
-            try (var ctx = new CrawlerContext(spec, crawlerConfig, grid)) {
-                ctx.init();
-                command.execute(ctx);
-            }
-        }
+
+        sessionManager.withCrawlContext(command::execute);
+        //
+        //        var workDir = ConfigUtil.resolveWorkDir(crawlConfig);
+        //        try (var grid = crawlConfig
+        //                .getGridConnector()
+        //                .connect(workDir.resolve(GRID_WORKDIR_NAME))) {
+        //            // grid auto closes
+        //            try (var ctx = new CrawlContext(crawlDriver, crawlConfig, grid)) {
+        //                ctx.init();
+        //                command.execute(ctx);
+        //            }
+        //        }
     }
+
 }

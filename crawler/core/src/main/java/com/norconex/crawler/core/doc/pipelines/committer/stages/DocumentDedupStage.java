@@ -36,7 +36,7 @@ public class DocumentDedupStage implements Predicate<CommitterPipelineContext> {
     public boolean test(CommitterPipelineContext ctx) {
         var docContext = ctx.getDoc().getDocContext();
 
-        var dedupService = ctx.getCrawlerContext().getDedupService();
+        var dedupService = ctx.getCrawlContext().getDedupService();
 
         var duplRef = dedupService.findOrTrackDocument(docContext);
         if (duplRef.isPresent()) {
@@ -46,10 +46,10 @@ public class DocumentDedupStage implements Predicate<CommitterPipelineContext> {
                         docContext.getReference());
             }
             docContext.setState(CrawlDocStatus.REJECTED);
-            ctx.getCrawlerContext().fire(
+            ctx.getCrawlContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_DUPLICATE)
-                            .source(ctx.getCrawlerContext())
+                            .source(ctx.getCrawlContext())
                             .subject(duplRef.get())
                             .docContext(ctx.getDoc().getDocContext())
                             .message("A document with the same content "

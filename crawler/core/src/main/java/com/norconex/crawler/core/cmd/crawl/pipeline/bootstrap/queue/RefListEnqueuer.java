@@ -14,36 +14,31 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue;
 
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
+import org.apache.commons.lang3.StringUtils;
+
+import com.norconex.crawler.core.CrawlConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Enqueues references from files obtained from the crawler configuration
- * {@link CrawlerConfig#getStartReferencesProviders()}.
+ * Enqueues references from a list obtained from the crawler configuration
+ * {@link CrawlConfig#getStartReferences()}.
  */
 @Slf4j
-public class ProviderRefEnqueuer implements ReferenceEnqueuer {
+public class RefListEnqueuer implements ReferenceEnqueuer {
 
     @Override
     public int enqueue(QueueBootstrapContext ctx) {
-        var cfg = ctx.getCrawlerContext().getConfiguration();
-        var providers = cfg.getStartReferencesProviders();
+        var cfg = ctx.getCrawlContext().getCrawlConfig();
         var cnt = 0;
-        for (ReferencesProvider provider : providers) {
-            if (provider == null) {
-                continue;
-            }
-            var it = provider.provideReferences();
-            while (it.hasNext()) {
-                ctx.queue(it.next());
+        for (String ref : cfg.getStartReferences()) {
+            if (StringUtils.isNotBlank(ref)) {
+                ctx.queue(ref);
                 cnt++;
             }
         }
         if (cnt > 0) {
-            LOG.info("Queued {} start references from {} providers.",
-                    cnt, providers.size());
+            LOG.info("Queued {} start references from list.", cnt);
         }
         return cnt;
     }

@@ -21,10 +21,12 @@ import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.compute.GridTaskBuilder;
 import com.norconex.grid.core.storage.GridSet;
 
 import lombok.EqualsAndHashCode;
@@ -106,18 +108,21 @@ public class DeleteRejectedEventListener implements
         }
     }
 
-    private void init(CrawlerContext crawlerContext) {
+    private void init(CrawlContext crawlContext) {
         // Delete any previously created store. We do it here instead
         // of on completion in case users want to keep a record between
         // two crawl executions.
-        refStore = crawlerContext.getGrid().getStorage()
-                .getSet(DELETED_REFS_CACHE_NAME);
-        crawlerContext.getGrid().getCompute()
-                .runOnOneOnce("delete-rejected-listener-init", () -> {
-                    LOG.info("Clearing any previous deleted references cache.");
-                    refStore.clear();
-                    return null;
-                });
+        refStore = refStore(crawlContext.getGrid());
+        crawlContext.getGrid().getCompute().executeTask(
+                GridTaskBuilder.create("deleteRejectedListenerInit")
+                        .singleNode()
+                        .once()
+                        .processor(grid -> {
+                            LOG.info("Clearing any previous deleted "
+                                    + "references cache.");
+                            refStore(grid).clear();
+                        })
+                        .build());
     }
 
     private void storeRejection(CrawlerEvent event) {
@@ -138,23 +143,32 @@ public class DeleteRejectedEventListener implements
         refStore.add(docInfo.getReference());
     }
 
-    private void commitDeletions(CrawlerContext crawlerContext) {
-        crawlerContext.getGrid().getCompute().runOnOneOnce(
-                "delete-rejected-listener-commit", () -> {
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("Committing {} rejected references for "
-                                + "deletion...", refStore.size());
-                    }
-                    refStore.forEach(ref -> {
-                        crawlerContext.getCommitterService()
-                                .delete(new CrawlDoc(
-                                        new CrawlDocContext(ref),
-                                        CachedInputStream
-                                                .cache(new NullInputStream())));
-                        return true;
-                    });
-                    LOG.info("Done committing rejected references.");
-                    return null;
-                });
+    private void commitDeletions(CrawlContext crawlContext) {
+
+        crawlContext.getGrid().getCompute().executeTask(
+                GridTaskBuilder.create("deleteRejectedListenerCommit")
+                        .singleNode()
+                        .once()
+                        .processor(grid -> {
+                            var store = refStore(grid);
+                            if (LOG.isInfoEnabled()) {
+                                LOG.info("Committing {} rejected references "
+                                        + "for deletion...", store.size());
+                            }
+                            store.forEach(ref -> {
+                                CrawlContext.get(grid).getCommitterService()
+                                        .delete(new CrawlDoc(
+                                                new CrawlDocContext(ref),
+                                                CachedInputStream.cache(
+                                                        new NullInputStream())));
+                                return true;
+                            });
+                            LOG.info("Done committing rejected references.");
+                        })
+                        .build());
+    }
+
+    private static GridSet refStore(Grid grid) {
+        return grid.getStorage().getSet(DELETED_REFS_CACHE_NAME);
     }
 }

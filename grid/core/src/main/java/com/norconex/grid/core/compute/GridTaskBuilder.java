@@ -106,8 +106,7 @@ public final class GridTaskBuilder implements Serializable {
      * @param processor the processor
      * @return this, for chaining
      */
-    public GridTaskBuilder processor(
-            SerializableConsumer<Grid> processor) {
+    public GridTaskBuilder processor(SerializableConsumer<Grid> processor) {
         executor = grid -> {
             processor.accept(grid);
             return null;

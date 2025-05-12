@@ -26,8 +26,8 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.session.CrawlContext;
 
 /**
  * Offers useful methods for registering and unregistering MXBean to JMX.
@@ -37,12 +37,12 @@ public final class CrawlerMetricsJMX {
     private CrawlerMetricsJMX() {
     }
 
-    public static void register(CrawlerContext crawlerContext) {
-        Objects.requireNonNull(crawlerContext, "'crawler' must not be null.");
+    public static void register(CrawlContext crawlContext) {
+        Objects.requireNonNull(crawlContext, "'crawler' must not be null.");
         var mbs = ManagementFactory.getPlatformMBeanServer();
         try {
-            mbs.registerMBean(crawlerContext.getMetrics(),
-                    objectName(crawlerContext));
+            mbs.registerMBean(crawlContext.getMetrics(),
+                    objectName(crawlContext));
         } catch (MalformedObjectNameException
                 | InstanceAlreadyExistsException
                 | MBeanRegistrationException
@@ -51,11 +51,11 @@ public final class CrawlerMetricsJMX {
         }
     }
 
-    public static void unregister(CrawlerContext crawlerContext) {
-        Objects.requireNonNull(crawlerContext, "'crawler' must not be null.");
+    public static void unregister(CrawlContext crawlContext) {
+        Objects.requireNonNull(crawlContext, "'crawler' must not be null.");
         var mbs = ManagementFactory.getPlatformMBeanServer();
         try {
-            var objectName = objectName(crawlerContext);
+            var objectName = objectName(crawlContext);
             if (mbs.isRegistered(objectName)) {
                 mbs.unregisterMBean(objectName);
             }
@@ -66,11 +66,11 @@ public final class CrawlerMetricsJMX {
         }
     }
 
-    private static ObjectName objectName(CrawlerContext crawlerContext)
+    private static ObjectName objectName(CrawlContext crawlContext)
             throws MalformedObjectNameException {
         return new ObjectName(
-                crawlerContext.getClass().getName()
+                crawlContext.getClass().getName()
                         + ":type=Metrics"
-                        + ",crawler=" + quote(crawlerContext.getId()));
+                        + ",crawler=" + quote(crawlContext.getId()));
     }
 }

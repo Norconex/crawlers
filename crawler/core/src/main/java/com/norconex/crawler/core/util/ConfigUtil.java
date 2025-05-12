@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 
 import lombok.NonNull;
 
@@ -26,13 +26,13 @@ public final class ConfigUtil {
     private ConfigUtil() {
     }
 
-    public static Path resolveWorkDir(@NonNull CrawlerConfig config) {
+    public static Path resolveWorkDir(@NonNull CrawlConfig config) {
         return Optional.ofNullable(config.getWorkDir())
-                .orElseGet(() -> CrawlerConfig.DEFAULT_WORKDIR)
+                .orElseGet(() -> CrawlConfig.DEFAULT_WORKDIR)
                 .resolve(FileUtil.toSafeFileName(config.getId()));
     }
 
-    public static Path resolveTempDir(CrawlerConfig config) {
+    public static Path resolveTempDir(CrawlConfig config) {
         return resolveWorkDir(config).resolve("temp");
     }
 }
