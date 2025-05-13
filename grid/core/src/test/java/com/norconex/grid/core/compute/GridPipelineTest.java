@@ -18,8 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.grid.core.compute.GridPipeline.Stage;
-
 class GridPipelineTest {
 
     @Test
@@ -30,7 +28,8 @@ class GridPipelineTest {
                 .build()));
         assertThat(pipe.getId()).isEqualTo("pipeId");
         assertThat(pipe.getStages()).hasSize(1);
-        assertThat(pipe.getStages().get(0).getTask().getId()).isEqualTo("id");
+        assertThat(pipe.getStages().get(0).getTaskProvider().get(null, null)
+                .getId()).isEqualTo("id");
     }
 
     @Test
@@ -41,6 +40,7 @@ class GridPipelineTest {
                 .build());
         assertThat(pipe.getId()).isEqualTo("pipeId");
         assertThat(pipe.getStages()).hasSize(1);
-        assertThat(pipe.getStages().get(0).getTask().getId()).isEqualTo("id");
+        assertThat(pipe.getStages().get(0).getTaskProvider().get(null, null)
+                .getId()).isEqualTo("id");
     }
 }

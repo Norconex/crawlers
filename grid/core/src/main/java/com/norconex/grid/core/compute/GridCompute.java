@@ -33,7 +33,7 @@ public interface GridCompute {
 
     void stopTask(String taskId);
 
-    void executePipeline(@NonNull GridPipeline pipeline);
+    TaskExecutionResult executePipeline(@NonNull GridPipeline pipeline);
 
     void stopPipeline(@NonNull String pipelineId);
 

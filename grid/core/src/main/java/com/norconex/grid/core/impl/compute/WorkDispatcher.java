@@ -28,6 +28,7 @@ import org.jgroups.util.RspList;
 
 import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.task.TaskProgress;
 
@@ -158,11 +159,12 @@ public class WorkDispatcher {
                 null, call, new RequestOptions(ResponseMode.GET_NONE, 0));
     }
 
-    public void setPipelineDoneOnNodes(String pipelineId) throws Exception {
+    public void setPipelineDoneOnNodes(
+            String pipelineId, TaskExecutionResult result) throws Exception {
         var call = MethodCallBuilder
                 .create(WorkerMethod.setPipelineDone)
-                .argValues(pipelineId)
-                .argTypes(String.class)
+                .argValues(pipelineId, result)
+                .argTypes(String.class, TaskExecutionResult.class)
                 .build();
         dispatcher.callRemoteMethods(
                 null, call, new RequestOptions(ResponseMode.GET_NONE, 0));

@@ -44,8 +44,8 @@ public class LocalCompute implements GridCompute {
     }
 
     @Override
-    public void executePipeline(@NonNull GridPipeline pipeline) {
-        pipeCoord.executePipeline(pipeline);
+    public TaskExecutionResult executePipeline(@NonNull GridPipeline pipeline) {
+        return pipeCoord.executePipeline(pipeline);
     }
 
     @Override

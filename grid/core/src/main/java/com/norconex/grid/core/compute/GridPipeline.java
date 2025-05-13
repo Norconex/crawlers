@@ -14,23 +14,16 @@
  */
 package com.norconex.grid.core.compute;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import com.norconex.grid.core.Grid;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.With;
 
 /**
- * A pipeline.
+ * A pipeline executed on a grid. For the pipeline to be resumable,
+ * the same stages must be present on each execution.
  */
 @Getter
 public class GridPipeline {
@@ -42,7 +35,9 @@ public class GridPipeline {
             @NonNull String pipelineId,
             @NonNull List<Stage> stages) {
         id = pipelineId;
-        this.stages = Collections.unmodifiableList(new ArrayList<>(stages));
+        this.stages = Collections.unmodifiableList(stages.stream()
+                .map(Stage::new) // defensive copy
+                .toList());
     }
 
     public static GridPipeline of(
@@ -63,31 +58,4 @@ public class GridPipeline {
     // if possible given we can resume. Then maybe the task would be
     // obtained via a function instead.
 
-    @RequiredArgsConstructor
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    @Getter
-    public static class Stage {
-
-        /**
-         * Conditionally execute this stage.
-         */
-        @With
-        private Predicate<Grid> onlyIf;
-
-        /**
-         * Always run even if a previous stage returned {@code false} to end the
-         * pipeline. If just joining a grid, stages before the current one are
-         * a usually not run, unless they are also marked to always run
-         * ({@code true}).
-         */
-        @With
-        private boolean always;
-
-        /**
-         * Code meant to run on one or more server nodes (when in a clustered
-         * environment).
-         */
-        @NonNull
-        private final GridTask task;
-    }
 }

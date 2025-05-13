@@ -19,10 +19,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import org.apache.commons.lang3.SerializationException;
+import org.apache.commons.lang3.StringUtils;
+import org.jgroups.util.Util;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonEncoding;
@@ -54,6 +58,34 @@ public final class SerialUtil {
     }
 
     private SerialUtil() {
+    }
+
+    public static String toBase64String(Serializable object) {
+        try {
+            return Base64.getEncoder().encodeToString(
+                    Util.objectToByteBuffer(object));
+        } catch (Exception e) {
+            throw new SerializationException(
+                    "Failed to serialize object: " + object, e);
+        }
+    }
+
+    /**
+     * Deserializes a string previously obtained by invoking
+     * {@link #toBase64String(Serializable)}.
+     * @param str string to deserialize
+     * @return the deserialized object, or null if the string is null
+     */
+    public static Serializable fromBase64String(String str) {
+        if (StringUtils.isBlank(str)) {
+            return null;
+        }
+        try {
+            return Util.objectFromByteBuffer(Base64.getDecoder().decode(str));
+        } catch (Exception e) {
+            throw new SerializationException(
+                    "Failed to deserialize string: " + str, e);
+        }
     }
 
     public static JsonFactory jsonFactory() {

@@ -15,20 +15,27 @@
 package com.norconex.grid.core.impl.compute.pipeline;
 
 import com.norconex.grid.core.compute.GridPipeline;
-import com.norconex.grid.core.compute.GridPipeline.Stage;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.Stage;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * Utility class for the pipeline coordinator.
+ * Context class for the pipeline coordinator.
  */
 @Data
 @Accessors(chain = true)
 public class PipeExecutionContext {
     private GridPipeline pipeline;
     private Stage activeStage;
+    /**
+     * Returned value from previous stage task. Is {@code null} when
+     * running the first stage or the returned value from the previous
+     * stage is {@code null}.
+     */
+    private TaskExecutionResult lastStageResult;
     private GridTask activeTask;
     private boolean stopRequested;
     private int currentIndex;

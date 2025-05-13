@@ -57,7 +57,8 @@ public class Worker {
             new ConcurrentHashMap<>();
 
     // <pipelineId>
-    private final Set<String> donePipelines = new CopyOnWriteArraySet<>();
+    private final Map<String, TaskExecutionResult> donePipelines =
+            new ConcurrentHashMap<>();
 
     private final CoreGrid grid;
 
@@ -178,14 +179,17 @@ public class Worker {
     }
 
     // Remote
-    public void setPipelineDone(String pipelineId) {
-        donePipelines.add(pipelineId);
+    public void setPipelineDone(
+            String pipelineId, TaskExecutionResult result) {
+        donePipelines.put(pipelineId, result);
+        System.err.println();
         LOG.debug("Node {} received notification of pipeline done: {}",
                 grid.getNodeAddress(), pipelineId);
     }
 
     // Local
-    public boolean isPipelineDone(String pipelineId) {
+    public TaskExecutionResult getPipelineDone(String pipelineId) {
+        // null if not done
         return donePipelines.remove(pipelineId);
     }
 

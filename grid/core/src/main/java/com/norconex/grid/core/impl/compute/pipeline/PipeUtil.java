@@ -14,8 +14,6 @@
  */
 package com.norconex.grid.core.impl.compute.pipeline;
 
-import com.norconex.grid.core.Grid;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -25,9 +23,23 @@ public final class PipeUtil {
     }
 
     public static PipeStageDirectives getStageDirectives(
-            Grid grid, PipeExecutionContext pipeCtx) {
+            //            Grid grid,
+            PipeExecutionContext pipeCtx) {
 
         var directives = new PipeStageDirectives();
+
+        //TODO should this one be here or where "onlyIf" was?
+        if (pipeCtx.getActiveTask() == null) {
+            LOG.info("""
+                    Pipeline {} stage index {} did not provide a task (null).
+                    Skipping it.""",
+                    pipeCtx.getPipeline().getId(),
+                    pipeCtx.getCurrentIndex());
+            directives.setMarkActive(true);
+            directives.setSkip(true);
+            return directives;
+        }
+
         if (pipeCtx.isStopRequested()) {
             if (pipeCtx.getActiveStage().isAlways()) {
                 LOG.info("""
@@ -94,18 +106,18 @@ public final class PipeUtil {
             return directives;
         }
 
-        if (pipeCtx.getActiveStage().getOnlyIf() != null
-                && !pipeCtx.getActiveStage().getOnlyIf().test(grid)) {
-            LOG.info("""
-                    Pipeline {} stage index {} for task {} did not meet \
-                    "onlyIf" condition. Skipping it.""",
-                    pipeCtx.getPipeline().getId(),
-                    pipeCtx.getCurrentIndex(),
-                    pipeCtx.getActiveTask().getId());
-            directives.setMarkActive(true);
-            directives.setSkip(true);
-            return directives;
-        }
+        //        if (pipeCtx.getActiveStage().getOnlyIf() != null
+        //                && !pipeCtx.getActiveStage().getOnlyIf().test(grid)) {
+        //            LOG.info("""
+        //                    Pipeline {} stage index {} for task {} did not meet \
+        //                    "onlyIf" condition. Skipping it.""",
+        //                    pipeCtx.getPipeline().getId(),
+        //                    pipeCtx.getCurrentIndex(),
+        //                    pipeCtx.getActiveTask().getId());
+        //            directives.setMarkActive(true);
+        //            directives.setSkip(true);
+        //            return directives;
+        //        }
         directives.setMarkActive(true);
         return directives;
         //TODO Check if stage is already completed on top of it?

@@ -28,7 +28,6 @@ import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.cluster.Cluster;
 import com.norconex.grid.core.cluster.ClusterTest;
-import com.norconex.grid.core.compute.GridPipeline.Stage;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
@@ -104,10 +103,7 @@ public abstract class GridComputePipelineTest implements Serializable {
                         .build()),
 
                 // skipped for not meeting condition
-                new Stage(GridTaskBuilder.create("task2")
-                        .singleNode()
-                        .processor(g -> new Store(g).addOne("itemB"))
-                        .build()).withOnlyIf(ctx -> false),
+                new Stage((g, prevResult) -> null),
 
                 // Fails the build after setting its value:
                 new Stage(GridTaskBuilder.create("task3")

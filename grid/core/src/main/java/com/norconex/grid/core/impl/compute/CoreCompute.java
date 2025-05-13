@@ -78,9 +78,9 @@ public class CoreCompute implements GridCompute {
     }
 
     @Override
-    public void executePipeline(@NonNull GridPipeline pipeline) {
+    public TaskExecutionResult executePipeline(@NonNull GridPipeline pipeline) {
         try {
-            pipeCoord.executePipeline(pipeline);
+            return pipeCoord.executePipeline(pipeline);
         } catch (Exception e) {
             LOG.error("Exception occured executing pipeline {}",
                     pipeline.getId(), e);

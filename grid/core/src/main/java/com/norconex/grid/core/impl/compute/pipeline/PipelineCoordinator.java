@@ -21,12 +21,14 @@ import java.util.concurrent.TimeUnit;
 
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridPipeline;
+import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.impl.compute.WorkDispatcher;
 import com.norconex.grid.core.impl.compute.Worker;
 import com.norconex.grid.core.storage.GridMap;
+import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,81 +39,101 @@ public class PipelineCoordinator {
     private final WorkDispatcher dispatcher;
     private final Worker localWorker;
 
-    private final GridMap<Integer> pipeActiveStages;
+    //TODO change this to store the index but also the previous stage result?
+    private final GridMap<Integer> pipeActiveStage;
+    private final GridMap<String> pipeLastStageResult;
 
     public PipelineCoordinator(CoreCompute compute) {
         grid = compute.getGrid();
         localWorker = compute.getLocalWorker();
         dispatcher = compute.getDispatcher();
-        pipeActiveStages = grid.getStorage().getMap(
-                "pipeline_stage", Integer.class);
+        pipeActiveStage = grid.getStorage().getMap(
+                "pipelineActiveStage", Integer.class);
+        pipeLastStageResult = grid.getStorage().getMap(
+                "pipelineLastResult", String.class);
     }
 
-    public void
-            executePipeline(GridPipeline pipeline) throws Exception {
-        var ctx = new PipeExecutionContext();
-        ctx.setPipeline(pipeline);
+    public TaskExecutionResult executePipeline(GridPipeline pipeline)
+            throws Exception {
+        var pipeCtx = new PipeExecutionContext();
+        pipeCtx.setPipeline(pipeline);
 
         if (!grid.isCoordinator()) {
             LOG.debug("Non-coordinator node, waiting for "
                     + "coordinator for instructions.");
-            while (!localWorker.isPipelineDone(pipeline.getId())
-                    && !ctx.isStopRequested()) {
+            TaskExecutionResult result = null;
+            while ((result = localWorker.getPipelineDone(
+                    pipeline.getId())) == null && !pipeCtx.isStopRequested()) {
                 Thread.sleep(grid.getConnectorConfig().getHeartbeatInterval()
                         .toMillis());
                 //TODO check for expiry here? either pipeline expiry
                 // or based on active task.
             }
-            return;
+            return result;
         }
 
         try {
             ensureValidePipeline(pipeline);
 
-            monitorStopRequest(ctx);
+            monitorStopRequest(pipeCtx);
 
-            ctx.setStartIndex(getStartingStageIndex(pipeline));
+            pipeCtx.setStartIndex(getStartingStageIndex(pipeline));
+            pipeCtx.setLastStageResult(
+                    (TaskExecutionResult) SerialUtil.fromBase64String(
+                            pipeLastStageResult.get(pipeline.getId())));
             for (var i = 0; i < pipeline.getStages().size(); i++) {
-                ctx.setCurrentIndex(i);
-                ctx.setActiveStage(pipeline.getStages()
-                        .get(ctx.getCurrentIndex()));
-                ctx.setActiveTask(
-                        ctx.getActiveStage().getTask());
-                executeStage(ctx);
+                pipeCtx.setCurrentIndex(i);
+                pipeCtx.setActiveStage(pipeline.getStages()
+                        .get(pipeCtx.getCurrentIndex()));
+                pipeCtx.setActiveTask(pipeCtx
+                        .getActiveStage()
+                        .getTaskProvider()
+                        .get(grid, pipeCtx.getLastStageResult()));
+                executeStage(pipeCtx);
             }
             // marking as complete
-            pipeActiveStages.put(pipeline.getId(), -1);
+            pipeActiveStage.put(pipeline.getId(), -1);
+            pipeLastStageResult.delete(pipeline.getId());
         } finally {
-            dispatcher.setPipelineDoneOnNodes(pipeline.getId());
+            dispatcher.setPipelineDoneOnNodes(
+                    pipeline.getId(), pipeCtx.getLastStageResult());
         }
+        return pipeCtx.getLastStageResult();
     }
 
-    private void executeStage(PipeExecutionContext ctx) {
-        var directives = PipeUtil.getStageDirectives(grid, ctx);
+    private TaskExecutionResult executeStage(PipeExecutionContext pipeCtx) {
+        var directives = PipeUtil.getStageDirectives(pipeCtx);
         if (directives.isMarkActive()) {
-            pipeActiveStages.put(
-                    ctx.getPipeline().getId(), ctx.getCurrentIndex());
+            pipeActiveStage.put(
+                    pipeCtx.getPipeline().getId(), pipeCtx.getCurrentIndex());
         }
+        TaskExecutionResult result = null;
         if (!directives.isSkip()) {
             try {
-                var status = grid.getCompute().executeTask(ctx.getActiveTask());
-                if (status.getState() != TaskState.COMPLETED) {
-                    ctx.setFailedIndex(ctx.getCurrentIndex());
+                result = grid.getCompute().executeTask(pipeCtx.getActiveTask());
+                if (result.getState() != TaskState.COMPLETED) {
+                    pipeCtx.setFailedIndex(pipeCtx.getCurrentIndex());
                     LOG.error("Pipeline {} stage index {} failed with "
                             + "status: {}",
-                            ctx.getPipeline().getId(),
-                            ctx.getCurrentIndex(),
-                            status);
+                            pipeCtx.getPipeline().getId(),
+                            pipeCtx.getCurrentIndex(),
+                            result);
                 }
+                // store task result in case we need it for resuming
+                pipeCtx.setLastStageResult(result);
+                pipeLastStageResult.put(
+                        pipeCtx.getPipeline().getId(),
+                        SerialUtil.toBase64String(result));
             } catch (Exception e) {
-                ctx.setFailedIndex(ctx.getCurrentIndex());
+                pipeCtx.setFailedIndex(pipeCtx.getCurrentIndex());
                 LOG.error("Pipeline {} error running stage index {} for "
                         + "task {}",
-                        ctx.getPipeline().getId(),
-                        ctx.getCurrentIndex(),
-                        ctx.getActiveTask().getId(), e);
+                        pipeCtx.getPipeline().getId(),
+                        pipeCtx.getCurrentIndex(),
+                        pipeCtx.getActiveTask().getId(), e);
             }
         }
+        return result;
     }
 
     public void stopPipeline(String pipelineId) throws Exception {
@@ -120,7 +142,7 @@ public class PipelineCoordinator {
 
     // -1 if no active stage
     public int getActiveStageIndex(String pipelineId) {
-        return ofNullable(pipeActiveStages.get(pipelineId)).orElse(-1);
+        return ofNullable(pipeActiveStage.get(pipelineId)).orElse(-1);
     }
 
     private void monitorStopRequest(PipeExecutionContext ctx) {
@@ -150,7 +172,7 @@ public class PipelineCoordinator {
         // We could be resuming or be a newly elected coordinator. Make
         // sure to start from the right stage
         int startIdx = ofNullable(
-                pipeActiveStages.get(pipeline.getId())).orElse(0);
+                pipeActiveStage.get(pipeline.getId())).orElse(0);
         if (startIdx > 0) {
             LOG.info("Unterminated pipeline execution detected for {}. "
                     + "Attempting to resume.", pipeline.getId());
