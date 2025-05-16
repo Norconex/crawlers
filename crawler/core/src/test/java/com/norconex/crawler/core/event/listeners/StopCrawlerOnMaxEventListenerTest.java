@@ -38,7 +38,9 @@ class StopCrawlerOnMaxEventListenerTest {
     private static final String UPSERTED_OR_REJECTED =
             COMMITTER_SERVICE_UPSERT_END + "|" + REJECTED_FILTER;
 
+    //Note, we test with 1 thread to ensure precise count in our tests
     private static final String CFG_TMPL = """
+          numThreads: 1
           startReferences:
             - "1-mock:reject-1"
             - "2-mock:upsert-1"

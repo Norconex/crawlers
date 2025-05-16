@@ -52,6 +52,8 @@ public class DocHandlerContext {
 
     private final List<Doc> childDocs = new ArrayList<>();
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
     private CachedOutputStream out;
@@ -75,6 +77,8 @@ public class DocHandlerContext {
     private Condition condition;
 
     @NonNull
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private final EventManager eventManager;
 
     private Object rejectedBy;

@@ -94,7 +94,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
     }
 
     @Override
-    protected void onCrawlContextInitEnd(CrawlerEvent event) {
+    protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         captures.context = event.getSource();
         captures.committer = (MemoryCommitter) event
                 .getSource()

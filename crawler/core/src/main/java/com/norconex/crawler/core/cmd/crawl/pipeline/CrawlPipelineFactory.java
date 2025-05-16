@@ -14,15 +14,15 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapTask;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
 import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.grid.core.compute.GridPipeline;
-import com.norconex.grid.core.compute.GridPipeline.Stage;
+import com.norconex.grid.core.compute.Stage;
 
 public final class CrawlPipelineFactory {
 
@@ -30,49 +30,24 @@ public final class CrawlPipelineFactory {
     }
 
     public static GridPipeline create(CrawlContext ctx) {
-        List<Stage> stages = new ArrayList<>(List.of(
+        return new GridPipeline("crawlPipeline", List.of(
+
+                // Prepare for crawling (on one)
                 new Stage(new CrawlBootstrapTask("crawlBootstrapTask"))
                         .withAlways(true),
+
+                // Crawl (on all)
                 new Stage(new CrawlProcessTask(
-                        "crawlMainProcessTask",
-                        ProcessQueueAction.CRAWL_ALL)),
-                new Stage(
-                        new CrawlHandleOrphansTask("crawlHandleOrphansTask"))));
+                        "crawlMainProcessTask", ProcessQueueAction.CRAWL_ALL)),
 
-        switch (ctx.getCrawlConfig().getOrphansStrategy()) {
-            case PROCESS: {
-                stages.add(new Stage(new CrawlProcessTask(
-                        "crawlOrphanProcessTask",
-                        ProcessQueueAction.CRAWL_ALL)));
-            }
-            case DELETE: {
-                stages.add(
-                        new Stage(new CrawlProcessTask(
-                                "crawlOrphanDeleteTask",
-                                ProcessQueueAction.DELETE_ALL)));
-            }
-            default: // NOOP
-        }
-        return new GridPipeline("crawlPipeline", stages);
+                // Resolve orphans (on one)
+                new Stage(new CrawlHandleOrphansTask("crawlHandleOrphansTask")),
 
-        //        return GridPipeline.of("crawlPipeline",
-        //                new Stage(new CrawlBootstrapTask("crawlBootstrapTask"))
-        //                        .withAlways(true),
-        //                new Stage(new CrawlProcessTask(
-        //                        "crawlMainProcessTask",
-        //                        ProcessQueueAction.CRAWL_ALL)),
-        //                new Stage(new CrawlHandleOrphansTask("crawlHandleOrphansTask")),
-        //                new Stage(new CrawlProcessTask(
-        //                        "crawlOrphanProcessTask",
-        //                        ProcessQueueAction.CRAWL_ALL)).withOnlyIf(
-        //                                grid -> strategy == OrphansStrategy.PROCESS),
-        //                new Stage(new CrawlProcessTask(
-        //                        "crawlOrphanDeleteTask",
-        //                        ProcessQueueAction.DELETE_ALL)).withOnlyIf(
-        //                                grid -> strategy == OrphansStrategy.DELETE)
-        //        //              new CrawlShutdownTask()
-        //
-        //        );
+                // Crawl/delete orphans (on all)
+                new Stage((grid, prev) -> Optional.ofNullable(prev.getResult())
+                        .map(ProcessQueueAction.class::cast)
+                        .map(action -> new CrawlProcessTask(
+                                "crawlOrphanTask" + action, action))
+                        .orElse(null))));
     }
-
 }

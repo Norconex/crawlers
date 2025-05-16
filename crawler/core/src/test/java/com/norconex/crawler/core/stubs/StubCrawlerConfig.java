@@ -48,6 +48,7 @@ import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.mocks.grid.MockFailingGrid;
 import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
 import com.norconex.grid.core.Grid;
@@ -103,7 +104,8 @@ public final class StubCrawlerConfig {
                             AtomicBoolean.class, () -> new AtomicBoolean(
                                     new BooleanRandomizer().getRandomValue()))
                     .excludeType(DocumentConsumer.class::equals)
-                    .excludeType(ReferencesProvider.class::equals));
+                    .excludeType(ReferencesProvider.class::equals)
+                    .excludeType(Fetcher.class::equals));
 
     private StubCrawlerConfig() {
     }
@@ -126,7 +128,8 @@ public final class StubCrawlerConfig {
     public static CrawlConfig toMemoryCrawlerConfig(
             Path workDir, CrawlConfig cfg) {
         return cfg.setId(CRAWLER_ID)
-                .setNumThreads(1)
+                // Some tests define this so we can't set it as default here.
+                //                .setNumThreads(1)
                 .setWorkDir(workDir)
                 .setCommitters(List.of(new MemoryCommitter()));
     }

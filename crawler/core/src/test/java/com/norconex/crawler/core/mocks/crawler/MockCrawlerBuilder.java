@@ -28,8 +28,6 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.session.CrawlSessionManager;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
-import com.norconex.grid.core.impl.CoreGridConnector;
-import com.norconex.grid.core.mocks.MockStorage;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -99,44 +97,13 @@ public class MockCrawlerBuilder {
         return returnValue.get();
     }
 
-    //    /**
-    //     * Builds an initialized mock {@link CrawlContext} and Closes the
-    //     * context after the consumable has ran.
-    //     * @param <T> type of returned object
-    //     * @param f function taking consumer context and returning any value back
-    //     * @return any object
-    //     */
-    //    @SneakyThrows
-    //    public <T> T withInitializedCrawlContext(
-    //            FailableFunction<CrawlContext, T, Throwable> f) {
-    //        return withCrawlContext(ctx -> {
-    //            ctx.init();
-    //            return f.apply(ctx);
-    //        });
-    //    }
-    //
-    //    /**
-    //     * Builds a non-initialized mock {@link CrawlContext}, except for the
-    //     * grid.
-    //     * @return crawler context
-    //     */
-    //    public CrawlContext openedCrawlContext() {
-    //        // FAULTY.... created but not always closed
-    //        var cfg = resolvedConfig();
-    //        return new CrawlContext(
-    //                ClassUtil.newInstance(specProviderClass).get(),
-    //                cfg,
-    //                cfg.getGridConnector()
-    //                        .connect(cfg.getWorkDir().resolve("grid")));
-    //    }
-
     private CrawlConfig resolvedConfig() {
         var cfg = config != null
                 ? StubCrawlerConfig.toMemoryCrawlerConfig(workDir, config)
                 : StubCrawlerConfig.memoryCrawlerConfig(workDir);
 
         //TODO test with other grids
-        cfg.setGridConnector(new CoreGridConnector(new MockStorage()));
+        //cfg.setGridConnector(new CoreGridConnector(new MockStorage()));
 
         if (configModifier != null) {
             configModifier.accept(cfg);

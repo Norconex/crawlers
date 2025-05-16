@@ -62,40 +62,19 @@ class AbstractFetcherTest {
             protected void fetcherShutdown(CrawlContext crawler) {
                 methodsCalled.add("fetcherShutdown");
             }
-
-            @Override
-            protected void fetcherThreadBegin(CrawlContext crawler) {
-                methodsCalled.add("fetcherThreadBegin");
-            }
-
-            @Override
-            protected void fetcherThreadEnd(CrawlContext crawler) {
-                methodsCalled.add("fetcherThreadEnd");
-            }
         };
-        //        f.accept(CrawlerEvent.builder()
-        //                .name(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)
-        //                .source(crawlCtx)
-        //                .build());
-        //        f.accept(CrawlerEvent.builder()
-        //                .name(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)
-        //                .source(crawlCtx)
-        //                .build());
         f.accept(CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
+                .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
                 .source(crawlCtx)
-                .subject(Thread.currentThread())
                 .build());
         f.accept(CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_RUN_THREAD_END)
+                .name(CrawlerEvent.CRAWLER_CRAWL_END)
                 .source(crawlCtx)
-                .subject(Thread.currentThread())
                 .build());
+
         assertThat(methodsCalled).containsExactly(
                 "fetcherStartup",
-                "fetcherShutdown",
-                "fetcherThreadBegin",
-                "fetcherThreadEnd");
+                "fetcherShutdown");
     }
 
     @Test

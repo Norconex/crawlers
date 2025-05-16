@@ -46,6 +46,8 @@ public class CleanCommand implements Command {
         if (result.getState() != TaskState.COMPLETED) {
             LOG.warn("Command returned with a non-completed status: {}",
                     result);
+        } else {
+            LOG.info("Clean command executed.");
         }
         ctx.fire(CrawlerEvent.CRAWLER_CLEAN_END);
     }

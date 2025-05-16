@@ -218,27 +218,16 @@ class CliCrawlerLauncherTest {
         }
         assertThat(exit1.ok()).isTrue();
         assertThat(exit1.getEvents()).containsExactly(
-                //                CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                //                CrawlerEvent.TASK_RUN_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                //                CrawlerEvent.TASK_RUN_END,
                 CrawlerEvent.CRAWLER_CRAWL_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        //                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END
-        );
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
     }
 
     @ParameterizedGridConnectorTest
@@ -248,12 +237,10 @@ class CliCrawlerLauncherTest {
                 gridConnClass, "start", "-clean", "-config=");
         assertThat(exit2.ok()).withFailMessage(exit2.getStdErr()).isTrue();
         assertThat(exit2.getEvents()).containsExactly(
-                //                CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
 
                 // Perform cleaning
                 CrawlerEvent.CRAWLER_CLEAN_BEGIN,
@@ -264,35 +251,22 @@ class CliCrawlerLauncherTest {
                 CrawlerEvent.CRAWLER_CLEAN_END,
 
                 // Reset crawl context
-                //                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
 
                 // Regular crawl flow
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                //                CrawlerEvent.TASK_RUN_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
-                CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                //                CrawlerEvent.TASK_RUN_END,
                 CrawlerEvent.CRAWLER_CRAWL_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        //                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END
-        );
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
         //TODO verify that crawlstore from previous run was deleted
         // and recreated
     }
@@ -302,25 +276,20 @@ class CliCrawlerLauncherTest {
         var exit = launch(gridConnClass, "clean", "-config=");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getEvents()).containsExactly(
-                //                CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_INIT_END,
                 CrawlerEvent.CRAWLER_CLEAN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
                 CrawlerEvent.CRAWLER_CLEAN_END,
-                //                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        //                CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_END
-        );
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
 
     }
 

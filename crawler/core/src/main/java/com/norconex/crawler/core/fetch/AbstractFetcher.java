@@ -56,13 +56,11 @@ public abstract class AbstractFetcher<C extends BaseFetcherConfig>
     public final boolean accept(@NonNull FetchRequest fetchRequest) {
         if (isAcceptedByReferenceFilters(fetchRequest)
                 && acceptRequest(fetchRequest)) {
-            LOG.debug(
-                    "Fetcher {} ACCEPTED request '{}'.",
+            LOG.debug("Fetcher {} ACCEPTED request '{}'.",
                     getClass().getSimpleName(), fetchRequest);
             return true;
         }
-        LOG.debug(
-                "Fetcher {} REJECTED request '{}'.",
+        LOG.debug("Fetcher {} REJECTED request '{}'.",
                 getClass().getSimpleName(), fetchRequest);
         return false;
     }
@@ -87,22 +85,10 @@ public abstract class AbstractFetcher<C extends BaseFetcherConfig>
 
         //TODO create init/destroy methods instead?
 
-        // Here we rely on session startup instead of
-        // crawler startup to avoid being invoked multiple
-        // times (once for each crawler)
-
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             fetcherStartup((CrawlContext) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
             fetcherShutdown((CrawlContext) event.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
-                && Thread.currentThread().equals(
-                        ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadBegin((CrawlContext) event.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)
-                && Thread.currentThread().equals(
-                        ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadEnd((CrawlContext) event.getSource());
         }
     }
 
@@ -121,26 +107,6 @@ public abstract class AbstractFetcher<C extends BaseFetcherConfig>
      * @param crawler crawler
      */
     protected void fetcherShutdown(CrawlContext crawler) {
-        //NOOP
-    }
-
-    /**
-     * Invoked each time a crawler begins a new crawler thread if that thread
-     * is the current thread.
-     * Default implementation does nothing.
-     * @param crawler crawler
-     */
-    protected void fetcherThreadBegin(CrawlContext crawler) {
-        //NOOP
-    }
-
-    /**
-     * Invoked each time a crawler ends an existing crawler thread if that
-     * thread is the current thread.
-     * Default implementation does nothing.
-     * @param crawler crawler
-     */
-    protected void fetcherThreadEnd(CrawlContext crawler) {
         //NOOP
     }
 

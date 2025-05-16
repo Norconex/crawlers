@@ -29,4 +29,9 @@ public class IfNot extends ConditionalDocHandler {
     public IfNot(Condition condition) {
         super(condition, true);
     }
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
 }

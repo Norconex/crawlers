@@ -60,8 +60,8 @@ public class MockFailingGrid implements Grid {
     }
 
     @Override
-    public boolean resetSession() {
-        return false;
+    public void resetSession() {
+        // NOOP
     }
 
     @Override

@@ -72,6 +72,8 @@ public abstract class ConditionalDocHandler implements DocHandler {
         this.negated = negated;
     }
 
+    public abstract String getName();
+
     public List<DocHandler> getThenHandlers() {
         return Collections.unmodifiableList(thenHandlers);
     }

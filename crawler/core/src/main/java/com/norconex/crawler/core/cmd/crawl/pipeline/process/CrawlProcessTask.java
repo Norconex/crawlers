@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
-import static com.norconex.crawler.core.event.CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN;
-import static com.norconex.crawler.core.event.CrawlerEvent.CRAWLER_RUN_THREAD_END;
 import static java.util.Optional.ofNullable;
 
 import java.util.concurrent.CompletableFuture;
@@ -76,6 +74,7 @@ public class CrawlProcessTask extends AllNodesTask {
             //TODO add timeout?
 
             var numThreads = ctx.getCrawlConfig().getNumThreads();
+
             // move tfc to context?
             new AtomicInteger();
             var executor = Executors.newFixedThreadPool(
@@ -83,7 +82,6 @@ public class CrawlProcessTask extends AllNodesTask {
             var futures = IntStream.range(0, numThreads)
                     .mapToObj(i -> CompletableFuture.runAsync(() -> {
                         try {
-                            System.err.println("XXX HERE");
                             processQueue(ctx, i);
                         } catch (Exception e) {
                             LOG.error("Problem running task {} {} of {}.",
@@ -93,8 +91,9 @@ public class CrawlProcessTask extends AllNodesTask {
                         }
                     }, executor))
                     .toList();
-            ConcurrentUtil.withAutoShutdown(CompletableFuture.allOf(
-                    futures.toArray(new CompletableFuture[0])), executor);
+            CompletableFuture.allOf(
+                    futures.toArray(new CompletableFuture[0])).join();
+            ConcurrentUtil.cleanShutdown(executor);
         } finally {
             ofNullable(ctx.getCallbacks().getAfterCrawlTask())
                     .ifPresent(cb -> cb.accept(ctx));
@@ -115,12 +114,11 @@ public class CrawlProcessTask extends AllNodesTask {
         try {
             var activityChecker = new CrawlActivityChecker(
                     ctx, queueAction == ProcessQueueAction.DELETE_ALL);
-            ctx.fire(CRAWLER_RUN_THREAD_BEGIN, Thread.currentThread());
             // TODO shall we check for "stopped" and other states?
             // abort now if we've reach configured max documents or
             // other ending conditions
-            //            // At this point all threads/nodes shall reach the same
-            //            // conclusion and break, effectively ending crawling.
+            // At this point all threads/nodes shall reach the same
+            // conclusion and break, effectively ending crawling.
             while (!stopRequested
                     && !activityChecker.isMaxDocsApplicableAndReached()
                     && processNextInQueue(ctx, activityChecker))
@@ -129,8 +127,6 @@ public class CrawlProcessTask extends AllNodesTask {
             //TODO also check here for configured exceptions that should
             // end the crawl?
             LOG.error("Problem in thread execution.", e);
-        } finally {
-            ctx.fire(CRAWLER_RUN_THREAD_END, Thread.currentThread());
         }
     }
 
@@ -139,7 +135,6 @@ public class CrawlProcessTask extends AllNodesTask {
             CrawlContext crawlCtx,
             CrawlActivityChecker activityChecker) {
         var docProcessCtx = new ProcessContext().crawlContext(crawlCtx);
-        //                .orphan(orphan);
         try {
             var docContext = crawlCtx
                     .getDocLedger()
@@ -217,8 +212,7 @@ public class CrawlProcessTask extends AllNodesTask {
                 docRec,
                 cachedDocRec,
                 crawlCtx.getStreamFactory().newInputStream(),
-                false); //TODO handle orphan properly !!!!!!!!!!!!
-        //                orphan);
+                false); //TODO handle orphan properly or make it an emum
         doc.getMetadata().set(
                 CrawlDocMetaConstants.IS_DOC_NEW, cachedDocRec == null);
         return doc;

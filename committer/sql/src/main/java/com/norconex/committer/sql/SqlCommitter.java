@@ -81,9 +81,8 @@ public class SqlCommitter extends AbstractBatchCommitter<SqlCommitterConfig> {
     @Getter
     private final SqlCommitterConfig configuration = new SqlCommitterConfig();
 
-    @ToStringExclude
-    @HashCodeExclude
-    @EqualsExclude
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private SqlClient client;
 
     @Override

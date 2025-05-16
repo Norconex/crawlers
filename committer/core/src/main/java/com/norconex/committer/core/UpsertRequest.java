@@ -16,12 +16,11 @@ package com.norconex.committer.core;
 
 import java.io.InputStream;
 
-import org.apache.commons.lang3.builder.ToStringExclude;
-
 import com.norconex.commons.lang.map.Properties;
 
 import lombok.Data;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * A committer upsert request (update or insert).
@@ -30,9 +29,9 @@ import lombok.NonNull;
 public class UpsertRequest implements CommitterRequest {
 
     private final String reference;
-    @ToStringExclude
+    @ToString.Exclude
     private final Properties metadata = new Properties();
-    @ToStringExclude
+    @ToString.Exclude
     private final InputStream content;
 
     public UpsertRequest(

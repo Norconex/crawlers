@@ -146,6 +146,7 @@ final class CrawlContextFactory {
         ctx.getDocLedger().init(ctx);
         ctx.getDedupService().init(ctx);
         ctx.getMetrics().init(ctx);
+        ctx.getImporter().init();
         grid.registerContext(CrawlContext.NAME, ctx);
     }
 

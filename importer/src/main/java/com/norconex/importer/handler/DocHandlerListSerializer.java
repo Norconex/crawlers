@@ -65,10 +65,9 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
             throws IOException {
         var first = true;
         for (var handler : handlers) {
-            if ((handler instanceof If ifHandler)) {
-                writeXmlConditionalHandler(If.NAME, ifHandler, gen);
-            } else if (handler instanceof IfNot ifNotHandler) {
-                writeXmlConditionalHandler(IfNot.NAME, ifNotHandler, gen);
+            if ((handler instanceof ConditionalDocHandler condHandler)) {
+                writeXmlConditionalHandler(
+                        condHandler.getName(), condHandler, gen);
             } else {
                 // no idea why, but first field name can't be written.
                 if (!isRoot || !first) {
@@ -130,15 +129,4 @@ public class DocHandlerListSerializer extends JsonSerializer<List<DocHandler>> {
             gen.writeObject(condition);
         }
     }
-
-    //    static void print(ToXmlGenerator gen) {
-    //        try {
-    //            var xmlWriter = gen.getStaxWriter();
-    //            var mWriter = FieldUtils.readField(xmlWriter, "mWriter", true);
-    //            var mOut = FieldUtils.readField(mWriter, "mOut", true);
-    //            System.err.println("XXX XML: " + mOut.toString());
-    //        } catch (Exception e) {
-    //            throw new RuntimeException(e);
-    //        }
-    //    }
 }

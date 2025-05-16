@@ -133,6 +133,25 @@ public final class ConcurrentUtil {
     }
 
     /**
+     * Shuts down an executor service, handling {@link InterruptedException}
+     * by interrupting the current thread. Returns a
+     * {@link CompletionException} on failures.
+     * @param executor the executor to shut down (can be null)
+     */
+    public static void cleanShutdown(ExecutorService executor) {
+        if (executor == null) {
+            return;
+        }
+        try {
+            if (!executor.isShutdown()) {
+                executor.shutdown();
+            }
+        } catch (Exception e) {
+            wrapAsCompletionException(e);
+        }
+    }
+
+    /**
      * Wraps {@link InterruptedException}, {@link TimeoutException},
      * {@link ExecutionException} root cause, and any other checked exceptions
      * in a runtime {@link CompletionException}.

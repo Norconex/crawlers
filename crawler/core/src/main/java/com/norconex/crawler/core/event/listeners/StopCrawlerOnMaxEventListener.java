@@ -16,6 +16,7 @@ package com.norconex.crawler.core.event.listeners;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -34,13 +35,19 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * Alternative to {@link CrawlConfig#setMaxDocuments(int)} for stopping
- * the crawler upon reaching specific event counts. The event counts are only
- * kept for a crawling session.  They are reset to zero upon restarting
+ * Alternative to {@link CrawlConfig#setMaxDocuments(int)} for issuing a
+ * crawler stop request upon reaching specific event counts. The event counts
+ * are only kept for a crawling session.  They are reset to zero upon restarting
  * the crawler.
  * </p>
  * <p>
  * Not specifying any maximum or events has no effect.
+ * </p>
+ *
+ * <p>
+ * <b>Note</b> that when multiple threads/nodes are generating events, it is
+ * very well possible to get more events fired after the stop request has been
+ * issued.  In other words, running tasks usually finish cleanly if they can.
  * </p>
  *
  * <h2>Difference with "maxDocuments"</h2>
@@ -96,6 +103,10 @@ public class StopCrawlerOnMaxEventListener implements
     @EqualsAndHashCode.Exclude
     private CrawlContext crawlContext;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private AtomicBoolean stopRequested = new AtomicBoolean();
+
     @Override
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
@@ -111,9 +122,16 @@ public class StopCrawlerOnMaxEventListener implements
                 event.getName(), k -> new AtomicLong()).incrementAndGet();
 
         if (isMaxReached()) {
-            LOG.info("Maximum number of events reached for crawler: {}",
-                    crawlContext.getId());
-            //            crawlContext.stopCrawlerCommand();
+            doStop();
+        }
+    }
+
+    private synchronized void doStop() {
+        if (!stopRequested.get()) {
+            stopRequested.set(true);
+            LOG.info("Maximum number of {} events reached for crawler: {}. "
+                    + "Issuing a stop request.",
+                    configuration.getMaximum(), crawlContext.getId());
             crawlContext.getGrid().stop();
         }
     }

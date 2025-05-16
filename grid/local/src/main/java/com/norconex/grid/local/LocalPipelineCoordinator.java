@@ -106,6 +106,10 @@ public class LocalPipelineCoordinator {
         TaskExecutionResult result = null;
         if (!directives.isSkip()) {
             try {
+                LOG.debug("Executing pipeline {} stage index {} with task: {}",
+                        pipeCtx.getPipeline().getId(),
+                        pipeCtx.getCurrentIndex(),
+                        pipeCtx.getActiveTask());
                 result = grid.getCompute().executeTask(pipeCtx.getActiveTask());
                 if (result.getState() != TaskState.COMPLETED) {
                     pipeCtx.setFailedIndex(pipeCtx.getCurrentIndex());

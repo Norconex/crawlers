@@ -67,24 +67,13 @@ public class CrawlProgressLogger {
     // Minimum 1 second
     public CrawlProgressLogger(CrawlContext ctx) {
         monitor = ctx.getMetrics();
-        var minLoggingInterval =
-                ctx.getCrawlConfig().getMinProgressLoggingInterval();
-        if (minLoggingInterval == null || minLoggingInterval.getSeconds() < 1) {
-            this.minLoggingInterval = null;
+        var minInterval = ctx.getCrawlConfig().getMinProgressLoggingInterval();
+        if (minInterval == null || minInterval.getSeconds() < 1) {
+            minLoggingInterval = null;
         } else {
-            this.minLoggingInterval = minLoggingInterval;
+            minLoggingInterval = minInterval;
         }
     }
-
-    //    public CrawlProgressLogger(
-    //            CrawlerMetrics monitor, Duration minLoggingInterval) {
-    //        this.monitor = monitor;
-    //        if (minLoggingInterval == null || minLoggingInterval.getSeconds() < 1) {
-    //            this.minLoggingInterval = null;
-    //        } else {
-    //            this.minLoggingInterval = minLoggingInterval;
-    //        }
-    //    }
 
     public Void start() {
         stopTrackingRequested = false;
@@ -114,7 +103,10 @@ public class CrawlProgressLogger {
         return null;
     }
 
-    public void stop() {
+    public synchronized void stop() {
+        if (stopTrackingRequested) {
+            return;
+        }
         if (!stopWatch.isStopped()) {
             stopWatch.stop();
         }

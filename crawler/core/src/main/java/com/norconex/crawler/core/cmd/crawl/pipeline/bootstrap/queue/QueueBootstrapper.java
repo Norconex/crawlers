@@ -70,7 +70,7 @@ public class QueueBootstrapper implements CrawlBootstrapper {
         if (crawlContext.isResumedCrawlSession()) {
             LOG.info("Unfinished previous crawl detected. Resuming...");
         } else {
-            LOG.info("Queuing start references ({})...",
+            LOG.info("Queueing start references ({})...",
                     crawlContext.getCrawlConfig().isStartReferencesAsync()
                             ? "asynchronously"
                             : "synchronously");
@@ -124,7 +124,6 @@ public class QueueBootstrapper implements CrawlBootstrapper {
             executor.submit(() -> {
                 LogUtil.setMdcCrawlerId(ctx.getCrawlContext().getId());
                 Thread.currentThread().setName(ctx.getCrawlContext().getId());
-                LOG.info("Queuing start references asynchronously.");
                 callback.accept(ctx);
                 ctx.getCrawlContext()
                         .getSessionStore()
@@ -144,7 +143,6 @@ public class QueueBootstrapper implements CrawlBootstrapper {
     private void initializeQueueSync(
             Consumer<QueueBootstrapContext> callback,
             QueueBootstrapContext ctx) {
-        LOG.info("Queuing start references synchronously.");
         callback.accept(ctx);
         ctx.getCrawlContext().getSessionStore().setQueueInitialized(true);
     }

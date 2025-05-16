@@ -43,6 +43,8 @@ final class CrawlContextDestroyer {
             return;
         }
 
+        swallow(ctx.getImporter()::close);
+
         // Defer shutdown
         swallow(() -> Optional.ofNullable(
                 ctx.getCrawlConfig().getDeferredShutdownDuration())

@@ -147,15 +147,13 @@ public class CoreGrid implements Grid {
     }
 
     @Override
-    public boolean resetSession() {
-        // TODO Auto-generated method stub
-        return false;
+    public void resetSession() {
+        storage.getSessionAttributes().clear();
     }
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
-
+        compute.stopTask(null);
     }
 
     @Override

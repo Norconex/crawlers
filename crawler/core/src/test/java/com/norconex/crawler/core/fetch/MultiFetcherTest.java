@@ -67,7 +67,7 @@ class MultiFetcherTest {
         return MultiFetcher
                 .builder()
                 .fetchers(List.of(fetchers))
-                .responseAggregator(responses -> responses.get(0))
+                .responseAggregator(MockMultiFetcherResponse::new)
                 .unsuccessfulResponseFactory(
                         (state, msg, ex) -> new MockFetchResponseImpl()
                                 .setResolutionStatus(state)
@@ -81,7 +81,7 @@ class MultiFetcherTest {
     static class MockMultiFetcherResponse
             extends MultiFetchResponse implements MockFetchResponse {
         public MockMultiFetcherResponse(
-                List<MockFetchResponse> fetchResponses) {
+                List<FetchResponse> fetchResponses) {
             super(fetchResponses);
         }
     }

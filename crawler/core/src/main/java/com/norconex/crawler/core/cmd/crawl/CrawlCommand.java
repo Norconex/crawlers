@@ -28,6 +28,7 @@ import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
 import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.BaseGridTask;
+import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -56,17 +57,16 @@ public class CrawlCommand implements Command {
 
         trackProgress(ctx);
 
-        ctx.getGrid()
+        var result = ctx.getGrid()
                 .getCompute()
                 .executePipeline(CrawlPipelineFactory.create(ctx));
 
-        //TODO migrate below to log if it completed or not???
-
-        //        if (completed) {
-        //            LOG.info("Crawler completed execution.");
-        //        } else {
-        //            LOG.info("Crawler execution ended before completion.");
-        //        }
+        if (result.getState() == TaskState.COMPLETED) {
+            LOG.info("Crawler completed execution.");
+        } else {
+            LOG.info("Crawler execution failed or otherwise ended "
+                    + "before completion.");
+        }
         ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
         ConcurrentUtil.get(pendingLoggerStopped, 60, TimeUnit.SECONDS);
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);

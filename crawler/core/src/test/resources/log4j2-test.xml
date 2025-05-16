@@ -11,7 +11,10 @@
     <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.importer" level="WARN" additivity="false">
+    <Logger name="com.norconex.importer" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.commons.lang.bean" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.apache" level="WARN" additivity="false">

@@ -31,16 +31,6 @@ class CrawlerLifeCycleListenerTest {
         }
 
         @Override
-        protected void onCrawlContextInitBegin(CrawlerEvent event) {
-            method.setValue(method.getValue() + "+onCrawlContextInitBegin");
-        }
-
-        @Override
-        protected void onCrawlContextInitEnd(CrawlerEvent event) {
-            method.setValue(method.getValue() + "+onCrawlContextInitEnd");
-        }
-
-        @Override
         protected void onCrawlerCrawlBegin(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerCrawlBegin");
         }
@@ -48,16 +38,6 @@ class CrawlerLifeCycleListenerTest {
         @Override
         protected void onCrawlerCrawlEnd(CrawlerEvent event) {
             method.setValue(method.getValue() + "+onCrawlerCrawlEnd");
-        }
-
-        @Override
-        protected void onCrawlerRunThreadBegin(CrawlerEvent event) {
-            method.setValue(method.getValue() + "+onCrawlerRunThreadBegin");
-        }
-
-        @Override
-        protected void onCrawlerRunThreadEnd(CrawlerEvent event) {
-            method.setValue(method.getValue() + "+onCrawlerRunThreadEnd");
         }
 
         @Override
@@ -83,18 +63,10 @@ class CrawlerLifeCycleListenerTest {
 
     @Test
     void testCrawlerLifeCycleListener() {
-        //        assertThat(m(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN)).isEqualTo(
-        //                "onCrawlerEvent+onCrawlContextInitBegin");
-        //        assertThat(m(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)).isEqualTo(
-        //                "onCrawlerEvent+onCrawlContextInitEnd");
         assertThat(m(CrawlerEvent.CRAWLER_CRAWL_BEGIN)).isEqualTo(
                 "onCrawlerEvent+onCrawlerCrawlBegin");
         assertThat(m(CrawlerEvent.CRAWLER_CRAWL_END)).isEqualTo(
                 "onCrawlerEvent+onCrawlerCrawlEnd");
-        assertThat(m(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)).isEqualTo(
-                "onCrawlerEvent+onCrawlerRunThreadBegin");
-        assertThat(m(CrawlerEvent.CRAWLER_RUN_THREAD_END)).isEqualTo(
-                "onCrawlerEvent+onCrawlerRunThreadEnd");
         assertThat(m(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)).isEqualTo(
                 "onCrawlerEvent+onCrawlerStopBegin");
         assertThat(m(CrawlerEvent.CRAWLER_STOP_REQUEST_END)).isEqualTo(
@@ -112,11 +84,10 @@ class CrawlerLifeCycleListenerTest {
     }
 
     private String m(String eventName) {
-        listener.accept(
-                CrawlerEvent.builder()
-                        .name(eventName)
-                        .source("source")
-                        .build());
+        listener.accept(CrawlerEvent.builder()
+                .name(eventName)
+                .source("source")
+                .build());
         return method.getValue();
     }
 }

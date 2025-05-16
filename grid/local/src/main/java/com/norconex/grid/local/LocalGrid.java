@@ -112,13 +112,13 @@ public class LocalGrid implements Grid {
     }
 
     @Override
-    public boolean resetSession() {
+    public void resetSession() {
         getStorage().getSessionAttributes().clear();
-        return true;
     }
 
     @Override
     public void stop() {
+        gridCompute.stopTask(null);
         stopHandler.stopListening();
     }
 

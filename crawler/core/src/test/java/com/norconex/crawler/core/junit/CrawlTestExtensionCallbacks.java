@@ -150,10 +150,14 @@ public class CrawlTestExtensionCallbacks implements
 
     public void destroy(ExtensionContext context)
             throws Exception {
+
         var params = CrawlTestParameters.get(context);
-        if (params.getCrawlContext() != null) {
-            // simulate
-            params.getCrawlContext().fire(CrawlerEvent.CRAWLER_CRAWL_END);
+
+        if (annotation.focus() == Focus.CONTEXT
+                && params.getCrawlContext() != null) {
+            // "crawl" focus handles the context already.
+            params.getCrawlContext().fire(
+                    CrawlerEvent.CRAWLER_CRAWL_END); // simulate
             TestSessionUtil.destroyCrawlerContext(params.getCrawlContext());
         }
         if (params.getMemoryCommitter() != null) {
@@ -181,8 +185,6 @@ public class CrawlTestExtensionCallbacks implements
 
     private CrawlDriver toCrawlDriver(
             Class<? extends Supplier<CrawlDriver>> supplierClass) {
-        System.err.println("XXX NULL HERE? --> "
-                + ClassUtil.newInstance(supplierClass).get());
         return ClassUtil.newInstance(supplierClass).get();
     }
 }

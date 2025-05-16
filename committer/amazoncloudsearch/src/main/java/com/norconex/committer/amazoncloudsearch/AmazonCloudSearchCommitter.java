@@ -105,9 +105,8 @@ public class AmazonCloudSearchCommitter
     private final AmazonCloudSearchCommitterConfig configuration =
             new AmazonCloudSearchCommitterConfig();
 
-    @ToStringExclude
-    @HashCodeExclude
-    @EqualsExclude
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonIgnore
     private AmazonCloudSearchDomain awsClient;
 

@@ -18,7 +18,6 @@ import java.io.Serializable;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.BaseGridTask.SingleNodeTask;
@@ -35,18 +34,8 @@ public class CrawlBootstrapTask extends SingleNodeTask {
     public Serializable execute(Grid grid) {
         var ctx = CrawlContext.get(grid);
 
-        // We launch a "run thread" notification here as some crawl related
-        // actions can be/are done within an initializer execution (like fetch
-        // a sitemap.xml, etc.) and they need to receive this notification.
-        ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
-                Thread.currentThread());
-        try {
-            if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
-                ctx.getBootstrappers().forEach(boot -> boot.bootstrap(ctx));
-            }
-        } finally {
-            ctx.fire(CrawlerEvent.CRAWLER_RUN_THREAD_END,
-                    Thread.currentThread());
+        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
+            ctx.getBootstrappers().forEach(boot -> boot.bootstrap(ctx));
         }
         return null;
     }

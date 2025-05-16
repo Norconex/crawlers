@@ -17,9 +17,9 @@ package com.norconex.committer.core.impl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -59,7 +59,8 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
 
     //TODO make requests static and using thread local
 
-    private final List<CommitterRequest> requests = new ArrayList<>();
+    private final List<CommitterRequest> requests =
+            new CopyOnWriteArrayList<>();
 
     private int upsertCount = 0;
     private int deleteCount = 0;

@@ -59,10 +59,8 @@ public interface Grid extends Closeable {
      * compute "ONCE" will be able to be launched again.
      * Invoking this method does not delete other persisted data and leaves
      * stores created by consuming applications intact.
-     * @return <code>true</code> if state was cleared. <code>false</code> if
-     *    there was no persisted state to clear.
      */
-    boolean resetSession();
+    void resetSession();
 
     /**
      * <p>

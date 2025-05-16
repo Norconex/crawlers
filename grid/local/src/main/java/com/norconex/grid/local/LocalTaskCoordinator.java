@@ -67,13 +67,24 @@ public class LocalTaskCoordinator {
         }
 
         try {
+
             activeTasks.put(task.getId(), task);
             taskStateStore.put(task.getId(), TaskState.RUNNING);
             var result = task.execute(grid);
             var status =
                     new TaskExecutionResult(TaskState.COMPLETED, result, null);
             var aggStatus = task.aggregate(List.of(status));
-            taskStateStore.put(task.getId(), TaskState.COMPLETED);
+
+            //NOTE: it is possible that the executed task was about destroying
+            // the storage. If so, we have to consider it may be gone and check
+            // for that here before storing the result state. If we did not
+            // destroy storage on purpose, it will fail down the road when used
+            // again and will be reported properly then.
+            if (grid.getStorage().storeExists(taskStateStore.getName())) {
+                taskStateStore.put(task.getId(), TaskState.COMPLETED);
+            } else {
+                LOG.info("Storage used to track task state no longer exists.");
+            }
             return aggStatus;
         } catch (Exception e) {
             LOG.error("task {} failed.", task.getId(), e);

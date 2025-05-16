@@ -29,4 +29,9 @@ public class If extends ConditionalDocHandler {
     public If(Condition condition) {
         super(condition, false);
     }
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
 }
