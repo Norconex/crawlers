@@ -17,7 +17,7 @@ package com.norconex.crawler.fs.fetch.impl.hdfs;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.hdfs.HdfsFileSystemConfigBuilder;
 
-import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher;
 import com.norconex.crawler.fs.fetch.impl.FileFetchUtil;
 
@@ -39,7 +39,7 @@ public class HdfsFetcher extends AbstractVfsFetcher<HdfsFetcherConfig> {
     private final HdfsFetcherConfig configuration = new HdfsFetcherConfig();
 
     @Override
-    protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
         return FileFetchUtil.referenceStartsWith(fetchRequest, "hdfs://");
     }
 

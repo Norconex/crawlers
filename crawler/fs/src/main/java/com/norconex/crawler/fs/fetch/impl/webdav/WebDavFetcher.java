@@ -45,7 +45,7 @@ public class WebDavFetcher extends AbstractAuthVfsFetcher<WebDavFetcherConfig> {
     private final WebDavFetcherConfig configuration = new WebDavFetcherConfig();
 
     @Override
-    protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptFileRequest(@NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(
                 fetchRequest, "webdav://", "http://", "https://");
     }

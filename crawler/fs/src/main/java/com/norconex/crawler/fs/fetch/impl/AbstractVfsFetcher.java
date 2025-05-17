@@ -27,7 +27,6 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
@@ -35,11 +34,15 @@ import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.fetch.FetchResponse;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
-import com.norconex.crawler.fs.fetch.FileFetcher;
-import com.norconex.crawler.fs.path.FsPath;
+import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
+import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
+import com.norconex.crawler.fs.fetch.FsPath;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.AccessLevel;
@@ -60,8 +63,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
-        extends AbstractFetcher<FileFetchRequest, FileFetchResponse, C>
-        implements FileFetcher {
+        extends AbstractFetcher<C> {
 
     @Getter(value = AccessLevel.PACKAGE)
     private StandardFileSystemManager fsManager;
@@ -72,7 +74,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     private FileSystemOptions fsOptions;
 
     @Override
-    protected void fetcherStartup(CrawlerContext crawler) {
+    protected void fetcherStartup(CrawlContext crawler) {
         try {
             fsManager = new StandardFileSystemManager();
             fsManager.setClassLoader(getClass().getClassLoader());
@@ -87,14 +89,22 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     }
 
     @Override
-    protected void fetcherShutdown(CrawlerContext crawler) {
+    protected void fetcherShutdown(CrawlContext crawler) {
         if (fsManager != null) {
             fsManager.close();
         }
     }
 
     @Override
-    public FileFetchResponse fetch(FileFetchRequest fetchRequest)
+    public FetchResponse fetch(FetchRequest fetchRequest)
+            throws FetchException {
+        if (fetchRequest instanceof FileFetchRequest fileReq) {
+            return fetchFileObject(fileReq);
+        }
+        return fetchChildPaths((FolderPathsFetchRequest) fetchRequest);
+    }
+
+    protected FileFetchResponse fetchFileObject(FileFetchRequest req)
             throws FetchException {
 
         if (fsOptions == null) {
@@ -103,7 +113,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
                             + getClass().getName());
         }
 
-        var doc = fetchRequest.getDoc();
+        var doc = req.getDoc();
 
         // if meta, we do not copy body.
         //
@@ -125,7 +135,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             if (fileObject.isFile()) {
                 // Don't fetch body if we do meta only
                 if (FetchDirective.DOCUMENT.is(
-                        fetchRequest.getFetchDirective())) {
+                        req.getFetchDirective())) {
                     fetchContent(doc, fileObject);
                 }
                 fetchMetadata(doc, fileObject);
@@ -143,9 +153,13 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         }
     }
 
-    @Override
-    public Set<FsPath> fetchChildPaths(String parentPath)
-            throws FetchException {
+    //    protected Set<FsPath> fetchChildPaths(String parentPath)
+    //    throws FetchException {
+    //
+    //    }
+    protected FolderPathsFetchResponse fetchChildPaths(
+            FolderPathsFetchRequest req) throws FetchException {
+        var parentPath = req.getDoc().getReference();
         try {
             var fileObject = fsManager.resolveFile(
                     FileFetchUtil.uriEncodeLocalPath(parentPath), fsOptions);
@@ -164,12 +178,14 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
                 path.setFolder(childPath.isFolder());
                 childPaths.add(path);
             }
-            return childPaths;
+            return GenericFolderPathsFetchResponse.builder()
+                    //TODO shall we care to put a real state here?
+                    .resolutionStatus(CrawlDocStatus.NEW)
+                    .childPaths(childPaths)
+                    .build();
         } catch (FileSystemException e) {
             throw new FetchException(
-                    "Could not fetch child paths of: "
-                            + parentPath,
-                    e);
+                    "Could not fetch child paths of: " + parentPath, e);
         }
     }
 

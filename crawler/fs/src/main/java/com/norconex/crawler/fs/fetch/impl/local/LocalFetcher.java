@@ -33,8 +33,8 @@ import org.apache.commons.vfs2.provider.local.LocalFileName;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
-import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher;
 
 import lombok.EqualsAndHashCode;
@@ -88,7 +88,7 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
     private final LocalFetcherConfig configuration = new LocalFetcherConfig();
 
     @Override
-    protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
         return referenceStartsWith(
                 fetchRequest,
                 "/", "\\", "file:", "bzip2:", "gzip:", "jar:",

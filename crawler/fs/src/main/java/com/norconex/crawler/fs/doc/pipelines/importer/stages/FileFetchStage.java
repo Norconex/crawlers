@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.pipelines.importer.stages;
+package com.norconex.crawler.fs.doc.pipelines.importer.stages;
 
 import java.time.ZonedDateTime;
 
@@ -27,7 +27,6 @@ import com.norconex.crawler.core.fetch.FetchUtil;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
-import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.NonNull;
@@ -48,28 +47,26 @@ public class FileFetchStage extends AbstractImporterStage {
      * Only does something if appropriate. For instance,
      * if a separate HTTP HEAD request was NOT required to be performed,
      * this method will never get invoked for a HEAD method.
-     * @param ctx pipeline context
+     * @param pipeCtx pipeline context
      * @return <code>true</code> if we continue processing.
      */
     @Override
-    protected boolean executeStage(ImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext pipeCtx) {
         // If stage is for a directive that was disabled, skip
-        if (!ctx.isFetchDirectiveEnabled(getFetchDirective())) {
+        if (!pipeCtx.isFetchDirectiveEnabled(getFetchDirective())) {
             return true;
         }
 
-        var docRecord = (FsCrawlDocContext) ctx.getDoc().getDocContext();
-        var fetcher = (FileFetcher) ctx.getCrawlerContext().getFetcher();
+        var docRecord = (FsCrawlDocContext) pipeCtx.getDoc().getDocContext();
+        var fetcher = pipeCtx.getCrawlContext().getFetcher();
         FileFetchResponse response;
         try {
-            response = fetcher.fetch(
+            response = (FileFetchResponse) fetcher.fetch(
                     new FileFetchRequest(
-                            ctx.getDoc(), getFetchDirective()));
+                            pipeCtx.getDoc(), getFetchDirective()));
         } catch (FetchException e) {
-            throw new CrawlerException(
-                    "Could not fetch file: "
-                            + ctx.getDoc().getDocContext().getReference(),
-                    e);
+            throw new CrawlerException("Could not fetch file: "
+                    + pipeCtx.getDoc().getDocContext().getReference(), e);
         }
         var originalCrawlDocState = docRecord.getState();
 
@@ -78,7 +75,7 @@ public class FileFetchStage extends AbstractImporterStage {
         docRecord.setFolder(response.isFolder());
 
         //--- Add collector-specific metadata ---
-        var meta = ctx.getDoc().getMetadata();
+        var meta = pipeCtx.getDoc().getMetadata();
         meta.set(DocMetaConstants.CONTENT_TYPE, docRecord.getContentType());
         meta.set(DocMetaConstants.CONTENT_ENCODING, docRecord.getCharset());
 
@@ -87,17 +84,15 @@ public class FileFetchStage extends AbstractImporterStage {
         docRecord.setState(state);
 
         if (state.isGoodState()) {
-            ctx.getCrawlerContext().fire(
-                    CrawlerEvent.builder()
-                            .name(
-                                    FetchDirective.METADATA.is(
-                                            getFetchDirective())
-                                                    ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
-                                                    : CrawlerEvent.DOCUMENT_FETCHED)
-                            .source(ctx.getCrawlerContext())
-                            .subject(response)
-                            .docContext(docRecord)
-                            .build());
+            pipeCtx.getCrawlContext().fire(CrawlerEvent.builder()
+                    .name(FetchDirective.METADATA.is(
+                            getFetchDirective())
+                                    ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
+                                    : CrawlerEvent.DOCUMENT_FETCHED)
+                    .source(pipeCtx.getCrawlContext())
+                    .subject(response)
+                    .docContext(docRecord)
+                    .build());
             return true;
         }
 
@@ -108,19 +103,19 @@ public class FileFetchStage extends AbstractImporterStage {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
 
-        ctx.getCrawlerContext().fire(
+        pipeCtx.getCrawlContext().fire(
                 CrawlerEvent.builder()
                         .name(eventType)
-                        .source(ctx.getCrawlerContext())
+                        .source(pipeCtx.getCrawlContext())
                         .subject(response)
                         .docContext(docRecord)
                         .build());
 
         // At this stage, the ref is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning
-        // false or true) depends on http fetch methods supported.
+        // false or true) depends on the fetch methods supported.
         return FetchUtil.shouldContinueOnBadStatus(
-                ctx.getCrawlerContext(), originalCrawlDocState,
+                pipeCtx.getCrawlContext(), originalCrawlDocState,
                 getFetchDirective());
     }
 }

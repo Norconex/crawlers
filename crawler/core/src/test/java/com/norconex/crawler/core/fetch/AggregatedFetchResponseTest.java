@@ -24,7 +24,7 @@ import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 import lombok.Data;
 
-class MultiFetchResponseTest {
+class AggregatedFetchResponseTest {
 
     @Data
     static class TestResponse implements FetchResponse {
@@ -56,7 +56,7 @@ class MultiFetchResponseTest {
         var resp1 = new TestResponse("resp1");
         var resp2 = new TestResponse("resp2");
 
-        var gmfr = new MultiFetchResponse(List.of(resp1, resp2));
+        var gmfr = new AggregatedFetchResponse(List.of(resp1, resp2));
 
         assertThat(gmfr.getStatusCode()).isEqualTo(123);
         assertThat(gmfr.getReasonPhrase()).isEqualTo("Just because.");

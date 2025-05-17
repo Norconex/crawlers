@@ -17,16 +17,15 @@ package com.norconex.crawler.fs.mock;
 import java.nio.file.Path;
 
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.fs.FsCrawlerSpecProvider;
+import com.norconex.crawler.fs.FsCrawlDriverFactory;
 
 /**
- * Same as {@link MockCrawlerBuilder}, but defaults to
- * {@link FsCrawlerSpecProvider}.
+ * Same as {@link MockCrawlerBuilder}, but with a file system crawl driver.
  */
 public final class MockFsCrawlerBuilder extends MockCrawlerBuilder {
 
     public MockFsCrawlerBuilder(Path workDir) {
         super(workDir);
-        specProviderClass(FsCrawlerSpecProvider.class);
+        crawlDriver(FsCrawlDriverFactory.create());
     }
 }

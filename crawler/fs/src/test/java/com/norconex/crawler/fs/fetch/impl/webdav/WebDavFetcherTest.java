@@ -31,8 +31,8 @@ import org.testcontainers.utility.DockerImageName;
 
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.FsTestUtil;
-import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -53,7 +53,7 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
     private String webdavUrl;
 
     @Override
-    protected FileFetcher fetcher() {
+    protected Fetcher fetcher() {
         return fetcherClient();
     }
 

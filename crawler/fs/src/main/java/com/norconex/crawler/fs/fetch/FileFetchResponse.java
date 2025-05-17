@@ -18,9 +18,30 @@ import com.norconex.crawler.core.fetch.FetchResponse;
 
 public interface FileFetchResponse extends FetchResponse {
 
-    // NOTE: on some file systems, it could be possible for an item to be both
-    // file and folder (a parent file having child files).
+    /**
+     * Whether the fetched path is a file.
+     * Note that on some file systems,  it is be possible for a path to
+     * represent both a file and folder (a parent file having child files).
+     * @return {@code true} if a file
+     */
     boolean isFile();
 
+    /**
+     * Whether the fetched path a folder.
+     * Note that on some file systems,  it is be possible for a path to
+     * represent both a file and folder (a parent file having child files).
+     * @return {@code true} if a folder
+     */
     boolean isFolder();
+
+    //TODO have different file request
+    //    /**
+    //     * The child paths of a folder path.
+    //     * <b>
+    //     * Only returned when explicitly requested on {@link FileFetchRequest}.
+    //     * </b>
+    //     * @return child paths
+    //     */
+    //    Set<FsPath> childPaths();
+
 }

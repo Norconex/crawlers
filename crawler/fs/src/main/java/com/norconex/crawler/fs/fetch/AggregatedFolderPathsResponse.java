@@ -14,9 +14,12 @@
  */
 package com.norconex.crawler.fs.fetch;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import com.norconex.crawler.core.fetch.MultiFetchResponse;
+import com.norconex.crawler.core.fetch.FetchResponse;
+import com.norconex.crawler.core.fetch.AggregatedFetchResponse;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -28,23 +31,19 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-public class FileMultiFetchResponse
-        extends MultiFetchResponse<FileFetchResponse>
-        implements FileFetchResponse {
+public class AggregatedFolderPathsResponse
+        extends AggregatedFetchResponse
+        implements FolderPathsFetchResponse {
 
-    public FileMultiFetchResponse(List<FileFetchResponse> fetchResponses) {
+    public AggregatedFolderPathsResponse(List<FetchResponse> fetchResponses) {
         super(fetchResponses);
     }
 
     @Override
-    public boolean isFile() {
-        return getLastFetchResponse().map(
-                FileFetchResponse::isFile).orElse(false);
-    }
-
-    @Override
-    public boolean isFolder() {
-        return getLastFetchResponse().map(
-                FileFetchResponse::isFolder).orElse(false);
+    public Set<FsPath> getChildPaths() {
+        return getLastFetchResponse()
+                .map(FolderPathsFetchResponse.class::cast)
+                .map(FolderPathsFetchResponse::getChildPaths)
+                .orElse(Collections.emptySet());
     }
 }

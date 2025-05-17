@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.pipelines.importer.stages;
+package com.norconex.crawler.fs.doc.pipelines.importer.stages;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -58,7 +58,7 @@ class FolderPathsExtractorStageTest {
             }
         });
 
-        new MockFsCrawlerBuilder(tempDir).withCrawlerContext(crawlCtx -> {
+        new MockFsCrawlerBuilder(tempDir).withCrawlContext(crawlCtx -> {
             var ctx = new ImporterPipelineContext(crawlCtx, doc);
             assertThatExceptionOfType(CrawlerException.class)
                     .isThrownBy(() -> //NOSONAR

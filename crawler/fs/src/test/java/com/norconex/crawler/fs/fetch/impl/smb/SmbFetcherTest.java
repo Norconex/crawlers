@@ -24,8 +24,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.FsTestUtil;
-import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -56,7 +56,7 @@ class SmbFetcherTest extends AbstractFileFetcherTest {
     }
 
     @Override
-    protected FileFetcher fetcher() {
+    protected Fetcher fetcher() {
         var fetcher = new SmbFetcher();
         fetcher.getConfiguration()
                 .setDomain("WORKGROUP")

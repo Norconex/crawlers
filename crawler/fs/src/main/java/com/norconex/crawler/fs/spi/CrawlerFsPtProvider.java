@@ -14,15 +14,8 @@
  */
 package com.norconex.crawler.fs.spi;
 
-import java.util.List;
-import java.util.function.Predicate;
-
-import org.apache.commons.collections4.MultiMapUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-
-import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
+import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.fetch.impl.cmis.CmisFetcher;
@@ -38,39 +31,23 @@ import com.norconex.crawler.fs.fetch.impl.webdav.WebDavFetcher;
  * For auto registering in {@link BeanMapper}.
  * </p>
  */
-public class CrawlerFsPtProvider implements PolymorphicTypeProvider {
+public class CrawlerFsPtProvider extends BasePolymorphicTypeProvider {
+
+    protected static final String BASE_PKG = "com.norconex.crawler.fs.";
 
     @Override
-    public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
-        MultiValuedMap<Class<?>, Class<?>> map =
-                MultiMapUtils.newListValuedHashMap();
-
-        addPolyType(map, MetadataChecksummer.class, "operations");
-        map.putAll(
-                Fetcher.class, List.of(
+    protected void register(Registry registry) {
+        registry
+                .addFromScan(
+                        MetadataChecksummer.class,
+                        BASE_PKG + "doc.operations")
+                .add(Fetcher.class,
                         CmisFetcher.class,
                         FtpFetcher.class,
                         HdfsFetcher.class,
                         LocalFetcher.class,
                         SftpFetcher.class,
                         SmbFetcher.class,
-                        WebDavFetcher.class));
-
-        return map;
-    }
-
-    static void addPolyType(
-            MultiValuedMap<Class<?>, Class<?>> polyTypes,
-            Class<?> baseClass,
-            String corePkg) {
-        polyTypes.putAll(baseClass, ClassFinder.findSubTypes(
-                baseClass,
-                corePkg == null
-                        ? nm -> nm.startsWith(baseClass.getPackageName())
-                        : filter(corePkg)));
-    }
-
-    private static Predicate<String> filter(String corePkg) {
-        return nm -> nm.startsWith("com.norconex.crawler.fs." + corePkg);
+                        WebDavFetcher.class);
     }
 }

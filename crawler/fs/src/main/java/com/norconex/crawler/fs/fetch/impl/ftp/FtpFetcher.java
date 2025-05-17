@@ -46,7 +46,7 @@ public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
     private final FtpFetcherConfig configuration = new FtpFetcherConfig();
 
     @Override
-    protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptFileRequest(@NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(fetchRequest, "ftp://", "ftps://");
     }
 

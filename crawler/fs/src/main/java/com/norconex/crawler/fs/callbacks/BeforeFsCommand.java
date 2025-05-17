@@ -16,7 +16,7 @@ package com.norconex.crawler.fs.callbacks;
 
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.session.CrawlContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,11 +24,11 @@ import lombok.extern.slf4j.Slf4j;
  * Web crawler-specific initialization before the crawler starts.
  */
 @Slf4j
-public class BeforeFsCommand implements Consumer<CrawlerContext> {
+public class BeforeFsCommand implements Consumer<CrawlContext> {
 
     @Override
-    public void accept(CrawlerContext crawlerContext) {
-        var cfg = crawlerContext.getConfiguration();
+    public void accept(CrawlContext crawlContext) {
+        var cfg = crawlContext.getCrawlConfig();
         LOG.info("""
 
                 Resuming:         %s
@@ -42,7 +42,7 @@ public class BeforeFsCommand implements Consumer<CrawlerContext> {
                   Checksummer:    %s
                   Deduplication:  %s
                 """.formatted(
-                yn(crawlerContext.isResuming()),
+                yn(crawlContext.isResumedSession()),
                 yn(cfg.getMetadataChecksummer() != null),
                 yn(cfg.isMetadataDeduplicate()
                         && cfg.getMetadataChecksummer() != null),

@@ -27,6 +27,7 @@ import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.DocContext;
 
@@ -67,7 +68,8 @@ class AbstractVfsFetcherTest {
         fetcher.fetcherStartup(null);
         assertThatExceptionOfType(FetchException.class).isThrownBy( //NOSONAR
                 () -> {
-                    fetcher.fetchChildPaths("i/dont/exist");
+                    fetcher.fetch(new FolderPathsFetchRequest(
+                            new CrawlDoc(new DocContext("i/dont/exist"))));
                 }).withMessageContaining("Could not fetch child paths of:");
     }
 

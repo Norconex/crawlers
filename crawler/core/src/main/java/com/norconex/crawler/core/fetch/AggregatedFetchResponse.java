@@ -32,7 +32,7 @@ import lombok.Setter;
  */
 @Data
 @RequiredArgsConstructor
-public class MultiFetchResponse implements FetchResponse {
+public class AggregatedFetchResponse implements FetchResponse {
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)

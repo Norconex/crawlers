@@ -34,7 +34,7 @@ public class CmisFetcherConfig extends BaseAuthVfsFetcherConfig {
     private String repositoryId;
     /**
      * The name of the field where the raw XML obtained from
-     * the CMIS REST API will be stored. Defaults to <code>null</code>
+     * the CMIS REST API will be stored. Defaults to {@code null}
      * (does not store the raw XML in a field).
      */
     private String xmlTargetField;

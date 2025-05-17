@@ -21,7 +21,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.fs.fetch.FileFetcher;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 class FtpFetcherTest extends AbstractFileFetcherTest {
@@ -40,7 +40,7 @@ class FtpFetcherTest extends AbstractFileFetcherTest {
     }
 
     @Override
-    protected FileFetcher fetcher() {
+    protected Fetcher fetcher() {
         return MockFtpServer.fetcherClient();
     }
 

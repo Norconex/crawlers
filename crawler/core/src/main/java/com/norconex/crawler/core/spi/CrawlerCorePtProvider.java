@@ -14,14 +14,8 @@
  */
 package com.norconex.crawler.core.spi;
 
-import java.util.function.Predicate;
-
-import org.apache.commons.collections4.MultiMapUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-
-import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
+import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
@@ -29,62 +23,25 @@ import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
-import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
-import com.norconex.grid.core.GridConnector;
 
 /**
  * <p>
  * For auto registering in {@link BeanMapper}.
  * </p>
  */
-public class CrawlerCorePtProvider implements PolymorphicTypeProvider {
+public class CrawlerCorePtProvider extends BasePolymorphicTypeProvider {
 
-    protected static final String IGNITE_BASE_PKG = "org.apache.ignite";
+    protected static final String BASE_PKG = "com.norconex.crawler.core.";
 
     @Override
-    public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
-        //NOTE:
-        // CrawlSessionConfig and CrawlConfig are not registered here.
-        // We leave it to crawler implementation to register them as/if
-        // required. If one day we make all crawlers configurable in same
-        // crawl session, this is likely where we would add it.
-
-        MultiValuedMap<Class<?>, Class<?>> map =
-                MultiMapUtils.newListValuedHashMap();
-        addPolyType(map, DocumentChecksummer.class);
-        addPolyType(map, DocumentFilter.class);
-        addPolyType(map, EventListener.class, "event.listeners");
-        addPolyType(map, GridConnector.class);
-        addPolyType(map, MetadataChecksummer.class);
-        addPolyType(map, MetadataFilter.class);
-        addPolyType(map, ReferenceFilter.class);
-        addPolyType(map, SpoiledReferenceStrategizer.class);
-        //  addPolyType(map, IgniteConfigurer.class);
-
-        // delete this:
-        map.put(EventListener.class, StopCrawlerOnMaxEventListener.class);
-
-        return map;
-    }
-
-    private void addPolyType(
-            MultiValuedMap<Class<?>, Class<?>> polyTypes,
-            Class<?> baseClass) {
-        addPolyType(polyTypes, baseClass, null);
-    }
-
-    private void addPolyType(
-            MultiValuedMap<Class<?>, Class<?>> polyTypes,
-            Class<?> baseClass,
-            String corePkg) {
-        polyTypes.putAll(baseClass, ClassFinder.findSubTypes(
-                baseClass,
-                corePkg == null
-                        ? nm -> nm.startsWith(baseClass.getPackageName())
-                        : filter(corePkg)));
-    }
-
-    private Predicate<String> filter(String corePkg) {
-        return nm -> nm.startsWith("com.norconex.crawler.core." + corePkg);
+    protected void register(Registry registry) {
+        registry
+                .addFromScan(DocumentChecksummer.class)
+                .addFromScan(DocumentFilter.class)
+                .addFromScan(EventListener.class, BASE_PKG + "event.listeners")
+                .addFromScan(MetadataChecksummer.class)
+                .addFromScan(MetadataFilter.class)
+                .addFromScan(ReferenceFilter.class)
+                .addFromScan(SpoiledReferenceStrategizer.class);
     }
 }

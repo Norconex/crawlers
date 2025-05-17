@@ -67,7 +67,7 @@ public class QueueBootstrapper implements CrawlBootstrapper {
 
     @Override
     public void bootstrap(CrawlContext crawlContext) {
-        if (crawlContext.isResumedCrawlSession()) {
+        if (crawlContext.isResumedSession()) {
             LOG.info("Unfinished previous crawl detected. Resuming...");
         } else {
             LOG.info("Queueing start references ({})...",

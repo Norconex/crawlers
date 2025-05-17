@@ -35,7 +35,7 @@ class MultiFetcherTest {
                 .setDenyRequest(false)
                 .setReturnBadStatus(false));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
-        assertThat(((MultiFetchResponse) resp)
+        assertThat(((AggregatedFetchResponse) resp)
                 .getFetchResponses()).hasSize(1);
     }
 
@@ -45,7 +45,8 @@ class MultiFetcherTest {
                 .setDenyRequest(false)
                 .setReturnBadStatus(true));
         var resp = mf.fetch(new MockFetchRequest("someRef"));
-        assertThat(((MultiFetchResponse) resp).getFetchResponses()).hasSize(2);
+        assertThat(((AggregatedFetchResponse) resp).getFetchResponses())
+                .hasSize(2);
     }
 
     @Test
@@ -57,7 +58,7 @@ class MultiFetcherTest {
         // Even though there are no matching fetchers, there is always
         // at least once response returned. In this case, it will be
         // one with status UNSUPPORTED.
-        assertThat(((MultiFetchResponse) resp)
+        assertThat(((AggregatedFetchResponse) resp)
                 .getFetchResponses()).hasSize(1);
         assertThat(resp.getResolutionStatus())
                 .isSameAs(CrawlDocStatus.UNSUPPORTED);
@@ -79,9 +80,9 @@ class MultiFetcherTest {
     }
 
     static class MockMultiFetcherResponse
-            extends MultiFetchResponse implements MockFetchResponse {
+            extends AggregatedFetchResponse implements MockFetchResponse {
         public MockMultiFetcherResponse(
-                List<FetchResponse> fetchResponses) {
+                FetchRequest req, List<FetchResponse> fetchResponses) {
             super(fetchResponses);
         }
     }

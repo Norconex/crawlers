@@ -61,7 +61,14 @@ public class MultiFetcher implements Fetcher {
     // By default, no wrapping is done.
     @FunctionalInterface
     public interface ResponseAggregator {
-        FetchResponse aggregate(List<FetchResponse> multiResponse);
+        /**
+         * Aggregate multiple results to produce a single one.
+         * @param request the original request
+         * @param multiResponse responses to aggregate
+         * @return new response
+         */
+        FetchResponse aggregate(
+                FetchRequest request, List<FetchResponse> multiResponse);
     }
 
     @SuppressWarnings("unused") // used by lombok @Builder
@@ -135,7 +142,8 @@ public class MultiFetcher implements Fetcher {
 
                 if (fetchResponse.getResolutionStatus() != null
                         && fetchResponse.getResolutionStatus().isGoodState()) {
-                    return responseAggregator.aggregate(allResponses);
+                    return responseAggregator.aggregate(
+                            fetchRequest, allResponses);
                 }
                 LOG.debug("Fetcher {} response returned a bad crawl state: {}",
                         fetcher.getClass().getSimpleName(),
@@ -159,7 +167,7 @@ public class MultiFetcher implements Fetcher {
                 filters.""",
                     doc.getReference());
         }
-        return responseAggregator.aggregate(allResponses);
+        return responseAggregator.aggregate(fetchRequest, allResponses);
     }
 
     private FetchResponse doFetch(

@@ -12,15 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.path;
+package com.norconex.crawler.fs.fetch;
+
+import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.fetch.FetchRequest;
 
 import lombok.Data;
+import lombok.NonNull;
 
+/**
+ * A request to get all direct paths within a folder. Making a request
+ * on a file system resource that is not a folder (e.g., a file) has no effect.
+ */
 @Data
-public class FsPath {
+public class FolderPathsFetchRequest implements FetchRequest {
 
-    private final String uri;
-    private boolean file;
-    private boolean folder;
-
+    @NonNull
+    private final CrawlDoc doc;
 }

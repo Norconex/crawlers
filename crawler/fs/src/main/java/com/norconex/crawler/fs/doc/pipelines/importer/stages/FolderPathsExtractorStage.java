@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.pipelines.importer.stages;
+package com.norconex.crawler.fs.doc.pipelines.importer.stages;
 
 import java.util.Set;
 
@@ -23,8 +23,9 @@ import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.fs.doc.FsCrawlDocContext;
-import com.norconex.crawler.fs.fetch.FileFetcher;
-import com.norconex.crawler.fs.path.FsPath;
+import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
+import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
+import com.norconex.crawler.fs.fetch.FsPath;
 
 public class FolderPathsExtractorStage extends AbstractImporterStage {
 
@@ -40,30 +41,40 @@ public class FolderPathsExtractorStage extends AbstractImporterStage {
             return true;
         }
 
-        var fetcher = (FileFetcher) ctx.getCrawlerContext().getFetcher();
+        var fetcher = ctx.getCrawlContext().getFetcher();
 
         var docContext = (FsCrawlDocContext) ctx.getDoc().getDocContext();
         if (docContext.isFolder()) {
             Set<FsPath> paths;
             try {
-                paths = fetcher.fetchChildPaths(docContext.getReference());
+
+                //***************************************************************************************
+
+                //TODO in driver, make the aggregator return something
+                // that support/return the different type of responses;
+
+                //***************************************************************************************
+
+                var resp = (FolderPathsFetchResponse) fetcher
+                        .fetch(new FolderPathsFetchRequest(ctx.getDoc()));
+                //TODO check for response exception, provided we are setting
+                // any
+                paths = resp.getChildPaths();
             } catch (FetchException e) {
-                throw new CrawlerException(
-                        "Could not fetch child paths of: "
-                                + docContext.getReference(),
-                        e);
+                throw new CrawlerException("Could not fetch child paths of: "
+                        + docContext.getReference(), e);
             }
             for (FsPath fsPath : paths) {
                 var newPath = new FsCrawlDocContext(
                         fsPath.getUri(), docContext.getDepth() + 1);
                 newPath.setFile(fsPath.isFile());
                 newPath.setFolder(fsPath.isFolder());
-                ctx.getCrawlerContext()
-                        .getPipelines()
+                ctx.getCrawlContext()
+                        .getDocPipelines()
                         .getQueuePipeline()
                         .accept(
                                 new QueuePipelineContext(
-                                        ctx.getCrawlerContext(), newPath));
+                                        ctx.getCrawlContext(), newPath));
             }
         }
 

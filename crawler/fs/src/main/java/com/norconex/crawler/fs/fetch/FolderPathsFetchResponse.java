@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,19 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.callbacks;
+package com.norconex.crawler.fs.fetch;
 
-import static org.assertj.core.api.Assertions.assertThatNoException;
+import java.util.Set;
 
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.fetch.FetchResponse;
 
-class BeforeFsCommandTest {
+public interface FolderPathsFetchResponse extends FetchResponse {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testAccept(CrawlContext ctx) {
-        assertThatNoException()
-                .isThrownBy(() -> new BeforeFsCommand().accept(ctx));
-    }
+    /**
+     * The child paths of a folder path.
+     * @return child paths
+     */
+    Set<FsPath> getChildPaths();
+
 }

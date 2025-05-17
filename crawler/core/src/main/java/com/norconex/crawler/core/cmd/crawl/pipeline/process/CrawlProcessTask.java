@@ -195,7 +195,7 @@ public class CrawlProcessTask extends AllNodesTask {
         // put timer for whole thread or closer to just importer
         // or have importer offer its own timer, in addition.
         // var elapsedTime = Timer.timeWatch(() ->
-        var cachedDocRec = crawlCtx.isIncrementalCrawlSession() ? crawlCtx
+        var cachedDocRec = crawlCtx.isIncrementalCrawl() ? crawlCtx
                 .getDocLedger()
                 .getCached(docRec.getReference())
                 .orElse(null)

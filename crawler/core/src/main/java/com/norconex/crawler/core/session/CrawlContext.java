@@ -109,11 +109,11 @@ public class CrawlContext {
         return getId();
     }
 
-    public boolean isResumedCrawlSession() {
+    public boolean isResumedSession() {
         return getResumeState() == ResumeState.RESUMED;
     }
 
-    public boolean isIncrementalCrawlSession() {
+    public boolean isIncrementalCrawl() {
         return getCrawlMode() == CrawlMode.INCREMENTAL;
     }
 

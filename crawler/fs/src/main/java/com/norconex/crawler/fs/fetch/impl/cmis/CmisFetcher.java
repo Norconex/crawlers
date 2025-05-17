@@ -78,7 +78,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
     }
 
     @Override
-    protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptFileRequest(@NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(fetchRequest, "cmis:");
     }
 

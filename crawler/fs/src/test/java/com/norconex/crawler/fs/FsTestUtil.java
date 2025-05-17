@@ -49,18 +49,18 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridConnector;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.junit.CrawlTestCapturer.CrawlCaptures;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridConnector;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;
 
@@ -235,20 +235,20 @@ public final class FsTestUtil {
     }
 
     public static MemoryCommitter
-            firstCommitter(@NonNull CrawlerContext crawler) {
-        return (MemoryCommitter) crawler.getConfiguration().getCommitters()
+            firstCommitter(@NonNull CrawlContext crawler) {
+        return (MemoryCommitter) crawler.getCrawlConfig().getCommitters()
                 .get(0);
     }
 
     public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
         return (MemoryCommitter) crawler
-                .getCrawlerConfig()
+                .getCrawlConfig()
                 .getCommitters()
                 .get(0);
     }
 
     public static CrawlCaptures crawlWithFetcher(
-            Path tempDir, Fetcher<?, ?> fetcher, String... refs)
+            Path tempDir, Fetcher fetcher, String... refs)
             throws Exception {
         return CrawlTestCapturer.capture(new MockFsCrawlerBuilder(tempDir)
                 .configModifier(cfg -> cfg
@@ -258,7 +258,7 @@ public final class FsTestUtil {
     }
 
     //    public static MemoryCommitter runWithConfig(
-    //            @NonNull Path workDir, @NonNull Consumer<CrawlerConfig> c) {
+    //            @NonNull Path workDir, @NonNull Consumer<CrawlConfig> c) {
     //        var crawler = CrawlerStubs.memoryCrawler(workDir, c);
     //        crawler.crawl();
     //        return firstCommitter(crawler);

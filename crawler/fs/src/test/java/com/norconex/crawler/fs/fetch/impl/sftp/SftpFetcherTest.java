@@ -24,8 +24,8 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.FsTestUtil;
-import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -53,7 +53,7 @@ class SftpFetcherTest extends AbstractFileFetcherTest {
     }
 
     @Override
-    protected FileFetcher fetcher() {
+    protected Fetcher fetcher() {
         var fetcher = new SftpFetcher();
         fetcher.getConfiguration()
                 .getCredentials()

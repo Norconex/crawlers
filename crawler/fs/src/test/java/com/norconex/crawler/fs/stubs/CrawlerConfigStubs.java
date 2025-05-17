@@ -26,7 +26,7 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 
 import lombok.NonNull;
 
@@ -37,8 +37,8 @@ public final class CrawlerConfigStubs {
     private CrawlerConfigStubs() {
     }
 
-    public static CrawlerConfig memoryCrawlerConfig(Path workDir) {
-        return new CrawlerConfig()
+    public static CrawlConfig memoryCrawlerConfig(Path workDir) {
+        return new CrawlConfig()
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
@@ -47,7 +47,7 @@ public final class CrawlerConfigStubs {
 
     public static Path writeConfigToDir(
             Path workDir,
-            @NonNull Consumer<CrawlerConfig> c) {
+            @NonNull Consumer<CrawlConfig> c) {
         var config = memoryCrawlerConfig(workDir);
         c.accept(config);
         var file = config
